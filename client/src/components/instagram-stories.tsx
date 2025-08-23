@@ -5,10 +5,11 @@ import type { StoreWithProducts, Product } from "@shared/schema";
 
 interface InstagramStoriesProps {
   store: StoreWithProducts;
+  allStores: StoreWithProducts[];
   onClose: () => void;
 }
 
-export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
+export function InstagramStories({ store, allStores, onClose }: InstagramStoriesProps) {
   const [, setLocation] = useLocation();
   const storiesProducts = store.products.filter(p => p.isActive && p.showInStories);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -63,8 +64,8 @@ export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
             setTimeout(() => setCurrentIndex(currentIndex + 1), 50);
             return 100;
           } else {
-            // Acabaram os produtos desta loja - volta para galeria
-            handleClose();
+            // Acabaram os produtos desta loja - vai para próxima loja
+            goToNextStore();
             return 100;
           }
         }
@@ -93,18 +94,42 @@ export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
     }, 500); // Duração da animação
   };
 
+  const goToNextStore = () => {
+    // Encontra próxima loja com stories
+    const storesWithStories = allStores.filter(s => 
+      s.products.some(p => p.isActive && p.showInStories)
+    );
+    const currentStoreIndex = storesWithStories.findIndex(s => s.id === store.id);
+    const nextStoreIndex = currentStoreIndex + 1;
+    
+    if (nextStoreIndex < storesWithStories.length) {
+      const nextStore = storesWithStories[nextStoreIndex];
+      // Navega para próxima loja
+      setIsClosing(true);
+      setIsPaused(true);
+      setTimeout(() => {
+        window.location.href = `/stores/${nextStore.slug}`;
+      }, 500);
+    } else {
+      // Não há mais lojas, volta para galeria
+      handleClose();
+    }
+  };
+
   const nextStory = () => {
     if (currentIndex < storiesProducts.length - 1) {
       setCurrentIndex(currentIndex + 1);
+      setProgress(0); // Reset manual do progresso
     } else {
-      // Volta para galeria quando termina
-      handleClose();
+      // Acabaram os produtos desta loja - vai para próxima loja
+      goToNextStore();
     }
   };
 
   const prevStory = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
+      setProgress(0); // Reset manual do progresso
     }
   };
 

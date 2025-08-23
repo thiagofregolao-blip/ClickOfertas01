@@ -151,11 +151,17 @@ export default function PublicFlyer() {
     ? sortedCategories.flatMap(category => productsByCategory[category]) // Ordenar por categoria quando "all"
     : activeProducts.filter(product => (product.category || 'Geral') === selectedCategory);
 
+  // Buscar todas as lojas para navegação entre stories
+  const { data: allStores } = useQuery({
+    queryKey: ['/api/public/stores'],
+  });
+
   // Show Instagram Stories if accessed via stories and has stories products
   if (showInstagramStories && store?.products.some(p => p.isActive && p.showInStories)) {
     return (
       <InstagramStories 
         store={store}
+        allStores={allStores || []}
         onClose={() => setShowInstagramStories(false)}
       />
     );
