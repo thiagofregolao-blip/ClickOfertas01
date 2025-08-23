@@ -448,7 +448,7 @@ function StorePost({ store, searchQuery = '', isMobile = true }: { store: StoreW
             <div className="relative">
               <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                 {displayProducts.map((product) => (
-                  <div key={product.id} className="flex-shrink-0 w-32 sm:w-36 md:w-40 h-48 sm:h-52">
+                  <div key={product.id} className="flex-shrink-0 w-32 sm:w-36 md:w-40 h-56 sm:h-60">
                     <ProductCard
                       product={product}
                       currency={store.currency || 'Gs.'}
