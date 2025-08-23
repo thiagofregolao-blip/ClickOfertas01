@@ -131,10 +131,10 @@ export default function ProductCard({
         >
           <span className="product-currency text-sm font-medium">{currency}</span>
           <span className="product-price text-xl md:text-2xl font-bold">
-            {Math.floor(Number(product.price || 0) / 1000)}
+            {Math.floor(Number(product.price || 0) / 100)}
           </span>
           <span className="product-currency text-sm font-bold">
-            ,{String(Math.floor((Number(product.price || 0) % 1000) / 10)).padStart(2, '0')}
+            .{String(Number(product.price || 0) % 100).padStart(2, '0')}
           </span>
         </div>
       </div>
