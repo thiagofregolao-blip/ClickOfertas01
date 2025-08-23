@@ -70,9 +70,11 @@ export default function ProductCard({
           </span>
         </div>
         
-        <div className="text-xs text-gray-500 mt-1">
-          Entrega em 24h/48hs
-        </div>
+        {product.description && (
+          <div className="text-xs text-gray-500 mt-1 line-clamp-1">
+            {product.description}
+          </div>
+        )}
       </div>
     </div>
   );
