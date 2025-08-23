@@ -338,90 +338,15 @@ function StorePost({ store, searchQuery = '' }: { store: StoreWithProducts, sear
       {/* Products Horizontal Cards */}
       {displayProducts.length > 0 ? (
         <div className="px-4 pb-3">
-          <style>{`
-            .small-product-card { 
-              height: 170px !important; 
-              display: flex !important;
-              flex-direction: column !important;
-            }
-            .small-product-card > div { 
-              border-radius: 8px !important; 
-              overflow: hidden !important;
-              height: 100% !important;
-              display: flex !important;
-              flex-direction: column !important;
-            }
-            .small-product-card .product-image { 
-              height: 85px !important; 
-              object-fit: contain !important;
-              background: white !important;
-              border-radius: 8px !important;
-              padding: 6px !important;
-              margin: 4px !important;
-              overflow: hidden !important;
-              flex-shrink: 0 !important;
-            }
-            .small-product-card img { 
-              border-radius: 6px !important;
-              overflow: hidden !important;
-            }
-            .small-product-card .product-content { 
-              padding: 6px 4px 4px 4px !important; 
-              flex: 1 !important;
-              display: flex !important;
-              flex-direction: column !important;
-              justify-content: space-between !important;
-              min-height: 60px !important;
-            }
-            .small-product-card .product-title { 
-              font-size: 9px !important; 
-              line-height: 1.1 !important; 
-              margin-bottom: 4px !important;
-              display: -webkit-box !important;
-              -webkit-line-clamp: 2 !important;
-              -webkit-box-orient: vertical !important;
-              overflow: hidden !important;
-              text-align: center !important;
-              flex: 1 !important;
-            }
-            .small-product-card .product-price { 
-              font-size: 16px !important; 
-              font-weight: bold !important;
-              white-space: nowrap !important;
-              overflow: visible !important;
-            }
-            .small-product-card .product-cents { 
-              font-size: 10px !important;
-              font-weight: 500 !important;
-              margin-top: 2px !important;
-            }
-            .small-product-card .product-currency { 
-              font-size: 11px !important;
-              white-space: nowrap !important;
-            }
-            .small-product-card .category-icon { 
-              width: 10px !important; 
-              height: 10px !important; 
-              bottom: 2px !important;
-              left: 2px !important;
-            }
-            .small-product-card .featured-badge { 
-              font-size: 9px !important; 
-              padding: 1px 3px !important; 
-              top: 2px !important;
-              right: 2px !important;
-            }
-          `}</style>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {displayProducts.map((product) => (
-              <div key={product.id} className="small-product-card">
-                <ProductCard
-                  product={product}
-                  currency={store.currency || 'Gs.'}
-                  themeColor={store.themeColor || '#E11D48'}
-                  showFeaturedBadge={true}
-                />
-              </div>
+              <ProductCard
+                key={product.id}
+                product={product}
+                currency={store.currency || 'Gs.'}
+                themeColor={store.themeColor || '#E11D48'}
+                showFeaturedBadge={true}
+              />
             ))}
           </div>
         </div>
