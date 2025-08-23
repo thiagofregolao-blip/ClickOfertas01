@@ -399,10 +399,10 @@ export default function PublicFlyer() {
 
           {/* Products Grid */}
           {filteredProducts.length > 0 ? (
-            <div className={`grid gap-${isStoriesView ? '6' : '3'} ${
+            <div className={`grid gap-${isStoriesView ? '6' : '4'} ${
               isStoriesView 
-                ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
-                : 'grid-cols-3 md:grid-cols-4 lg:grid-cols-6'
+                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+                : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
             }`}>
               {filteredProducts.map((product) => (
                 <ProductCard
@@ -411,6 +411,8 @@ export default function PublicFlyer() {
                   currency={store.currency || "Gs."}
                   themeColor={store.themeColor || "#E11D48"}
                   showFeaturedBadge={product.isFeatured || false}
+                  storeWhatsapp={store.whatsapp}
+                  storeName={store.name}
                 />
               ))}
             </div>
