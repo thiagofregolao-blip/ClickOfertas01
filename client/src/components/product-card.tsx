@@ -58,10 +58,16 @@ export default function ProductCard({
         </h3>
         
         <div 
-          className="text-sm md:text-base font-bold"
+          className="flex items-baseline justify-center gap-0.5"
           style={{ color: themeColor }}
         >
-          {currency} {product.price?.toLocaleString()}
+          <span className="text-xs font-medium">{currency}</span>
+          <span className="text-base md:text-lg font-bold">
+            {Math.floor((product.price || 0) / 1000)}
+          </span>
+          <span className="text-xs font-bold">
+            ,{String(Math.floor(((product.price || 0) % 1000) / 10)).padStart(2, '0')}
+          </span>
         </div>
         
         <div className="text-xs text-gray-500 mt-1">
