@@ -340,13 +340,14 @@ function StorePost({ store, searchQuery = '' }: { store: StoreWithProducts, sear
         <div className="px-4 pb-3">
           <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {displayProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                currency={store.currency || 'Gs.'}
-                themeColor={store.themeColor || '#E11D48'}
-                showFeaturedBadge={true}
-              />
+              <div key={product.id} className="min-h-[160px] flex">
+                <ProductCard
+                  product={product}
+                  currency={store.currency || 'Gs.'}
+                  themeColor={store.themeColor || '#E11D48'}
+                  showFeaturedBadge={true}
+                />
+              </div>
             ))}
           </div>
         </div>

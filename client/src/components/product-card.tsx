@@ -66,7 +66,7 @@ export default function ProductCard({
   const categoryIcon = getCategoryIcon(product.category || undefined);
   
   return (
-    <div className={`${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center`}>
+    <div className={`${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center flex flex-col h-full`}>
       <div className="relative">
         {product.imageUrl ? (
           <img 
@@ -114,19 +114,17 @@ export default function ProductCard({
         )}
       </div>
       
-      <div className="product-content p-2">
-        <h3 className="product-title text-xs font-semibold text-gray-900 mb-1 line-clamp-2">
+      <div className="product-content p-2 flex flex-col h-full">
+        <h3 className="product-title text-xs font-semibold text-gray-900 mb-1 line-clamp-2 h-8 flex items-center justify-center text-center">
           {product.name}
         </h3>
         
-        {product.description && (
-          <div className="text-xs text-gray-500 mb-2 line-clamp-1">
-            {product.description}
-          </div>
-        )}
+        <div className="text-xs text-gray-500 mb-2 line-clamp-1 h-4 flex items-center justify-center text-center">
+          {product.description || ''}
+        </div>
         
         <div 
-          className="flex items-end justify-center gap-0.5 h-8"
+          className="flex items-end justify-center gap-0.5 h-8 mt-auto"
           style={{ color: categoryColors.accent }}
         >
           <span className="product-currency text-sm font-medium self-end">{currency}</span>
