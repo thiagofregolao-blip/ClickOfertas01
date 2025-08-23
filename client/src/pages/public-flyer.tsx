@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Share, Download, Printer, Smartphone } from "lucide-react";
+import { Share, Download, Printer, MoreVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ProductCard from "@/components/product-card";
 import FlyerHeader from "@/components/flyer-header";
@@ -15,6 +15,20 @@ export default function PublicFlyer() {
   const [, params] = useRoute("/flyer/:slug");
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showActions, setShowActions] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Fecha o menu quando clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowActions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const { data: store, isLoading, error } = useQuery<StoreWithProducts>({
     queryKey: ["/api/public/stores", params?.slug],
@@ -115,41 +129,66 @@ export default function PublicFlyer() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Action Buttons - Hidden on print */}
-      <div className="fixed top-4 right-4 z-50 space-y-2 no-print">
-        <div className="bg-white rounded-lg shadow-lg p-2 space-y-2">
+      <div className="fixed top-4 right-4 z-50 no-print">
+        <div className="relative" ref={menuRef}>
+          {/* Botão Principal */}
           <Button
-            variant="ghost"
+            variant="default"
             size="sm"
-            onClick={handleShare}
-            className="w-full justify-start"
-            data-testid="button-share"
+            onClick={() => setShowActions(!showActions)}
+            className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 shadow-lg"
+            data-testid="button-actions-menu"
           >
-            <Share className="w-4 h-4 mr-2" />
-            Compartilhar
+            <MoreVertical className="w-4 h-4" />
           </Button>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleDownloadPNG}
-            disabled={isDownloading}
-            className="w-full justify-start"
-            data-testid="button-download"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            {isDownloading ? "Baixando..." : "Baixar PNG"}
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handlePrint}
-            className="w-full justify-start"
-            data-testid="button-print"
-          >
-            <Printer className="w-4 h-4 mr-2" />
-            Imprimir PDF
-          </Button>
+          {/* Menu de Ações */}
+          {showActions && (
+            <div className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 p-1 space-y-1 min-w-[140px]">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  handleShare();
+                  setShowActions(false);
+                }}
+                className="w-full justify-start text-left"
+                data-testid="button-share"
+              >
+                <Share className="w-4 h-4 mr-2" />
+                Compartilhar
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  handleDownloadPNG();
+                  setShowActions(false);
+                }}
+                disabled={isDownloading}
+                className="w-full justify-start text-left"
+                data-testid="button-download"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {isDownloading ? "Baixando..." : "Baixar PNG"}
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  handlePrint();
+                  setShowActions(false);
+                }}
+                className="w-full justify-start text-left"
+                data-testid="button-print"
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                Imprimir PDF
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
