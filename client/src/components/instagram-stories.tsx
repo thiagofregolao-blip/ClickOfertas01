@@ -49,11 +49,11 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     // Pausa inicial durante a animação de abertura
     setIsPaused(true);
     
-    // Inicia stories após animação de abertura
+    // Inicia stories mais rapidamente
     setTimeout(() => {
       setIsOpening(false);
       setIsPaused(false);
-    }, 200);
+    }, 100);
   }, []);
 
   // Timer principal - resetado a cada mudança de produto
@@ -71,22 +71,24 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
 
     // Inicia novo timer
     timerRef.current = setInterval(() => {
-      progressRef.current += (100 / (STORY_DURATION / 100));
+      progressRef.current += (100 / (STORY_DURATION / 50)); // Mais suave
       setProgress(progressRef.current);
       
       if (progressRef.current >= 100) {
+        // Limpa timer imediatamente
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+        
         if (currentIndex < storiesProducts.length - 1) {
           // Próximo produto da mesma loja
-          console.log('→ Próximo produto da mesma loja:', currentIndex + 1);
           setCurrentIndex(prev => prev + 1);
         } else {
           // Acabaram os produtos - próxima loja
-          console.log('→ Acabaram produtos da loja:', store.name);
-          console.log('→ Chamando goToNextStore()');
           goToNextStore();
         }
       }
-    }, 100);
+    }, 50);
 
     return () => {
       if (timerRef.current) {
@@ -101,10 +103,16 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     
     setTimeout(() => {
       setLocation('/stores');
-    }, 200);
+    }, 100);
   };
 
   const goToNextStore = () => {
+    // Para todos os timers imediatamente
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    setIsPaused(true);
+    
     // Encontra próxima loja com stories
     const storesWithStories = allStores.filter(s => 
       s.products.some(p => p.isActive && p.showInStories)
@@ -112,27 +120,13 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     const currentStoreIndex = storesWithStories.findIndex(s => s.id === store.id);
     const nextStoreIndex = currentStoreIndex + 1;
     
-    console.log('=== NAVEGAÇÃO ENTRE LOJAS ===');
-    console.log('Total lojas com stories:', storesWithStories.length);
-    console.log('Loja atual:', store.name, 'índice:', currentStoreIndex);
-    console.log('Próximo índice:', nextStoreIndex);
-    
     if (nextStoreIndex < storesWithStories.length) {
       const nextStore = storesWithStories[nextStoreIndex];
-      console.log('→ Indo para próxima loja:', nextStore.name);
       
-      // Pausa timer e inicia transição
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-      setIsPaused(true);
+      // Transição imediata
       setIsClosing(true);
-      
-      setTimeout(() => {
-        window.location.href = `/stores/${nextStore.slug}`;
-      }, 200);
+      window.location.href = `/stores/${nextStore.slug}`;
     } else {
-      console.log('→ Última loja, voltando para galeria');
       // Não há mais lojas, volta para galeria
       handleClose();
     }
@@ -251,7 +245,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
           {/* Product Image */}
           <div className="flex-1 flex items-center justify-center bg-black p-4 pt-24">
             <img
-              src={currentProduct.imageUrl}
+              src={currentProduct.imageUrl || ''}
               alt={currentProduct.name}
               className="w-full h-full max-h-96 object-contain rounded-lg"
               loading="eager"
@@ -275,11 +269,6 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
                 <span className="text-2xl font-bold">
                   R$ {Number(currentProduct.price).toFixed(2)}
                 </span>
-                {currentProduct.originalPrice && Number(currentProduct.originalPrice) > Number(currentProduct.price) && (
-                  <span className="text-white/60 text-sm line-through ml-2">
-                    R$ {Number(currentProduct.originalPrice).toFixed(2)}
-                  </span>
-                )}
               </div>
               
               <div className="flex gap-4">
