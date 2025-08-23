@@ -52,30 +52,46 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                       </div>
                     )}
                     
-                    {/* Avatar da loja */}
-                    <div 
-                      className={`relative w-20 h-20 rounded-full flex items-center justify-center text-white font-bold shadow-lg ring-4 ${hasStoriesProducts ? 'ring-white' : 'ring-opacity-30'}`}
-                      style={{ 
-                        backgroundColor: store.themeColor || '#E11D48',
-                        '--tw-ring-color': store.themeColor || '#E11D48'
-                      } as React.CSSProperties}
-                    >
-                      {store.logoUrl ? (
-                        <img 
-                          src={store.logoUrl} 
-                          alt={store.name}
-                          className="w-18 h-18 rounded-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            const parent = target.parentElement as HTMLElement;
-                            if (parent) {
-                              parent.innerHTML = `<span class="text-2xl">${store.name.charAt(0)}</span>`;
-                            }
-                          }}
-                        />
-                      ) : (
-                        <span className="text-2xl">{store.name.charAt(0)}</span>
+                    {/* Avatar da loja com efeito de iluminação */}
+                    <div className="relative group">
+                      {/* Borda flutuante ao redor do avatar */}
+                      {hasStoriesProducts && (
+                        <div className="absolute -inset-2 bg-gradient-to-r from-pink-400 via-purple-500 to-orange-500 rounded-full blur opacity-40 group-hover:opacity-60 animate-pulse"></div>
+                      )}
+                      
+                      {/* Avatar da loja */}
+                      <div 
+                        className={`relative w-20 h-20 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ${hasStoriesProducts ? 'ring-white' : 'ring-opacity-30'}`}
+                        style={{ 
+                          backgroundColor: store.themeColor || '#E11D48',
+                          '--tw-ring-color': store.themeColor || '#E11D48'
+                        } as React.CSSProperties}
+                      >
+                        {store.logoUrl ? (
+                          <img 
+                            src={store.logoUrl} 
+                            alt={store.name}
+                            className="w-18 h-18 rounded-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const parent = target.parentElement as HTMLElement;
+                              if (parent) {
+                                parent.innerHTML = `<span class="text-2xl">${store.name.charAt(0)}</span>`;
+                              }
+                            }}
+                          />
+                        ) : (
+                          <span className="text-2xl">{store.name.charAt(0)}</span>
+                        )}
+                      </div>
+                      
+                      {/* Pequenos pontos de luz flutuantes apenas para lojas com stories */}
+                      {hasStoriesProducts && (
+                        <>
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping opacity-50"></div>
+                          <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-300 opacity-60"></div>
+                        </>
                       )}
                     </div>
                 </div>
