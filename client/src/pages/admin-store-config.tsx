@@ -171,12 +171,14 @@ export default function AdminStoreConfig() {
                     <Input
                       id="themeColor"
                       type="color"
-                      {...form.register("themeColor")}
+                      value={form.watch("themeColor") || "#E11D48"}
+                      onChange={(e) => form.setValue("themeColor", e.target.value)}
                       className="w-20 h-12 p-1"
                       data-testid="input-theme-color"
                     />
                     <Input
-                      {...form.register("themeColor")}
+                      value={form.watch("themeColor") || "#E11D48"}
+                      onChange={(e) => form.setValue("themeColor", e.target.value)}
                       placeholder="#E11D48"
                       className="flex-1"
                       data-testid="input-theme-color-text"
