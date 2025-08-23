@@ -260,42 +260,19 @@ export default function PublicFlyer() {
         <div className="p-4">
           {/* Products Grid - Organized by Category */}
           {activeProducts.length > 0 ? (
-            <div className="space-y-6">
-              {/* Featured Products First */}
-              {activeProducts.some(p => p.isFeatured) && (
-                <div>
-                  <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-3 mb-4 text-center">
-                    <h2 className="text-lg font-bold">⭐ OFERTAS EM DESTAQUE ⭐</h2>
-                  </div>
-                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
-                    {activeProducts.filter(p => p.isFeatured).map((product) => (
-                      <ProductCard
-                        key={product.id}
-                        product={product}
-                        currency={store.currency || "Gs."}
-                        themeColor={store.themeColor || "#E11D48"}
-                        showFeaturedBadge={true}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* All Products Grid - Organized by Category but without headers */}
-              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                {sortedCategories.map((category) => {
-                  const categoryProducts = productsByCategory[category];
-                  return categoryProducts.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      currency={store.currency || "Gs."}
-                      themeColor={store.themeColor || "#E11D48"}
-                      showFeaturedBadge={false}
-                    />
-                  ));
-                })}
-              </div>
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {sortedCategories.map((category) => {
+                const categoryProducts = productsByCategory[category];
+                return categoryProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    currency={store.currency || "Gs."}
+                    themeColor={store.themeColor || "#E11D48"}
+                    showFeaturedBadge={product.isFeatured}
+                  />
+                ));
+              })}
             </div>
           ) : (
             <div className="text-center py-12">
