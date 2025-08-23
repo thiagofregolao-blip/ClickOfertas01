@@ -416,8 +416,9 @@ function StorePost({ store, searchQuery = '', isMobile = true }: { store: StoreW
         {/* Content */}
         <div className="relative px-4 py-3 flex items-center backdrop-blur-[0.5px]">
           <div 
-            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-lg ring-2 ring-white/20"
+            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-lg ring-2 ring-white/20 cursor-pointer hover:scale-105 transition-transform"
             style={{ backgroundColor: store.themeColor || '#E11D48' }}
+            onClick={() => window.open(`/flyer/${store.slug}`, '_blank')}
           >
             {store.logoUrl ? (
               <img 
