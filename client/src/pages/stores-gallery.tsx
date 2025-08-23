@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Search, MapPin, Star, Grid, List } from "lucide-react";
+import { StoreStoriesSection } from "@/components/store-stories";
 import ProductCard from "@/components/product-card";
 import type { StoreWithProducts, Product } from "@shared/schema";
 
@@ -165,6 +166,11 @@ export default function StoresGallery() {
           </div>
         </div>
       </div>
+
+      {/* Stories das Lojas */}
+      {!searchQuery.trim() && (
+        <StoreStoriesSection stores={filteredStores} />
+      )}
 
       {/* Feed Unificado */}
       <UnifiedFeedView stores={filteredStores} searchQuery={searchQuery} searchResults={searchResults} isMobile={isMobile} />
@@ -423,12 +429,6 @@ function StorePost({ store, searchQuery = '', isMobile = true }: { store: StoreW
             <div className="flex items-center">
               <h3 className="font-bold text-gray-900 mr-2 drop-shadow-sm">{store.name}</h3>
               
-              {/* Badge de atividade hoje */}
-              {hasNewProductsToday && (
-                <Badge className="text-xs bg-gradient-to-r from-green-500 to-blue-500 text-white border-none shadow-lg mr-2">
-                  🆕 Ativo hoje
-                </Badge>
-              )}
               
               {featuredProducts.length > 0 && (
                 <Badge className="text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none shadow-lg animate-pulse ring-1 ring-white/30">
