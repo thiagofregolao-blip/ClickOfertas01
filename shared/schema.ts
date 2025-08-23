@@ -62,6 +62,7 @@ export const products = pgTable("products", {
   imageUrl: text("image_url"),
   category: varchar("category").default("Geral"),
   isFeatured: boolean("is_featured").default(false),
+  showInStories: boolean("show_in_stories").default(false),
   isActive: boolean("is_active").default(true),
   sortOrder: varchar("sort_order").default("0"),
   createdAt: timestamp("created_at").defaultNow(),

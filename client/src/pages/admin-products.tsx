@@ -77,6 +77,7 @@ export default function AdminProducts() {
       price: "",
       imageUrl: "",
       isFeatured: false,
+      showInStories: false,
       isActive: true,
     },
   });
@@ -214,6 +215,7 @@ export default function AdminProducts() {
       price: "",
       imageUrl: "",
       isFeatured: false,
+      showInStories: false,
       isActive: true,
     });
     setShowAddForm(true);
@@ -227,6 +229,7 @@ export default function AdminProducts() {
       price: product.price,
       imageUrl: product.imageUrl || "",
       isFeatured: product.isFeatured,
+      showInStories: product.showInStories || false,
       isActive: product.isActive,
     });
     setShowAddForm(true);
@@ -260,6 +263,7 @@ export default function AdminProducts() {
       'Categoria': product.category || 'Geral',
       'URL da Imagem': product.imageUrl || '',
       'Em Destaque': product.isFeatured ? 'Sim' : 'Não',
+      'Nos Stories': product.showInStories ? 'Sim' : 'Não',
       'Ativo': product.isActive ? 'Sim' : 'Não'
     }));
 
@@ -557,7 +561,7 @@ export default function AdminProducts() {
                       <Settings className="w-5 h-5 mr-2 text-purple-600" />
                       Configurações
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                         <Switch
                           id="featured"
@@ -567,6 +571,18 @@ export default function AdminProducts() {
                         />
                         <Label htmlFor="featured" className="text-yellow-800 font-medium">
                           Produto em Destaque
+                        </Label>
+                      </div>
+
+                      <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <Switch
+                          id="stories"
+                          checked={form.watch("showInStories") || false}
+                          onCheckedChange={(checked) => form.setValue("showInStories", checked)}
+                          data-testid="switch-stories"
+                        />
+                        <Label htmlFor="stories" className="text-purple-800 font-medium">
+                          Mostrar nos Stories
                         </Label>
                       </div>
 
@@ -702,6 +718,12 @@ export default function AdminProducts() {
                                   <Badge variant="secondary" className="bg-accent text-white">
                                     <Star className="w-3 h-3 mr-1" />
                                     Destaque
+                                  </Badge>
+                                )}
+                                {product.showInStories && (
+                                  <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                                    <Eye className="w-3 h-3 mr-1" />
+                                    Stories
                                   </Badge>
                                 )}
                               </div>

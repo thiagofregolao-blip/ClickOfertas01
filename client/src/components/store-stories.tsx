@@ -11,19 +11,16 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
         <div className="overflow-x-auto scrollbar-hide py-4">
           <div className="flex space-x-4 px-4" style={{ width: 'max-content' }}>
           {stores.map((store) => {
-            // Verificar se postou hoje
-            const hasNewToday = store.products.some(product => {
-              if (!product.updatedAt) return false;
-              const productDate = new Date(product.updatedAt);
-              productDate.setHours(0, 0, 0, 0);
-              return productDate.getTime() === today.getTime() && product.isActive;
-            });
+            // Verificar se tem produtos ativos nos stories
+            const hasStoriesProducts = store.products.some(product => 
+              product.showInStories && product.isActive
+            );
 
             return (
               <div key={store.id} className="flex flex-col items-center space-y-2">
                 <div className="relative">
-                  {/* Anel animado para lojas ativas hoje */}
-                  {hasNewToday && (
+                  {/* Anel animado para lojas com produtos nos stories */}
+                  {hasStoriesProducts && (
                     <div className="absolute inset-0 rounded-full animate-spin" style={{
                       background: `linear-gradient(45deg, ${store.themeColor || '#E11D48'}, #FF6B6B, #4ECDC4, ${store.themeColor || '#E11D48'})`,
                       padding: '3px'
@@ -34,7 +31,7 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                   
                   {/* Avatar da loja */}
                   <div 
-                    className={`relative w-20 h-20 rounded-full flex items-center justify-center text-white font-bold shadow-lg ring-4 ${hasNewToday ? 'ring-white' : 'ring-opacity-30'}`}
+                    className={`relative w-20 h-20 rounded-full flex items-center justify-center text-white font-bold shadow-lg ring-4 ${hasStoriesProducts ? 'ring-white' : 'ring-opacity-30'}`}
                     style={{ 
                       backgroundColor: store.themeColor || '#E11D48',
                       '--tw-ring-color': store.themeColor || '#E11D48'
