@@ -146,16 +146,16 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
 
   return (
     <div 
-      className={`fixed inset-0 bg-black z-50 flex items-center justify-center ${
+      className={`fixed inset-0 bg-gray-800 z-50 flex items-center justify-center ${
         isClosing ? 'opacity-0' : 'opacity-100'
       }`}
       style={{
-        background: isOpening ? 'transparent' : 'black'
+        background: isOpening ? 'transparent' : 'linear-gradient(135deg, #374151 0%, #1f2937 100%)'
       }}
     >
       {/* Stories Container */}
       <div 
-        className={`relative w-full max-w-sm mx-auto h-full bg-black ${
+        className={`relative w-full max-w-sm mx-auto h-full bg-gradient-to-b from-gray-800 to-gray-900 ${
           isClosing ? 'opacity-0' : 'opacity-100'
         }`}
         onClick={handleTap}
@@ -211,27 +211,44 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
 
         {/* Product Content */}
         <div className="relative w-full h-full flex flex-col">
-          {/* Product Image */}
-          <div className="flex-1 flex items-center justify-center bg-black p-4 pt-24">
-            <img
-              src={currentProduct.imageUrl || ''}
-              alt={currentProduct.name}
-              className="w-full h-full max-h-96 object-contain rounded-lg"
-              loading="eager"
-              decoding="async"
-            />
+          {/* Product Image com elementos flutuantes */}
+          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 p-4 pt-24 relative overflow-hidden">
+            {/* Elementos flutuantes decorativos */}
+            <div className="absolute top-20 left-8 w-20 h-20 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-xl animate-pulse"></div>
+            <div className="absolute bottom-32 right-8 w-16 h-16 bg-gradient-to-br from-pink-400/20 to-orange-400/20 rounded-full blur-lg animate-pulse delay-1000"></div>
+            <div className="absolute top-1/2 left-4 w-12 h-12 bg-gradient-to-br from-green-400/15 to-cyan-400/15 rounded-full blur-md animate-pulse delay-500"></div>
+            
+            {/* Container da imagem com destaque */}
+            <div className="relative group">
+              {/* Borda flutuante ao redor da imagem */}
+              <div className="absolute -inset-2 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 rounded-xl blur opacity-30 group-hover:opacity-50 animate-pulse"></div>
+              
+              {/* Imagem principal */}
+              <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20">
+                <img
+                  src={currentProduct.imageUrl || ''}
+                  alt={currentProduct.name}
+                  className="w-full h-full max-h-96 object-contain rounded-lg shadow-2xl"
+                  loading="eager"
+                  decoding="async"
+                />
+                
+                {/* Reflexo sutil */}
+                <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/10 rounded-lg pointer-events-none"></div>
+              </div>
+            </div>
           </div>
 
           {/* Product Info - Layout Moderno */}
           {/* Nome do produto - TOPO */}
-          <div className="absolute top-20 left-4 right-4 bg-black/60 backdrop-blur-sm rounded-lg p-4">
-            <h2 className="text-white text-xl font-bold text-center">
+          <div className="absolute top-20 left-4 right-4 bg-gray-900/70 backdrop-blur-md rounded-xl p-4 border border-white/10 shadow-xl">
+            <h2 className="text-white text-xl font-bold text-center drop-shadow-lg">
               {currentProduct.name}
             </h2>
           </div>
 
           {/* Descrição e preço - EMBAIXO */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6 pb-8">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900/95 via-gray-800/80 to-transparent p-6 pb-8">
             {currentProduct.description && (
               <p className="text-white/90 text-sm mb-4 line-clamp-3 text-center">
                 {currentProduct.description}
