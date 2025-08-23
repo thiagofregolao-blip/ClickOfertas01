@@ -49,11 +49,9 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     // Pausa inicial durante a animação de abertura
     setIsPaused(true);
     
-    // Inicia stories mais rapidamente
-    setTimeout(() => {
-      setIsOpening(false);
-      setIsPaused(false);
-    }, 100);
+    // Inicia stories instantaneamente
+    setIsOpening(false);
+    setIsPaused(false);
   }, []);
 
   // Timer principal - resetado a cada mudança de produto
@@ -101,9 +99,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     setIsClosing(true);
     setIsPaused(true);
     
-    setTimeout(() => {
-      setLocation('/stores');
-    }, 100);
+    setLocation('/stores');
   };
 
   const goToNextStore = () => {
@@ -164,8 +160,8 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
 
   return (
     <div 
-      className={`fixed inset-0 bg-black z-50 flex items-center justify-center transition-all duration-200 ${
-        isClosing ? 'opacity-0' : isOpening ? 'opacity-0' : 'opacity-100'
+      className={`fixed inset-0 bg-black z-50 flex items-center justify-center ${
+        isClosing ? 'opacity-0' : 'opacity-100'
       }`}
       style={{
         background: isOpening ? 'transparent' : 'black'
@@ -173,21 +169,9 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     >
       {/* Stories Container */}
       <div 
-        className={`relative w-full max-w-sm mx-auto h-full bg-black transition-all duration-200 transform ${
-          isClosing 
-            ? 'opacity-0' 
-            : isOpening 
-            ? 'opacity-100'
-            : 'scale-100 translate-x-0 translate-y-0 opacity-100'
+        className={`relative w-full max-w-sm mx-auto h-full bg-black ${
+          isClosing ? 'opacity-0' : 'opacity-100'
         }`}
-        style={{
-          transformOrigin: isClosing ? `${originPosition.x}% ${originPosition.y}%` : isOpening ? `${originPosition.x}% ${originPosition.y}%` : 'center center',
-          transform: isClosing 
-            ? `scale(0) translate(${50 - originPosition.x}vw, ${50 - originPosition.y}vh)`
-            : isOpening 
-            ? `scale(1.5) translate(${50 - originPosition.x}vw, ${50 - originPosition.y}vh)`
-            : 'scale(1) translate(0, 0)'
-        }}
         onClick={handleTap}
       >
         {/* Progress Bars */}
@@ -225,7 +209,6 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
             </div>
             <div>
               <h3 className="text-white font-semibold text-sm">{store.name}</h3>
-              <p className="text-white/70 text-xs">Há 2h</p>
             </div>
           </div>
           
@@ -234,7 +217,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
               e.stopPropagation();
               handleClose();
             }}
-            className="text-white/80 hover:text-white transition-colors"
+            className="text-white"
           >
             <X size={24} />
           </button>
@@ -249,6 +232,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
               alt={currentProduct.name}
               className="w-full h-full max-h-96 object-contain rounded-lg"
               loading="eager"
+              decoding="async"
             />
           </div>
 
@@ -274,15 +258,15 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
               <div className="flex gap-4">
                 <button 
                   onClick={(e) => e.stopPropagation()}
-                  className="text-white/80 hover:text-white transition-colors"
+                  className="text-white"
                 >
-                  <Heart size={24} />
+                  <Heart size={20} />
                 </button>
                 <button 
                   onClick={(e) => e.stopPropagation()}
-                  className="text-white/80 hover:text-white transition-colors"
+                  className="text-white"
                 >
-                  <MessageCircle size={24} />
+                  <MessageCircle size={20} />
                 </button>
               </div>
             </div>
@@ -292,25 +276,19 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
         {/* Navigation Areas */}
         <div className="absolute inset-0 flex">
           <div 
-            className="w-1/2 h-full flex items-center justify-start pl-4"
+            className="w-1/2 h-full"
             onClick={(e) => {
               e.stopPropagation();
               prevStory();
             }}
-          >
-            {currentIndex > 0 && (
-              <ChevronLeft className="text-white/50" size={32} />
-            )}
-          </div>
+          />
           <div 
-            className="w-1/2 h-full flex items-center justify-end pr-4"
+            className="w-1/2 h-full"
             onClick={(e) => {
               e.stopPropagation();
               nextStory();
             }}
-          >
-            <ChevronRight className="text-white/50" size={32} />
-          </div>
+          />
         </div>
 
         {/* Pause overlay */}
