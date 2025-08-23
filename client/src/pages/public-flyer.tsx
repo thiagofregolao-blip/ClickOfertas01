@@ -140,7 +140,7 @@ export default function PublicFlyer() {
 
   // Filtrar produtos por categoria selecionada
   const filteredProducts = selectedCategory === "all" 
-    ? activeProducts 
+    ? sortedCategories.flatMap(category => productsByCategory[category]) // Ordenar por categoria quando "all"
     : activeProducts.filter(product => (product.category || 'Geral') === selectedCategory);
 
   return (

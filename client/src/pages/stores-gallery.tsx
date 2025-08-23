@@ -262,9 +262,34 @@ function StorePost({ store, searchQuery = '' }: { store: StoreWithProducts, sear
   
   const featuredProducts = filteredProducts.filter(p => p.isFeatured);
   
-  // Priorizar produtos em destaque, depois os outros
-  const sortedProducts = [...featuredProducts, ...filteredProducts.filter(p => !p.isFeatured)];
-  const displayProducts = sortedProducts.slice(0, 4); // Mostrar 4 produtos em destaque
+  // Agrupar por categoria para ordem consistente
+  const productsByCategory = filteredProducts.reduce((acc, product) => {
+    const category = product.category || 'Geral';
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(product);
+    return acc;
+  }, {} as Record<string, typeof filteredProducts>);
+
+  // Ordenar categorias
+  const categoryOrder = ['Perfumes', 'Eletrônicos', 'Pesca', 'Geral'];
+  const sortedCategories = Object.keys(productsByCategory).sort((a, b) => {
+    const indexA = categoryOrder.indexOf(a);
+    const indexB = categoryOrder.indexOf(b);
+    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    return indexA - indexB;
+  });
+
+  // Produtos ordenados por categoria, priorizando destacados
+  const categorySortedProducts = sortedCategories.flatMap(category => {
+    const categoryProducts = productsByCategory[category];
+    const featured = categoryProducts.filter(p => p.isFeatured);
+    const regular = categoryProducts.filter(p => !p.isFeatured);
+    return [...featured, ...regular];
+  });
+  
+  const displayProducts = categorySortedProducts.slice(0, 4); // Mostrar 4 produtos em destaque
 
   return (
     <div className="bg-white mb-3 border-b">

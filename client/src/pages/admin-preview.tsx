@@ -41,6 +41,30 @@ export default function AdminPreview() {
   });
 
   const activeProducts = products.filter(p => p.isActive);
+  
+  // Agrupar produtos por categoria
+  const productsByCategory = activeProducts.reduce((acc, product) => {
+    const category = product.category || 'Geral';
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(product);
+    return acc;
+  }, {} as Record<string, typeof activeProducts>);
+
+  // Ordenar categorias por prioridade
+  const categoryOrder = ['Perfumes', 'Eletrônicos', 'Pesca', 'Geral'];
+  const sortedCategories = Object.keys(productsByCategory).sort((a, b) => {
+    const indexA = categoryOrder.indexOf(a);
+    const indexB = categoryOrder.indexOf(b);
+    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    return indexA - indexB;
+  });
+
+  // Produtos ordenados por categoria
+  const sortedActiveProducts = sortedCategories.flatMap(category => productsByCategory[category]);
   const publicUrl = store?.slug ? `/flyer/${store.slug}` : "";
 
   const handleViewPublic = () => {
@@ -165,7 +189,7 @@ export default function AdminPreview() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {activeProducts.map((product) => (
+                {sortedActiveProducts.map((product) => (
                   <ProductCard 
                     key={product.id}
                     product={product}
