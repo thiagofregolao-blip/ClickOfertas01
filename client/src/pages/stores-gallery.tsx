@@ -142,7 +142,7 @@ function StorePost({ store }: { store: StoreWithProducts }) {
         <div className="px-4 pb-3">
           <style>{`
             .small-product-card { 
-              height: 140px !important; 
+              height: 160px !important; 
               display: flex !important;
               flex-direction: column !important;
             }
@@ -154,14 +154,15 @@ function StorePost({ store }: { store: StoreWithProducts }) {
               flex-direction: column !important;
             }
             .small-product-card .product-image { 
-              height: 70px !important; 
+              height: 90px !important; 
               object-fit: contain !important;
               background: white !important;
-              border-radius: 6px 6px 0 0 !important;
-              padding: 4px !important;
+              border-radius: 8px !important;
+              padding: 6px !important;
+              margin: 4px !important;
             }
             .small-product-card .product-content { 
-              padding: 6px 4px !important; 
+              padding: 4px !important; 
               flex: 1 !important;
               display: flex !important;
               flex-direction: column !important;
@@ -175,9 +176,10 @@ function StorePost({ store }: { store: StoreWithProducts }) {
               -webkit-line-clamp: 2 !important;
               -webkit-box-orient: vertical !important;
               overflow: hidden !important;
+              text-align: center !important;
             }
-            .small-product-card .product-price { font-size: 13px !important; }
-            .small-product-card .product-currency { font-size: 9px !important; }
+            .small-product-card .product-price { font-size: 16px !important; font-weight: bold !important; }
+            .small-product-card .product-currency { font-size: 11px !important; }
             .small-product-card .category-icon { 
               width: 10px !important; 
               height: 10px !important; 
