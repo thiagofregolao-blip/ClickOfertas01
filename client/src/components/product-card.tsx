@@ -137,7 +137,7 @@ export default function ProductCard({
               const decimalPart = Math.round((price - integerPart) * 100);
               return (
                 <>
-                  <span className="product-price text-xl md:text-2xl font-bold">
+                  <span className="product-price text-2xl md:text-3xl font-bold">
                     {integerPart.toLocaleString('pt-BR')}
                   </span>
                   <span className="product-cents text-xs font-medium mt-0.5">

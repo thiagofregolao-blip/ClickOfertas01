@@ -183,7 +183,7 @@ function SearchResultItem({ product, store }: { product: Product & { store: Stor
       <div className="flex items-end gap-0.5" style={{ color: store.themeColor || '#E11D48' }}>
         <span className="text-xs font-medium">{store.currency || 'Gs.'}</span>
         <div className="flex items-start">
-          <span className="text-lg font-bold">
+          <span className="text-xl font-bold">
             {integerPart.toLocaleString('pt-BR')}
           </span>
           <span className="text-xs font-medium mt-0.5">
