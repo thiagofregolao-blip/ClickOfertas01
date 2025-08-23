@@ -42,6 +42,14 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                         src={store.logoUrl} 
                         alt={store.name}
                         className="w-14 h-14 rounded-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement as HTMLElement;
+                          if (parent) {
+                            parent.innerHTML = `<span class="text-xl">${store.name.charAt(0)}</span>`;
+                          }
+                        }}
                       />
                     ) : (
                       <span className="text-xl">{store.name.charAt(0)}</span>

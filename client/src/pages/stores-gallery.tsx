@@ -424,6 +424,14 @@ function StorePost({ store, searchQuery = '', isMobile = true }: { store: StoreW
                 src={store.logoUrl} 
                 alt={store.name}
                 className="w-10 h-10 rounded-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement as HTMLElement;
+                  if (parent) {
+                    parent.innerHTML = `<span class="text-lg drop-shadow-sm">${store.name.charAt(0)}</span>`;
+                  }
+                }}
               />
             ) : (
               <span className="text-lg drop-shadow-sm">{store.name.charAt(0)}</span>
