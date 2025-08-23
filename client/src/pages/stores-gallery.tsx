@@ -160,9 +160,11 @@ function StorePost({ store }: { store: StoreWithProducts }) {
               border-radius: 8px !important;
               padding: 6px !important;
               margin: 4px !important;
+              overflow: hidden !important;
             }
-            .small-product-card .product-image img { 
+            .small-product-card img { 
               border-radius: 6px !important;
+              overflow: hidden !important;
             }
             .small-product-card .product-content { 
               padding: 4px !important; 
