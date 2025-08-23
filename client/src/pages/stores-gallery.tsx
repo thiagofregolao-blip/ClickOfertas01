@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import ProductCard from "@/components/product-card";
 import type { StoreWithProducts } from "@shared/schema";
 
 export default function StoresGallery() {
@@ -136,56 +137,20 @@ function StorePost({ store }: { store: StoreWithProducts }) {
         </div>
       </div>
 
-      {/* Products Vertical List */}
+      {/* Products Horizontal Cards */}
       {displayProducts.length > 0 ? (
-        <div className="pb-3">
-          {displayProducts.map((product, index) => (
-            <div key={product.id} className={`px-4 ${index < displayProducts.length - 1 ? 'mb-3' : ''}`}>
-              <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                {/* Product Image Placeholder */}
-                <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-                  {product.imageUrl ? (
-                    <img 
-                      src={product.imageUrl} 
-                      alt={product.name}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  ) : (
-                    <span className="text-gray-400 text-xs text-center">Sem<br/>imagem</span>
-                  )}
-                </div>
-                
-                {/* Product Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 mr-3">
-                      <h4 className="font-semibold text-gray-900 text-sm line-clamp-2 mb-1">
-                        {product.name}
-                      </h4>
-                      {product.description && (
-                        <p className="text-xs text-gray-600 line-clamp-1">
-                          {product.description}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div className="text-right flex-shrink-0">
-                      <div className="text-lg font-bold" style={{ color: store.themeColor || '#E11D48' }}>
-                        {store.currency} {Math.floor(Number(product.price) / 1000)}.{String(Math.floor((Number(product.price) % 1000) / 10)).padStart(2, '0')}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Featured Badge */}
-                {product.isFeatured && (
-                  <div className="ml-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
-                    ⭐
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+        <div className="px-4 pb-3">
+          <div className="grid grid-cols-2 gap-3">
+            {displayProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                currency={store.currency || 'Gs.'}
+                themeColor={store.themeColor || '#E11D48'}
+                showFeaturedBadge={true}
+              />
+            ))}
+          </div>
         </div>
       ) : (
         <div className="px-4 py-6 text-center text-gray-500">
