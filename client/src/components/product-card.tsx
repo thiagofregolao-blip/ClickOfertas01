@@ -126,7 +126,7 @@ export default function ProductCard({
         )}
         
         <div 
-          className="flex items-start justify-center gap-0.5"
+          className="flex items-end justify-center gap-0.5"
           style={{ color: categoryColors.accent }}
         >
           <span className="product-currency text-sm font-medium">{currency}</span>
