@@ -13,10 +13,12 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
         <div className="overflow-x-auto scrollbar-hide py-4">
           <div className="flex space-x-4 px-4" style={{ width: 'max-content' }}>
           {stores.map((store) => {
-            // Verificar se tem produtos ativos nos stories
-            const hasStoriesProducts = store.products.some(product => 
+            // Verificar produtos nos stories
+            const storiesProducts = store.products.filter(product => 
               product.showInStories && product.isActive
             );
+            const hasStoriesProducts = storiesProducts.length > 0;
+            const storiesCount = storiesProducts.length;
 
             return (
               <div
@@ -42,17 +44,51 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                 }}
               >
                 <div className="relative">
-                    {/* Anel animado para lojas com produtos nos stories */}
+                    {/* Anel segmentado igual WhatsApp */}
                     {hasStoriesProducts && (
-                      <div className="absolute inset-0 flex items-center justify-center animate-spin">
-                        <div 
-                          className="w-24 h-24 rounded-full p-1"
-                          style={{
-                            background: 'linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ff00, #ff0080, #00ffff)'
-                          }}
-                        >
-                          <div className="w-full h-full rounded-full bg-white"></div>
-                        </div>
+                      <div className="absolute inset-0 w-24 h-24 rounded-full">
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                          {storiesCount === 1 ? (
+                            // 1 story = círculo completo
+                            <circle
+                              cx="50"
+                              cy="50"
+                              r="47"
+                              fill="none"
+                              stroke={store.themeColor || '#E11D48'}
+                              strokeWidth="6"
+                              className="animate-pulse"
+                            />
+                          ) : (
+                            // Múltiplos stories = segmentos divididos
+                            Array.from({ length: storiesCount }, (_, index) => {
+                              const segmentAngle = 360 / storiesCount;
+                              const startAngle = index * segmentAngle;
+                              const endAngle = startAngle + segmentAngle - 2; // -2 para gap entre segmentos
+                              
+                              // Converter ângulos para coordenadas do arco SVG
+                              const startX = 50 + 47 * Math.cos((startAngle * Math.PI) / 180);
+                              const startY = 50 + 47 * Math.sin((startAngle * Math.PI) / 180);
+                              const endX = 50 + 47 * Math.cos((endAngle * Math.PI) / 180);
+                              const endY = 50 + 47 * Math.sin((endAngle * Math.PI) / 180);
+                              
+                              const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0;
+                              
+                              return (
+                                <path
+                                  key={index}
+                                  d={`M 50 50 L ${startX} ${startY} A 47 47 0 ${largeArcFlag} 1 ${endX} ${endY} Z`}
+                                  fill="none"
+                                  stroke={store.themeColor || '#E11D48'}
+                                  strokeWidth="6"
+                                  opacity={0.8}
+                                  className="animate-pulse"
+                                  style={{ animationDelay: `${index * 0.2}s` }}
+                                />
+                              );
+                            })
+                          )}
+                        </svg>
                       </div>
                     )}
                     
