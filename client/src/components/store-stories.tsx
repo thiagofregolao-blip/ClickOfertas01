@@ -1,8 +1,9 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import type { StoreWithProducts } from "@shared/schema";
 
 // Componente Stories das Lojas (estilo Instagram)
 export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithProducts[], isMobile?: boolean }) {
+  const [, setLocation] = useLocation();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
