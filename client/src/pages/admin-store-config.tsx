@@ -20,7 +20,7 @@ import { z } from "zod";
 
 const storeFormSchema = insertStoreSchema.extend({
   name: z.string().min(1, "Nome da loja é obrigatório"),
-  themeColor: z.string().regex(/^#[0-9A-F]{6}$/i, "Cor deve estar no formato #RRGGBB"),
+  themeColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/i, "Cor deve estar no formato #RRGGBB"),
 });
 
 type StoreFormData = z.infer<typeof storeFormSchema>;

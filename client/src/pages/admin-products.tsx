@@ -77,9 +77,15 @@ export default function AdminProducts() {
     mutationFn: async (data: ProductFormData) => {
       if (!store?.id) throw new Error("Store not found");
       
+      // Clean price - remove currency symbols, dots, commas and convert to number
+      const cleanPrice = data.price
+        .replace(/[^0-9.,]/g, '') // Remove everything except numbers, dots and commas
+        .replace(/\./g, '') // Remove thousand separators (dots)
+        .replace(',', '.'); // Replace comma decimal separator with dot
+      
       const productData = {
         ...data,
-        price: data.price.toString(),
+        price: cleanPrice,
       };
 
       if (editingProduct) {
@@ -316,7 +322,7 @@ export default function AdminProducts() {
                       <Input
                         id="price"
                         {...form.register("price")}
-                        placeholder="25000"
+                        placeholder="25000 ou 25.000,00"
                         className="rounded-l-none"
                         data-testid="input-product-price"
                       />
