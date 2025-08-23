@@ -6,9 +6,28 @@ interface FlyerFooterProps {
   onInstagramClick?: () => void;
 }
 
+// Função para escurecer uma cor hexadecimal
+function darkenColor(hex: string, percent: number = 30): string {
+  const num = parseInt(hex.replace("#", ""), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = (num >> 16) - amt;
+  const G = (num >> 8 & 0x00FF) - amt;
+  const B = (num & 0x0000FF) - amt;
+  
+  return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+    (B < 255 ? B < 1 ? 0 : B : 255))
+    .toString(16).slice(1);
+}
+
 export default function FlyerFooter({ store, onWhatsAppClick, onInstagramClick }: FlyerFooterProps) {
+  const footerColor = darkenColor(store.themeColor || "#E11D48", 30);
+  
   return (
-    <div className="bg-gray-900 text-white p-8 rounded-b-2xl">
+    <div 
+      className="text-white p-8 rounded-b-2xl"
+      style={{ backgroundColor: footerColor }}
+    >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* WhatsApp */}
         {store.whatsapp && (
@@ -70,10 +89,10 @@ export default function FlyerFooter({ store, onWhatsAppClick, onInstagramClick }
         )}
       </div>
       
-      <div className="border-t border-gray-700 mt-6 pt-6 text-center">
-        <p className="text-gray-400">
+      <div className="border-t border-white/20 mt-6 pt-6 text-center">
+        <p className="text-white/75">
           Promoções válidas até acabar o estoque • Gerado por{' '}
-          <span className="text-primary font-semibold">Panfleto Rápido</span>
+          <span className="text-white font-semibold">Panfleto Rápido</span>
         </p>
       </div>
     </div>
