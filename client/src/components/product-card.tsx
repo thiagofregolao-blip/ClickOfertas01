@@ -126,13 +126,27 @@ export default function ProductCard({
         )}
         
         <div 
-          className="flex items-baseline justify-center gap-0.5"
+          className="flex items-start justify-center gap-0.5"
           style={{ color: categoryColors.accent }}
         >
           <span className="product-currency text-sm font-medium">{currency}</span>
-          <span className="product-price text-xl md:text-2xl font-bold">
-            {Number(product.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
+          <div className="flex items-start">
+            {(() => {
+              const price = Number(product.price || 0);
+              const integerPart = Math.floor(price);
+              const decimalPart = Math.round((price - integerPart) * 100);
+              return (
+                <>
+                  <span className="product-price text-xl md:text-2xl font-bold">
+                    {integerPart.toLocaleString('pt-BR')}
+                  </span>
+                  <span className="product-cents text-xs font-medium mt-0.5">
+                    ,{String(decimalPart).padStart(2, '0')}
+                  </span>
+                </>
+              );
+            })()}
+          </div>
         </div>
       </div>
     </div>
