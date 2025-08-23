@@ -44,11 +44,11 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                 <div className="relative">
                     {/* Anel animado para lojas com produtos nos stories */}
                     {hasStoriesProducts && (
-                      <div className="absolute -inset-1 flex items-center justify-center animate-spin">
+                      <div className="absolute inset-0 flex items-center justify-center animate-spin">
                         <div 
                           className="w-24 h-24 rounded-full p-1"
                           style={{
-                            background: 'linear-gradient(45deg, #ff6b6b, #4ecdc4, #ffd93d, #6bcf7f, #ff6b6b)'
+                            background: 'linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ff00, #ff0080, #00ffff)'
                           }}
                         >
                           <div className="w-full h-full rounded-full bg-white"></div>
