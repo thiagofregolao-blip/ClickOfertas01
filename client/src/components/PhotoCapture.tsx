@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Camera, Upload, X, RotateCcw } from "lucide-react";
+import { Camera, Upload, X, RotateCcw, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +17,7 @@ export function PhotoCapture({ onPhotoCapture, disabled = false }: PhotoCaptureP
   const [isUploading, setIsUploading] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [currentFacingMode, setCurrentFacingMode] = useState<"environment" | "user">("environment");
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,16 +43,34 @@ export function PhotoCapture({ onPhotoCapture, disabled = false }: PhotoCaptureP
         console.log("Não foi possível listar dispositivos");
       }
       
-      console.log("Tentando acessar câmera com configuração básica...");
+      console.log("Tentando acessar câmera traseira...");
       
-      // Configuração muito simples primeiro
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { min: 320, ideal: 640, max: 1920 },
-          height: { min: 240, ideal: 480, max: 1080 }
-        },
-        audio: false
-      });
+      // Primeiro tenta câmera traseira (melhor para produtos)
+      let mediaStream;
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { exact: currentFacingMode }, // Força câmera específica
+            width: { min: 320, ideal: 640, max: 1920 },
+            height: { min: 240, ideal: 480, max: 1080 }
+          },
+          audio: false
+        });
+        console.log(`✓ Câmera ${currentFacingMode === 'environment' ? 'traseira' : 'frontal'} acessada!`);
+      } catch (err) {
+        console.log(`Câmera ${currentFacingMode === 'environment' ? 'traseira' : 'frontal'} não disponível, tentando outra...`);
+        const fallbackMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { exact: fallbackMode },
+            width: { min: 320, ideal: 640, max: 1920 },
+            height: { min: 240, ideal: 480, max: 1080 }
+          },
+          audio: false
+        });
+        setCurrentFacingMode(fallbackMode);
+        console.log(`✓ Câmera ${fallbackMode === 'environment' ? 'traseira' : 'frontal'} acessada!`);
+      }
 
       console.log("✓ Câmera acessada com sucesso!");
       console.log("Stream info:", {
@@ -124,6 +143,13 @@ export function PhotoCapture({ onPhotoCapture, disabled = false }: PhotoCaptureP
     setIsCapturing(false);
     setVideoLoaded(false);
   }, [stream]);
+
+  const switchCamera = useCallback(async () => {
+    stopCamera();
+    const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+    setCurrentFacingMode(newFacingMode);
+    setTimeout(() => startCamera(), 100);
+  }, [currentFacingMode, stopCamera, startCamera]);
 
   const capturePhoto = useCallback(() => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -334,7 +360,16 @@ export function PhotoCapture({ onPhotoCapture, disabled = false }: PhotoCaptureP
                     <Camera className="mr-2 h-4 w-4" />
                     Capturar
                   </Button>
-                  <Button onClick={handleClose} variant="outline" data-testid="button-cancel">
+                  <Button 
+                    onClick={switchCamera} 
+                    variant="outline" 
+                    size="icon"
+                    title={`Trocar para câmera ${currentFacingMode === 'environment' ? 'frontal' : 'traseira'}`}
+                    data-testid="button-switch-camera"
+                  >
+                    <RotateCw className="h-4 w-4" />
+                  </Button>
+                  <Button onClick={handleClose} variant="outline" size="icon" data-testid="button-cancel">
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
