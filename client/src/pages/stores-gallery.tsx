@@ -14,7 +14,7 @@ export default function StoresGallery() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const [viewMode, setViewMode] = useState<'mobile' | 'desktop'>('mobile');
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
 
   // Detectar se é mobile
   useEffect(() => {
