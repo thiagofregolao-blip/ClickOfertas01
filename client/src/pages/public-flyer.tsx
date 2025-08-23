@@ -16,6 +16,7 @@ export default function PublicFlyer() {
   const [, flyerParams] = useRoute("/flyer/:slug");
   const [, storeParams] = useRoute("/stores/:slug");
   const params = flyerParams || storeParams;
+  const isStoriesView = !!storeParams; // Detecta se é acesso via stories
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
   const [showActions, setShowActions] = useState(false);
@@ -117,7 +118,10 @@ export default function PublicFlyer() {
     );
   }
 
-  const activeProducts = store.products.filter(p => p.isActive);
+  // Filtrar produtos conforme o tipo de visualização
+  const activeProducts = isStoriesView 
+    ? store.products.filter(p => p.isActive && p.showInStories) // Só produtos dos stories
+    : store.products.filter(p => p.isActive); // Todos produtos ativos
   
   // Agrupar produtos por categoria
   const productsByCategory = activeProducts.reduce((acc, product) => {
@@ -250,25 +254,97 @@ export default function PublicFlyer() {
         </div>
       </div>
 
-      {/* Flyer Content */}
+      {/* Content */}
       <div id="flyer-content" className="max-w-4xl mx-auto bg-white shadow-lg">
-        <FlyerHeader store={store} />
-        
-        {/* Promotional Banner */}
-        <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 p-4 text-center">
-          <div className="flex items-center justify-center gap-4">
-            <div className="bg-blue-600 text-white px-4 py-2 rounded-lg transform -rotate-3">
-              <span className="font-bold text-lg">PROMOÇÃO ESPECIAL</span>
+        {isStoriesView ? (
+          /* Stories Layout - Professional */
+          <>
+            {/* Professional Header for Stories */}
+            <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 p-8 border-b">
+              <div className="flex items-center gap-6">
+                {/* Logo */}
+                <div className="relative">
+                  <div 
+                    className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-white"
+                    style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                  >
+                    {store.logoUrl ? (
+                      <img 
+                        src={store.logoUrl} 
+                        alt={store.name}
+                        className="w-22 h-22 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-3xl">{store.name.charAt(0)}</span>
+                    )}
+                  </div>
+                  {/* Stories indicator */}
+                  <div className="absolute -top-1 -right-1 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-4 border-white">
+                    <span className="text-white text-sm font-bold">•</span>
+                  </div>
+                </div>
+                
+                {/* Store Info */}
+                <div className="flex-1">
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{store.name}</h1>
+                  {store.description && (
+                    <p className="text-gray-600 mb-3 text-lg">{store.description}</p>
+                  )}
+                  
+                  {/* Store Details */}
+                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+                    {store.phone && (
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">📞</span>
+                        <span>{store.phone}</span>
+                      </div>
+                    )}
+                    {store.address && (
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">📍</span>
+                        <span>{store.address}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="text-black font-bold text-xl">
-              OS MELHORES PREÇOS VOCÊ ENCONTRA AQUI!
+            
+            {/* Stories Badge */}
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 text-center">
+              <div className="flex items-center justify-center gap-3">
+                <div className="bg-white/20 rounded-full p-2">
+                  <span className="text-lg">⭐</span>
+                </div>
+                <span className="font-bold text-xl">PRODUTOS EM DESTAQUE</span>
+                <div className="bg-white/20 rounded-full p-2">
+                  <span className="text-lg">⭐</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        ) : (
+          /* Traditional Flyer Layout */
+          <>
+            <FlyerHeader store={store} />
+            
+            {/* Promotional Banner */}
+            <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 p-4 text-center">
+              <div className="flex items-center justify-center gap-4">
+                <div className="bg-blue-600 text-white px-4 py-2 rounded-lg transform -rotate-3">
+                  <span className="font-bold text-lg">PROMOÇÃO ESPECIAL</span>
+                </div>
+                <div className="text-black font-bold text-xl">
+                  OS MELHORES PREÇOS VOCÊ ENCONTRA AQUI!
+                </div>
+              </div>
+            </div>
+          </>
+        )}
 
-        <div className="p-4">
-          {/* Category Filter */}
-          {sortedCategories.length > 1 && (
+        <div className={`${isStoriesView ? 'p-6' : 'p-4'}`}>
+          {/* Category Filter - Only show for traditional flyer */}
+          {!isStoriesView && sortedCategories.length > 1 && (
             <div className="mb-6 flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
               <Filter className="w-5 h-5 text-gray-600" />
               <div className="flex items-center gap-2">
@@ -289,10 +365,23 @@ export default function PublicFlyer() {
               </div>
             </div>
           )}
+          
+          {/* Stories Counter */}
+          {isStoriesView && (
+            <div className="text-center mb-6">
+              <p className="text-gray-600">
+                <span className="font-semibold">{activeProducts.length}</span> produtos em destaque
+              </p>
+            </div>
+          )}
 
-          {/* Products Grid - Filtered by Category */}
+          {/* Products Grid */}
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <div className={`grid gap-${isStoriesView ? '6' : '3'} ${
+              isStoriesView 
+                ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
+                : 'grid-cols-3 md:grid-cols-4 lg:grid-cols-6'
+            }`}>
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -302,6 +391,14 @@ export default function PublicFlyer() {
                   showFeaturedBadge={product.isFeatured || false}
                 />
               ))}
+            </div>
+          ) : isStoriesView ? (
+            <div className="text-center py-16">
+              <div className="bg-gray-50 rounded-lg p-8 max-w-md mx-auto">
+                <div className="text-6xl mb-4">📱</div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Nenhum produto em destaque</h3>
+                <p className="text-gray-600">Esta loja ainda não selecionou produtos para exibir nos stories.</p>
+              </div>
             </div>
           ) : selectedCategory !== "all" ? (
             <div className="text-center py-12">
@@ -319,14 +416,32 @@ export default function PublicFlyer() {
             </div>
           )}
 
-          {/* Store Hours */}
-          <div className="bg-gray-800 text-white p-4 mt-6 text-center">
-            <h3 className="font-bold text-lg mb-2">HORÁRIO DE ATENDIMENTO</h3>
-            <p className="text-sm">DE SEGUNDA A SÁBADO DAS 8:00 ÀS 18:00 HORAS</p>
-          </div>
+          {/* Store Hours - Only for traditional flyer */}
+          {!isStoriesView && (
+            <div className="bg-gray-800 text-white p-4 mt-6 text-center">
+              <h3 className="font-bold text-lg mb-2">HORÁRIO DE ATENDIMENTO</h3>
+              <p className="text-sm">DE SEGUNDA A SÁBADO DAS 8:00 ÀS 18:00 HORAS</p>
+            </div>
+          )}
+          
+          {/* Stories CTA */}
+          {isStoriesView && filteredProducts.length > 0 && (
+            <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+              <div className="text-center">
+                <h3 className="text-xl font-bold text-gray-800 mb-2">💬 Entre em contato!</h3>
+                <p className="text-gray-600 mb-4">Interessado em algum produto? Fale conosco!</p>
+                {store.phone && (
+                  <div className="inline-flex items-center gap-2 bg-green-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-green-600 transition-colors cursor-pointer">
+                    <span>📞</span>
+                    <span>{store.phone}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
-        <FlyerFooter store={store} />
+        {!isStoriesView && <FlyerFooter store={store} />}
       </div>
     </div>
   );

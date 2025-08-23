@@ -16,13 +16,6 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
             const hasStoriesProducts = store.products.some(product => 
               product.showInStories && product.isActive
             );
-            
-            // Debug: log para verificar os dados
-            console.log(`Store ${store.name}:`, {
-              hasStoriesProducts,
-              storiesProducts: store.products.filter(p => p.showInStories && p.isActive).length,
-              totalProducts: store.products.length
-            });
 
             return (
               <Link key={store.id} to={`/stores/${store.slug}`}>
