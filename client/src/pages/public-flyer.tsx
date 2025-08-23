@@ -147,14 +147,14 @@ export default function PublicFlyer() {
   });
 
   // Filtrar produtos por categoria selecionada
-  const filteredProducts = selectedCategory === "all" 
-    ? sortedCategories.flatMap(category => productsByCategory[category]) // Ordenar por categoria quando "all"
-    : activeProducts.filter(product => (product.category || 'Geral') === selectedCategory);
-
-  // Buscar todas as lojas para navegação entre stories
+  // Buscar todas as lojas para navegação entre stories (sempre executado)
   const { data: allStores } = useQuery({
     queryKey: ['/api/public/stores'],
   });
+
+  const filteredProducts = selectedCategory === "all" 
+    ? sortedCategories.flatMap(category => productsByCategory[category]) // Ordenar por categoria quando "all"
+    : activeProducts.filter(product => (product.category || 'Geral') === selectedCategory);
 
   // Show Instagram Stories if accessed via stories and has stories products
   if (showInstagramStories && store?.products.some(p => p.isActive && p.showInStories)) {
