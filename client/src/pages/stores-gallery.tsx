@@ -16,7 +16,19 @@ export default function StoresGallery() {
     queryKey: ['/api/public/stores']
   });
 
-  // Filtrar lojas por produtos que contenham o termo de busca
+  // Função para verificar se a loja postou produtos hoje
+  const hasProductsToday = (store: StoreWithProducts): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return store.products.some(product => {
+      const productDate = new Date(product.updatedAt);
+      productDate.setHours(0, 0, 0, 0);
+      return productDate.getTime() === today.getTime() && product.isActive;
+    });
+  };
+
+  // Filtrar e ordenar lojas
   const filteredStores = stores?.filter(store => {
     if (!searchQuery.trim()) return true;
     
@@ -33,6 +45,19 @@ export default function StoresGallery() {
         product.category?.toLowerCase().includes(query)
       )
     );
+  }).sort((a, b) => {
+    // Priorizar lojas que postaram produtos hoje
+    const aHasToday = hasProductsToday(a);
+    const bHasToday = hasProductsToday(b);
+    
+    if (aHasToday && !bHasToday) return -1;
+    if (!aHasToday && bHasToday) return 1;
+    
+    // Se ambas têm ou não têm produtos hoje, ordenar por mais recente
+    const aLatest = Math.max(...a.products.map(p => new Date(p.updatedAt).getTime()));
+    const bLatest = Math.max(...b.products.map(p => new Date(p.updatedAt).getTime()));
+    
+    return bLatest - aLatest;
   }) || [];
 
   // Criar lista de produtos para busca (quando há termo de busca)
@@ -275,6 +300,16 @@ function StorePost({ store, searchQuery = '' }: { store: StoreWithProducts, sear
   
   const featuredProducts = filteredProducts.filter(p => p.isFeatured);
   
+  // Verificar se a loja postou produtos hoje
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const hasNewProductsToday = store.products.some(product => {
+    const productDate = new Date(product.updatedAt);
+    productDate.setHours(0, 0, 0, 0);
+    return productDate.getTime() === today.getTime() && product.isActive;
+  });
+  
   // Agrupar por categoria para ordem consistente
   const productsByCategory = filteredProducts.reduce((acc, product) => {
     const category = product.category || 'Geral';
@@ -356,6 +391,14 @@ function StorePost({ store, searchQuery = '' }: { store: StoreWithProducts, sear
           <div className="flex-1">
             <div className="flex items-center">
               <h3 className="font-bold text-gray-900 mr-2 drop-shadow-sm">{store.name}</h3>
+              
+              {/* Badge de atividade hoje */}
+              {hasNewProductsToday && (
+                <Badge className="text-xs bg-gradient-to-r from-green-500 to-blue-500 text-white border-none shadow-lg mr-2">
+                  🆕 Ativo hoje
+                </Badge>
+              )}
+              
               {featuredProducts.length > 0 && (
                 <Badge className="text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none shadow-lg animate-pulse ring-1 ring-white/30">
                   🔥 {featuredProducts.length} oferta{featuredProducts.length > 1 ? 's' : ''} imperdível{featuredProducts.length > 1 ? 'eis' : ''}
