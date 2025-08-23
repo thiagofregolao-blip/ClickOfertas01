@@ -47,33 +47,40 @@ export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
 
   // Auto-advance stories
   useEffect(() => {
-    if (isPaused || storiesProducts.length === 0) return;
+    if (isPaused || storiesProducts.length === 0 || isOpening || isClosing) return;
+
+    // Reset progress when starting a new story
+    setProgress(0);
 
     timerRef.current = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 100) {
+        const increment = (100 / (STORY_DURATION / 100));
+        const newProgress = prev + increment;
+        
+        if (newProgress >= 100) {
           if (currentIndex < storiesProducts.length - 1) {
-            setCurrentIndex(currentIndex + 1);
-            return 0;
+            // Vai para próximo produto da mesma loja
+            setTimeout(() => setCurrentIndex(currentIndex + 1), 50);
+            return 100;
           } else {
-            // Volta para galeria quando termina
+            // Acabaram os produtos desta loja - volta para galeria
             handleClose();
-            return prev;
+            return 100;
           }
         }
-        return prev + (100 / (STORY_DURATION / 100));
+        return newProgress;
       });
     }, 100);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [currentIndex, isPaused, storiesProducts.length, onClose]);
+  }, [currentIndex, isPaused, storiesProducts.length, isOpening, isClosing]);
 
-  // Reset progress when changing stories
-  useEffect(() => {
-    setProgress(0);
-  }, [currentIndex]);
+  // Reset progress when changing stories (removido pois já está sendo feito no timer principal)
+  // useEffect(() => {
+  //   setProgress(0);
+  // }, [currentIndex]);
 
   const handleClose = () => {
     setIsClosing(true);
