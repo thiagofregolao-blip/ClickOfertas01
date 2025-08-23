@@ -47,12 +47,9 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                     {/* Anel estilo WhatsApp */}
                     {hasStoriesProducts && (
                       <div 
-                        className="absolute -inset-2 rounded-full border-2 border-solid animate-pulse"
+                        className="absolute -inset-2 rounded-full border-2 animate-pulse"
                         style={{
-                          borderColor: store.themeColor || '#E11D48',
-                          borderImage: storiesCount > 1 ? 
-                            `conic-gradient(${store.themeColor || '#E11D48'} 0deg, transparent ${360/storiesCount - 10}deg) 1` :
-                            undefined
+                          borderColor: store.themeColor || '#E11D48'
                         }}
                       />
                     )}
