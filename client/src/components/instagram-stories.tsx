@@ -19,9 +19,19 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
   const [isOpening, setIsOpening] = useState(true);
   const [originPosition, setOriginPosition] = useState({ x: 50, y: 50 });
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const STORY_DURATION = 8000; // 8 segundos por produto (aumentado)
+  const progressRef = useRef(0);
+  const STORY_DURATION = 8000; // 8 segundos por produto
 
   const currentProduct = storiesProducts[currentIndex];
+
+  // Limpa timer ao desmontar
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
 
   // Inicialização da animação de abertura
   useEffect(() => {
@@ -39,56 +49,56 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     // Pausa inicial durante a animação de abertura
     setIsPaused(true);
     
-    // Inicia stories após animação de abertura (mais rápido)
+    // Inicia stories após animação de abertura
     setTimeout(() => {
       setIsOpening(false);
       setIsPaused(false);
-    }, 300);
+    }, 200);
   }, []);
 
-  // Auto-advance stories
+  // Timer principal - resetado a cada mudança de produto
   useEffect(() => {
     if (isPaused || storiesProducts.length === 0 || isOpening || isClosing) return;
 
+    // Reset progress
+    setProgress(0);
+    progressRef.current = 0;
+
+    // Limpa timer anterior
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+
+    // Inicia novo timer
     timerRef.current = setInterval(() => {
-      setProgress((prev) => {
-        const increment = (100 / (STORY_DURATION / 100));
-        const newProgress = prev + increment;
-        
-        if (newProgress >= 100) {
-          if (currentIndex < storiesProducts.length - 1) {
-            // Vai para próximo produto da mesma loja
-            setCurrentIndex(prev => prev + 1);
-            return 0; // Reset progress
-          } else {
-            // Acabaram os produtos desta loja - vai para próxima loja
-            goToNextStore();
-            return 100;
-          }
+      progressRef.current += (100 / (STORY_DURATION / 100));
+      setProgress(progressRef.current);
+      
+      if (progressRef.current >= 100) {
+        if (currentIndex < storiesProducts.length - 1) {
+          // Próximo produto da mesma loja
+          setCurrentIndex(prev => prev + 1);
+        } else {
+          // Acabaram os produtos - próxima loja
+          goToNextStore();
         }
-        return newProgress;
-      });
+      }
     }, 100);
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
     };
   }, [currentIndex, isPaused, storiesProducts.length, isOpening, isClosing]);
 
-  // Reset progress when changing stories
-  useEffect(() => {
-    setProgress(0);
-  }, [currentIndex]);
-
   const handleClose = () => {
     setIsClosing(true);
-    // Pausa o timer durante a animação
     setIsPaused(true);
     
-    // Aguarda a animação terminar antes de navegar
     setTimeout(() => {
       setLocation('/stores');
-    }, 300); // Duração da animação
+    }, 200);
   };
 
   const goToNextStore = () => {
@@ -99,21 +109,15 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     const currentStoreIndex = storesWithStories.findIndex(s => s.id === store.id);
     const nextStoreIndex = currentStoreIndex + 1;
     
-    console.log('Stores com stories:', storesWithStories.length);
-    console.log('Índice atual:', currentStoreIndex);
-    console.log('Próximo índice:', nextStoreIndex);
-    
     if (nextStoreIndex < storesWithStories.length) {
       const nextStore = storesWithStories[nextStoreIndex];
-      console.log('Indo para próxima loja:', nextStore.name);
       // Navega para próxima loja
       setIsClosing(true);
       setIsPaused(true);
       setTimeout(() => {
         window.location.href = `/stores/${nextStore.slug}`;
-      }, 300);
+      }, 200);
     } else {
-      console.log('Não há mais lojas, voltando para galeria');
       // Não há mais lojas, volta para galeria
       handleClose();
     }
@@ -123,7 +127,6 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     if (currentIndex < storiesProducts.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
-      // Acabaram os produtos desta loja - vai para próxima loja
       goToNextStore();
     }
   };
@@ -152,7 +155,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
 
   return (
     <div 
-      className={`fixed inset-0 bg-black z-50 flex items-center justify-center transition-all duration-300 ${
+      className={`fixed inset-0 bg-black z-50 flex items-center justify-center transition-all duration-200 ${
         isClosing ? 'opacity-0' : isOpening ? 'opacity-0' : 'opacity-100'
       }`}
       style={{
@@ -161,7 +164,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     >
       {/* Stories Container */}
       <div 
-        className={`relative w-full max-w-sm mx-auto h-full bg-black transition-all duration-300 transform ${
+        className={`relative w-full max-w-sm mx-auto h-full bg-black transition-all duration-200 transform ${
           isClosing 
             ? 'opacity-0' 
             : isOpening 
@@ -173,173 +176,147 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
           transform: isClosing 
             ? `scale(0) translate(${50 - originPosition.x}vw, ${50 - originPosition.y}vh)`
             : isOpening 
-            ? `scale(0) translate(${50 - originPosition.x}vw, ${50 - originPosition.y}vh)`
+            ? `scale(1.5) translate(${50 - originPosition.x}vw, ${50 - originPosition.y}vh)`
             : 'scale(1) translate(0, 0)'
         }}
+        onClick={handleTap}
       >
-        {/* Progress bars */}
-        <div className="absolute top-4 left-4 right-4 z-20 flex gap-1">
+        {/* Progress Bars */}
+        <div className="absolute top-4 left-4 right-4 flex gap-1 z-20">
           {storiesProducts.map((_, index) => (
             <div
               key={index}
-              className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden"
+              className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden"
             >
               <div
-                className="h-full bg-white rounded-full transition-all duration-100"
+                className="h-full bg-white transition-all duration-100 ease-linear"
                 style={{
-                  width: 
-                    index < currentIndex ? '100%' :
-                    index === currentIndex ? `${progress}%` :
-                    '0%'
+                  width: `${
+                    index < currentIndex 
+                      ? 100 
+                      : index === currentIndex 
+                      ? progress 
+                      : 0
+                  }%`
                 }}
               />
             </div>
           ))}
         </div>
 
-        {/* Header */}
-        <div className="absolute top-12 left-4 right-4 z-20 flex items-center justify-between">
+        {/* Store Header */}
+        <div className="absolute top-12 left-4 right-4 flex items-center justify-between z-20">
           <div className="flex items-center gap-3">
-            {/* Store Avatar */}
-            <div 
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ring-2 ring-white"
-              style={{ backgroundColor: store.themeColor || '#E11D48' }}
-            >
-              {store.logoUrl ? (
-                <img 
-                  src={store.logoUrl} 
-                  alt={store.name}
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                store.name.charAt(0)
-              )}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-orange-500 p-0.5">
+              <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                <span className="text-xs font-bold text-gray-800">
+                  {store.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
             </div>
-            
             <div>
-              <h3 className="text-white text-sm font-semibold">{store.name}</h3>
-              <p className="text-white/70 text-xs">agora</p>
+              <h3 className="text-white font-semibold text-sm">{store.name}</h3>
+              <p className="text-white/70 text-xs">Há 2h</p>
             </div>
           </div>
           
           <button
-            onClick={handleClose}
-            className="text-white/90 hover:text-white p-2 transition-transform hover:scale-110"
-            data-testid="button-close-stories"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClose();
+            }}
+            className="text-white/80 hover:text-white transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X size={24} />
           </button>
         </div>
 
-        {/* Product Name - Top */}
-        <div className="absolute top-24 left-4 right-4 z-20">
-          <div className="text-center">
-            <h2 className="text-white text-xl font-bold mb-1 drop-shadow-lg">{currentProduct.name}</h2>
-            {currentProduct.category && (
-              <span className="inline-block text-white/80 text-sm bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full border border-white/30">
-                {currentProduct.category}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Story Content */}
-        <div 
-          className="relative w-full h-full cursor-pointer select-none"
-          onClick={handleTap}
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          data-testid="story-content"
-        >
+        {/* Product Content */}
+        <div className="relative w-full h-full flex flex-col">
           {/* Product Image */}
-          <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900" style={{ paddingTop: '120px', paddingBottom: '180px' }}>
-            {currentProduct.imageUrl ? (
-              <img
-                src={currentProduct.imageUrl}
-                alt={currentProduct.name}
-                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-              />
-            ) : (
-              <div className="w-64 h-64 bg-gray-200 rounded-lg flex items-center justify-center shadow-2xl">
-                <span className="text-gray-500 text-6xl">📦</span>
-              </div>
-            )}
+          <div className="flex-1 flex items-center justify-center bg-black p-4 pt-24">
+            <img
+              src={currentProduct.imageUrl}
+              alt={currentProduct.name}
+              className="w-full h-full max-h-96 object-contain rounded-lg"
+              loading="eager"
+            />
           </div>
 
-          {/* Product Info - Bottom */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6 pt-16">
-            <div className="text-white text-center">
-              {/* Description */}
-              {currentProduct.description && (
-                <p className="text-white/90 text-base mb-4 leading-relaxed">
-                  {currentProduct.description}
-                </p>
-              )}
-
-              {/* Price */}
-              <div className="mb-4">
-                <span className="text-3xl font-bold drop-shadow-lg" style={{ color: store.themeColor || '#E11D48' }}>
-                  {store.currency || 'Gs.'} {currentProduct.price?.toLocaleString()}
+          {/* Product Info */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 pb-8">
+            <h2 className="text-white text-xl font-bold mb-2">
+              {currentProduct.name}
+            </h2>
+            
+            {currentProduct.description && (
+              <p className="text-white/90 text-sm mb-3 line-clamp-3">
+                {currentProduct.description}
+              </p>
+            )}
+            
+            <div className="flex items-center justify-between">
+              <div className="text-white">
+                <span className="text-2xl font-bold">
+                  R$ {currentProduct.price.toFixed(2)}
                 </span>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-center gap-4 mb-4">
-                <button className="text-white/80 hover:text-white transition-colors">
-                  <Heart className="w-8 h-8" />
-                </button>
-                <button className="text-white/80 hover:text-white transition-colors">
-                  <MessageCircle className="w-8 h-8" />
-                </button>
-              </div>
-
-              {/* CTA */}
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                <p className="text-white/90 text-sm mb-3">💬 Interessado? Fale conosco!</p>
-                {store.whatsapp && (
-                  <a 
-                    href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`}
-                    className="inline-flex items-center gap-3 bg-green-500 text-white px-6 py-3 rounded-full text-base font-semibold hover:bg-green-600 transition-all transform hover:scale-105 shadow-lg"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    data-testid="button-contact-whatsapp"
-                  >
-                    <span className="text-lg">📱</span>
-                    <span>{store.whatsapp}</span>
-                  </a>
+                {currentProduct.originalPrice && currentProduct.originalPrice > currentProduct.price && (
+                  <span className="text-white/60 text-sm line-through ml-2">
+                    R$ {currentProduct.originalPrice.toFixed(2)}
+                  </span>
                 )}
+              </div>
+              
+              <div className="flex gap-4">
+                <button 
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-white/80 hover:text-white transition-colors"
+                >
+                  <Heart size={24} />
+                </button>
+                <button 
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-white/80 hover:text-white transition-colors"
+                >
+                  <MessageCircle size={24} />
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Navigation arrows (desktop) */}
-        <div className="hidden md:block">
-          {currentIndex > 0 && (
-            <button
-              onClick={prevStory}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white p-2 rounded-full bg-black/20 backdrop-blur-sm"
-              data-testid="button-prev-story"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-          )}
-          
-          {currentIndex < storiesProducts.length - 1 && (
-            <button
-              onClick={nextStory}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white p-2 rounded-full bg-black/20 backdrop-blur-sm"
-              data-testid="button-next-story"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-          )}
+        {/* Navigation Areas */}
+        <div className="absolute inset-0 flex">
+          <div 
+            className="w-1/2 h-full flex items-center justify-start pl-4"
+            onClick={(e) => {
+              e.stopPropagation();
+              prevStory();
+            }}
+          >
+            {currentIndex > 0 && (
+              <ChevronLeft className="text-white/50" size={32} />
+            )}
+          </div>
+          <div 
+            className="w-1/2 h-full flex items-center justify-end pr-4"
+            onClick={(e) => {
+              e.stopPropagation();
+              nextStory();
+            }}
+          >
+            <ChevronRight className="text-white/50" size={32} />
+          </div>
         </div>
 
-        {/* Story counter */}
-        <div className="absolute bottom-6 right-6 bg-black/40 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
-          {currentIndex + 1} de {storiesProducts.length}
-        </div>
+        {/* Pause overlay */}
+        {isPaused && (
+          <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+            <div className="text-white text-sm bg-black/50 px-3 py-1 rounded">
+              Pausado
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
