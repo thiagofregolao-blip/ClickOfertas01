@@ -5,9 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, MapPin, Star } from "lucide-react";
 import ProductCard from "@/components/product-card";
-import type { StoreWithProducts } from "@shared/schema";
+import type { StoreWithProducts, Product } from "@shared/schema";
 
 export default function StoresGallery() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,6 +34,21 @@ export default function StoresGallery() {
       )
     );
   }) || [];
+
+  // Criar lista de produtos para busca (quando há termo de busca)
+  const searchResults = searchQuery.trim() && stores ? 
+    stores.flatMap(store => 
+      store.products
+        .filter(product => 
+          product.isActive && (
+            product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            product.category?.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        )
+        .map(product => ({ ...product, store }))
+    ).sort((a, b) => Number(a.price || 0) - Number(b.price || 0)) // Ordenar por menor preço
+    : [];
 
   if (isLoading) {
     return (
@@ -109,31 +124,124 @@ export default function StoresGallery() {
         </div>
       </div>
 
-      {/* Feed Vertical */}
+      {/* Feed Vertical ou Resultados de Busca */}
       <div className="max-w-2xl mx-auto">
-        {searchQuery.trim() && filteredStores.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">
-              🔍 Nenhum produto encontrado para "{searchQuery}"
-            </p>
-            <p className="text-gray-400 text-sm mt-2">
-              Tente buscar por outro produto ou loja
-            </p>
-          </div>
+        {searchQuery.trim() ? (
+          // Layout de Busca Compacto
+          searchResults.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">
+                🔍 Nenhum produto encontrado para "{searchQuery}"
+              </p>
+              <p className="text-gray-400 text-sm mt-2">
+                Tente buscar por outro produto ou loja
+              </p>
+            </div>
+          ) : (
+            <div className="bg-white">
+              <div className="p-4 border-b bg-gray-50">
+                <p className="text-sm text-gray-600">
+                  {searchResults.length} resultado{searchResults.length > 1 ? 's' : ''} para "{searchQuery}" 
+                  <span className="ml-2 text-xs text-gray-500">• Ordenado por menor preço</span>
+                </p>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {searchResults.map((result) => (
+                  <SearchResultItem key={`${result.store.id}-${result.id}`} product={result} store={result.store} />
+                ))}
+              </div>
+            </div>
+          )
         ) : (
+          // Layout de Feed Normal
           filteredStores.map((store) => (
             <StorePost key={store.id} store={store} searchQuery={searchQuery} />
           ))
         )}
         
         {/* Footer do Feed */}
-        <div className="bg-white border-b p-6 text-center">
-          <p className="text-gray-500">
-            {filteredStores.length} {filteredStores.length === 1 ? 'loja disponível' : 'lojas disponíveis'}
-          </p>
-          <p className="text-sm text-gray-400 mt-2">
-            Desenvolvido com ❤️ para pequenos comércios do Paraguai
-          </p>
+        {!searchQuery.trim() && (
+          <div className="bg-white border-b p-6 text-center">
+            <p className="text-gray-500">
+              {filteredStores.length} {filteredStores.length === 1 ? 'loja disponível' : 'lojas disponíveis'}
+            </p>
+            <p className="text-sm text-gray-400 mt-2">
+              Desenvolvido com ❤️ para pequenos comércios do Paraguai
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SearchResultItem({ product, store }: { product: Product & { store: StoreWithProducts }, store: StoreWithProducts }) {
+  const formatPrice = (price: number) => {
+    return `$${(price / 100).toFixed(2)}`;
+  };
+
+  return (
+    <div className="p-4 hover:bg-gray-50 transition-colors">
+      <div className="flex items-center gap-4">
+        {/* Product Image */}
+        <div className="w-16 h-16 flex-shrink-0">
+          <img
+            src={product.imageUrl || '/api/placeholder/64/64'}
+            alt={product.name}
+            className="w-full h-full object-cover rounded-lg border"
+          />
+        </div>
+
+        {/* Product Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900 truncate">
+                {product.name}
+                {product.isFeatured && (
+                  <Badge className="ml-2 text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none">
+                    🔥 Destaque
+                  </Badge>
+                )}
+              </h3>
+              
+              <div className="flex items-center gap-2 mt-1">
+                <div 
+                  className="w-4 h-4 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                />
+                <span className="text-sm text-gray-600 truncate">{store.name}</span>
+                {product.category && (
+                  <span className="text-xs text-gray-400">• {product.category}</span>
+                )}
+              </div>
+              
+              {product.description && (
+                <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                  {product.description}
+                </p>
+              )}
+            </div>
+
+            {/* Price and Action */}
+            <div className="flex-shrink-0 text-right ml-4">
+              <div className="text-lg font-bold text-gray-900">
+                {formatPrice(Number(product.price || 0))}
+              </div>
+              <Link href={`/flyer/${store.slug}`}>
+                <button
+                  className="text-xs font-medium py-1 px-3 rounded-full border transition-all hover:scale-105 mt-1"
+                  style={{ 
+                    borderColor: store.themeColor || '#E11D48',
+                    color: store.themeColor || '#E11D48',
+                    background: `linear-gradient(135deg, transparent, ${store.themeColor || '#E11D48'}10)`
+                  }}
+                >
+                  Ver loja
+                </button>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
