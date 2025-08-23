@@ -3,7 +3,8 @@ import { useRoute } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Share, Download, Printer, MoreVertical } from "lucide-react";
+import { Share, Download, Printer, MoreVertical, Filter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import ProductCard from "@/components/product-card";
 import FlyerHeader from "@/components/flyer-header";
@@ -16,6 +17,7 @@ export default function PublicFlyer() {
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
   const [showActions, setShowActions] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Fecha o menu quando clicar fora
@@ -36,7 +38,7 @@ export default function PublicFlyer() {
   });
 
   const handleShare = async () => {
-    if (navigator.share && navigator.canShare) {
+    if (navigator.share && typeof navigator.canShare === 'function') {
       try {
         await navigator.share({
           title: `${store?.name} - Panfleto`,
@@ -69,7 +71,7 @@ export default function PublicFlyer() {
     
     setIsDownloading(true);
     try {
-      await downloadFlyerAsPNG(store.name);
+      await downloadFlyerAsPNG(store.name, 'flyer-content');
       toast({
         title: "Download concluído!",
         description: "O panfleto foi salvo como imagem PNG.",
@@ -135,6 +137,11 @@ export default function PublicFlyer() {
     if (indexB === -1) return -1;
     return indexA - indexB;
   });
+
+  // Filtrar produtos por categoria selecionada
+  const filteredProducts = selectedCategory === "all" 
+    ? activeProducts 
+    : activeProducts.filter(product => (product.category || 'Geral') === selectedCategory);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -258,21 +265,51 @@ export default function PublicFlyer() {
         </div>
 
         <div className="p-4">
-          {/* Products Grid - Organized by Category */}
-          {activeProducts.length > 0 ? (
+          {/* Category Filter */}
+          {sortedCategories.length > 1 && (
+            <div className="mb-6 flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
+              <Filter className="w-5 h-5 text-gray-600" />
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">Filtrar por categoria:</span>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Todas as categorias" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as categorias</SelectItem>
+                    {sortedCategories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category} ({productsByCategory[category].length})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
+          {/* Products Grid - Filtered by Category */}
+          {filteredProducts.length > 0 ? (
             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {sortedCategories.map((category) => {
-                const categoryProducts = productsByCategory[category];
-                return categoryProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    currency={store.currency || "Gs."}
-                    themeColor={store.themeColor || "#E11D48"}
-                    showFeaturedBadge={product.isFeatured}
-                  />
-                ));
-              })}
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  currency={store.currency || "Gs."}
+                  themeColor={store.themeColor || "#E11D48"}
+                  showFeaturedBadge={product.isFeatured || false}
+                />
+              ))}
+            </div>
+          ) : selectedCategory !== "all" ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600 text-lg">Nenhum produto encontrado na categoria "{selectedCategory}".</p>
+              <button 
+                onClick={() => setSelectedCategory("all")}
+                className="text-blue-600 hover:text-blue-700 underline mt-2"
+              >
+                Mostrar todos os produtos
+              </button>
             </div>
           ) : (
             <div className="text-center py-12">

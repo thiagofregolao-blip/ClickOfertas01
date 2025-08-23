@@ -1,15 +1,39 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 import ProductCard from "@/components/product-card";
 import type { StoreWithProducts } from "@shared/schema";
 
 export default function StoresGallery() {
+  const [searchQuery, setSearchQuery] = useState('');
+  
   const { data: stores, isLoading } = useQuery<StoreWithProducts[]>({
     queryKey: ['/api/public/stores']
   });
+
+  // Filtrar lojas por produtos que contenham o termo de busca
+  const filteredStores = stores?.filter(store => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    
+    // Buscar no nome da loja
+    if (store.name.toLowerCase().includes(query)) return true;
+    
+    // Buscar nos produtos
+    return store.products.some(product => 
+      product.isActive && (
+        product.name.toLowerCase().includes(query) ||
+        product.description?.toLowerCase().includes(query) ||
+        product.category?.toLowerCase().includes(query)
+      )
+    );
+  }) || [];
 
   if (isLoading) {
     return (
@@ -62,7 +86,7 @@ export default function StoresGallery() {
       {/* Header Style Instagram */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-gray-900">Panfletos</h1>
             <button
               onClick={() => window.location.href = '/'}
@@ -71,19 +95,41 @@ export default function StoresGallery() {
               Início
             </button>
           </div>
+          
+          {/* Barra de Busca */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Buscar produtos ou lojas..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-red-300 focus:ring-red-200"
+            />
+          </div>
         </div>
       </div>
 
       {/* Feed Vertical */}
       <div className="max-w-2xl mx-auto">
-        {stores.map((store) => (
-          <StorePost key={store.id} store={store} />
-        ))}
+        {searchQuery.trim() && filteredStores.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">
+              🔍 Nenhum produto encontrado para "{searchQuery}"
+            </p>
+            <p className="text-gray-400 text-sm mt-2">
+              Tente buscar por outro produto ou loja
+            </p>
+          </div>
+        ) : (
+          filteredStores.map((store) => (
+            <StorePost key={store.id} store={store} />
+          ))
+        )}
         
         {/* Footer do Feed */}
         <div className="bg-white border-b p-6 text-center">
           <p className="text-gray-500">
-            {stores.length} {stores.length === 1 ? 'loja disponível' : 'lojas disponíveis'}
+            {filteredStores.length} {filteredStores.length === 1 ? 'loja disponível' : 'lojas disponíveis'}
           </p>
           <p className="text-sm text-gray-400 mt-2">
             Desenvolvido com ❤️ para pequenos comércios do Paraguai
