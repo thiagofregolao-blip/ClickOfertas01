@@ -231,7 +231,6 @@ function StorePost({ store }: { store: StoreWithProducts }) {
       <div className="px-4 pb-3 border-t border-gray-100 pt-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4 text-sm text-gray-500">
-            <span>{activeProducts.length} produtos total</span>
             {store.whatsapp && (
               <span className="text-green-600">📱 WhatsApp</span>
             )}
