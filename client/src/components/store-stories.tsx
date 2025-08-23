@@ -44,21 +44,28 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                 }}
               >
                 <div className="relative">
-                    {/* Anel pontilhado estilo WhatsApp */}
+                    {/* Pontos estilo WhatsApp */}
                     {hasStoriesProducts && (
                       <div className="absolute -inset-2 w-24 h-24">
-                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                          <circle
-                            cx="50"
-                            cy="50"
-                            r="45"
-                            fill="none"
-                            stroke={store.themeColor || '#E11D48'}
-                            strokeWidth="3"
-                            strokeDasharray={`${280 / storiesCount} ${280 / storiesCount * 0.15}`}
-                            className="animate-pulse"
-                          />
-                        </svg>
+                        {Array.from({ length: storiesCount }, (_, index) => {
+                          const angle = (index * 360 / storiesCount) - 90; // -90 para começar do topo
+                          const x = 48 + 42 * Math.cos(angle * Math.PI / 180);
+                          const y = 48 + 42 * Math.sin(angle * Math.PI / 180);
+                          
+                          return (
+                            <div
+                              key={index}
+                              className="absolute w-3 h-3 rounded-full animate-pulse"
+                              style={{
+                                backgroundColor: store.themeColor || '#E11D48',
+                                left: `${x}px`,
+                                top: `${y}px`,
+                                transform: 'translate(-50%, -50%)',
+                                animationDelay: `${index * 0.2}s`
+                              }}
+                            />
+                          );
+                        })}
                       </div>
                     )}
                     
