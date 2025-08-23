@@ -119,7 +119,7 @@ export default function ProductCard({
           {product.name}
         </h3>
         
-        <div className="text-xs sm:text-sm text-gray-500 mb-2 line-clamp-3 h-10 sm:h-12 flex items-start justify-center text-center leading-tight">
+        <div className="text-xs sm:text-sm text-gray-500 mb-2 line-clamp-4 h-14 sm:h-16 flex items-start justify-center text-center leading-tight">
           {product.description || ''}
         </div>
         
