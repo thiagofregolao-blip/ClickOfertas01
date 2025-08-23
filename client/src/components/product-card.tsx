@@ -115,19 +115,19 @@ export default function ProductCard({
       </div>
       
       <div className="product-content p-2 flex flex-col h-full">
-        <h3 className="product-title text-xs font-semibold text-gray-900 mb-1 line-clamp-2 h-8 flex items-center justify-center text-center">
+        <h3 className="product-title text-[10px] sm:text-xs font-semibold text-gray-900 mb-1 line-clamp-2 h-6 sm:h-8 flex items-center justify-center text-center">
           {product.name}
         </h3>
         
-        <div className="text-xs text-gray-500 mb-2 line-clamp-1 h-4 flex items-center justify-center text-center">
+        <div className="text-[10px] sm:text-xs text-gray-500 mb-2 line-clamp-1 h-3 sm:h-4 flex items-center justify-center text-center">
           {product.description || ''}
         </div>
         
         <div 
-          className="flex items-end justify-center gap-0.5 h-8 mt-auto"
+          className="flex items-end justify-center gap-0.5 h-6 sm:h-8 mt-auto"
           style={{ color: categoryColors.accent }}
         >
-          <span className="product-currency text-sm font-medium self-end">{currency}</span>
+          <span className="product-currency text-xs sm:text-sm font-medium self-end">{currency}</span>
           <div className="flex items-start">
             {(() => {
               const price = Number(product.price || 0);
@@ -135,10 +135,10 @@ export default function ProductCard({
               const decimalPart = Math.round((price - integerPart) * 100);
               return (
                 <>
-                  <span className="product-price text-xl md:text-2xl font-bold leading-none">
+                  <span className="product-price text-sm sm:text-xl md:text-2xl font-bold leading-none">
                     {integerPart.toLocaleString('pt-BR')}
                   </span>
-                  <span className="product-cents text-xs font-medium mt-0.5 leading-none">
+                  <span className="product-cents text-[10px] sm:text-xs font-medium mt-0.5 leading-none">
                     ,{String(decimalPart).padStart(2, '0')}
                   </span>
                 </>
