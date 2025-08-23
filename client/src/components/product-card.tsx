@@ -131,7 +131,7 @@ export default function ProductCard({
         >
           <span className="product-currency text-sm font-medium">{currency}</span>
           <span className="product-price text-xl md:text-2xl font-bold">
-            {Number(product.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            {Number(product.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         </div>
       </div>
