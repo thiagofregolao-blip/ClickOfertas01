@@ -131,8 +131,7 @@ function StorePost({ store }: { store: StoreWithProducts }) {
             )}
           </div>
           <p className="text-sm text-gray-500">
-            {activeProducts.length} produto{activeProducts.length !== 1 ? 's' : ''} 
-            {store.address && ` • ${store.address.split(',')[0]}`}
+            {store.address && `${store.address.split(',')[0]}`}
           </p>
         </div>
       </div>
