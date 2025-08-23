@@ -245,89 +245,118 @@ export default function PublicFlyer() {
       <div id="flyer-content" className="max-w-4xl mx-auto bg-white shadow-lg">
         <FlyerHeader store={store} />
         
-        <div className="p-8">
-          {/* Products by Category */}
-          <div className="space-y-12">
-            {sortedCategories.length > 0 ? (
-              sortedCategories.map((category) => {
-                const categoryProducts = productsByCategory[category];
-                const featuredProducts = categoryProducts.filter(p => p.isFeatured);
-                const regularProducts = categoryProducts.filter(p => !p.isFeatured);
+        <div className="p-6">
+          {/* Products Grid - Compact Layout */}
+          {activeProducts.length > 0 ? (
+            <div className="space-y-8">
+              {/* Featured Products Section */}
+              {activeProducts.some(p => p.isFeatured) && (
+                <div>
+                  <div 
+                    className="text-white p-4 mb-6 text-center font-bold text-xl rounded-lg"
+                    style={{ backgroundColor: store.themeColor || "#E11D48" }}
+                  >
+                    ⭐ OFERTAS EM DESTAQUE ⭐
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+                    {activeProducts.filter(p => p.isFeatured).map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        currency={store.currency || "Gs."}
+                        themeColor={store.themeColor || "#E11D48"}
+                        showFeaturedBadge={true}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
+              {/* All Products by Category - Compact */}
+              {sortedCategories.map((category) => {
+                const categoryProducts = productsByCategory[category];
+                
                 // Emojis por categoria
                 const categoryEmojis: { [key: string]: string } = {
                   'Perfumes': '🌸',
-                  'Eletrônicos': '📱',
+                  'Eletrônicos': '📱', 
                   'Pesca': '🎣',
                   'Geral': '🛒'
                 };
 
                 return (
-                  <div key={category} className="space-y-6">
-                    {/* Category Header */}
-                    <div 
-                      className="text-white p-6 rounded-2xl shadow-lg text-center"
-                      style={{ backgroundColor: store.themeColor || "#E11D48" }}
-                    >
-                      <h2 className="text-3xl font-bold flex items-center justify-center gap-3">
-                        <span className="text-4xl">{categoryEmojis[category] || '🛒'}</span>
+                  <div key={category} className="mb-8">
+                    {/* Category Title - Simple */}
+                    <div className="flex items-center justify-center gap-2 mb-6">
+                      <span className="text-2xl">{categoryEmojis[category] || '🛒'}</span>
+                      <h2 
+                        className="text-2xl font-bold text-center"
+                        style={{ color: store.themeColor || "#E11D48" }}
+                      >
                         {category.toUpperCase()}
-                        <span className="bg-white/20 px-3 py-1 rounded-full text-lg font-medium">
-                          {categoryProducts.length}
-                        </span>
                       </h2>
+                      <span 
+                        className="text-white px-3 py-1 rounded-full text-sm font-medium"
+                        style={{ backgroundColor: store.themeColor || "#E11D48" }}
+                      >
+                        {categoryProducts.length}
+                      </span>
                     </div>
 
-                    {/* Featured Products in this category */}
-                    {featuredProducts.length > 0 && (
-                      <div>
-                        <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black p-4 rounded-xl mb-6 text-center shadow-md">
-                          <h3 className="text-xl font-bold">⭐ DESTAQUES DE {category.toUpperCase()}</h3>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                          {featuredProducts.map((product) => (
-                            <ProductCard
-                              key={product.id}
-                              product={product}
-                              currency={store.currency || "Gs."}
-                              themeColor={store.themeColor || "#E11D48"}
-                              showFeaturedBadge={true}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Regular Products in this category */}
-                    {regularProducts.length > 0 && (
-                      <div>
-                        {featuredProducts.length > 0 && (
-                          <div className="bg-gray-50 border-2 border-dashed border-gray-300 p-3 rounded-lg mb-6 text-center">
-                            <h3 className="text-lg font-medium text-gray-700">Mais produtos de {category}</h3>
-                          </div>
-                        )}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                          {regularProducts.map((product) => (
-                            <ProductCard
-                              key={product.id}
-                              product={product}
-                              currency={store.currency || "Gs."}
-                              themeColor={store.themeColor || "#E11D48"}
-                              showFeaturedBadge={false}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    {/* Products Grid - 4 columns on large screens, 3 on medium, 2 on mobile */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {categoryProducts.map((product) => (
+                        <ProductCard
+                          key={product.id}
+                          product={product}
+                          currency={store.currency || "Gs."}
+                          themeColor={store.themeColor || "#E11D48"}
+                          showFeaturedBadge={false}
+                        />
+                      ))}
+                    </div>
                   </div>
                 );
-              })
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-600 text-lg">Nenhum produto disponível no momento.</p>
+              })}
+
+              {/* Benefits Section */}
+              <div 
+                className="text-white p-6 rounded-lg mt-8"
+                style={{ backgroundColor: store.themeColor || "#E11D48" }}
+              >
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                      <span className="text-2xl">🚚</span>
+                    </div>
+                    <span className="text-sm font-medium">Entrega Rápida</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                      <span className="text-2xl">💳</span>
+                    </div>
+                    <span className="text-sm font-medium">Várias Formas de Pagamento</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                      <span className="text-2xl">✅</span>
+                    </div>
+                    <span className="text-sm font-medium">Qualidade Garantida</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                      <span className="text-2xl">💬</span>
+                    </div>
+                    <span className="text-sm font-medium">Atendimento 24h</span>
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-600 text-lg">Nenhum produto disponível no momento.</p>
+            </div>
+          )}
         </div>
 
         <FlyerFooter store={store} />
