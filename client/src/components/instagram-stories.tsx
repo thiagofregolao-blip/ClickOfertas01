@@ -135,6 +135,18 @@ export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
           </button>
         </div>
 
+        {/* Product Name - Top */}
+        <div className="absolute top-24 left-4 right-4 z-20">
+          <div className="text-center">
+            <h2 className="text-white text-xl font-bold mb-1 drop-shadow-lg">{currentProduct.name}</h2>
+            {currentProduct.category && (
+              <span className="inline-block text-white/80 text-sm bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full border border-white/30">
+                {currentProduct.category}
+              </span>
+            )}
+          </div>
+        </div>
+
         {/* Story Content */}
         <div 
           className="relative w-full h-full cursor-pointer select-none"
@@ -144,76 +156,62 @@ export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
           data-testid="story-content"
         >
           {/* Product Image */}
-          <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
+          <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900" style={{ paddingTop: '120px', paddingBottom: '180px' }}>
             {currentProduct.imageUrl ? (
               <img
                 src={currentProduct.imageUrl}
                 alt={currentProduct.name}
-                className="max-w-full max-h-full object-contain"
-                style={{ maxHeight: '70vh' }}
+                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
               />
             ) : (
-              <div className="w-64 h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+              <div className="w-64 h-64 bg-gray-200 rounded-lg flex items-center justify-center shadow-2xl">
                 <span className="text-gray-500 text-6xl">📦</span>
               </div>
             )}
           </div>
 
-          {/* Product Info Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 pt-12">
-            <div className="text-white">
-              <h2 className="text-xl font-bold mb-2">{currentProduct.name}</h2>
-              
+          {/* Product Info - Bottom */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6 pt-16">
+            <div className="text-white text-center">
+              {/* Description */}
               {currentProduct.description && (
-                <p className="text-white/90 text-sm mb-3 line-clamp-2">
+                <p className="text-white/90 text-base mb-4 leading-relaxed">
                   {currentProduct.description}
                 </p>
               )}
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-2xl font-bold" style={{ color: store.themeColor || '#E11D48' }}>
-                      {store.currency || 'Gs.'} {currentProduct.price?.toLocaleString()}
-                    </span>
-                  </div>
-                  
-                  {currentProduct.category && (
-                    <span className="text-white/70 text-xs bg-white/20 px-2 py-1 rounded-full">
-                      {currentProduct.category}
-                    </span>
-                  )}
-                </div>
+              {/* Price */}
+              <div className="mb-4">
+                <span className="text-3xl font-bold drop-shadow-lg" style={{ color: store.themeColor || '#E11D48' }}>
+                  {store.currency || 'Gs.'} {currentProduct.price?.toLocaleString()}
+                </span>
+              </div>
 
-                <div className="flex gap-3">
-                  <button className="text-white/80 hover:text-white">
-                    <Heart className="w-6 h-6" />
-                  </button>
-                  <button className="text-white/80 hover:text-white">
-                    <MessageCircle className="w-6 h-6" />
-                  </button>
-                </div>
+              {/* Action Buttons */}
+              <div className="flex justify-center gap-4 mb-4">
+                <button className="text-white/80 hover:text-white transition-colors">
+                  <Heart className="w-8 h-8" />
+                </button>
+                <button className="text-white/80 hover:text-white transition-colors">
+                  <MessageCircle className="w-8 h-8" />
+                </button>
               </div>
 
               {/* CTA */}
-              <div className="mt-4">
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
-                  <div className="text-center">
-                    <p className="text-white/90 text-sm mb-2">Interessado? Entre em contato!</p>
-                    {store.whatsapp && (
-                      <a 
-                        href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`}
-                        className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-green-600 transition-colors"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        data-testid="button-contact-whatsapp"
-                      >
-                        <span>📱</span>
-                        <span>{store.whatsapp}</span>
-                      </a>
-                    )}
-                  </div>
-                </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                <p className="text-white/90 text-sm mb-3">💬 Interessado? Fale conosco!</p>
+                {store.whatsapp && (
+                  <a 
+                    href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`}
+                    className="inline-flex items-center gap-3 bg-green-500 text-white px-6 py-3 rounded-full text-base font-semibold hover:bg-green-600 transition-all transform hover:scale-105 shadow-lg"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid="button-contact-whatsapp"
+                  >
+                    <span className="text-lg">📱</span>
+                    <span>{store.whatsapp}</span>
+                  </a>
+                )}
               </div>
             </div>
           </div>
