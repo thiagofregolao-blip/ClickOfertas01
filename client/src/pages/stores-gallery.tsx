@@ -431,9 +431,8 @@ function StorePost({ store, searchQuery = '', isMobile = true }: { store: StoreW
           </div>
           
           <div className="flex-1">
-            <div className="flex items-center">
-              <h3 className="font-bold text-gray-900 mr-2 drop-shadow-sm">{store.name}</h3>
-              
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-gray-900 drop-shadow-sm">{store.name}</h3>
               
               {featuredProducts.length > 0 && (
                 <Badge className="text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none shadow-lg animate-pulse ring-1 ring-white/30">
