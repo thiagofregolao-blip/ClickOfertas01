@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff } from "lucide-react";
 import type { Store, Product, InsertProduct } from "@shared/schema";
 import { z } from "zod";
+import { PhotoCapture } from "@/components/PhotoCapture";
 
 const productFormSchema = insertProductSchema.extend({
   name: z.string().min(1, "Nome do produto é obrigatório"),
@@ -351,13 +352,22 @@ export default function AdminProducts() {
                   </div>
 
                   <div className="md:col-span-2 space-y-2">
-                    <Label htmlFor="imageUrl">URL da Imagem</Label>
-                    <Input
-                      id="imageUrl"
-                      {...form.register("imageUrl")}
-                      placeholder="https://exemplo.com/imagem-produto.jpg"
-                      data-testid="input-product-image"
-                    />
+                    <Label htmlFor="imageUrl">Imagem do Produto</Label>
+                    <div className="space-y-3">
+                      <Input
+                        id="imageUrl"
+                        {...form.register("imageUrl")}
+                        placeholder="https://exemplo.com/imagem-produto.jpg ou tire uma foto abaixo"
+                        data-testid="input-product-image"
+                      />
+                      <div className="text-center text-sm text-gray-500">ou</div>
+                      <PhotoCapture
+                        onPhotoCapture={(photoUrl) => {
+                          form.setValue("imageUrl", photoUrl);
+                        }}
+                        disabled={isLoading}
+                      />
+                    </div>
                   </div>
 
                   <div className="md:col-span-2 space-y-2">
