@@ -320,31 +320,48 @@ function StorePost({ store, searchQuery = '' }: { store: StoreWithProducts, sear
 
   return (
     <div className="bg-white mb-3 border-b">
-      {/* Post Header */}
-      <div className="px-4 py-3 flex items-center">
+      {/* Post Header with Background Effect */}
+      <div className="relative overflow-hidden">
+        {/* Background Effect */}
         <div 
-          className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-3"
-          style={{ backgroundColor: store.themeColor || '#E11D48' }}
-        >
-          {store.logoUrl ? (
-            <img 
-              src={store.logoUrl} 
-              alt={store.name}
-              className="w-10 h-10 rounded-full object-cover"
-            />
-          ) : (
-            <span className="text-lg">{store.name.charAt(0)}</span>
-          )}
-        </div>
+          className="absolute inset-0 opacity-8"
+          style={{
+            background: `linear-gradient(135deg, ${store.themeColor || '#E11D48'}15, transparent 70%)`
+          }}
+        />
+        <div 
+          className="absolute inset-0 opacity-5"
+          style={{
+            background: `radial-gradient(circle at top right, ${store.themeColor || '#E11D48'}20, transparent 60%)`
+          }}
+        />
         
-        <div className="flex-1">
-          <div className="flex items-center">
-            <h3 className="font-bold text-gray-900 mr-2">{store.name}</h3>
-            {featuredProducts.length > 0 && (
-              <Badge className="text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none shadow-md animate-pulse">
-                🔥 {featuredProducts.length} oferta{featuredProducts.length > 1 ? 's' : ''} imperdível{featuredProducts.length > 1 ? 'eis' : ''}
-              </Badge>
+        {/* Content */}
+        <div className="relative px-4 py-3 flex items-center backdrop-blur-[0.5px]">
+          <div 
+            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-lg ring-2 ring-white/20"
+            style={{ backgroundColor: store.themeColor || '#E11D48' }}
+          >
+            {store.logoUrl ? (
+              <img 
+                src={store.logoUrl} 
+                alt={store.name}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <span className="text-lg drop-shadow-sm">{store.name.charAt(0)}</span>
             )}
+          </div>
+          
+          <div className="flex-1">
+            <div className="flex items-center">
+              <h3 className="font-bold text-gray-900 mr-2 drop-shadow-sm">{store.name}</h3>
+              {featuredProducts.length > 0 && (
+                <Badge className="text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none shadow-lg animate-pulse ring-1 ring-white/30">
+                  🔥 {featuredProducts.length} oferta{featuredProducts.length > 1 ? 's' : ''} imperdível{featuredProducts.length > 1 ? 'eis' : ''}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
       </div>
