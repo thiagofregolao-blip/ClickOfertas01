@@ -77,9 +77,12 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
       if (progressRef.current >= 100) {
         if (currentIndex < storiesProducts.length - 1) {
           // Próximo produto da mesma loja
+          console.log('→ Próximo produto da mesma loja:', currentIndex + 1);
           setCurrentIndex(prev => prev + 1);
         } else {
           // Acabaram os produtos - próxima loja
+          console.log('→ Acabaram produtos da loja:', store.name);
+          console.log('→ Chamando goToNextStore()');
           goToNextStore();
         }
       }
@@ -109,15 +112,27 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     const currentStoreIndex = storesWithStories.findIndex(s => s.id === store.id);
     const nextStoreIndex = currentStoreIndex + 1;
     
+    console.log('=== NAVEGAÇÃO ENTRE LOJAS ===');
+    console.log('Total lojas com stories:', storesWithStories.length);
+    console.log('Loja atual:', store.name, 'índice:', currentStoreIndex);
+    console.log('Próximo índice:', nextStoreIndex);
+    
     if (nextStoreIndex < storesWithStories.length) {
       const nextStore = storesWithStories[nextStoreIndex];
-      // Navega para próxima loja
-      setIsClosing(true);
+      console.log('→ Indo para próxima loja:', nextStore.name);
+      
+      // Pausa timer e inicia transição
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
       setIsPaused(true);
+      setIsClosing(true);
+      
       setTimeout(() => {
         window.location.href = `/stores/${nextStore.slug}`;
       }, 200);
     } else {
+      console.log('→ Última loja, voltando para galeria');
       // Não há mais lojas, volta para galeria
       handleClose();
     }
