@@ -154,16 +154,6 @@ export default function StoresGallery() {
             </button>
           </div>
           
-          {/* Barra de Busca */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Buscar produtos ou lojas..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-red-300 focus:ring-red-200"
-            />
-          </div>
         </div>
       </div>
 
@@ -171,6 +161,19 @@ export default function StoresGallery() {
       {!searchQuery.trim() && (
         <StoreStoriesSection stores={filteredStores} />
       )}
+
+      {/* Barra de Busca */}
+      <div className="bg-white border-b px-4 py-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Buscar produtos ou lojas..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-red-300 focus:ring-red-200"
+          />
+        </div>
+      </div>
 
       {/* Feed Unificado */}
       <UnifiedFeedView stores={filteredStores} searchQuery={searchQuery} searchResults={searchResults} isMobile={isMobile} />
