@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff, ChevronLeft, ChevronRight, Upload, Download, FileSpreadsheet } from "lucide-react";
+import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff, ChevronLeft, ChevronRight, Upload, Download, FileSpreadsheet, Package, Camera, Settings } from "lucide-react";
 import type { Store, Product, InsertProduct } from "@shared/schema";
 import { z } from "zod";
 import { PhotoCapture } from "@/components/PhotoCapture";
@@ -279,12 +279,21 @@ export default function AdminProducts() {
   };
 
   // Função para importar produtos do Excel
-  const importFromExcel = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const importFromExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (!store?.id) {
+      toast({
+        title: "Erro",
+        description: "Loja não encontrada.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
@@ -294,19 +303,46 @@ export default function AdminProducts() {
         const importedProducts = jsonData.map((row: any) => ({
           name: row['Nome do Produto'] || '',
           description: row['Descrição'] || '',
-          price: row['Preço'] || '',
+          price: String(row['Preço'] || '0').replace(/[^0-9.,]/g, '').replace(/\./g, '').replace(',', '.'),
           category: row['Categoria'] || 'Geral',
           imageUrl: row['URL da Imagem'] || '',
           isFeatured: row['Em Destaque'] === 'Sim',
           isActive: row['Ativo'] === 'Sim'
         }));
 
-        // Aqui você pode implementar a lógica para salvar os produtos importados
-        console.log('Produtos importados:', importedProducts);
+        // Processar produtos de forma sequencial para evitar conflitos
+        let updated = 0;
+        let created = 0;
+
+        for (const productData of importedProducts) {
+          if (!productData.name.trim()) continue;
+          
+          try {
+            // Verificar se produto já existe pelo nome
+            const existingProduct = products.find(p => 
+              p.name.toLowerCase().trim() === productData.name.toLowerCase().trim()
+            );
+            
+            if (existingProduct) {
+              // Atualizar produto existente
+              await apiRequest("PATCH", `/api/stores/${store.id}/products/${existingProduct.id}`, productData);
+              updated++;
+            } else {
+              // Criar novo produto
+              await apiRequest("POST", `/api/stores/${store.id}/products`, productData);
+              created++;
+            }
+          } catch (error) {
+            console.error('Erro ao processar produto:', productData.name, error);
+          }
+        }
+        
+        // Atualizar a lista de produtos após importação
+        queryClient.invalidateQueries({ queryKey: ["/api/stores", store?.id, "products"] });
         
         toast({
           title: "Importação concluída!",
-          description: `${importedProducts.length} produtos foram importados.`,
+          description: `${created} produtos criados, ${updated} produtos atualizados.`,
         });
 
       } catch (error) {
@@ -412,137 +448,163 @@ export default function AdminProducts() {
                 </Button>
               </DialogTrigger>
               
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>
+              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-gray-50">
+                <DialogHeader className="bg-white p-6 -mx-6 -mt-6 mb-4 border-b">
+                  <DialogTitle className="text-xl font-semibold text-gray-800">
                     {editingProduct ? "Editar Produto" : "Adicionar Novo Produto"}
                   </DialogTitle>
                 </DialogHeader>
                 
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Nome do Produto *</Label>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Informações Básicas */}
+                  <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                    <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
+                      <Package className="w-5 h-5 mr-2 text-blue-600" />
+                      Informações Básicas
+                    </h3>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name" className="text-gray-700 font-medium">Nome do Produto *</Label>
+                        <Input
+                          id="name"
+                          {...form.register("name")}
+                          placeholder="Ex: Arroz Tio João 5kg"
+                          className="placeholder:text-gray-400 border-gray-300 focus:border-blue-500"
+                          data-testid="input-product-name"
+                        />
+                        {form.formState.errors.name && (
+                          <p className="text-sm text-red-600">{form.formState.errors.name.message}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="price" className="text-gray-700 font-medium">Preço *</Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 font-medium bg-gray-100 px-2 py-1 rounded text-sm">
+                            {store.currency}
+                          </span>
+                          <Input
+                            id="price"
+                            {...form.register("price")}
+                            placeholder="25.000 ou 25000"
+                            className="pl-16 placeholder:text-gray-400 border-gray-300 focus:border-blue-500"
+                            data-testid="input-product-price"
+                          />
+                        </div>
+                        {form.formState.errors.price && (
+                          <p className="text-sm text-red-600">{form.formState.errors.price.message}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="category" className="text-gray-700 font-medium">Categoria</Label>
+                        <Select 
+                          value={form.watch("category") || "Geral"} 
+                          onValueChange={(value) => form.setValue("category", value)}
+                        >
+                          <SelectTrigger className="border-gray-300 focus:border-blue-500" data-testid="select-product-category">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Perfumes">Perfumes</SelectItem>
+                            <SelectItem value="Eletrônicos">Eletrônicos</SelectItem>
+                            <SelectItem value="Pesca">Pesca</SelectItem>
+                            <SelectItem value="Geral">Geral</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="description" className="text-gray-700 font-medium">Descrição</Label>
+                        <Textarea
+                          id="description"
+                          {...form.register("description")}
+                          placeholder="Descrição detalhada do produto..."
+                          className="placeholder:text-gray-400 border-gray-300 focus:border-blue-500"
+                          rows={2}
+                          data-testid="textarea-product-description"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Imagem do Produto */}
+                  <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                    <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
+                      <Camera className="w-5 h-5 mr-2 text-green-600" />
+                      Imagem do Produto
+                    </h3>
+                    <div className="space-y-3">
                       <Input
-                        id="name"
-                        {...form.register("name")}
-                        placeholder="Ex: Arroz Tio João 5kg"
-                        className="placeholder:text-gray-400"
-                        data-testid="input-product-name"
+                        id="imageUrl"
+                        {...form.register("imageUrl")}
+                        placeholder="Cole a URL da imagem aqui..."
+                        className="placeholder:text-gray-400 border-gray-300 focus:border-blue-500"
+                        data-testid="input-product-image"
                       />
-                      {form.formState.errors.name && (
-                        <p className="text-sm text-red-600">{form.formState.errors.name.message}</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="price">Preço *</Label>
-                      <div className="flex">
-                        <span className="inline-flex items-center px-3 text-sm text-gray-500 bg-gray-50 border border-r-0 border-gray-300 rounded-l-lg">
-                          {store.currency}
-                        </span>
-                        <Input
-                          id="price"
-                          {...form.register("price")}
-                          placeholder="25000 ou 25.000,00"
-                          className="rounded-l-none placeholder:text-gray-400"
-                          data-testid="input-product-price"
-                        />
+                      <div className="flex items-center justify-center">
+                        <span className="text-gray-500 text-sm">ou</span>
                       </div>
-                      {form.formState.errors.price && (
-                        <p className="text-sm text-red-600">{form.formState.errors.price.message}</p>
-                      )}
+                      <PhotoCapture 
+                        onPhotoCapture={(url) => form.setValue("imageUrl", url)}
+                      />
                     </div>
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="category">Categoria</Label>
-                      <Select 
-                        value={form.watch("category") || "Geral"} 
-                        onValueChange={(value) => form.setValue("category", value)}
-                      >
-                        <SelectTrigger data-testid="select-product-category">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Perfumes">Perfumes</SelectItem>
-                          <SelectItem value="Eletrônicos">Eletrônicos</SelectItem>
-                          <SelectItem value="Pesca">Pesca</SelectItem>
-                          <SelectItem value="Geral">Geral</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  {/* Configurações */}
+                  <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                    <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
+                      <Settings className="w-5 h-5 mr-2 text-purple-600" />
+                      Configurações
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <Switch
+                          id="featured"
+                          checked={form.watch("isFeatured") || false}
+                          onCheckedChange={(checked) => form.setValue("isFeatured", checked)}
+                          data-testid="switch-featured"
+                        />
+                        <Label htmlFor="featured" className="text-yellow-800 font-medium">
+                          Produto em Destaque
+                        </Label>
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="imageUrl">Imagem do Produto</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="imageUrl"
-                          {...form.register("imageUrl")}
-                          placeholder="URL da imagem ou use a câmera"
-                          className="flex-1 placeholder:text-gray-400"
-                          data-testid="input-product-image"
+                      <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <Switch
+                          id="active"
+                          checked={form.watch("isActive") || true}
+                          onCheckedChange={(checked) => form.setValue("isActive", checked)}
+                          data-testid="switch-active"
                         />
-                        <PhotoCapture 
-                          onPhotoCapture={(url) => form.setValue("imageUrl", url)}
-                        />
+                        <Label htmlFor="active" className="text-green-800 font-medium">
+                          Produto Ativo
+                        </Label>
                       </div>
                     </div>
+
+                    {/* Cadastrar mais produtos option */}
+                    {!editingProduct && (
+                      <div className="mt-4 flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <Switch
+                          id="addMore"
+                          checked={addMoreProducts}
+                          onCheckedChange={setAddMoreProducts}
+                          data-testid="switch-add-more"
+                        />
+                        <Label htmlFor="addMore" className="text-blue-700 font-medium">
+                          Cadastrar mais produtos após salvar este
+                        </Label>
+                      </div>
+                    )}
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Descrição</Label>
-                    <Textarea
-                      id="description"
-                      {...form.register("description")}
-                      placeholder="Descrição detalhada do produto..."
-                      className="placeholder:text-gray-400"
-                      rows={3}
-                      data-testid="textarea-product-description"
-                    />
-                  </div>
-
-                  <div className="flex items-center space-x-6">
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="featured"
-                        checked={form.watch("isFeatured") || false}
-                        onCheckedChange={(checked) => form.setValue("isFeatured", checked)}
-                        data-testid="switch-featured"
-                      />
-                      <Label htmlFor="featured">Produto em Destaque</Label>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="active"
-                        checked={form.watch("isActive") || true}
-                        onCheckedChange={(checked) => form.setValue("isActive", checked)}
-                        data-testid="switch-active"
-                      />
-                      <Label htmlFor="active">Produto Ativo</Label>
-                    </div>
-                  </div>
-
-                  {/* Cadastrar mais produtos option */}
-                  {!editingProduct && (
-                    <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <Switch
-                        id="addMore"
-                        checked={addMoreProducts}
-                        onCheckedChange={setAddMoreProducts}
-                        data-testid="switch-add-more"
-                      />
-                      <Label htmlFor="addMore" className="text-blue-700 font-medium">
-                        Cadastrar mais produtos após salvar
-                      </Label>
-                    </div>
-                  )}
 
                   <div className="flex justify-end space-x-4 pt-4">
                     <Button 
                       type="button" 
                       variant="outline" 
                       onClick={handleCancelForm}
+                      className="border-gray-300 text-gray-700 hover:bg-gray-50"
                       data-testid="button-cancel"
                     >
                       Cancelar
@@ -550,10 +612,10 @@ export default function AdminProducts() {
                     <Button 
                       type="submit" 
                       disabled={saveMutation.isPending}
-                      className="bg-primary text-white hover:bg-blue-600"
+                      className="bg-blue-600 text-white hover:bg-blue-700 shadow-md"
                       data-testid="button-save-product"
                     >
-                      {saveMutation.isPending ? "Salvando..." : editingProduct ? "Atualizar" : "Criar Produto"}
+                      {saveMutation.isPending ? "Salvando..." : editingProduct ? "Atualizar Produto" : "Criar Produto"}
                     </Button>
                   </div>
                 </form>
