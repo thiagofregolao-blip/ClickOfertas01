@@ -11,6 +11,7 @@ import FlyerHeader from "@/components/flyer-header";
 import FlyerFooter from "@/components/flyer-footer";
 import { downloadFlyerAsPNG } from "@/lib/flyer-utils";
 import type { StoreWithProducts } from "@shared/schema";
+import { InstagramStories } from "@/components/instagram-stories";
 
 export default function PublicFlyer() {
   const [, flyerParams] = useRoute("/flyer/:slug");
@@ -21,6 +22,7 @@ export default function PublicFlyer() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [showInstagramStories, setShowInstagramStories] = useState(isStoriesView);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Fecha o menu quando clicar fora
@@ -148,6 +150,19 @@ export default function PublicFlyer() {
   const filteredProducts = selectedCategory === "all" 
     ? sortedCategories.flatMap(category => productsByCategory[category]) // Ordenar por categoria quando "all"
     : activeProducts.filter(product => (product.category || 'Geral') === selectedCategory);
+
+  // Show Instagram Stories if accessed via stories and has stories products
+  if (showInstagramStories && store?.products.some(p => p.isActive && p.showInStories)) {
+    return (
+      <InstagramStories 
+        store={store}
+        onClose={() => {
+          setShowInstagramStories(false);
+          // Optional: redirect to regular flyer view or gallery
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -287,16 +302,13 @@ export default function PublicFlyer() {
                 {/* Store Info */}
                 <div className="flex-1">
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">{store.name}</h1>
-                  {store.description && (
-                    <p className="text-gray-600 mb-3 text-lg">{store.description}</p>
-                  )}
                   
                   {/* Store Details */}
                   <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
-                    {store.phone && (
+                    {store.whatsapp && (
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold">📞</span>
-                        <span>{store.phone}</span>
+                        <span className="font-semibold">📱</span>
+                        <span>{store.whatsapp}</span>
                       </div>
                     )}
                     {store.address && (
@@ -430,11 +442,16 @@ export default function PublicFlyer() {
               <div className="text-center">
                 <h3 className="text-xl font-bold text-gray-800 mb-2">💬 Entre em contato!</h3>
                 <p className="text-gray-600 mb-4">Interessado em algum produto? Fale conosco!</p>
-                {store.phone && (
-                  <div className="inline-flex items-center gap-2 bg-green-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-green-600 transition-colors cursor-pointer">
-                    <span>📞</span>
-                    <span>{store.phone}</span>
-                  </div>
+                {store.whatsapp && (
+                  <a 
+                    href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-green-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-green-600 transition-colors cursor-pointer"
+                  >
+                    <span>📱</span>
+                    <span>{store.whatsapp}</span>
+                  </a>
                 )}
               </div>
             </div>
