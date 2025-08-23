@@ -682,19 +682,19 @@ export default function AdminProducts() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full table-fixed">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="w-2/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Produto
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Preço
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="w-1/4 px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Ações
                       </th>
                     </tr>
@@ -746,59 +746,65 @@ export default function AdminProducts() {
                             {product.isActive ? "Ativo" : "Inativo"}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleMutation.mutate({
-                              productId: product.id,
-                              field: "isFeatured",
-                              value: !product.isFeatured
-                            })}
-                            data-testid={`button-toggle-featured-${product.id}`}
-                          >
-                            {product.isFeatured ? (
-                              <StarOff className="w-4 h-4 text-accent" />
-                            ) : (
-                              <Star className="w-4 h-4 text-gray-400" />
-                            )}
-                          </Button>
-                          
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleMutation.mutate({
-                              productId: product.id,
-                              field: "isActive",
-                              value: !product.isActive
-                            })}
-                            data-testid={`button-toggle-active-${product.id}`}
-                          >
-                            {product.isActive ? (
-                              <EyeOff className="w-4 h-4 text-gray-600" />
-                            ) : (
-                              <Eye className="w-4 h-4 text-gray-400" />
-                            )}
-                          </Button>
-                          
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditProduct(product)}
-                            data-testid={`button-edit-${product.id}`}
-                          >
-                            <Edit className="w-4 h-4 text-primary" />
-                          </Button>
-                          
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteMutation.mutate(product.id)}
-                            disabled={deleteMutation.isPending}
-                            data-testid={`button-delete-${product.id}`}
-                          >
-                            <Trash2 className="w-4 h-4 text-red-600" />
-                          </Button>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <div className="flex justify-center items-center space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleMutation.mutate({
+                                productId: product.id,
+                                field: "isFeatured",
+                                value: !product.isFeatured
+                              })}
+                              data-testid={`button-toggle-featured-${product.id}`}
+                              title={product.isFeatured ? "Remover destaque" : "Marcar como destaque"}
+                            >
+                              {product.isFeatured ? (
+                                <StarOff className="w-4 h-4 text-accent" />
+                              ) : (
+                                <Star className="w-4 h-4 text-gray-400" />
+                              )}
+                            </Button>
+                            
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleMutation.mutate({
+                                productId: product.id,
+                                field: "isActive",
+                                value: !product.isActive
+                              })}
+                              data-testid={`button-toggle-active-${product.id}`}
+                              title={product.isActive ? "Desativar produto" : "Ativar produto"}
+                            >
+                              {product.isActive ? (
+                                <EyeOff className="w-4 h-4 text-gray-600" />
+                              ) : (
+                                <Eye className="w-4 h-4 text-gray-400" />
+                              )}
+                            </Button>
+                            
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditProduct(product)}
+                              data-testid={`button-edit-${product.id}`}
+                              title="Editar produto"
+                            >
+                              <Edit className="w-4 h-4 text-blue-600" />
+                            </Button>
+                            
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => deleteMutation.mutate(product.id)}
+                              disabled={deleteMutation.isPending}
+                              data-testid={`button-delete-${product.id}`}
+                              title="Excluir produto"
+                            >
+                              <Trash2 className="w-4 h-4 text-red-600" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
