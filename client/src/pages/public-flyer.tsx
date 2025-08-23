@@ -42,6 +42,11 @@ export default function PublicFlyer() {
     enabled: !!params?.slug,
   });
 
+  // Buscar todas as lojas para navegação entre stories (sempre executado no topo)
+  const { data: allStores } = useQuery({
+    queryKey: ['/api/public/stores'],
+  });
+
   const handleShare = async () => {
     if (navigator.share && typeof navigator.canShare === 'function') {
       try {
@@ -147,11 +152,6 @@ export default function PublicFlyer() {
   });
 
   // Filtrar produtos por categoria selecionada
-  // Buscar todas as lojas para navegação entre stories (sempre executado)
-  const { data: allStores } = useQuery({
-    queryKey: ['/api/public/stores'],
-  });
-
   const filteredProducts = selectedCategory === "all" 
     ? sortedCategories.flatMap(category => productsByCategory[category]) // Ordenar por categoria quando "all"
     : activeProducts.filter(product => (product.category || 'Geral') === selectedCategory);
