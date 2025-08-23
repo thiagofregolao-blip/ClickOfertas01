@@ -17,18 +17,6 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
             const hasStoriesProducts = store.products.some(product => 
               product.showInStories && product.isActive
             );
-            
-            // Debug temporário
-            if (store.name === 'Shopping China') {
-              console.log('Shopping China stories check:', {
-                hasStoriesProducts,
-                products: store.products.map(p => ({
-                  name: p.name,
-                  showInStories: p.showInStories,
-                  isActive: p.isActive
-                }))
-              });
-            }
 
             return (
               <div
@@ -56,7 +44,7 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                 <div className="relative">
                     {/* Anel animado para lojas com produtos nos stories */}
                     {hasStoriesProducts && (
-                      <div className="absolute -inset-1 rounded-full animate-spin">
+                      <div className="absolute -inset-1 flex items-center justify-center animate-spin">
                         <div 
                           className="w-24 h-24 rounded-full p-1"
                           style={{
