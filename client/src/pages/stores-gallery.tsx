@@ -302,7 +302,21 @@ function StorePost({ store, searchQuery = '' }: { store: StoreWithProducts, sear
     return [...featured, ...regular];
   });
   
-  const displayProducts = categorySortedProducts.slice(0, 4); // Mostrar 4 produtos em destaque
+  // Priorizar produtos em destaque de diferentes categorias
+  const featuredByCategory: Record<string, any> = {};
+  const regularProducts: any[] = [];
+  
+  categorySortedProducts.forEach(product => {
+    const category = product.category || 'Geral';
+    if (product.isFeatured && !featuredByCategory[category]) {
+      featuredByCategory[category] = product;
+    } else {
+      regularProducts.push(product);
+    }
+  });
+  
+  const featuredFromDifferentCategories = Object.values(featuredByCategory);
+  const displayProducts = [...featuredFromDifferentCategories, ...regularProducts].slice(0, 5); // Mostrar 5 produtos em destaque
 
   return (
     <div className="bg-white mb-3 border-b">
@@ -338,7 +352,7 @@ function StorePost({ store, searchQuery = '' }: { store: StoreWithProducts, sear
       {/* Products Horizontal Cards */}
       {displayProducts.length > 0 ? (
         <div className="px-4 pb-3">
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             {displayProducts.map((product) => (
               <div key={product.id} className="min-h-[160px] flex">
                 <ProductCard
