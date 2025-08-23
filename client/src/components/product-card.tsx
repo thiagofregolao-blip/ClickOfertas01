@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, Share2 } from "lucide-react";
+import { Star } from "lucide-react";
 import type { Product } from "@shared/schema";
 
 // Import category icons
@@ -14,8 +14,6 @@ interface ProductCardProps {
   currency: string;
   themeColor: string;
   showFeaturedBadge?: boolean;
-  storeWhatsapp?: string | null;
-  storeName?: string;
 }
 
 // Cores por categoria
@@ -62,47 +60,19 @@ export default function ProductCard({
   product, 
   currency, 
   themeColor, 
-  showFeaturedBadge = false,
-  storeWhatsapp,
-  storeName 
+  showFeaturedBadge = false 
 }: ProductCardProps) {
   const categoryColors = getCategoryColors(product.category || undefined);
   const categoryIcon = getCategoryIcon(product.category || undefined);
   
-  const handleWhatsAppShare = () => {
-    if (!storeWhatsapp) return;
-    
-    const message = encodeURIComponent(
-      `Olá! Tenho interesse no produto:\n\n*${product.name}*\n\nPreço: ${currency} ${Number(product.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n\nPoderia me dar mais informações?`
-    );
-    
-    const whatsappNumber = storeWhatsapp.replace(/\D/g, '');
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
-    
-    window.open(whatsappUrl, '_blank');
-  };
-  
   return (
-    <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 border-0 bg-white h-full flex flex-col">
-      {/* Nome do produto - PARTE SUPERIOR */}
-      <div className="p-3 bg-gray-50 border-b">
-        <h3 className="font-bold text-sm text-gray-800 line-clamp-2 text-center leading-tight">
-          {product.name}
-        </h3>
-        {(product.isFeatured && showFeaturedBadge) && (
-          <Badge variant="destructive" className="text-xs mt-2 mx-auto block w-fit">
-            ⭐ Destaque
-          </Badge>
-        )}
-      </div>
-
-      {/* Imagem do produto - CENTRO */}
-      <div className="relative flex-1 min-h-[160px] md:min-h-[200px]">
+    <div className={`${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center flex flex-col h-full`}>
+      <div className="relative">
         {product.imageUrl ? (
           <img 
             src={product.imageUrl} 
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="product-image w-full h-20 md:h-24 lg:h-28 object-cover"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
@@ -114,63 +84,69 @@ export default function ProductCard({
           />
         ) : null}
         
-        {/* Placeholder com ícone da categoria */}
+        {/* Placeholder with category icon when no image */}
         <div 
-          className="absolute inset-0 bg-gray-100 flex items-center justify-center"
+          className="product-image w-full h-20 md:h-24 lg:h-28 bg-gray-100 flex items-center justify-center"
           style={{ display: product.imageUrl ? 'none' : 'flex' }}
         >
           <img 
             src={categoryIcon} 
             alt={product.category || 'Geral'}
-            className="w-16 h-16 opacity-40"
+            className="w-8 h-8 md:w-10 md:h-10 opacity-60"
           />
         </div>
         
-        {/* Badge da categoria */}
-        <div className="absolute top-2 left-2">
-          <Badge 
-            variant="secondary" 
-            className="text-xs bg-white/90 text-gray-700"
-          >
-            <img 
-              src={categoryIcon} 
-              alt={product.category || 'Geral'}
-              className="w-3 h-3 mr-1"
-            />
-            {product.category || 'Geral'}
-          </Badge>
+        {/* Category icon overlay */}
+        <div className="absolute bottom-1 left-1">
+          <img 
+            src={categoryIcon} 
+            alt={product.category || 'Geral'}
+            className="category-icon w-4 h-4 md:w-5 md:h-5 opacity-70 bg-white/80 rounded-full p-0.5"
+          />
+        </div>
+        
+        {(product.isFeatured && showFeaturedBadge) && (
+          <div className="absolute top-1 right-1">
+            <div className="featured-badge bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs px-1 py-0.5 rounded shadow-lg animate-pulse">
+              🔥
+            </div>
+          </div>
+        )}
+      </div>
+      
+      <div className="product-content p-2 flex flex-col h-full">
+        <h3 className="product-title text-[10px] sm:text-xs font-semibold text-gray-900 mb-1 line-clamp-2 h-8 sm:h-10 flex items-center justify-center text-center">
+          {product.name}
+        </h3>
+        
+        <div className="text-xs sm:text-sm text-gray-500 mb-2 line-clamp-4 h-14 sm:h-16 flex items-start justify-center text-center leading-tight">
+          {product.description || ''}
+        </div>
+        
+        <div 
+          className="flex items-end justify-center gap-0.5 h-6 sm:h-8 mt-auto"
+          style={{ color: categoryColors.accent }}
+        >
+          <span className="product-currency text-xs sm:text-sm font-medium self-end">{currency}</span>
+          <div className="flex items-start">
+            {(() => {
+              const price = Number(product.price || 0);
+              const integerPart = Math.floor(price);
+              const decimalPart = Math.round((price - integerPart) * 100);
+              return (
+                <>
+                  <span className="product-price text-sm sm:text-xl md:text-2xl font-bold leading-none">
+                    {integerPart.toLocaleString('pt-BR')}
+                  </span>
+                  <span className="product-cents text-[10px] sm:text-xs font-medium mt-0.5 leading-none">
+                    ,{String(decimalPart).padStart(2, '0')}
+                  </span>
+                </>
+              );
+            })()}
+          </div>
         </div>
       </div>
-
-      {/* Descrição e preço - PARTE INFERIOR */}
-      <CardContent className="p-4 bg-white">
-        {/* Descrição */}
-        {product.description && (
-          <p className="text-sm text-gray-600 line-clamp-2 mb-3 leading-relaxed">
-            {product.description}
-          </p>
-        )}
-        
-        {/* Preço e botão WhatsApp */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-baseline gap-1">
-            <span className="text-lg font-bold text-gray-900">
-              {currency} {Number(product.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </span>
-          </div>
-          
-          {/* Botão WhatsApp */}
-          {storeWhatsapp && (
-            <button
-              onClick={handleWhatsAppShare}
-              className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full transition-colors duration-200 shadow-md hover:shadow-lg"
-              title="Compartilhar no WhatsApp"
-            >
-              <Share2 size={16} />
-            </button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    </div>
   );
 }
