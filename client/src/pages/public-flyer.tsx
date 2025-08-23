@@ -156,10 +156,7 @@ export default function PublicFlyer() {
     return (
       <InstagramStories 
         store={store}
-        onClose={() => {
-          setShowInstagramStories(false);
-          // Optional: redirect to regular flyer view or gallery
-        }}
+        onClose={() => setShowInstagramStories(false)}
       />
     );
   }

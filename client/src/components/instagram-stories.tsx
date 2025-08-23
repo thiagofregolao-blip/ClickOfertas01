@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { X, ChevronLeft, ChevronRight, Heart, MessageCircle } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import type { StoreWithProducts, Product } from "@shared/schema";
 
 interface InstagramStoriesProps {
@@ -9,12 +9,13 @@ interface InstagramStoriesProps {
 }
 
 export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
+  const [, setLocation] = useLocation();
   const storiesProducts = store.products.filter(p => p.isActive && p.showInStories);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const STORY_DURATION = 5000; // 5 segundos por produto
+  const STORY_DURATION = 8000; // 8 segundos por produto (aumentado)
 
   const currentProduct = storiesProducts[currentIndex];
 
@@ -29,7 +30,8 @@ export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
             setCurrentIndex(currentIndex + 1);
             return 0;
           } else {
-            onClose(); // Fecha quando termina
+            // Volta para galeria quando termina
+            setLocation('/stores');
             return prev;
           }
         }
@@ -51,7 +53,8 @@ export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
     if (currentIndex < storiesProducts.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      onClose();
+      // Volta para galeria quando termina
+      setLocation('/stores');
     }
   };
 
@@ -127,7 +130,7 @@ export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
           </div>
           
           <button
-            onClick={onClose}
+            onClick={() => setLocation('/stores')}
             className="text-white/90 hover:text-white p-2"
             data-testid="button-close-stories"
           >
