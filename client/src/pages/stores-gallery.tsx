@@ -141,13 +141,55 @@ function StorePost({ store }: { store: StoreWithProducts }) {
       {displayProducts.length > 0 ? (
         <div className="px-4 pb-3">
           <style>{`
-            .small-product-card .product-image { height: 60px !important; }
-            .small-product-card .product-content { padding: 8px 4px !important; }
-            .small-product-card .product-title { font-size: 11px !important; line-height: 1.2 !important; }
-            .small-product-card .product-price { font-size: 14px !important; }
-            .small-product-card .product-currency { font-size: 10px !important; }
-            .small-product-card .category-icon { width: 12px !important; height: 12px !important; }
-            .small-product-card .featured-badge { font-size: 10px !important; padding: 2px 4px !important; }
+            .small-product-card { 
+              height: 140px !important; 
+              display: flex !important;
+              flex-direction: column !important;
+            }
+            .small-product-card > div { 
+              border-radius: 8px !important; 
+              overflow: hidden !important;
+              height: 100% !important;
+              display: flex !important;
+              flex-direction: column !important;
+            }
+            .small-product-card .product-image { 
+              height: 70px !important; 
+              object-fit: contain !important;
+              background: white !important;
+              border-radius: 6px 6px 0 0 !important;
+              padding: 4px !important;
+            }
+            .small-product-card .product-content { 
+              padding: 6px 4px !important; 
+              flex: 1 !important;
+              display: flex !important;
+              flex-direction: column !important;
+              justify-content: space-between !important;
+            }
+            .small-product-card .product-title { 
+              font-size: 10px !important; 
+              line-height: 1.2 !important; 
+              margin-bottom: 4px !important;
+              display: -webkit-box !important;
+              -webkit-line-clamp: 2 !important;
+              -webkit-box-orient: vertical !important;
+              overflow: hidden !important;
+            }
+            .small-product-card .product-price { font-size: 13px !important; }
+            .small-product-card .product-currency { font-size: 9px !important; }
+            .small-product-card .category-icon { 
+              width: 10px !important; 
+              height: 10px !important; 
+              bottom: 2px !important;
+              left: 2px !important;
+            }
+            .small-product-card .featured-badge { 
+              font-size: 9px !important; 
+              padding: 1px 3px !important; 
+              top: 2px !important;
+              right: 2px !important;
+            }
           `}</style>
           <div className="grid grid-cols-4 gap-2">
             {displayProducts.map((product) => (
