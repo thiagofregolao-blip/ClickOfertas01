@@ -13,7 +13,9 @@ import { downloadFlyerAsPNG } from "@/lib/flyer-utils";
 import type { StoreWithProducts } from "@shared/schema";
 
 export default function PublicFlyer() {
-  const [, params] = useRoute("/flyer/:slug");
+  const [, flyerParams] = useRoute("/flyer/:slug");
+  const [, storeParams] = useRoute("/stores/:slug");
+  const params = flyerParams || storeParams;
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
   const [showActions, setShowActions] = useState(false);

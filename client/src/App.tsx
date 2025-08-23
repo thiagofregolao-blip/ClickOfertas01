@@ -23,6 +23,7 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route path="/stores" component={StoresGallery} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
+          <Route path="/stores/:slug" component={PublicFlyer} />
         </>
       ) : (
         <>
@@ -32,6 +33,7 @@ function Router() {
           <Route path="/admin/products" component={AdminProducts} />
           <Route path="/admin/preview" component={AdminPreview} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
+          <Route path="/stores/:slug" component={PublicFlyer} />
         </>
       )}
       <Route component={NotFound} />
