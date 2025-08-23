@@ -258,18 +258,77 @@ export default function PublicFlyer() {
         </div>
 
         <div className="p-4">
-          {/* Products Grid - Traditional Layout */}
+          {/* Products Grid - Organized by Category */}
           {activeProducts.length > 0 ? (
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {activeProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  currency={store.currency || "Gs."}
-                  themeColor={store.themeColor || "#E11D48"}
-                  showFeaturedBadge={product.isFeatured}
-                />
-              ))}
+            <div className="space-y-6">
+              {/* Featured Products First */}
+              {activeProducts.some(p => p.isFeatured) && (
+                <div>
+                  <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-3 mb-4 text-center">
+                    <h2 className="text-lg font-bold">⭐ OFERTAS EM DESTAQUE ⭐</h2>
+                  </div>
+                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
+                    {activeProducts.filter(p => p.isFeatured).map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        currency={store.currency || "Gs."}
+                        themeColor={store.themeColor || "#E11D48"}
+                        showFeaturedBadge={true}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Products by Category */}
+              {sortedCategories.map((category) => {
+                const categoryProducts = productsByCategory[category];
+                
+                // Emojis por categoria
+                const categoryEmojis: { [key: string]: string } = {
+                  'Perfumes': '🌸',
+                  'Eletrônicos': '📱', 
+                  'Pesca': '🎣',
+                  'Geral': '🛒'
+                };
+
+                // Cores do cabeçalho por categoria
+                const categoryHeaderColors: { [key: string]: string } = {
+                  'Perfumes': 'from-pink-500 to-pink-600',
+                  'Eletrônicos': 'from-blue-500 to-blue-600', 
+                  'Pesca': 'from-emerald-500 to-emerald-600',
+                  'Geral': 'from-gray-500 to-gray-600'
+                };
+
+                return (
+                  <div key={category}>
+                    {/* Category Header */}
+                    <div className={`bg-gradient-to-r ${categoryHeaderColors[category] || 'from-gray-500 to-gray-600'} text-white p-3 mb-4 text-center`}>
+                      <h2 className="text-lg font-bold flex items-center justify-center gap-2">
+                        <span className="text-xl">{categoryEmojis[category] || '🛒'}</span>
+                        {category.toUpperCase()}
+                        <span className="bg-white/20 px-2 py-1 rounded-full text-sm">
+                          {categoryProducts.length}
+                        </span>
+                      </h2>
+                    </div>
+                    
+                    {/* Category Products Grid */}
+                    <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
+                      {categoryProducts.map((product) => (
+                        <ProductCard
+                          key={product.id}
+                          product={product}
+                          currency={store.currency || "Gs."}
+                          themeColor={store.themeColor || "#E11D48"}
+                          showFeaturedBadge={false}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-12">
