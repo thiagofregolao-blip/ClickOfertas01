@@ -258,11 +258,11 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
             <div className="flex items-center justify-between">
               <div className="text-white">
                 <span className="text-2xl font-bold">
-                  R$ {currentProduct.price.toFixed(2)}
+                  R$ {Number(currentProduct.price).toFixed(2)}
                 </span>
-                {currentProduct.originalPrice && currentProduct.originalPrice > currentProduct.price && (
+                {currentProduct.originalPrice && Number(currentProduct.originalPrice) > Number(currentProduct.price) && (
                   <span className="text-white/60 text-sm line-through ml-2">
-                    R$ {currentProduct.originalPrice.toFixed(2)}
+                    R$ {Number(currentProduct.originalPrice).toFixed(2)}
                   </span>
                 )}
               </div>
