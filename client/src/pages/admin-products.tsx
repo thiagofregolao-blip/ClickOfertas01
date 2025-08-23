@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff } from "lucide-react";
+import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Store, Product, InsertProduct } from "@shared/schema";
 import { z } from "zod";
 import { PhotoCapture } from "@/components/PhotoCapture";
@@ -36,6 +36,9 @@ export default function AdminProducts() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  const PRODUCTS_PER_PAGE = 15;
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -226,6 +229,16 @@ export default function AdminProducts() {
     if (filter === "featured") return matchesSearch && product.isFeatured;
     return matchesSearch;
   });
+
+  // Resetar página quando filtro ou busca mudar
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, search]);
+
+  // Cálculos de paginação
+  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
+  const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+  const paginatedProducts = filteredProducts.slice(startIndex, startIndex + PRODUCTS_PER_PAGE);
 
   if (isLoading) {
     return (
@@ -434,7 +447,7 @@ export default function AdminProducts() {
                   <div key={i} className="h-16 bg-gray-200 rounded animate-pulse"></div>
                 ))}
               </div>
-            ) : filteredProducts.length === 0 ? (
+            ) : paginatedProducts.length === 0 ? (
               <div className="p-6 text-center text-gray-600">
                 {search ? "Nenhum produto encontrado para a busca." : "Nenhum produto cadastrado ainda."}
               </div>
@@ -458,7 +471,7 @@ export default function AdminProducts() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredProducts.map((product) => (
+                    {paginatedProducts.map((product) => (
                       <tr key={product.id} data-testid={`row-product-${product.id}`}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -556,6 +569,70 @@ export default function AdminProducts() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+            
+            {/* Paginação */}
+            {totalPages > 1 && (
+              <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Mostrando {startIndex + 1} até {Math.min(startIndex + PRODUCTS_PER_PAGE, filteredProducts.length)} de {filteredProducts.length} produtos
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    data-testid="button-prev-page"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Anterior
+                  </Button>
+                  
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(page => {
+                        // Mostrar sempre primeira, última e páginas próximas à atual
+                        return page === 1 || 
+                               page === totalPages || 
+                               Math.abs(page - currentPage) <= 1;
+                      })
+                      .map((page, index, array) => {
+                        // Adicionar "..." se houver gap
+                        const showEllipsis = index > 0 && array[index - 1] < page - 1;
+                        
+                        return (
+                          <div key={page} className="flex items-center">
+                            {showEllipsis && (
+                              <span className="px-2 text-gray-400">...</span>
+                            )}
+                            <Button
+                              variant={currentPage === page ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCurrentPage(page)}
+                              className="w-8 h-8 p-0"
+                              data-testid={`button-page-${page}`}
+                            >
+                              {page}
+                            </Button>
+                          </div>
+                        );
+                      })}
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    data-testid="button-next-page"
+                  >
+                    Próxima
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
