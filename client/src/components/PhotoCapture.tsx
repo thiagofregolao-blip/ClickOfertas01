@@ -16,6 +16,7 @@ export function PhotoCapture({ onPhotoCapture, disabled = false }: PhotoCaptureP
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -23,22 +24,46 @@ export function PhotoCapture({ onPhotoCapture, disabled = false }: PhotoCaptureP
 
   const startCamera = useCallback(async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "environment", // Prioriza câmera traseira
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        }
-      });
+      console.log("Tentando acessar a câmera...");
+      
+      // Primeiro tenta com configurações simples
+      let mediaStream;
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: "environment",
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        });
+      } catch (err) {
+        console.log("Tentativa com câmera traseira falhou, tentando configuração básica...");
+        // Fallback para configuração mais básica
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: true
+        });
+      }
+
+      console.log("Câmera acessada com sucesso!");
       setStream(mediaStream);
+      
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        console.log("Stream definido no elemento video");
+        
+        // Aguardar o vídeo carregar
+        videoRef.current.addEventListener('loadedmetadata', () => {
+          console.log("Metadata do vídeo carregada");
+          setVideoLoaded(true);
+        });
       }
+      
       setIsCapturing(true);
     } catch (error) {
+      console.error("Erro ao acessar câmera:", error);
       toast({
         title: "Erro na câmera",
-        description: "Não foi possível acessar a câmera. Verifique as permissões.",
+        description: `Não foi possível acessar a câmera: ${error.message || "Verifique as permissões"}`,
         variant: "destructive"
       });
     }
@@ -50,6 +75,7 @@ export function PhotoCapture({ onPhotoCapture, disabled = false }: PhotoCaptureP
       setStream(null);
     }
     setIsCapturing(false);
+    setVideoLoaded(false);
   }, [stream]);
 
   const capturePhoto = useCallback(() => {
@@ -178,6 +204,7 @@ export function PhotoCapture({ onPhotoCapture, disabled = false }: PhotoCaptureP
   const handleClose = useCallback(() => {
     stopCamera();
     setCapturedImage(null);
+    setVideoLoaded(false);
     setIsOpen(false);
   }, [stopCamera]);
 
@@ -230,14 +257,30 @@ export function PhotoCapture({ onPhotoCapture, disabled = false }: PhotoCaptureP
 
             {isCapturing && (
               <div className="space-y-4">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full rounded-lg"
-                  data-testid="video-preview"
-                />
+                <div className="relative">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className={`w-full rounded-lg bg-gray-100 ${videoLoaded ? 'block' : 'hidden'}`}
+                    data-testid="video-preview"
+                    onLoadedMetadata={() => {
+                      console.log("Vídeo carregado com sucesso!");
+                      setVideoLoaded(true);
+                    }}
+                    style={{ minHeight: "200px" }}
+                  />
+                  {/* Indicador de carregamento */}
+                  {!videoLoaded && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
+                      <div className="text-center">
+                        <div className="animate-pulse">📸</div>
+                        <p className="text-sm text-gray-500 mt-2">Carregando câmera...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 
                 <div className="flex gap-2">
                   <Button onClick={capturePhoto} className="flex-1" data-testid="button-capture">
