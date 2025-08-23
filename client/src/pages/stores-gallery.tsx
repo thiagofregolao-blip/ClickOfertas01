@@ -161,6 +161,9 @@ function StorePost({ store }: { store: StoreWithProducts }) {
               padding: 6px !important;
               margin: 4px !important;
             }
+            .small-product-card .product-image img { 
+              border-radius: 6px !important;
+            }
             .small-product-card .product-content { 
               padding: 4px !important; 
               flex: 1 !important;
