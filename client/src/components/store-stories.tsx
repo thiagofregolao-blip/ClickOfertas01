@@ -35,8 +35,8 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                       slug: store.slug
                     }));
                     
-                    // Navega para os stories
-                    window.location.href = `/stores/${store.slug}`;
+                    // Navega para os stories instantaneamente
+                    setLocation(`/stores/${store.slug}`);
                   }
                 }}
               >

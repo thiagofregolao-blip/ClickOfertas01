@@ -35,21 +35,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
 
   // Inicialização da animação de abertura
   useEffect(() => {
-    // Recupera posição do logo do sessionStorage
-    const stored = sessionStorage.getItem('storiesOrigin');
-    if (stored) {
-      const origin = JSON.parse(stored);
-      setOriginPosition({
-        x: (origin.x / window.innerWidth) * 100,
-        y: (origin.y / window.innerHeight) * 100
-      });
-      sessionStorage.removeItem('storiesOrigin');
-    }
-
-    // Pausa inicial durante a animação de abertura
-    setIsPaused(true);
-    
-    // Inicia stories instantaneamente
+    // Inicia stories instantaneamente sem delays
     setIsOpening(false);
     setIsPaused(false);
   }, []);

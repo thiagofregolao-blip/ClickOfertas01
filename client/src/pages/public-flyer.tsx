@@ -40,11 +40,18 @@ export default function PublicFlyer() {
   const { data: store, isLoading, error } = useQuery<StoreWithProducts>({
     queryKey: ["/api/public/stores", params?.slug],
     enabled: !!params?.slug,
+    staleTime: 2 * 60 * 1000, // 2 minutos
+    gcTime: 5 * 60 * 1000, // 5 minutos
+    refetchOnWindowFocus: false,
   });
 
   // Buscar todas as lojas para navegação entre stories (sempre executado no topo)
-  const { data: allStores } = useQuery({
+  const { data: allStores } = useQuery<StoreWithProducts[]>({
     queryKey: ['/api/public/stores'],
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const handleShare = async () => {
