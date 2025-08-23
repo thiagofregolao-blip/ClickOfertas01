@@ -23,7 +23,7 @@ export default function ProductCard({
           <img 
             src={product.imageUrl} 
             alt={product.name}
-            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
@@ -37,7 +37,7 @@ export default function ProductCard({
         
         {/* Placeholder for when image fails to load or doesn't exist */}
         <div 
-          className="w-full h-48 bg-gray-200 flex items-center justify-center"
+          className="w-full h-32 bg-gray-200 flex items-center justify-center"
           style={{ display: product.imageUrl ? 'none' : 'flex' }}
         >
           <span className="text-gray-500 text-sm">Sem imagem</span>
@@ -56,27 +56,23 @@ export default function ProductCard({
         )}
       </div>
       
-      <CardContent className="p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
+      <CardContent className="p-4">
+        <h3 className="text-base font-bold text-gray-900 mb-1 line-clamp-2">
           {product.name}
         </h3>
         
         {product.description && (
-          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+          <p className="text-gray-600 text-xs mb-3 line-clamp-1">
             {product.description}
           </p>
         )}
         
         <div className="flex items-center justify-between">
           <div 
-            className="text-2xl font-bold"
+            className="text-lg font-bold"
             style={{ color: themeColor }}
           >
-            {currency} {product.price}
-          </div>
-          <div className="text-sm text-gray-500">
-            {product.description?.includes('kg') ? 'Kg' : 
-             product.description?.includes('litro') ? 'Litro' : 'Unidade'}
+            {currency} {product.price?.toLocaleString()}
           </div>
         </div>
       </CardContent>
