@@ -125,8 +125,8 @@ function StorePost({ store }: { store: StoreWithProducts }) {
           <div className="flex items-center">
             <h3 className="font-bold text-gray-900 mr-2">{store.name}</h3>
             {featuredProducts.length > 0 && (
-              <Badge variant="destructive" className="text-xs">
-                {featuredProducts.length} destaque{featuredProducts.length > 1 ? 's' : ''}
+              <Badge className="text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none shadow-md animate-pulse">
+                🔥 {featuredProducts.length} oferta{featuredProducts.length > 1 ? 's' : ''} imperdível{featuredProducts.length > 1 ? 'eis' : ''}
               </Badge>
             )}
           </div>
@@ -241,13 +241,14 @@ function StorePost({ store }: { store: StoreWithProducts }) {
           
           <Link href={`/flyer/${store.slug}`}>
             <button 
-              className="text-sm font-medium py-1 px-3 rounded-full border-2 transition-colors hover:bg-opacity-10"
+              className="text-sm font-medium py-2 px-4 rounded-full border-2 transition-all hover:scale-105 hover:shadow-md"
               style={{ 
                 borderColor: store.themeColor || '#E11D48',
-                color: store.themeColor || '#E11D48'
+                color: store.themeColor || '#E11D48',
+                background: `linear-gradient(135deg, transparent, ${store.themeColor || '#E11D48'}10)`
               }}
             >
-              Ver todos
+              💰 Ver {activeProducts.length > 4 ? `+${activeProducts.length - 4} ofertas` : 'panfleto'}
             </button>
           </Link>
         </div>

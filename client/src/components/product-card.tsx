@@ -107,8 +107,8 @@ export default function ProductCard({
         
         {(product.isFeatured && showFeaturedBadge) && (
           <div className="absolute top-1 right-1">
-            <div className="featured-badge bg-red-500 text-white text-xs px-1 py-0.5 rounded">
-              ⭐
+            <div className="featured-badge bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs px-1 py-0.5 rounded shadow-lg animate-pulse">
+              🔥
             </div>
           </div>
         )}
