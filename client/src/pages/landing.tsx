@@ -13,13 +13,23 @@ export default function Landing() {
               <FileText className="text-primary text-2xl" />
               <h1 className="text-xl font-bold text-gray-900">Panfleto Rápido</h1>
             </div>
-            <Button 
-              onClick={() => window.location.href = '/api/login'}
-              className="bg-primary text-white hover:bg-blue-600"
-              data-testid="button-login"
-            >
-              Acessar Painel
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                onClick={() => window.location.href = '/stores'}
+                variant="outline"
+                className="border-primary text-primary hover:bg-primary hover:text-white"
+                data-testid="button-nav-stores"
+              >
+                Ver Lojas
+              </Button>
+              <Button 
+                onClick={() => window.location.href = '/api/login'}
+                className="bg-primary text-white hover:bg-blue-600"
+                data-testid="button-login"
+              >
+                Acessar Painel
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
@@ -47,10 +57,11 @@ export default function Landing() {
             <Button 
               size="lg" 
               variant="outline"
+              onClick={() => window.location.href = '/stores'}
               className="px-8 py-4 text-lg border-2"
-              data-testid="button-demo"
+              data-testid="button-stores"
             >
-              Ver Demonstração
+              Ver Panfletos das Lojas
             </Button>
           </div>
         </div>
