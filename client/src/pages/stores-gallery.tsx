@@ -229,49 +229,33 @@ function StorePost({ store }: { store: StoreWithProducts }) {
 
       {/* View All Products Footer */}
       <div className="px-4 pb-3 border-t border-gray-100 pt-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center space-x-4 text-sm mb-1">
-              {store.whatsapp && (
-                <a 
-                  href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Olá! Vi suas ofertas no Panfleto Rápido e gostaria de mais informações.`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-green-600 hover:text-green-700 transition-colors"
-                >
-                  📱 WhatsApp
-                </a>
-              )}
-              {store.instagram && (
-                <a 
-                  href={`https://instagram.com/${store.instagram.replace('@', '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-pink-600 hover:text-pink-700 transition-colors"
-                >
-                  📸 Instagram
-                </a>
-              )}
-            </div>
-            {store.address && (
-              <div className="text-xs text-gray-500 flex items-center">
-                <span className="mr-2">📍 {store.address}</span>
-                <button
-                  onClick={() => {
-                    const address = encodeURIComponent(store.address || '');
-                    window.open(`https://www.google.com/maps/search/?api=1&query=${address}`, '_blank');
-                  }}
-                  className="text-blue-600 hover:text-blue-700 underline transition-colors"
-                >
-                  Como chegar
-                </button>
-              </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4 text-sm">
+            {store.whatsapp && (
+              <a 
+                href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Olá! Vi suas ofertas no Panfleto Rápido e gostaria de mais informações.`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-green-600 hover:text-green-700 transition-colors"
+              >
+                📱 WhatsApp
+              </a>
+            )}
+            {store.instagram && (
+              <a 
+                href={`https://instagram.com/${store.instagram.replace('@', '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-pink-600 hover:text-pink-700 transition-colors"
+              >
+                📸 Instagram
+              </a>
             )}
           </div>
           
           <Link href={`/flyer/${store.slug}`}>
             <button 
-              className="text-sm font-medium py-2 px-4 rounded-full border-2 transition-all hover:scale-105 hover:shadow-md ml-4"
+              className="text-sm font-medium py-2 px-4 rounded-full border-2 transition-all hover:scale-105 hover:shadow-md"
               style={{ 
                 borderColor: store.themeColor || '#E11D48',
                 color: store.themeColor || '#E11D48',
