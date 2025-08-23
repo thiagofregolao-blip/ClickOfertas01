@@ -1,14 +1,15 @@
 import type { StoreWithProducts } from "@shared/schema";
 
 // Componente Stories das Lojas (estilo Instagram)
-export function StoreStoriesSection({ stores }: { stores: StoreWithProducts[] }) {
+export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithProducts[], isMobile?: boolean }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   return (
     <div className="bg-white border-b">
-      <div className="overflow-x-auto scrollbar-hide py-4">
-        <div className="flex space-x-4 px-4" style={{ width: 'max-content' }}>
+      <div className={`mx-auto ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
+        <div className="overflow-x-auto scrollbar-hide py-4">
+          <div className="flex space-x-4 px-4" style={{ width: 'max-content' }}>
           {stores.map((store) => {
             // Verificar se postou hoje
             const hasNewToday = store.products.some(product => {
@@ -55,6 +56,7 @@ export function StoreStoriesSection({ stores }: { stores: StoreWithProducts[] })
               </div>
             );
           })}
+          </div>
         </div>
       </div>
     </div>

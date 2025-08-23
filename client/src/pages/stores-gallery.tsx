@@ -159,19 +159,21 @@ export default function StoresGallery() {
 
       {/* Stories das Lojas */}
       {!searchQuery.trim() && (
-        <StoreStoriesSection stores={filteredStores} />
+        <StoreStoriesSection stores={filteredStores} isMobile={isMobile} />
       )}
 
       {/* Barra de Busca */}
-      <div className="bg-white border-b px-4 py-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Buscar produtos ou lojas..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-red-300 focus:ring-red-200"
-          />
+      <div className="bg-white border-b">
+        <div className={`mx-auto py-3 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Buscar produtos ou lojas..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-red-300 focus:ring-red-200"
+            />
+          </div>
         </div>
       </div>
 
