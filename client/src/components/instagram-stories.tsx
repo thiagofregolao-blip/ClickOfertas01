@@ -14,6 +14,7 @@ export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const STORY_DURATION = 8000; // 8 segundos por produto (aumentado)
 
@@ -31,7 +32,7 @@ export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
             return 0;
           } else {
             // Volta para galeria quando termina
-            setLocation('/stores');
+            handleClose();
             return prev;
           }
         }
@@ -49,12 +50,23 @@ export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
     setProgress(0);
   }, [currentIndex]);
 
+  const handleClose = () => {
+    setIsClosing(true);
+    // Pausa o timer durante a animação
+    setIsPaused(true);
+    
+    // Aguarda a animação terminar antes de navegar
+    setTimeout(() => {
+      setLocation('/stores');
+    }, 500); // Duração da animação
+  };
+
   const nextStory = () => {
     if (currentIndex < storiesProducts.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
       // Volta para galeria quando termina
-      setLocation('/stores');
+      handleClose();
     }
   };
 
@@ -81,9 +93,15 @@ export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+    <div 
+      className={`fixed inset-0 bg-black z-50 flex items-center justify-center transition-all duration-500 ${
+        isClosing ? 'opacity-0' : 'opacity-100'
+      }`}
+    >
       {/* Stories Container */}
-      <div className="relative w-full max-w-sm mx-auto h-full bg-black">
+      <div className={`relative w-full max-w-sm mx-auto h-full bg-black transition-all duration-500 transform ${
+        isClosing ? 'scale-0 translate-y-full opacity-0' : 'scale-100 translate-y-0 opacity-100'
+      }`}>
         {/* Progress bars */}
         <div className="absolute top-4 left-4 right-4 z-20 flex gap-1">
           {storiesProducts.map((_, index) => (
@@ -130,8 +148,8 @@ export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
           </div>
           
           <button
-            onClick={() => setLocation('/stores')}
-            className="text-white/90 hover:text-white p-2"
+            onClick={handleClose}
+            className="text-white/90 hover:text-white p-2 transition-transform hover:scale-110"
             data-testid="button-close-stories"
           >
             <X className="w-5 h-5" />
