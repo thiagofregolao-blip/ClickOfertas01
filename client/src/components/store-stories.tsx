@@ -34,8 +34,11 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                   
                   {/* Avatar da loja */}
                   <div 
-                    className={`relative w-20 h-20 rounded-full flex items-center justify-center text-white font-bold shadow-lg ${hasNewToday ? 'ring-2 ring-white' : ''}`}
-                    style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                    className={`relative w-20 h-20 rounded-full flex items-center justify-center text-white font-bold shadow-lg ring-4 ${hasNewToday ? 'ring-white' : 'ring-opacity-30'}`}
+                    style={{ 
+                      backgroundColor: store.themeColor || '#E11D48',
+                      '--tw-ring-color': store.themeColor || '#E11D48'
+                    } as React.CSSProperties}
                   >
                     {store.logoUrl ? (
                       <img 
