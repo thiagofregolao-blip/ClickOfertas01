@@ -1,16 +1,42 @@
+import { useState, useEffect } from "react";
 import type { StoreWithProducts } from "@shared/schema";
+
+// Função para embaralhar array
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
 
 // Componente Stories das Lojas (estilo Instagram)
 export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithProducts[], isMobile?: boolean }) {
+  const [shuffledStores, setShuffledStores] = useState<StoreWithProducts[]>(stores);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  // Embaralhar lojas a cada 10 segundos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setShuffledStores(shuffleArray(stores));
+    }, 10000); // 10 segundos
+
+    return () => clearInterval(interval);
+  }, [stores]);
+
+  // Embaralhar na primeira renderização
+  useEffect(() => {
+    setShuffledStores(shuffleArray(stores));
+  }, [stores]);
 
   return (
     <div className="bg-white border-b">
       <div className={`mx-auto ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
         <div className="overflow-x-auto scrollbar-hide py-4">
           <div className="flex space-x-4 px-4" style={{ width: 'max-content' }}>
-          {stores.map((store) => {
+          {shuffledStores.map((store) => {
             // Verificar se postou hoje
             const hasNewToday = store.products.some(product => {
               if (!product.updatedAt) return false;
