@@ -131,10 +131,7 @@ export default function ProductCard({
         >
           <span className="product-currency text-sm font-medium">{currency}</span>
           <span className="product-price text-xl md:text-2xl font-bold">
-            {Math.floor(Number(product.price || 0) / 100)}
-          </span>
-          <span className="product-currency text-sm font-bold">
-            .{String(Number(product.price || 0) % 100).padStart(2, '0')}
+            {Number(product.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
           </span>
         </div>
       </div>

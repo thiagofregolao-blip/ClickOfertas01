@@ -713,7 +713,7 @@ export default function AdminProducts() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
-                            {store.currency} {product.price}
+                            {store.currency} {Number(product.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
