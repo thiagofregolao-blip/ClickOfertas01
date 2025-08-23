@@ -130,9 +130,6 @@ function StorePost({ store }: { store: StoreWithProducts }) {
               </Badge>
             )}
           </div>
-          <p className="text-sm text-gray-500">
-            {store.address && `${store.address.split(',')[0]}`}
-          </p>
         </div>
       </div>
 
