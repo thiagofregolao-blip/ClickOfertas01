@@ -122,7 +122,7 @@ export default function StoresGallery() {
           </div>
         ) : (
           filteredStores.map((store) => (
-            <StorePost key={store.id} store={store} />
+            <StorePost key={store.id} store={store} searchQuery={searchQuery} />
           ))
         )}
         
@@ -140,12 +140,22 @@ export default function StoresGallery() {
   );
 }
 
-function StorePost({ store }: { store: StoreWithProducts }) {
+function StorePost({ store, searchQuery = '' }: { store: StoreWithProducts, searchQuery?: string }) {
   const activeProducts = store.products.filter(p => p.isActive);
-  const featuredProducts = activeProducts.filter(p => p.isFeatured);
+  
+  // Se há busca ativa, filtrar apenas produtos que correspondem à busca
+  const filteredProducts = searchQuery.trim() 
+    ? activeProducts.filter(product => 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.category?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : activeProducts;
+  
+  const featuredProducts = filteredProducts.filter(p => p.isFeatured);
   
   // Priorizar produtos em destaque, depois os outros
-  const sortedProducts = [...featuredProducts, ...activeProducts.filter(p => !p.isFeatured)];
+  const sortedProducts = [...featuredProducts, ...filteredProducts.filter(p => !p.isFeatured)];
   const displayProducts = sortedProducts.slice(0, 4); // Mostrar 4 produtos em destaque
 
   return (
@@ -305,7 +315,7 @@ function StorePost({ store }: { store: StoreWithProducts }) {
                 background: `linear-gradient(135deg, transparent, ${store.themeColor || '#E11D48'}10)`
               }}
             >
-              💰 Ver {activeProducts.length > 4 ? `+${activeProducts.length - 4} ofertas` : 'panfleto'}
+              💰 Ver {filteredProducts.length > 4 ? `+${filteredProducts.length - 4} ofertas` : 'panfleto'}
             </button>
           </Link>
         </div>

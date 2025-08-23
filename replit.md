@@ -2,7 +2,7 @@
 
 ## Overview
 
-Panfleto Rápido is a web application that enables store owners to create digital flyers by managing products and automatically generating shareable promotional content. The system features two distinct frontend interfaces: an admin panel for store management and a public-facing flyer display. Built as a full-stack TypeScript application, it uses React for the frontend, Express.js for the backend, and PostgreSQL with Drizzle ORM for data persistence.
+Panfleto Rápido is a web application that enables store owners to create digital flyers by managing products and automatically generating shareable promotional content. The system features two distinct frontend interfaces: an admin panel for store management and a public-facing flyer display with Instagram-style feed and intelligent search capabilities. Built as a full-stack TypeScript application, it uses React for the frontend, Express.js for the backend, and PostgreSQL with Drizzle ORM for data persistence.
 
 ## User Preferences
 
@@ -50,6 +50,9 @@ Preferred communication style: Simple, everyday language.
 - **Export Capabilities**: PNG download functionality using html2canvas
 - **Social Sharing**: Native sharing API with clipboard fallback
 - **Real-time Updates**: Optimistic updates with server synchronization
+- **Intelligent Search System**: Product and store search with magnifying glass icon in header
+- **Category Filtering**: Individual flyer category filters with dropdown selector
+- **Instagram-Style Feed**: Clean, mobile-first design with focused product display
 
 ## External Dependencies
 
