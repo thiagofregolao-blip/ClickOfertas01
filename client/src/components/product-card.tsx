@@ -10,14 +10,44 @@ interface ProductCardProps {
   showFeaturedBadge?: boolean;
 }
 
+// Cores por categoria
+function getCategoryColors(category?: string) {
+  const colors = {
+    'Perfumes': {
+      bg: 'bg-pink-50',
+      border: 'border-pink-200',
+      accent: '#EC4899'
+    },
+    'Eletrônicos': {
+      bg: 'bg-blue-50',
+      border: 'border-blue-200', 
+      accent: '#3B82F6'
+    },
+    'Pesca': {
+      bg: 'bg-emerald-50',
+      border: 'border-emerald-200',
+      accent: '#10B981'
+    },
+    'Geral': {
+      bg: 'bg-gray-50',
+      border: 'border-gray-200',
+      accent: '#6B7280'
+    }
+  };
+  
+  return colors[category as keyof typeof colors] || colors['Geral'];
+}
+
 export default function ProductCard({ 
   product, 
   currency, 
   themeColor, 
   showFeaturedBadge = false 
 }: ProductCardProps) {
+  const categoryColors = getCategoryColors(product.category);
+  
   return (
-    <div className="bg-white border border-gray-200 overflow-hidden group text-center">
+    <div className={`${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center`}>
       <div className="relative">
         {product.imageUrl ? (
           <img 
@@ -65,7 +95,7 @@ export default function ProductCard({
         
         <div 
           className="flex items-baseline justify-center gap-0.5"
-          style={{ color: themeColor }}
+          style={{ color: categoryColors.accent }}
         >
           <span className="text-sm font-medium">{currency}</span>
           <span className="text-xl md:text-2xl font-bold">
