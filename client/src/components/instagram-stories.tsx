@@ -186,15 +186,35 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
         {/* Store Header */}
         <div className="absolute top-12 left-4 right-4 flex items-center justify-between z-20">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-orange-500 p-0.5">
-              <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
-                <span className="text-xs font-bold text-gray-800">
-                  {store.name.charAt(0).toUpperCase()}
-                </span>
+            {/* Logo com efeito de iluminação */}
+            <div className="relative group">
+              {/* Borda flutuante ao redor do logo */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-pink-400 via-purple-500 to-orange-500 rounded-full blur opacity-40 group-hover:opacity-60 animate-pulse"></div>
+              
+              {/* Container do logo */}
+              <div className="relative w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-orange-500 p-0.5 shadow-xl">
+                <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                  {store.logoUrl ? (
+                    <img 
+                      src={store.logoUrl}
+                      alt={store.name}
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs font-bold text-gray-800">
+                      {store.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
               </div>
+              
+              {/* Pequenos pontos de luz flutuantes */}
+              <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-50"></div>
+              <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse delay-300 opacity-60"></div>
             </div>
+            
             <div>
-              <h3 className="text-white font-semibold text-sm">{store.name}</h3>
+              <h3 className="text-white font-semibold text-sm drop-shadow-lg">{store.name}</h3>
             </div>
           </div>
           
