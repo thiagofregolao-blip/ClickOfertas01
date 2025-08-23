@@ -17,13 +17,13 @@ export default function ProductCard({
   showFeaturedBadge = false 
 }: ProductCardProps) {
   return (
-    <Card className="overflow-hidden hover:shadow-xl transition-shadow group">
+    <div className="bg-white border border-gray-200 overflow-hidden group text-center">
       <div className="relative">
         {product.imageUrl ? (
           <img 
             src={product.imageUrl} 
             alt={product.name}
-            className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-20 md:h-24 lg:h-28 object-cover"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
@@ -37,45 +37,37 @@ export default function ProductCard({
         
         {/* Placeholder for when image fails to load or doesn't exist */}
         <div 
-          className="w-full h-32 bg-gray-200 flex items-center justify-center"
+          className="w-full h-20 md:h-24 lg:h-28 bg-gray-200 flex items-center justify-center"
           style={{ display: product.imageUrl ? 'none' : 'flex' }}
         >
-          <span className="text-gray-500 text-sm">Sem imagem</span>
+          <span className="text-gray-500 text-xs">Sem imagem</span>
         </div>
         
         {(product.isFeatured && showFeaturedBadge) && (
-          <div className="absolute top-3 right-3">
-            <Badge 
-              className="text-white font-semibold shadow-lg"
-              style={{ backgroundColor: themeColor }}
-            >
-              <Star className="w-3 h-3 mr-1" />
-              DESTAQUE
-            </Badge>
+          <div className="absolute top-1 right-1">
+            <div className="bg-red-500 text-white text-xs px-1 py-0.5 rounded">
+              ⭐
+            </div>
           </div>
         )}
       </div>
       
-      <CardContent className="p-4">
-        <h3 className="text-base font-bold text-gray-900 mb-1 line-clamp-2">
+      <div className="p-2">
+        <h3 className="text-xs font-semibold text-gray-900 mb-2 line-clamp-2 h-8">
           {product.name}
         </h3>
         
-        {product.description && (
-          <p className="text-gray-600 text-xs mb-3 line-clamp-1">
-            {product.description}
-          </p>
-        )}
-        
-        <div className="flex items-center justify-between">
-          <div 
-            className="text-lg font-bold"
-            style={{ color: themeColor }}
-          >
-            {currency} {product.price?.toLocaleString()}
-          </div>
+        <div 
+          className="text-sm md:text-base font-bold"
+          style={{ color: themeColor }}
+        >
+          {currency} {product.price?.toLocaleString()}
         </div>
-      </CardContent>
-    </Card>
+        
+        <div className="text-xs text-gray-500 mt-1">
+          Entrega em 24h/48hs
+        </div>
+      </div>
+    </div>
   );
 }
