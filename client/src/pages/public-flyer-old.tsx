@@ -33,34 +33,26 @@ export default function PublicFlyer() {
   const { data: store, isLoading, error } = useQuery<StoreWithProducts>({
     queryKey: ["/api/public/stores", params?.slug],
     enabled: !!params?.slug,
+    retry: false,
   });
 
   const handleShare = async () => {
-    if (navigator.share && navigator.canShare) {
+    if (navigator.share) {
       try {
         await navigator.share({
-          title: `${store?.name} - Panfleto`,
-          text: `Confira as promoções da ${store?.name}!`,
-          url: window.location.href,
+          title: `Promoções ${store?.name}`,
+          text: `Confira as ofertas imperdíveis do ${store?.name}!`,
+          url: window.location.href
         });
       } catch (err) {
-        // User cancelled sharing
+        // User cancelled
       }
     } else {
-      // Fallback to clipboard
-      try {
-        await navigator.clipboard.writeText(window.location.href);
-        toast({
-          title: "Link copiado!",
-          description: "O link do panfleto foi copiado para sua área de transferência.",
-        });
-      } catch (err) {
-        toast({
-          title: "Erro ao copiar",
-          description: "Não foi possível copiar o link. Tente novamente.",
-          variant: "destructive",
-        });
-      }
+      await navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link copiado!",
+        description: "Link copiado para a área de transferência",
+      });
     }
   };
 
@@ -69,15 +61,15 @@ export default function PublicFlyer() {
     
     setIsDownloading(true);
     try {
-      await downloadFlyerAsPNG(store.name);
+      await downloadFlyerAsPNG('flyer-content', `${store.name}-panfleto`);
       toast({
         title: "Download concluído!",
-        description: "O panfleto foi salvo como imagem PNG.",
+        description: "Panfleto baixado como imagem PNG",
       });
-    } catch (err) {
+    } catch (error) {
       toast({
         title: "Erro no download",
-        description: "Não foi possível baixar o panfleto. Tente novamente.",
+        description: "Não foi possível baixar a imagem",
         variant: "destructive",
       });
     } finally {
@@ -87,6 +79,23 @@ export default function PublicFlyer() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleContactWhatsApp = () => {
+    if (!store?.whatsapp) return;
+    
+    const message = `Olá! Vi as promoções do ${store.name} e gostaria de mais informações.`;
+    const whatsappNumber = store.whatsapp.replace(/\D/g, '');
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handleContactInstagram = () => {
+    if (!store?.instagram) return;
+    
+    const username = store.instagram.replace('@', '');
+    const instagramUrl = `https://instagram.com/${username}`;
+    window.open(instagramUrl, '_blank');
   };
 
   if (isLoading) {
@@ -246,92 +255,67 @@ export default function PublicFlyer() {
         <FlyerHeader store={store} />
         
         <div className="p-8">
-          {/* Products by Category */}
-          <div className="space-y-12">
-            {sortedCategories.length > 0 ? (
-              sortedCategories.map((category) => {
-                const categoryProducts = productsByCategory[category];
-                const featuredProducts = categoryProducts.filter(p => p.isFeatured);
-                const regularProducts = categoryProducts.filter(p => !p.isFeatured);
-
-                // Emojis por categoria
-                const categoryEmojis: { [key: string]: string } = {
-                  'Perfumes': '🌸',
-                  'Eletrônicos': '📱',
-                  'Pesca': '🎣',
-                  'Geral': '🛒'
-                };
-
-                return (
-                  <div key={category} className="space-y-6">
-                    {/* Category Header */}
-                    <div 
-                      className="text-white p-6 rounded-2xl shadow-lg text-center"
-                      style={{ backgroundColor: store.themeColor || "#E11D48" }}
-                    >
-                      <h2 className="text-3xl font-bold flex items-center justify-center gap-3">
-                        <span className="text-4xl">{categoryEmojis[category] || '🛒'}</span>
-                        {category.toUpperCase()}
-                        <span className="bg-white/20 px-3 py-1 rounded-full text-lg font-medium">
-                          {categoryProducts.length}
-                        </span>
-                      </h2>
-                    </div>
-
-                    {/* Featured Products in this category */}
-                    {featuredProducts.length > 0 && (
-                      <div>
-                        <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black p-4 rounded-xl mb-6 text-center shadow-md">
-                          <h3 className="text-xl font-bold">⭐ DESTAQUES DE {category.toUpperCase()}</h3>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                          {featuredProducts.map((product) => (
-                            <ProductCard
-                              key={product.id}
-                              product={product}
-                              currency={store.currency || "Gs."}
-                              themeColor={store.themeColor || "#E11D48"}
-                              showFeaturedBadge={true}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Regular Products in this category */}
-                    {regularProducts.length > 0 && (
-                      <div>
-                        {featuredProducts.length > 0 && (
-                          <div className="bg-gray-50 border-2 border-dashed border-gray-300 p-3 rounded-lg mb-6 text-center">
-                            <h3 className="text-lg font-medium text-gray-700">Mais produtos de {category}</h3>
-                          </div>
-                        )}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                          {regularProducts.map((product) => (
-                            <ProductCard
-                              key={product.id}
-                              product={product}
-                              currency={store.currency || "Gs."}
-                              themeColor={store.themeColor || "#E11D48"}
-                              showFeaturedBadge={false}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
+          {activeProducts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600 text-lg">
+                Em breve novas ofertas!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {/* Featured Products */}
+              {featuredProducts.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center" style={{ color: store.themeColor || "#E11D48" }}>
+                    ⭐ PRODUTOS EM DESTAQUE ⭐
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    {featuredProducts.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        currency={store.currency || "Gs."}
+                        themeColor={store.themeColor || "#E11D48"}
+                        showFeaturedBadge={true}
+                      />
+                    ))}
                   </div>
-                );
-              })
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-600 text-lg">Nenhum produto disponível no momento.</p>
-              </div>
-            )}
-          </div>
-        </div>
+                </div>
+              )}
 
-        <FlyerFooter store={store} />
+              {/* Regular Products */}
+              {regularProducts.length > 0 && (
+                <div>
+                  {featuredProducts.length > 0 && (
+                    <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">
+                      MAIS OFERTAS
+                    </h2>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {regularProducts.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        currency={store.currency || "Gs."}
+                        themeColor={store.themeColor || "#E11D48"}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
+        <FlyerFooter 
+          store={store} 
+          onWhatsAppClick={handleContactWhatsApp}
+          onInstagramClick={handleContactInstagram}
+        />
       </div>
+
+      {/* Bottom padding for mobile action bar */}
+      <div className="lg:hidden h-20 no-print"></div>
     </div>
   );
 }

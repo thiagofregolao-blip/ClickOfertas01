@@ -60,6 +60,7 @@ export const products = pgTable("products", {
   description: text("description"),
   price: decimal("price", { precision: 12, scale: 2 }).notNull(),
   imageUrl: text("image_url"),
+  category: varchar("category").default("Geral"),
   isFeatured: boolean("is_featured").default(false),
   isActive: boolean("is_active").default(true),
   sortOrder: varchar("sort_order").default("0"),

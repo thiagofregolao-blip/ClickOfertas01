@@ -332,6 +332,24 @@ export default function AdminProducts() {
                     )}
                   </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Categoria</Label>
+                    <Select 
+                      value={form.watch("category") || "Geral"} 
+                      onValueChange={(value) => form.setValue("category", value)}
+                    >
+                      <SelectTrigger data-testid="select-product-category">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Perfumes">Perfumes</SelectItem>
+                        <SelectItem value="Eletrônicos">Eletrônicos</SelectItem>
+                        <SelectItem value="Pesca">Pesca</SelectItem>
+                        <SelectItem value="Geral">Geral</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="md:col-span-2 space-y-2">
                     <Label htmlFor="imageUrl">URL da Imagem</Label>
                     <Input
