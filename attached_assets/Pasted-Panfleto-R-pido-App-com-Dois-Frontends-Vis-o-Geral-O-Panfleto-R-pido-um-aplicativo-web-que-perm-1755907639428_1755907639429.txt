@@ -1,0 +1,164 @@
+Panfleto Rápido — App com Dois Frontends
+Visão Geral
+
+O Panfleto Rápido é um aplicativo web que permite a lojas cadastrar produtos e gerar um panfleto digital automático, pronto para visualização, compartilhamento e impressão.
+Há dois ambientes distintos:
+
+Frontend do Lojista (Admin): gestão de loja e produtos, geração e controle do panfleto.
+
+Frontend do Usuário (Público): página aberta onde qualquer pessoa vê o panfleto, compartilha e baixa.
+
+Observação: como o usuário está no Paraguai, o descritivo considera moeda padrão “Gs.” (pode ser ajustado para “US$” conforme preferir).
+
+Público-alvo
+
+Lojistas e pequenos comércios que precisam divulgar ofertas rapidamente.
+
+Consumidores que querem consultar promoções e compartilhar com amigos.
+
+Objetivos do Produto
+
+Agilidade: o lojista cria/edita produtos em minutos.
+
+Alcance: panfleto com link público para circular em WhatsApp, Instagram e grupos locais.
+
+Qualidade visual: layout de panfleto limpo, responsivo e pronto para imagem (PNG) e PDF.
+
+Baixa barreira técnica: sem necessidade de designer ou ferramentas complexas.
+
+Estrutura de Ambientes
+1) Frontend do Lojista (Admin)
+
+Acesso: protegido por senha (apenas o lojista).
+
+Principais telas e recursos
+
+Login: acesso seguro ao painel.
+
+Dashboard: visão geral (quantidade de produtos ativos, destacados, último update do panfleto, link rápido para o panfleto público).
+
+Configurações da Loja: nome, logo (URL), cor-tema, WhatsApp, Instagram, endereço, símbolo de moeda (ex.: Gs., US$).
+
+Gestão de Produtos:
+
+Listar, buscar e filtrar (ativos, inativos, destaque).
+
+Criar/editar produto: nome, preço, descrição, imagem (URL), destaque (ligado/desligado), status (ativo/inativo).
+
+Atalhos rápidos: Ativar/Desativar e Destacar/Remover destaque.
+
+Pré-visualização de Panfleto: ver como o panfleto ficará no ambiente público antes de divulgar.
+
+Copiar Link do Panfleto: botão para copiar o link público e compartilhar.
+
+Experiência do Lojista
+
+Fluxo rápido de cadastro.
+
+Formulários claros e feedback de sucesso/erro.
+
+Mensagens de alerta para imagens inválidas ou preços fora do padrão.
+
+2) Frontend do Usuário (Público)
+
+Acesso: aberto, sem login.
+
+Página do Panfleto
+
+Cabeçalho: logo e nome da loja, cor-tema aplicada em destaques.
+
+Grid de Produtos: cards com imagem (quadrada), nome, preço com símbolo de moeda, breve descrição e selo “Destaque” quando marcado.
+
+Rodapé: contatos (link WhatsApp “wa.me”), Instagram e endereço. Texto opcional: “Promoções válidas até acabar o estoque.”
+
+Ações do Usuário:
+
+Compartilhar: usa recurso nativo do navegador (quando disponível) ou copia o link.
+
+Baixar como Imagem (PNG): captura do panfleto para salvar/reenviar.
+
+Imprimir/Salvar em PDF: versão limpa para impressão ou PDF único.
+
+Experiência do Usuário
+
+Visualização responsiva (celular e desktop).
+
+Botões grandes e claros para compartilhar e baixar.
+
+Carregamento leve, sem passos adicionais.
+
+Conteúdo e Dados
+
+Entidades principais
+
+Loja (Configurações): nome, logo (URL), cor-tema, WhatsApp, Instagram, endereço, símbolo de moeda.
+
+Produto: nome, preço, descrição curta, imagem (URL), destaque (sim/não), ativo (sim/não).
+
+(Opcional) Banner/Chamada: título, subtítulo e uma “faixa” promocional para o topo do panfleto.
+
+Regras de exibição
+
+Apenas produtos ativos aparecem no panfleto público.
+
+Produtos em destaque recebem selo visual e/ou posição privilegiada na grade.
+
+Diferenciais
+
+Dois frontends 100% separados em propósito: operação (lojista) e consumo (público).
+
+Panfleto realmente utilizável: baixar PNG, imprimir em PDF e compartilhar em um clique.
+
+Personalização simples: cor-tema, logo e moeda configuráveis.
+
+Escalável: pode crescer para suportar mais lojas (multi-tenancy) no futuro.
+
+Requisitos Não-Funcionais
+
+Performance: carregamento rápido, otimizado para 3G/4G.
+
+Acessibilidade: contraste adequado, textos alternativos em imagens de produto.
+
+Segurança: rotas administrativas protegidas por sessão; senha não aparece em logs; prevenção de inputs maliciosos (sanitização).
+
+Confiabilidade: persistência local simples (pode evoluir para nuvem depois).
+
+Fluxos Principais
+
+Fluxo do Lojista
+
+Faz login.
+
+Configura loja (logo, cor, contatos, moeda).
+
+Cadastra produtos (imagem, nome, preço, descrição), marca Destaque se quiser.
+
+Ativa produtos e confere a pré-visualização do panfleto.
+
+Copia o link público e divulga.
+
+Fluxo do Usuário
+
+Abre o link do panfleto público.
+
+Navega pelos produtos.
+
+Compartilha, baixa PNG ou salva/imprime PDF.
+
+Contata a loja via WhatsApp ou visita o Instagram.
+
+Métricas & Evolução (Roadmap Sugerido)
+
+Métricas iniciais: visualizações do panfleto, cliques em WhatsApp/Instagram, quantidade de produtos ativos.
+
+Próximas versões:
+
+Multi-lojas (cada lojista com seu sublink).
+
+Agendamento de promoções (data de início/fim).
+
+Estatísticas no dashboard (mais detalhadas).
+
+Upload de imagens direto (além de URL).
+
+Temas prontos (Natal, Black Friday, Dia das Mães).
