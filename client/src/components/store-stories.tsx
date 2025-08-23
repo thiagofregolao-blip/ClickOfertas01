@@ -1,3 +1,4 @@
+import { Link } from "wouter";
 import type { StoreWithProducts } from "@shared/schema";
 
 // Componente Stories das Lojas (estilo Instagram)
@@ -15,53 +16,62 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
             const hasStoriesProducts = store.products.some(product => 
               product.showInStories && product.isActive
             );
+            
+            // Debug: log para verificar os dados
+            console.log(`Store ${store.name}:`, {
+              hasStoriesProducts,
+              storiesProducts: store.products.filter(p => p.showInStories && p.isActive).length,
+              totalProducts: store.products.length
+            });
 
             return (
-              <div key={store.id} className="flex flex-col items-center space-y-2">
-                <div className="relative">
-                  {/* Anel animado para lojas com produtos nos stories */}
-                  {hasStoriesProducts && (
-                    <div className="absolute inset-0 rounded-full animate-spin" style={{
-                      background: `linear-gradient(45deg, ${store.themeColor || '#E11D48'}, #FF6B6B, #4ECDC4, ${store.themeColor || '#E11D48'})`,
-                      padding: '3px'
-                    }}>
-                      <div className="w-full h-full rounded-full bg-white"></div>
-                    </div>
-                  )}
-                  
-                  {/* Avatar da loja */}
-                  <div 
-                    className={`relative w-20 h-20 rounded-full flex items-center justify-center text-white font-bold shadow-lg ring-4 ${hasStoriesProducts ? 'ring-white' : 'ring-opacity-30'}`}
-                    style={{ 
-                      backgroundColor: store.themeColor || '#E11D48',
-                      '--tw-ring-color': store.themeColor || '#E11D48'
-                    } as React.CSSProperties}
-                  >
-                    {store.logoUrl ? (
-                      <img 
-                        src={store.logoUrl} 
-                        alt={store.name}
-                        className="w-18 h-18 rounded-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const parent = target.parentElement as HTMLElement;
-                          if (parent) {
-                            parent.innerHTML = `<span class="text-2xl">${store.name.charAt(0)}</span>`;
-                          }
-                        }}
-                      />
-                    ) : (
-                      <span className="text-2xl">{store.name.charAt(0)}</span>
+              <Link key={store.id} to={`/stores/${store.slug}`}>
+                <div className="flex flex-col items-center space-y-2 cursor-pointer hover:scale-105 transition-transform">
+                  <div className="relative">
+                    {/* Anel animado para lojas com produtos nos stories */}
+                    {hasStoriesProducts && (
+                      <div className="absolute inset-0 rounded-full animate-spin" style={{
+                        background: `linear-gradient(45deg, ${store.themeColor || '#E11D48'}, #FF6B6B, #4ECDC4, ${store.themeColor || '#E11D48'})`,
+                        padding: '3px'
+                      }}>
+                        <div className="w-full h-full rounded-full bg-white"></div>
+                      </div>
                     )}
+                    
+                    {/* Avatar da loja */}
+                    <div 
+                      className={`relative w-20 h-20 rounded-full flex items-center justify-center text-white font-bold shadow-lg ring-4 ${hasStoriesProducts ? 'ring-white' : 'ring-opacity-30'}`}
+                      style={{ 
+                        backgroundColor: store.themeColor || '#E11D48',
+                        '--tw-ring-color': store.themeColor || '#E11D48'
+                      } as React.CSSProperties}
+                    >
+                      {store.logoUrl ? (
+                        <img 
+                          src={store.logoUrl} 
+                          alt={store.name}
+                          className="w-18 h-18 rounded-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement as HTMLElement;
+                            if (parent) {
+                              parent.innerHTML = `<span class="text-2xl">${store.name.charAt(0)}</span>`;
+                            }
+                          }}
+                        />
+                      ) : (
+                        <span className="text-2xl">{store.name.charAt(0)}</span>
+                      )}
+                    </div>
                   </div>
+                  
+                  {/* Nome da loja */}
+                  <span className="text-xs font-medium text-gray-800 text-center max-w-20 truncate">
+                    {store.name}
+                  </span>
                 </div>
-                
-                {/* Nome da loja */}
-                <span className="text-xs font-medium text-gray-800 text-center max-w-20 truncate">
-                  {store.name}
-                </span>
-              </div>
+              </Link>
             );
           })}
           </div>
