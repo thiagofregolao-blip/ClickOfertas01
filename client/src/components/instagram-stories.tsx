@@ -39,19 +39,16 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     // Pausa inicial durante a animação de abertura
     setIsPaused(true);
     
-    // Inicia stories após animação de abertura
+    // Inicia stories após animação de abertura (mais rápido)
     setTimeout(() => {
       setIsOpening(false);
       setIsPaused(false);
-    }, 500);
+    }, 300);
   }, []);
 
   // Auto-advance stories
   useEffect(() => {
     if (isPaused || storiesProducts.length === 0 || isOpening || isClosing) return;
-
-    // Reset progress when starting a new story
-    setProgress(0);
 
     timerRef.current = setInterval(() => {
       setProgress((prev) => {
@@ -61,8 +58,8 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
         if (newProgress >= 100) {
           if (currentIndex < storiesProducts.length - 1) {
             // Vai para próximo produto da mesma loja
-            setTimeout(() => setCurrentIndex(currentIndex + 1), 50);
-            return 100;
+            setCurrentIndex(prev => prev + 1);
+            return 0; // Reset progress
           } else {
             // Acabaram os produtos desta loja - vai para próxima loja
             goToNextStore();
@@ -78,10 +75,10 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     };
   }, [currentIndex, isPaused, storiesProducts.length, isOpening, isClosing]);
 
-  // Reset progress when changing stories (removido pois já está sendo feito no timer principal)
-  // useEffect(() => {
-  //   setProgress(0);
-  // }, [currentIndex]);
+  // Reset progress when changing stories
+  useEffect(() => {
+    setProgress(0);
+  }, [currentIndex]);
 
   const handleClose = () => {
     setIsClosing(true);
@@ -91,7 +88,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     // Aguarda a animação terminar antes de navegar
     setTimeout(() => {
       setLocation('/stores');
-    }, 500); // Duração da animação
+    }, 300); // Duração da animação
   };
 
   const goToNextStore = () => {
@@ -102,15 +99,21 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     const currentStoreIndex = storesWithStories.findIndex(s => s.id === store.id);
     const nextStoreIndex = currentStoreIndex + 1;
     
+    console.log('Stores com stories:', storesWithStories.length);
+    console.log('Índice atual:', currentStoreIndex);
+    console.log('Próximo índice:', nextStoreIndex);
+    
     if (nextStoreIndex < storesWithStories.length) {
       const nextStore = storesWithStories[nextStoreIndex];
+      console.log('Indo para próxima loja:', nextStore.name);
       // Navega para próxima loja
       setIsClosing(true);
       setIsPaused(true);
       setTimeout(() => {
         window.location.href = `/stores/${nextStore.slug}`;
-      }, 500);
+      }, 300);
     } else {
+      console.log('Não há mais lojas, voltando para galeria');
       // Não há mais lojas, volta para galeria
       handleClose();
     }
@@ -118,8 +121,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
 
   const nextStory = () => {
     if (currentIndex < storiesProducts.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-      setProgress(0); // Reset manual do progresso
+      setCurrentIndex(prev => prev + 1);
     } else {
       // Acabaram os produtos desta loja - vai para próxima loja
       goToNextStore();
@@ -128,8 +130,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
 
   const prevStory = () => {
     if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-      setProgress(0); // Reset manual do progresso
+      setCurrentIndex(prev => prev - 1);
     }
   };
 
@@ -151,7 +152,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
 
   return (
     <div 
-      className={`fixed inset-0 bg-black z-50 flex items-center justify-center transition-all duration-500 ${
+      className={`fixed inset-0 bg-black z-50 flex items-center justify-center transition-all duration-300 ${
         isClosing ? 'opacity-0' : isOpening ? 'opacity-0' : 'opacity-100'
       }`}
       style={{
@@ -160,7 +161,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     >
       {/* Stories Container */}
       <div 
-        className={`relative w-full max-w-sm mx-auto h-full bg-black transition-all duration-500 transform ${
+        className={`relative w-full max-w-sm mx-auto h-full bg-black transition-all duration-300 transform ${
           isClosing 
             ? 'opacity-0' 
             : isOpening 
