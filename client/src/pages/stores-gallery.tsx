@@ -177,7 +177,21 @@ export default function StoresGallery() {
 
 function SearchResultItem({ product, store }: { product: Product & { store: StoreWithProducts }, store: StoreWithProducts }) {
   const formatPrice = (price: number) => {
-    return `$${(price / 100).toFixed(2)}`;
+    const integerPart = Math.floor(price);
+    const decimalPart = Math.round((price - integerPart) * 100);
+    return (
+      <div className="flex items-end gap-0.5" style={{ color: store.themeColor || '#E11D48' }}>
+        <span className="text-xs font-medium">{store.currency || 'Gs.'}</span>
+        <div className="flex items-start">
+          <span className="text-lg font-bold">
+            {integerPart.toLocaleString('pt-BR')}
+          </span>
+          <span className="text-xs font-medium mt-0.5">
+            ,{String(decimalPart).padStart(2, '0')}
+          </span>
+        </div>
+      </div>
+    );
   };
 
   return (
