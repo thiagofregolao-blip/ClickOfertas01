@@ -44,14 +44,22 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                 }}
               >
                 <div className="relative">
-                    {/* Anel estilo WhatsApp */}
+                    {/* Anel pontilhado estilo WhatsApp */}
                     {hasStoriesProducts && (
-                      <div 
-                        className="absolute -inset-2 rounded-full border-2 animate-pulse"
-                        style={{
-                          borderColor: store.themeColor || '#E11D48'
-                        }}
-                      />
+                      <div className="absolute -inset-2 w-24 h-24">
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="45"
+                            fill="none"
+                            stroke={store.themeColor || '#E11D48'}
+                            strokeWidth="3"
+                            strokeDasharray={`${280 / storiesCount} ${280 / storiesCount * 0.15}`}
+                            className="animate-pulse"
+                          />
+                        </svg>
+                      </div>
                     )}
                     
                     {/* Avatar da loja */}
