@@ -176,24 +176,6 @@ export default function StoresGallery() {
 }
 
 function SearchResultItem({ product, store }: { product: Product & { store: StoreWithProducts }, store: StoreWithProducts }) {
-  const formatPrice = (price: number) => {
-    const integerPart = Math.floor(price);
-    const decimalPart = Math.round((price - integerPart) * 100);
-    return (
-      <div className="flex items-end gap-0.5" style={{ color: store.themeColor || '#E11D48' }}>
-        <span className="text-sm font-medium">{store.currency || 'Gs.'}</span>
-        <div className="flex items-start">
-          <span className="text-xl md:text-2xl font-bold">
-            {integerPart.toLocaleString('pt-BR')}
-          </span>
-          <span className="text-xs font-medium mt-0.5">
-            ,{String(decimalPart).padStart(2, '0')}
-          </span>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="p-4 hover:bg-gray-50 transition-colors">
       <div className="flex items-center gap-4">
@@ -239,12 +221,29 @@ function SearchResultItem({ product, store }: { product: Product & { store: Stor
 
             {/* Price and Action */}
             <div className="flex-shrink-0 text-right ml-4">
-              <div className="text-lg font-bold text-gray-900">
-                {formatPrice(Number(product.price || 0))}
+              <div className="flex items-end justify-center gap-0.5 mb-1" style={{ color: store.themeColor || '#E11D48' }}>
+                <span className="text-sm font-medium">{store.currency || 'Gs.'}</span>
+                <div className="flex items-start">
+                  {(() => {
+                    const price = Number(product.price || 0);
+                    const integerPart = Math.floor(price);
+                    const decimalPart = Math.round((price - integerPart) * 100);
+                    return (
+                      <>
+                        <span className="text-xl md:text-2xl font-bold">
+                          {integerPart.toLocaleString('pt-BR')}
+                        </span>
+                        <span className="text-xs font-medium mt-0.5">
+                          ,{String(decimalPart).padStart(2, '0')}
+                        </span>
+                      </>
+                    );
+                  })()}
+                </div>
               </div>
               <Link href={`/flyer/${store.slug}`}>
                 <button
-                  className="text-xs font-medium py-1 px-3 rounded-full border transition-all hover:scale-105 mt-1"
+                  className="text-xs font-medium py-1 px-3 rounded-full border transition-all hover:scale-105"
                   style={{ 
                     borderColor: store.themeColor || '#E11D48',
                     color: store.themeColor || '#E11D48',
