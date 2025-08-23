@@ -53,28 +53,28 @@ export default function ProductCard({
       </div>
       
       <div className="p-2">
-        <h3 className="text-xs font-semibold text-gray-900 mb-2 line-clamp-2 h-8">
+        <h3 className="text-xs font-semibold text-gray-900 mb-1 line-clamp-2">
           {product.name}
         </h3>
+        
+        {product.description && (
+          <div className="text-xs text-gray-500 mb-2 line-clamp-1">
+            {product.description}
+          </div>
+        )}
         
         <div 
           className="flex items-baseline justify-center gap-0.5"
           style={{ color: themeColor }}
         >
-          <span className="text-xs font-medium">{currency}</span>
-          <span className="text-base md:text-lg font-bold">
+          <span className="text-sm font-medium">{currency}</span>
+          <span className="text-xl md:text-2xl font-bold">
             {Math.floor((product.price || 0) / 1000)}
           </span>
-          <span className="text-xs font-bold">
+          <span className="text-sm font-bold">
             ,{String(Math.floor(((product.price || 0) % 1000) / 10)).padStart(2, '0')}
           </span>
         </div>
-        
-        {product.description && (
-          <div className="text-xs text-gray-500 mt-1 line-clamp-1">
-            {product.description}
-          </div>
-        )}
       </div>
     </div>
   );
