@@ -352,9 +352,9 @@ function StorePost({ store, searchQuery = '' }: { store: StoreWithProducts, sear
       {/* Products Horizontal Cards */}
       {displayProducts.length > 0 ? (
         <div className="px-4 pb-3">
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 gap-2 sm:gap-3">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {displayProducts.map((product) => (
-              <div key={product.id} className="min-h-[140px] sm:min-h-[160px] flex">
+              <div key={product.id} className="flex-shrink-0 w-32 sm:w-36 md:w-40">
                 <ProductCard
                   product={product}
                   currency={store.currency || 'Gs.'}
