@@ -352,17 +352,30 @@ function StorePost({ store, searchQuery = '' }: { store: StoreWithProducts, sear
       {/* Products Horizontal Cards */}
       {displayProducts.length > 0 ? (
         <div className="px-4 pb-3">
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {displayProducts.map((product) => (
-              <div key={product.id} className="flex-shrink-0 w-32 sm:w-36 md:w-40">
-                <ProductCard
-                  product={product}
-                  currency={store.currency || 'Gs.'}
-                  themeColor={store.themeColor || '#E11D48'}
-                  showFeaturedBadge={true}
-                />
+          <div className="relative">
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              {displayProducts.map((product) => (
+                <div key={product.id} className="flex-shrink-0 w-32 sm:w-36 md:w-40 h-48 sm:h-52">
+                  <ProductCard
+                    product={product}
+                    currency={store.currency || 'Gs.'}
+                    themeColor={store.themeColor || '#E11D48'}
+                    showFeaturedBadge={true}
+                  />
+                </div>
+              ))}
+            </div>
+            
+            {/* Indicador de scroll */}
+            {displayProducts.length > 3 && (
+              <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-white via-white/80 to-transparent flex items-center justify-center pointer-events-none">
+                <div className="bg-gray-400 rounded-full p-1">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
-            ))}
+            )}
           </div>
         </div>
       ) : (
