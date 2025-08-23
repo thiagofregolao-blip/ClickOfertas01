@@ -399,7 +399,7 @@ export default function PublicFlyer() {
 
           {/* Products Grid */}
           {filteredProducts.length > 0 ? (
-            window.location.pathname.startsWith('/stores/') ? (
+            storeParams ? (
               // Layout moderno para páginas de loja individual (/stores/:slug)
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredProducts.map((product) => (
