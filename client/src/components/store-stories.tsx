@@ -46,17 +46,17 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                 <div className="relative">
                     {/* Anel segmentado igual WhatsApp */}
                     {hasStoriesProducts && (
-                      <div className="absolute inset-0 w-24 h-24 rounded-full">
-                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
                           {storiesCount === 1 ? (
                             // 1 story = círculo completo
                             <circle
                               cx="50"
                               cy="50"
-                              r="47"
+                              r="48"
                               fill="none"
                               stroke={store.themeColor || '#E11D48'}
-                              strokeWidth="6"
+                              strokeWidth="3"
                               className="animate-pulse"
                             />
                           ) : (
@@ -64,24 +64,24 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                             Array.from({ length: storiesCount }, (_, index) => {
                               const segmentAngle = 360 / storiesCount;
                               const startAngle = index * segmentAngle;
-                              const endAngle = startAngle + segmentAngle - 2; // -2 para gap entre segmentos
+                              const endAngle = startAngle + segmentAngle - 3; // -3 para gap entre segmentos
                               
                               // Converter ângulos para coordenadas do arco SVG
-                              const startX = 50 + 47 * Math.cos((startAngle * Math.PI) / 180);
-                              const startY = 50 + 47 * Math.sin((startAngle * Math.PI) / 180);
-                              const endX = 50 + 47 * Math.cos((endAngle * Math.PI) / 180);
-                              const endY = 50 + 47 * Math.sin((endAngle * Math.PI) / 180);
+                              const startX = 50 + 48 * Math.cos((startAngle * Math.PI) / 180);
+                              const startY = 50 + 48 * Math.sin((startAngle * Math.PI) / 180);
+                              const endX = 50 + 48 * Math.cos((endAngle * Math.PI) / 180);
+                              const endY = 50 + 48 * Math.sin((endAngle * Math.PI) / 180);
                               
                               const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0;
                               
                               return (
                                 <path
                                   key={index}
-                                  d={`M 50 50 L ${startX} ${startY} A 47 47 0 ${largeArcFlag} 1 ${endX} ${endY} Z`}
+                                  d={`M ${startX} ${startY} A 48 48 0 ${largeArcFlag} 1 ${endX} ${endY}`}
                                   fill="none"
                                   stroke={store.themeColor || '#E11D48'}
-                                  strokeWidth="6"
-                                  opacity={0.8}
+                                  strokeWidth="3"
+                                  opacity={0.9}
                                   className="animate-pulse"
                                   style={{ animationDelay: `${index * 0.2}s` }}
                                 />
