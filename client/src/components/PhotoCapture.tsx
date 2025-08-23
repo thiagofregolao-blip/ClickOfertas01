@@ -24,46 +24,93 @@ export function PhotoCapture({ onPhotoCapture, disabled = false }: PhotoCaptureP
 
   const startCamera = useCallback(async () => {
     try {
-      console.log("Tentando acessar a câmera...");
+      console.log("=== INICIANDO PROCESSO DA CÂMERA ===");
       
-      // Primeiro tenta com configurações simples
-      let mediaStream;
+      // Verificar se o navegador suporta getUserMedia
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Seu navegador não suporta acesso à câmera");
+      }
+      
+      console.log("Navegador suporta getUserMedia ✓");
+      
+      // Listar dispositivos disponíveis
       try {
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: "environment",
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
-          }
-        });
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        console.log(`Encontradas ${videoDevices.length} câmeras disponíveis:`, videoDevices);
       } catch (err) {
-        console.log("Tentativa com câmera traseira falhou, tentando configuração básica...");
-        // Fallback para configuração mais básica
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: true
-        });
+        console.log("Não foi possível listar dispositivos");
       }
+      
+      console.log("Tentando acessar câmera com configuração básica...");
+      
+      // Configuração muito simples primeiro
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { min: 320, ideal: 640, max: 1920 },
+          height: { min: 240, ideal: 480, max: 1080 }
+        },
+        audio: false
+      });
 
-      console.log("Câmera acessada com sucesso!");
-      setStream(mediaStream);
+      console.log("✓ Câmera acessada com sucesso!");
+      console.log("Stream info:", {
+        active: mediaStream.active,
+        id: mediaStream.id,
+        tracks: mediaStream.getTracks().length
+      });
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        console.log("Stream definido no elemento video");
-        
-        // Aguardar o vídeo carregar
-        videoRef.current.addEventListener('loadedmetadata', () => {
-          console.log("Metadata do vídeo carregada");
-          setVideoLoaded(true);
-        });
+      setStream(mediaStream);
+      setIsCapturing(true);
+      
+      // Aguardar um pouco antes de definir o stream no vídeo
+      setTimeout(() => {
+        if (videoRef.current && mediaStream) {
+          console.log("Definindo stream no elemento video...");
+          videoRef.current.srcObject = mediaStream;
+          
+          videoRef.current.onloadedmetadata = () => {
+            console.log("✓ Video metadata carregada!");
+            console.log("Video dimensions:", {
+              width: videoRef.current?.videoWidth,
+              height: videoRef.current?.videoHeight
+            });
+            setVideoLoaded(true);
+          };
+          
+          videoRef.current.oncanplay = () => {
+            console.log("✓ Video can play!");
+          };
+          
+          videoRef.current.onerror = (err) => {
+            console.error("Erro no elemento video:", err);
+          };
+        }
+      }, 100);
+      
+    } catch (error: any) {
+      console.error("=== ERRO NA CÂMERA ===");
+      console.error("Tipo do erro:", error.name);
+      console.error("Mensagem:", error.message);
+      console.error("Stack:", error.stack);
+      
+      let errorMessage = "Erro desconhecido";
+      
+      if (error.name === "NotAllowedError") {
+        errorMessage = "Permissão negada. Clique no ícone da câmera na barra do navegador e permita o acesso.";
+      } else if (error.name === "NotFoundError") {
+        errorMessage = "Nenhuma câmera encontrada no dispositivo.";
+      } else if (error.name === "NotReadableError") {
+        errorMessage = "Câmera já está sendo usada por outro aplicativo.";
+      } else if (error.name === "SecurityError") {
+        errorMessage = "Acesso negado por motivos de segurança. Certifique-se de estar usando HTTPS.";
+      } else {
+        errorMessage = error.message;
       }
       
-      setIsCapturing(true);
-    } catch (error) {
-      console.error("Erro ao acessar câmera:", error);
       toast({
         title: "Erro na câmera",
-        description: `Não foi possível acessar a câmera: ${error.message || "Verifique as permissões"}`,
+        description: errorMessage,
         variant: "destructive"
       });
     }
