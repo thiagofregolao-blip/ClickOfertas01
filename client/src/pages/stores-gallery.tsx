@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,6 +14,7 @@ export default function StoresGallery() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const [viewMode, setViewMode] = useState<'mobile' | 'desktop'>('mobile');
+  const [, setLocation] = useLocation();
 
   // Detectar se é mobile
   useEffect(() => {
@@ -418,7 +419,7 @@ function StorePost({ store, searchQuery = '', isMobile = true }: { store: StoreW
           <div 
             className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-lg ring-2 ring-white/20 cursor-pointer hover:scale-105 transition-transform"
             style={{ backgroundColor: store.themeColor || '#E11D48' }}
-            onClick={() => window.open(`/flyer/${store.slug}`, '_blank')}
+            onClick={() => setLocation(`/flyer/${store.slug}`)}
           >
             {store.logoUrl ? (
               <img 
