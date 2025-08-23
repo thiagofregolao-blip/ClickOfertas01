@@ -390,8 +390,13 @@ function StorePost({ store, searchQuery = '' }: { store: StoreWithProducts, sear
               white-space: nowrap !important;
               overflow: visible !important;
             }
+            .small-product-card .product-cents { 
+              font-size: 8px !important;
+              font-weight: 500 !important;
+              margin-top: 2px !important;
+            }
             .small-product-card .product-currency { 
-              font-size: 10px !important;
+              font-size: 8px !important;
               white-space: nowrap !important;
             }
             .small-product-card .category-icon { 
