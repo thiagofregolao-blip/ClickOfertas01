@@ -10,6 +10,7 @@ import AdminStoreConfig from "@/pages/admin-store-config";
 import AdminProducts from "@/pages/admin-products";
 import AdminPreview from "@/pages/admin-preview";
 import PublicFlyer from "@/pages/public-flyer";
+import StoresGallery from "@/pages/stores-gallery";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -19,7 +20,8 @@ function Router() {
     <Switch>
       {isLoading || !isAuthenticated ? (
         <>
-          <Route path="/" component={Landing} />
+          <Route path="/" component={StoresGallery} />
+          <Route path="/login" component={Landing} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
         </>
       ) : (

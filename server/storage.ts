@@ -25,6 +25,7 @@ export interface IStorage {
   createStore(userId: string, store: InsertStore): Promise<Store>;
   updateStore(storeId: string, store: UpdateStore): Promise<Store>;
   getStoreBySlug(slug: string): Promise<StoreWithProducts | undefined>;
+  getAllActiveStores(): Promise<StoreWithProducts[]>;
   deleteStore(storeId: string, userId: string): Promise<void>;
 
   // Product operations
@@ -111,6 +112,31 @@ export class DatabaseStorage implements IStorage {
       ...store,
       products: storeProducts,
     };
+  }
+
+  async getAllActiveStores(): Promise<StoreWithProducts[]> {
+    const activeStores = await db
+      .select()
+      .from(stores)
+      .where(eq(stores.isActive, true))
+      .orderBy(desc(stores.createdAt));
+    
+    const storesWithProducts = await Promise.all(
+      activeStores.map(async (store) => {
+        const storeProducts = await db
+          .select()
+          .from(products)
+          .where(and(eq(products.storeId, store.id), eq(products.isActive, true)))
+          .orderBy(desc(products.isFeatured), products.sortOrder, products.createdAt);
+
+        return {
+          ...store,
+          products: storeProducts,
+        };
+      })
+    );
+
+    return storesWithProducts;
   }
 
   async deleteStore(storeId: string, userId: string): Promise<void> {

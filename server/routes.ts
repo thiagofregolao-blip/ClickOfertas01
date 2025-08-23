@@ -77,7 +77,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Public store route
+  // Public store routes
+  app.get('/api/public/stores', async (req, res) => {
+    try {
+      const stores = await storage.getAllActiveStores();
+      res.json(stores);
+    } catch (error) {
+      console.error("Error fetching active stores:", error);
+      res.status(500).json({ message: "Failed to fetch stores" });
+    }
+  });
+
   app.get('/api/public/stores/:slug', async (req, res) => {
     try {
       const { slug } = req.params;
