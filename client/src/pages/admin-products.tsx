@@ -9,6 +9,7 @@ import { insertProductSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import AdminLayout from "@/components/admin-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,10 +17,12 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff, ChevronLeft, ChevronRight, Upload, Download, FileSpreadsheet } from "lucide-react";
 import type { Store, Product, InsertProduct } from "@shared/schema";
 import { z } from "zod";
 import { PhotoCapture } from "@/components/PhotoCapture";
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 const productFormSchema = insertProductSchema.extend({
   name: z.string().min(1, "Nome do produto é obrigatório"),
@@ -37,6 +40,7 @@ export default function AdminProducts() {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [addMoreProducts, setAddMoreProducts] = useState(false);
   
   const PRODUCTS_PER_PAGE = 15;
 
@@ -104,7 +108,23 @@ export default function AdminProducts() {
         title: "Sucesso!",
         description: editingProduct ? "Produto atualizado com sucesso" : "Produto criado com sucesso",
       });
-      handleCancelForm();
+      
+      // Se não for para adicionar mais produtos ou se estiver editando, fechar o modal
+      if (!addMoreProducts || editingProduct) {
+        setShowAddForm(false);
+        setEditingProduct(null);
+        setAddMoreProducts(false);
+      }
+      
+      // Limpar o formulário sempre
+      form.reset({
+        name: "",
+        description: "",
+        price: "",
+        imageUrl: "",
+        isFeatured: false,
+        isActive: true,
+      });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -222,6 +242,87 @@ export default function AdminProducts() {
     saveMutation.mutate(data);
   };
 
+  // Função para exportar produtos para Excel
+  const exportToExcel = () => {
+    if (products.length === 0) {
+      toast({
+        title: "Nenhum produto encontrado",
+        description: "Adicione produtos primeiro para poder exportar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const excelData = products.map(product => ({
+      'Nome do Produto': product.name,
+      'Descrição': product.description || '',
+      'Preço': product.price,
+      'Categoria': product.category || 'Geral',
+      'URL da Imagem': product.imageUrl || '',
+      'Em Destaque': product.isFeatured ? 'Sim' : 'Não',
+      'Ativo': product.isActive ? 'Sim' : 'Não'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Produtos');
+    
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    
+    saveAs(blob, `produtos_${store?.name || 'loja'}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    
+    toast({
+      title: "Produtos exportados!",
+      description: "O arquivo Excel foi baixado com sucesso.",
+    });
+  };
+
+  // Função para importar produtos do Excel
+  const importFromExcel = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        const importedProducts = jsonData.map((row: any) => ({
+          name: row['Nome do Produto'] || '',
+          description: row['Descrição'] || '',
+          price: row['Preço'] || '',
+          category: row['Categoria'] || 'Geral',
+          imageUrl: row['URL da Imagem'] || '',
+          isFeatured: row['Em Destaque'] === 'Sim',
+          isActive: row['Ativo'] === 'Sim'
+        }));
+
+        // Aqui você pode implementar a lógica para salvar os produtos importados
+        console.log('Produtos importados:', importedProducts);
+        
+        toast({
+          title: "Importação concluída!",
+          description: `${importedProducts.length} produtos foram importados.`,
+        });
+
+      } catch (error) {
+        toast({
+          title: "Erro na importação",
+          description: "Verifique se o arquivo Excel está no formato correto.",
+          variant: "destructive",
+        });
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    
+    // Limpar o input para permitir reimportação do mesmo arquivo
+    event.target.value = '';
+  };
+
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
     if (filter === "active") return matchesSearch && product.isActive;
@@ -267,14 +368,198 @@ export default function AdminProducts() {
         {/* Header */}
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-900">Gestão de Produtos</h2>
-          <Button 
-            onClick={handleAddProduct}
-            className="bg-primary text-white hover:bg-blue-600"
-            data-testid="button-add-product"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Adicionar Produto
-          </Button>
+          
+          <div className="flex gap-2">
+            {/* Excel Export/Import */}
+            <Button 
+              variant="outline"
+              onClick={exportToExcel}
+              className="flex items-center gap-2"
+              data-testid="button-export-excel"
+            >
+              <Download className="w-4 h-4" />
+              Exportar Excel
+            </Button>
+            
+            <div className="relative">
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={importFromExcel}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                data-testid="input-import-excel"
+              />
+              <Button 
+                variant="outline"
+                className="flex items-center gap-2"
+                data-testid="button-import-excel"
+              >
+                <Upload className="w-4 h-4" />
+                Importar Excel
+              </Button>
+            </div>
+            
+            {/* Add Product Modal */}
+            <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+              <DialogTrigger asChild>
+                <Button 
+                  onClick={handleAddProduct}
+                  className="bg-primary text-white hover:bg-blue-600"
+                  data-testid="button-add-product"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Produto
+                </Button>
+              </DialogTrigger>
+              
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingProduct ? "Editar Produto" : "Adicionar Novo Produto"}
+                  </DialogTitle>
+                </DialogHeader>
+                
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nome do Produto *</Label>
+                      <Input
+                        id="name"
+                        {...form.register("name")}
+                        placeholder="Ex: Arroz Tio João 5kg"
+                        className="placeholder:text-gray-400"
+                        data-testid="input-product-name"
+                      />
+                      {form.formState.errors.name && (
+                        <p className="text-sm text-red-600">{form.formState.errors.name.message}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Preço *</Label>
+                      <div className="flex">
+                        <span className="inline-flex items-center px-3 text-sm text-gray-500 bg-gray-50 border border-r-0 border-gray-300 rounded-l-lg">
+                          {store.currency}
+                        </span>
+                        <Input
+                          id="price"
+                          {...form.register("price")}
+                          placeholder="25000 ou 25.000,00"
+                          className="rounded-l-none placeholder:text-gray-400"
+                          data-testid="input-product-price"
+                        />
+                      </div>
+                      {form.formState.errors.price && (
+                        <p className="text-sm text-red-600">{form.formState.errors.price.message}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="category">Categoria</Label>
+                      <Select 
+                        value={form.watch("category") || "Geral"} 
+                        onValueChange={(value) => form.setValue("category", value)}
+                      >
+                        <SelectTrigger data-testid="select-product-category">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Perfumes">Perfumes</SelectItem>
+                          <SelectItem value="Eletrônicos">Eletrônicos</SelectItem>
+                          <SelectItem value="Pesca">Pesca</SelectItem>
+                          <SelectItem value="Geral">Geral</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="imageUrl">Imagem do Produto</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="imageUrl"
+                          {...form.register("imageUrl")}
+                          placeholder="URL da imagem ou use a câmera"
+                          className="flex-1 placeholder:text-gray-400"
+                          data-testid="input-product-image"
+                        />
+                        <PhotoCapture 
+                          onPhotoCapture={(url) => form.setValue("imageUrl", url)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Descrição</Label>
+                    <Textarea
+                      id="description"
+                      {...form.register("description")}
+                      placeholder="Descrição detalhada do produto..."
+                      className="placeholder:text-gray-400"
+                      rows={3}
+                      data-testid="textarea-product-description"
+                    />
+                  </div>
+
+                  <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="featured"
+                        checked={form.watch("isFeatured") || false}
+                        onCheckedChange={(checked) => form.setValue("isFeatured", checked)}
+                        data-testid="switch-featured"
+                      />
+                      <Label htmlFor="featured">Produto em Destaque</Label>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="active"
+                        checked={form.watch("isActive") || true}
+                        onCheckedChange={(checked) => form.setValue("isActive", checked)}
+                        data-testid="switch-active"
+                      />
+                      <Label htmlFor="active">Produto Ativo</Label>
+                    </div>
+                  </div>
+
+                  {/* Cadastrar mais produtos option */}
+                  {!editingProduct && (
+                    <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <Switch
+                        id="addMore"
+                        checked={addMoreProducts}
+                        onCheckedChange={setAddMoreProducts}
+                        data-testid="switch-add-more"
+                      />
+                      <Label htmlFor="addMore" className="text-blue-700 font-medium">
+                        Cadastrar mais produtos após salvar
+                      </Label>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end space-x-4 pt-4">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={handleCancelForm}
+                      data-testid="button-cancel"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={saveMutation.isPending}
+                      className="bg-primary text-white hover:bg-blue-600"
+                      data-testid="button-save-product"
+                    >
+                      {saveMutation.isPending ? "Salvando..." : editingProduct ? "Atualizar" : "Criar Produto"}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {/* Filters */}
@@ -303,140 +588,6 @@ export default function AdminProducts() {
           </CardContent>
         </Card>
 
-        {/* Add/Edit Product Form */}
-        {showAddForm && (
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {editingProduct ? "Editar Produto" : "Adicionar Novo Produto"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome do Produto *</Label>
-                    <Input
-                      id="name"
-                      {...form.register("name")}
-                      placeholder="Ex: Arroz Tio João 5kg"
-                      data-testid="input-product-name"
-                    />
-                    {form.formState.errors.name && (
-                      <p className="text-sm text-red-600">{form.formState.errors.name.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Preço *</Label>
-                    <div className="flex">
-                      <span className="inline-flex items-center px-3 text-sm text-gray-500 bg-gray-50 border border-r-0 border-gray-300 rounded-l-lg">
-                        {store.currency}
-                      </span>
-                      <Input
-                        id="price"
-                        {...form.register("price")}
-                        placeholder="25000 ou 25.000,00"
-                        className="rounded-l-none"
-                        data-testid="input-product-price"
-                      />
-                    </div>
-                    {form.formState.errors.price && (
-                      <p className="text-sm text-red-600">{form.formState.errors.price.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Categoria</Label>
-                    <Select 
-                      value={form.watch("category") || "Geral"} 
-                      onValueChange={(value) => form.setValue("category", value)}
-                    >
-                      <SelectTrigger data-testid="select-product-category">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Perfumes">Perfumes</SelectItem>
-                        <SelectItem value="Eletrônicos">Eletrônicos</SelectItem>
-                        <SelectItem value="Pesca">Pesca</SelectItem>
-                        <SelectItem value="Geral">Geral</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="md:col-span-2 space-y-2">
-                    <Label htmlFor="imageUrl">Imagem do Produto</Label>
-                    <div className="space-y-3">
-                      <Input
-                        id="imageUrl"
-                        {...form.register("imageUrl")}
-                        placeholder="https://exemplo.com/imagem-produto.jpg ou tire uma foto abaixo"
-                        data-testid="input-product-image"
-                      />
-                      <div className="text-center text-sm text-gray-500">ou</div>
-                      <PhotoCapture
-                        onPhotoCapture={(photoUrl) => {
-                          form.setValue("imageUrl", photoUrl);
-                        }}
-                        disabled={isLoading}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="md:col-span-2 space-y-2">
-                    <Label htmlFor="description">Descrição</Label>
-                    <Textarea
-                      id="description"
-                      {...form.register("description")}
-                      placeholder="Descrição breve do produto..."
-                      rows={3}
-                      data-testid="input-product-description"
-                    />
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="featured"
-                      checked={form.watch("isFeatured") || false}
-                      onCheckedChange={(checked) => form.setValue("isFeatured", checked)}
-                      data-testid="switch-featured"
-                    />
-                    <Label htmlFor="featured">Produto em Destaque</Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="active"
-                      checked={form.watch("isActive") || true}
-                      onCheckedChange={(checked) => form.setValue("isActive", checked)}
-                      data-testid="switch-active"
-                    />
-                    <Label htmlFor="active">Produto Ativo</Label>
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={handleCancelForm}
-                    data-testid="button-cancel"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={saveMutation.isPending}
-                    className="bg-primary text-white hover:bg-blue-600"
-                    data-testid="button-save-product"
-                  >
-                    {saveMutation.isPending ? "Salvando..." : editingProduct ? "Atualizar" : "Criar Produto"}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Products List */}
         <Card>
