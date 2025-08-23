@@ -34,31 +34,31 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                   
                   {/* Avatar da loja */}
                   <div 
-                    className={`relative w-16 h-16 rounded-full flex items-center justify-center text-white font-bold shadow-lg ${hasNewToday ? 'ring-2 ring-white' : ''}`}
+                    className={`relative w-20 h-20 rounded-full flex items-center justify-center text-white font-bold shadow-lg ${hasNewToday ? 'ring-2 ring-white' : ''}`}
                     style={{ backgroundColor: store.themeColor || '#E11D48' }}
                   >
                     {store.logoUrl ? (
                       <img 
                         src={store.logoUrl} 
                         alt={store.name}
-                        className="w-14 h-14 rounded-full object-cover"
+                        className="w-18 h-18 rounded-full object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';
                           const parent = target.parentElement as HTMLElement;
                           if (parent) {
-                            parent.innerHTML = `<span class="text-xl">${store.name.charAt(0)}</span>`;
+                            parent.innerHTML = `<span class="text-2xl">${store.name.charAt(0)}</span>`;
                           }
                         }}
                       />
                     ) : (
-                      <span className="text-xl">{store.name.charAt(0)}</span>
+                      <span className="text-2xl">{store.name.charAt(0)}</span>
                     )}
                   </div>
                 </div>
                 
                 {/* Nome da loja */}
-                <span className="text-xs font-medium text-gray-800 text-center max-w-16 truncate">
+                <span className="text-xs font-medium text-gray-800 text-center max-w-20 truncate">
                   {store.name}
                 </span>
               </div>
