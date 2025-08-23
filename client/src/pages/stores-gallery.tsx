@@ -1,16 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Star } from "lucide-react";
+import { Search, MapPin, Star, Grid, List } from "lucide-react";
 import ProductCard from "@/components/product-card";
 import type { StoreWithProducts, Product } from "@shared/schema";
 
 export default function StoresGallery() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
+  const [viewMode, setViewMode] = useState<'mobile' | 'desktop'>('mobile');
+
+  // Detectar se é mobile
+  useEffect(() => {
+    const checkDevice = () => {
+      const width = window.innerWidth;
+      const isMobileDevice = width < 768; // md breakpoint
+      setIsMobile(isMobileDevice);
+      setViewMode(isMobileDevice ? 'mobile' : 'desktop');
+    };
+
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
+  }, []);
   
   const { data: stores, isLoading } = useQuery<StoreWithProducts[]>({
     queryKey: ['/api/public/stores']
@@ -22,6 +38,7 @@ export default function StoresGallery() {
     today.setHours(0, 0, 0, 0);
     
     return store.products.some(product => {
+      if (!product.updatedAt) return false;
       const productDate = new Date(product.updatedAt);
       productDate.setHours(0, 0, 0, 0);
       return productDate.getTime() === today.getTime() && product.isActive;
@@ -54,8 +71,8 @@ export default function StoresGallery() {
     if (!aHasToday && bHasToday) return 1;
     
     // Se ambas têm ou não têm produtos hoje, ordenar por mais recente
-    const aLatest = Math.max(...a.products.map(p => new Date(p.updatedAt).getTime()));
-    const bLatest = Math.max(...b.products.map(p => new Date(p.updatedAt).getTime()));
+    const aLatest = Math.max(...a.products.map(p => p.updatedAt ? new Date(p.updatedAt).getTime() : 0));
+    const bLatest = Math.max(...b.products.map(p => p.updatedAt ? new Date(p.updatedAt).getTime() : 0));
     
     return bLatest - aLatest;
   }) || [];
@@ -123,17 +140,38 @@ export default function StoresGallery() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header Style Instagram */}
+      {/* Header Responsivo */}
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-4">
+        <div className={`mx-auto px-4 py-4 ${viewMode === 'mobile' ? 'max-w-2xl' : 'max-w-7xl'}`}>
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Panfletos</h1>
-            <button
-              onClick={() => window.location.href = '/'}
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Início
-            </button>
+            <h1 className="text-2xl font-bold text-gray-900">🛍️ Panfleto Rápido</h1>
+            <div className="flex items-center space-x-4">
+              {/* Toggle de visualização para desktop */}
+              {!isMobile && (
+                <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setViewMode('mobile')}
+                    className={`p-2 rounded transition-all ${viewMode === 'mobile' ? 'bg-white shadow-sm text-red-600' : 'text-gray-600 hover:text-gray-800'}`}
+                    title="Vista Feed (Mobile)"
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('desktop')}
+                    className={`p-2 rounded transition-all ${viewMode === 'desktop' ? 'bg-white shadow-sm text-red-600' : 'text-gray-600 hover:text-gray-800'}`}
+                    title="Vista Grid (Desktop)"
+                  >
+                    <Grid className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+              <button
+                onClick={() => window.location.href = '/'}
+                className="text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Início
+              </button>
+            </div>
           </div>
           
           {/* Barra de Busca */}
@@ -143,14 +181,30 @@ export default function StoresGallery() {
               placeholder="Buscar produtos ou lojas..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-red-300 focus:ring-red-200"
+              className={`pl-10 pr-4 py-2 border-gray-200 focus:border-red-300 focus:ring-red-200 ${viewMode === 'mobile' ? 'w-full' : 'w-96'}`}
             />
           </div>
         </div>
       </div>
 
-      {/* Feed Vertical ou Resultados de Busca */}
-      <div className="max-w-2xl mx-auto">
+      {/* Conteúdo baseado no modo de visualização */}
+      {viewMode === 'mobile' ? (
+        <MobileFeedView stores={filteredStores} searchQuery={searchQuery} searchResults={searchResults} />
+      ) : (
+        <DesktopGridView stores={filteredStores} searchQuery={searchQuery} searchResults={searchResults} />
+      )}
+    </div>
+  );
+}
+
+// Componente para visualização Mobile (Feed estilo Instagram)
+function MobileFeedView({ stores, searchQuery, searchResults }: { 
+  stores: StoreWithProducts[], 
+  searchQuery: string, 
+  searchResults: any[] 
+}) {
+  return (
+    <div className="max-w-2xl mx-auto">
         {searchQuery.trim() ? (
           // Layout de Busca Compacto
           searchResults.length === 0 ? (
@@ -179,7 +233,7 @@ export default function StoresGallery() {
           )
         ) : (
           // Layout de Feed Normal
-          filteredStores.map((store) => (
+          stores.map((store) => (
             <StorePost key={store.id} store={store} searchQuery={searchQuery} />
           ))
         )}
@@ -188,7 +242,7 @@ export default function StoresGallery() {
         {!searchQuery.trim() && (
           <div className="bg-white border-b p-6 text-center">
             <p className="text-gray-500">
-              {filteredStores.length} {filteredStores.length === 1 ? 'loja disponível' : 'lojas disponíveis'}
+              {stores.length} {stores.length === 1 ? 'loja disponível' : 'lojas disponíveis'}
             </p>
             <p className="text-sm text-gray-400 mt-2">
               Desenvolvido com ❤️ para pequenos comércios do Paraguai
@@ -196,7 +250,146 @@ export default function StoresGallery() {
           </div>
         )}
       </div>
+  );
+}
+
+// Componente para visualização Desktop (Grid Layout)
+function DesktopGridView({ stores, searchQuery, searchResults }: { 
+  stores: StoreWithProducts[], 
+  searchQuery: string, 
+  searchResults: any[] 
+}) {
+  return (
+    <div className="max-w-7xl mx-auto px-4">
+      {searchQuery.trim() ? (
+        <div className="py-6">
+          <h2 className="text-xl font-bold mb-4">Resultados da busca: "{searchQuery}"</h2>
+          {searchResults.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">Nenhum produto encontrado</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {searchResults.map((product, index) => (
+                <div key={`${product.id}-${index}`} className="bg-white rounded-lg shadow-sm border">
+                  <ProductCard
+                    product={product}
+                    currency={product.store.currency || 'Gs.'}
+                    themeColor={product.store.themeColor || '#E11D48'}
+                    showFeaturedBadge={true}
+                  />
+                  <div className="p-2 border-t">
+                    <Link href={`/flyer/${product.store.slug}`}>
+                      <p className="text-xs text-gray-600 hover:text-red-600 transition-colors">
+                        📍 {product.store.name}
+                      </p>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="py-6">
+          <h2 className="text-xl font-bold mb-6">Todas as Lojas</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {stores.map((store) => (
+              <DesktopStoreCard key={store.id} store={store} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+// Card de loja para visualização Desktop
+function DesktopStoreCard({ store }: { store: StoreWithProducts }) {
+  const activeProducts = store.products.filter(p => p.isActive);
+  const featuredProducts = activeProducts.filter(p => p.isFeatured);
+  
+  // Verificar se a loja postou produtos hoje
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const hasNewProductsToday = store.products.some(product => {
+    if (!product.updatedAt) return false;
+    const productDate = new Date(product.updatedAt);
+    productDate.setHours(0, 0, 0, 0);
+    return productDate.getTime() === today.getTime() && product.isActive;
+  });
+
+  return (
+    <Card className="hover:shadow-lg transition-all duration-200 overflow-hidden">
+      <CardContent className="p-0">
+        {/* Header da loja */}
+        <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-white">
+          <div className="flex items-center space-x-3">
+            <div 
+              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-lg"
+              style={{ backgroundColor: store.themeColor || '#E11D48' }}
+            >
+              {store.logoUrl ? (
+                <img 
+                  src={store.logoUrl} 
+                  alt={store.name}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <span className="text-lg">{store.name.charAt(0)}</span>
+              )}
+            </div>
+            
+            <div className="flex-1">
+              <h3 className="font-bold text-gray-900">{store.name}</h3>
+              <div className="flex items-center space-x-2 mt-1">
+                {hasNewProductsToday && (
+                  <Badge className="text-xs bg-gradient-to-r from-green-500 to-blue-500 text-white">
+                    🆕 Ativo hoje
+                  </Badge>
+                )}
+                {featuredProducts.length > 0 && (
+                  <Badge className="text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white">
+                    🔥 {featuredProducts.length} ofertas
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Grid de produtos */}
+        <div className="p-4">
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {activeProducts.slice(0, 6).map((product) => (
+              <div key={product.id} className="aspect-square">
+                <ProductCard
+                  product={product}
+                  currency={store.currency || 'Gs.'}
+                  themeColor={store.themeColor || '#E11D48'}
+                  showFeaturedBadge={true}
+                />
+              </div>
+            ))}
+          </div>
+          
+          {/* Botão ver mais */}
+          <Link href={`/flyer/${store.slug}`}>
+            <button 
+              className="w-full py-2 px-4 text-sm font-medium rounded-lg border-2 transition-all hover:scale-105"
+              style={{ 
+                borderColor: store.themeColor || '#E11D48',
+                color: store.themeColor || '#E11D48',
+                background: `linear-gradient(135deg, transparent, ${store.themeColor || '#E11D48'}10)`
+              }}
+            >
+              Ver {activeProducts.length > 6 ? `+${activeProducts.length - 6} produtos` : 'panfleto completo'}
+            </button>
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -305,6 +498,7 @@ function StorePost({ store, searchQuery = '' }: { store: StoreWithProducts, sear
   today.setHours(0, 0, 0, 0);
   
   const hasNewProductsToday = store.products.some(product => {
+    if (!product.updatedAt) return false;
     const productDate = new Date(product.updatedAt);
     productDate.setHours(0, 0, 0, 0);
     return productDate.getTime() === today.getTime() && product.isActive;
