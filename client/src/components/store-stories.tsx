@@ -18,9 +18,29 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
             );
 
             return (
-              <Link key={store.id} to={`/stores/${store.slug}`}>
-                <div className="flex flex-col items-center space-y-2 cursor-pointer hover:scale-105 transition-transform">
-                  <div className="relative">
+              <div
+                key={store.id}
+                className="flex flex-col items-center space-y-2 cursor-pointer hover:scale-105 transition-transform"
+                onClick={(e) => {
+                  if (hasStoriesProducts) {
+                    // Captura a posição do logo para animação
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    
+                    // Armazena posição no sessionStorage
+                    sessionStorage.setItem('storiesOrigin', JSON.stringify({
+                      x: centerX,
+                      y: centerY,
+                      slug: store.slug
+                    }));
+                    
+                    // Navega para os stories
+                    window.location.href = `/stores/${store.slug}`;
+                  }
+                }}
+              >
+                <div className="relative">
                     {/* Anel animado para lojas com produtos nos stories */}
                     {hasStoriesProducts && (
                       <div className="absolute inset-0 rounded-full animate-spin" style={{
@@ -57,14 +77,13 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                         <span className="text-2xl">{store.name.charAt(0)}</span>
                       )}
                     </div>
-                  </div>
-                  
-                  {/* Nome da loja */}
-                  <span className="text-xs font-medium text-gray-800 text-center max-w-20 truncate">
-                    {store.name}
-                  </span>
                 </div>
-              </Link>
+                
+                {/* Nome da loja */}
+                <span className="text-xs font-medium text-gray-800 text-center max-w-20 truncate">
+                  {store.name}
+                </span>
+              </div>
             );
           })}
           </div>

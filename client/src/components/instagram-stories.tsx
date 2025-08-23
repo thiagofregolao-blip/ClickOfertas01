@@ -15,10 +15,35 @@ export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [isOpening, setIsOpening] = useState(true);
+  const [originPosition, setOriginPosition] = useState({ x: 50, y: 50 });
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const STORY_DURATION = 8000; // 8 segundos por produto (aumentado)
 
   const currentProduct = storiesProducts[currentIndex];
+
+  // Inicialização da animação de abertura
+  useEffect(() => {
+    // Recupera posição do logo do sessionStorage
+    const stored = sessionStorage.getItem('storiesOrigin');
+    if (stored) {
+      const origin = JSON.parse(stored);
+      setOriginPosition({
+        x: (origin.x / window.innerWidth) * 100,
+        y: (origin.y / window.innerHeight) * 100
+      });
+      sessionStorage.removeItem('storiesOrigin');
+    }
+
+    // Pausa inicial durante a animação de abertura
+    setIsPaused(true);
+    
+    // Inicia stories após animação de abertura
+    setTimeout(() => {
+      setIsOpening(false);
+      setIsPaused(false);
+    }, 500);
+  }, []);
 
   // Auto-advance stories
   useEffect(() => {
@@ -95,13 +120,30 @@ export function InstagramStories({ store, onClose }: InstagramStoriesProps) {
   return (
     <div 
       className={`fixed inset-0 bg-black z-50 flex items-center justify-center transition-all duration-500 ${
-        isClosing ? 'opacity-0' : 'opacity-100'
+        isClosing ? 'opacity-0' : isOpening ? 'opacity-0' : 'opacity-100'
       }`}
+      style={{
+        background: isOpening ? 'transparent' : 'black'
+      }}
     >
       {/* Stories Container */}
-      <div className={`relative w-full max-w-sm mx-auto h-full bg-black transition-all duration-500 transform ${
-        isClosing ? 'scale-0 translate-y-full opacity-0' : 'scale-100 translate-y-0 opacity-100'
-      }`}>
+      <div 
+        className={`relative w-full max-w-sm mx-auto h-full bg-black transition-all duration-500 transform ${
+          isClosing 
+            ? 'opacity-0' 
+            : isOpening 
+            ? 'opacity-100'
+            : 'scale-100 translate-x-0 translate-y-0 opacity-100'
+        }`}
+        style={{
+          transformOrigin: isClosing ? `${originPosition.x}% ${originPosition.y}%` : isOpening ? `${originPosition.x}% ${originPosition.y}%` : 'center center',
+          transform: isClosing 
+            ? `scale(0) translate(${50 - originPosition.x}vw, ${50 - originPosition.y}vh)`
+            : isOpening 
+            ? `scale(0) translate(${50 - originPosition.x}vw, ${50 - originPosition.y}vh)`
+            : 'scale(1) translate(0, 0)'
+        }}
+      >
         {/* Progress bars */}
         <div className="absolute top-4 left-4 right-4 z-20 flex gap-1">
           {storiesProducts.map((_, index) => (
