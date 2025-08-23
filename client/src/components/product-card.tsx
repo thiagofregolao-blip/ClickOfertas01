@@ -3,6 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
 import type { Product } from "@shared/schema";
 
+// Import category icons
+import perfumeIcon from "@assets/generated_images/Perfume_bottle_icon_6af6063a.png";
+import electronicsIcon from "@assets/generated_images/Electronics_devices_icon_e9437aa8.png";
+import fishingIcon from "@assets/generated_images/Fishing_equipment_icon_874a4bcf.png";
+import generalIcon from "@assets/generated_images/General_shopping_icon_8bba1c24.png";
+
 interface ProductCardProps {
   product: Product;
   currency: string;
@@ -38,13 +44,26 @@ function getCategoryColors(category?: string) {
   return colors[category as keyof typeof colors] || colors['Geral'];
 }
 
+// Ícones por categoria
+function getCategoryIcon(category?: string) {
+  const icons = {
+    'Perfumes': perfumeIcon,
+    'Eletrônicos': electronicsIcon,
+    'Pesca': fishingIcon,
+    'Geral': generalIcon
+  };
+  
+  return icons[category as keyof typeof icons] || generalIcon;
+}
+
 export default function ProductCard({ 
   product, 
   currency, 
   themeColor, 
   showFeaturedBadge = false 
 }: ProductCardProps) {
-  const categoryColors = getCategoryColors(product.category);
+  const categoryColors = getCategoryColors(product.category || undefined);
+  const categoryIcon = getCategoryIcon(product.category || undefined);
   
   return (
     <div className={`${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center`}>
@@ -65,12 +84,25 @@ export default function ProductCard({
           />
         ) : null}
         
-        {/* Placeholder for when image fails to load or doesn't exist */}
+        {/* Placeholder with category icon when no image */}
         <div 
-          className="w-full h-20 md:h-24 lg:h-28 bg-gray-200 flex items-center justify-center"
+          className="w-full h-20 md:h-24 lg:h-28 bg-gray-100 flex items-center justify-center"
           style={{ display: product.imageUrl ? 'none' : 'flex' }}
         >
-          <span className="text-gray-500 text-xs">Sem imagem</span>
+          <img 
+            src={categoryIcon} 
+            alt={product.category || 'Geral'}
+            className="w-8 h-8 md:w-10 md:h-10 opacity-60"
+          />
+        </div>
+        
+        {/* Category icon overlay */}
+        <div className="absolute bottom-1 left-1">
+          <img 
+            src={categoryIcon} 
+            alt={product.category || 'Geral'}
+            className="w-4 h-4 md:w-5 md:h-5 opacity-70 bg-white/80 rounded-full p-0.5"
+          />
         </div>
         
         {(product.isFeatured && showFeaturedBadge) && (
@@ -99,10 +131,10 @@ export default function ProductCard({
         >
           <span className="text-sm font-medium">{currency}</span>
           <span className="text-xl md:text-2xl font-bold">
-            {Math.floor((product.price || 0) / 1000)}
+            {Math.floor(Number(product.price || 0) / 1000)}
           </span>
           <span className="text-sm font-bold">
-            ,{String(Math.floor(((product.price || 0) % 1000) / 10)).padStart(2, '0')}
+            ,{String(Math.floor((Number(product.price || 0) % 1000) / 10)).padStart(2, '0')}
           </span>
         </div>
       </div>
