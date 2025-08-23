@@ -72,7 +72,7 @@ export default function ProductCard({
           <img 
             src={product.imageUrl} 
             alt={product.name}
-            className="w-full h-20 md:h-24 lg:h-28 object-cover"
+            className="product-image w-full h-20 md:h-24 lg:h-28 object-cover"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
@@ -86,7 +86,7 @@ export default function ProductCard({
         
         {/* Placeholder with category icon when no image */}
         <div 
-          className="w-full h-20 md:h-24 lg:h-28 bg-gray-100 flex items-center justify-center"
+          className="product-image w-full h-20 md:h-24 lg:h-28 bg-gray-100 flex items-center justify-center"
           style={{ display: product.imageUrl ? 'none' : 'flex' }}
         >
           <img 
@@ -101,21 +101,21 @@ export default function ProductCard({
           <img 
             src={categoryIcon} 
             alt={product.category || 'Geral'}
-            className="w-4 h-4 md:w-5 md:h-5 opacity-70 bg-white/80 rounded-full p-0.5"
+            className="category-icon w-4 h-4 md:w-5 md:h-5 opacity-70 bg-white/80 rounded-full p-0.5"
           />
         </div>
         
         {(product.isFeatured && showFeaturedBadge) && (
           <div className="absolute top-1 right-1">
-            <div className="bg-red-500 text-white text-xs px-1 py-0.5 rounded">
+            <div className="featured-badge bg-red-500 text-white text-xs px-1 py-0.5 rounded">
               ⭐
             </div>
           </div>
         )}
       </div>
       
-      <div className="p-2">
-        <h3 className="text-xs font-semibold text-gray-900 mb-1 line-clamp-2">
+      <div className="product-content p-2">
+        <h3 className="product-title text-xs font-semibold text-gray-900 mb-1 line-clamp-2">
           {product.name}
         </h3>
         
@@ -129,11 +129,11 @@ export default function ProductCard({
           className="flex items-baseline justify-center gap-0.5"
           style={{ color: categoryColors.accent }}
         >
-          <span className="text-sm font-medium">{currency}</span>
-          <span className="text-xl md:text-2xl font-bold">
+          <span className="product-currency text-sm font-medium">{currency}</span>
+          <span className="product-price text-xl md:text-2xl font-bold">
             {Math.floor(Number(product.price || 0) / 1000)}
           </span>
-          <span className="text-sm font-bold">
+          <span className="product-currency text-sm font-bold">
             ,{String(Math.floor((Number(product.price || 0) % 1000) / 10)).padStart(2, '0')}
           </span>
         </div>

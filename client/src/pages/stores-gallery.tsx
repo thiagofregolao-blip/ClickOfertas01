@@ -140,15 +140,25 @@ function StorePost({ store }: { store: StoreWithProducts }) {
       {/* Products Horizontal Cards */}
       {displayProducts.length > 0 ? (
         <div className="px-4 pb-3">
-          <div className="grid grid-cols-2 gap-3">
+          <style>{`
+            .small-product-card .product-image { height: 60px !important; }
+            .small-product-card .product-content { padding: 8px 4px !important; }
+            .small-product-card .product-title { font-size: 11px !important; line-height: 1.2 !important; }
+            .small-product-card .product-price { font-size: 14px !important; }
+            .small-product-card .product-currency { font-size: 10px !important; }
+            .small-product-card .category-icon { width: 12px !important; height: 12px !important; }
+            .small-product-card .featured-badge { font-size: 10px !important; padding: 2px 4px !important; }
+          `}</style>
+          <div className="grid grid-cols-4 gap-2">
             {displayProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                currency={store.currency || 'Gs.'}
-                themeColor={store.themeColor || '#E11D48'}
-                showFeaturedBadge={true}
-              />
+              <div key={product.id} className="small-product-card">
+                <ProductCard
+                  product={product}
+                  currency={store.currency || 'Gs.'}
+                  themeColor={store.themeColor || '#E11D48'}
+                  showFeaturedBadge={true}
+                />
+              </div>
             ))}
           </div>
         </div>
