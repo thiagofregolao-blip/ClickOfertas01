@@ -474,7 +474,7 @@ function StorePost({ store, searchQuery = '', isMobile = true }: { store: StoreW
             /* Layout Desktop - Grid horizontal sem scroll */
             <div className="grid grid-cols-5 gap-3">
               {displayProducts.slice(0, 5).map((product) => (
-                <div key={product.id} className="h-64">
+                <div key={product.id} className="h-72">
                   <ProductCard
                     product={product}
                     currency={store.currency || 'Gs.'}
@@ -486,7 +486,7 @@ function StorePost({ store, searchQuery = '', isMobile = true }: { store: StoreW
               
               {/* Preencher slots vazios se houver menos de 5 produtos */}
               {Array.from({ length: Math.max(0, 5 - displayProducts.length) }).map((_, index) => (
-                <div key={`empty-${index}`} className="h-64 bg-gray-100 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center">
+                <div key={`empty-${index}`} className="h-72 bg-gray-100 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center">
                   <span className="text-gray-400 text-xs">+</span>
                 </div>
               ))}
