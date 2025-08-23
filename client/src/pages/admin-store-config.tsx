@@ -156,13 +156,34 @@ export default function AdminStoreConfig() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="logoUrl">URL do Logo</Label>
-                  <Input
-                    id="logoUrl"
-                    {...form.register("logoUrl")}
-                    placeholder="https://exemplo.com/logo.png"
-                    data-testid="input-logo-url"
-                  />
+                  <Label htmlFor="logoUrl">Logo da Empresa</Label>
+                  <div className="space-y-3">
+                    <Input
+                      id="logoUrl"
+                      {...form.register("logoUrl")}
+                      placeholder="https://exemplo.com/logo.png"
+                      data-testid="input-logo-url"
+                    />
+                    <p className="text-sm text-gray-600">
+                      Cole aqui o link (URL) da imagem do seu logo. Recomendamos formato PNG ou JPG.
+                    </p>
+                    {form.watch("logoUrl") && (
+                      <div className="mt-2">
+                        <p className="text-sm font-medium mb-1">Preview:</p>
+                        <img 
+                          src={form.watch("logoUrl") || ""} 
+                          alt="Preview do logo"
+                          className="h-12 w-auto object-contain border rounded p-1"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                          onLoad={(e) => {
+                            e.currentTarget.style.display = 'block';
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
