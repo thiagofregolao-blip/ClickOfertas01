@@ -385,18 +385,18 @@ function StorePost({ store, searchQuery = '' }: { store: StoreWithProducts, sear
               flex: 1 !important;
             }
             .small-product-card .product-price { 
-              font-size: 13px !important; 
+              font-size: 16px !important; 
               font-weight: bold !important;
               white-space: nowrap !important;
               overflow: visible !important;
             }
             .small-product-card .product-cents { 
-              font-size: 8px !important;
+              font-size: 10px !important;
               font-weight: 500 !important;
               margin-top: 2px !important;
             }
             .small-product-card .product-currency { 
-              font-size: 8px !important;
+              font-size: 11px !important;
               white-space: nowrap !important;
             }
             .small-product-card .category-icon { 
