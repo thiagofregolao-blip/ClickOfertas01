@@ -76,6 +76,8 @@ export default function AdminProducts() {
       description: "",
       price: "",
       imageUrl: "",
+      imageUrl2: "",
+      imageUrl3: "",
       isFeatured: false,
       showInStories: false,
       isActive: true,
@@ -123,6 +125,8 @@ export default function AdminProducts() {
         description: "",
         price: "",
         imageUrl: "",
+        imageUrl2: "",
+        imageUrl3: "",
         isFeatured: false,
         isActive: true,
       });
@@ -214,6 +218,8 @@ export default function AdminProducts() {
       description: "",
       price: "",
       imageUrl: "",
+      imageUrl2: "",
+      imageUrl3: "",
       isFeatured: false,
       showInStories: false,
       isActive: true,
@@ -228,6 +234,8 @@ export default function AdminProducts() {
       description: product.description || "",
       price: product.price,
       imageUrl: product.imageUrl || "",
+      imageUrl2: product.imageUrl2 || "",
+      imageUrl3: product.imageUrl3 || "",
       isFeatured: product.isFeatured,
       showInStories: product.showInStories || false,
       isActive: product.isActive,
@@ -260,8 +268,10 @@ export default function AdminProducts() {
       'Nome do Produto': product.name,
       'Descrição': product.description || '',
       'Preço': product.price,
-      'Categoria': product.category || 'Geral',
-      'URL da Imagem': product.imageUrl || '',
+      'Categoria': product.category || 'Perfumaria',
+      'URL da Imagem 1': product.imageUrl || '',
+      'URL da Imagem 2': product.imageUrl2 || '',
+      'URL da Imagem 3': product.imageUrl3 || '',
       'Em Destaque': product.isFeatured ? 'Sim' : 'Não',
       'Nos Stories': product.showInStories ? 'Sim' : 'Não',
       'Ativo': product.isActive ? 'Sim' : 'Não'
@@ -308,8 +318,10 @@ export default function AdminProducts() {
           name: row['Nome do Produto'] || '',
           description: row['Descrição'] || '',
           price: String(row['Preço'] || '0').replace(/[^0-9.,]/g, '').replace(/\./g, '').replace(',', '.'),
-          category: row['Categoria'] || 'Geral',
-          imageUrl: row['URL da Imagem'] || '',
+          category: row['Categoria'] || 'Perfumaria',
+          imageUrl: row['URL da Imagem 1'] || row['URL da Imagem'] || '',
+          imageUrl2: row['URL da Imagem 2'] || '',
+          imageUrl3: row['URL da Imagem 3'] || '',
           isFeatured: row['Em Destaque'] === 'Sim',
           isActive: row['Ativo'] === 'Sim'
         }));
@@ -543,17 +555,17 @@ export default function AdminProducts() {
                       <div className="space-y-2">
                         <Label htmlFor="category" className="text-gray-700 font-medium">Categoria</Label>
                         <Select 
-                          value={form.watch("category") || "Geral"} 
+                          value={form.watch("category") || "Perfumaria"} 
                           onValueChange={(value) => form.setValue("category", value)}
                         >
                           <SelectTrigger className="border-gray-300 focus:border-blue-500" data-testid="select-product-category">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Perfumes">Perfumes</SelectItem>
-                            <SelectItem value="Eletrônicos">Eletrônicos</SelectItem>
-                            <SelectItem value="Pesca">Pesca</SelectItem>
-                            <SelectItem value="Geral">Geral</SelectItem>
+                            <SelectItem value="Perfumaria">Perfumaria</SelectItem>
+                            <SelectItem value="Bebidas">Bebidas</SelectItem>
+                            <SelectItem value="Eletrônica">Eletrônica</SelectItem>
+                            <SelectItem value="Cosméticos">Cosméticos</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -572,26 +584,54 @@ export default function AdminProducts() {
                     </div>
                   </div>
 
-                  {/* Imagem do Produto */}
+                  {/* Imagens do Produto */}
                   <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
                     <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
                       <Camera className="w-5 h-5 mr-2 text-green-600" />
-                      Imagem do Produto
+                      Imagens do Produto (3 fotos)
                     </h3>
-                    <div className="space-y-3">
-                      <Input
-                        id="imageUrl"
-                        {...form.register("imageUrl")}
-                        placeholder="Cole a URL da imagem aqui..."
-                        className="placeholder:text-gray-400 border-gray-300 focus:border-blue-500"
-                        data-testid="input-product-image"
-                      />
-                      <div className="flex items-center justify-center">
-                        <span className="text-gray-500 text-sm">ou</span>
+                    <div className="space-y-4">
+                      {/* Imagem 1 */}
+                      <div className="space-y-2">
+                        <Label htmlFor="imageUrl" className="text-gray-700 font-medium text-sm">Imagem Principal *</Label>
+                        <Input
+                          id="imageUrl"
+                          {...form.register("imageUrl")}
+                          placeholder="Cole a URL da primeira imagem..."
+                          className="placeholder:text-gray-400 border-gray-300 focus:border-blue-500"
+                          data-testid="input-product-image-1"
+                        />
+                        <div className="flex items-center justify-center">
+                          <span className="text-gray-500 text-xs">ou</span>
+                        </div>
+                        <PhotoCapture 
+                          onPhotoCapture={(url) => form.setValue("imageUrl", url)}
+                        />
                       </div>
-                      <PhotoCapture 
-                        onPhotoCapture={(url) => form.setValue("imageUrl", url)}
-                      />
+
+                      {/* Imagem 2 */}
+                      <div className="space-y-2">
+                        <Label htmlFor="imageUrl2" className="text-gray-700 font-medium text-sm">Segunda Imagem</Label>
+                        <Input
+                          id="imageUrl2"
+                          {...form.register("imageUrl2")}
+                          placeholder="Cole a URL da segunda imagem..."
+                          className="placeholder:text-gray-400 border-gray-300 focus:border-blue-500"
+                          data-testid="input-product-image-2"
+                        />
+                      </div>
+
+                      {/* Imagem 3 */}
+                      <div className="space-y-2">
+                        <Label htmlFor="imageUrl3" className="text-gray-700 font-medium text-sm">Terceira Imagem</Label>
+                        <Input
+                          id="imageUrl3"
+                          {...form.register("imageUrl3")}
+                          placeholder="Cole a URL da terceira imagem..."
+                          className="placeholder:text-gray-400 border-gray-300 focus:border-blue-500"
+                          data-testid="input-product-image-3"
+                        />
+                      </div>
                     </div>
                   </div>
 
