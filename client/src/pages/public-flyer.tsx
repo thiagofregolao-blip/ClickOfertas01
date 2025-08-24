@@ -44,6 +44,7 @@ export default function PublicFlyer() {
   const { recordFlyerView } = useEngagement();
   const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set());
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedStore, setSelectedStore] = useState<StoreWithProducts | null>(null);
 
   // Log da versão e modo de acesso (para desenvolvimento)
   useEffect(() => {
@@ -93,6 +94,18 @@ export default function PublicFlyer() {
       recordFlyerView(store.id);
     }
   }, [store?.id, isStoriesView]); // Removido recordFlyerView das dependências
+  
+  // Event listener para produtos similares
+  useEffect(() => {
+    const handleOpenProductModal = (event: CustomEvent) => {
+      const { product, store } = event.detail;
+      setSelectedProduct(product);
+      setSelectedStore(store);
+    };
+    
+    window.addEventListener('openProductModal', handleOpenProductModal);
+    return () => window.removeEventListener('openProductModal', handleOpenProductModal);
+  }, []);
 
   const handleShare = async () => {
     if (navigator.share && typeof navigator.canShare === 'function') {

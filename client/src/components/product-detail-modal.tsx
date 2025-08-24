@@ -249,28 +249,62 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               <Separator className="mb-4" />
 
               {/* Produtos Similares */}
-              <div className="mb-6">
-                <h3 className="font-semibold text-gray-900 mb-3">Mais produtos similares</h3>
+              {(() => {
+                const similarProducts = store.products?.filter(p => 
+                  p.id !== product.id && 
+                  p.isActive && 
+                  p.category === product.category
+                ).slice(0, 3) || [];
                 
-                <div className="flex gap-3 overflow-x-auto pb-2">
-                  {store.products?.filter(p => p.id !== product.id && p.isActive).slice(0, 4).map((similarProduct) => (
-                    <div key={similarProduct.id} className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
-                      {similarProduct.imageUrl ? (
-                        <img 
-                          src={similarProduct.imageUrl} 
-                          alt={similarProduct.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                          <div className="w-6 h-6 bg-gray-300 rounded"></div>
+                return similarProducts.length > 0 ? (
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-gray-900 mb-3">Produtos similares</h3>
+                    
+                    <div className="flex gap-3 overflow-x-auto pb-2">
+                      {similarProducts.map((similarProduct) => (
+                        <div 
+                          key={similarProduct.id} 
+                          className="flex-shrink-0 w-24 cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => {
+                            setCurrentImageIndex(0);
+                            onClose();
+                            setTimeout(() => {
+                              window.dispatchEvent(new CustomEvent('openProductModal', {
+                                detail: { product: similarProduct, store }
+                              }));
+                            }, 100);
+                          }}
+                        >
+                          <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden mb-2">
+                            {similarProduct.imageUrl ? (
+                              <img 
+                                src={similarProduct.imageUrl} 
+                                alt={similarProduct.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                <div className="w-6 h-6 bg-gray-300 rounded"></div>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs font-medium text-gray-900 line-clamp-2 mb-1">
+                              {similarProduct.name}
+                            </p>
+                            <p className="text-xs font-bold" style={{ color: store.themeColor || '#E11D48' }}>
+                              {store.currency || 'Gs.'} {Number(similarProduct.price || 0).toLocaleString('pt-BR', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                              })}
+                            </p>
+                          </div>
                         </div>
-                      )}
+                      ))}
                     </div>
-                  ))}
-                </div>
-                
-              </div>
+                  </div>
+                ) : null;
+              })()}
 
               {/* Botões de Ação com nomes */}
               <div className="flex gap-3">
@@ -443,32 +477,62 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             <Separator className="mb-6" />
 
             {/* Produtos Similares */}
-            <div className="mb-6">
-              <h4 className="font-medium text-gray-900 mb-3">Mais produtos similares</h4>
+            {(() => {
+              const similarProducts = store.products?.filter(p => 
+                p.id !== product.id && 
+                p.isActive && 
+                p.category === product.category
+              ).slice(0, 4) || [];
               
-              <div className="grid grid-cols-4 gap-3 mb-4">
-                {store.products?.filter(p => p.id !== product.id && p.isActive).slice(0, 4).map((similarProduct) => (
-                  <div key={similarProduct.id} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                    {similarProduct.imageUrl ? (
-                      <img 
-                        src={similarProduct.imageUrl} 
-                        alt={similarProduct.name}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                        <div className="w-8 h-8 bg-gray-300 rounded"></div>
+              return similarProducts.length > 0 ? (
+                <div className="mb-6">
+                  <h4 className="font-medium text-gray-900 mb-3">Produtos similares</h4>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    {similarProducts.map((similarProduct) => (
+                      <div 
+                        key={similarProduct.id} 
+                        className="cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => {
+                          setCurrentImageIndex(0);
+                          onClose();
+                          setTimeout(() => {
+                            window.dispatchEvent(new CustomEvent('openProductModal', {
+                              detail: { product: similarProduct, store }
+                            }));
+                          }, 100);
+                        }}
+                      >
+                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
+                          {similarProduct.imageUrl ? (
+                            <img 
+                              src={similarProduct.imageUrl} 
+                              alt={similarProduct.name}
+                              className="w-full h-full object-cover hover:scale-105 transition-transform"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                              <div className="w-8 h-8 bg-gray-300 rounded"></div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+                            {similarProduct.name}
+                          </p>
+                          <p className="text-sm font-bold" style={{ color: store.themeColor || '#E11D48' }}>
+                            {store.currency || 'Gs.'} {Number(similarProduct.price || 0).toLocaleString('pt-BR', {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2
+                            })}
+                          </p>
+                        </div>
                       </div>
-                    )}
+                    ))}
                   </div>
-                ))}
-              </div>
-              
-              <Card>
-                <CardContent className="p-4">
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              ) : null;
+            })()}
 
             {/* Botões de Ação com nomes */}
             <div className="flex gap-6 justify-center">

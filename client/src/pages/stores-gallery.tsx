@@ -29,6 +29,18 @@ export default function StoresGallery() {
     console.log(`🎯 Executando: ${versionName} (${version})`);
   }, [versionName, version]);
   
+  // Event listener para produtos similares
+  useEffect(() => {
+    const handleOpenProductModal = (event: CustomEvent) => {
+      const { product, store } = event.detail;
+      setSelectedProduct(product);
+      setSelectedStore(store);
+    };
+    
+    window.addEventListener('openProductModal', handleOpenProductModal);
+    return () => window.removeEventListener('openProductModal', handleOpenProductModal);
+  }, []);
+  
   const { data: stores, isLoading } = useQuery<StoreWithProducts[]>({
     queryKey: ['/api/public/stores'],
     staleTime: 10 * 60 * 1000, // 10 minutos (aumentado)
