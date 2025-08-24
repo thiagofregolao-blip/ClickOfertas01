@@ -287,69 +287,69 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             </div>
 
             {/* Botões de Ação com nomes - Logo abaixo da foto */}
-            <div className="flex-shrink-0 bg-white border-b border-gray-200 p-4">
-              <div className="flex gap-4 justify-center">
-                <div className="flex flex-col items-center gap-2">
+            <div className="flex-shrink-0 bg-white border-b border-gray-200 p-2">
+              <div className="flex gap-3 justify-center">
+                <div className="flex flex-col items-center gap-1">
                   <Button
                     onClick={() => toggleLike(product.id)}
                     variant="outline"
                     size="sm"
-                    className="flex items-center justify-center w-12 h-12 rounded-full"
+                    className="flex items-center justify-center w-10 h-10 rounded-full"
                   >
-                    <Heart className={`h-5 w-5 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
+                    <Heart className={`h-4 w-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
                   </Button>
-                  <span className="text-xs text-gray-800 font-medium">Curtir</span>
+                  <span className="text-[10px] text-gray-800 font-medium">Curtir</span>
                 </div>
                 
-                <div className="flex flex-col items-center gap-2">
+                <div className="flex flex-col items-center gap-1">
                   <Button
                     onClick={() => handleSaveProduct(product.id)}
                     variant="outline"
                     size="sm"
-                    className="flex items-center justify-center w-12 h-12 rounded-full"
+                    className="flex items-center justify-center w-10 h-10 rounded-full"
                   >
-                    <Bookmark className={`h-5 w-5 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <Bookmark className={`h-4 w-4 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
                   </Button>
-                  <span className="text-xs text-gray-800 font-medium">Salvar</span>
+                  <span className="text-[10px] text-gray-800 font-medium">Salvar</span>
                 </div>
                 
-                <div className="flex flex-col items-center gap-2">
+                <div className="flex flex-col items-center gap-1">
                   <Button
                     onClick={handleShare}
                     variant="outline"
                     size="sm"
-                    className="flex items-center justify-center w-12 h-12 rounded-full"
+                    className="flex items-center justify-center w-10 h-10 rounded-full"
                   >
-                    <Share2 className="h-5 w-5" />
+                    <Share2 className="h-4 w-4" />
                   </Button>
-                  <span className="text-xs text-gray-800 font-medium">Compartilhar</span>
+                  <span className="text-[10px] text-gray-800 font-medium">Compartilhar</span>
                 </div>
                 
                 {store.whatsapp && (
-                  <div className="flex flex-col items-center gap-2">
+                  <div className="flex flex-col items-center gap-1">
                     <Button
                       onClick={handleContact}
                       size="sm"
-                      className="flex items-center justify-center w-12 h-12 rounded-full text-white"
+                      className="flex items-center justify-center w-10 h-10 rounded-full text-white"
                       style={{ backgroundColor: store.themeColor || '#E11D48' }}
                     >
-                      <MessageCircle className="h-5 w-5" />
+                      <MessageCircle className="h-4 w-4" />
                     </Button>
-                    <span className="text-xs text-gray-800 font-medium">Contato</span>
+                    <span className="text-[10px] text-gray-800 font-medium">Contato</span>
                   </div>
                 )}
                 
                 {store.latitude && store.longitude && (
-                  <div className="flex flex-col items-center gap-2">
+                  <div className="flex flex-col items-center gap-1">
                     <Button
                       onClick={handleDirections}
                       size="sm"
-                      className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+                      className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
                       data-testid="button-directions-modal"
                     >
-                      <MapPin className="h-5 w-5" />
+                      <MapPin className="h-4 w-4" />
                     </Button>
-                    <span className="text-xs text-gray-800 font-medium">Como chegar</span>
+                    <span className="text-[10px] text-gray-800 font-medium">Como chegar</span>
                   </div>
                 )}
               </div>
