@@ -49,13 +49,27 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
   if (!product || !store) return null;
 
-  // Simular múltiplas fotos (usando a mesma imagem por enquanto)
-  // TODO: Quando backend suportar múltiplas imagens, substituir por product.images
-  const images = product.imageUrl ? [
-    product.imageUrl,
-    product.imageUrl, // Placeholder para múltiplas fotos
-    product.imageUrl, // Placeholder para múltiplas fotos
-  ] : [];
+  // Múltiplas fotos para produtos da Shopping China
+  const getProductImages = (product: Product) => {
+    if (!product.imageUrl) return [];
+    
+    // Para Shopping China, adicionar fotos adicionais
+    if (store?.slug === 'shopping-china') {
+      const baseImages = [
+        product.imageUrl,
+        'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop&crop=center',
+        'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=400&h=400&fit=crop&crop=center',
+        'https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?w=400&h=400&fit=crop&crop=center',
+        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop&crop=center'
+      ];
+      return baseImages.slice(0, 4); // Máximo de 4 fotos
+    }
+    
+    // Para outras lojas, usar apenas a imagem principal
+    return [product.imageUrl];
+  };
+  
+  const images = getProductImages(product);
 
   const nextImage = () => {
     if (images.length > 1) {
@@ -180,9 +194,20 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
             {/* Conteúdo Scrollável */}
             <div className="flex-1 overflow-y-auto p-4">
+              {/* Nome da Loja */}
+              <div className="mb-2">
+                <h2 className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                  />
+                  {store.name}
+                </h2>
+              </div>
+              
               {/* Informações do Produto */}
               <div className="mb-4">
-                <div className="flex items-start justify-between mb-2">
+                <div className="flex items-start justify-between mb-3">
                   <h1 className="text-xl font-bold text-gray-900 flex-1">{product.name}</h1>
                   {product.isFeatured && (
                     <Badge className="ml-2 bg-gradient-to-r from-red-500 to-orange-500 text-white border-none">
@@ -191,22 +216,23 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   )}
                 </div>
                 
-                {/* Preço */}
-                <div className="mb-3">
+                {/* Preço e Categoria */}
+                <div className="flex items-end justify-between mb-3">
                   <div className="flex items-end gap-1" style={{ color: store.themeColor || '#E11D48' }}>
-                    <span className="text-sm font-medium">{store.currency || 'R$'}</span>
+                    <span className="text-sm font-medium">{store.currency || 'Gs.'}</span>
                     <span className="text-3xl font-bold">
-                      {Number(product.price || 0).toLocaleString('pt-BR')}
+                      {Number(product.price || 0).toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })}
                     </span>
                   </div>
+                  {product.category && (
+                    <Badge variant="secondary">
+                      {product.category}
+                    </Badge>
+                  )}
                 </div>
-
-                {/* Categoria */}
-                {product.category && (
-                  <Badge variant="secondary" className="mb-3">
-                    {product.category}
-                  </Badge>
-                )}
 
                 {/* Descrição */}
                 {product.description && (
@@ -218,18 +244,30 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
               <Separator className="mb-4" />
 
-              {/* Informações da Loja */}
+              {/* Produtos Similares */}
               <div className="mb-6">
-                <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                  <div 
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: store.themeColor || '#E11D48' }}
-                  />
-                  {store.name}
-                </h3>
+                <h3 className="font-semibold text-gray-900 mb-3">Mais produtos similares</h3>
+                
+                <div className="flex gap-3 overflow-x-auto pb-2">
+                  {store.products?.filter(p => p.id !== product.id && p.isActive).slice(0, 4).map((similarProduct) => (
+                    <div key={similarProduct.id} className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
+                      {similarProduct.imageUrl ? (
+                        <img 
+                          src={similarProduct.imageUrl} 
+                          alt={similarProduct.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                          <div className="w-6 h-6 bg-gray-300 rounded"></div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
                 
                 {store.address && (
-                  <p className="text-sm text-gray-600 mb-1 flex items-center gap-1">
+                  <p className="text-sm text-gray-600 mt-3 mb-1 flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
                     {store.address}
                   </p>
@@ -243,45 +281,43 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 )}
               </div>
 
-              {/* Botões de Ação */}
-              <div className="grid grid-cols-2 gap-3 mb-4">
+              {/* Botões de Ação em uma linha */}
+              <div className="flex gap-2">
                 <Button
                   onClick={() => toggleLike(product.id)}
                   variant="outline"
-                  className="flex items-center gap-2"
+                  size="sm"
+                  className="flex items-center gap-1"
                 >
                   <Heart className={`h-4 w-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
-                  {isProductLiked(product.id) ? 'Curtido' : 'Curtir'}
                 </Button>
                 
                 <Button
                   onClick={() => handleSaveProduct(product.id)}
                   variant="outline"
-                  className="flex items-center gap-2"
+                  size="sm"
+                  className="flex items-center gap-1"
                 >
                   <Bookmark className={`h-4 w-4 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
-                  Salvar
                 </Button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+                
                 <Button
                   onClick={handleShare}
                   variant="outline"
-                  className="flex items-center gap-2"
+                  size="sm"
+                  className="flex items-center gap-1"
                 >
                   <Share2 className="h-4 w-4" />
-                  Compartilhar
                 </Button>
                 
                 {(store.whatsapp || store.phone) && (
                   <Button
                     onClick={handleContact}
-                    className="flex items-center gap-2"
+                    size="sm"
+                    className="flex items-center gap-1 text-white"
                     style={{ backgroundColor: store.themeColor || '#E11D48' }}
                   >
                     <MessageCircle className="h-4 w-4" />
-                    Contato
                   </Button>
                 )}
               </div>
@@ -351,6 +387,17 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
           {/* Detalhes do Produto (Direita) */}
           <div className="p-6 overflow-y-auto">
+            {/* Nome da Loja */}
+            <div className="mb-3">
+              <h3 className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                <div 
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                />
+                {store.name}
+              </h3>
+            </div>
+            
             <DialogHeader className="mb-4">
               <div className="flex items-start justify-between">
                 <DialogTitle className="text-2xl font-bold text-gray-900 flex-1">
@@ -364,24 +411,23 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               </div>
             </DialogHeader>
 
-            {/* Preço */}
-            <div className="mb-6">
+            {/* Preço e Categoria */}
+            <div className="flex items-end justify-between mb-6">
               <div className="flex items-end gap-2" style={{ color: store.themeColor || '#E11D48' }}>
-                <span className="text-lg font-medium">{store.currency || 'R$'}</span>
+                <span className="text-lg font-medium">{store.currency || 'Gs.'}</span>
                 <span className="text-4xl font-bold">
-                  {Number(product.price || 0).toLocaleString('pt-BR')}
+                  {Number(product.price || 0).toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  })}
                 </span>
               </div>
-            </div>
-
-            {/* Categoria */}
-            {product.category && (
-              <div className="mb-4">
+              {product.category && (
                 <Badge variant="secondary" className="text-sm px-3 py-1">
                   {product.category}
                 </Badge>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Descrição */}
             {product.description && (
@@ -393,19 +439,30 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
             <Separator className="mb-6" />
 
-            {/* Informações da Loja */}
+            {/* Produtos Similares */}
             <div className="mb-6">
-              <h4 className="font-medium text-gray-900 mb-3">Loja</h4>
+              <h4 className="font-medium text-gray-900 mb-3">Mais produtos similares</h4>
+              
+              <div className="grid grid-cols-4 gap-3 mb-4">
+                {store.products?.filter(p => p.id !== product.id && p.isActive).slice(0, 4).map((similarProduct) => (
+                  <div key={similarProduct.id} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                    {similarProduct.imageUrl ? (
+                      <img 
+                        src={similarProduct.imageUrl} 
+                        alt={similarProduct.name}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <div className="w-8 h-8 bg-gray-300 rounded"></div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              
               <Card>
                 <CardContent className="p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div 
-                      className="w-6 h-6 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: store.themeColor || '#E11D48' }}
-                    />
-                    <h5 className="font-semibold text-gray-900">{store.name}</h5>
-                  </div>
-                  
                   {store.address && (
                     <p className="text-sm text-gray-600 mb-2 flex items-center gap-2">
                       <MapPin className="h-4 w-4" />
@@ -423,49 +480,41 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               </Card>
             </div>
 
-            {/* Botões de Ação */}
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
+            {/* Botões de Ação em uma linha */}
+            <div className="flex gap-3">
+              <Button
+                onClick={() => toggleLike(product.id)}
+                variant="outline"
+                className="flex items-center gap-2 hover:bg-red-50 flex-1"
+              >
+                <Heart className={`h-4 w-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
+              </Button>
+              
+              <Button
+                onClick={() => handleSaveProduct(product.id)}
+                variant="outline"
+                className="flex items-center gap-2 hover:bg-blue-50 flex-1"
+              >
+                <Bookmark className={`h-4 w-4 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
+              </Button>
+              
+              <Button
+                onClick={handleShare}
+                variant="outline"
+                className="flex items-center gap-2 flex-1"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+              
+              {(store.whatsapp || store.phone) && (
                 <Button
-                  onClick={() => toggleLike(product.id)}
-                  variant="outline"
-                  className="flex items-center gap-2 hover:bg-red-50"
+                  onClick={handleContact}
+                  className="flex items-center gap-2 text-white hover:opacity-90 transition-opacity flex-1"
+                  style={{ backgroundColor: store.themeColor || '#E11D48' }}
                 >
-                  <Heart className={`h-4 w-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
-                  {isProductLiked(product.id) ? 'Curtido' : 'Curtir'}
+                  <MessageCircle className="h-4 w-4" />
                 </Button>
-                
-                <Button
-                  onClick={() => handleSaveProduct(product.id)}
-                  variant="outline"
-                  className="flex items-center gap-2 hover:bg-blue-50"
-                >
-                  <Bookmark className={`h-4 w-4 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
-                  Salvar
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  onClick={handleShare}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <Share2 className="h-4 w-4" />
-                  Compartilhar
-                </Button>
-                
-                {(store.whatsapp || store.phone) && (
-                  <Button
-                    onClick={handleContact}
-                    className="flex items-center gap-2 text-white hover:opacity-90 transition-opacity"
-                    style={{ backgroundColor: store.themeColor || '#E11D48' }}
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    Entrar em Contato
-                  </Button>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </div>
