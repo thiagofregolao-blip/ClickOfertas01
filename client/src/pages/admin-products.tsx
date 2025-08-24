@@ -409,7 +409,7 @@ export default function AdminProducts() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h2 className="text-2xl font-bold text-gray-900 text-center sm:text-left">Gestão de Produtos</h2>
           
-          {/* Mobile: Add Product Button next to title */}
+          {/* Mobile: Add Product Button next to title - SAME LINE */}
           <div className="sm:hidden flex justify-center">
             <Button 
               onClick={handleAddProduct}
@@ -417,7 +417,38 @@ export default function AdminProducts() {
               data-testid="button-add-product-mobile"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Adicionar Produto
+              Adicionar
+            </Button>
+          </div>
+        </div>
+        
+        {/* Excel buttons for mobile */}
+        <div className="sm:hidden flex justify-center gap-2">
+          <Button 
+            variant="outline"
+            onClick={exportToExcel}
+            className="flex items-center gap-2"
+            data-testid="button-export-excel-mobile"
+          >
+            <Download className="w-4 h-4" />
+            Exportar Excel
+          </Button>
+          
+          <div className="relative">
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={importFromExcel}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              data-testid="input-import-excel-mobile"
+            />
+            <Button 
+              variant="outline"
+              className="flex items-center gap-2"
+              data-testid="button-import-excel-mobile"
+            >
+              <Upload className="w-4 h-4" />
+              Importar Excel
             </Button>
           </div>
         </div>
@@ -454,24 +485,24 @@ export default function AdminProducts() {
           </div>
           
           {/* Add Product Button - Same Line */}
-          <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
-            <DialogTrigger asChild>
-              <Button 
-                onClick={handleAddProduct}
-                className="bg-primary text-white hover:bg-blue-600"
-                data-testid="button-add-product"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Adicionar Produto
-              </Button>
-            </DialogTrigger>
-            
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-gray-50">
-              <DialogHeader className="bg-white p-6 -mx-6 -mt-6 mb-4 border-b">
-                <DialogTitle className="text-xl font-semibold text-gray-800">
-                  {editingProduct ? "Editar Produto" : "Adicionar Novo Produto"}
-                </DialogTitle>
-              </DialogHeader>
+          <Button 
+            onClick={handleAddProduct}
+            className="bg-primary text-white hover:bg-blue-600"
+            data-testid="button-add-product"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar Produto
+          </Button>
+        </div>
+        
+        {/* Dialog - Shared by both mobile and desktop */}
+        <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-gray-50">
+            <DialogHeader className="bg-white p-6 -mx-6 -mt-6 mb-4 border-b">
+              <DialogTitle className="text-xl font-semibold text-gray-800">
+                {editingProduct ? "Editar Produto" : "Adicionar Novo Produto"}
+              </DialogTitle>
+            </DialogHeader>
               
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* Informações Básicas */}
@@ -649,9 +680,8 @@ export default function AdminProducts() {
                     </Button>
                   </div>
                 </form>
-              </DialogContent>
-            </Dialog>
-        </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Filters */}
         <Card>
