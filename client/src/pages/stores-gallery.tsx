@@ -510,8 +510,10 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
                       themeColor={store.themeColor || '#E11D48'}
                       showFeaturedBadge={true}
                       onClick={(product) => {
-                        setSelectedProduct(product);
-                        setSelectedStore(store);
+                        if (setSelectedProduct && setSelectedStore) {
+                          setSelectedProduct(product);
+                          setSelectedStore(store);
+                        }
                       }}
                     />
                   </div>
@@ -540,8 +542,10 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
                     themeColor={store.themeColor || '#E11D48'}
                     showFeaturedBadge={true}
                     onClick={(product) => {
-                      setSelectedProduct(product);
-                      setSelectedStore(store);
+                      if (setSelectedProduct && setSelectedStore) {
+                        setSelectedProduct(product);
+                        setSelectedStore(store);
+                      }
                     }}
                   />
                 </div>
