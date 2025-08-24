@@ -565,21 +565,33 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             </div>
             
             <DialogHeader className="mb-4">
-              <DialogTitle className="text-2xl font-bold text-gray-900">
+              <DialogTitle className="text-2xl font-bold text-blue-600">
                 {product.name}
               </DialogTitle>
             </DialogHeader>
 
-            {/* Preço */}
+            {/* Preços no formato iPhone */}
             <div className="mb-6">
-              <div className="flex items-end gap-2" style={{ color: store.themeColor || '#E11D48' }}>
-                <span className="text-lg font-medium">{store.currency || 'Gs.'}</span>
-                <span className="text-4xl font-bold">
+              <p className="text-sm text-gray-600 font-medium mb-2">A partir de</p>
+              
+              <div className="flex items-end gap-2 mb-2">
+                <span className="text-lg font-medium text-gray-700">US$</span>
+                <span className="text-4xl font-bold text-gray-900">
                   {Number(product.price || 0).toLocaleString('pt-BR', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                   })}
                 </span>
+              </div>
+              
+              <div className="text-lg text-gray-600 font-medium">
+                R$ {(() => {
+                  const priceUSD = Number(product.price || 0);
+                  // Usar taxa personalizada da loja ou padrão 5.47
+                  const rate = store.customUsdBrlRate ? Number(store.customUsdBrlRate) : 5.47;
+                  const priceBRL = priceUSD * rate;
+                  return priceBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                })()}
               </div>
             </div>
 

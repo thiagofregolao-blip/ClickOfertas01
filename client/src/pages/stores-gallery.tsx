@@ -520,6 +520,7 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
                       themeColor={store.themeColor || '#E11D48'}
                       showFeaturedBadge={true}
                       onClick={onProductClick}
+                      customUsdBrlRate={store.customUsdBrlRate ? Number(store.customUsdBrlRate) : undefined}
                     />
                   </div>
                 ))}
@@ -547,6 +548,7 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
                     themeColor={store.themeColor || '#E11D48'}
                     showFeaturedBadge={true}
                     onClick={onProductClick}
+                    customUsdBrlRate={store.customUsdBrlRate ? Number(store.customUsdBrlRate) : undefined}
                   />
                 </div>
               ))}

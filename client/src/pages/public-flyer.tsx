@@ -618,6 +618,7 @@ export default function PublicFlyer() {
                     showFeaturedBadge={product.isFeatured || false}
                     enableEngagement={true}
                     onClick={(product) => setSelectedProduct(product)}
+                    customUsdBrlRate={store.customUsdBrlRate ? Number(store.customUsdBrlRate) : undefined}
                   />
                 ))}
               </div>

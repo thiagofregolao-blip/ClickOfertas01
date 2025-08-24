@@ -14,6 +14,7 @@ interface ProductCardProps {
   showFeaturedBadge?: boolean;
   enableEngagement?: boolean;
   onClick?: (product: Product) => void;
+  customUsdBrlRate?: number; // Taxa personalizada da loja
 }
 
 // Cores por categoria
@@ -51,7 +52,8 @@ export default function ProductCard({
   themeColor, 
   showFeaturedBadge = false,
   enableEngagement = false,
-  onClick
+  onClick,
+  customUsdBrlRate
 }: ProductCardProps) {
   const { hearts, handleDoubleTap, handleSaveProduct, isSaving, isProductLiked, toggleLike } = useEngagement();
   const { isAuthenticated } = useAuth();
@@ -132,34 +134,46 @@ export default function ProductCard({
       </div>
       
       <div className="product-content p-2 flex flex-col h-full">
-        <h3 className="product-title text-[10px] sm:text-xs font-semibold text-gray-900 mb-1 mt-1 line-clamp-2 h-8 sm:h-10 flex items-center justify-center text-center">
+        <h3 className="product-title text-xs sm:text-sm font-bold text-blue-600 mb-1 mt-1 line-clamp-2 h-8 sm:h-10 flex items-center justify-center text-center">
           {product.name}
         </h3>
         
-        <div className="text-xs sm:text-sm text-gray-500 mb-2 line-clamp-4 h-14 sm:h-16 flex items-start justify-center text-center leading-tight">
+        <div className="text-[10px] sm:text-xs text-gray-500 mb-2 line-clamp-3 h-10 sm:h-12 flex items-start justify-center text-center leading-tight">
           {product.description || ''}
         </div>
         
-        <div 
-          className="flex items-end justify-center gap-0.5 h-6 sm:h-8 mt-auto"
-          style={{ color: categoryColors.accent }}
-        >
-          <span className="product-currency text-xs sm:text-sm font-medium self-end">{currency}</span>
-          <div className="flex items-start">
-            {(() => {
-              const price = Number(product.price || 0);
-              const integerPart = Math.floor(price);
-              const decimalPart = Math.round((price - integerPart) * 100);
-              return (
-                <>
-                  <span className="product-price text-sm sm:text-xl md:text-2xl font-bold leading-none">
-                    {integerPart.toLocaleString('pt-BR')}
-                  </span>
-                  <span className="product-cents text-[10px] sm:text-xs font-medium mt-0.5 leading-none">
-                    ,{String(decimalPart).padStart(2, '0')}
-                  </span>
-                </>
-              );
+        <div className="flex flex-col items-center justify-center mt-auto space-y-1">
+          <span className="text-[10px] sm:text-xs text-gray-600 font-medium">A partir de</span>
+          
+          <div className="flex items-end justify-center gap-0.5">
+            <span className="text-xs sm:text-sm font-medium text-gray-700 self-end">US$</span>
+            <div className="flex items-start">
+              {(() => {
+                const price = Number(product.price || 0);
+                const integerPart = Math.floor(price);
+                const decimalPart = Math.round((price - integerPart) * 100);
+                return (
+                  <>
+                    <span className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-none">
+                      {integerPart.toLocaleString('pt-BR')}
+                    </span>
+                    <span className="text-xs sm:text-sm font-medium text-gray-900 mt-0.5 leading-none">
+                      ,{String(decimalPart).padStart(2, '0')}
+                    </span>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* Preço em Real - baseado na taxa personalizada da loja */}
+          <div className="text-xs sm:text-sm text-gray-600 font-medium">
+            R$ {(() => {
+              const priceUSD = Number(product.price || 0);
+              // Usar taxa personalizada da loja ou taxa padrão 5.47
+              const rate = customUsdBrlRate || 5.47; // Usar taxa personalizada da loja ou padrão
+              const priceBRL = priceUSD * rate;
+              return priceBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             })()}
           </div>
         </div>

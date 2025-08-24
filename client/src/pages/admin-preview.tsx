@@ -195,6 +195,7 @@ export default function AdminPreview() {
                     product={product}
                     currency={store.currency || "Gs."}
                     themeColor={store.themeColor || "#E11D48"}
+                    customUsdBrlRate={store.customUsdBrlRate ? Number(store.customUsdBrlRate) : undefined}
                   />
                 ))}
               </div>
