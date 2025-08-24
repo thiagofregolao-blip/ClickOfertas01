@@ -681,159 +681,301 @@ export default function AdminProducts() {
                 {search ? "Nenhum produto encontrado para a busca." : "Nenhum produto cadastrado ainda."}
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full table-fixed">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="w-2/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Produto
-                      </th>
-                      <th className="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Preço
-                      </th>
-                      <th className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="w-1/4 px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Ações
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {paginatedProducts.map((product) => (
-                      <tr key={product.id} data-testid={`row-product-${product.id}`}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            {product.imageUrl && (
-                              <img 
-                                src={product.imageUrl} 
-                                alt={product.name}
-                                className="w-12 h-12 rounded-lg object-cover mr-4"
-                              />
-                            )}
-                            <div>
-                              <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                                {product.name}
-                                {product.isFeatured && (
-                                  <Badge variant="secondary" className="bg-accent text-white">
-                                    <Star className="w-3 h-3 mr-1" />
-                                    Destaque
-                                  </Badge>
-                                )}
-                                {product.showInStories && (
-                                  <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-                                    <Eye className="w-3 h-3 mr-1" />
-                                    Stories
-                                  </Badge>
+              <>
+                {/* Desktop Table Layout */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full table-fixed">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="w-2/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Produto
+                        </th>
+                        <th className="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Preço
+                        </th>
+                        <th className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="w-1/4 px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Ações
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {paginatedProducts.map((product) => (
+                        <tr key={product.id} data-testid={`row-product-${product.id}`}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              {product.imageUrl && (
+                                <img 
+                                  src={product.imageUrl} 
+                                  alt={product.name}
+                                  className="w-12 h-12 rounded-lg object-cover mr-4"
+                                />
+                              )}
+                              <div>
+                                <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                                  {product.name}
+                                  {product.isFeatured && (
+                                    <Badge variant="secondary" className="bg-accent text-white">
+                                      <Star className="w-3 h-3 mr-1" />
+                                      Destaque
+                                    </Badge>
+                                  )}
+                                  {product.showInStories && (
+                                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                                      <Eye className="w-3 h-3 mr-1" />
+                                      Stories
+                                    </Badge>
+                                  )}
+                                </div>
+                                {product.description && (
+                                  <div className="text-sm text-gray-500" title={product.description}>
+                                    {product.description.length > 40 
+                                      ? `${product.description.substring(0, 40)}...` 
+                                      : product.description
+                                    }
+                                  </div>
                                 )}
                               </div>
-                              {product.description && (
-                                <div className="text-sm text-gray-500" title={product.description}>
-                                  {product.description.length > 40 
-                                    ? `${product.description.substring(0, 40)}...` 
-                                    : product.description
-                                  }
-                                </div>
-                              )}
                             </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {store.currency} {Number(product.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <Badge 
+                              variant={product.isActive ? "default" : "destructive"}
+                              className={product.isActive ? "bg-green-100 text-green-800" : ""}
+                            >
+                              {product.isActive ? "Ativo" : "Inativo"}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <div className="flex justify-center items-center space-x-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleMutation.mutate({
+                                  productId: product.id,
+                                  field: "isFeatured",
+                                  value: !product.isFeatured
+                                })}
+                                data-testid={`button-toggle-featured-${product.id}`}
+                                title={product.isFeatured ? "Remover destaque" : "Marcar como destaque"}
+                              >
+                                {product.isFeatured ? (
+                                  <StarOff className="w-4 h-4 text-accent" />
+                                ) : (
+                                  <Star className="w-4 h-4 text-gray-400" />
+                                )}
+                              </Button>
+                              
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleMutation.mutate({
+                                  productId: product.id,
+                                  field: "isActive",
+                                  value: !product.isActive
+                                })}
+                                data-testid={`button-toggle-active-${product.id}`}
+                                title={product.isActive ? "Desativar produto" : "Ativar produto"}
+                              >
+                                {product.isActive ? (
+                                  <EyeOff className="w-4 h-4 text-gray-600" />
+                                ) : (
+                                  <Eye className="w-4 h-4 text-gray-400" />
+                                )}
+                              </Button>
+                              
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleMutation.mutate({
+                                  productId: product.id,
+                                  field: "showInStories",
+                                  value: !product.showInStories
+                                })}
+                                data-testid={`button-toggle-stories-${product.id}`}
+                                title={product.showInStories ? "Remover dos Stories" : "Adicionar aos Stories"}
+                              >
+                                {product.showInStories ? (
+                                  <CircleX className="w-4 h-4 text-purple-600" />
+                                ) : (
+                                  <PlayCircle className="w-4 h-4 text-gray-400" />
+                                )}
+                              </Button>
+                              
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditProduct(product)}
+                                data-testid={`button-edit-${product.id}`}
+                                title="Editar produto"
+                              >
+                                <Edit className="w-4 h-4 text-blue-600" />
+                              </Button>
+                              
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteMutation.mutate(product.id)}
+                                disabled={deleteMutation.isPending}
+                                data-testid={`button-delete-${product.id}`}
+                                title="Excluir produto"
+                              >
+                                <Trash2 className="w-4 h-4 text-red-600" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Card Layout */}
+                <div className="lg:hidden divide-y divide-gray-200">
+                  {paginatedProducts.map((product) => (
+                    <div key={product.id} className="p-4 bg-white" data-testid={`card-product-${product.id}`}>
+                      {/* Conteúdo do produto */}
+                      <div className="flex items-start space-x-3 mb-4">
+                        {product.imageUrl && (
+                          <img 
+                            src={product.imageUrl} 
+                            alt={product.name}
+                            className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-sm font-medium text-gray-900 truncate">
+                              {product.name}
+                            </h3>
+                            <Badge 
+                              variant={product.isActive ? "default" : "destructive"}
+                              className={`text-xs ${product.isActive ? "bg-green-100 text-green-800" : ""}`}
+                            >
+                              {product.isActive ? "Ativo" : "Inativo"}
+                            </Badge>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                          
+                          <div className="flex items-center gap-2 mb-2">
+                            {product.isFeatured && (
+                              <Badge variant="secondary" className="bg-accent text-white text-xs">
+                                <Star className="w-3 h-3 mr-1" />
+                                Destaque
+                              </Badge>
+                            )}
+                            {product.showInStories && (
+                              <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">
+                                <Eye className="w-3 h-3 mr-1" />
+                                Stories
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <p className="text-sm font-medium text-gray-900 mb-1">
                             {store.currency} {Number(product.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <Badge 
-                            variant={product.isActive ? "default" : "destructive"}
-                            className={product.isActive ? "bg-green-100 text-green-800" : ""}
-                          >
-                            {product.isActive ? "Ativo" : "Inativo"}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <div className="flex justify-center items-center space-x-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleMutation.mutate({
-                                productId: product.id,
-                                field: "isFeatured",
-                                value: !product.isFeatured
-                              })}
-                              data-testid={`button-toggle-featured-${product.id}`}
-                              title={product.isFeatured ? "Remover destaque" : "Marcar como destaque"}
-                            >
-                              {product.isFeatured ? (
-                                <StarOff className="w-4 h-4 text-accent" />
-                              ) : (
-                                <Star className="w-4 h-4 text-gray-400" />
-                              )}
-                            </Button>
-                            
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleMutation.mutate({
-                                productId: product.id,
-                                field: "isActive",
-                                value: !product.isActive
-                              })}
-                              data-testid={`button-toggle-active-${product.id}`}
-                              title={product.isActive ? "Desativar produto" : "Ativar produto"}
-                            >
-                              {product.isActive ? (
-                                <EyeOff className="w-4 h-4 text-gray-600" />
-                              ) : (
-                                <Eye className="w-4 h-4 text-gray-400" />
-                              )}
-                            </Button>
-                            
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleMutation.mutate({
-                                productId: product.id,
-                                field: "showInStories",
-                                value: !product.showInStories
-                              })}
-                              data-testid={`button-toggle-stories-${product.id}`}
-                              title={product.showInStories ? "Remover dos Stories" : "Adicionar aos Stories"}
-                            >
-                              {product.showInStories ? (
-                                <CircleX className="w-4 h-4 text-purple-600" />
-                              ) : (
-                                <PlayCircle className="w-4 h-4 text-gray-400" />
-                              )}
-                            </Button>
-                            
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditProduct(product)}
-                              data-testid={`button-edit-${product.id}`}
-                              title="Editar produto"
-                            >
-                              <Edit className="w-4 h-4 text-blue-600" />
-                            </Button>
-                            
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => deleteMutation.mutate(product.id)}
-                              disabled={deleteMutation.isPending}
-                              data-testid={`button-delete-${product.id}`}
-                              title="Excluir produto"
-                            >
-                              <Trash2 className="w-4 h-4 text-red-600" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          </p>
+                          
+                          {product.description && (
+                            <p className="text-sm text-gray-500 line-clamp-2" title={product.description}>
+                              {product.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Botões de ação na parte inferior */}
+                      <div className="flex items-center justify-center space-x-2 pt-2 border-t border-gray-100">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleMutation.mutate({
+                            productId: product.id,
+                            field: "isFeatured",
+                            value: !product.isFeatured
+                          })}
+                          data-testid={`button-toggle-featured-${product.id}`}
+                          title={product.isFeatured ? "Remover destaque" : "Marcar como destaque"}
+                          className="flex-1"
+                        >
+                          {product.isFeatured ? (
+                            <StarOff className="w-4 h-4 text-accent" />
+                          ) : (
+                            <Star className="w-4 h-4 text-gray-400" />
+                          )}
+                        </Button>
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleMutation.mutate({
+                            productId: product.id,
+                            field: "isActive",
+                            value: !product.isActive
+                          })}
+                          data-testid={`button-toggle-active-${product.id}`}
+                          title={product.isActive ? "Desativar produto" : "Ativar produto"}
+                          className="flex-1"
+                        >
+                          {product.isActive ? (
+                            <EyeOff className="w-4 h-4 text-gray-600" />
+                          ) : (
+                            <Eye className="w-4 h-4 text-gray-400" />
+                          )}
+                        </Button>
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleMutation.mutate({
+                            productId: product.id,
+                            field: "showInStories",
+                            value: !product.showInStories
+                          })}
+                          data-testid={`button-toggle-stories-${product.id}`}
+                          title={product.showInStories ? "Remover dos Stories" : "Adicionar aos Stories"}
+                          className="flex-1"
+                        >
+                          {product.showInStories ? (
+                            <CircleX className="w-4 h-4 text-purple-600" />
+                          ) : (
+                            <PlayCircle className="w-4 h-4 text-gray-400" />
+                          )}
+                        </Button>
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditProduct(product)}
+                          data-testid={`button-edit-${product.id}`}
+                          title="Editar produto"
+                          className="flex-1"
+                        >
+                          <Edit className="w-4 h-4 text-blue-600" />
+                        </Button>
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteMutation.mutate(product.id)}
+                          disabled={deleteMutation.isPending}
+                          data-testid={`button-delete-${product.id}`}
+                          title="Excluir produto"
+                          className="flex-1"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
             
             {/* Paginação */}
