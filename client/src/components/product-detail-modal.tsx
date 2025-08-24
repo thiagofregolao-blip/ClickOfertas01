@@ -42,6 +42,35 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
   const { handleDoubleTap, handleSaveProduct, isProductLiked, toggleLike } = useEngagement();
   const { isAuthenticated } = useAuth();
 
+  // Touch gestures para navegação de imagens
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && images.length > 1) {
+      nextImage();
+    }
+    if (isRightSwipe && images.length > 1) {
+      prevImage();
+    }
+  };
+
   // Reset image index when product changes
   useEffect(() => {
     setCurrentImageIndex(0);
@@ -131,7 +160,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
   if (isMobile) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="w-full h-full max-w-none max-h-none m-0 p-0 bg-white">
+        <DialogContent className="w-full h-full max-w-none max-h-none m-2 p-0 bg-white rounded-lg shadow-xl">
           <div className="relative h-full flex flex-col">
             {/* Header com botão de fechar */}
             <div className="absolute top-4 right-4 z-20">
@@ -146,7 +175,12 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             </div>
 
             {/* Galeria de Imagens */}
-            <div className="relative h-80 bg-gray-100 flex-shrink-0">
+            <div 
+              className="relative h-80 bg-gray-100 flex-shrink-0 rounded-t-lg overflow-hidden"
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+            >
               {images.length > 0 ? (
                 <>
                   <img
@@ -197,7 +231,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             </div>
 
             {/* Conteúdo Scrollável */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-4 pb-6">
               {/* Nome da Loja */}
               <div className="mb-2">
                 <h2 className="text-sm font-medium text-gray-600 flex items-center gap-2">
@@ -307,7 +341,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               })()}
 
               {/* Botões de Ação com nomes */}
-              <div className="flex gap-3">
+              <div className="flex gap-4 justify-center py-2">
                 <div className="flex flex-col items-center gap-1">
                   <Button
                     onClick={() => toggleLike(product.id)}
