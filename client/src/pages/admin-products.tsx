@@ -406,24 +406,12 @@ export default function AdminProducts() {
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h2 className="text-2xl font-bold text-gray-900 text-center sm:text-left">Gestão de Produtos</h2>
-          
-          {/* Mobile: Add Product Button next to title - SAME LINE */}
-          <div className="sm:hidden flex justify-center">
-            <Button 
-              onClick={handleAddProduct}
-              className="bg-primary text-white hover:bg-blue-600"
-              data-testid="button-add-product-mobile"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar
-            </Button>
-          </div>
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900">Gestão de Produtos</h2>
         </div>
         
-        {/* Excel buttons for mobile */}
-        <div className="sm:hidden flex justify-center gap-2">
+        {/* Action buttons for mobile */}
+        <div className="sm:hidden flex justify-center gap-2 flex-wrap">
           <Button 
             variant="outline"
             onClick={exportToExcel}
@@ -431,7 +419,7 @@ export default function AdminProducts() {
             data-testid="button-export-excel-mobile"
           >
             <Download className="w-4 h-4" />
-            Exportar Excel
+            Exportar
           </Button>
           
           <div className="relative">
@@ -448,14 +436,22 @@ export default function AdminProducts() {
               data-testid="button-import-excel-mobile"
             >
               <Upload className="w-4 h-4" />
-              Importar Excel
+              Importar
             </Button>
           </div>
+          
+          <Button 
+            onClick={handleAddProduct}
+            className="bg-primary text-white hover:bg-blue-600"
+            data-testid="button-add-product-mobile-inline"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar
+          </Button>
         </div>
         
         {/* Action Buttons - Desktop and Tablet */}
         <div className="hidden sm:flex justify-center items-center gap-3 flex-wrap">
-          {/* Excel Export/Import and Add Product - Same Line */}
           <Button 
             variant="outline"
             onClick={exportToExcel}
@@ -463,7 +459,7 @@ export default function AdminProducts() {
             data-testid="button-export-excel"
           >
             <Download className="w-4 h-4" />
-            Exportar Excel
+            Exportar
           </Button>
           
           <div className="relative">
@@ -480,18 +476,17 @@ export default function AdminProducts() {
               data-testid="button-import-excel"
             >
               <Upload className="w-4 h-4" />
-              Importar Excel
+              Importar
             </Button>
           </div>
           
-          {/* Add Product Button - Same Line */}
           <Button 
             onClick={handleAddProduct}
             className="bg-primary text-white hover:bg-blue-600"
             data-testid="button-add-product"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Adicionar Produto
+            Adicionar
           </Button>
         </div>
         
