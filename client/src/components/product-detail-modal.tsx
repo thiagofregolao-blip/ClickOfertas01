@@ -283,6 +283,68 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   </div>
                 </div>
               )}
+
+              {/* Botões de Ação - Posicionados no canto esquerdo da imagem */}
+              <div className="absolute bottom-4 left-4 flex gap-2 z-10">
+                <div className="flex flex-col items-center gap-1">
+                  <Button
+                    onClick={() => toggleLike(product.id)}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border-none shadow-lg hover:bg-white/90"
+                  >
+                    <Heart className={`h-4 w-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
+                  </Button>
+                </div>
+                
+                <div className="flex flex-col items-center gap-1">
+                  <Button
+                    onClick={() => handleSaveProduct(product.id)}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border-none shadow-lg hover:bg-white/90"
+                  >
+                    <Bookmark className={`h-4 w-4 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
+                  </Button>
+                </div>
+                
+                <div className="flex flex-col items-center gap-1">
+                  <Button
+                    onClick={handleShare}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border-none shadow-lg hover:bg-white/90"
+                  >
+                    <Share2 className="h-4 w-4 text-gray-700" />
+                  </Button>
+                </div>
+                
+                {store.whatsapp && (
+                  <div className="flex flex-col items-center gap-1">
+                    <Button
+                      onClick={handleContact}
+                      size="sm"
+                      className="flex items-center justify-center w-10 h-10 rounded-full text-white shadow-lg"
+                      style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+                
+                {store.latitude && store.longitude && (
+                  <div className="flex flex-col items-center gap-1">
+                    <Button
+                      onClick={handleDirections}
+                      size="sm"
+                      className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg"
+                      data-testid="button-directions-modal"
+                    >
+                      <MapPin className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Conteúdo Scrollável */}
@@ -333,8 +395,8 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
                 {/* Descrição */}
                 {product.description && (
-                  <div className="mb-4">
-                    <p className="text-gray-700 leading-relaxed line-clamp-2">{product.description}</p>
+                  <div className="mb-6">
+                    <p className="text-gray-700 leading-relaxed text-sm">{product.description}</p>
                   </div>
                 )}
               </div>
@@ -353,7 +415,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   <div className="mb-6">
                     <h3 className="font-semibold text-gray-900 mb-3">Produtos similares</h3>
                     
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-6 gap-2">
                       {similarProducts.map((similarProduct) => (
                         <div 
                           key={similarProduct.id} 
@@ -368,7 +430,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                             }, 100);
                           }}
                         >
-                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-1">
+                          <div className="aspect-square bg-gray-100 rounded-md overflow-hidden mb-1">
                             {similarProduct.imageUrl ? (
                               <img 
                                 src={similarProduct.imageUrl} 
@@ -377,15 +439,15 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                               />
                             ) : (
                               <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                <div className="w-4 h-4 bg-gray-300 rounded"></div>
+                                <div className="w-3 h-3 bg-gray-300 rounded"></div>
                               </div>
                             )}
                           </div>
                           <div className="text-center">
-                            <p className="text-xs font-medium text-gray-900 line-clamp-1 mb-1">
+                            <p className="text-[10px] font-medium text-gray-900 line-clamp-1 mb-1">
                               {similarProduct.name}
                             </p>
-                            <p className="text-xs font-bold" style={{ color: store.themeColor || '#E11D48' }}>
+                            <p className="text-[10px] font-bold" style={{ color: store.themeColor || '#E11D48' }}>
                               {store.currency || 'Gs.'} {Number(similarProduct.price || 0).toLocaleString('pt-BR', {
                                 minimumFractionDigits: 0,
                                 maximumFractionDigits: 0
@@ -399,72 +461,6 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 ) : null;
               })()}
 
-              {/* Botões de Ação com nomes */}
-              <div className="flex gap-4 justify-center py-4 mb-4">
-                <div className="flex flex-col items-center gap-1">
-                  <Button
-                    onClick={() => toggleLike(product.id)}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center justify-center w-12 h-12 rounded-full"
-                  >
-                    <Heart className={`h-5 w-5 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
-                  </Button>
-                  <span className="text-xs text-gray-600">Curtir</span>
-                </div>
-                
-                <div className="flex flex-col items-center gap-1">
-                  <Button
-                    onClick={() => handleSaveProduct(product.id)}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center justify-center w-12 h-12 rounded-full"
-                  >
-                    <Bookmark className={`h-5 w-5 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
-                  </Button>
-                  <span className="text-xs text-gray-600">Salvar</span>
-                </div>
-                
-                <div className="flex flex-col items-center gap-1">
-                  <Button
-                    onClick={handleShare}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center justify-center w-12 h-12 rounded-full"
-                  >
-                    <Share2 className="h-5 w-5" />
-                  </Button>
-                  <span className="text-xs text-gray-600">Compartilhar</span>
-                </div>
-                
-                {store.whatsapp && (
-                  <div className="flex flex-col items-center gap-1">
-                    <Button
-                      onClick={handleContact}
-                      size="sm"
-                      className="flex items-center justify-center w-12 h-12 rounded-full text-white"
-                      style={{ backgroundColor: store.themeColor || '#E11D48' }}
-                    >
-                      <MessageCircle className="h-5 w-5" />
-                    </Button>
-                    <span className="text-xs text-gray-600">Contato</span>
-                  </div>
-                )}
-                
-                {store.latitude && store.longitude && (
-                  <div className="flex flex-col items-center gap-1">
-                    <Button
-                      onClick={handleDirections}
-                      size="sm"
-                      className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
-                      data-testid="button-directions-modal"
-                    >
-                      <MapPin className="h-5 w-5" />
-                    </Button>
-                    <span className="text-xs text-gray-600">Como chegar</span>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </DialogContent>
@@ -513,7 +509,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     </button>
                     
                     {/* Indicadores */}
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1">
+                    <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-1">
                       {images.map((_, index) => (
                         <button
                           key={index}
@@ -526,6 +522,73 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     </div>
                   </>
                 )}
+
+                {/* Botões de Ação - Posicionados no canto esquerdo da imagem */}
+                <div className="absolute bottom-4 left-4 flex gap-3 z-10">
+                  <div className="flex flex-col items-center gap-1">
+                    <Button
+                      onClick={() => toggleLike(product.id)}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center justify-center w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border-none shadow-lg hover:bg-white"
+                    >
+                      <Heart className={`h-5 w-5 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
+                    </Button>
+                    <span className="text-[10px] text-white font-medium drop-shadow-lg">Curtir</span>
+                  </div>
+                  
+                  <div className="flex flex-col items-center gap-1">
+                    <Button
+                      onClick={() => handleSaveProduct(product.id)}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center justify-center w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border-none shadow-lg hover:bg-white"
+                    >
+                      <Bookmark className={`h-5 w-5 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
+                    </Button>
+                    <span className="text-[10px] text-white font-medium drop-shadow-lg">Salvar</span>
+                  </div>
+                  
+                  <div className="flex flex-col items-center gap-1">
+                    <Button
+                      onClick={handleShare}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center justify-center w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border-none shadow-lg hover:bg-white"
+                    >
+                      <Share2 className="h-5 w-5 text-gray-700" />
+                    </Button>
+                    <span className="text-[10px] text-white font-medium drop-shadow-lg">Compartilhar</span>
+                  </div>
+                  
+                  {store.whatsapp && (
+                    <div className="flex flex-col items-center gap-1">
+                      <Button
+                        onClick={handleContact}
+                        size="sm"
+                        className="flex items-center justify-center w-12 h-12 rounded-full text-white shadow-lg"
+                        style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                      >
+                        <MessageCircle className="h-5 w-5" />
+                      </Button>
+                      <span className="text-[10px] text-white font-medium drop-shadow-lg">Contato</span>
+                    </div>
+                  )}
+                  
+                  {store.latitude && store.longitude && (
+                    <div className="flex flex-col items-center gap-1">
+                      <Button
+                        onClick={handleDirections}
+                        size="sm"
+                        className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg"
+                        data-testid="button-directions-modal"
+                      >
+                        <MapPin className="h-5 w-5" />
+                      </Button>
+                      <span className="text-[10px] text-white font-medium drop-shadow-lg">Como chegar</span>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <div className="w-full h-full bg-gray-200 flex items-center justify-center">
@@ -597,9 +660,9 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
             {/* Descrição */}
             {product.description && (
-              <div className="mb-6">
+              <div className="mb-8">
                 <h4 className="font-medium text-gray-900 mb-2">Descrição</h4>
-                <p className="text-gray-700 leading-relaxed line-clamp-2">{product.description}</p>
+                <p className="text-gray-700 leading-relaxed text-sm">{product.description}</p>
               </div>
             )}
 
@@ -617,7 +680,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 <div className="mb-6">
                   <h4 className="font-medium text-gray-900 mb-3">Produtos similares</h4>
                   
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-6 gap-2">
                     {similarProducts.map((similarProduct) => (
                       <div 
                         key={similarProduct.id} 
@@ -632,7 +695,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                           }, 100);
                         }}
                       >
-                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-1">
+                        <div className="aspect-square bg-gray-100 rounded-md overflow-hidden mb-1">
                           {similarProduct.imageUrl ? (
                             <img 
                               src={similarProduct.imageUrl} 
@@ -641,15 +704,15 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                             />
                           ) : (
                             <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                              <div className="w-4 h-4 bg-gray-300 rounded"></div>
+                              <div className="w-3 h-3 bg-gray-300 rounded"></div>
                             </div>
                           )}
                         </div>
                         <div className="text-center">
-                          <p className="text-xs font-medium text-gray-900 line-clamp-1 mb-1">
+                          <p className="text-[10px] font-medium text-gray-900 line-clamp-1 mb-1">
                             {similarProduct.name}
                           </p>
-                          <p className="text-xs font-bold" style={{ color: store.themeColor || '#E11D48' }}>
+                          <p className="text-[10px] font-bold" style={{ color: store.themeColor || '#E11D48' }}>
                             {store.currency || 'Gs.'} {Number(similarProduct.price || 0).toLocaleString('pt-BR', {
                               minimumFractionDigits: 0,
                               maximumFractionDigits: 0
@@ -663,67 +726,6 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               ) : null;
             })()}
 
-            {/* Botões de Ação com nomes */}
-            <div className="flex gap-6 justify-center">
-              <div className="flex flex-col items-center gap-2">
-                <Button
-                  onClick={() => toggleLike(product.id)}
-                  variant="outline"
-                  className="flex items-center justify-center w-14 h-14 rounded-full hover:bg-red-50"
-                >
-                  <Heart className={`h-5 w-5 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
-                </Button>
-                <span className="text-sm text-gray-600 font-medium">Curtir</span>
-              </div>
-              
-              <div className="flex flex-col items-center gap-2">
-                <Button
-                  onClick={() => handleSaveProduct(product.id)}
-                  variant="outline"
-                  className="flex items-center justify-center w-14 h-14 rounded-full hover:bg-blue-50"
-                >
-                  <Bookmark className={`h-5 w-5 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
-                </Button>
-                <span className="text-sm text-gray-600 font-medium">Salvar</span>
-              </div>
-              
-              <div className="flex flex-col items-center gap-2">
-                <Button
-                  onClick={handleShare}
-                  variant="outline"
-                  className="flex items-center justify-center w-14 h-14 rounded-full"
-                >
-                  <Share2 className="h-5 w-5" />
-                </Button>
-                <span className="text-sm text-gray-600 font-medium">Compartilhar</span>
-              </div>
-              
-              {store.whatsapp && (
-                <div className="flex flex-col items-center gap-2">
-                  <Button
-                    onClick={handleContact}
-                    className="flex items-center justify-center w-14 h-14 rounded-full text-white hover:opacity-90 transition-opacity"
-                    style={{ backgroundColor: store.themeColor || '#E11D48' }}
-                  >
-                    <MessageCircle className="h-5 w-5" />
-                  </Button>
-                  <span className="text-sm text-gray-600 font-medium">Contato</span>
-                </div>
-              )}
-              
-              {store.latitude && store.longitude && (
-                <div className="flex flex-col items-center gap-2">
-                  <Button
-                    onClick={handleDirections}
-                    className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-colors"
-                    data-testid="button-directions-modal-desktop"
-                  >
-                    <MapPin className="h-6 w-6" />
-                  </Button>
-                  <span className="text-sm text-gray-600 font-medium">Como chegar</span>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </DialogContent>
