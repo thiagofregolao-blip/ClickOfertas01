@@ -7,10 +7,11 @@ import { Share, Download, Printer, MoreVertical, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import ProductCard from "@/components/product-card";
+import { ProductDetailModal } from "@/components/product-detail-modal";
 import FlyerHeader from "@/components/flyer-header";
 import FlyerFooter from "@/components/flyer-footer";
 import { downloadFlyerAsPNG } from "@/lib/flyer-utils";
-import type { StoreWithProducts } from "@shared/schema";
+import type { StoreWithProducts, Product } from "@shared/schema";
 import { InstagramStories } from "@/components/instagram-stories";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAppVersion } from "@/hooks/use-mobile";
@@ -42,6 +43,7 @@ export default function PublicFlyer() {
   const menuRef = useRef<HTMLDivElement>(null);
   const { recordFlyerView } = useEngagement();
   const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set());
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // Log da versão e modo de acesso (para desenvolvimento)
   useEffect(() => {
@@ -595,6 +597,7 @@ export default function PublicFlyer() {
                     themeColor={store.themeColor || "#E11D48"}
                     showFeaturedBadge={product.isFeatured || false}
                     enableEngagement={true}
+                    onClick={(product) => setSelectedProduct(product)}
                   />
                 ))}
               </div>
@@ -656,6 +659,14 @@ export default function PublicFlyer() {
 
         {!isStoriesView && <FlyerFooter store={store} />}
       </div>
+      
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        product={selectedProduct}
+        store={store}
+        isOpen={!!selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+      />
     </div>
   );
 }

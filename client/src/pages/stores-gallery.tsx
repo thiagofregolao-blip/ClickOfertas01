@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Search, MapPin, Star, Grid, List } from "lucide-react";
 import { StoreStoriesSection } from "@/components/store-stories";
 import ProductCard from "@/components/product-card";
+import { ProductDetailModal } from "@/components/product-detail-modal";
 import { useAppVersion, type AppVersionType } from "@/hooks/use-mobile";
 import type { StoreWithProducts, Product } from "@shared/schema";
 
@@ -15,6 +16,8 @@ export default function StoresGallery() {
   const [searchQuery, setSearchQuery] = useState('');
   const { isMobile, isDesktop, version, versionName } = useAppVersion();
   const [viewMode, setViewMode] = useState<AppVersionType>('mobile');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedStore, setSelectedStore] = useState<StoreWithProducts | null>(null);
 
   // Sincronizar viewMode com a detecção automática
   useEffect(() => {
@@ -180,17 +183,41 @@ export default function StoresGallery() {
       </div>
 
       {/* Feed Unificado */}
-      <UnifiedFeedView stores={filteredStores} searchQuery={searchQuery} searchResults={searchResults} isMobile={isMobile} />
+      <UnifiedFeedView 
+        stores={filteredStores} 
+        searchQuery={searchQuery} 
+        searchResults={searchResults} 
+        isMobile={isMobile}
+        selectedProduct={selectedProduct}
+        selectedStore={selectedStore}
+        setSelectedProduct={setSelectedProduct}
+        setSelectedStore={setSelectedStore}
+      />
+      
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        product={selectedProduct}
+        store={selectedStore}
+        isOpen={!!selectedProduct}
+        onClose={() => {
+          setSelectedProduct(null);
+          setSelectedStore(null);
+        }}
+      />
     </div>
   );
 }
 
 // Componente para visualização Unificada (Feed estilo Instagram)
-function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile }: { 
+function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, selectedProduct, selectedStore, setSelectedProduct, setSelectedStore }: { 
   stores: StoreWithProducts[], 
   searchQuery: string, 
   searchResults: any[],
-  isMobile: boolean 
+  isMobile: boolean,
+  selectedProduct: Product | null,
+  selectedStore: StoreWithProducts | null,
+  setSelectedProduct: (product: Product | null) => void,
+  setSelectedStore: (store: StoreWithProducts | null) => void
 }) {
   return (
     <div className={`mx-auto ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
@@ -223,7 +250,16 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile }: {
         ) : (
           // Layout de Feed Normal
           stores.map((store) => (
-            <StorePost key={store.id} store={store} searchQuery={searchQuery} isMobile={isMobile} />
+            <StorePost 
+              key={store.id} 
+              store={store} 
+              searchQuery={searchQuery} 
+              isMobile={isMobile}
+              onProductClick={(product) => {
+                setSelectedProduct(product);
+                setSelectedStore(store);
+              }}
+            />
           ))
         )}
         
@@ -241,6 +277,8 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile }: {
       </div>
   );
 }
+
+// Remove this component, we'll add the modal directly to the main component
 
 
 function SearchResultItem({ product, store }: { product: Product & { store: StoreWithProducts }, store: StoreWithProducts }) {
@@ -329,7 +367,12 @@ function SearchResultItem({ product, store }: { product: Product & { store: Stor
   );
 }
 
-function StorePost({ store, searchQuery = '', isMobile = true }: { store: StoreWithProducts, searchQuery?: string, isMobile?: boolean }) {
+function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }: { 
+  store: StoreWithProducts, 
+  searchQuery?: string, 
+  isMobile?: boolean,
+  onProductClick?: (product: Product) => void
+}) {
   const activeProducts = store.products.filter(p => p.isActive);
   
   // Se há busca ativa, filtrar apenas produtos que correspondem à busca
@@ -470,6 +513,10 @@ function StorePost({ store, searchQuery = '', isMobile = true }: { store: StoreW
                       currency={store.currency || 'Gs.'}
                       themeColor={store.themeColor || '#E11D48'}
                       showFeaturedBadge={true}
+                      onClick={(product) => {
+                        setSelectedProduct(product);
+                        setSelectedStore(store);
+                      }}
                     />
                   </div>
                 ))}
@@ -496,6 +543,10 @@ function StorePost({ store, searchQuery = '', isMobile = true }: { store: StoreW
                     currency={store.currency || 'Gs.'}
                     themeColor={store.themeColor || '#E11D48'}
                     showFeaturedBadge={true}
+                    onClick={(product) => {
+                      setSelectedProduct(product);
+                      setSelectedStore(store);
+                    }}
                   />
                 </div>
               ))}

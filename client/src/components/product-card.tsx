@@ -13,6 +13,7 @@ interface ProductCardProps {
   themeColor: string;
   showFeaturedBadge?: boolean;
   enableEngagement?: boolean;
+  onClick?: (product: Product) => void;
 }
 
 // Cores por categoria
@@ -49,14 +50,27 @@ export default function ProductCard({
   currency, 
   themeColor, 
   showFeaturedBadge = false,
-  enableEngagement = false
+  enableEngagement = false,
+  onClick
 }: ProductCardProps) {
   const { hearts, handleDoubleTap, handleSaveProduct, isSaving, isProductLiked, toggleLike } = useEngagement();
   const { isAuthenticated } = useAuth();
   const categoryColors = getCategoryColors(product.category || undefined);
   
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick(product);
+    }
+  };
+
   const productContent = (
-    <div className={`relative ${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center flex flex-col h-full`}>
+    <div 
+      className={`relative ${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center flex flex-col h-full ${
+        onClick ? 'cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]' : ''
+      }`}
+      onClick={handleCardClick}
+      data-testid={`card-product-${product.id}`}
+    >
       {/* Engagement Buttons */}
       {enableEngagement && (
         <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
