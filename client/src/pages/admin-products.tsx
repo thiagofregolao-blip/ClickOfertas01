@@ -973,18 +973,6 @@ export default function AdminProducts() {
                           <Trash2 className="w-4 h-4 text-red-600" />
                         </Button>
                       </div>
-                      
-                      {/* Button explanations */}
-                      <div className="mt-3 text-xs text-gray-500 space-y-1">
-                        <p><strong>Ações disponíveis:</strong></p>
-                        <div className="grid grid-cols-2 gap-1">
-                          <p>⭐ Marcar/desmarcar destaque</p>
-                          <p>👁️ Ativar/desativar produto</p>
-                          <p>📱 Adicionar/remover dos Stories</p>
-                          <p>✏️ Editar informações</p>
-                          <p>🗑️ Excluir produto</p>
-                        </div>
-                      </div>
                     </div>
                   ))}
                 </div>
