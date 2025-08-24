@@ -381,16 +381,32 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   <h1 className="text-xl font-bold text-gray-900">{product.name}</h1>
                 </div>
                 
-                {/* Preço */}
+                {/* Preços */}
                 <div className="mb-3">
-                  <div className="flex items-end gap-1" style={{ color: store.themeColor || '#E11D48' }}>
-                    <span className="text-sm font-medium">{store.currency || 'Gs.'}</span>
-                    <span className="text-3xl font-bold">
-                      {Number(product.price || 0).toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })}
-                    </span>
+                  <div className="flex flex-col gap-1">
+                    {/* Preço em Reais */}
+                    <div className="flex items-end gap-1 text-green-600">
+                      <span className="text-sm font-medium">R$</span>
+                      <span className="text-2xl font-bold">
+                        {(() => {
+                          const priceUSD = Number(product.price || 0);
+                          const rate = store.customUsdBrlRate ? Number(store.customUsdBrlRate) : 5.47;
+                          const priceBRL = priceUSD * rate;
+                          return priceBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        })()}
+                      </span>
+                    </div>
+                    
+                    {/* Preço em Dólares */}
+                    <div className="flex items-end gap-1" style={{ color: store.themeColor || '#E11D48' }}>
+                      <span className="text-sm font-medium">{store.currency || 'Gs.'}</span>
+                      <span className="text-xl font-bold">
+                        {Number(product.price || 0).toLocaleString('pt-BR', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -637,24 +653,28 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             <div className="mb-6">
               <p className="text-sm text-gray-600 font-medium mb-2">A partir de</p>
               
+              {/* Preço em Reais */}
               <div className="flex items-end gap-2 mb-2">
-                <span className="text-lg font-medium" style={{ color: '#A21614' }}>US$</span>
-                <span className="text-4xl font-bold" style={{ color: '#A21614' }}>
+                <span className="text-lg font-medium text-green-600">R$</span>
+                <span className="text-4xl font-bold text-green-600">
+                  {(() => {
+                    const priceUSD = Number(product.price || 0);
+                    const rate = store.customUsdBrlRate ? Number(store.customUsdBrlRate) : 5.47;
+                    const priceBRL = priceUSD * rate;
+                    return priceBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                  })()}
+                </span>
+              </div>
+              
+              {/* Preço em Dólares */}
+              <div className="flex items-end gap-2">
+                <span className="text-md font-medium" style={{ color: '#A21614' }}>US$</span>
+                <span className="text-2xl font-bold" style={{ color: '#A21614' }}>
                   {Number(product.price || 0).toLocaleString('pt-BR', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                   })}
                 </span>
-              </div>
-              
-              <div className="text-lg text-gray-600 font-medium">
-                R$ {(() => {
-                  const priceUSD = Number(product.price || 0);
-                  // Usar taxa personalizada da loja ou padrão 5.47
-                  const rate = store.customUsdBrlRate ? Number(store.customUsdBrlRate) : 5.47;
-                  const priceBRL = priceUSD * rate;
-                  return priceBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                })()}
               </div>
             </div>
 
