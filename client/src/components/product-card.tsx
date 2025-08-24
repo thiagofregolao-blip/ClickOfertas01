@@ -73,7 +73,7 @@ export default function ProductCard({
   const categoryIcon = getCategoryIcon(product.category || undefined);
   
   const productContent = (
-    <div className={`${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center flex flex-col h-full`}>
+    <div className={`relative ${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center flex flex-col h-full`}>
       {/* Engagement Buttons */}
       {enableEngagement && (
         <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">

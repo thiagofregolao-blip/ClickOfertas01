@@ -413,9 +413,45 @@ export default function PublicFlyer() {
               // Layout moderno para páginas de loja individual (/stores/:slug)
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredProducts.map((product) => (
-                  <div key={product.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 group">
+                  <div key={product.id} className="relative bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 group">
+                    {/* Engagement Buttons */}
+                    <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Simular double-tap
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const fakeEvent = {
+                            clientX: rect.left + rect.width / 2,
+                            clientY: rect.top + rect.height / 2,
+                            currentTarget: e.currentTarget.closest('.group')
+                          };
+                          // Aqui usaríamos o hook diretamente, mas vou fazer uma versão simples
+                          fetch(`/api/products/${product.id}/like`, { method: 'POST' });
+                        }}
+                        className="bg-white/90 hover:bg-white backdrop-blur-sm p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                        title="Curtir produto"
+                      >
+                        <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fetch(`/api/products/${product.id}/save`, { method: 'POST' })
+                            .then(res => res.ok ? alert('Produto salvo!') : alert('Faça login para salvar'));
+                        }}
+                        className="bg-white/90 hover:bg-white backdrop-blur-sm p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                        title="Salvar produto"
+                      >
+                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                        </svg>
+                      </button>
+                    </div>
                     {/* Nome do produto - TOPO */}
-                    <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b">
+                    <div className="p-4 pt-12 bg-gradient-to-r from-gray-50 to-gray-100 border-b">
                       <h3 className="font-bold text-lg text-gray-800 text-center line-clamp-2 min-h-[3.5rem] flex items-center justify-center">
                         {product.name}
                       </h3>
