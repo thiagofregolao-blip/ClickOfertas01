@@ -21,6 +21,8 @@ import { z } from "zod";
 const storeFormSchema = insertStoreSchema.extend({
   name: z.string().min(1, "Nome da loja é obrigatório"),
   themeColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/i, "Cor deve estar no formato #RRGGBB"),
+  latitude: z.string().optional().refine(val => !val || (!isNaN(Number(val)) && Number(val) >= -90 && Number(val) <= 90), "Latitude deve ser um número entre -90 e 90"),
+  longitude: z.string().optional().refine(val => !val || (!isNaN(Number(val)) && Number(val) >= -180 && Number(val) <= 180), "Longitude deve ser um número entre -180 e 180"),
 });
 
 type StoreFormData = z.infer<typeof storeFormSchema>;
@@ -59,6 +61,8 @@ export default function AdminStoreConfig() {
       whatsapp: "",
       instagram: "",
       address: "",
+      latitude: "",
+      longitude: "",
     },
   });
 
@@ -73,6 +77,8 @@ export default function AdminStoreConfig() {
         whatsapp: store.whatsapp || "",
         instagram: store.instagram || "",
         address: store.address || "",
+        latitude: store.latitude ? String(store.latitude) : "",
+        longitude: store.longitude ? String(store.longitude) : "",
       });
     }
   }, [store, form]);
@@ -113,7 +119,13 @@ export default function AdminStoreConfig() {
   });
 
   const onSubmit = (data: StoreFormData) => {
-    saveMutation.mutate(data);
+    // Convert latitude and longitude to numbers for API
+    const payload = {
+      ...data,
+      latitude: data.latitude && data.latitude.trim() ? data.latitude : undefined,
+      longitude: data.longitude && data.longitude.trim() ? data.longitude : undefined,
+    };
+    saveMutation.mutate(payload);
   };
 
   if (isLoading || storeLoading) {
@@ -258,6 +270,45 @@ export default function AdminStoreConfig() {
                   rows={3}
                   data-testid="input-address"
                 />
+              </div>
+
+              {/* Localização GPS */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-base font-medium">Localização GPS</Label>
+                  <p className="text-sm text-gray-600">
+                    Adicione as coordenadas da sua loja para mostrar o botão "Como chegar" no seu flyer.
+                    Você pode encontrar as coordenadas no Google Maps.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="latitude">Latitude</Label>
+                    <Input
+                      id="latitude"
+                      {...form.register("latitude")}
+                      placeholder="-25.2637"
+                      data-testid="input-latitude"
+                    />
+                    {form.formState.errors.latitude && (
+                      <p className="text-sm text-red-600">{form.formState.errors.latitude.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="longitude">Longitude</Label>
+                    <Input
+                      id="longitude"
+                      {...form.register("longitude")}
+                      placeholder="-57.5759"
+                      data-testid="input-longitude"
+                    />
+                    {form.formState.errors.longitude && (
+                      <p className="text-sm text-red-600">{form.formState.errors.longitude.message}</p>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end space-x-4">

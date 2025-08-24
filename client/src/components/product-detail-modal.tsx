@@ -174,6 +174,13 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
     }
   };
 
+  const handleDirections = () => {
+    if (store?.latitude && store?.longitude) {
+      const googleMapsUrl = `https://www.google.com/maps?q=${store.latitude},${store.longitude}`;
+      window.open(googleMapsUrl, '_blank');
+    }
+  };
+
   // Layout Mobile (Fullscreen)
   if (isMobile) {
     return (
@@ -443,6 +450,20 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     <span className="text-xs text-gray-600">Contato</span>
                   </div>
                 )}
+                
+                {store.latitude && store.longitude && (
+                  <div className="flex flex-col items-center gap-1">
+                    <Button
+                      onClick={handleDirections}
+                      size="sm"
+                      className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+                      data-testid="button-directions-modal"
+                    >
+                      <MapPin className="h-5 w-5" />
+                    </Button>
+                    <span className="text-xs text-gray-600">Como chegar</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -675,6 +696,19 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     <MessageCircle className="h-5 w-5" />
                   </Button>
                   <span className="text-sm text-gray-600 font-medium">Contato</span>
+                </div>
+              )}
+              
+              {store.latitude && store.longitude && (
+                <div className="flex flex-col items-center gap-2">
+                  <Button
+                    onClick={handleDirections}
+                    className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+                    data-testid="button-directions-modal-desktop"
+                  >
+                    <MapPin className="h-6 w-6" />
+                  </Button>
+                  <span className="text-sm text-gray-600 font-medium">Como chegar</span>
                 </div>
               )}
             </div>

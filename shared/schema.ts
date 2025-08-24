@@ -46,6 +46,8 @@ export const stores = pgTable("stores", {
   whatsapp: varchar("whatsapp"),
   instagram: varchar("instagram"),
   address: text("address"),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }),
   slug: varchar("slug").unique(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),

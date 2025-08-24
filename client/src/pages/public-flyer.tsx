@@ -161,6 +161,13 @@ export default function PublicFlyer() {
     window.print();
   };
 
+  const handleDirections = () => {
+    if (store?.latitude && store?.longitude) {
+      const googleMapsUrl = `https://www.google.com/maps?q=${store.latitude},${store.longitude}`;
+      window.open(googleMapsUrl, '_blank');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -670,7 +677,12 @@ export default function PublicFlyer() {
           )}
         </div>
 
-        {!isStoriesView && <FlyerFooter store={store} />}
+        {!isStoriesView && (
+          <FlyerFooter 
+            store={store} 
+            onDirectionsClick={handleDirections}
+          />
+        )}
       </div>
       
       {/* Product Detail Modal */}

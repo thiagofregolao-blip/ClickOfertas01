@@ -4,6 +4,7 @@ interface FlyerFooterProps {
   store: Store;
   onWhatsAppClick?: () => void;
   onInstagramClick?: () => void;
+  onDirectionsClick?: () => void;
 }
 
 // Função para escurecer uma cor hexadecimal
@@ -20,7 +21,7 @@ function darkenColor(hex: string, percent: number = 30): string {
     .toString(16).slice(1);
 }
 
-export default function FlyerFooter({ store, onWhatsAppClick, onInstagramClick }: FlyerFooterProps) {
+export default function FlyerFooter({ store, onWhatsAppClick, onInstagramClick, onDirectionsClick }: FlyerFooterProps) {
   const footerColor = darkenColor(store.themeColor || "#E11D48", 30);
   
   return (
@@ -82,9 +83,22 @@ export default function FlyerFooter({ store, onWhatsAppClick, onInstagramClick }
               </svg>
               Endereço
             </h4>
-            <p className="text-blue-400 whitespace-pre-line">
+            <p className="text-blue-400 whitespace-pre-line mb-3">
               {store.address}
             </p>
+            {/* Como chegar button */}
+            {store.latitude && store.longitude && onDirectionsClick && (
+              <button 
+                onClick={onDirectionsClick}
+                className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                data-testid="button-directions"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                Como chegar
+              </button>
+            )}
           </div>
         )}
       </div>
