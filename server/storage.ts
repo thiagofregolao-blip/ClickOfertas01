@@ -325,6 +325,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+
   private generateSlug(name: string): string {
     return name
       .toLowerCase()
