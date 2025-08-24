@@ -11,7 +11,7 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
     <div className="bg-white border-b">
       <div className={`mx-auto ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
         <div className="overflow-x-auto scrollbar-hide py-4">
-          <div className="flex space-x-4 px-4" style={{ width: 'max-content' }}>
+          <div className="flex space-x-6 px-4" style={{ width: 'max-content' }}>
           {stores.map((store) => {
             // Verificar produtos nos stories
             const storiesProducts = store.products.filter(product => 
@@ -45,12 +45,14 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
               >
                 <div className="relative">
                     {/* Círculo estilo WhatsApp */}
-                    <div 
-                      className="absolute -inset-1 rounded-full border-3 animate-pulse z-0"
-                      style={{
-                        borderColor: store.themeColor || '#E11D48'
-                      }}
-                    />
+                    {hasStoriesProducts && (
+                      <div 
+                        className="absolute -inset-2 rounded-full border-2 animate-pulse"
+                        style={{
+                          borderColor: store.themeColor || '#E11D48'
+                        }}
+                      />
+                    )}
                     
                     {/* Avatar da loja */}
                     <div 
