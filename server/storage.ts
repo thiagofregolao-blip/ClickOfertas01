@@ -2,6 +2,10 @@ import {
   users,
   stores,
   products,
+  savedProducts,
+  storyViews,
+  flyerViews,
+  productLikes,
   type User,
   type UpsertUser,
   type Store,
@@ -11,9 +15,18 @@ import {
   type InsertProduct,
   type UpdateProduct,
   type StoreWithProducts,
+  type SavedProduct,
+  type InsertSavedProduct,
+  type StoryView,
+  type InsertStoryView,
+  type FlyerView,
+  type InsertFlyerView,
+  type ProductLike,
+  type InsertProductLike,
+  type SavedProductWithDetails,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, count } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -34,6 +47,14 @@ export interface IStorage {
   updateProduct(productId: string, storeId: string, product: UpdateProduct): Promise<Product>;
   deleteProduct(productId: string, storeId: string): Promise<void>;
   getProduct(productId: string, storeId: string): Promise<Product | undefined>;
+
+  // Engagement operations
+  createProductLike(like: InsertProductLike): Promise<ProductLike>;
+  saveProduct(savedProduct: InsertSavedProduct): Promise<SavedProduct>;
+  getSavedProducts(userId: string): Promise<SavedProductWithDetails[]>;
+  createStoryView(view: InsertStoryView): Promise<StoryView>;
+  createFlyerView(view: InsertFlyerView): Promise<FlyerView>;
+  getStoreAnalytics(storeId: string): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -186,6 +207,122 @@ export class DatabaseStorage implements IStorage {
       .from(products)
       .where(and(eq(products.id, productId), eq(products.storeId, storeId)));
     return product;
+  }
+
+  // Engagement operations
+  async createProductLike(likeData: InsertProductLike): Promise<ProductLike> {
+    const [like] = await db
+      .insert(productLikes)
+      .values(likeData)
+      .returning();
+    return like;
+  }
+
+  async saveProduct(savedProductData: InsertSavedProduct): Promise<SavedProduct> {
+    const [savedProduct] = await db
+      .insert(savedProducts)
+      .values(savedProductData)
+      .onConflictDoNothing() // Evita duplicatas
+      .returning();
+    return savedProduct;
+  }
+
+  async getSavedProducts(userId: string): Promise<SavedProductWithDetails[]> {
+    const results = await db
+      .select({
+        id: savedProducts.id,
+        userId: savedProducts.userId,
+        productId: savedProducts.productId,
+        createdAt: savedProducts.createdAt,
+        product: {
+          id: products.id,
+          name: products.name,
+          description: products.description,
+          price: products.price,
+          imageUrl: products.imageUrl,
+          category: products.category,
+          isFeatured: products.isFeatured,
+          showInStories: products.showInStories,
+          isActive: products.isActive,
+          sortOrder: products.sortOrder,
+          storeId: products.storeId,
+          createdAt: products.createdAt,
+          updatedAt: products.updatedAt,
+          store: {
+            id: stores.id,
+            name: stores.name,
+            logoUrl: stores.logoUrl,
+            themeColor: stores.themeColor,
+            currency: stores.currency,
+            whatsapp: stores.whatsapp,
+            instagram: stores.instagram,
+            address: stores.address,
+            slug: stores.slug,
+            isActive: stores.isActive,
+            userId: stores.userId,
+            createdAt: stores.createdAt,
+            updatedAt: stores.updatedAt,
+          }
+        }
+      })
+      .from(savedProducts)
+      .innerJoin(products, eq(savedProducts.productId, products.id))
+      .innerJoin(stores, eq(products.storeId, stores.id))
+      .where(eq(savedProducts.userId, userId))
+      .orderBy(desc(savedProducts.createdAt));
+
+    return results as SavedProductWithDetails[];
+  }
+
+  async createStoryView(viewData: InsertStoryView): Promise<StoryView> {
+    const [view] = await db
+      .insert(storyViews)
+      .values(viewData)
+      .returning();
+    return view;
+  }
+
+  async createFlyerView(viewData: InsertFlyerView): Promise<FlyerView> {
+    const [view] = await db
+      .insert(flyerViews)
+      .values(viewData)
+      .returning();
+    return view;
+  }
+
+  async getStoreAnalytics(storeId: string): Promise<any> {
+    // Contar visualizações de stories
+    const [storyViewsResult] = await db
+      .select({ total: count() })
+      .from(storyViews)
+      .where(eq(storyViews.storeId, storeId));
+
+    // Contar visualizações de panfletos
+    const [flyerViewsResult] = await db
+      .select({ total: count() })
+      .from(flyerViews)
+      .where(eq(flyerViews.storeId, storeId));
+
+    // Contar curtidas de produtos da loja
+    const [likesResult] = await db
+      .select({ total: count() })
+      .from(productLikes)
+      .innerJoin(products, eq(productLikes.productId, products.id))
+      .where(eq(products.storeId, storeId));
+
+    // Contar produtos salvos da loja
+    const [savedResult] = await db
+      .select({ total: count() })
+      .from(savedProducts)
+      .innerJoin(products, eq(savedProducts.productId, products.id))
+      .where(eq(products.storeId, storeId));
+
+    return {
+      storyViews: storyViewsResult?.total || 0,
+      flyerViews: flyerViewsResult?.total || 0,
+      productLikes: likesResult?.total || 0,
+      productsSaved: savedResult?.total || 0,
+    };
   }
 
   private generateSlug(name: string): string {

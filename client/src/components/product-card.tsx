@@ -1,7 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star } from "lucide-react";
+import { Star, Heart, Bookmark } from "lucide-react";
 import type { Product } from "@shared/schema";
+import { Likeable } from "@/components/heart-animation";
+import { useEngagement } from "@/hooks/use-engagement";
+import { useAuth } from "@/hooks/useAuth";
 
 // Import category icons
 import perfumeIcon from "@assets/generated_images/Perfume_bottle_icon_6af6063a.png";
@@ -14,6 +17,7 @@ interface ProductCardProps {
   currency: string;
   themeColor: string;
   showFeaturedBadge?: boolean;
+  enableEngagement?: boolean;
 }
 
 // Cores por categoria
@@ -60,13 +64,32 @@ export default function ProductCard({
   product, 
   currency, 
   themeColor, 
-  showFeaturedBadge = false 
+  showFeaturedBadge = false,
+  enableEngagement = false
 }: ProductCardProps) {
+  const { hearts, handleDoubleTap, handleSaveProduct, isSaving } = useEngagement();
+  const { isAuthenticated } = useAuth();
   const categoryColors = getCategoryColors(product.category || undefined);
   const categoryIcon = getCategoryIcon(product.category || undefined);
   
-  return (
+  const productContent = (
     <div className={`${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center flex flex-col h-full`}>
+      {/* Engagement Buttons */}
+      {enableEngagement && (
+        <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSaveProduct(product.id);
+            }}
+            disabled={isSaving}
+            className="bg-white/90 hover:bg-white backdrop-blur-sm p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+            title="Salvar produto"
+          >
+            <Bookmark className={`w-4 h-4 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
+          </button>
+        </div>
+      )}
       <div className="relative">
         {product.imageUrl ? (
           <img 
@@ -149,4 +172,18 @@ export default function ProductCard({
       </div>
     </div>
   );
+
+  if (enableEngagement) {
+    return (
+      <Likeable
+        onDoubleTap={(event) => handleDoubleTap(product.id, event)}
+        hearts={hearts}
+        className="relative"
+      >
+        {productContent}
+      </Likeable>
+    );
+  }
+
+  return productContent;
 }

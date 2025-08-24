@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 
@@ -186,6 +186,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.sendStatus(404);
       }
       return res.sendStatus(500);
+    }
+  });
+
+  // Engagement routes
+  // Curtir produto
+  app.post('/api/products/:productId/like', async (req: any, res) => {
+    try {
+      const { productId } = req.params;
+      const userId = req.user?.claims?.sub; // pode ser anônimo
+      const userAgent = req.get('User-Agent');
+      const ipAddress = req.ip;
+      
+      const likeData = insertProductLikeSchema.parse({
+        productId,
+        userId,
+        userAgent,
+        ipAddress
+      });
+      
+      await storage.createProductLike(likeData);
+      res.status(201).json({ success: true });
+    } catch (error) {
+      console.error("Error liking product:", error);
+      res.status(500).json({ message: "Failed to like product" });
+    }
+  });
+
+  // Salvar produto (requer autenticação)
+  app.post('/api/products/:productId/save', isAuthenticated, async (req: any, res) => {
+    try {
+      const { productId } = req.params;
+      const userId = req.user.claims.sub;
+      
+      const saveData = insertSavedProductSchema.parse({
+        productId,
+        userId
+      });
+      
+      await storage.saveProduct(saveData);
+      res.status(201).json({ success: true });
+    } catch (error) {
+      console.error("Error saving product:", error);
+      res.status(500).json({ message: "Failed to save product" });
+    }
+  });
+
+  // Buscar produtos salvos
+  app.get('/api/saved-products', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const savedProducts = await storage.getSavedProducts(userId);
+      res.json(savedProducts);
+    } catch (error) {
+      console.error("Error fetching saved products:", error);
+      res.status(500).json({ message: "Failed to fetch saved products" });
+    }
+  });
+
+  // Registrar visualização de story
+  app.post('/api/stories/view', async (req: any, res) => {
+    try {
+      const { storeId, productId } = req.body;
+      const userId = req.user?.claims?.sub; // pode ser anônimo
+      const userAgent = req.get('User-Agent');
+      const ipAddress = req.ip;
+      
+      const viewData = insertStoryViewSchema.parse({
+        storeId,
+        productId,
+        userId,
+        userAgent,
+        ipAddress
+      });
+      
+      await storage.createStoryView(viewData);
+      res.status(201).json({ success: true });
+    } catch (error) {
+      console.error("Error registering story view:", error);
+      res.status(500).json({ message: "Failed to register view" });
+    }
+  });
+
+  // Registrar visualização de panfleto
+  app.post('/api/flyers/view', async (req: any, res) => {
+    try {
+      const { storeId } = req.body;
+      const userId = req.user?.claims?.sub; // pode ser anônimo
+      const userAgent = req.get('User-Agent');
+      const ipAddress = req.ip;
+      
+      const viewData = insertFlyerViewSchema.parse({
+        storeId,
+        userId,
+        userAgent,
+        ipAddress
+      });
+      
+      await storage.createFlyerView(viewData);
+      res.status(201).json({ success: true });
+    } catch (error) {
+      console.error("Error registering flyer view:", error);
+      res.status(500).json({ message: "Failed to register view" });
+    }
+  });
+
+  // Estatísticas para o admin
+  app.get('/api/stores/:storeId/analytics', isAuthenticated, async (req: any, res) => {
+    try {
+      const { storeId } = req.params;
+      const analytics = await storage.getStoreAnalytics(storeId);
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      res.status(500).json({ message: "Failed to fetch analytics" });
     }
   });
 

@@ -69,9 +69,49 @@ export const products = pgTable("products", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Produtos favoritos/salvos pelo usuário
+export const savedProducts = pgTable("saved_products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Visualizações de stories
+export const storyViews = pgTable("story_views", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  productId: varchar("product_id").references(() => products.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  viewedAt: timestamp("viewed_at").defaultNow(),
+});
+
+// Visualizações de panfletos/flyers
+export const flyerViews = pgTable("flyer_views", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  viewedAt: timestamp("viewed_at").defaultNow(),
+});
+
+// Curtidas/likes nos produtos dos stories
+export const productLikes = pgTable("product_likes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  likedAt: timestamp("liked_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   stores: many(stores),
+  savedProducts: many(savedProducts),
 }));
 
 export const storesRelations = relations(stores, ({ one, many }) => ({
@@ -80,12 +120,53 @@ export const storesRelations = relations(stores, ({ one, many }) => ({
     references: [users.id],
   }),
   products: many(products),
+  storyViews: many(storyViews),
+  flyerViews: many(flyerViews),
 }));
 
-export const productsRelations = relations(products, ({ one }) => ({
+export const productsRelations = relations(products, ({ one, many }) => ({
   store: one(stores, {
     fields: [products.storeId],
     references: [stores.id],
+  }),
+  savedProducts: many(savedProducts),
+  productLikes: many(productLikes),
+  storyViews: many(storyViews),
+}));
+
+export const savedProductsRelations = relations(savedProducts, ({ one }) => ({
+  user: one(users, {
+    fields: [savedProducts.userId],
+    references: [users.id],
+  }),
+  product: one(products, {
+    fields: [savedProducts.productId],
+    references: [products.id],
+  }),
+}));
+
+export const storyViewsRelations = relations(storyViews, ({ one }) => ({
+  store: one(stores, {
+    fields: [storyViews.storeId],
+    references: [stores.id],
+  }),
+  product: one(products, {
+    fields: [storyViews.productId],
+    references: [products.id],
+  }),
+}));
+
+export const flyerViewsRelations = relations(flyerViews, ({ one }) => ({
+  store: one(stores, {
+    fields: [flyerViews.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export const productLikesRelations = relations(productLikes, ({ one }) => ({
+  product: one(products, {
+    fields: [productLikes.productId],
+    references: [products.id],
   }),
 }));
 
@@ -107,6 +188,26 @@ export const insertProductSchema = createInsertSchema(products).omit({
 export const updateStoreSchema = insertStoreSchema.partial();
 export const updateProductSchema = insertProductSchema.partial();
 
+export const insertSavedProductSchema = createInsertSchema(savedProducts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertStoryViewSchema = createInsertSchema(storyViews).omit({
+  id: true,
+  viewedAt: true,
+});
+
+export const insertFlyerViewSchema = createInsertSchema(flyerViews).omit({
+  id: true,
+  viewedAt: true,
+});
+
+export const insertProductLikeSchema = createInsertSchema(productLikes).omit({
+  id: true,
+  likedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -117,6 +218,23 @@ export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type UpdateProduct = z.infer<typeof updateProductSchema>;
 
+export type SavedProduct = typeof savedProducts.$inferSelect;
+export type InsertSavedProduct = z.infer<typeof insertSavedProductSchema>;
+export type StoryView = typeof storyViews.$inferSelect;
+export type InsertStoryView = z.infer<typeof insertStoryViewSchema>;
+export type FlyerView = typeof flyerViews.$inferSelect;
+export type InsertFlyerView = z.infer<typeof insertFlyerViewSchema>;
+export type ProductLike = typeof productLikes.$inferSelect;
+export type InsertProductLike = z.infer<typeof insertProductLikeSchema>;
+
 export type StoreWithProducts = Store & {
   products: Product[];
+};
+
+export type ProductWithStore = Product & {
+  store: Store;
+};
+
+export type SavedProductWithDetails = SavedProduct & {
+  product: ProductWithStore;
 };

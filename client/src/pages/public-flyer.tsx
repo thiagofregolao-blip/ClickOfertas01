@@ -12,6 +12,7 @@ import FlyerFooter from "@/components/flyer-footer";
 import { downloadFlyerAsPNG } from "@/lib/flyer-utils";
 import type { StoreWithProducts } from "@shared/schema";
 import { InstagramStories } from "@/components/instagram-stories";
+import { useEngagement } from "@/hooks/use-engagement";
 
 export default function PublicFlyer() {
   const [, flyerParams] = useRoute("/flyer/:slug");
@@ -24,6 +25,7 @@ export default function PublicFlyer() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showInstagramStories, setShowInstagramStories] = useState(isStoriesView);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { recordFlyerView } = useEngagement();
 
   // Fecha o menu quando clicar fora
   useEffect(() => {
@@ -53,6 +55,14 @@ export default function PublicFlyer() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
+
+  // Registrar visualização do panfleto/loja quando carregado
+  useEffect(() => {
+    if (store?.id && !isStoriesView) {
+      // Registro de visualização de panfleto (não stories)
+      recordFlyerView(store.id);
+    }
+  }, [store?.id, isStoriesView, recordFlyerView]);
 
   const handleShare = async () => {
     if (navigator.share && typeof navigator.canShare === 'function') {
@@ -495,6 +505,7 @@ export default function PublicFlyer() {
                     currency={store.currency || "Gs."}
                     themeColor={store.themeColor || "#E11D48"}
                     showFeaturedBadge={product.isFeatured || false}
+                    enableEngagement={true}
                   />
                 ))}
               </div>
