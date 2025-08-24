@@ -303,6 +303,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Buscar cotação do dólar em tempo real
+  app.get('/api/currency/usd-brl', async (req, res) => {
+    try {
+      const response = await fetch('https://api.frankfurter.dev/v1/latest?base=USD&symbols=BRL');
+      const data = await response.json();
+      
+      if (data.rates && data.rates.BRL) {
+        res.json({ 
+          rate: data.rates.BRL,
+          lastUpdate: data.date,
+          source: 'Frankfurter API'
+        });
+      } else {
+        res.status(500).json({ message: "Failed to fetch exchange rate" });
+      }
+    } catch (error) {
+      console.error("Error fetching USD/BRL rate:", error);
+      res.status(500).json({ message: "Failed to fetch exchange rate" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

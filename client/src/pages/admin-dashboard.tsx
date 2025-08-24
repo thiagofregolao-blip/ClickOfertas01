@@ -6,7 +6,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import AdminLayout from "@/components/admin-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Box, Star, Eye, Clock, Plus, Link, ExternalLink } from "lucide-react";
+import { Box, Star, Eye, Clock, Plus, Link, ExternalLink, DollarSign } from "lucide-react";
 import { Link as RouterLink } from "wouter";
 import type { Store, Product } from "@shared/schema";
 
@@ -38,6 +38,16 @@ export default function AdminDashboard() {
     queryKey: ["/api/stores", store?.id, "products"],
     enabled: !!store?.id,
     retry: false,
+  });
+
+  // Buscar cotação do dólar
+  const { data: dollarRate, isLoading: dollarLoading } = useQuery<{
+    rate: number;
+    lastUpdate: string;
+    source: string;
+  }>({
+    queryKey: ['/api/currency/usd-brl'],
+    refetchInterval: 5 * 60 * 1000, // Atualiza a cada 5 minutos
   });
 
   const copyLinkMutation = useMutation({
@@ -163,12 +173,17 @@ export default function AdminDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Última Atualização</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    {store?.updatedAt ? new Date(store.updatedAt).toLocaleDateString('pt-BR') : '--'}
+                  <p className="text-sm text-gray-600">Cotação USD/BRL</p>
+                  <p className="text-2xl font-bold text-gray-900" data-testid="text-dollar-rate">
+                    {dollarLoading ? "..." : dollarRate ? `R$ ${Number(dollarRate.rate).toFixed(2)}` : "--"}
                   </p>
+                  {dollarRate?.lastUpdate && (
+                    <p className="text-xs text-gray-500">
+                      Atualizado: {new Date(dollarRate.lastUpdate).toLocaleDateString('pt-BR')}
+                    </p>
+                  )}
                 </div>
-                <Clock className="text-gray-400 text-2xl" />
+                <DollarSign className="text-green-600 text-2xl" />
               </div>
             </CardContent>
           </Card>

@@ -43,6 +43,8 @@ export const stores = pgTable("stores", {
   logoUrl: text("logo_url"),
   themeColor: varchar("theme_color", { length: 7 }).default("#E11D48"),
   currency: varchar("currency", { length: 10 }).default("Gs."),
+  displayCurrency: varchar("display_currency", { length: 10 }).default("local"), // "usd", "local", "both"
+  dollarRate: decimal("dollar_rate", { precision: 10, scale: 2 }).default("7500.00"),
   whatsapp: varchar("whatsapp"),
   instagram: varchar("instagram"),
   address: text("address"),
