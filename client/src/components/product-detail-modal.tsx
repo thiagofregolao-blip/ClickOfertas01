@@ -324,8 +324,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     <Button
                       onClick={handleContact}
                       size="sm"
-                      className="flex items-center justify-center w-10 h-10 rounded-full text-white shadow-lg"
-                      style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                      className="flex items-center justify-center w-10 h-10 rounded-full text-white shadow-lg bg-[#25D366] hover:bg-[#128C7E]"
                     >
                       <MessageCircle className="h-4 w-4" />
                     </Button>
@@ -398,7 +397,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 {/* Descrição */}
                 {product.description && (
                   <div className="mb-4">
-                    <p className="text-gray-700 leading-relaxed line-clamp-2">{product.description}</p>
+                    <p className="text-gray-700 leading-relaxed">{product.description}</p>
                   </div>
                 )}
               </div>
@@ -568,8 +567,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                       <Button
                         onClick={handleContact}
                         size="sm"
-                        className="flex items-center justify-center w-12 h-12 rounded-full text-white shadow-lg"
-                        style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                        className="flex items-center justify-center w-12 h-12 rounded-full text-white shadow-lg bg-[#25D366] hover:bg-[#128C7E]"
                       >
                         <MessageCircle className="h-5 w-5" />
                       </Button>
@@ -664,7 +662,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             {product.description && (
               <div className="mb-8">
                 <h4 className="font-medium text-gray-900 mb-2">Descrição</h4>
-                <p className="text-gray-700 leading-relaxed text-sm">{product.description}</p>
+                <p className="text-gray-700 leading-relaxed text-base">{product.description}</p>
               </div>
             )}
 
