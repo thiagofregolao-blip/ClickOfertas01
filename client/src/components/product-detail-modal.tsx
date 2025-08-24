@@ -40,6 +40,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right');
   const [nextImageIndex, setNextImageIndex] = useState(1);
+  const [isClosing, setIsClosing] = useState(false);
   const { isMobile, isDesktop } = useAppVersion();
   const { toast } = useToast();
   const { handleDoubleTap, handleSaveProduct, isProductLiked, toggleLike } = useEngagement();
@@ -112,7 +113,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
       setTimeout(() => {
         setCurrentImageIndex(nextIndex);
         setIsTransitioning(false);
-      }, 300);
+      }, 200);
     }
   };
 
@@ -125,7 +126,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
       setTimeout(() => {
         setCurrentImageIndex(prevIndex);
         setIsTransitioning(false);
-      }, 300);
+      }, 200);
     }
   };
 
@@ -176,8 +177,16 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
   // Layout Mobile (Fullscreen)
   if (isMobile) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="w-full h-full max-w-none max-h-none m-0 p-0 bg-white">
+      <Dialog open={isOpen} onOpenChange={(open) => {
+        if (!open) {
+          setIsClosing(true);
+          setTimeout(() => {
+            setIsClosing(false);
+            onClose();
+          }, 250);
+        }
+      }}>
+        <DialogContent className={`w-full h-full max-w-none max-h-none m-0 p-0 bg-white ${isClosing ? 'animate-modal-zoom-out' : ''}`}>
           <div className="relative h-full flex flex-col">
             {/* Header com botão de fechar */}
             <div className="absolute top-4 right-4 z-20">
@@ -205,12 +214,12 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     <img
                       src={images[currentImageIndex]}
                       alt={product.name}
-                      className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ease-in-out ${
+                      className={`absolute inset-0 w-full h-full object-cover ${
                         isTransitioning 
                           ? slideDirection === 'left' 
-                            ? 'transform -translate-x-full' 
-                            : 'transform translate-x-full'
-                          : 'transform translate-x-0'
+                            ? 'animate-slide-out-left' 
+                            : 'animate-slide-out-right'
+                          : ''
                       }`}
                       onDoubleClick={(e) => handleDoubleTap(product.id, e)}
                     />
@@ -220,16 +229,11 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                       <img
                         src={images[nextImageIndex]}
                         alt={product.name}
-                        className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ease-in-out ${
+                        className={`absolute inset-0 w-full h-full object-cover ${
                           slideDirection === 'left'
                             ? 'animate-slide-in-right'
                             : 'animate-slide-in-left'
                         }`}
-                        style={{
-                          transform: slideDirection === 'left' 
-                            ? 'translateX(0)' 
-                            : 'translateX(0)'
-                        }}
                       />
                     )}
                   </div>
@@ -278,19 +282,26 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             <div className="flex-1 overflow-y-auto p-4 pb-20">
               {/* Nome da Loja */}
               <div className="mb-2">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-medium text-gray-600 flex items-center gap-2 flex-1">
                     <div 
                       className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: store.themeColor || '#E11D48' }}
                     />
                     {store.name}
                   </h2>
-                  {product.isFeatured && (
-                    <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-none text-xs">
-                      🔥 Destaque
-                    </Badge>
-                  )}
+                  <div className="flex gap-1">
+                    {product.isFeatured && (
+                      <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-none text-xs">
+                        🔥 Destaque
+                      </Badge>
+                    )}
+                    {product.category && (
+                      <Badge variant="secondary" className="text-xs px-2 py-1">
+                        {product.category}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
               
@@ -447,8 +458,16 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
   // Layout Desktop (Modal Centralizado)
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-white overflow-hidden">
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) {
+        setIsClosing(true);
+        setTimeout(() => {
+          setIsClosing(false);
+          onClose();
+        }, 250);
+      }
+    }}>
+      <DialogContent className={`max-w-4xl max-h-[90vh] p-0 bg-white overflow-hidden ${isClosing ? 'animate-modal-zoom-out' : ''}`}>
         <div className="grid grid-cols-2 h-full">
           {/* Galeria de Imagens (Esquerda) */}
           <div className="relative bg-gray-100">
@@ -506,19 +525,26 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
           <div className="p-6 overflow-y-auto">
             {/* Nome da Loja */}
             <div className="mb-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-medium text-gray-600 flex items-center gap-2 flex-1">
                   <div 
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: store.themeColor || '#E11D48' }}
                   />
                   {store.name}
                 </h3>
-                {product.isFeatured && (
-                  <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-none text-xs">
-                    🔥 Destaque
-                  </Badge>
-                )}
+                <div className="flex gap-2">
+                  {product.isFeatured && (
+                    <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-none text-xs">
+                      🔥 Destaque
+                    </Badge>
+                  )}
+                  {product.category && (
+                    <Badge variant="secondary" className="text-xs px-2 py-1">
+                      {product.category}
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
             
@@ -528,8 +554,8 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               </DialogTitle>
             </DialogHeader>
 
-            {/* Preço e Categoria */}
-            <div className="flex items-end justify-between mb-6">
+            {/* Preço */}
+            <div className="mb-6">
               <div className="flex items-end gap-2" style={{ color: store.themeColor || '#E11D48' }}>
                 <span className="text-lg font-medium">{store.currency || 'Gs.'}</span>
                 <span className="text-4xl font-bold">
@@ -539,11 +565,6 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   })}
                 </span>
               </div>
-              {product.category && (
-                <Badge variant="secondary" className="text-sm px-3 py-1">
-                  {product.category}
-                </Badge>
-              )}
             </div>
 
             {/* Descrição */}
