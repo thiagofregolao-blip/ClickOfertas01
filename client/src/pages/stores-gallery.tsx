@@ -188,8 +188,10 @@ export default function StoresGallery() {
         searchQuery={searchQuery} 
         searchResults={searchResults} 
         isMobile={isMobile}
-        setSelectedProduct={setSelectedProduct}
-        setSelectedStore={setSelectedStore}
+        onProductSelect={(product, store) => {
+          setSelectedProduct(product);
+          setSelectedStore(store);
+        }}
       />
       
       {/* Product Detail Modal */}
@@ -207,13 +209,12 @@ export default function StoresGallery() {
 }
 
 // Componente para visualização Unificada (Feed estilo Instagram)
-function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, setSelectedProduct, setSelectedStore }: { 
+function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProductSelect }: { 
   stores: StoreWithProducts[], 
   searchQuery: string, 
   searchResults: any[],
   isMobile: boolean,
-  setSelectedProduct: (product: Product | null) => void,
-  setSelectedStore: (store: StoreWithProducts | null) => void
+  onProductSelect: (product: Product, store: StoreWithProducts) => void
 }) {
   return (
     <div className={`mx-auto ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
@@ -251,10 +252,7 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, setSele
               store={store} 
               searchQuery={searchQuery} 
               isMobile={isMobile}
-              onProductClick={(product) => {
-                setSelectedProduct(product);
-                setSelectedStore(store);
-              }}
+              onProductClick={(product) => onProductSelect(product, store)}
             />
           ))
         )}
@@ -509,12 +507,7 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
                       currency={store.currency || 'Gs.'}
                       themeColor={store.themeColor || '#E11D48'}
                       showFeaturedBadge={true}
-                      onClick={(product) => {
-                        if (setSelectedProduct && setSelectedStore) {
-                          setSelectedProduct(product);
-                          setSelectedStore(store);
-                        }
-                      }}
+                      onClick={onProductClick}
                     />
                   </div>
                 ))}
@@ -541,12 +534,7 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
                     currency={store.currency || 'Gs.'}
                     themeColor={store.themeColor || '#E11D48'}
                     showFeaturedBadge={true}
-                    onClick={(product) => {
-                      if (setSelectedProduct && setSelectedStore) {
-                        setSelectedProduct(product);
-                        setSelectedStore(store);
-                      }
-                    }}
+                    onClick={onProductClick}
                   />
                 </div>
               ))}
