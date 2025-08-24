@@ -113,7 +113,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
       setTimeout(() => {
         setCurrentImageIndex(nextIndex);
         setIsTransitioning(false);
-      }, 200);
+      }, 350);
     }
   };
 
@@ -126,7 +126,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
       setTimeout(() => {
         setCurrentImageIndex(prevIndex);
         setIsTransitioning(false);
-      }, 200);
+      }, 350);
     }
   };
 
@@ -183,7 +183,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
           setTimeout(() => {
             setIsClosing(false);
             onClose();
-          }, 250);
+          }, 400);
         }
       }}>
         <DialogContent className={`w-full h-full max-w-none max-h-none m-0 p-0 bg-white ${isClosing ? 'animate-modal-zoom-out' : ''}`}>
@@ -311,8 +311,8 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   <h1 className="text-xl font-bold text-gray-900">{product.name}</h1>
                 </div>
                 
-                {/* Preço e Categoria */}
-                <div className="flex items-end justify-between mb-3">
+                {/* Preço */}
+                <div className="mb-3">
                   <div className="flex items-end gap-1" style={{ color: store.themeColor || '#E11D48' }}>
                     <span className="text-sm font-medium">{store.currency || 'Gs.'}</span>
                     <span className="text-3xl font-bold">
@@ -322,11 +322,6 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                       })}
                     </span>
                   </div>
-                  {product.category && (
-                    <Badge variant="secondary">
-                      {product.category}
-                    </Badge>
-                  )}
                 </div>
 
                 {/* Descrição */}
