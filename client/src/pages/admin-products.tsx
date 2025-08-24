@@ -954,9 +954,9 @@ export default function AdminProducts() {
                         >
                           <div className={`p-1 rounded-full ${product.isFeatured ? 'bg-yellow-500' : 'bg-transparent'}`}>
                             {product.isFeatured ? (
-                              <StarOff className="w-4 h-4 text-white" />
+                              <StarOff className="w-3 h-3 text-white" />
                             ) : (
-                              <Star className="w-4 h-4 text-gray-400" />
+                              <Star className="w-3 h-3 text-gray-400" />
                             )}
                           </div>
                           <span className="text-xs mt-1 text-gray-500">Destaque</span>
@@ -976,9 +976,9 @@ export default function AdminProducts() {
                         >
                           <div className={`p-1 rounded-full ${product.isActive ? 'bg-green-500' : 'bg-transparent'}`}>
                             {product.isActive ? (
-                              <EyeOff className="w-4 h-4 text-white" />
+                              <EyeOff className="w-3 h-3 text-white" />
                             ) : (
-                              <Eye className="w-4 h-4 text-gray-400" />
+                              <Eye className="w-3 h-3 text-gray-400" />
                             )}
                           </div>
                           <span className="text-xs mt-1 text-gray-500">Ativo</span>
@@ -998,9 +998,9 @@ export default function AdminProducts() {
                         >
                           <div className={`p-1 rounded-full ${product.showInStories ? 'bg-purple-500' : 'bg-transparent'}`}>
                             {product.showInStories ? (
-                              <CircleX className="w-4 h-4 text-white" />
+                              <CircleX className="w-3 h-3 text-white" />
                             ) : (
-                              <PlayCircle className="w-4 h-4 text-gray-400" />
+                              <PlayCircle className="w-3 h-3 text-gray-400" />
                             )}
                           </div>
                           <span className="text-xs mt-1 text-gray-500">Stories</span>
@@ -1015,7 +1015,7 @@ export default function AdminProducts() {
                           className="flex-1 flex flex-col items-center py-2 hover:bg-transparent"
                         >
                           <div className="p-1 rounded-full bg-blue-500">
-                            <Edit className="w-4 h-4 text-white" />
+                            <Edit className="w-3 h-3 text-white" />
                           </div>
                           <span className="text-xs mt-1 text-gray-500">Editar</span>
                         </Button>
@@ -1030,7 +1030,7 @@ export default function AdminProducts() {
                           className="flex-1 flex flex-col items-center py-2 hover:bg-transparent"
                         >
                           <div className="p-1 rounded-full bg-red-500">
-                            <Trash2 className="w-4 h-4 text-white" />
+                            <Trash2 className="w-3 h-3 text-white" />
                           </div>
                           <span className="text-xs mt-1 text-gray-500">Excluir</span>
                         </Button>
