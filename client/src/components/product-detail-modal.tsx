@@ -575,8 +575,8 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               <p className="text-sm text-gray-600 font-medium mb-2">A partir de</p>
               
               <div className="flex items-end gap-2 mb-2">
-                <span className="text-lg font-medium text-red-600">US$</span>
-                <span className="text-4xl font-bold text-red-600">
+                <span className="text-lg font-medium text-blue-800">US$</span>
+                <span className="text-4xl font-bold text-blue-800">
                   {Number(product.price || 0).toLocaleString('pt-BR', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2

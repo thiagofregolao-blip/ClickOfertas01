@@ -67,7 +67,7 @@ export default function ProductCard({
 
   const productContent = (
     <div 
-      className={`relative ${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center flex flex-col h-full ${
+      className={`relative ${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center flex flex-col h-full min-h-[200px] sm:min-h-[220px] ${
         onClick ? 'cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]' : ''
       }`}
       onClick={handleCardClick}
@@ -146,7 +146,7 @@ export default function ProductCard({
           <span className="text-[10px] sm:text-xs text-gray-600 font-medium">A partir de</span>
           
           <div className="flex items-end justify-center gap-0.5">
-            <span className="text-xs sm:text-sm font-medium text-red-600 self-end">US$</span>
+            <span className="text-xs sm:text-sm font-medium text-blue-800 self-end">US$</span>
             <div className="flex items-start">
               {(() => {
                 const price = Number(product.price || 0);
@@ -154,10 +154,10 @@ export default function ProductCard({
                 const decimalPart = Math.round((price - integerPart) * 100);
                 return (
                   <>
-                    <span className="text-lg sm:text-xl md:text-2xl font-bold text-red-600 leading-none">
+                    <span className="text-lg sm:text-xl md:text-2xl font-bold text-blue-800 leading-none">
                       {integerPart.toLocaleString('pt-BR')}
                     </span>
-                    <span className="text-xs sm:text-sm font-medium text-red-600 mt-0.5 leading-none">
+                    <span className="text-xs sm:text-sm font-medium text-blue-800 mt-0.5 leading-none">
                       ,{String(decimalPart).padStart(2, '0')}
                     </span>
                   </>
