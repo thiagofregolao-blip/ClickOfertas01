@@ -433,25 +433,35 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
           </div>
         </div>
 
-        {/* Navigation Areas - Invisible touch zones */}
-        <div className="absolute inset-0 flex pointer-events-auto">
-          <div 
-            className="w-1/2 h-full bg-transparent cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              prevStory();
-            }}
-            style={{ backgroundColor: 'transparent' }}
-          />
-          <div 
-            className="w-1/2 h-full bg-transparent cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              nextStory();
-            }}
-            style={{ backgroundColor: 'transparent' }}
-          />
-        </div>
+        {/* Invisible navigation zones */}
+        <button 
+          className="absolute top-0 left-0 w-1/2 h-full opacity-0 z-10 bg-transparent border-0 outline-none"
+          onClick={(e) => {
+            e.stopPropagation();
+            prevStory();
+          }}
+          style={{ 
+            background: 'none',
+            boxShadow: 'none',
+            padding: 0,
+            margin: 0
+          }}
+          aria-label="Previous story"
+        />
+        <button 
+          className="absolute top-0 right-0 w-1/2 h-full opacity-0 z-10 bg-transparent border-0 outline-none"
+          onClick={(e) => {
+            e.stopPropagation();
+            nextStory();
+          }}
+          style={{ 
+            background: 'none',
+            boxShadow: 'none',
+            padding: 0,
+            margin: 0
+          }}
+          aria-label="Next story"
+        />
 
         {/* Pause overlay */}
         {isPaused && (
