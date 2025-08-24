@@ -433,21 +433,23 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
           </div>
         </div>
 
-        {/* Navigation Areas */}
-        <div className="absolute inset-0 flex">
+        {/* Navigation Areas - Invisible touch zones */}
+        <div className="absolute inset-0 flex pointer-events-auto">
           <div 
-            className="w-1/2 h-full"
+            className="w-1/2 h-full bg-transparent cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               prevStory();
             }}
+            style={{ backgroundColor: 'transparent' }}
           />
           <div 
-            className="w-1/2 h-full"
+            className="w-1/2 h-full bg-transparent cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               nextStory();
             }}
+            style={{ backgroundColor: 'transparent' }}
           />
         </div>
 
