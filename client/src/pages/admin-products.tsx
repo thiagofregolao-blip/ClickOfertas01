@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff, ChevronLeft, ChevronRight, Upload, Download, FileSpreadsheet, Package, Camera, Settings } from "lucide-react";
+import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff, ChevronLeft, ChevronRight, Upload, Download, FileSpreadsheet, Package, Camera, Settings, PlayCircle, CircleX } from "lucide-react";
 import type { Store, Product, InsertProduct } from "@shared/schema";
 import { z } from "zod";
 import { PhotoCapture } from "@/components/PhotoCapture";
@@ -781,6 +781,24 @@ export default function AdminProducts() {
                                 <EyeOff className="w-4 h-4 text-gray-600" />
                               ) : (
                                 <Eye className="w-4 h-4 text-gray-400" />
+                              )}
+                            </Button>
+                            
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleMutation.mutate({
+                                productId: product.id,
+                                field: "showInStories",
+                                value: !product.showInStories
+                              })}
+                              data-testid={`button-toggle-stories-${product.id}`}
+                              title={product.showInStories ? "Remover dos Stories" : "Adicionar aos Stories"}
+                            >
+                              {product.showInStories ? (
+                                <CircleX className="w-4 h-4 text-purple-600" />
+                              ) : (
+                                <PlayCircle className="w-4 h-4 text-gray-400" />
                               )}
                             </Button>
                             
