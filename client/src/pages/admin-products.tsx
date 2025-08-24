@@ -729,8 +729,8 @@ export default function AdminProducts() {
                               </div>
                               {product.description && (
                                 <div className="text-sm text-gray-500" title={product.description}>
-                                  {product.description.length > 60 
-                                    ? `${product.description.substring(0, 60)}...` 
+                                  {product.description.length > 40 
+                                    ? `${product.description.substring(0, 40)}...` 
                                     : product.description
                                   }
                                 </div>
