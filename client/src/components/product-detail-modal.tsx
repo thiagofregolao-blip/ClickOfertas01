@@ -401,8 +401,8 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               })()}
 
               {/* Botões de Ação com nomes */}
-              <div className="flex gap-4 justify-center py-4 mb-4">
-                <div className="flex flex-col items-center gap-1">
+              <div className="flex gap-4 justify-center py-2 mb-2">
+                <div className="flex flex-col items-center gap-2">
                   <Button
                     onClick={() => toggleLike(product.id)}
                     variant="outline"
@@ -414,7 +414,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   <span className="text-xs text-gray-600">Curtir</span>
                 </div>
                 
-                <div className="flex flex-col items-center gap-1">
+                <div className="flex flex-col items-center gap-2">
                   <Button
                     onClick={() => handleSaveProduct(product.id)}
                     variant="outline"
@@ -426,7 +426,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   <span className="text-xs text-gray-600">Salvar</span>
                 </div>
                 
-                <div className="flex flex-col items-center gap-1">
+                <div className="flex flex-col items-center gap-2">
                   <Button
                     onClick={handleShare}
                     variant="outline"
@@ -439,7 +439,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 </div>
                 
                 {store.whatsapp && (
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="flex flex-col items-center gap-2">
                     <Button
                       onClick={handleContact}
                       size="sm"
@@ -453,7 +453,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 )}
                 
                 {store.latitude && store.longitude && (
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="flex flex-col items-center gap-2">
                     <Button
                       onClick={handleDirections}
                       size="sm"
