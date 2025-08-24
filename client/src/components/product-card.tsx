@@ -80,7 +80,7 @@ export default function ProductCard({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              toggleLike(product.id);
+              toggleLike(product.id, e);
             }}
             className="bg-white/90 hover:bg-white backdrop-blur-sm p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
             title={isProductLiked(product.id) ? "Descurtir produto" : "Curtir produto"}

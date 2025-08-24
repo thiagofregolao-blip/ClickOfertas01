@@ -420,6 +420,8 @@ export default function PublicFlyer() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          const isCurrentlyLiked = likedProducts.has(product.id);
+                          
                           // Alternar like/unlike
                           setLikedProducts(prev => {
                             const newSet = new Set(prev);
@@ -430,6 +432,27 @@ export default function PublicFlyer() {
                             }
                             return newSet;
                           });
+                          
+                          // Criar animação de coração apenas quando curtir
+                          if (!isCurrentlyLiked) {
+                            // Simular createHeart aqui - você pode importar createHeart do hook se precisar
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const heartElement = document.createElement('div');
+                            heartElement.innerHTML = '❤️';
+                            heartElement.style.position = 'fixed';
+                            heartElement.style.left = (e.clientX - 10) + 'px';
+                            heartElement.style.top = (e.clientY - 10) + 'px';
+                            heartElement.style.fontSize = '20px';
+                            heartElement.style.pointerEvents = 'none';
+                            heartElement.style.zIndex = '9999';
+                            heartElement.style.animation = 'heartFloat 1.5s ease-out forwards';
+                            document.body.appendChild(heartElement);
+                            
+                            setTimeout(() => {
+                              document.body.removeChild(heartElement);
+                            }, 1500);
+                          }
+                          
                           fetch(`/api/products/${product.id}/like`, { method: 'POST' });
                         }}
                         className="bg-white/90 hover:bg-white backdrop-blur-sm p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"

@@ -77,8 +77,10 @@ export function useEngagement() {
     }, 1500);
   };
 
-  // Função para alternar like/unlike
-  const toggleLike = (productId: string) => {
+  // Função para alternar like/unlike com animação
+  const toggleLike = (productId: string, event?: React.MouseEvent) => {
+    const isCurrentlyLiked = likedProducts.has(productId);
+    
     setLikedProducts(prev => {
       const newSet = new Set(prev);
       if (newSet.has(productId)) {
@@ -88,6 +90,14 @@ export function useEngagement() {
       }
       return newSet;
     });
+    
+    // Criar animação de coração apenas quando curtir
+    if (!isCurrentlyLiked && event) {
+      const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      createHeart(x, y);
+    }
     
     // Enviar para o backend
     likeProductMutation.mutate(productId);
