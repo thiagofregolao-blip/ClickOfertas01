@@ -6,11 +6,6 @@ import { Likeable } from "@/components/heart-animation";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAuth } from "@/hooks/useAuth";
 
-// Import category icons
-import perfumeIcon from "@assets/generated_images/Perfume_bottle_icon_6af6063a.png";
-import electronicsIcon from "@assets/generated_images/Electronics_devices_icon_e9437aa8.png";
-import fishingIcon from "@assets/generated_images/Fishing_equipment_icon_874a4bcf.png";
-import generalIcon from "@assets/generated_images/General_shopping_icon_8bba1c24.png";
 
 interface ProductCardProps {
   product: Product;
@@ -48,17 +43,6 @@ function getCategoryColors(category?: string) {
   return colors[category as keyof typeof colors] || colors['Geral'];
 }
 
-// Ícones por categoria
-function getCategoryIcon(category?: string) {
-  const icons = {
-    'Perfumes': perfumeIcon,
-    'Eletrônicos': electronicsIcon,
-    'Pesca': fishingIcon,
-    'Geral': generalIcon
-  };
-  
-  return icons[category as keyof typeof icons] || generalIcon;
-}
 
 export default function ProductCard({ 
   product, 
@@ -70,7 +54,6 @@ export default function ProductCard({
   const { hearts, handleDoubleTap, handleSaveProduct, isSaving, isProductLiked, toggleLike } = useEngagement();
   const { isAuthenticated } = useAuth();
   const categoryColors = getCategoryColors(product.category || undefined);
-  const categoryIcon = getCategoryIcon(product.category || undefined);
   
   const productContent = (
     <div className={`relative ${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center flex flex-col h-full`}>
@@ -117,25 +100,12 @@ export default function ProductCard({
           />
         ) : null}
         
-        {/* Placeholder with category icon when no image */}
+        {/* Placeholder when no image */}
         <div 
           className="product-image w-full h-20 md:h-24 lg:h-28 bg-gray-100 flex items-center justify-center"
           style={{ display: product.imageUrl ? 'none' : 'flex' }}
         >
-          <img 
-            src={categoryIcon} 
-            alt={product.category || 'Geral'}
-            className="w-8 h-8 md:w-10 md:h-10 opacity-60"
-          />
-        </div>
-        
-        {/* Category icon overlay */}
-        <div className="absolute bottom-1 left-1">
-          <img 
-            src={categoryIcon} 
-            alt={product.category || 'Geral'}
-            className="category-icon w-4 h-4 md:w-5 md:h-5 opacity-70 bg-white/80 rounded-full p-0.5"
-          />
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-300 rounded opacity-30"></div>
         </div>
         
         {(product.isFeatured && showFeaturedBadge) && (
