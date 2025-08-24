@@ -490,13 +490,15 @@ export default function PublicFlyer() {
                       )}
                     </div>
                     
-                    {/* Imagem do produto - CENTRO */}
+                    {/* Imagem do produto - CENTRO otimizada */}
                     <div className="relative h-56 bg-gray-100">
                       {product.imageUrl ? (
                         <img 
                           src={product.imageUrl}
                           alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          decoding="async"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -539,7 +541,7 @@ export default function PublicFlyer() {
                               const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
                               window.open(whatsappUrl, '_blank');
                             }}
-                            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2"
+                            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
                             title="Perguntar no WhatsApp"
                           >
                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
