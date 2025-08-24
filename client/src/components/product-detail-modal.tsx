@@ -37,6 +37,7 @@ interface ProductDetailModalProps {
  */
 export function ProductDetailModal({ product, store, isOpen, onClose }: ProductDetailModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const { isMobile, isDesktop } = useAppVersion();
   const { toast } = useToast();
   const { handleDoubleTap, handleSaveProduct, isProductLiked, toggleLike } = useEngagement();
@@ -101,14 +102,22 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
   const images = getProductImages(product);
 
   const nextImage = () => {
-    if (images.length > 1) {
-      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    if (images.length > 1 && !isTransitioning) {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % images.length);
+        setIsTransitioning(false);
+      }, 150);
     }
   };
 
   const prevImage = () => {
-    if (images.length > 1) {
-      setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    if (images.length > 1 && !isTransitioning) {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+        setIsTransitioning(false);
+      }, 150);
     }
   };
 
@@ -160,7 +169,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
   if (isMobile) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="w-full h-full max-w-none max-h-none m-2 p-0 bg-white rounded-lg shadow-xl">
+        <DialogContent className="w-full h-full max-w-none max-h-none mx-1 my-2 sm:m-3 p-0 bg-white rounded-lg shadow-xl">
           <div className="relative h-full flex flex-col">
             {/* Header com botão de fechar */}
             <div className="absolute top-4 right-4 z-20">
@@ -186,7 +195,9 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   <img
                     src={images[currentImageIndex]}
                     alt={product.name}
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full object-cover transition-all duration-300 ease-in-out ${
+                      isTransitioning ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
+                    }`}
                     onDoubleClick={(e) => handleDoubleTap(product.id, e)}
                   />
                   
@@ -231,7 +242,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             </div>
 
             {/* Conteúdo Scrollável */}
-            <div className="flex-1 overflow-y-auto p-4 pb-6">
+            <div className="flex-1 overflow-y-auto p-4 pb-20">
               {/* Nome da Loja */}
               <div className="mb-2">
                 <h2 className="text-sm font-medium text-gray-600 flex items-center gap-2">
@@ -341,7 +352,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               })()}
 
               {/* Botões de Ação com nomes */}
-              <div className="flex gap-4 justify-center py-2">
+              <div className="flex gap-4 justify-center py-4 mb-4">
                 <div className="flex flex-col items-center gap-1">
                   <Button
                     onClick={() => toggleLike(product.id)}
