@@ -8,26 +8,23 @@ import { Input } from "@/components/ui/input";
 import { Search, MapPin, Star, Grid, List } from "lucide-react";
 import { StoreStoriesSection } from "@/components/store-stories";
 import ProductCard from "@/components/product-card";
+import { useAppVersion, type AppVersionType } from "@/hooks/use-mobile";
 import type { StoreWithProducts, Product } from "@shared/schema";
 
 export default function StoresGallery() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isMobile, setIsMobile] = useState(false);
-  const [viewMode, setViewMode] = useState<'mobile' | 'desktop'>('mobile');
+  const { isMobile, isDesktop, version, versionName } = useAppVersion();
+  const [viewMode, setViewMode] = useState<AppVersionType>('mobile');
 
-  // Detectar se é mobile
+  // Sincronizar viewMode com a detecção automática
   useEffect(() => {
-    const checkDevice = () => {
-      const width = window.innerWidth;
-      const isMobileDevice = width < 768; // md breakpoint
-      setIsMobile(isMobileDevice);
-      setViewMode(isMobileDevice ? 'mobile' : 'desktop');
-    };
+    setViewMode(version);
+  }, [version]);
 
-    checkDevice();
-    window.addEventListener('resize', checkDevice);
-    return () => window.removeEventListener('resize', checkDevice);
-  }, []);
+  // Log da versão atual (para desenvolvimento)
+  useEffect(() => {
+    console.log(`🎯 Executando: ${versionName} (${version})`);
+  }, [versionName, version]);
   
   const { data: stores, isLoading } = useQuery<StoreWithProducts[]>({
     queryKey: ['/api/public/stores'],

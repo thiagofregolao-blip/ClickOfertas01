@@ -1,10 +1,26 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Users, Share, Download, Star, CheckCircle } from "lucide-react";
+import { useAppVersion } from "@/hooks/use-mobile";
 
+/**
+ * Página de Aterrissagem - Panfleto Rápido
+ * 
+ * Apresenta as duas versões da aplicação:
+ * - Mobile: Instagram-style, otimizado para smartphones
+ * - Desktop: Layout tradicional, otimizado para computadores
+ */
 export default function Landing() {
+  const { versionName, version } = useAppVersion();
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Debug: Mostra versão atual */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed top-2 left-2 z-50 bg-black/80 text-white text-xs px-2 py-1 rounded">
+          {versionName}
+        </div>
+      )}
       {/* Navigation */}
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

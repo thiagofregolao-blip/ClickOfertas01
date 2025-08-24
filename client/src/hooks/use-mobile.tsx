@@ -1,5 +1,14 @@
 import * as React from "react"
 
+// Configuração das versões da aplicação
+export const APP_VERSIONS = {
+  MOBILE: 'Panfleto Rápido Mobile',
+  DESKTOP: 'Panfleto Rápido Desktop'
+} as const
+
+export type AppVersionType = 'mobile' | 'desktop'
+
+// Breakpoint para detecção de dispositivos (768px = tablet/desktop)
 const MOBILE_BREAKPOINT = 768
 
 export function useIsMobile() {
@@ -16,4 +25,17 @@ export function useIsMobile() {
   }, [])
 
   return !!isMobile
+}
+
+// Hook para obter informações da versão atual
+export function useAppVersion() {
+  const isMobile = useIsMobile()
+  
+  return {
+    isMobile,
+    isDesktop: !isMobile,
+    version: isMobile ? 'mobile' as const : 'desktop' as const,
+    versionName: isMobile ? APP_VERSIONS.MOBILE : APP_VERSIONS.DESKTOP,
+    breakpoint: MOBILE_BREAKPOINT
+  }
 }

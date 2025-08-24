@@ -13,12 +13,27 @@ import { downloadFlyerAsPNG } from "@/lib/flyer-utils";
 import type { StoreWithProducts } from "@shared/schema";
 import { InstagramStories } from "@/components/instagram-stories";
 import { useEngagement } from "@/hooks/use-engagement";
+import { useAppVersion } from "@/hooks/use-mobile";
 
+/**
+ * Página Pública dos Panfletos - Suporta duas versões:
+ * 
+ * VERSÃO MOBILE (Panfleto Rápido Mobile):
+ * - Layout Instagram Stories para /stores/:slug
+ * - Cards compactos e otimizados para touch
+ * - Navegação por swipe e toque
+ * 
+ * VERSÃO DESKTOP (Panfleto Rápido Desktop):
+ * - Layout tradicional de panfleto para /flyer/:slug  
+ * - Grid de produtos otimizado para mouse
+ * - Mais informações visíveis simultaneamente
+ */
 export default function PublicFlyer() {
   const [, flyerParams] = useRoute("/flyer/:slug");
   const [, storeParams] = useRoute("/stores/:slug");
   const params = flyerParams || storeParams;
   const isStoriesView = !!storeParams; // Detecta se é acesso via stories
+  const { isMobile, isDesktop, version, versionName } = useAppVersion();
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
   const [showActions, setShowActions] = useState(false);
@@ -27,6 +42,12 @@ export default function PublicFlyer() {
   const menuRef = useRef<HTMLDivElement>(null);
   const { recordFlyerView } = useEngagement();
   const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set());
+
+  // Log da versão e modo de acesso (para desenvolvimento)
+  useEffect(() => {
+    const accessMode = isStoriesView ? 'Stories' : 'Panfleto';
+    console.log(`📱 Executando: ${versionName} - Modo: ${accessMode}`);
+  }, [versionName, isStoriesView]);
 
   // Fecha o menu quando clicar fora
   useEffect(() => {
