@@ -47,7 +47,7 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                     {/* Círculo estilo WhatsApp */}
                     {hasStoriesProducts && (
                       <div 
-                        className="absolute -inset-2 rounded-full border-2 animate-pulse"
+                        className="absolute -inset-0.5 rounded-full border-2 animate-pulse"
                         style={{
                           borderColor: store.themeColor || '#E11D48'
                         }}
