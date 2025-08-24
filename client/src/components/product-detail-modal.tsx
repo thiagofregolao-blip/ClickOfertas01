@@ -172,7 +172,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
   if (isMobile) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="w-full h-full max-w-none max-h-none mx-3 my-4 sm:m-6 p-0 bg-white rounded-lg shadow-xl">
+        <DialogContent className="w-full h-full max-w-none max-h-none m-0 p-0 bg-white">
           <div className="relative h-full flex flex-col">
             {/* Header com botão de fechar */}
             <div className="absolute top-4 right-4 z-20">
@@ -188,7 +188,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
             {/* Galeria de Imagens */}
             <div 
-              className="relative h-64 bg-gray-100 flex-shrink-0 rounded-t-lg overflow-hidden"
+              className="relative h-64 bg-gray-100 flex-shrink-0 overflow-hidden"
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
