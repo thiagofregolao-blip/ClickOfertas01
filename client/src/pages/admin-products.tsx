@@ -411,7 +411,7 @@ export default function AdminProducts() {
         </div>
         
         {/* Action Buttons */}
-        <div className="flex flex-wrap justify-center gap-2">
+        <div className="flex justify-center items-center gap-3 flex-wrap">
           {/* Excel Export/Import and Add Product - Same Line */}
           <Button 
             variant="outline"
