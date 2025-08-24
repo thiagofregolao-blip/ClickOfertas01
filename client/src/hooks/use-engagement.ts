@@ -77,20 +77,35 @@ export function useEngagement() {
     }, 1500);
   };
 
+  // Função para alternar like/unlike
+  const toggleLike = (productId: string) => {
+    setLikedProducts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(productId)) {
+        newSet.delete(productId); // Descurtir
+      } else {
+        newSet.add(productId); // Curtir
+      }
+      return newSet;
+    });
+    
+    // Enviar para o backend
+    likeProductMutation.mutate(productId);
+  };
+
   // Double tap para curtir produto
   const handleDoubleTap = (productId: string, event: React.TouchEvent | React.MouseEvent) => {
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     const x = ('clientX' in event ? event.clientX : event.touches[0].clientX) - rect.left;
     const y = ('clientY' in event ? event.clientY : event.touches[0].clientY) - rect.top;
     
-    // Criar coração visual
-    createHeart(x, y);
+    // Criar coração visual apenas se não estiver curtido
+    if (!likedProducts.has(productId)) {
+      createHeart(x, y);
+    }
     
-    // Marcar produto como curtido
-    setLikedProducts(prev => new Set(prev).add(productId));
-    
-    // Enviar curtida para o backend
-    likeProductMutation.mutate(productId);
+    // Alternar like/unlike
+    toggleLike(productId);
   };
 
   // Salvar produto
@@ -132,5 +147,6 @@ export function useEngagement() {
     isSaving: saveProductMutation.isPending,
     isProductLiked,
     likedProducts,
+    toggleLike,
   };
 }

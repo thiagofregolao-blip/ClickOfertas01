@@ -420,19 +420,20 @@ export default function PublicFlyer() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          // Simular double-tap
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          const fakeEvent = {
-                            clientX: rect.left + rect.width / 2,
-                            clientY: rect.top + rect.height / 2,
-                            currentTarget: e.currentTarget.closest('.group')
-                          };
-                          // Marcar como curtido e enviar para o backend
-                          setLikedProducts(prev => new Set(prev).add(product.id));
+                          // Alternar like/unlike
+                          setLikedProducts(prev => {
+                            const newSet = new Set(prev);
+                            if (newSet.has(product.id)) {
+                              newSet.delete(product.id); // Descurtir
+                            } else {
+                              newSet.add(product.id); // Curtir
+                            }
+                            return newSet;
+                          });
                           fetch(`/api/products/${product.id}/like`, { method: 'POST' });
                         }}
                         className="bg-white/90 hover:bg-white backdrop-blur-sm p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
-                        title="Curtir produto"
+                        title={likedProducts.has(product.id) ? "Descurtir produto" : "Curtir produto"}
                       >
                         <svg className={`w-4 h-4 ${likedProducts.has(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} fill={likedProducts.has(product.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
