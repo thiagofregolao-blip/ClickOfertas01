@@ -406,12 +406,24 @@ export default function AdminProducts() {
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900">Gestão de Produtos</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h2 className="text-2xl font-bold text-gray-900 text-center sm:text-left">Gestão de Produtos</h2>
+          
+          {/* Mobile: Add Product Button next to title */}
+          <div className="sm:hidden flex justify-center">
+            <Button 
+              onClick={handleAddProduct}
+              className="bg-primary text-white hover:bg-blue-600"
+              data-testid="button-add-product-mobile"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Produto
+            </Button>
+          </div>
         </div>
         
-        {/* Action Buttons */}
-        <div className="flex justify-center items-center gap-3 flex-wrap">
+        {/* Action Buttons - Desktop and Tablet */}
+        <div className="hidden sm:flex justify-center items-center gap-3 flex-wrap">
           {/* Excel Export/Import and Add Product - Same Line */}
           <Button 
             variant="outline"
