@@ -23,7 +23,10 @@ const storeFormSchema = insertStoreSchema.extend({
   themeColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/i, "Cor deve estar no formato #RRGGBB"),
   latitude: z.string().optional().refine(val => !val || (!isNaN(Number(val)) && Number(val) >= -90 && Number(val) <= 90), "Latitude deve ser um número entre -90 e 90"),
   longitude: z.string().optional().refine(val => !val || (!isNaN(Number(val)) && Number(val) >= -180 && Number(val) <= 180), "Longitude deve ser um número entre -180 e 180"),
-  customUsdBrlRate: z.string().optional().transform(val => val && val.trim() ? Number(val) : undefined),
+}).omit({
+  customUsdBrlRate: true,
+}).extend({
+  customUsdBrlRate: z.string().optional(),
 });
 
 type StoreFormData = z.infer<typeof storeFormSchema>;
@@ -64,7 +67,7 @@ export default function AdminStoreConfig() {
       address: "",
       latitude: "",
       longitude: "",
-      customUsdBrlRate: undefined,
+      customUsdBrlRate: "",
     },
   });
 
@@ -81,7 +84,7 @@ export default function AdminStoreConfig() {
         address: store.address || "",
         latitude: store.latitude ? String(store.latitude) : "",
         longitude: store.longitude ? String(store.longitude) : "",
-        customUsdBrlRate: store.customUsdBrlRate ? String(store.customUsdBrlRate) : undefined,
+        customUsdBrlRate: store.customUsdBrlRate ? String(store.customUsdBrlRate) : "",
       });
     }
   }, [store, form]);
@@ -122,11 +125,12 @@ export default function AdminStoreConfig() {
   });
 
   const onSubmit = (data: StoreFormData) => {
-    // Convert latitude and longitude to numbers for API
+    // Convert latitude, longitude and customUsdBrlRate to appropriate types for API
     const payload = {
       ...data,
       latitude: data.latitude && data.latitude.trim() ? data.latitude : undefined,
       longitude: data.longitude && data.longitude.trim() ? data.longitude : undefined,
+      customUsdBrlRate: data.customUsdBrlRate && data.customUsdBrlRate.trim() ? Number(data.customUsdBrlRate) : undefined,
     };
     saveMutation.mutate(payload);
   };
