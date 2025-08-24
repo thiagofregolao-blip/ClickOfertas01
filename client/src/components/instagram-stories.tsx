@@ -354,19 +354,30 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
 
         {/* Product Content */}
         <div className="relative w-full h-full flex flex-col">
-          {/* Product Image otimizada */}
-          <div className="flex-1 flex items-center justify-center bg-gray-800 p-4 pt-24 relative">
-            {/* Container da imagem simplificado */}
-            <div className="relative">
-              {/* Imagem principal otimizada */}
-              <div className="relative bg-white/5 rounded-lg p-2 border border-white/10">
+          {/* Product Image com elementos flutuantes */}
+          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 p-4 pt-24 relative overflow-hidden">
+            {/* Elementos flutuantes decorativos */}
+            <div className="absolute top-20 left-8 w-20 h-20 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-xl animate-pulse"></div>
+            <div className="absolute bottom-32 right-8 w-16 h-16 bg-gradient-to-br from-pink-400/20 to-orange-400/20 rounded-full blur-lg animate-pulse delay-1000"></div>
+            <div className="absolute top-1/2 left-4 w-12 h-12 bg-gradient-to-br from-green-400/15 to-cyan-400/15 rounded-full blur-md animate-pulse delay-500"></div>
+            
+            {/* Container da imagem com destaque */}
+            <div className="relative group">
+              {/* Borda flutuante ao redor da imagem */}
+              <div className="absolute -inset-2 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 rounded-xl blur opacity-30 group-hover:opacity-50 animate-pulse"></div>
+              
+              {/* Imagem principal */}
+              <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20">
                 <img
                   src={currentProduct.imageUrl || ''}
                   alt={currentProduct.name}
-                  className="w-full h-full max-h-96 object-contain rounded-lg shadow-lg"
+                  className="w-full h-full max-h-96 object-contain rounded-lg shadow-2xl"
                   loading="eager"
                   decoding="async"
                 />
+                
+                {/* Reflexo sutil */}
+                <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/10 rounded-lg pointer-events-none"></div>
               </div>
             </div>
           </div>

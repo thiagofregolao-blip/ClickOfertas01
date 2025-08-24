@@ -15,9 +15,9 @@ interface ProductCardProps {
   enableEngagement?: boolean;
 }
 
-// Molduras otimizadas por categoria
-function getCategoryTheme(category?: string) {
-  const themes = {
+// Cores por categoria
+function getCategoryColors(category?: string) {
+  const colors = {
     'Perfumes': {
       bg: 'bg-pink-50',
       border: 'border-pink-200',
@@ -25,33 +25,13 @@ function getCategoryTheme(category?: string) {
     },
     'Eletrônicos': {
       bg: 'bg-blue-50',
-      border: 'border-blue-200',
+      border: 'border-blue-200', 
       accent: '#3B82F6'
-    },
-    'Roupas': {
-      bg: 'bg-purple-50',
-      border: 'border-purple-200',
-      accent: '#A855F7'
     },
     'Pesca': {
       bg: 'bg-emerald-50',
       border: 'border-emerald-200',
       accent: '#10B981'
-    },
-    'Beleza': {
-      bg: 'bg-rose-50',
-      border: 'border-rose-200',
-      accent: '#F43F5E'
-    },
-    'Casa': {
-      bg: 'bg-amber-50',
-      border: 'border-amber-200',
-      accent: '#F59E0B'
-    },
-    'Saúde': {
-      bg: 'bg-green-50',
-      border: 'border-green-200',
-      accent: '#22C55E'
     },
     'Geral': {
       bg: 'bg-gray-50',
@@ -60,7 +40,7 @@ function getCategoryTheme(category?: string) {
     }
   };
   
-  return themes[category as keyof typeof themes] || themes['Geral'];
+  return colors[category as keyof typeof colors] || colors['Geral'];
 }
 
 
@@ -73,10 +53,10 @@ export default function ProductCard({
 }: ProductCardProps) {
   const { hearts, handleDoubleTap, handleSaveProduct, isSaving, isProductLiked, toggleLike } = useEngagement();
   const { isAuthenticated } = useAuth();
-  const categoryTheme = getCategoryTheme(product.category || undefined);
+  const categoryColors = getCategoryColors(product.category || undefined);
   
   const productContent = (
-    <div className={`relative ${categoryTheme.bg} border-2 ${categoryTheme.border} overflow-hidden group text-center flex flex-col h-full rounded-lg transition-shadow duration-200 hover:shadow-lg`}>
+    <div className={`relative ${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center flex flex-col h-full`}>
       {/* Engagement Buttons */}
       {enableEngagement && (
         <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
@@ -109,8 +89,6 @@ export default function ProductCard({
             src={product.imageUrl} 
             alt={product.name}
             className="product-image w-full h-20 md:h-24 lg:h-28 object-cover"
-            loading="lazy"
-            decoding="async"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
@@ -150,7 +128,7 @@ export default function ProductCard({
         
         <div 
           className="flex items-end justify-center gap-0.5 h-6 sm:h-8 mt-auto"
-          style={{ color: categoryTheme.accent }}
+          style={{ color: categoryColors.accent }}
         >
           <span className="product-currency text-xs sm:text-sm font-medium self-end">{currency}</span>
           <div className="flex items-start">
