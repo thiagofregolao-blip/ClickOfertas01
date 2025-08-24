@@ -188,8 +188,6 @@ export default function StoresGallery() {
         searchQuery={searchQuery} 
         searchResults={searchResults} 
         isMobile={isMobile}
-        selectedProduct={selectedProduct}
-        selectedStore={selectedStore}
         setSelectedProduct={setSelectedProduct}
         setSelectedStore={setSelectedStore}
       />
@@ -209,13 +207,11 @@ export default function StoresGallery() {
 }
 
 // Componente para visualização Unificada (Feed estilo Instagram)
-function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, selectedProduct, selectedStore, setSelectedProduct, setSelectedStore }: { 
+function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, setSelectedProduct, setSelectedStore }: { 
   stores: StoreWithProducts[], 
   searchQuery: string, 
   searchResults: any[],
   isMobile: boolean,
-  selectedProduct: Product | null,
-  selectedStore: StoreWithProducts | null,
   setSelectedProduct: (product: Product | null) => void,
   setSelectedStore: (store: StoreWithProducts | null) => void
 }) {
