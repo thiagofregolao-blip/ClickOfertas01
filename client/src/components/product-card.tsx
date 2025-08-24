@@ -80,6 +80,16 @@ export default function ProductCard({
           <button
             onClick={(e) => {
               e.stopPropagation();
+              handleDoubleTap(product.id, e);
+            }}
+            className="bg-white/90 hover:bg-white backdrop-blur-sm p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+            title="Curtir produto"
+          >
+            <Heart className="w-4 h-4 text-red-500" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
               handleSaveProduct(product.id);
             }}
             disabled={isSaving}
@@ -138,7 +148,7 @@ export default function ProductCard({
       </div>
       
       <div className="product-content p-2 flex flex-col h-full">
-        <h3 className="product-title text-[10px] sm:text-xs font-semibold text-gray-900 mb-1 line-clamp-2 h-8 sm:h-10 flex items-center justify-center text-center">
+        <h3 className="product-title text-[10px] sm:text-xs font-semibold text-gray-900 mb-1 mt-3 line-clamp-2 h-8 sm:h-10 flex items-center justify-center text-center">
           {product.name}
         </h3>
         
