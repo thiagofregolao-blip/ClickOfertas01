@@ -39,6 +39,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right');
+  const [nextImageIndex, setNextImageIndex] = useState(1);
   const { isMobile, isDesktop } = useAppVersion();
   const { toast } = useToast();
   const { handleDoubleTap, handleSaveProduct, isProductLiked, toggleLike } = useEngagement();
@@ -104,23 +105,27 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
   const nextImage = () => {
     if (images.length > 1 && !isTransitioning) {
+      const nextIndex = (currentImageIndex + 1) % images.length;
+      setNextImageIndex(nextIndex);
       setSlideDirection('left');
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentImageIndex((prev) => (prev + 1) % images.length);
+        setCurrentImageIndex(nextIndex);
         setIsTransitioning(false);
-      }, 250);
+      }, 300);
     }
   };
 
   const prevImage = () => {
     if (images.length > 1 && !isTransitioning) {
+      const prevIndex = (currentImageIndex - 1 + images.length) % images.length;
+      setNextImageIndex(prevIndex);
       setSlideDirection('right');
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+        setCurrentImageIndex(prevIndex);
         setIsTransitioning(false);
-      }, 250);
+      }, 300);
     }
   };
 
@@ -196,10 +201,11 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               {images.length > 0 ? (
                 <>
                   <div className="relative w-full h-full overflow-hidden">
+                    {/* Imagem atual */}
                     <img
                       src={images[currentImageIndex]}
                       alt={product.name}
-                      className={`w-full h-full object-cover transition-transform duration-300 ease-in-out ${
+                      className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ease-in-out ${
                         isTransitioning 
                           ? slideDirection === 'left' 
                             ? 'transform -translate-x-full' 
@@ -208,6 +214,24 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                       }`}
                       onDoubleClick={(e) => handleDoubleTap(product.id, e)}
                     />
+                    
+                    {/* Próxima imagem (durante transição) */}
+                    {isTransitioning && (
+                      <img
+                        src={images[nextImageIndex]}
+                        alt={product.name}
+                        className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ease-in-out ${
+                          slideDirection === 'left'
+                            ? 'animate-slide-in-right'
+                            : 'animate-slide-in-left'
+                        }`}
+                        style={{
+                          transform: slideDirection === 'left' 
+                            ? 'translateX(0)' 
+                            : 'translateX(0)'
+                        }}
+                      />
+                    )}
                   </div>
                   
                   {/* Navegação de imagens */}
