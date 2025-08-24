@@ -138,15 +138,15 @@ export default function ProductCard({
           {product.name}
         </h3>
         
-        <div className="text-[10px] sm:text-xs text-gray-500 mb-2 line-clamp-2 h-8 sm:h-10 flex items-start justify-center text-center leading-tight">
-          {product.description || ''}
+        <div className="text-[10px] sm:text-xs text-gray-500 mb-2 text-center leading-tight">
+          <p className="line-clamp-2">{product.description || ''}</p>
         </div>
         
         <div className="flex flex-col items-center justify-center mt-auto space-y-1">
           <span className="text-[10px] sm:text-xs text-gray-600 font-medium">A partir de</span>
           
           <div className="flex items-end justify-center gap-0.5">
-            <span className="text-xs sm:text-sm font-medium text-blue-800 self-end">US$</span>
+            <span className="text-xs sm:text-sm font-medium self-end" style={{ color: '#A21614' }}>US$</span>
             <div className="flex items-start">
               {(() => {
                 const price = Number(product.price || 0);
@@ -154,10 +154,10 @@ export default function ProductCard({
                 const decimalPart = Math.round((price - integerPart) * 100);
                 return (
                   <>
-                    <span className="text-lg sm:text-xl md:text-2xl font-bold text-blue-800 leading-none">
+                    <span className="text-lg sm:text-xl md:text-2xl font-bold leading-none" style={{ color: '#A21614' }}>
                       {integerPart.toLocaleString('pt-BR')}
                     </span>
-                    <span className="text-xs sm:text-sm font-medium text-blue-800 mt-0.5 leading-none">
+                    <span className="text-xs sm:text-sm font-medium mt-0.5 leading-none" style={{ color: '#A21614' }}>
                       ,{String(decimalPart).padStart(2, '0')}
                     </span>
                   </>
