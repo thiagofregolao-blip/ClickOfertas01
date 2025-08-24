@@ -369,65 +369,23 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
             <div className="absolute bottom-32 right-8 w-16 h-16 bg-gradient-to-br from-pink-400/20 to-orange-400/20 rounded-full blur-lg animate-pulse delay-1000"></div>
             <div className="absolute top-1/2 left-4 w-12 h-12 bg-gradient-to-br from-green-400/15 to-cyan-400/15 rounded-full blur-md animate-pulse delay-500"></div>
             
-            {/* Container da imagem com efeito 3D de "saída" */}
-            <div className="relative group perspective-1000">
-              {/* Moldura do "card" com efeito quebrado */}
-              <div className="relative bg-white/95 rounded-xl p-4 border-4 border-gray-200 shadow-2xl transform rotate-1 hover:rotate-0 transition-transform duration-300">
-                {/* Efeito de papel rasgado nas bordas */}
-                <div className="absolute -inset-1 bg-white rounded-xl" 
-                     style={{
-                       clipPath: 'polygon(0% 0%, 95% 0%, 100% 5%, 100% 90%, 95% 100%, 10% 100%, 0% 95%, 0% 10%)'
-                     }}
-                ></div>
+            {/* Container da imagem com efeito sutil */}
+            <div className="relative group">
+              <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20 overflow-visible">
+                <img
+                  src={currentProduct.imageUrl || ''}
+                  alt={currentProduct.name}
+                  className="w-full h-full max-h-96 object-contain rounded-lg shadow-2xl transition-all duration-300 hover:scale-110 hover:-translate-y-2"
+                  loading="eager"
+                  decoding="async"
+                  style={{
+                    filter: 'drop-shadow(0 15px 35px rgba(0,0,0,0.3))'
+                  }}
+                />
                 
-                {/* Borda interna decorativa */}
-                <div className="absolute inset-2 border-2 border-gray-100 rounded-lg pointer-events-none"></div>
-                
-                {/* Imagem do produto "saindo" da moldura */}
-                <div className="relative overflow-visible">
-                  <img
-                    src={currentProduct.imageUrl || ''}
-                    alt={currentProduct.name}
-                    className="w-full h-64 object-contain transform scale-125 translate-y-8 translate-x-4 hover:scale-140 hover:translate-y-4 transition-all duration-500 drop-shadow-2xl relative z-20"
-                    loading="eager"
-                    decoding="async"
-                    style={{
-                      filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.4)) drop-shadow(0 0 20px rgba(255,255,255,0.1))',
-                      transform: 'perspective(800px) rotateX(-5deg) rotateY(10deg) scale(1.25) translateY(2rem) translateX(1rem)'
-                    }}
-                  />
-                  
-                  {/* Sombra projetada no "chão" da moldura */}
-                  <div 
-                    className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-black/20 rounded-full blur-sm"
-                    style={{
-                      transform: 'perspective(200px) rotateX(60deg) scale(0.8)'
-                    }}
-                  ></div>
-                </div>
-                
-                {/* Detalhes decorativos da moldura */}
-                <div className="absolute top-2 left-2 w-3 h-3 bg-gray-300 rounded-full"></div>
-                <div className="absolute top-2 right-2 w-3 h-3 bg-gray-300 rounded-full"></div>
-                <div className="absolute bottom-2 left-2 w-3 h-3 bg-gray-300 rounded-full"></div>
-                <div className="absolute bottom-2 right-2 w-3 h-3 bg-gray-300 rounded-full"></div>
-                
-                {/* Texto no fundo da moldura simulando um post */}
-                <div className="absolute bottom-4 left-4 right-4 text-gray-600 text-xs">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="w-4 h-4 rounded-full bg-gray-300"></div>
-                    <span className="font-semibold">{store.name}</span>
-                  </div>
-                  <div className="h-2 bg-gray-200 rounded mb-1"></div>
-                  <div className="h-2 bg-gray-200 rounded w-3/4"></div>
-                </div>
+                {/* Reflexo sutil */}
+                <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/10 rounded-lg pointer-events-none"></div>
               </div>
-              
-              {/* Partículas flutuantes ao redor */}
-              <div className="absolute -top-4 -left-4 w-2 h-2 bg-yellow-400 rounded-full animate-bounce opacity-70"></div>
-              <div className="absolute -top-2 -right-6 w-3 h-3 bg-blue-400 rounded-full animate-pulse opacity-60"></div>
-              <div className="absolute -bottom-6 -left-2 w-2 h-2 bg-pink-400 rounded-full animate-bounce delay-300 opacity-80"></div>
-              <div className="absolute -bottom-4 -right-4 w-2 h-2 bg-green-400 rounded-full animate-pulse delay-500 opacity-70"></div>
             </div>
           </div>
 
