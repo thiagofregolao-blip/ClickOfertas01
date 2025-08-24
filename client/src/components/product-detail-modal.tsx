@@ -38,6 +38,7 @@ interface ProductDetailModalProps {
 export function ProductDetailModal({ product, store, isOpen, onClose }: ProductDetailModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right');
   const { isMobile, isDesktop } = useAppVersion();
   const { toast } = useToast();
   const { handleDoubleTap, handleSaveProduct, isProductLiked, toggleLike } = useEngagement();
@@ -103,21 +104,23 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
   const nextImage = () => {
     if (images.length > 1 && !isTransitioning) {
+      setSlideDirection('left');
       setIsTransitioning(true);
       setTimeout(() => {
         setCurrentImageIndex((prev) => (prev + 1) % images.length);
         setIsTransitioning(false);
-      }, 150);
+      }, 250);
     }
   };
 
   const prevImage = () => {
     if (images.length > 1 && !isTransitioning) {
+      setSlideDirection('right');
       setIsTransitioning(true);
       setTimeout(() => {
         setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
         setIsTransitioning(false);
-      }, 150);
+      }, 250);
     }
   };
 
@@ -169,7 +172,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
   if (isMobile) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="w-full h-full max-w-none max-h-none mx-1 my-2 sm:m-3 p-0 bg-white rounded-lg shadow-xl">
+        <DialogContent className="w-full h-full max-w-none max-h-none mx-3 my-4 sm:m-6 p-0 bg-white rounded-lg shadow-xl">
           <div className="relative h-full flex flex-col">
             {/* Header com botão de fechar */}
             <div className="absolute top-4 right-4 z-20">
@@ -185,21 +188,27 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
             {/* Galeria de Imagens */}
             <div 
-              className="relative h-80 bg-gray-100 flex-shrink-0 rounded-t-lg overflow-hidden"
+              className="relative h-64 bg-gray-100 flex-shrink-0 rounded-t-lg overflow-hidden"
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
             >
               {images.length > 0 ? (
                 <>
-                  <img
-                    src={images[currentImageIndex]}
-                    alt={product.name}
-                    className={`w-full h-full object-cover transition-all duration-300 ease-in-out ${
-                      isTransitioning ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
-                    }`}
-                    onDoubleClick={(e) => handleDoubleTap(product.id, e)}
-                  />
+                  <div className="relative w-full h-full overflow-hidden">
+                    <img
+                      src={images[currentImageIndex]}
+                      alt={product.name}
+                      className={`w-full h-full object-cover transition-transform duration-300 ease-in-out ${
+                        isTransitioning 
+                          ? slideDirection === 'left' 
+                            ? 'transform -translate-x-full' 
+                            : 'transform translate-x-full'
+                          : 'transform translate-x-0'
+                      }`}
+                      onDoubleClick={(e) => handleDoubleTap(product.id, e)}
+                    />
+                  </div>
                   
                   {/* Navegação de imagens */}
                   {images.length > 1 && (
