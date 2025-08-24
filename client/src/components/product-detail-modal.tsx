@@ -266,15 +266,8 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   ))}
                 </div>
                 
-                {store.address && (
-                  <p className="text-sm text-gray-600 mt-3 mb-1 flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {store.address}
-                  </p>
-                )}
-                
                 {store.phone && (
-                  <p className="text-sm text-gray-600 mb-1 flex items-center gap-1">
+                  <p className="text-sm text-gray-600 mt-3 mb-1 flex items-center gap-1">
                     <Phone className="h-3 w-3" />
                     {store.phone}
                   </p>
@@ -463,13 +456,6 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               
               <Card>
                 <CardContent className="p-4">
-                  {store.address && (
-                    <p className="text-sm text-gray-600 mb-2 flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      {store.address}
-                    </p>
-                  )}
-                  
                   {store.phone && (
                     <p className="text-sm text-gray-600 flex items-center gap-2">
                       <Phone className="h-4 w-4" />
