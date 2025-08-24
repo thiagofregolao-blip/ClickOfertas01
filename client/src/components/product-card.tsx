@@ -67,7 +67,7 @@ export default function ProductCard({
   showFeaturedBadge = false,
   enableEngagement = false
 }: ProductCardProps) {
-  const { hearts, handleDoubleTap, handleSaveProduct, isSaving } = useEngagement();
+  const { hearts, handleDoubleTap, handleSaveProduct, isSaving, isProductLiked } = useEngagement();
   const { isAuthenticated } = useAuth();
   const categoryColors = getCategoryColors(product.category || undefined);
   const categoryIcon = getCategoryIcon(product.category || undefined);
@@ -85,7 +85,7 @@ export default function ProductCard({
             className="bg-white/90 hover:bg-white backdrop-blur-sm p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
             title="Curtir produto"
           >
-            <Heart className="w-4 h-4 text-red-500" />
+            <Heart className={`w-4 h-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
           </button>
           <button
             onClick={(e) => {

@@ -9,6 +9,7 @@ export function useEngagement() {
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [hearts, setHearts] = useState<Array<{ id: string; x: number; y: number }>>([]);
+  const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set());
 
   // Curtir produto (sem autenticação necessária)
   const likeProductMutation = useMutation({
@@ -85,6 +86,9 @@ export function useEngagement() {
     // Criar coração visual
     createHeart(x, y);
     
+    // Marcar produto como curtido
+    setLikedProducts(prev => new Set(prev).add(productId));
+    
     // Enviar curtida para o backend
     likeProductMutation.mutate(productId);
   };
@@ -113,6 +117,11 @@ export function useEngagement() {
     recordFlyerViewMutation.mutate(storeId);
   };
 
+  // Função para verificar se um produto foi curtido
+  const isProductLiked = (productId: string) => {
+    return likedProducts.has(productId);
+  };
+
   return {
     hearts,
     handleDoubleTap,
@@ -121,5 +130,7 @@ export function useEngagement() {
     recordFlyerView,
     isLiking: likeProductMutation.isPending,
     isSaving: saveProductMutation.isPending,
+    isProductLiked,
+    likedProducts,
   };
 }
