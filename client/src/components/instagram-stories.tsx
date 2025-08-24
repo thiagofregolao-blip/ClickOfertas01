@@ -217,7 +217,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
         isClosing ? 'opacity-0' : 'opacity-100'
       }`}
       style={{
-        background: isOpening ? 'transparent' : `linear-gradient(135deg, ${store.themeColor || '#E11D48'} 0%, ${store.themeColor || '#E11D48'}CC 100%)`
+        background: isOpening ? 'transparent' : `linear-gradient(135deg, ${store.themeColor || '#E11D48'}40, ${store.themeColor || '#E11D48'}60)`
       }}
     >
       {/* Stories Container */}
@@ -226,7 +226,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
           isClosing ? 'opacity-0' : 'opacity-100'
         }`}
         style={{
-          background: `linear-gradient(to bottom, ${store.themeColor || '#E11D48'}E6, ${store.themeColor || '#E11D48'}F2)`
+          background: `linear-gradient(to bottom, ${store.themeColor || '#E11D48'}30, ${store.themeColor || '#E11D48'}20)`
         }}
         onClick={handleTap}
       >
@@ -361,7 +361,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
           <div 
             className="flex-1 flex items-center justify-center p-4 pt-24 relative overflow-hidden"
             style={{
-              background: `linear-gradient(to bottom right, ${store.themeColor || '#E11D48'}CC, ${store.themeColor || '#E11D48'}E6)`
+              background: `linear-gradient(to bottom right, ${store.themeColor || '#E11D48'}25, ${store.themeColor || '#E11D48'}35)`
             }}
           >
             {/* Elementos flutuantes decorativos */}
