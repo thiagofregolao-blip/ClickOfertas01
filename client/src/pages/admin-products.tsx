@@ -412,7 +412,7 @@ export default function AdminProducts() {
         
         {/* Action Buttons */}
         <div className="flex flex-wrap justify-center gap-2">
-          {/* Excel Export/Import */}
+          {/* Excel Export/Import and Add Product - Same Line */}
           <Button 
             variant="outline"
             onClick={exportToExcel}
@@ -441,7 +441,7 @@ export default function AdminProducts() {
             </Button>
           </div>
           
-          {/* Add Product Button */}
+          {/* Add Product Button - Same Line */}
           <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
             <DialogTrigger asChild>
               <Button 
@@ -852,19 +852,14 @@ export default function AdminProducts() {
                           />
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-sm font-medium text-gray-900 truncate">
-                              {product.name}
-                            </h3>
+                          {/* Badges above product name - same line */}
+                          <div className="flex items-center gap-2 mb-2">
                             <Badge 
                               variant={product.isActive ? "default" : "destructive"}
                               className={`text-xs ${product.isActive ? "bg-green-100 text-green-800" : ""}`}
                             >
                               {product.isActive ? "Ativo" : "Inativo"}
                             </Badge>
-                          </div>
-                          
-                          <div className="flex items-center gap-2 mb-2">
                             {product.isFeatured && (
                               <Badge variant="secondary" className="bg-accent text-white text-xs">
                                 <Star className="w-3 h-3 mr-1" />
@@ -878,6 +873,11 @@ export default function AdminProducts() {
                               </Badge>
                             )}
                           </div>
+                          
+                          {/* Product name */}
+                          <h3 className="text-sm font-medium text-gray-900 truncate mb-1">
+                            {product.name}
+                          </h3>
                           
                           <p className="text-sm font-medium text-gray-900 mb-1">
                             {store.currency} {Number(product.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -972,6 +972,18 @@ export default function AdminProducts() {
                         >
                           <Trash2 className="w-4 h-4 text-red-600" />
                         </Button>
+                      </div>
+                      
+                      {/* Button explanations */}
+                      <div className="mt-3 text-xs text-gray-500 space-y-1">
+                        <p><strong>Ações disponíveis:</strong></p>
+                        <div className="grid grid-cols-2 gap-1">
+                          <p>⭐ Marcar/desmarcar destaque</p>
+                          <p>👁️ Ativar/desativar produto</p>
+                          <p>📱 Adicionar/remover dos Stories</p>
+                          <p>✏️ Editar informações</p>
+                          <p>🗑️ Excluir produto</p>
+                        </div>
                       </div>
                     </div>
                   ))}
