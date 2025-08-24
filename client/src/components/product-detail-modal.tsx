@@ -278,24 +278,26 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             <div className="flex-1 overflow-y-auto p-4 pb-20">
               {/* Nome da Loja */}
               <div className="mb-2">
-                <h2 className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: store.themeColor || '#E11D48' }}
-                  />
-                  {store.name}
-                </h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                    />
+                    {store.name}
+                  </h2>
+                  {product.isFeatured && (
+                    <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-none text-xs">
+                      🔥 Destaque
+                    </Badge>
+                  )}
+                </div>
               </div>
               
               {/* Informações do Produto */}
               <div className="mb-4">
-                <div className="flex items-start justify-between mb-3">
-                  <h1 className="text-xl font-bold text-gray-900 flex-1">{product.name}</h1>
-                  {product.isFeatured && (
-                    <Badge className="ml-2 bg-gradient-to-r from-red-500 to-orange-500 text-white border-none">
-                      🔥 Destaque
-                    </Badge>
-                  )}
+                <div className="mb-3">
+                  <h1 className="text-xl font-bold text-gray-900">{product.name}</h1>
                 </div>
                 
                 {/* Preço e Categoria */}
@@ -504,26 +506,26 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
           <div className="p-6 overflow-y-auto">
             {/* Nome da Loja */}
             <div className="mb-3">
-              <h3 className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                <div 
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: store.themeColor || '#E11D48' }}
-                />
-                {store.name}
-              </h3>
-            </div>
-            
-            <DialogHeader className="mb-4">
-              <div className="flex items-start justify-between">
-                <DialogTitle className="text-2xl font-bold text-gray-900 flex-1">
-                  {product.name}
-                </DialogTitle>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                  />
+                  {store.name}
+                </h3>
                 {product.isFeatured && (
-                  <Badge className="ml-3 bg-gradient-to-r from-red-500 to-orange-500 text-white border-none">
+                  <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-none text-xs">
                     🔥 Destaque
                   </Badge>
                 )}
               </div>
+            </div>
+            
+            <DialogHeader className="mb-4">
+              <DialogTitle className="text-2xl font-bold text-gray-900">
+                {product.name}
+              </DialogTitle>
             </DialogHeader>
 
             {/* Preço e Categoria */}
