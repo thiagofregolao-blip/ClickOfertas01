@@ -45,6 +45,7 @@ export const stores = pgTable("stores", {
   currency: varchar("currency", { length: 10 }).default("Gs."),
   displayCurrency: varchar("display_currency", { length: 10 }).default("local"), // "usd", "local", "both"
   dollarRate: decimal("dollar_rate", { precision: 10, scale: 2 }).default("7500.00"),
+  customUsdBrlRate: decimal("custom_usd_brl_rate", { precision: 10, scale: 4 }), // Taxa personalizada da loja
   whatsapp: varchar("whatsapp"),
   instagram: varchar("instagram"),
   address: text("address"),

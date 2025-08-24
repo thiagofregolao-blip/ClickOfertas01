@@ -23,6 +23,7 @@ const storeFormSchema = insertStoreSchema.extend({
   themeColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/i, "Cor deve estar no formato #RRGGBB"),
   latitude: z.string().optional().refine(val => !val || (!isNaN(Number(val)) && Number(val) >= -90 && Number(val) <= 90), "Latitude deve ser um número entre -90 e 90"),
   longitude: z.string().optional().refine(val => !val || (!isNaN(Number(val)) && Number(val) >= -180 && Number(val) <= 180), "Longitude deve ser um número entre -180 e 180"),
+  customUsdBrlRate: z.string().optional().transform(val => val && val.trim() ? Number(val) : undefined),
 });
 
 type StoreFormData = z.infer<typeof storeFormSchema>;
@@ -63,6 +64,7 @@ export default function AdminStoreConfig() {
       address: "",
       latitude: "",
       longitude: "",
+      customUsdBrlRate: undefined,
     },
   });
 
@@ -79,6 +81,7 @@ export default function AdminStoreConfig() {
         address: store.address || "",
         latitude: store.latitude ? String(store.latitude) : "",
         longitude: store.longitude ? String(store.longitude) : "",
+        customUsdBrlRate: store.customUsdBrlRate ? String(store.customUsdBrlRate) : undefined,
       });
     }
   }, [store, form]);
@@ -238,6 +241,24 @@ export default function AdminStoreConfig() {
                       <SelectItem value="€">€ (Euro)</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="customUsdBrlRate">Taxa USD/BRL Personalizada (opcional)</Label>
+                  <Input
+                    id="customUsdBrlRate"
+                    {...form.register("customUsdBrlRate")}
+                    placeholder="5.47"
+                    type="number"
+                    step="0.01"
+                    data-testid="input-custom-usd-brl-rate"
+                  />
+                  <p className="text-sm text-gray-600">
+                    Deixe em branco para usar a cotação automática da API. Defina sua própria taxa para ter controle total sobre os preços.
+                  </p>
+                  {form.formState.errors.customUsdBrlRate && (
+                    <p className="text-sm text-red-600">{form.formState.errors.customUsdBrlRate.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">

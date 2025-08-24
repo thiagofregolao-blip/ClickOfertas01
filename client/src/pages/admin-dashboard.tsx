@@ -175,13 +175,15 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Cotação USD/BRL</p>
                   <p className="text-2xl font-bold text-gray-900" data-testid="text-dollar-rate">
-                    {dollarLoading ? "..." : dollarRate ? `R$ ${Number(dollarRate.rate).toFixed(2)}` : "--"}
+                    {(() => {
+                      // Usa taxa personalizada se disponível, senão usa a da API
+                      const rate = store?.customUsdBrlRate ? Number(store.customUsdBrlRate) : dollarRate?.rate;
+                      return rate ? `R$ ${rate.toFixed(2)}` : (dollarLoading ? "..." : "--");
+                    })()}
                   </p>
-                  {dollarRate?.lastUpdate && (
-                    <p className="text-xs text-gray-500">
-                      Atualizado: {new Date(dollarRate.lastUpdate).toLocaleDateString('pt-BR')}
-                    </p>
-                  )}
+                  <p className="text-xs text-gray-500">
+                    {store?.customUsdBrlRate ? "Taxa personalizada" : (dollarRate?.lastUpdate ? `API: ${new Date(dollarRate.lastUpdate).toLocaleDateString('pt-BR')}` : "")}
+                  </p>
                 </div>
                 <DollarSign className="text-green-600 text-2xl" />
               </div>
