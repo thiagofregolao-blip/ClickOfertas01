@@ -148,7 +148,7 @@ export default function ProductCard({
       </div>
       
       <div className="product-content p-2 flex flex-col h-full">
-        <h3 className="product-title text-[10px] sm:text-xs font-semibold text-gray-900 mb-1 mt-3 line-clamp-2 h-8 sm:h-10 flex items-center justify-center text-center">
+        <h3 className="product-title text-[10px] sm:text-xs font-semibold text-gray-900 mb-1 mt-1 line-clamp-2 h-8 sm:h-10 flex items-center justify-center text-center">
           {product.name}
         </h3>
         
