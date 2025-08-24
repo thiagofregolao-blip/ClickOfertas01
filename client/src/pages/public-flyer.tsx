@@ -64,27 +64,33 @@ export default function PublicFlyer() {
   const { data: store, isLoading, error } = useQuery<StoreWithProducts>({
     queryKey: ["/api/public/stores", params?.slug],
     enabled: !!params?.slug,
-    staleTime: 2 * 60 * 1000, // 2 minutos
-    gcTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 5 * 60 * 1000, // 5 minutos (aumentado)
+    gcTime: 15 * 60 * 1000, // 15 minutos (aumentado)
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false, // Evita refetch desnecessário
   });
 
   // Buscar todas as lojas para navegação entre stories (sempre executado no topo)
   const { data: allStores } = useQuery<StoreWithProducts[]>({
     queryKey: ['/api/public/stores'],
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos
+    staleTime: 10 * 60 * 1000, // 10 minutos (otimizado)
+    gcTime: 30 * 60 * 1000, // 30 minutos (otimizado)
     refetchOnWindowFocus: false,
     refetchOnMount: false,
+    refetchOnReconnect: false, // Evita refetch desnecessário
+    enabled: isStoriesView, // Só busca quando é stories
   });
 
   // Registrar visualização do panfleto/loja quando carregado
+  // CORREÇÃO: Removido recordFlyerView das dependências para evitar loop infinito
   useEffect(() => {
     if (store?.id && !isStoriesView) {
-      // Registro de visualização de panfleto (não stories)
+      console.log(`📊 Registrando view da loja: ${store.name}`);
+      // Registro de visualização de panfleto (não stories)  
       recordFlyerView(store.id);
     }
-  }, [store?.id, isStoriesView, recordFlyerView]);
+  }, [store?.id, isStoriesView]); // Removido recordFlyerView das dependências
 
   const handleShare = async () => {
     if (navigator.share && typeof navigator.canShare === 'function') {

@@ -28,10 +28,11 @@ export default function StoresGallery() {
   
   const { data: stores, isLoading } = useQuery<StoreWithProducts[]>({
     queryKey: ['/api/public/stores'],
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos
+    staleTime: 10 * 60 * 1000, // 10 minutos (aumentado)
+    gcTime: 30 * 60 * 1000, // 30 minutos (aumentado) 
     refetchOnWindowFocus: false,
     refetchOnMount: false,
+    refetchOnReconnect: false, // Evita refetch ao reconectar
   });
 
   // Função para verificar se a loja postou produtos hoje
