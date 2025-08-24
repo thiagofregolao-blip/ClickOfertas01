@@ -135,7 +135,7 @@ export default function PublicFlyer() {
   }, {} as Record<string, typeof activeProducts>);
 
   // Ordenar categorias por prioridade e alfabética
-  const categoryOrder = ['Perfumes', 'Eletrônicos', 'Pesca', 'Geral'];
+  const categoryOrder = ['Perfumes', 'Eletrônicos', 'Roupas', 'Beleza', 'Pesca', 'Casa', 'Saúde', 'Geral'];
   const sortedCategories = Object.keys(productsByCategory).sort((a, b) => {
     const indexA = categoryOrder.indexOf(a);
     const indexB = categoryOrder.indexOf(b);

@@ -510,10 +510,14 @@ export default function AdminProducts() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Perfumes">Perfumes</SelectItem>
-                            <SelectItem value="Eletrônicos">Eletrônicos</SelectItem>
-                            <SelectItem value="Pesca">Pesca</SelectItem>
-                            <SelectItem value="Geral">Geral</SelectItem>
+                            <SelectItem value="Perfumes">🌸 Perfumes</SelectItem>
+                            <SelectItem value="Eletrônicos">⚡ Eletrônicos</SelectItem>
+                            <SelectItem value="Roupas">👕 Roupas</SelectItem>
+                            <SelectItem value="Pesca">🎣 Pesca</SelectItem>
+                            <SelectItem value="Beleza">💄 Beleza</SelectItem>
+                            <SelectItem value="Casa">🏠 Casa</SelectItem>
+                            <SelectItem value="Saúde">💊 Saúde</SelectItem>
+                            <SelectItem value="Geral">📦 Geral</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

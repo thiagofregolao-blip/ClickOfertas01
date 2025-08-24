@@ -365,7 +365,7 @@ function StorePost({ store, searchQuery = '', isMobile = true }: { store: StoreW
   }, {} as Record<string, typeof filteredProducts>);
 
   // Ordenar categorias
-  const categoryOrder = ['Perfumes', 'Eletrônicos', 'Pesca', 'Geral'];
+  const categoryOrder = ['Perfumes', 'Eletrônicos', 'Roupas', 'Beleza', 'Pesca', 'Casa', 'Saúde', 'Geral'];
   const sortedCategories = Object.keys(productsByCategory).sort((a, b) => {
     const indexA = categoryOrder.indexOf(a);
     const indexB = categoryOrder.indexOf(b);
