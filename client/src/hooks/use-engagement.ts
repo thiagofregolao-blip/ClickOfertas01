@@ -14,7 +14,7 @@ export function useEngagement() {
   // Curtir produto (sem autenticação necessária)
   const likeProductMutation = useMutation({
     mutationFn: async (productId: string) => {
-      return apiRequest(`/api/products/${productId}/like`, "POST");
+      return apiRequest("POST", `/api/products/${productId}/like`);
     },
     onError: (error) => {
       console.error("Error liking product:", error);
@@ -24,7 +24,7 @@ export function useEngagement() {
   // Salvar produto (requer autenticação)
   const saveProductMutation = useMutation({
     mutationFn: async (productId: string) => {
-      return apiRequest(`/api/products/${productId}/save`, "POST");
+      return apiRequest("POST", `/api/products/${productId}/save`);
     },
     onSuccess: () => {
       // Invalidar cache dos produtos salvos
@@ -47,7 +47,7 @@ export function useEngagement() {
   // Registrar visualização de story
   const recordStoryViewMutation = useMutation({
     mutationFn: async ({ storeId, productId }: { storeId: string; productId?: string }) => {
-      return apiRequest('/api/stories/view', "POST", { storeId, productId });
+      return apiRequest("POST", '/api/stories/view', { storeId, productId });
     },
     onError: (error) => {
       console.error("Error recording story view:", error);
@@ -57,7 +57,7 @@ export function useEngagement() {
   // Registrar visualização de panfleto
   const recordFlyerViewMutation = useMutation({
     mutationFn: async (storeId: string) => {
-      return apiRequest('/api/flyers/view', "POST", { storeId });
+      return apiRequest("POST", '/api/flyers/view', { storeId });
     },
     onError: (error) => {
       console.error("Error recording flyer view:", error);
