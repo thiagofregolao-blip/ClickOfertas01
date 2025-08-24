@@ -102,9 +102,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateStore(storeId: string, storeData: UpdateStore): Promise<Store> {
-    const updateData = { ...storeData, updatedAt: new Date() };
+    const updateData: any = { ...storeData, updatedAt: new Date() };
     if (storeData.name) {
       updateData.slug = this.generateSlug(storeData.name);
+    }
+    
+    // Convert customUsdBrlRate to string if provided
+    if (storeData.customUsdBrlRate !== undefined) {
+      updateData.customUsdBrlRate = storeData.customUsdBrlRate?.toString();
     }
     
     const [store] = await db
@@ -234,36 +239,38 @@ export class DatabaseStorage implements IStorage {
         userId: savedProducts.userId,
         productId: savedProducts.productId,
         createdAt: savedProducts.createdAt,
-        product: {
-          id: products.id,
-          name: products.name,
-          description: products.description,
-          price: products.price,
-          imageUrl: products.imageUrl,
-          category: products.category,
-          isFeatured: products.isFeatured,
-          showInStories: products.showInStories,
-          isActive: products.isActive,
-          sortOrder: products.sortOrder,
-          storeId: products.storeId,
-          createdAt: products.createdAt,
-          updatedAt: products.updatedAt,
-          store: {
-            id: stores.id,
-            name: stores.name,
-            logoUrl: stores.logoUrl,
-            themeColor: stores.themeColor,
-            currency: stores.currency,
-            whatsapp: stores.whatsapp,
-            instagram: stores.instagram,
-            address: stores.address,
-            slug: stores.slug,
-            isActive: stores.isActive,
-            userId: stores.userId,
-            createdAt: stores.createdAt,
-            updatedAt: stores.updatedAt,
-          }
-        }
+        // Product details
+        productName: products.name,
+        productDescription: products.description,
+        productPrice: products.price,
+        productImageUrl: products.imageUrl,
+        productCategory: products.category,
+        productIsFeatured: products.isFeatured,
+        productShowInStories: products.showInStories,
+        productIsActive: products.isActive,
+        productSortOrder: products.sortOrder,
+        productStoreId: products.storeId,
+        productCreatedAt: products.createdAt,
+        productUpdatedAt: products.updatedAt,
+        // Store details
+        storeId: stores.id,
+        storeName: stores.name,
+        storeLogoUrl: stores.logoUrl,
+        storeThemeColor: stores.themeColor,
+        storeCurrency: stores.currency,
+        storeDisplayCurrency: stores.displayCurrency,
+        storeDollarRate: stores.dollarRate,
+        storeCustomUsdBrlRate: stores.customUsdBrlRate,
+        storeWhatsapp: stores.whatsapp,
+        storeInstagram: stores.instagram,
+        storeAddress: stores.address,
+        storeLatitude: stores.latitude,
+        storeLongitude: stores.longitude,
+        storeSlug: stores.slug,
+        storeIsActive: stores.isActive,
+        storeUserId: stores.userId,
+        storeCreatedAt: stores.createdAt,
+        storeUpdatedAt: stores.updatedAt,
       })
       .from(savedProducts)
       .innerJoin(products, eq(savedProducts.productId, products.id))
@@ -271,7 +278,48 @@ export class DatabaseStorage implements IStorage {
       .where(eq(savedProducts.userId, userId))
       .orderBy(desc(savedProducts.createdAt));
 
-    return results as SavedProductWithDetails[];
+    // Transform results to match expected structure
+    return results.map(result => ({
+      id: result.id,
+      userId: result.userId,
+      productId: result.productId,
+      createdAt: result.createdAt,
+      product: {
+        id: result.productId,
+        name: result.productName,
+        description: result.productDescription,
+        price: result.productPrice,
+        imageUrl: result.productImageUrl,
+        category: result.productCategory,
+        isFeatured: result.productIsFeatured,
+        showInStories: result.productShowInStories,
+        isActive: result.productIsActive,
+        sortOrder: result.productSortOrder,
+        storeId: result.productStoreId,
+        createdAt: result.productCreatedAt,
+        updatedAt: result.productUpdatedAt,
+        store: {
+          id: result.storeId,
+          name: result.storeName,
+          logoUrl: result.storeLogoUrl,
+          themeColor: result.storeThemeColor,
+          currency: result.storeCurrency,
+          displayCurrency: result.storeDisplayCurrency,
+          dollarRate: result.storeDollarRate,
+          customUsdBrlRate: result.storeCustomUsdBrlRate,
+          whatsapp: result.storeWhatsapp,
+          instagram: result.storeInstagram,
+          address: result.storeAddress,
+          latitude: result.storeLatitude,
+          longitude: result.storeLongitude,
+          slug: result.storeSlug,
+          isActive: result.storeIsActive,
+          userId: result.storeUserId,
+          createdAt: result.storeCreatedAt,
+          updatedAt: result.storeUpdatedAt,
+        }
+      }
+    }));
   }
 
   async createStoryView(viewData: InsertStoryView): Promise<StoryView> {
