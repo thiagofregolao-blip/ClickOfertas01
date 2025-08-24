@@ -383,15 +383,15 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
           </div>
 
           {/* Product Info - Layout Moderno */}
-          {/* Nome do produto - MEIO (posicionado mais baixo) */}
-          <div className="absolute bottom-32 left-4 right-4 bg-gray-900/70 backdrop-blur-md rounded-xl p-4 border border-white/10 shadow-xl">
+          {/* Nome do produto - ACIMA DA FOTO (com espaçamento do header) */}
+          <div className="absolute top-28 left-4 right-4 bg-gray-900/70 backdrop-blur-md rounded-xl p-4 border border-white/10 shadow-xl">
             <h2 className="text-white text-xl font-bold text-center drop-shadow-lg">
               {currentProduct.name}
             </h2>
           </div>
 
           {/* Descrição e preço - EMBAIXO */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900/95 via-gray-800/80 to-transparent pt-20 p-6 pb-8">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900/95 via-gray-800/80 to-transparent p-6 pb-8">
             {currentProduct.description && (
               <p className="text-white/90 text-sm mb-4 line-clamp-3 text-center">
                 {currentProduct.description}
