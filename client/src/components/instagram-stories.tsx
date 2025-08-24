@@ -4,6 +4,7 @@ import { Link, useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useEngagement } from "@/hooks/use-engagement";
 import type { StoreWithProducts, Product } from "@shared/schema";
 
 interface InstagramStoriesProps {
@@ -21,9 +22,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
   const [isClosing, setIsClosing] = useState(false);
   const [isOpening, setIsOpening] = useState(true);
   const [originPosition, setOriginPosition] = useState({ x: 50, y: 50 });
-  const [hearts, setHearts] = useState<Array<{ id: number; x: number; y: number }>>([]);
   const [savedProducts, setSavedProducts] = useState<Set<string>>(new Set());
-  const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set());
   const [lastTap, setLastTap] = useState<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const progressRef = useRef(0);
@@ -33,6 +32,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
   const currentProduct = storiesProducts[currentIndex];
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { hearts, handleDoubleTap, isProductLiked, toggleLike } = useEngagement();
 
   // Mutations para engajamento
   const likeMutation = useMutation({
@@ -168,30 +168,12 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     }
   };
 
-  // Handle double tap para curtir
-  const handleDoubleTap = (e: React.MouseEvent) => {
+  // Handle double tap para curtir no stories
+  const handleStoryDoubleTap = (e: React.MouseEvent) => {
     const now = Date.now();
     if (now - lastTap < DOUBLE_TAP_DELAY) {
-      // Double tap detectado - curtir produto
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
-      // Criar animação de coração
-      const heartId = Date.now();
-      setHearts(prev => [...prev, { id: heartId, x, y }]);
-      
-      // Remover coração após animação
-      setTimeout(() => {
-        setHearts(prev => prev.filter(heart => heart.id !== heartId));
-      }, 2000);
-      
-      // Curtir produto se não curtido ainda
-      if (!likedProducts.has(currentProduct.id)) {
-        setLikedProducts(prev => new Set(prev.add(currentProduct.id)));
-        likeMutation.mutate(currentProduct.id);
-      }
-      
+      // Double tap detectado - usar hook de engagement
+      handleDoubleTap(currentProduct.id, e);
       e.stopPropagation();
       return;
     }
@@ -199,7 +181,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
   };
 
   const handleTap = (e: React.MouseEvent) => {
-    handleDoubleTap(e);
+    handleStoryDoubleTap(e);
     
     // Aguarda para ver se é double tap
     setTimeout(() => {
@@ -324,6 +306,22 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
           </div>
           
           <div className="flex items-center gap-3">
+            {/* Botão Curtir Produto */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleLike(currentProduct.id, e);
+              }}
+              className={`p-2 rounded-full transition-all duration-200 ${
+                isProductLiked(currentProduct.id)
+                  ? 'bg-red-500 text-white'
+                  : 'bg-black/30 text-white hover:bg-black/50'
+              }`}
+              title={isProductLiked(currentProduct.id) ? "Descurtir produto" : "Curtir produto"}
+            >
+              <Heart className={`w-5 h-5 ${isProductLiked(currentProduct.id) ? 'fill-current' : ''}`} />
+            </button>
+            
             {/* Botão Salvar Produto */}
             <button
               onClick={handleSaveProduct}
@@ -385,15 +383,15 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
           </div>
 
           {/* Product Info - Layout Moderno */}
-          {/* Nome do produto - TOPO */}
-          <div className="absolute top-20 left-4 right-4 bg-gray-900/70 backdrop-blur-md rounded-xl p-4 border border-white/10 shadow-xl">
+          {/* Nome do produto - MEIO (posicionado mais baixo) */}
+          <div className="absolute bottom-32 left-4 right-4 bg-gray-900/70 backdrop-blur-md rounded-xl p-4 border border-white/10 shadow-xl">
             <h2 className="text-white text-xl font-bold text-center drop-shadow-lg">
               {currentProduct.name}
             </h2>
           </div>
 
           {/* Descrição e preço - EMBAIXO */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900/95 via-gray-800/80 to-transparent p-6 pb-8">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900/95 via-gray-800/80 to-transparent pt-20 p-6 pb-8">
             {currentProduct.description && (
               <p className="text-white/90 text-sm mb-4 line-clamp-3 text-center">
                 {currentProduct.description}
@@ -405,7 +403,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
                 <span className="text-2xl font-bold">
                   {store.currency || "Gs."} {Number(currentProduct.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </span>
-                {likedProducts.has(currentProduct.id) && (
+                {isProductLiked(currentProduct.id) && (
                   <Heart className="w-6 h-6 text-red-500 fill-red-500 animate-pulse" />
                 )}
               </div>
