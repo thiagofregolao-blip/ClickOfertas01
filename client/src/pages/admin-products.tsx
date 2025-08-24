@@ -406,60 +406,62 @@ export default function AdminProducts() {
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900">Gestão de Produtos</h2>
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="flex flex-wrap justify-center gap-2">
+          {/* Excel Export/Import */}
+          <Button 
+            variant="outline"
+            onClick={exportToExcel}
+            className="flex items-center gap-2"
+            data-testid="button-export-excel"
+          >
+            <Download className="w-4 h-4" />
+            Exportar Excel
+          </Button>
           
-          <div className="flex gap-2">
-            {/* Excel Export/Import */}
+          <div className="relative">
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={importFromExcel}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              data-testid="input-import-excel"
+            />
             <Button 
               variant="outline"
-              onClick={exportToExcel}
               className="flex items-center gap-2"
-              data-testid="button-export-excel"
+              data-testid="button-import-excel"
             >
-              <Download className="w-4 h-4" />
-              Exportar Excel
+              <Upload className="w-4 h-4" />
+              Importar Excel
             </Button>
-            
-            <div className="relative">
-              <input
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={importFromExcel}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                data-testid="input-import-excel"
-              />
+          </div>
+          
+          {/* Add Product Button */}
+          <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+            <DialogTrigger asChild>
               <Button 
-                variant="outline"
-                className="flex items-center gap-2"
-                data-testid="button-import-excel"
+                onClick={handleAddProduct}
+                className="bg-primary text-white hover:bg-blue-600"
+                data-testid="button-add-product"
               >
-                <Upload className="w-4 h-4" />
-                Importar Excel
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Produto
               </Button>
-            </div>
+            </DialogTrigger>
             
-            {/* Add Product Modal */}
-            <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
-              <DialogTrigger asChild>
-                <Button 
-                  onClick={handleAddProduct}
-                  className="bg-primary text-white hover:bg-blue-600"
-                  data-testid="button-add-product"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Produto
-                </Button>
-              </DialogTrigger>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-gray-50">
+              <DialogHeader className="bg-white p-6 -mx-6 -mt-6 mb-4 border-b">
+                <DialogTitle className="text-xl font-semibold text-gray-800">
+                  {editingProduct ? "Editar Produto" : "Adicionar Novo Produto"}
+                </DialogTitle>
+              </DialogHeader>
               
-              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-gray-50">
-                <DialogHeader className="bg-white p-6 -mx-6 -mt-6 mb-4 border-b">
-                  <DialogTitle className="text-xl font-semibold text-gray-800">
-                    {editingProduct ? "Editar Produto" : "Adicionar Novo Produto"}
-                  </DialogTitle>
-                </DialogHeader>
-                
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* Informações Básicas */}
                   <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
                     <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
@@ -637,7 +639,6 @@ export default function AdminProducts() {
                 </form>
               </DialogContent>
             </Dialog>
-          </div>
         </div>
 
         {/* Filters */}
