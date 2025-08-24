@@ -940,13 +940,14 @@ export default function AdminProducts() {
                           })}
                           data-testid={`button-toggle-featured-${product.id}`}
                           title={product.isFeatured ? "Remover destaque" : "Marcar como destaque"}
-                          className="flex-1"
+                          className="flex-1 flex flex-col items-center py-2"
                         >
                           {product.isFeatured ? (
                             <StarOff className="w-4 h-4 text-accent" />
                           ) : (
                             <Star className="w-4 h-4 text-gray-400" />
                           )}
+                          <span className="text-xs mt-1 text-gray-500">Destaque</span>
                         </Button>
                         
                         <Button
@@ -959,13 +960,14 @@ export default function AdminProducts() {
                           })}
                           data-testid={`button-toggle-active-${product.id}`}
                           title={product.isActive ? "Desativar produto" : "Ativar produto"}
-                          className="flex-1"
+                          className="flex-1 flex flex-col items-center py-2"
                         >
                           {product.isActive ? (
                             <EyeOff className="w-4 h-4 text-gray-600" />
                           ) : (
                             <Eye className="w-4 h-4 text-gray-400" />
                           )}
+                          <span className="text-xs mt-1 text-gray-500">Ativo</span>
                         </Button>
                         
                         <Button
@@ -978,13 +980,14 @@ export default function AdminProducts() {
                           })}
                           data-testid={`button-toggle-stories-${product.id}`}
                           title={product.showInStories ? "Remover dos Stories" : "Adicionar aos Stories"}
-                          className="flex-1"
+                          className="flex-1 flex flex-col items-center py-2"
                         >
                           {product.showInStories ? (
                             <CircleX className="w-4 h-4 text-purple-600" />
                           ) : (
                             <PlayCircle className="w-4 h-4 text-gray-400" />
                           )}
+                          <span className="text-xs mt-1 text-gray-500">Stories</span>
                         </Button>
                         
                         <Button
@@ -993,9 +996,10 @@ export default function AdminProducts() {
                           onClick={() => handleEditProduct(product)}
                           data-testid={`button-edit-${product.id}`}
                           title="Editar produto"
-                          className="flex-1"
+                          className="flex-1 flex flex-col items-center py-2"
                         >
                           <Edit className="w-4 h-4 text-blue-600" />
+                          <span className="text-xs mt-1 text-gray-500">Editar</span>
                         </Button>
                         
                         <Button
@@ -1005,9 +1009,10 @@ export default function AdminProducts() {
                           disabled={deleteMutation.isPending}
                           data-testid={`button-delete-${product.id}`}
                           title="Excluir produto"
-                          className="flex-1"
+                          className="flex-1 flex flex-col items-center py-2"
                         >
                           <Trash2 className="w-4 h-4 text-red-600" />
+                          <span className="text-xs mt-1 text-gray-500">Excluir</span>
                         </Button>
                       </div>
                     </div>
