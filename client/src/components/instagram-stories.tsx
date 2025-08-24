@@ -217,14 +217,17 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
         isClosing ? 'opacity-0' : 'opacity-100'
       }`}
       style={{
-        background: isOpening ? 'transparent' : 'linear-gradient(135deg, #374151 0%, #1f2937 100%)'
+        background: isOpening ? 'transparent' : `linear-gradient(135deg, ${store.themeColor || '#E11D48'} 0%, ${store.themeColor || '#E11D48'}CC 100%)`
       }}
     >
       {/* Stories Container */}
       <div 
-        className={`relative w-full max-w-sm mx-auto h-full bg-gradient-to-b from-gray-800 to-gray-900 ${
+        className={`relative w-full max-w-sm mx-auto h-full ${
           isClosing ? 'opacity-0' : 'opacity-100'
         }`}
+        style={{
+          background: `linear-gradient(to bottom, ${store.themeColor || '#E11D48'}E6, ${store.themeColor || '#E11D48'}F2)`
+        }}
         onClick={handleTap}
       >
         {/* Progress Bars */}
@@ -355,7 +358,12 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
         {/* Product Content */}
         <div className="relative w-full h-full flex flex-col">
           {/* Product Image com elementos flutuantes */}
-          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 p-4 pt-24 relative overflow-hidden">
+          <div 
+            className="flex-1 flex items-center justify-center p-4 pt-24 relative overflow-hidden"
+            style={{
+              background: `linear-gradient(to bottom right, ${store.themeColor || '#E11D48'}CC, ${store.themeColor || '#E11D48'}E6)`
+            }}
+          >
             {/* Elementos flutuantes decorativos */}
             <div className="absolute top-20 left-8 w-20 h-20 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-xl animate-pulse"></div>
             <div className="absolute bottom-32 right-8 w-16 h-16 bg-gradient-to-br from-pink-400/20 to-orange-400/20 rounded-full blur-lg animate-pulse delay-1000"></div>
