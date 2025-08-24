@@ -287,7 +287,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             </div>
 
             {/* Conteúdo Scrollável */}
-            <div className="flex-1 overflow-y-auto p-4 pb-20">
+            <div className="flex-1 overflow-y-auto p-4 pb-4">
               {/* Nome da Loja */}
               <div className="mb-2">
                 <div className="flex items-center justify-between gap-2">
@@ -411,7 +411,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   >
                     <Heart className={`h-5 w-5 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
                   </Button>
-                  <span className="text-xs text-gray-600">Curtir</span>
+                  <span className="text-xs text-gray-800 font-medium">Curtir</span>
                 </div>
                 
                 <div className="flex flex-col items-center gap-2">
@@ -423,7 +423,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   >
                     <Bookmark className={`h-5 w-5 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
                   </Button>
-                  <span className="text-xs text-gray-600">Salvar</span>
+                  <span className="text-xs text-gray-800 font-medium">Salvar</span>
                 </div>
                 
                 <div className="flex flex-col items-center gap-2">
@@ -435,7 +435,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   >
                     <Share2 className="h-5 w-5" />
                   </Button>
-                  <span className="text-xs text-gray-600">Compartilhar</span>
+                  <span className="text-xs text-gray-800 font-medium">Compartilhar</span>
                 </div>
                 
                 {store.whatsapp && (
@@ -448,7 +448,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     >
                       <MessageCircle className="h-5 w-5" />
                     </Button>
-                    <span className="text-xs text-gray-600">Contato</span>
+                    <span className="text-xs text-gray-800 font-medium">Contato</span>
                   </div>
                 )}
                 
@@ -462,7 +462,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     >
                       <MapPin className="h-5 w-5" />
                     </Button>
-                    <span className="text-xs text-gray-600">Como chegar</span>
+                    <span className="text-xs text-gray-800 font-medium">Como chegar</span>
                   </div>
                 )}
               </div>
