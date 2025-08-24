@@ -400,8 +400,11 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 ) : null;
               })()}
 
-              {/* Botões de Ação com nomes */}
-              <div className="flex gap-4 justify-center py-2 mb-2">
+            </div>
+            
+            {/* Botões de Ação com nomes - Fixos na parte inferior */}
+            <div className="flex-shrink-0 bg-white border-t border-gray-200 p-4">
+              <div className="flex gap-4 justify-center">
                 <div className="flex flex-col items-center gap-2">
                   <Button
                     onClick={() => toggleLike(product.id)}
@@ -466,7 +469,6 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   </div>
                 )}
               </div>
-
             </div>
           </div>
         </DialogContent>
