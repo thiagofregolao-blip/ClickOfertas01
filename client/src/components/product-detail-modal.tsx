@@ -334,7 +334,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 {/* Descrição */}
                 {product.description && (
                   <div className="mb-4">
-                    <p className="text-gray-700 leading-relaxed">{product.description}</p>
+                    <p className="text-gray-700 leading-relaxed line-clamp-2">{product.description}</p>
                   </div>
                 )}
               </div>
@@ -575,8 +575,8 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               <p className="text-sm text-gray-600 font-medium mb-2">A partir de</p>
               
               <div className="flex items-end gap-2 mb-2">
-                <span className="text-lg font-medium text-gray-700">US$</span>
-                <span className="text-4xl font-bold text-gray-900">
+                <span className="text-lg font-medium text-red-600">US$</span>
+                <span className="text-4xl font-bold text-red-600">
                   {Number(product.price || 0).toLocaleString('pt-BR', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
@@ -599,7 +599,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             {product.description && (
               <div className="mb-6">
                 <h4 className="font-medium text-gray-900 mb-2">Descrição</h4>
-                <p className="text-gray-700 leading-relaxed">{product.description}</p>
+                <p className="text-gray-700 leading-relaxed line-clamp-2">{product.description}</p>
               </div>
             )}
 

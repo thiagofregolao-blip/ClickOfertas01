@@ -138,7 +138,7 @@ export default function ProductCard({
           {product.name}
         </h3>
         
-        <div className="text-[10px] sm:text-xs text-gray-500 mb-2 line-clamp-3 h-10 sm:h-12 flex items-start justify-center text-center leading-tight">
+        <div className="text-[10px] sm:text-xs text-gray-500 mb-2 line-clamp-2 h-8 sm:h-10 flex items-start justify-center text-center leading-tight">
           {product.description || ''}
         </div>
         
@@ -146,7 +146,7 @@ export default function ProductCard({
           <span className="text-[10px] sm:text-xs text-gray-600 font-medium">A partir de</span>
           
           <div className="flex items-end justify-center gap-0.5">
-            <span className="text-xs sm:text-sm font-medium text-gray-700 self-end">US$</span>
+            <span className="text-xs sm:text-sm font-medium text-red-600 self-end">US$</span>
             <div className="flex items-start">
               {(() => {
                 const price = Number(product.price || 0);
@@ -154,10 +154,10 @@ export default function ProductCard({
                 const decimalPart = Math.round((price - integerPart) * 100);
                 return (
                   <>
-                    <span className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-none">
+                    <span className="text-lg sm:text-xl md:text-2xl font-bold text-red-600 leading-none">
                       {integerPart.toLocaleString('pt-BR')}
                     </span>
-                    <span className="text-xs sm:text-sm font-medium text-gray-900 mt-0.5 leading-none">
+                    <span className="text-xs sm:text-sm font-medium text-red-600 mt-0.5 leading-none">
                       ,{String(decimalPart).padStart(2, '0')}
                     </span>
                   </>
@@ -166,12 +166,12 @@ export default function ProductCard({
             </div>
           </div>
 
-          {/* Preço em Real - baseado na taxa personalizada da loja */}
+          {/* Preço em Real - para todas as lojas */}
           <div className="text-xs sm:text-sm text-gray-600 font-medium">
             R$ {(() => {
               const priceUSD = Number(product.price || 0);
               // Usar taxa personalizada da loja ou taxa padrão 5.47
-              const rate = customUsdBrlRate || 5.47; // Usar taxa personalizada da loja ou padrão
+              const rate = customUsdBrlRate || 5.47;
               const priceBRL = priceUSD * rate;
               return priceBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             })()}
