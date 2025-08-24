@@ -190,7 +190,9 @@ export const insertProductSchema = createInsertSchema(products).omit({
   updatedAt: true,
 });
 
-export const updateStoreSchema = insertStoreSchema.partial();
+export const updateStoreSchema = insertStoreSchema.extend({
+  customUsdBrlRate: z.number().optional()
+}).partial();
 export const updateProductSchema = insertProductSchema.partial();
 
 export const insertSavedProductSchema = createInsertSchema(savedProducts).omit({
