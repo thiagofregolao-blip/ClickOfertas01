@@ -447,20 +447,25 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
   const displayProducts = [...featuredFromDifferentCategories, ...regularProducts].slice(0, 5); // Mostrar 5 produtos em destaque
 
   return (
-    <div className="bg-white mb-3 border-b">
+    <div 
+      className="mb-3 border-b border-white/20 shadow-sm"
+      style={{
+        background: `linear-gradient(135deg, ${store.themeColor || '#E11D48'}08, white 60%, ${store.themeColor || '#E11D48'}05)`
+      }}
+    >
       {/* Post Header with Background Effect */}
       <div className="relative overflow-hidden">
         {/* Background Effect */}
         <div 
-          className="absolute inset-0 opacity-8"
+          className="absolute inset-0"
           style={{
-            background: `linear-gradient(135deg, ${store.themeColor || '#E11D48'}15, transparent 70%)`
+            background: `linear-gradient(135deg, ${store.themeColor || '#E11D48'}20, transparent 60%)`
           }}
         />
         <div 
-          className="absolute inset-0 opacity-5"
+          className="absolute inset-0"
           style={{
-            background: `radial-gradient(circle at top right, ${store.themeColor || '#E11D48'}20, transparent 60%)`
+            background: `radial-gradient(circle at top right, ${store.themeColor || '#E11D48'}15, transparent 50%)`
           }}
         />
         
