@@ -125,7 +125,7 @@ export function InstagramStories({ store, allStores, onClose }: InstagramStories
     setIsClosing(true);
     setIsPaused(true);
     
-    setLocation('/stores');
+    setLocation('/cards');
   };
 
   const goToNextStore = () => {

@@ -15,7 +15,7 @@ export default function Landing() {
             </div>
             <div className="flex gap-3">
               <Button 
-                onClick={() => window.location.href = '/stores'}
+                onClick={() => window.location.href = '/cards'}
                 variant="outline"
                 className="border-primary text-primary hover:bg-primary hover:text-white"
                 data-testid="button-nav-stores"
@@ -57,7 +57,7 @@ export default function Landing() {
             <Button 
               size="lg" 
               variant="outline"
-              onClick={() => window.location.href = '/stores'}
+              onClick={() => window.location.href = '/cards'}
               className="px-8 py-4 text-lg border-2"
               data-testid="button-stores"
             >
