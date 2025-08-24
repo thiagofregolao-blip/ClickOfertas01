@@ -49,18 +49,18 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
   if (!product || !store) return null;
 
-  // Múltiplas fotos para produtos da Shopping China
+  // Múltiplas fotos para produtos da Shopping China - Tamanhos padronizados
   const getProductImages = (product: Product) => {
     if (!product.imageUrl) return [];
     
-    // Para Shopping China, adicionar fotos adicionais
+    // Para Shopping China, adicionar fotos adicionais com tamanhos padronizados
     if (store?.slug === 'shopping-china') {
       const baseImages = [
         product.imageUrl,
-        'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop&crop=center',
-        'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=400&h=400&fit=crop&crop=center',
-        'https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?w=400&h=400&fit=crop&crop=center',
-        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop&crop=center'
+        'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=600&fit=crop&crop=center',
+        'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=600&h=600&fit=crop&crop=center',
+        'https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?w=600&h=600&fit=crop&crop=center',
+        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop&crop=center'
       ];
       return baseImages.slice(0, 4); // Máximo de 4 fotos
     }
@@ -118,8 +118,12 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
       const message = `Olá! Vi o produto "${product.name}" no seu panfleto e gostaria de mais informações.`;
       const whatsappUrl = `https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
-    } else if (store.phone) {
-      window.open(`tel:${store.phone}`, '_blank');
+    // Fallback se não houver WhatsApp
+    } else {
+      toast({
+        title: "Contato não disponível",
+        description: "Esta loja não configurou informações de contato.",
+      });
     }
   };
 
@@ -266,52 +270,58 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   ))}
                 </div>
                 
-                {store.phone && (
-                  <p className="text-sm text-gray-600 mt-3 mb-1 flex items-center gap-1">
-                    <Phone className="h-3 w-3" />
-                    {store.phone}
-                  </p>
-                )}
               </div>
 
-              {/* Botões de Ação em uma linha */}
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => toggleLike(product.id)}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                >
-                  <Heart className={`h-4 w-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
-                </Button>
-                
-                <Button
-                  onClick={() => handleSaveProduct(product.id)}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                >
-                  <Bookmark className={`h-4 w-4 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
-                </Button>
-                
-                <Button
-                  onClick={handleShare}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                >
-                  <Share2 className="h-4 w-4" />
-                </Button>
-                
-                {(store.whatsapp || store.phone) && (
+              {/* Botões de Ação com nomes */}
+              <div className="flex gap-3">
+                <div className="flex flex-col items-center gap-1">
                   <Button
-                    onClick={handleContact}
+                    onClick={() => toggleLike(product.id)}
+                    variant="outline"
                     size="sm"
-                    className="flex items-center gap-1 text-white"
-                    style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                    className="flex items-center justify-center w-12 h-12 rounded-full"
                   >
-                    <MessageCircle className="h-4 w-4" />
+                    <Heart className={`h-5 w-5 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
                   </Button>
+                  <span className="text-xs text-gray-600">Curtir</span>
+                </div>
+                
+                <div className="flex flex-col items-center gap-1">
+                  <Button
+                    onClick={() => handleSaveProduct(product.id)}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center justify-center w-12 h-12 rounded-full"
+                  >
+                    <Bookmark className={`h-5 w-5 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
+                  </Button>
+                  <span className="text-xs text-gray-600">Salvar</span>
+                </div>
+                
+                <div className="flex flex-col items-center gap-1">
+                  <Button
+                    onClick={handleShare}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center justify-center w-12 h-12 rounded-full"
+                  >
+                    <Share2 className="h-5 w-5" />
+                  </Button>
+                  <span className="text-xs text-gray-600">Compartilhar</span>
+                </div>
+                
+                {store.whatsapp && (
+                  <div className="flex flex-col items-center gap-1">
+                    <Button
+                      onClick={handleContact}
+                      size="sm"
+                      className="flex items-center justify-center w-12 h-12 rounded-full text-white"
+                      style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                    >
+                      <MessageCircle className="h-5 w-5" />
+                    </Button>
+                    <span className="text-xs text-gray-600">Contato</span>
+                  </div>
                 )}
               </div>
             </div>
@@ -456,50 +466,56 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               
               <Card>
                 <CardContent className="p-4">
-                  {store.phone && (
-                    <p className="text-sm text-gray-600 flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      {store.phone}
-                    </p>
-                  )}
                 </CardContent>
               </Card>
             </div>
 
-            {/* Botões de Ação em uma linha */}
-            <div className="flex gap-3">
-              <Button
-                onClick={() => toggleLike(product.id)}
-                variant="outline"
-                className="flex items-center gap-2 hover:bg-red-50 flex-1"
-              >
-                <Heart className={`h-4 w-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
-              </Button>
-              
-              <Button
-                onClick={() => handleSaveProduct(product.id)}
-                variant="outline"
-                className="flex items-center gap-2 hover:bg-blue-50 flex-1"
-              >
-                <Bookmark className={`h-4 w-4 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
-              </Button>
-              
-              <Button
-                onClick={handleShare}
-                variant="outline"
-                className="flex items-center gap-2 flex-1"
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
-              
-              {(store.whatsapp || store.phone) && (
+            {/* Botões de Ação com nomes */}
+            <div className="flex gap-6 justify-center">
+              <div className="flex flex-col items-center gap-2">
                 <Button
-                  onClick={handleContact}
-                  className="flex items-center gap-2 text-white hover:opacity-90 transition-opacity flex-1"
-                  style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                  onClick={() => toggleLike(product.id)}
+                  variant="outline"
+                  className="flex items-center justify-center w-14 h-14 rounded-full hover:bg-red-50"
                 >
-                  <MessageCircle className="h-4 w-4" />
+                  <Heart className={`h-5 w-5 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
                 </Button>
+                <span className="text-sm text-gray-600 font-medium">Curtir</span>
+              </div>
+              
+              <div className="flex flex-col items-center gap-2">
+                <Button
+                  onClick={() => handleSaveProduct(product.id)}
+                  variant="outline"
+                  className="flex items-center justify-center w-14 h-14 rounded-full hover:bg-blue-50"
+                >
+                  <Bookmark className={`h-5 w-5 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
+                </Button>
+                <span className="text-sm text-gray-600 font-medium">Salvar</span>
+              </div>
+              
+              <div className="flex flex-col items-center gap-2">
+                <Button
+                  onClick={handleShare}
+                  variant="outline"
+                  className="flex items-center justify-center w-14 h-14 rounded-full"
+                >
+                  <Share2 className="h-5 w-5" />
+                </Button>
+                <span className="text-sm text-gray-600 font-medium">Compartilhar</span>
+              </div>
+              
+              {store.whatsapp && (
+                <div className="flex flex-col items-center gap-2">
+                  <Button
+                    onClick={handleContact}
+                    className="flex items-center justify-center w-14 h-14 rounded-full text-white hover:opacity-90 transition-opacity"
+                    style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                  >
+                    <MessageCircle className="h-5 w-5" />
+                  </Button>
+                  <span className="text-sm text-gray-600 font-medium">Contato</span>
+                </div>
               )}
             </div>
           </div>
