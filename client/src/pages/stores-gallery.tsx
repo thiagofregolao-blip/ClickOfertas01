@@ -159,13 +159,13 @@ export default function StoresGallery() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header Responsivo */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="border-b sticky top-0 z-10" style={{ backgroundColor: '#21409A' }}>
         <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-white px-4 py-2 rounded-lg" style={{ backgroundColor: '#21409A' }}>🛍️ Panfleto Rápido</h1>
+            <h1 className="text-2xl font-bold text-white">🛍️ Panfleto Rápido</h1>
             <button
               onClick={() => window.location.href = '/'}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-white hover:text-gray-200 font-medium"
             >
               Início
             </button>
