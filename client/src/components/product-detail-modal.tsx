@@ -389,12 +389,11 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                       <span className="text-sm font-medium">{store.currency || 'Gs.'}</span>
                       <span className="text-3xl font-bold">
                         {(() => {
-                          const price = Number(product.price || 0);
-                          const formatted = price.toLocaleString('pt-BR', {
+                          const price = parseFloat(product.price || '0');
+                          return price.toLocaleString('pt-BR', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                           });
-                          return formatted;
                         })()}
                       </span>
                     </div>
@@ -663,12 +662,11 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   <span className="text-lg font-medium" style={{ color: '#A21614' }}>US$</span>
                   <span className="text-4xl font-bold" style={{ color: '#A21614' }}>
                     {(() => {
-                      const price = Number(product.price || 0);
-                      const formatted = price.toLocaleString('pt-BR', {
+                      const price = parseFloat(product.price || '0');
+                      return price.toLocaleString('pt-BR', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                       });
-                      return formatted;
                     })()}
                   </span>
                 </div>
