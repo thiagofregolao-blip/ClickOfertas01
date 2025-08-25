@@ -8,6 +8,7 @@ import {
   productLikes,
   type User,
   type UpsertUser,
+  type InsertUser,
   type Store,
   type InsertStore,
   type UpdateStore,
@@ -31,6 +32,8 @@ import { eq, and, desc, count } from "drizzle-orm";
 export interface IStorage {
   // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
 
   // Store operations
@@ -61,6 +64,22 @@ export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...userData,
+        provider: userData.provider || 'email'
+      })
+      .returning();
     return user;
   }
 

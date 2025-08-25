@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Users, Share, Download, Star, CheckCircle } from "lucide-react";
 import { useAppVersion } from "@/hooks/use-mobile";
 import { useState } from "react";
-import LoginModal from "@/components/login-modal";
+import RegisterLoginModal from "@/components/register-login-modal";
 
 /**
  * Página de Aterrissagem - Panfleto Rápido
@@ -216,7 +216,7 @@ export default function Landing() {
       </div>
 
       {/* Login Modal */}
-      <LoginModal 
+      <RegisterLoginModal 
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
       />

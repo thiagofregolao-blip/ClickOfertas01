@@ -27,10 +27,18 @@ export const sessions = pgTable(
 // User storage table for Replit Auth
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique(),
+  email: varchar("email").unique().notNull(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
+  fullName: varchar("full_name"),
+  phone: varchar("phone"),
+  city: varchar("city"),
+  state: varchar("state"),
+  country: varchar("country"),
   profileImageUrl: varchar("profile_image_url"),
+  provider: varchar("provider").default("email"), // 'email', 'google', 'apple', 'replit'
+  providerId: varchar("provider_id"),
+  isEmailVerified: boolean("is_email_verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -220,6 +228,26 @@ export const insertProductLikeSchema = createInsertSchema(productLikes).omit({
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
+
+// Esquemas de validação
+export const insertUserSchema = createInsertSchema(users, {
+  email: z.string().email("Email inválido"),
+  fullName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  phone: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  country: z.string().optional(),
+}).omit({ 
+  id: true,
+  createdAt: true, 
+  updatedAt: true,
+  provider: true,
+  providerId: true,
+  isEmailVerified: true
+});
+
+export type InsertUserType = z.infer<typeof insertUserSchema>;
 export type Store = typeof stores.$inferSelect;
 export type InsertStore = z.infer<typeof insertStoreSchema>;
 export type UpdateStore = z.infer<typeof updateStoreSchema>;

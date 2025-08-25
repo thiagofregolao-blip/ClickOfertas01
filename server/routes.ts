@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 
@@ -15,12 +15,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Traditional registration route
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "Email já está em uso" });
+      }
+
+      // Create new user
+      const user = await storage.createUser({
+        ...userData,
+        provider: 'email',
+        isEmailVerified: false
+      });
+
+      // Create session
+      req.login({ id: user.id, user }, (err) => {
+        if (err) {
+          console.error("Session error:", err);
+          return res.status(500).json({ message: "Erro ao criar sessão" });
+        }
+        res.status(201).json({ 
+          message: "Usuário criado com sucesso",
+          user: {
+            id: user.id,
+            email: user.email,
+            fullName: user.fullName,
+            firstName: user.firstName,
+            lastName: user.lastName
+          }
+        });
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Erro interno do servidor" });
+      }
+    }
+  });
+
+  // Traditional login route  
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email é obrigatório" });
+      }
+
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      // Create session
+      req.login({ id: user.id, user }, (err) => {
+        if (err) {
+          console.error("Session error:", err);
+          return res.status(500).json({ message: "Erro ao criar sessão" });
+        }
+        res.json({ 
+          message: "Login realizado com sucesso",
+          user: {
+            id: user.id,
+            email: user.email,
+            fullName: user.fullName,
+            firstName: user.firstName,
+            lastName: user.lastName
+          }
+        });
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
