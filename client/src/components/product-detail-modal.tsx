@@ -284,8 +284,8 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 </div>
               )}
 
-              {/* Botões de Ação - Verticais no lado esquerdo da imagem */}
-              <div className="absolute left-3 bottom-3 flex flex-col gap-2 z-10">
+              {/* Botões de Ação - Horizontais centralizados no inferior da imagem */}
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-3 flex flex-row gap-3 z-10">
                 <div className="flex flex-col items-center">
                   <Button
                     onClick={() => toggleLike(product.id)}
@@ -426,13 +426,13 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   p.id !== product.id && 
                   p.isActive && 
                   p.category === product.category
-                ).slice(0, 4) || [];
+                ).slice(0, 6) || [];
                 
                 return similarProducts.length > 0 ? (
                   <div className="mb-6">
                     <h3 className="font-semibold text-gray-900 mb-3">Produtos similares</h3>
                     
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-3 gap-3">
                       {similarProducts.map((similarProduct) => (
                         <div 
                           key={similarProduct.id} 
@@ -447,7 +447,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                             }, 100);
                           }}
                         >
-                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-1">
+                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
                             {similarProduct.imageUrl ? (
                               <img 
                                 src={similarProduct.imageUrl} 
@@ -461,10 +461,10 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                             )}
                           </div>
                           <div className="text-center">
-                            <p className="text-xs font-medium text-gray-900 line-clamp-1 mb-1">
+                            <p className="text-sm font-medium text-gray-900 line-clamp-1 mb-1">
                               {similarProduct.name}
                             </p>
-                            <p className="text-xs font-bold" style={{ color: store.themeColor || '#E11D48' }}>
+                            <p className="text-sm font-bold" style={{ color: store.themeColor || '#E11D48' }}>
                               {store.currency || 'Gs.'} {Number(similarProduct.price || 0).toLocaleString('pt-BR', {
                                 minimumFractionDigits: 0,
                                 maximumFractionDigits: 0
@@ -540,8 +540,8 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   </>
                 )}
 
-                {/* Botões de Ação - Posicionados no canto esquerdo da imagem */}
-                <div className="absolute bottom-4 left-4 flex gap-3 z-10">
+                {/* Botões de Ação - Centralizados no inferior da imagem */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-10">
                   <div className="flex flex-col items-center gap-1">
                     <Button
                       onClick={() => toggleLike(product.id)}
@@ -696,13 +696,13 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 p.id !== product.id && 
                 p.isActive && 
                 p.category === product.category
-              ).slice(0, 4) || [];
+              ).slice(0, 5) || [];
               
               return similarProducts.length > 0 ? (
                 <div className="mb-6">
                   <h4 className="font-medium text-gray-900 mb-3">Produtos similares</h4>
                   
-                  <div className="grid grid-cols-6 gap-2">
+                  <div className="grid grid-cols-5 gap-3">
                     {similarProducts.map((similarProduct) => (
                       <div 
                         key={similarProduct.id} 
@@ -717,7 +717,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                           }, 100);
                         }}
                       >
-                        <div className="aspect-square bg-gray-100 rounded-md overflow-hidden mb-1">
+                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
                           {similarProduct.imageUrl ? (
                             <img 
                               src={similarProduct.imageUrl} 
@@ -731,10 +731,10 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                           )}
                         </div>
                         <div className="text-center">
-                          <p className="text-[10px] font-medium text-gray-900 line-clamp-1 mb-1">
+                          <p className="text-xs font-medium text-gray-900 line-clamp-1 mb-1">
                             {similarProduct.name}
                           </p>
-                          <p className="text-[10px] font-bold" style={{ color: store.themeColor || '#E11D48' }}>
+                          <p className="text-xs font-bold" style={{ color: store.themeColor || '#E11D48' }}>
                             {store.currency || 'Gs.'} {Number(similarProduct.price || 0).toLocaleString('pt-BR', {
                               minimumFractionDigits: 0,
                               maximumFractionDigits: 0
