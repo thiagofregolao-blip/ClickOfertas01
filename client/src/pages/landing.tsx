@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Users, Share, Download, Star, CheckCircle } from "lucide-react";
 import { useAppVersion } from "@/hooks/use-mobile";
+import { useState } from "react";
+import LoginModal from "@/components/login-modal";
 
 /**
  * Página de Aterrissagem - Panfleto Rápido
@@ -12,6 +14,7 @@ import { useAppVersion } from "@/hooks/use-mobile";
  */
 export default function Landing() {
   const { versionName, version } = useAppVersion();
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -39,7 +42,7 @@ export default function Landing() {
                 Ver Lojas
               </Button>
               <Button 
-                onClick={() => window.location.href = '/api/login'}
+                onClick={() => setIsLoginModalOpen(true)}
                 className="bg-primary text-white hover:bg-blue-600"
                 data-testid="button-login"
               >
@@ -64,7 +67,7 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg"
-              onClick={() => window.location.href = '/api/login'}
+              onClick={() => setIsLoginModalOpen(true)}
               className="bg-primary text-white hover:bg-blue-600 px-8 py-4 text-lg"
               data-testid="button-start"
             >
@@ -203,7 +206,7 @@ export default function Landing() {
           </p>
           <Button 
             size="lg"
-            onClick={() => window.location.href = '/api/login'}
+            onClick={() => setIsLoginModalOpen(true)}
             className="bg-white text-primary hover:bg-gray-100 px-8 py-4 text-lg font-semibold"
             data-testid="button-cta"
           >
@@ -211,6 +214,12 @@ export default function Landing() {
           </Button>
         </div>
       </div>
+
+      {/* Login Modal */}
+      <LoginModal 
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+      />
     </div>
   );
 }
