@@ -469,10 +469,13 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                               {similarProduct.name}
                             </p>
                             <p className="text-xs font-bold" style={{ color: store.themeColor || '#E11D48' }}>
-                              {store.currency || 'Gs.'} {Number(similarProduct.price || 0).toLocaleString('pt-BR', {
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 0
-                              })}
+                              {store.currency || 'Gs.'} {(() => {
+                                const price = parseFloat(String(similarProduct.price || '0'));
+                                return new Intl.NumberFormat('pt-BR', {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                                }).format(price);
+                              })()}
                             </p>
                           </div>
                         </div>
@@ -743,10 +746,13 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                             {similarProduct.name}
                           </p>
                           <p className="text-xs font-bold" style={{ color: store.themeColor || '#E11D48' }}>
-                            {store.currency || 'Gs.'} {Number(similarProduct.price || 0).toLocaleString('pt-BR', {
-                              minimumFractionDigits: 0,
-                              maximumFractionDigits: 0
-                            })}
+                            {store.currency || 'Gs.'} {(() => {
+                              const price = parseFloat(String(similarProduct.price || '0'));
+                              return new Intl.NumberFormat('pt-BR', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                              }).format(price);
+                            })()}
                           </p>
                         </div>
                       </div>
