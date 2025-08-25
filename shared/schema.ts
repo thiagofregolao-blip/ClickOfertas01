@@ -28,11 +28,14 @@ export const sessions = pgTable(
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique().notNull(),
+  password: varchar("password"), // Hash da senha
+  storeName: varchar("store_name"), // Nome da loja
+  phone: varchar("phone"),
+  address: text("address"), // Endereço completo
+  city: varchar("city"),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   fullName: varchar("full_name"),
-  phone: varchar("phone"),
-  city: varchar("city"),
   state: varchar("state"),
   country: varchar("country"),
   profileImageUrl: varchar("profile_image_url"),
@@ -230,24 +233,41 @@ export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// Esquemas de validação
-export const insertUserSchema = createInsertSchema(users, {
+// Esquemas de validação para cadastro
+export const registerUserSchema = createInsertSchema(users, {
   email: z.string().email("Email inválido"),
-  fullName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  storeName: z.string().min(2, "Nome da loja deve ter pelo menos 2 caracteres"),
   phone: z.string().optional(),
+  address: z.string().optional(),
   city: z.string().optional(),
-  state: z.string().optional(),
-  country: z.string().optional(),
 }).omit({ 
   id: true,
   createdAt: true, 
   updatedAt: true,
   provider: true,
   providerId: true,
-  isEmailVerified: true
+  isEmailVerified: true,
+  firstName: true,
+  lastName: true,
+  fullName: true,
+  state: true,
+  country: true,
+  profileImageUrl: true
 });
 
-export type InsertUserType = z.infer<typeof insertUserSchema>;
+// Schema para login
+export const loginUserSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(1, "Senha é obrigatória"),
+});
+
+export type RegisterUserType = z.infer<typeof registerUserSchema>;
+export type LoginUserType = z.infer<typeof loginUserSchema>;
+
+// Manter compatibilidade
+export const insertUserSchema = registerUserSchema;
+export type InsertUserType = RegisterUserType;
 export type Store = typeof stores.$inferSelect;
 export type InsertStore = z.infer<typeof insertStoreSchema>;
 export type UpdateStore = z.infer<typeof updateStoreSchema>;

@@ -3,9 +3,10 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertUserSchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, registerUserSchema, loginUserSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import bcrypt from "bcryptjs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -24,10 +25,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Traditional registration route
+  // Registration route
   app.post('/api/auth/register', async (req, res) => {
     try {
-      const userData = insertUserSchema.parse(req.body);
+      const userData = registerUserSchema.parse(req.body);
       
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(userData.email);
@@ -35,9 +36,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Email já está em uso" });
       }
 
+      // Hash password
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
+
       // Create new user
       const user = await storage.createUser({
         ...userData,
+        password: hashedPassword,
         provider: 'email',
         isEmailVerified: false
       });
@@ -53,9 +58,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           user: {
             id: user.id,
             email: user.email,
-            fullName: user.fullName,
-            firstName: user.firstName,
-            lastName: user.lastName
+            storeName: user.storeName
           }
         });
       });
@@ -69,19 +72,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Traditional login route  
+  // Login route  
   app.post('/api/auth/login', async (req, res) => {
     try {
-      const { email } = req.body;
-      
-      if (!email) {
-        return res.status(400).json({ message: "Email é obrigatório" });
-      }
+      const { email, password } = loginUserSchema.parse(req.body);
 
       // Find user by email
       const user = await storage.getUserByEmail(email);
       if (!user) {
-        return res.status(404).json({ message: "Usuário não encontrado" });
+        return res.status(401).json({ message: "Email ou senha incorretos" });
+      }
+
+      // Verify password
+      if (!user.password) {
+        return res.status(401).json({ message: "Email ou senha incorretos" });
+      }
+
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Email ou senha incorretos" });
       }
 
       // Create session
@@ -95,15 +104,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           user: {
             id: user.id,
             email: user.email,
-            fullName: user.fullName,
-            firstName: user.firstName,
-            lastName: user.lastName
+            storeName: user.storeName
           }
         });
       });
     } catch (error) {
       console.error("Login error:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Erro interno do servidor" });
+      }
     }
   });
 
