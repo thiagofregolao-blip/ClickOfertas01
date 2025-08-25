@@ -360,7 +360,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     />
                     {store.name}
                   </h2>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 mr-8">
                     {product.isFeatured && (
                       <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-none text-xs">
                         🔥 Destaque
@@ -388,10 +388,14 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     <div className="flex items-end gap-1" style={{ color: store.themeColor || '#E11D48' }}>
                       <span className="text-sm font-medium">{store.currency || 'Gs.'}</span>
                       <span className="text-3xl font-bold">
-                        {Number(product.price || 0).toLocaleString('pt-BR', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
-                        })}
+                        {(() => {
+                          const price = Number(product.price || 0);
+                          const formatted = price.toLocaleString('pt-BR', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          });
+                          return formatted;
+                        })()}
                       </span>
                     </div>
                     
@@ -628,7 +632,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   />
                   {store.name}
                 </h3>
-                <div className="flex gap-2">
+                <div className="flex gap-2 mr-8">
                   {product.isFeatured && (
                     <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-none text-xs">
                       🔥 Destaque
@@ -658,10 +662,14 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 <div className="flex items-end gap-2">
                   <span className="text-lg font-medium" style={{ color: '#A21614' }}>US$</span>
                   <span className="text-4xl font-bold" style={{ color: '#A21614' }}>
-                    {Number(product.price || 0).toLocaleString('pt-BR', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    })}
+                    {(() => {
+                      const price = Number(product.price || 0);
+                      const formatted = price.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      });
+                      return formatted;
+                    })()}
                   </span>
                 </div>
                 
