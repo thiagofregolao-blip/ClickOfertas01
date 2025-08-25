@@ -389,16 +389,12 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                       <span className="text-sm font-medium">{store.currency || 'Gs.'}</span>
                       <span className="text-3xl font-bold">
                         {(() => {
-                          console.log('Mobile price debug:', { 
-                            raw: product.price, 
-                            type: typeof product.price,
-                            parsed: parseFloat(product.price || '0')
-                          });
-                          const price = parseFloat(String(product.price || '0'));
-                          return price.toLocaleString('pt-BR', {
+                          const priceStr = String(product.price || '0');
+                          const price = parseFloat(priceStr);
+                          return new Intl.NumberFormat('pt-BR', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
-                          });
+                          }).format(price);
                         })()}
                       </span>
                     </div>
@@ -667,16 +663,12 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   <span className="text-lg font-medium" style={{ color: '#A21614' }}>US$</span>
                   <span className="text-4xl font-bold" style={{ color: '#A21614' }}>
                     {(() => {
-                      console.log('Desktop price debug:', { 
-                        raw: product.price, 
-                        type: typeof product.price,
-                        parsed: parseFloat(product.price || '0')
-                      });
-                      const price = parseFloat(String(product.price || '0'));
-                      return price.toLocaleString('pt-BR', {
+                      const priceStr = String(product.price || '0');
+                      const price = parseFloat(priceStr);
+                      return new Intl.NumberFormat('pt-BR', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
-                      });
+                      }).format(price);
                     })()}
                   </span>
                 </div>
