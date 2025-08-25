@@ -66,7 +66,7 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
   // Mutation para cadastro
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterFormData) => {
-      return await apiRequest("/api/auth/register", "POST", data);
+      return await apiRequest("POST", "/api/auth/register", data);
     },
     onSuccess: () => {
       toast({
@@ -90,7 +90,7 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
   // Mutation para login
   const loginMutation = useMutation({
     mutationFn: async (data: LoginFormData) => {
-      return await apiRequest("/api/auth/login", "POST", data);
+      return await apiRequest("POST", "/api/auth/login", data);
     },
     onSuccess: () => {
       toast({
