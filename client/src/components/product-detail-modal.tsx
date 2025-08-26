@@ -866,7 +866,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               </div>
             )}
 
-            <Separator className="mb-10" />
+            <Separator className="mb-16" />
 
             {/* Produtos Similares - Alinhados com botões de ação */}
             {(() => {
