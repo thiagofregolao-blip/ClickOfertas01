@@ -567,23 +567,13 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
               
               <Link href={`/flyer/${store.slug}`}>
                 <button 
-                  className="relative text-xs font-bold py-2 px-4 rounded-full transition-all duration-300 hover:scale-110 hover:shadow-xl transform hover:-translate-y-1 border-2 border-transparent shadow-lg animate-pulse"
+                  className="text-xs font-semibold py-2 px-4 rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-lg text-white"
                   style={{ 
-                    background: `linear-gradient(45deg, ${store.themeColor || '#E11D48'}, #FF6B35, ${store.themeColor || '#E11D48'})`,
-                    color: 'white',
-                    backgroundSize: '200% 200%',
-                    animation: 'gradient 3s ease infinite, pulse 2s ease-in-out infinite alternate'
+                    backgroundColor: store.themeColor || '#E11D48',
+                    boxShadow: `0 4px 12px ${store.themeColor || '#E11D48'}30`
                   }}
                 >
-                  <span className="relative z-10 flex items-center gap-1">
-                    🔥 Ver {filteredProducts.length > 4 ? `+${filteredProducts.length - 4} ofertas` : 'panfleto'}
-                  </span>
-                  <div 
-                    className="absolute inset-0 rounded-full opacity-30 blur-sm"
-                    style={{
-                      background: `linear-gradient(45deg, ${store.themeColor || '#E11D48'}, #FF6B35)`,
-                    }}
-                  />
+                  💰 Ver {filteredProducts.length > 4 ? `+${filteredProducts.length - 4} ofertas` : 'panfleto'}
                 </button>
               </Link>
             </div>
