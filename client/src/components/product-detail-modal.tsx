@@ -619,120 +619,21 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
       <DialogContent className={`max-w-4xl max-h-[90vh] p-0 bg-white overflow-hidden ${isClosing ? 'animate-modal-zoom-out' : ''}`}>
         <div className="grid grid-cols-2 h-full">
           {/* Galeria de Imagens (Esquerda) */}
-          <div className="relative bg-gray-100">
-            {images.length > 0 ? (
-              <>
-                <img
-                  src={images[currentImageIndex]}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                  onDoubleClick={(e) => handleDoubleTap(product.id, e)}
-                />
-                
-                {/* Indicadores */}
-                {images.length > 1 && (
-                  <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-1">
-                    {images.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentImageIndex(index)}
-                        className={`w-2 h-2 rounded-full transition-all ${
-                          index === currentImageIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/75'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {/* Botões de Ação - Centralizados no inferior da imagem */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-10">
-                  <div className="flex flex-col items-center gap-1">
-                    <Button
-                      onClick={() => toggleLike(product.id)}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center justify-center w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border-none shadow-lg hover:bg-white"
-                    >
-                      <Heart className={`h-5 w-5 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
-                    </Button>
-                    <span className="text-[10px] text-white font-medium drop-shadow-lg">Curtir</span>
-                  </div>
-                  
-                  <div className="flex flex-col items-center gap-1">
-                    <Button
-                      onClick={() => handleSaveProduct(product.id)}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center justify-center w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border-none shadow-lg hover:bg-white"
-                    >
-                      <Bookmark className={`h-5 w-5 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
-                    </Button>
-                    <span className="text-[10px] text-white font-medium drop-shadow-lg">Salvar</span>
-                  </div>
-                  
-                  <div className="flex flex-col items-center gap-1">
-                    <Button
-                      onClick={handleShare}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center justify-center w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border-none shadow-lg hover:bg-white"
-                    >
-                      <Share2 className="h-5 w-5 text-gray-700" />
-                    </Button>
-                    <span className="text-[10px] text-white font-medium drop-shadow-lg">Compartilhar</span>
-                  </div>
-                  
-                  {store.whatsapp && (
-                    <div className="flex flex-col items-center gap-1">
-                      <Button
-                        onClick={handleContact}
-                        size="sm"
-                        className="flex items-center justify-center w-12 h-12 rounded-full text-white shadow-lg bg-[#25D366] hover:bg-[#128C7E]"
-                      >
-                        <MessageCircle className="h-5 w-5" />
-                      </Button>
-                      <span className="text-[10px] text-white font-medium drop-shadow-lg">Contato</span>
-                    </div>
-                  )}
-                  
-                  {store.latitude && store.longitude && (
-                    <div className="flex flex-col items-center gap-1">
-                      <Button
-                        onClick={handleDirections}
-                        size="sm"
-                        className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg"
-                        data-testid="button-directions-modal"
-                      >
-                        <MapPin className="h-5 w-5" />
-                      </Button>
-                      <span className="text-[10px] text-white font-medium drop-shadow-lg">Como chegar</span>
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                <div className="text-gray-400 text-center">
-                  <div className="w-20 h-20 bg-gray-300 rounded-lg mx-auto mb-3"></div>
-                  <p>Sem imagem disponível</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Detalhes do Produto (Direita) */}
-          <div className="p-6 overflow-y-auto">
-            {/* Nome da Loja */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-medium text-gray-600 flex items-center gap-2 flex-1">
+          <div className="flex flex-col bg-white">
+            
+            {/* Nome da Loja e Badges - ACIMA DA IMAGEM */}
+            <div className="bg-gray-50 border-b px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex items-center gap-2">
                   <div 
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: store.themeColor || '#E11D48' }}
                   />
-                  {store.name}
-                </h3>
-                <div className="flex gap-2 mr-8">
+                  <h2 className="text-sm font-medium text-gray-600">
+                    {store.name}
+                  </h2>
+                </div>
+                <div className="flex items-center gap-2">
                   {product.isFeatured && (
                     <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-none text-xs">
                       🔥 Destaque
@@ -746,6 +647,116 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 </div>
               </div>
             </div>
+
+            {/* IMAGEM REDUZIDA - Centro */}
+            <div className="relative bg-gray-100 flex-1 min-h-0">
+              {images.length > 0 ? (
+                <div className="relative h-full flex items-center justify-center p-6">
+                  <div className="relative w-full max-w-sm h-80 bg-white rounded-lg shadow-sm overflow-hidden">
+                    <img
+                      src={images[currentImageIndex]}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                      onDoubleClick={(e) => handleDoubleTap(product.id, e)}
+                    />
+                    
+                    {/* Indicadores - Dentro da imagem reduzida */}
+                    {images.length > 1 && (
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
+                        {images.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setCurrentImageIndex(index)}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                              index === currentImageIndex ? 'bg-white scale-125 shadow-lg' : 'bg-white/70 hover:bg-white'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-gray-400 text-center">
+                    <div className="w-20 h-20 bg-gray-300 rounded-lg mx-auto mb-3"></div>
+                    <p>Sem imagem disponível</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Botões de Ação - ABAIXO DA IMAGEM */}
+            <div className="bg-white border-t px-6 py-4">
+              <div className="flex justify-center gap-4">
+                <div className="flex flex-col items-center gap-1">
+                  <Button
+                    onClick={() => toggleLike(product.id)}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center justify-center w-12 h-12 rounded-full border-gray-200 hover:bg-gray-50"
+                  >
+                    <Heart className={`h-5 w-5 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
+                  </Button>
+                  <span className="text-xs text-gray-700 font-medium">Curtir</span>
+                </div>
+                
+                <div className="flex flex-col items-center gap-1">
+                  <Button
+                    onClick={() => handleSaveProduct(product.id)}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center justify-center w-12 h-12 rounded-full border-gray-200 hover:bg-gray-50"
+                  >
+                    <Bookmark className={`h-5 w-5 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
+                  </Button>
+                  <span className={`text-xs font-medium ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`}>Salvar</span>
+                </div>
+                
+                <div className="flex flex-col items-center gap-1">
+                  <Button
+                    onClick={handleShare}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center justify-center w-12 h-12 rounded-full border-gray-200 hover:bg-gray-50"
+                  >
+                    <Share2 className="h-5 w-5 text-gray-700" />
+                  </Button>
+                  <span className="text-xs text-gray-700 font-medium">Compartilhar</span>
+                </div>
+                
+                {store.whatsapp && (
+                  <div className="flex flex-col items-center gap-1">
+                    <Button
+                      onClick={handleContact}
+                      size="sm"
+                      className="flex items-center justify-center w-12 h-12 rounded-full bg-[#25D366] hover:bg-[#128C7E] text-white"
+                    >
+                      <MessageCircle className="h-5 w-5" />
+                    </Button>
+                    <span className="text-xs text-[#25D366] font-medium">Contato</span>
+                  </div>
+                )}
+                
+                {store.latitude && store.longitude && (
+                  <div className="flex flex-col items-center gap-1">
+                    <Button
+                      onClick={handleDirections}
+                      size="sm"
+                      className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+                      data-testid="button-directions-modal"
+                    >
+                      <MapPin className="h-5 w-5" />
+                    </Button>
+                    <span className="text-xs text-blue-500 font-medium">Localização</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Detalhes do Produto (Direita) */}
+          <div className="p-6 overflow-y-auto">
             
             <DialogHeader className="mb-4">
               <DialogTitle className="text-2xl font-bold text-blue-600">
