@@ -265,9 +265,9 @@ export default function AdminStoreConfig() {
               </div>
 
               {/* Seção: Contatos e Redes Sociais */}
-              <div className="bg-gradient-to-r from-green-50 to-emerald-100 dark:from-green-950/30 dark:to-emerald-900/30 rounded-xl p-6 border-l-4 border-green-400">
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 rounded-xl p-6 border-l-4 border-blue-400">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
                     <span className="text-white text-sm font-bold">📱</span>
                   </div>
                   <div>
@@ -284,7 +284,7 @@ export default function AdminStoreConfig() {
                       {...form.register("whatsapp")}
                       placeholder="+595 21 123-4567"
                       data-testid="input-whatsapp"
-                      className="bg-white dark:bg-gray-800 border-green-200 dark:border-green-700"
+                      className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700"
                     />
                   </div>
 
@@ -295,16 +295,16 @@ export default function AdminStoreConfig() {
                       {...form.register("instagram")}
                       placeholder="@mercadinhosilva"
                       data-testid="input-instagram"
-                      className="bg-white dark:bg-gray-800 border-green-200 dark:border-green-700"
+                      className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Seção: Localização e Endereço */}
-              <div className="bg-gradient-to-r from-amber-50 to-orange-100 dark:from-amber-950/30 dark:to-orange-900/30 rounded-xl p-6 border-l-4 border-amber-400">
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 rounded-xl p-6 border-l-4 border-blue-400">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
                     <span className="text-white text-sm font-bold">📍</span>
                   </div>
                   <div>
@@ -322,7 +322,7 @@ export default function AdminStoreConfig() {
                       placeholder="Rua das Flores, 123, Centro - Asunción"
                       rows={3}
                       data-testid="input-address"
-                      className="bg-white dark:bg-gray-800 border-amber-200 dark:border-amber-700"
+                      className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700"
                     />
                   </div>
 
@@ -343,7 +343,7 @@ export default function AdminStoreConfig() {
                           {...form.register("latitude")}
                           placeholder="-25.2637"
                           data-testid="input-latitude"
-                          className="bg-white dark:bg-gray-800 border-amber-200 dark:border-amber-700"
+                          className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700"
                         />
                         {form.formState.errors.latitude && (
                           <p className="text-sm text-red-600">{form.formState.errors.latitude.message}</p>
@@ -357,7 +357,7 @@ export default function AdminStoreConfig() {
                           {...form.register("longitude")}
                           placeholder="-57.5759"
                           data-testid="input-longitude"
-                          className="bg-white dark:bg-gray-800 border-amber-200 dark:border-amber-700"
+                          className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700"
                         />
                         {form.formState.errors.longitude && (
                           <p className="text-sm text-red-600">{form.formState.errors.longitude.message}</p>
@@ -369,9 +369,9 @@ export default function AdminStoreConfig() {
               </div>
 
               {/* Seção: Configurações Avançadas */}
-              <div className="bg-gradient-to-r from-purple-50 to-violet-100 dark:from-purple-950/30 dark:to-violet-900/30 rounded-xl p-6 border-l-4 border-purple-400">
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 rounded-xl p-6 border-l-4 border-blue-400">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
                     <span className="text-white text-sm font-bold">⚙️</span>
                   </div>
                   <div>
@@ -389,7 +389,7 @@ export default function AdminStoreConfig() {
                     type="number"
                     step="0.01"
                     data-testid="input-custom-usd-brl-rate"
-                    className="bg-white dark:bg-gray-800 border-purple-200 dark:border-purple-700"
+                    className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700"
                   />
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Deixe em branco para usar a cotação automática da API. Defina sua própria taxa para ter controle total sobre os preços.
