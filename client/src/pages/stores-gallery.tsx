@@ -392,7 +392,7 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
           )
         ) : (
           // Layout de Feed Normal
-          filteredStores.map((store) => (
+          stores.map((store) => (
             <StorePost 
               key={store.id} 
               store={store} 
