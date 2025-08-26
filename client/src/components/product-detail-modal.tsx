@@ -220,6 +220,22 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   )}
                 </div>
               </div>
+              
+              {/* Carrossel de Produtos - Indicadores */}
+              {(() => {
+                const storeProducts = store.products?.filter(p => p.isActive) || [];
+                const currentIndex = storeProducts.findIndex(p => p.id === product.id);
+                const totalProducts = storeProducts.length;
+                
+                return totalProducts > 1 ? (
+                  <div className="flex items-center gap-2 mr-2">
+                    <span className="text-xs text-gray-500">
+                      {currentIndex + 1}/{totalProducts}
+                    </span>
+                  </div>
+                ) : null;
+              })()}
+              
               <Button
                 onClick={onClose}
                 variant="ghost"
@@ -307,12 +323,72 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 </div>
               )}
 
+              {/* Carrossel de Produtos - Navegação */}
+              {(() => {
+                const storeProducts = store.products?.filter(p => p.isActive) || [];
+                const currentIndex = storeProducts.findIndex(p => p.id === product.id);
+                const totalProducts = storeProducts.length;
+                
+                const navigateToProduct = (direction: 'prev' | 'next') => {
+                  if (totalProducts <= 1) return;
+                  
+                  let newIndex;
+                  if (direction === 'prev') {
+                    newIndex = currentIndex > 0 ? currentIndex - 1 : totalProducts - 1;
+                  } else {
+                    newIndex = currentIndex < totalProducts - 1 ? currentIndex + 1 : 0;
+                  }
+                  
+                  const newProduct = storeProducts[newIndex];
+                  if (newProduct) {
+                    setCurrentImageIndex(0);
+                    // Emit event to update the modal with new product
+                    onClose();
+                    setTimeout(() => {
+                      window.dispatchEvent(new CustomEvent('openProductModal', {
+                        detail: { product: newProduct, store }
+                      }));
+                    }, 100);
+                  }
+                };
+                
+                return totalProducts > 1 ? (
+                  <>
+                    <button
+                      onClick={() => navigateToProduct('prev')}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 rounded-full p-2 shadow-lg z-10"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => navigateToProduct('next')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 rounded-full p-2 shadow-lg z-10"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </>
+                ) : null;
+              })()}
+
+              {/* Informações do Carrossel na parte inferior */}
+              {(() => {
+                const storeProducts = store.products?.filter(p => p.isActive) || [];
+                const totalProducts = storeProducts.length;
+                
+                return totalProducts > 1 ? (
+                  <div className="mt-4 pt-3 border-t border-gray-200 text-center">
+                    <p className="text-xs text-gray-500">
+                      💡 Deslize para esquerda/direita ou use as setas para ver outros produtos desta loja
+                    </p>
+                  </div>
+                ) : null;
+              })()}
 
             </div>
 
 
-            {/* Conteúdo Scrollável */}
-            <div className="flex-1 overflow-y-auto p-4 pb-4">
+            {/* Conteúdo Scrollável com barra de rolagem aprimorada */}
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 p-4 pb-6" style={{ maxHeight: 'calc(100vh - 320px)' }}>
               
               {/* Informações do Produto */}
               <div className="mb-4">
