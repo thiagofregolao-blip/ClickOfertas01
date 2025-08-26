@@ -25,7 +25,21 @@ export default function StoresGallery() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isUserConfigOpen, setIsUserConfigOpen] = useState(false);
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, error } = useAuth();
+  
+  // Fecha o menu do usuário quando clica fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isUserMenuOpen) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    
+    if (isUserMenuOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [isUserMenuOpen]);
 
   // Sincronizar viewMode com a detecção automática
   useEffect(() => {
