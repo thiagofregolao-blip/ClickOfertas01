@@ -565,11 +565,18 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-gray-900 drop-shadow-sm">{limitStoreName(store.name, isMobile)}</h3>
               
-              {featuredProducts.length > 0 && (
-                <Badge className="text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none shadow-lg animate-pulse ring-1 ring-white/30">
-                  🔥 {featuredProducts.length} oferta{featuredProducts.length > 1 ? 's' : ''} imperdível{featuredProducts.length > 1 ? 'eis' : ''}
-                </Badge>
-              )}
+              <Link href={`/flyer/${store.slug}`}>
+                <button 
+                  className="text-xs font-medium py-1 px-3 rounded-full border-2 transition-all hover:scale-105 hover:shadow-md"
+                  style={{ 
+                    borderColor: store.themeColor || '#E11D48',
+                    color: store.themeColor || '#E11D48',
+                    background: `linear-gradient(135deg, transparent, ${store.themeColor || '#E11D48'}10)`
+                  }}
+                >
+                  💰 Ver {filteredProducts.length > 4 ? `+${filteredProducts.length - 4} ofertas` : 'panfleto'}
+                </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -664,18 +671,11 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
             )}
           </div>
           
-          <Link href={`/flyer/${store.slug}`}>
-            <button 
-              className="text-sm font-medium py-2 px-4 rounded-full border-2 transition-all hover:scale-105 hover:shadow-md"
-              style={{ 
-                borderColor: store.themeColor || '#E11D48',
-                color: store.themeColor || '#E11D48',
-                background: `linear-gradient(135deg, transparent, ${store.themeColor || '#E11D48'}10)`
-              }}
-            >
-              💰 Ver {filteredProducts.length > 4 ? `+${filteredProducts.length - 4} ofertas` : 'panfleto'}
-            </button>
-          </Link>
+          {featuredProducts.length > 0 && (
+            <Badge className="text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none shadow-lg animate-pulse ring-1 ring-white/30">
+              🔥 {featuredProducts.length} oferta{featuredProducts.length > 1 ? 's' : ''} imperdível{featuredProducts.length > 1 ? 'eis' : ''}
+            </Badge>
+          )}
         </div>
       </div>
     </div>
