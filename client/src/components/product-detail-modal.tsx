@@ -203,7 +203,9 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: store.themeColor || '#E11D48' }}
                   />
-                  <h2 className="text-sm font-medium text-gray-600">{store.name}</h2>
+                  <h2 className="text-sm font-medium text-gray-600">
+                    {store.name.split(' ').slice(0, 2).join(' ')}
+                  </h2>
                 </div>
                 <div className="flex items-center gap-1">
                   {product.isFeatured && (
