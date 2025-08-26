@@ -551,6 +551,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Remover produto salvo
+  app.delete('/api/saved-products/:savedProductId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { savedProductId } = req.params;
+      const userId = req.user.claims?.sub || req.user.id;
+      
+      await storage.removeSavedProduct(savedProductId, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error removing saved product:", error);
+      res.status(500).json({ message: "Failed to remove saved product" });
+    }
+  });
+
   // Registrar visualização de story
   app.post('/api/stories/view', async (req: any, res) => {
     try {

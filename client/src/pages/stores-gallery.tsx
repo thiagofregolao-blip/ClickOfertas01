@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin, Star, Grid, List, User, Settings, LogOut } from "lucide-react";
+import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart } from "lucide-react";
 import { StoreStoriesSection } from "@/components/store-stories";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
@@ -256,6 +256,18 @@ export default function StoresGallery() {
                       >
                         <Settings className="w-4 h-4" />
                         Configurações
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsUserMenuOpen(false);
+                          setLocation('/shopping-list');
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
+                        data-testid="button-shopping-list"
+                      >
+                        <ShoppingCart className="w-4 h-4" />
+                        Lista de Compras
                       </button>
                       <button
                         onClick={(e) => {

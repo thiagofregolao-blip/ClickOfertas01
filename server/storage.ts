@@ -56,6 +56,7 @@ export interface IStorage {
   createProductLike(like: InsertProductLike): Promise<ProductLike>;
   saveProduct(savedProduct: InsertSavedProduct): Promise<SavedProduct>;
   getSavedProducts(userId: string): Promise<SavedProductWithDetails[]>;
+  removeSavedProduct(savedProductId: string, userId: string): Promise<void>;
   createStoryView(view: InsertStoryView): Promise<StoryView>;
   createFlyerView(view: InsertFlyerView): Promise<FlyerView>;
   getStoreAnalytics(storeId: string): Promise<any>;
@@ -352,6 +353,12 @@ export class DatabaseStorage implements IStorage {
         }
       }
     }));
+  }
+
+  async removeSavedProduct(savedProductId: string, userId: string): Promise<void> {
+    await db
+      .delete(savedProducts)
+      .where(and(eq(savedProducts.id, savedProductId), eq(savedProducts.userId, userId)));
   }
 
   async createStoryView(viewData: InsertStoryView): Promise<StoryView> {

@@ -12,6 +12,7 @@ import AdminPreview from "@/pages/admin-preview";
 import PublicFlyer from "@/pages/public-flyer";
 import StoresGallery from "@/pages/stores-gallery";
 import UserSettingsPage from "@/pages/user-settings";
+import ShoppingList from "@/pages/shopping-list";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -37,6 +38,7 @@ function Router() {
         <Route path="/admin" component={LoadingComponent} />
         <Route path="/admin/*" component={LoadingComponent} />
         <Route path="/settings" component={LoadingComponent} />
+        <Route path="/shopping-list" component={LoadingComponent} />
         <Route component={NotFound} />
       </Switch>
     );
@@ -62,6 +64,7 @@ function Router() {
           <Route path="/admin/preview" component={AdminPreview} />
           <Route path="/cards" component={StoresGallery} />
           <Route path="/settings" component={UserSettingsPage} />
+          <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
         </>
@@ -71,6 +74,7 @@ function Router() {
           <Route path="/" component={StoresGallery} />
           <Route path="/cards" component={StoresGallery} />
           <Route path="/settings" component={UserSettingsPage} />
+          <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
           {/* Bloqueia acesso ao admin para usuários normais */}
