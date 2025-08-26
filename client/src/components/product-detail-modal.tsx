@@ -746,7 +746,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             </div>
 
             {/* Botões de Ação - ABAIXO DA IMAGEM */}
-            <div className="bg-white border-t px-6 py-4">
+            <div className="bg-white border-t px-4 py-4">
               <div className="flex justify-center gap-4">
                 <div className="flex flex-col items-center gap-1">
                   <Button
@@ -878,9 +878,9 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               
               return similarProducts.length > 0 ? (
                 <div className="mb-6">
-                  <h4 className="font-medium text-gray-900 mb-3 px-6">Produtos similares</h4>
+                  <h4 className="font-medium text-gray-900 mb-3 px-4">Produtos similares</h4>
                   
-                  <div className="px-6">
+                  <div className="px-4">
                     <div className="grid grid-cols-5 gap-3">
                       {similarProducts.map((similarProduct) => (
                         <div 
