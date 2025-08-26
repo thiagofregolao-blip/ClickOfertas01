@@ -79,11 +79,11 @@ export default function StoresGallery() {
   
   const { data: stores, isLoading } = useQuery<StoreWithProducts[]>({
     queryKey: ['/api/public/stores'],
-    staleTime: 10 * 60 * 1000, // 10 minutos (aumentado)
-    gcTime: 30 * 60 * 1000, // 30 minutos (aumentado) 
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false, // Evita refetch ao reconectar
+    staleTime: 2 * 60 * 1000, // 2 minutos (mais fresco para galeria)
+    gcTime: 30 * 60 * 1000, // 30 minutos
+    refetchOnWindowFocus: false, // Evita refetch desnecessário
+    refetchOnMount: true, // Permite dados atualizados no mount
+    refetchOnReconnect: true, // Refetch ao reconectar
   });
 
   // Função otimizada para verificar se a loja postou produtos hoje

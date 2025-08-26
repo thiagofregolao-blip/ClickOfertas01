@@ -46,17 +46,17 @@ export const queryClient = new QueryClient({
     queries: {
       queryFn: getQueryFn({ on401: "returnNull" }),
       refetchInterval: false,
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-      staleTime: Infinity,
-      gcTime: Infinity,
+      refetchOnWindowFocus: false, 
+      refetchOnMount: true, // Permite refetch no mount para dados atualizados
+      refetchOnReconnect: true, // Refetch ao reconectar
+      staleTime: 5 * 60 * 1000, // 5 minutos (equilibrado)
+      gcTime: 30 * 60 * 1000, // 30 minutos
       retry: (failureCount, error: any) => {
         // Nunca retry em erro 401 ou 403
         if (error?.message?.includes('401') || error?.message?.includes('403')) {
           return false;
         }
-        return failureCount < 1;
+        return failureCount < 2; // Até 2 tentativas
       },
     },
     mutations: {

@@ -31,23 +31,26 @@ export default function AdminDashboard() {
 
   const { data: store, isLoading: storeLoading, error: storeError } = useQuery<Store>({
     queryKey: ["/api/stores/me"],
+    staleTime: 2 * 60 * 1000, // 2 minutos para dados da loja
     retry: false,
   });
 
   const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ["/api/stores", store?.id, "products"],
     enabled: !!store?.id,
+    staleTime: 30 * 1000, // 30 segundos para produtos (mais dinâmicos)
     retry: false,
   });
 
-  // Buscar cotação do dólar
+  // Buscar cotação do dólar em paralelo (não depende da loja)
   const { data: dollarRate, isLoading: dollarLoading } = useQuery<{
     rate: number;
     lastUpdate: string;
     source: string;
   }>({
     queryKey: ['/api/currency/usd-brl'],
-    refetchInterval: 5 * 60 * 1000, // Atualiza a cada 5 minutos
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    refetchInterval: 10 * 60 * 1000, // Revalida a cada 10 minutos
   });
 
   const copyLinkMutation = useMutation({

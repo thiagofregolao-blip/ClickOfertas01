@@ -35,8 +35,8 @@ export function useEngagement() {
         return newSet;
       });
       
-      // Invalidar cache dos produtos salvos
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-products'] });
+      // Invalidar cache apenas se necessário (não existe página de salvos ainda)
+      // queryClient.invalidateQueries({ queryKey: ['/api/saved-products'] });
       toast({
         title: "Produto salvo!",
         description: "O produto foi adicionado aos seus salvos.",
