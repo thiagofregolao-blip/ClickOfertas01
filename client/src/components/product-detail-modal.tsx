@@ -652,7 +652,66 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             <div className="relative bg-gray-100 flex-1 min-h-0">
               {images.length > 0 ? (
                 <div className="relative h-full flex items-center justify-center p-6">
-                  <div className="relative w-full max-w-sm h-80 bg-white rounded-lg shadow-sm overflow-hidden">
+                  {/* Botões de Navegação entre Produtos */}
+                  {(() => {
+                    const activeProducts = store?.products?.filter(p => p.isActive) || [];
+                    const currentIndex = activeProducts.findIndex(p => p.id === product?.id);
+                    const hasPrevious = currentIndex > 0;
+                    const hasNext = currentIndex < activeProducts.length - 1;
+                    
+                    return (
+                      <>
+                        {hasPrevious && (
+                          <Button
+                            onClick={() => {
+                              const previousProduct = activeProducts[currentIndex - 1];
+                              setCurrentImageIndex(0);
+                              onClose();
+                              setTimeout(() => {
+                                window.dispatchEvent(new CustomEvent('openProductModal', {
+                                  detail: { product: previousProduct, store }
+                                }));
+                              }, 100);
+                            }}
+                            variant="outline"
+                            size="icon"
+                            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm border-gray-200 hover:bg-white shadow-lg"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                        )}
+                        
+                        {hasNext && (
+                          <Button
+                            onClick={() => {
+                              const nextProduct = activeProducts[currentIndex + 1];
+                              setCurrentImageIndex(0);
+                              onClose();
+                              setTimeout(() => {
+                                window.dispatchEvent(new CustomEvent('openProductModal', {
+                                  detail: { product: nextProduct, store }
+                                }));
+                              }, 100);
+                            }}
+                            variant="outline"
+                            size="icon"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm border-gray-200 hover:bg-white shadow-lg"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        )}
+                        
+                        {/* Indicador de Posição dos Produtos */}
+                        {activeProducts.length > 1 && (
+                          <div className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
+                            {currentIndex + 1} / {activeProducts.length}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+
+                  <div className="relative w-full max-w-md h-96 bg-white rounded-lg shadow-sm overflow-hidden">
                     <img
                       src={images[currentImageIndex]}
                       alt={product.name}
