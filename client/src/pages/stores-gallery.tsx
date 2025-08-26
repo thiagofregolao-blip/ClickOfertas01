@@ -430,12 +430,20 @@ function StoreResultItem({
   isMobile?: boolean,
   onProductClick?: (product: Product) => void
 }) {
+  const [, setLocation] = useLocation();
   const activeProducts = store.products.filter(p => p.isActive);
   const featuredProducts = activeProducts.filter(p => p.isFeatured).slice(0, 3);
   const displayProducts = featuredProducts.length > 0 ? featuredProducts : activeProducts.slice(0, 3);
 
+  const handleStoreClick = () => {
+    setLocation(`/stores/${store.slug}`);
+  };
+
   return (
-    <div className={`${isMobile ? 'p-3' : 'p-4'} hover:bg-blue-50 transition-all border-l-4 border-blue-500 bg-blue-25`}>
+    <button 
+      onClick={handleStoreClick}
+      className={`${isMobile ? 'p-3' : 'p-4'} hover:bg-blue-50 transition-all border-l-4 border-blue-500 bg-blue-25 w-full text-left cursor-pointer`}
+    >
       {/* Store Header */}
       <div className="flex items-center gap-3">
         <div 
@@ -456,7 +464,7 @@ function StoreResultItem({
           </p>
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
