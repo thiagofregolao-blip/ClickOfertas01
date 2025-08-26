@@ -5,10 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Star, Grid, List } from "lucide-react";
+import { Search, MapPin, Star, Grid, List, User } from "lucide-react";
 import { StoreStoriesSection } from "@/components/store-stories";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
+import LoginPage from "@/components/login-page";
 import { useAppVersion, type AppVersionType } from "@/hooks/use-mobile";
 import type { StoreWithProducts, Product } from "@shared/schema";
 
@@ -18,6 +19,7 @@ export default function StoresGallery() {
   const [viewMode, setViewMode] = useState<AppVersionType>('mobile');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedStore, setSelectedStore] = useState<StoreWithProducts | null>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   // Sincronizar viewMode com a detecção automática
   useEffect(() => {
@@ -163,12 +165,22 @@ export default function StoresGallery() {
         <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-white">🛍️ Panfleto Rápido</h1>
-            <button
-              onClick={() => window.location.href = '/'}
-              className="text-white hover:text-gray-200 font-medium"
-            >
-              Início
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsLoginModalOpen(true)}
+                className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
+                data-testid="button-user-login"
+              >
+                <User className="w-4 h-4" />
+                Entrar
+              </button>
+              <button
+                onClick={() => window.location.href = '/'}
+                className="text-white hover:text-gray-200 font-medium"
+              >
+                Início
+              </button>
+            </div>
           </div>
           
         </div>
@@ -215,6 +227,13 @@ export default function StoresGallery() {
           setSelectedProduct(null);
           setSelectedStore(null);
         }}
+      />
+
+      {/* Login Modal - Para Usuários */}
+      <LoginPage 
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        mode="user"
       />
     </div>
   );

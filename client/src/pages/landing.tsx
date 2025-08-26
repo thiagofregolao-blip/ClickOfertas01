@@ -215,10 +215,11 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Login Modal */}
+      {/* Login Modal - Para Lojistas */}
       <LoginPage 
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
+        mode="store"
       />
     </div>
   );

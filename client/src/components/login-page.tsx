@@ -15,6 +15,7 @@ import { useState } from "react";
 interface LoginPageProps {
   isOpen: boolean;
   onClose: () => void;
+  mode?: 'user' | 'store'; // 'user' para ver lojas, 'store' para painel
 }
 
 // Schema para cadastro de usuário normal
@@ -46,7 +47,7 @@ type UserRegisterFormData = z.infer<typeof userRegisterSchema>;
 type StoreRegisterFormData = z.infer<typeof storeRegisterSchema>;
 type LoginFormData = z.infer<typeof loginSchema>;
 
-export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
+export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentView, setCurrentView] = useState<'home' | 'user-login' | 'user-register' | 'store-login' | 'store-register'>('home');
@@ -230,68 +231,136 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
                   Panfleto Rápido
                 </h1>
                 <p className="text-gray-600 mt-2">
-                  Descubra ofertas incríveis das melhores lojas
+                  {mode === 'user' 
+                    ? "Descubra ofertas incríveis das melhores lojas"
+                    : "Crie panfletos digitais para sua loja"
+                  }
                 </p>
               </div>
             </div>
 
-            {/* Botões principais - USUARIOS */}
-            <div className="space-y-4">
-              <Button
-                onClick={goToUserLogin}
-                className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-medium"
-                data-testid="button-go-user-login"
-              >
-                🔥 Entrar e ver ofertas
-              </Button>
-              
-              <Button
-                onClick={goToUserRegister}
-                variant="outline"
-                className="w-full h-12 border-2 hover:bg-gray-50 font-medium"
-                data-testid="button-go-user-register"
-              >
-                ⭐ Cadastrar-se gratuitamente
-              </Button>
-            </div>
+            {/* Botões principais baseados no mode */}
+            {mode === 'user' ? (
+              <>
+                {/* TELA PARA USUÁRIOS */}
+                <div className="space-y-4">
+                  <Button
+                    onClick={goToUserLogin}
+                    className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-medium"
+                    data-testid="button-go-user-login"
+                  >
+                    🔥 Entrar e ver ofertas
+                  </Button>
+                  
+                  <Button
+                    onClick={goToUserRegister}
+                    variant="outline"
+                    className="w-full h-12 border-2 hover:bg-gray-50 font-medium"
+                    data-testid="button-go-user-register"
+                  >
+                    ⭐ Cadastrar-se gratuitamente
+                  </Button>
+                </div>
 
-            {/* OAuth Options */}
-            <div className="space-y-3 pt-4 border-t">
-              <p className="text-sm text-gray-500">ou entre com</p>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  onClick={handleGoogleLogin}
-                  variant="outline"
-                  className="h-12 border-2"
-                  data-testid="button-google-oauth"
-                >
-                  <SiGoogle className="w-5 h-5 text-red-500" />
-                </Button>
+                {/* OAuth Options */}
+                <div className="space-y-3 pt-4 border-t">
+                  <p className="text-sm text-gray-500">ou entre com</p>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      onClick={handleGoogleLogin}
+                      variant="outline"
+                      className="h-12 border-2"
+                      data-testid="button-google-oauth"
+                    >
+                      <SiGoogle className="w-5 h-5 text-red-500" />
+                    </Button>
 
-                <Button
-                  onClick={handleAppleLogin}
-                  variant="outline"
-                  className="h-12 border-2"
-                  data-testid="button-apple-oauth"
-                >
-                  <SiApple className="w-6 h-6 text-gray-800" />
-                </Button>
-              </div>
-            </div>
+                    <Button
+                      onClick={handleAppleLogin}
+                      variant="outline"
+                      className="h-12 border-2"
+                      data-testid="button-apple-oauth"
+                    >
+                      <SiApple className="w-6 h-6 text-gray-800" />
+                    </Button>
+                  </div>
+                </div>
 
-            {/* Separador para lojistas */}
-            <div className="pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-500 mb-3">Tem uma loja?</p>
-              <Button
-                onClick={goToStoreLogin}
-                variant="outline"
-                className="w-full h-10 text-sm border border-orange-300 text-orange-700 hover:bg-orange-50 font-medium"
-                data-testid="button-go-store-login"
-              >
-                🏪 Logista clique aqui
-              </Button>
-            </div>
+                {/* Link para lojistas */}
+                <div className="pt-6 border-t border-gray-200">
+                  <p className="text-sm text-gray-500 mb-3">Tem uma loja?</p>
+                  <Button
+                    onClick={goToStoreLogin}
+                    variant="outline"
+                    className="w-full h-10 text-sm border border-orange-300 text-orange-700 hover:bg-orange-50 font-medium"
+                    data-testid="button-go-store-login"
+                  >
+                    🏪 Acessar painel da loja
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* TELA PARA LOJISTAS */}
+                <div className="space-y-4">
+                  <Button
+                    onClick={goToStoreLogin}
+                    className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-medium"
+                    data-testid="button-go-store-login-main"
+                  >
+                    🏪 Acessar Painel da Loja
+                  </Button>
+                  
+                  <Button
+                    onClick={goToStoreRegister}
+                    variant="outline"
+                    className="w-full h-12 border-2 border-orange-300 text-orange-700 hover:bg-orange-50 font-medium"
+                    data-testid="button-go-store-register-main"
+                  >
+                    📝 Cadastrar Nova Loja
+                  </Button>
+                </div>
+
+                {/* OAuth Options */}
+                <div className="space-y-3 pt-4 border-t">
+                  <p className="text-sm text-gray-500">ou entre com</p>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      onClick={handleGoogleLogin}
+                      variant="outline"
+                      className="h-12 border-2"
+                      data-testid="button-google-oauth-store"
+                    >
+                      <SiGoogle className="w-5 h-5 text-red-500" />
+                    </Button>
+
+                    <Button
+                      onClick={handleAppleLogin}
+                      variant="outline"
+                      className="h-12 border-2"
+                      data-testid="button-apple-oauth-store"
+                    >
+                      <SiApple className="w-6 h-6 text-gray-800" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Link para usuários */}
+                <div className="pt-6 border-t border-gray-200">
+                  <p className="text-sm text-gray-500 mb-3">Quer apenas ver ofertas?</p>
+                  <Button
+                    onClick={goToUserLogin}
+                    variant="outline"
+                    className="w-full h-10 text-sm border border-blue-300 text-blue-700 hover:bg-blue-50 font-medium"
+                    data-testid="button-go-user-login-alt"
+                  >
+                    🔥 Ver ofertas das lojas
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         )}
 
