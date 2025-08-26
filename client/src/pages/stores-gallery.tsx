@@ -419,11 +419,11 @@ function SearchResultItem({
         </div>
 
         {/* Product Info */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-hidden">
           <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <h3 className="font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors flex-1 min-w-0">
                   {product.name}
                   {product.isFeatured && (
                     <Badge className="ml-2 text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none">
@@ -431,24 +431,24 @@ function SearchResultItem({
                     </Badge>
                   )}
                 </h3>
-                <div className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                   👆
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-2 mt-1 overflow-hidden">
                 <div 
                   className="w-4 h-4 rounded-full flex-shrink-0"
                   style={{ backgroundColor: store.themeColor || '#E11D48' }}
                 />
-                <span className="text-sm text-gray-600 truncate">{store.name}</span>
+                <span className="text-sm text-gray-600 truncate flex-1 min-w-0">{store.name}</span>
                 {product.category && (
-                  <span className="text-xs text-gray-400">• {product.category}</span>
+                  <span className="text-xs text-gray-400 flex-shrink-0">• {product.category}</span>
                 )}
               </div>
               
               {product.description && (
-                <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                <p className={`text-xs text-gray-500 mt-1 ${isMobile ? 'line-clamp-1 break-words' : 'line-clamp-2'} max-w-full overflow-hidden`}>
                   {product.description}
                 </p>
               )}
