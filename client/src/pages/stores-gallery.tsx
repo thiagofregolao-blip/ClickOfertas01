@@ -122,20 +122,41 @@ export default function StoresGallery() {
     return bLatest - aLatest;
   }) || [];
 
-  // Criar lista de produtos para busca (quando há termo de busca)
-  const searchResults = searchQuery.trim() && stores ? 
-    stores.flatMap(store => 
+  // Criar resultados de busca combinados (lojas + produtos)
+  const searchResults = searchQuery.trim() && stores ? (() => {
+    const query = searchQuery.toLowerCase();
+    const results: Array<{ type: 'store' | 'product', data: any, store: any }> = [];
+    
+    stores.forEach(store => {
+      // Buscar lojas por nome
+      if (store.name.toLowerCase().includes(query)) {
+        results.push({ type: 'store', data: store, store });
+      }
+      
+      // Buscar produtos
       store.products
         .filter(product => 
           product.isActive && (
-            product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.category?.toLowerCase().includes(searchQuery.toLowerCase())
+            product.name.toLowerCase().includes(query) ||
+            product.description?.toLowerCase().includes(query) ||
+            product.category?.toLowerCase().includes(query)
           )
         )
-        .map(product => ({ ...product, store }))
-    ).sort((a, b) => Number(a.price || 0) - Number(b.price || 0)) // Ordenar por menor preço
-    : [];
+        .forEach(product => {
+          results.push({ type: 'product', data: { ...product, store }, store });
+        });
+    });
+    
+    // Ordenar: lojas primeiro, depois produtos por preço
+    return results.sort((a, b) => {
+      if (a.type === 'store' && b.type === 'product') return -1;
+      if (a.type === 'product' && b.type === 'store') return 1;
+      if (a.type === 'product' && b.type === 'product') {
+        return Number(a.data.price || 0) - Number(b.data.price || 0);
+      }
+      return 0;
+    });
+  })() : [];
 
   if (isLoading) {
     return (
@@ -329,7 +350,7 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
           searchResults.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">
-                🔍 Nenhum produto encontrado para "{searchQuery}"
+                🔍 Nenhum resultado encontrado para "{searchQuery}"
               </p>
               <p className="text-gray-400 text-sm mt-2">
                 Tente buscar por outro produto ou loja
@@ -340,21 +361,31 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
               <div className="p-4 border-b bg-gray-50">
                 <p className="text-sm text-gray-600">
                   {searchResults.length} resultado{searchResults.length > 1 ? 's' : ''} para "{searchQuery}" 
-                  <span className="ml-2 text-xs text-gray-500">• Ordenado por menor preço</span>
+                  <span className="ml-2 text-xs text-gray-500">• Lojas e produtos</span>
                 </p>
                 <p className="text-xs text-blue-600 mt-1">
-                  💡 Clique nos produtos para ver detalhes
+                  💡 Clique nos itens para ver detalhes
                 </p>
               </div>
               <div className="divide-y divide-gray-100">
-                {searchResults.map((result) => (
-                  <SearchResultItem 
-                    key={`${result.store.id}-${result.id}`} 
-                    product={result} 
-                    store={result.store}
-                    onClick={() => onProductSelect(result, result.store)}
-                    isMobile={isMobile}
-                  />
+                {searchResults.map((result, index) => (
+                  result.type === 'store' ? (
+                    <StoreResultItem 
+                      key={`store-${result.store.id}`} 
+                      store={result.data}
+                      searchQuery={searchQuery}
+                      isMobile={isMobile}
+                      onProductClick={(product) => onProductSelect(product, result.data)}
+                    />
+                  ) : (
+                    <SearchResultItem 
+                      key={`product-${result.store.id}-${result.data.id}`} 
+                      product={result.data} 
+                      store={result.store}
+                      onClick={() => onProductSelect(result.data, result.store)}
+                      isMobile={isMobile}
+                    />
+                  )
                 ))}
               </div>
             </div>
@@ -387,8 +418,82 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
   );
 }
 
-// Remove this component, we'll add the modal directly to the main component
+// Componente para mostrar lojas nos resultados de busca
+function StoreResultItem({ 
+  store, 
+  searchQuery,
+  isMobile = false,
+  onProductClick
+}: { 
+  store: StoreWithProducts,
+  searchQuery: string,
+  isMobile?: boolean,
+  onProductClick?: (product: Product) => void
+}) {
+  const activeProducts = store.products.filter(p => p.isActive);
+  const featuredProducts = activeProducts.filter(p => p.isFeatured).slice(0, 3);
+  const displayProducts = featuredProducts.length > 0 ? featuredProducts : activeProducts.slice(0, 3);
 
+  return (
+    <div className={`${isMobile ? 'p-3' : 'p-4'} hover:bg-blue-50 transition-all border-l-4 border-blue-500 bg-blue-25`}>
+      {/* Store Header */}
+      <div className="flex items-center gap-3 mb-3">
+        <div 
+          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
+          style={{ backgroundColor: store.themeColor || '#E11D48' }}
+        >
+          🏪
+        </div>
+        <div className="flex-1">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <span>{store.name}</span>
+            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+              LOJA
+            </span>
+          </h3>
+          <p className="text-xs text-gray-500">
+            {activeProducts.length} produto{activeProducts.length !== 1 ? 's' : ''} disponível{activeProducts.length !== 1 ? 'is' : ''}
+          </p>
+        </div>
+      </div>
+
+      {/* Products Preview */}
+      {displayProducts.length > 0 && (
+        <div className="pl-11">
+          <p className="text-xs text-gray-600 mb-2 font-medium">Produtos em destaque:</p>
+          <div className="grid grid-cols-3 gap-2">
+            {displayProducts.map((product) => (
+              <button
+                key={product.id}
+                onClick={() => onProductClick?.(product)}
+                className="text-left hover:shadow-md transition-shadow rounded-lg border bg-white p-2"
+                title={`Ver detalhes: ${product.name}`}
+              >
+                <div className="aspect-square bg-gray-100 rounded mb-1 overflow-hidden">
+                  {product.images && product.images.length > 0 ? (
+                    <img 
+                      src={product.images[0]} 
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-gray-400 text-xs">📦</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs font-medium text-gray-900 truncate">{product.name}</p>
+                <p className="text-xs text-blue-600 font-semibold">
+                  {store.currency || 'Gs.'} {Number(product.price || 0).toLocaleString('pt-BR')}
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SearchResultItem({ 
   product, 
