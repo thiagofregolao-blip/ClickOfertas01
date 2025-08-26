@@ -15,6 +15,13 @@ import { useAppVersion, type AppVersionType } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import type { StoreWithProducts, Product } from "@shared/schema";
 
+// Função para limitar nome a duas palavras no mobile
+function limitStoreName(name: string, isMobile: boolean): string {
+  if (!isMobile) return name;
+  const words = name.split(' ');
+  return words.slice(0, 2).join(' ');
+}
+
 export default function StoresGallery() {
   const [searchQuery, setSearchQuery] = useState('');
   const { isMobile, isDesktop, version, versionName } = useAppVersion();
@@ -454,7 +461,7 @@ function StoreResultItem({
         </div>
         <div className="flex-1">
           <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-            <span>{store.name}</span>
+            <span>{limitStoreName(store.name, isMobile)}</span>
             <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
               LOJA
             </span>
@@ -699,7 +706,7 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
           
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-gray-900 drop-shadow-sm">{store.name}</h3>
+              <h3 className="font-bold text-gray-900 drop-shadow-sm">{limitStoreName(store.name, isMobile)}</h3>
               
               {featuredProducts.length > 0 && (
                 <Badge className="text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none shadow-lg animate-pulse ring-1 ring-white/30">

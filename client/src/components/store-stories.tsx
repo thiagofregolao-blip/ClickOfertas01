@@ -128,7 +128,7 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                 
                 {/* Nome da loja */}
                 <span className="text-xs font-medium text-gray-800 text-center max-w-20 truncate">
-                  {store.name}
+                  {isMobile ? store.name.split(' ').slice(0, 2).join(' ') : store.name}
                 </span>
               </div>
             );
