@@ -3,12 +3,7 @@ import { Strategy as GoogleStrategy, VerifyCallback } from "passport-google-oaut
 import type { Express } from "express";
 import { storage } from "./storage";
 
-// Declare passport-apple module for TypeScript
-declare module 'passport-apple' {
-  export class Strategy {
-    constructor(options: any, verify: (accessToken: any, refreshToken: any, idToken: any, profile: any, done: any) => void);
-  }
-}
+// Remove tipo Apple por enquanto - deixar só Google funcionando
 
 export async function setupOAuthProviders(app: Express) {
   // Google OAuth Strategy
@@ -19,22 +14,38 @@ export async function setupOAuthProviders(app: Express) {
       callbackURL: "/api/auth/google/callback"
     }, async (accessToken, refreshToken, profile, done) => {
       try {
-        const userInfo = {
-          id: `google_${profile.id}`,
-          email: profile.emails?.[0]?.value || '',
-          firstName: profile.name?.givenName || '',
-          lastName: profile.name?.familyName || '',
-          profileImageUrl: profile.photos?.[0]?.value || ''
-        };
+        const email = profile.emails?.[0]?.value || '';
+        const firstName = profile.name?.givenName || '';
+        const lastName = profile.name?.familyName || '';
+        const profileImageUrl = profile.photos?.[0]?.value || '';
         
-        const user = await storage.upsertUser(userInfo);
+        // Primeiro tenta encontrar usuário existente pelo email
+        let user = await storage.getUserByEmail(email);
         
-        return done(null, {
-          provider: 'google',
-          profile: userInfo,
-          user: user
-        });
+        if (user) {
+          // Se usuário existe, atualiza com dados do Google
+          user = await storage.updateUser(user.id, {
+            firstName: firstName || user.firstName,
+            lastName: lastName || user.lastName,
+            profileImageUrl: profileImageUrl || user.profileImageUrl,
+            provider: 'google',
+            providerId: profile.id,
+          });
+        } else {
+          // Se não existe, cria novo usuário
+          user = await storage.createUser({
+            email,
+            firstName,
+            lastName,
+            profileImageUrl,
+            provider: 'google',
+            providerId: profile.id,
+          });
+        }
+        
+        return done(null, user);
       } catch (error) {
+        console.error('Google OAuth error:', error);
         return done(error, undefined);
       }
     }));
@@ -52,22 +63,35 @@ export async function setupOAuthProviders(app: Express) {
       scope: ['email', 'name']
     }, async (accessToken: any, refreshToken: any, decodedIdToken: any, profile: any, done: any) => {
       try {
-        const userInfo = {
-          id: `apple_${decodedIdToken.sub}`,
-          email: decodedIdToken.email || '',
-          firstName: profile?.name?.firstName || decodedIdToken.name?.firstName || '',
-          lastName: profile?.name?.lastName || decodedIdToken.name?.lastName || '',
-          profileImageUrl: ''
-        };
+        const email = decodedIdToken.email || '';
+        const firstName = profile?.name?.firstName || decodedIdToken.name?.firstName || '';
+        const lastName = profile?.name?.lastName || decodedIdToken.name?.lastName || '';
         
-        const user = await storage.upsertUser(userInfo);
+        // Primeiro tenta encontrar usuário existente pelo email
+        let user = await storage.getUserByEmail(email);
         
-        return done(null, {
-          provider: 'apple',
-          profile: userInfo,
-          user: user
-        });
+        if (user) {
+          // Se usuário existe, atualiza com dados do Apple
+          user = await storage.updateUser(user.id, {
+            firstName: firstName || user.firstName,
+            lastName: lastName || user.lastName,
+            provider: 'apple',
+            providerId: decodedIdToken.sub,
+          });
+        } else {
+          // Se não existe, cria novo usuário
+          user = await storage.createUser({
+            email,
+            firstName,
+            lastName,
+            provider: 'apple',
+            providerId: decodedIdToken.sub,
+          });
+        }
+        
+        return done(null, user);
       } catch (error) {
+        console.error('Apple OAuth error:', error);
         return done(error, undefined);
       }
     }));
