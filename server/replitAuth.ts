@@ -129,12 +129,6 @@ export async function setupAuth(app: Express) {
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
-  
-  console.log("isAuthenticated check:", {
-    isAuthenticated: req.isAuthenticated(),
-    user: req.user,
-    session: req.session
-  });
 
   if (!req.isAuthenticated()) {
     return res.status(401).json({ message: "Unauthorized" });

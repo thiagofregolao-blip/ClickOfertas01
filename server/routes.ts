@@ -18,8 +18,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Handle both OAuth and traditional login sessions
       const userId = req.user.claims?.sub || req.user.id;
-      console.log("User session:", req.user);
-      console.log("User ID extracted:", userId);
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -125,7 +123,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/stores/me', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims?.sub || req.user.id;
-      console.log("Store request - User ID:", userId);
       const store = await storage.getUserStore(userId);
       res.json(store);
     } catch (error) {
