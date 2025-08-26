@@ -5,12 +5,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Star, Grid, List, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, MapPin, Star, Grid, List, User, Settings, LogOut } from "lucide-react";
 import { StoreStoriesSection } from "@/components/store-stories";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import LoginPage from "@/components/login-page";
+import UserConfigModal from "@/components/user-config-modal";
 import { useAppVersion, type AppVersionType } from "@/hooks/use-mobile";
+import { useAuth } from "@/hooks/useAuth";
 import type { StoreWithProducts, Product } from "@shared/schema";
 
 export default function StoresGallery() {
@@ -20,6 +23,9 @@ export default function StoresGallery() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedStore, setSelectedStore] = useState<StoreWithProducts | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isUserConfigOpen, setIsUserConfigOpen] = useState(false);
+  const { user, isAuthenticated } = useAuth();
 
   // Sincronizar viewMode com a detecção automática
   useEffect(() => {
@@ -167,14 +173,59 @@ export default function StoresGallery() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-white">🛍️ Panfleto Rápido</h1>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
-                data-testid="button-user-login"
-              >
-                <User className="w-4 h-4" />
-                Entrar
-              </button>
+              {isAuthenticated ? (
+                // Usuário logado - mostrar informações e menu
+                <div className="relative">
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="text-white hover:text-gray-200 font-medium flex items-center gap-2"
+                    data-testid="button-user-menu"
+                  >
+                    <User className="w-5 h-5" />
+                    <span className="text-sm">
+                      Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
+                    </span>
+                    <Settings className="w-4 h-4" />
+                  </button>
+                  
+                  {/* Menu dropdown do usuário */}
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border py-2 z-50">
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          setIsUserConfigOpen(true);
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Configurações
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          window.location.href = '/api/logout';
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sair
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // Usuário não logado - mostrar botão entrar
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
+                  data-testid="button-user-login"
+                >
+                  <User className="w-4 h-4" />
+                  Entrar
+                </button>
+              )}
+              
               <button
                 onClick={() => window.location.href = '/'}
                 className="text-white hover:text-gray-200 font-medium"
@@ -236,6 +287,15 @@ export default function StoresGallery() {
         onClose={() => setIsLoginModalOpen(false)}
         mode="user"
       />
+
+      {/* User Config Modal - Configurações do Usuário */}
+      {user && (
+        <UserConfigModal
+          isOpen={isUserConfigOpen}
+          onClose={() => setIsUserConfigOpen(false)}
+          user={user}
+        />
+      )}
     </div>
   );
 }

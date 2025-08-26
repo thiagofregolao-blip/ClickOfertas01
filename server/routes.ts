@@ -34,6 +34,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user profile route
+  app.put('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims?.sub || req.user.id;
+      const updateSchema = z.object({
+        firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+        lastName: z.string().min(2, "Sobrenome deve ter pelo menos 2 caracteres"), 
+        email: z.string().email("Email inválido"),
+        phone: z.string().optional(),
+      });
+      
+      const updateData = updateSchema.parse(req.body);
+      
+      // Check if email is already in use by another user
+      if (updateData.email) {
+        const existingUser = await storage.getUserByEmail(updateData.email);
+        if (existingUser && existingUser.id !== userId) {
+          return res.status(400).json({ message: "Email já está em uso por outro usuário" });
+        }
+      }
+      
+      // Update user information
+      const updatedUser = await storage.updateUser(userId, updateData);
+      
+      res.json({ 
+        message: "Perfil atualizado com sucesso",
+        user: updatedUser
+      });
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          message: "Dados inválidos",
+          errors: error.errors 
+        });
+      }
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Erro ao atualizar perfil" });
+    }
+  });
+
   // Registration route
   app.post('/api/auth/register', async (req, res) => {
     try {
