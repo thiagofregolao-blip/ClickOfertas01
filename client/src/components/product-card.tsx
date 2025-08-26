@@ -67,7 +67,7 @@ export default function ProductCard({
 
   const productContent = (
     <div 
-      className={`relative ${categoryColors.bg} ${product.isFeatured && showFeaturedBadge ? 'border-2 border-transparent bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 p-0.5 animate-pulse' : `border-2 ${categoryColors.border}`} overflow-hidden group text-center flex flex-col h-full min-h-[200px] sm:min-h-[220px] ${
+      className={`relative ${categoryColors.bg} ${product.isFeatured && showFeaturedBadge ? 'border-2 border-transparent bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 p-0.5 shadow-lg shadow-amber-200' : `border-2 ${categoryColors.border}`} overflow-hidden group text-center flex flex-col h-full min-h-[200px] sm:min-h-[220px] ${
         onClick ? 'cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]' : ''
       } ${product.isFeatured && showFeaturedBadge ? 'rounded-lg' : ''}`}
       onClick={handleCardClick}
