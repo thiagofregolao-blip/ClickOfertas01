@@ -510,7 +510,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                             )}
                           </div>
                           <div className="text-center">
-                            <p className="text-xs font-medium text-gray-900 line-clamp-1 mb-1">
+                            <p className="text-xs font-medium text-gray-900 line-clamp-2 mb-1">
                               {similarProduct.name}
                             </p>
                             <p className="text-xs font-bold" style={{ color: store.themeColor || '#E11D48' }}>
@@ -910,7 +910,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                             )}
                           </div>
                           <div className="text-center">
-                            <p className="text-xs font-medium text-gray-900 line-clamp-1 mb-1">
+                            <p className="text-xs font-medium text-gray-900 line-clamp-2 mb-1">
                               {similarProduct.name}
                             </p>
                             <p className="text-xs font-bold" style={{ color: store.themeColor || '#E11D48' }}>
