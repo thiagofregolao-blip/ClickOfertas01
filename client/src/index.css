@@ -283,49 +283,4 @@ html {
   display: inline-block;
 }
 
-/* Badge de oferta especial com bordas serrilhadas */
-.offer-badge {
-  width: 44px;
-  height: 44px;
-  background: radial-gradient(circle, #ff0000, #cc0000);
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  animation: pulse-offer 2s infinite ease-in-out;
-  clip-path: polygon(
-    50% 0%, 
-    61% 35%, 
-    98% 35%, 
-    68% 57%, 
-    79% 91%, 
-    50% 70%, 
-    21% 91%, 
-    32% 57%, 
-    2% 35%, 
-    39% 35%
-  );
-  box-shadow: 
-    0 2px 8px rgba(255, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-@media (min-width: 640px) {
-  .offer-badge {
-    width: 48px;
-    height: 48px;
-  }
-}
-
-@keyframes pulse-offer {
-  0%, 100% {
-    transform: scale(1);
-    filter: brightness(1);
-  }
-  50% {
-    transform: scale(1.05);
-    filter: brightness(1.1);
-  }
-}
 

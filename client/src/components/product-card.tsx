@@ -138,12 +138,12 @@ export default function ProductCard({
 
           {/* Badge de etiqueta para produtos em destaque */}
           {(product.isFeatured && showFeaturedBadge) && (
-            <div className="absolute top-1 left-1 z-10">
-              <div className="offer-badge">
-                <span className="text-white text-[8px] sm:text-[9px] font-black leading-tight">
-                  OFERTA<br/>ESPECIAL
-                </span>
-              </div>
+            <div className="absolute top-0 left-0 z-10">
+              <img 
+                src="/attached_assets/ChatGPT Image 26 de ago. de 2025, 19_53_25_1756248832502.png" 
+                alt="Oferta Especial"
+                className="w-12 h-12 sm:w-14 sm:h-14 object-contain animate-pulse drop-shadow-lg"
+              />
             </div>
           )}
         </div>
