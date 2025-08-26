@@ -721,12 +721,6 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                           </Button>
                         )}
                         
-                        {/* Indicador de Posição dos Produtos */}
-                        {activeProducts.length > 1 && (
-                          <div className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
-                            {currentIndex + 1} / {activeProducts.length}
-                          </div>
-                        )}
                       </>
                     );
                   })()}
