@@ -436,7 +436,7 @@ function StoreResultItem({
   const displayProducts = featuredProducts.length > 0 ? featuredProducts : activeProducts.slice(0, 3);
 
   const handleStoreClick = () => {
-    setLocation(`/stores/${store.slug}`);
+    setLocation(`/flyer/${store.slug}`);
   };
 
   return (
