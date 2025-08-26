@@ -108,12 +108,17 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
       const newProduct = storeProducts[newIndex];
       if (newProduct) {
         setCurrentImageIndex(0);
-        onClose();
+        // Transição mais suave
+        setIsClosing(true);
         setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('openProductModal', {
-            detail: { product: newProduct, store }
-          }));
-        }, 100);
+          setIsClosing(false);
+          onClose();
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('openProductModal', {
+              detail: { product: newProduct, store }
+            }));
+          }, 50);
+        }, 200);
       }
     }
     if (isRightSwipe) {
@@ -122,12 +127,17 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
       const newProduct = storeProducts[newIndex];
       if (newProduct) {
         setCurrentImageIndex(0);
-        onClose();
+        // Transição mais suave
+        setIsClosing(true);
         setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('openProductModal', {
-            detail: { product: newProduct, store }
-          }));
-        }, 100);
+          setIsClosing(false);
+          onClose();
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('openProductModal', {
+              detail: { product: newProduct, store }
+            }));
+          }, 50);
+        }, 200);
       }
     }
   };
@@ -251,7 +261,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
         }
       }}>
         <DialogContent className={`w-full h-full max-w-none max-h-none m-0 p-0 bg-white ${isClosing ? 'animate-modal-zoom-out' : ''}`}>
-          <div className="relative h-full flex flex-col">
+          <div className="relative h-full flex flex-col overflow-hidden">
             {/* Nome da Loja e Badges - Área separada acima da imagem */}
             <div className="bg-white border-b px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -399,13 +409,17 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   const newProduct = storeProducts[newIndex];
                   if (newProduct) {
                     setCurrentImageIndex(0);
-                    // Emit event to update the modal with new product
-                    onClose();
+                    // Transição mais suave com animação
+                    setIsClosing(true);
                     setTimeout(() => {
-                      window.dispatchEvent(new CustomEvent('openProductModal', {
-                        detail: { product: newProduct, store }
-                      }));
-                    }, 100);
+                      setIsClosing(false);
+                      onClose();
+                      setTimeout(() => {
+                        window.dispatchEvent(new CustomEvent('openProductModal', {
+                          detail: { product: newProduct, store }
+                        }));
+                      }, 50);
+                    }, 200);
                   }
                 };
                 
@@ -444,9 +458,10 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             </div>
 
 
-            {/* Conteúdo Scrollável com barra de rolagem aprimorada */}
+            {/* Conteúdo Scrollável com barra de rolagem funcional */}
             <div 
-              className="flex-1 overflow-y-auto p-4 pb-6"
+              className="flex-1 min-h-0 overflow-y-scroll p-4 pb-6"
+              style={{ maxHeight: 'calc(100vh - 320px)' }}
               onTouchStart={onProductTouchStart}
               onTouchMove={onProductTouchMove}
               onTouchEnd={onProductTouchEnd}
