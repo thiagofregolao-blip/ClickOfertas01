@@ -514,7 +514,7 @@ export default function AdminCategories() {
                         <Label htmlFor="seller-whatsapp">WhatsApp</Label>
                         <Input
                           id="seller-whatsapp"
-                          placeholder="Ex: +5511999999999"
+                          placeholder="Ex: +595 991 123456"
                           {...sellerForm.register("whatsapp")}
                           data-testid="input-seller-whatsapp"
                         />
