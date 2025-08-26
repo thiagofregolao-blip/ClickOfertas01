@@ -475,7 +475,7 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
                 <img 
                   src={store.logoUrl} 
                   alt={store.name}
-                  className="w-10 h-10 rounded-full object-cover"
+                  className="w-8 h-8 rounded-full object-contain bg-white/90 p-1"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
