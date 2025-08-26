@@ -79,10 +79,10 @@ export default function StoresGallery() {
   
   const { data: stores, isLoading } = useQuery<StoreWithProducts[]>({
     queryKey: ['/api/public/stores'],
-    staleTime: 2 * 60 * 1000, // 2 minutos (mais fresco para galeria)
-    gcTime: 30 * 60 * 1000, // 30 minutos
-    refetchOnWindowFocus: false, // Evita refetch desnecessário
-    refetchOnMount: true, // Permite dados atualizados no mount
+    staleTime: 0, // Sempre buscar dados frescos para refletir mudanças de destaque
+    gcTime: 5 * 60 * 1000, // 5 minutos (cache mais curto)
+    refetchOnWindowFocus: true, // Refetch quando usuário volta à janela
+    refetchOnMount: true, // Sempre buscar dados atualizados
     refetchOnReconnect: true, // Refetch ao reconectar
   });
 
@@ -539,21 +539,18 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
     return shuffled.slice(0, count);
   };
   
-  // Criar displayProducts com sistema de rotação
+  // Criar displayProducts - priorizar apenas produtos em destaque
   const displayProducts = (() => {
-    // 2 primeiras ofertas fixas (produtos em destaque)
-    const fixedOffers = featuredFromDifferentCategories.slice(0, 2);
+    // Se há produtos em destaque, mostrar apenas eles (máximo 2)
+    if (featuredFromDifferentCategories.length > 0) {
+      return featuredFromDifferentCategories.slice(0, 2);
+    }
     
-    // Pool de produtos para randomização (excluindo os já selecionados)
-    const usedProductIds = new Set(fixedOffers.map(p => p.id));
-    const availableProducts = [...featuredFromDifferentCategories.slice(2), ...regularProducts]
-      .filter(p => !usedProductIds.has(p.id));
-    
-    // 3 produtos aleatórios do restante (seed único por loja + timestamp)
+    // Se não há produtos em destaque, mostrar produtos regulares com rotação
     const rotationSeed = getCurrentRotationSeed() + store.id.charCodeAt(0);
-    const randomProducts = getRandomProducts(availableProducts, 3, rotationSeed);
+    const randomProducts = getRandomProducts(regularProducts, 5, rotationSeed);
     
-    return [...fixedOffers, ...randomProducts].slice(0, 5);
+    return randomProducts;
   })();
 
   return (
