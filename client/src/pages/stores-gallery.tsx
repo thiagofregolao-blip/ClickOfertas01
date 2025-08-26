@@ -437,7 +437,7 @@ function StoreResultItem({
   return (
     <div className={`${isMobile ? 'p-3' : 'p-4'} hover:bg-blue-50 transition-all border-l-4 border-blue-500 bg-blue-25`}>
       {/* Store Header */}
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-3">
         <div 
           className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
           style={{ backgroundColor: store.themeColor || '#E11D48' }}
@@ -456,41 +456,6 @@ function StoreResultItem({
           </p>
         </div>
       </div>
-
-      {/* Products Preview */}
-      {displayProducts.length > 0 && (
-        <div className="pl-11">
-          <p className="text-xs text-gray-600 mb-2 font-medium">Produtos em destaque:</p>
-          <div className="grid grid-cols-3 gap-2">
-            {displayProducts.map((product) => (
-              <button
-                key={product.id}
-                onClick={() => onProductClick?.(product)}
-                className="text-left hover:shadow-md transition-shadow rounded-lg border bg-white p-2"
-                title={`Ver detalhes: ${product.name}`}
-              >
-                <div className="aspect-square bg-gray-100 rounded mb-1 overflow-hidden">
-                  {product.imageUrl ? (
-                    <img 
-                      src={product.imageUrl} 
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-gray-400 text-xs">📦</span>
-                    </div>
-                  )}
-                </div>
-                <p className="text-xs font-medium text-gray-900 truncate">{product.name}</p>
-                <p className="text-xs text-blue-600 font-semibold">
-                  {store.currency || 'Gs.'} {Number(product.price || 0).toLocaleString('pt-BR')}
-                </p>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
