@@ -138,10 +138,12 @@ export default function ProductCard({
 
           {/* Badge de etiqueta para produtos em destaque */}
           {(product.isFeatured && showFeaturedBadge) && (
-            <div className="absolute top-1 right-1 z-10">
-              <div className="featured-tag">
-                <span className="text-white text-xs font-bold">🔥</span>
-              </div>
+            <div className="absolute top-0 left-0 z-10">
+              <img 
+                src="/attached_assets/image_1756248465036.png" 
+                alt="Oferta Especial"
+                className="w-12 h-12 sm:w-14 sm:h-14 object-contain animate-pulse"
+              />
             </div>
           )}
         </div>
