@@ -468,18 +468,18 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
         <div className="relative px-4 py-3 flex items-center backdrop-blur-[0.5px]">
           <Link href={`/flyer/${store.slug}`}>
             <div 
-              className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-lg cursor-pointer hover:scale-105 transition-transform"
+              className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-lg cursor-pointer hover:scale-105 transition-transform"
               style={{ backgroundColor: store.themeColor || '#E11D48' }}
             >
               {store.logoUrl ? (
                 <img 
                   src={store.logoUrl} 
                   alt={store.name}
-                  className="rounded-full object-contain bg-white p-1"
+                  className="rounded-full object-cover"
                   style={{ 
-                    width: '3.25rem', 
-                    height: '3.25rem',
-                    filter: 'brightness(1.1) contrast(1.2)'
+                    width: '3.75rem', 
+                    height: '3.75rem',
+                    filter: 'brightness(1.1) contrast(1.3) saturate(1.1)'
                   }}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
