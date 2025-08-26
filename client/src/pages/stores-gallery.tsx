@@ -267,9 +267,9 @@ export default function StoresGallery() {
 
       {/* Barra de Busca */}
       <div className="bg-white border-b">
-        <div className={`mx-auto py-3 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <div className={`mx-auto py-3 ${isMobile ? 'px-4 max-w-full' : 'px-4 max-w-4xl'}`}>
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 z-10" />
             <Input
               placeholder="Buscar produtos ou lojas..."
               value={searchQuery}
@@ -281,16 +281,18 @@ export default function StoresGallery() {
       </div>
 
       {/* Feed Unificado */}
-      <UnifiedFeedView 
-        stores={filteredStores} 
-        searchQuery={searchQuery} 
-        searchResults={searchResults} 
-        isMobile={isMobile}
-        onProductSelect={(product, store) => {
-          setSelectedProduct(product);
-          setSelectedStore(store);
-        }}
-      />
+      <div className={`${isMobile ? 'px-2' : 'px-4'}`}>
+        <UnifiedFeedView 
+          stores={filteredStores} 
+          searchQuery={searchQuery} 
+          searchResults={searchResults} 
+          isMobile={isMobile}
+          onProductSelect={(product, store) => {
+            setSelectedProduct(product);
+            setSelectedStore(store);
+          }}
+        />
+      </div>
       
       {/* Product Detail Modal */}
       <ProductDetailModal
@@ -323,7 +325,7 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
   onProductSelect: (product: Product, store: StoreWithProducts) => void
 }) {
   return (
-    <div className={`mx-auto ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
+    <div className={`mx-auto w-full ${isMobile ? 'max-w-full' : 'max-w-4xl'}`}>
         {searchQuery.trim() ? (
           // Layout de Busca Compacto
           searchResults.length === 0 ? (
