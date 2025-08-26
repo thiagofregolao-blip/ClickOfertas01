@@ -694,7 +694,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     onClick={() => toggleLike(product.id)}
                     variant="outline"
                     size="sm"
-                    className="flex items-center justify-center w-10 h-10 rounded-full border-gray-200 hover:bg-gray-50"
+                    className="flex items-center justify-center w-8 h-8 rounded-full border-gray-200 hover:bg-gray-50"
                   >
                     <Heart className={`h-4 w-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
                   </Button>
@@ -706,7 +706,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     onClick={() => handleSaveProduct(product.id)}
                     variant="outline"
                     size="sm"
-                    className="flex items-center justify-center w-10 h-10 rounded-full border-gray-200 hover:bg-gray-50"
+                    className="flex items-center justify-center w-8 h-8 rounded-full border-gray-200 hover:bg-gray-50"
                   >
                     <Bookmark className={`h-4 w-4 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
                   </Button>
@@ -718,7 +718,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     onClick={handleShare}
                     variant="outline"
                     size="sm"
-                    className="flex items-center justify-center w-10 h-10 rounded-full border-gray-200 hover:bg-gray-50"
+                    className="flex items-center justify-center w-8 h-8 rounded-full border-gray-200 hover:bg-gray-50"
                   >
                     <Share2 className="h-4 w-4 text-gray-700" />
                   </Button>
@@ -730,7 +730,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     <Button
                       onClick={handleContact}
                       size="sm"
-                      className="flex items-center justify-center w-10 h-10 rounded-full bg-[#25D366] hover:bg-[#128C7E] text-white"
+                      className="flex items-center justify-center w-8 h-8 rounded-full bg-[#25D366] hover:bg-[#128C7E] text-white"
                     >
                       <MessageCircle className="h-4 w-4" />
                     </Button>
@@ -743,7 +743,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     <Button
                       onClick={handleDirections}
                       size="sm"
-                      className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+                      className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
                       data-testid="button-directions-modal"
                     >
                       <MapPin className="h-4 w-4" />
@@ -819,52 +819,54 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               
               return similarProducts.length > 0 ? (
                 <div className="mb-6">
-                  <h4 className="font-medium text-gray-900 mb-3">Produtos similares</h4>
+                  <h4 className="font-medium text-gray-900 mb-3 px-6">Produtos similares</h4>
                   
-                  <div className="grid grid-cols-5 gap-3">
-                    {similarProducts.map((similarProduct) => (
-                      <div 
-                        key={similarProduct.id} 
-                        className="cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() => {
-                          setCurrentImageIndex(0);
-                          onClose();
-                          setTimeout(() => {
-                            window.dispatchEvent(new CustomEvent('openProductModal', {
-                              detail: { product: similarProduct, store }
-                            }));
-                          }, 100);
-                        }}
-                      >
-                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
-                          {similarProduct.imageUrl ? (
-                            <img 
-                              src={similarProduct.imageUrl} 
-                              alt={similarProduct.name}
-                              className="w-full h-full object-cover hover:scale-105 transition-transform"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                              <div className="w-3 h-3 bg-gray-300 rounded"></div>
-                            </div>
-                          )}
+                  <div className="px-6">
+                    <div className="grid grid-cols-5 gap-3">
+                      {similarProducts.map((similarProduct) => (
+                        <div 
+                          key={similarProduct.id} 
+                          className="cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => {
+                            setCurrentImageIndex(0);
+                            onClose();
+                            setTimeout(() => {
+                              window.dispatchEvent(new CustomEvent('openProductModal', {
+                                detail: { product: similarProduct, store }
+                              }));
+                            }, 100);
+                          }}
+                        >
+                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
+                            {similarProduct.imageUrl ? (
+                              <img 
+                                src={similarProduct.imageUrl} 
+                                alt={similarProduct.name}
+                                className="w-full h-full object-cover hover:scale-105 transition-transform"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                <div className="w-3 h-3 bg-gray-300 rounded"></div>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs font-medium text-gray-900 line-clamp-1 mb-1">
+                              {similarProduct.name}
+                            </p>
+                            <p className="text-xs font-bold" style={{ color: store.themeColor || '#E11D48' }}>
+                              {store.currency || 'Gs.'} {(() => {
+                                const price = parseFloat(String(similarProduct.price || '0'));
+                                return new Intl.NumberFormat('pt-BR', {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                                }).format(price);
+                              })()}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-center">
-                          <p className="text-xs font-medium text-gray-900 line-clamp-1 mb-1">
-                            {similarProduct.name}
-                          </p>
-                          <p className="text-xs font-bold" style={{ color: store.themeColor || '#E11D48' }}>
-                            {store.currency || 'Gs.'} {(() => {
-                              const price = parseFloat(String(similarProduct.price || '0'));
-                              return new Intl.NumberFormat('pt-BR', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                              }).format(price);
-                            })()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
               ) : null;
