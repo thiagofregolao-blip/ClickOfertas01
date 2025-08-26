@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { User, Edit, Save, X } from "lucide-react";
+import { User, Edit, Save, X, Camera, Upload } from "lucide-react";
 import type { User as UserType } from "@shared/schema";
 
 // Schema de validação para edição de perfil
@@ -31,6 +31,7 @@ const updateUserSchema = z.object({
   lastName: z.string().min(2, "Sobrenome deve ter pelo menos 2 caracteres"),
   email: z.string().email("Email inválido"),
   phone: z.string().optional(),
+  profileImageUrl: z.string().url("URL da imagem inválida").optional().or(z.literal("")),
 });
 
 type UpdateUserFormData = z.infer<typeof updateUserSchema>;
@@ -52,6 +53,7 @@ export default function UserConfigModal({ isOpen, onClose, user }: UserConfigMod
       lastName: user.lastName || '',
       email: user.email || '',
       phone: user.phone || '',
+      profileImageUrl: user.profileImageUrl || '',
     },
   });
 
@@ -92,6 +94,57 @@ export default function UserConfigModal({ isOpen, onClose, user }: UserConfigMod
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            {/* Foto de Perfil */}
+            <div className="flex flex-col items-center space-y-3 pb-4 border-b">
+              <div className="relative">
+                <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
+                  {form.watch("profileImageUrl") ? (
+                    <img 
+                      src={form.watch("profileImageUrl")} 
+                      alt="Perfil"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement as HTMLElement;
+                        if (parent) {
+                          parent.innerHTML = `<User class="w-8 h-8 text-blue-600" />`;
+                        }
+                      }}
+                    />
+                  ) : (
+                    <User className="w-8 h-8 text-blue-600" />
+                  )}
+                </div>
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="profileImageUrl"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel className="flex items-center gap-2">
+                      <Camera className="w-4 h-4" />
+                      Foto de Perfil
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="url"
+                        placeholder="https://exemplo.com/sua-foto.jpg"
+                        className="border-gray-300 focus:border-blue-500"
+                        data-testid="input-profile-image"
+                      />
+                    </FormControl>
+                    <div className="text-xs text-gray-500">
+                      Cole o link de uma imagem do Instagram, Google Fotos ou outro serviço
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             {/* Nome */}
             <FormField
               control={form.control}
