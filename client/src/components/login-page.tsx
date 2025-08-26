@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SiGoogle, SiApple } from "react-icons/si";
 import { ArrowLeft, Store, Mail, Lock, Phone, MapPin, Building } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -10,7 +11,7 @@ import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface LoginPageProps {
   isOpen: boolean;
@@ -41,16 +42,43 @@ const storeRegisterSchema = z.object({
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(1, "Senha é obrigatória"),
+  rememberMe: z.boolean().optional(),
 });
 
 type UserRegisterFormData = z.infer<typeof userRegisterSchema>;
 type StoreRegisterFormData = z.infer<typeof storeRegisterSchema>;
 type LoginFormData = z.infer<typeof loginSchema>;
 
+// Hook para gerenciar dados salvos
+const useSavedCredentials = (key: string) => {
+  const saveCredentials = (email: string, password: string) => {
+    localStorage.setItem(key, JSON.stringify({ email, password }));
+  };
+
+  const getSavedCredentials = () => {
+    try {
+      const saved = localStorage.getItem(key);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const clearSavedCredentials = () => {
+    localStorage.removeItem(key);
+  };
+
+  return { saveCredentials, getSavedCredentials, clearSavedCredentials };
+};
+
 export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentView, setCurrentView] = useState<'home' | 'user-login' | 'user-register' | 'store-login' | 'store-register'>('home');
+  
+  // Hooks para salvar credenciais
+  const userCredentials = useSavedCredentials('panfleto_user_credentials');
+  const storeCredentials = useSavedCredentials('panfleto_store_credentials');
 
   // Form para cadastro de usuário normal
   const userRegisterForm = useForm<UserRegisterFormData>({
@@ -83,6 +111,7 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false,
     },
   });
 
@@ -139,7 +168,7 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
     mutationFn: async (data: LoginFormData) => {
       return await apiRequest("POST", "/api/auth/login", data);
     },
-    onSuccess: (userData) => {
+    onSuccess: (userData: any) => {
       toast({
         title: "Login realizado!",
         description: "Bem-vindo de volta!",
@@ -172,6 +201,22 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
   };
 
   const handleLogin = (data: LoginFormData) => {
+    // Salva credenciais se "lembrar dados" estiver marcado
+    if (data.rememberMe) {
+      if (currentView === 'store-login') {
+        storeCredentials.saveCredentials(data.email, data.password);
+      } else {
+        userCredentials.saveCredentials(data.email, data.password);
+      }
+    } else {
+      // Remove credenciais salvas se não quiser lembrar
+      if (currentView === 'store-login') {
+        storeCredentials.clearSavedCredentials();
+      } else {
+        userCredentials.clearSavedCredentials();
+      }
+    }
+    
     loginMutation.mutate(data);
   };
 
@@ -252,6 +297,14 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
   const goToUserLogin = () => {
     resetForms();
     setCurrentView('user-login');
+    
+    // Carrega credenciais salvas do usuário
+    const saved = userCredentials.getSavedCredentials();
+    if (saved) {
+      loginForm.setValue('email', saved.email);
+      loginForm.setValue('password', saved.password);
+      loginForm.setValue('rememberMe', true);
+    }
   };
 
   const goToUserRegister = () => {
@@ -262,6 +315,21 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
   const goToStoreLogin = () => {
     resetForms();
     setCurrentView('store-login');
+    
+    // Carrega credenciais salvas da loja (Cellshop)
+    const saved = storeCredentials.getSavedCredentials();
+    if (saved) {
+      loginForm.setValue('email', saved.email);
+      loginForm.setValue('password', saved.password);
+      loginForm.setValue('rememberMe', true);
+      
+      // Se tem dados salvos, mostra toast confirmando
+      toast({
+        title: "✅ Dados encontrados",
+        description: "Credenciais da Cellshop carregadas automaticamente",
+        variant: "default",
+      });
+    }
   };
 
   const goToStoreRegister = () => {
@@ -470,6 +538,30 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
                         />
                       </FormControl>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={loginForm.control}
+                  name="rememberMe"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-remember-me-user"
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm text-gray-700">
+                          🔐 Lembrar dados neste dispositivo
+                        </FormLabel>
+                        <p className="text-xs text-gray-500">
+                          Seus dados de login ficam salvos para facilitar o acesso
+                        </p>
+                      </div>
                     </FormItem>
                   )}
                 />
@@ -742,6 +834,30 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
                         />
                       </FormControl>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={loginForm.control}
+                  name="rememberMe"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-remember-me-store"
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm text-gray-700">
+                          🏪 Lembrar dados da Cellshop
+                        </FormLabel>
+                        <p className="text-xs text-gray-500">
+                          Credenciais salvas para acesso rápido ao painel administrativo
+                        </p>
+                      </div>
                     </FormItem>
                   )}
                 />
