@@ -546,7 +546,7 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
     
     // Produtos já usados (para não repetir)
     const usedProductIds = new Set(fixedOffers.map(p => p.id));
-    const availableProducts = [...featuredFromDifferentCategories.slice(2), ...regularProducts]
+    const availableProducts = regularProducts
       .filter(p => !usedProductIds.has(p.id));
     
     // 3 produtos aleatórios do restante (com rotação a cada 1 minuto)
