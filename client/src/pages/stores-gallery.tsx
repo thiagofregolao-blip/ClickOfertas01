@@ -33,14 +33,15 @@ export default function StoresGallery() {
   
   // Event listener para produtos similares
   useEffect(() => {
-    const handleOpenProductModal = (event: CustomEvent) => {
-      const { product, store } = event.detail;
+    const handleOpenProductModal = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { product, store } = customEvent.detail;
       setSelectedProduct(product);
       setSelectedStore(store);
     };
     
-    window.addEventListener('openProductModal', handleOpenProductModal);
-    return () => window.removeEventListener('openProductModal', handleOpenProductModal);
+    window.addEventListener('openProductModal', handleOpenProductModal as EventListener);
+    return () => window.removeEventListener('openProductModal', handleOpenProductModal as EventListener);
   }, []);
   
   const { data: stores, isLoading } = useQuery<StoreWithProducts[]>({
