@@ -54,6 +54,63 @@ Preferred communication style: Simple, everyday language.
 - **Category Filtering**: Individual flyer category filters with dropdown selector
 - **Instagram-Style Feed**: Clean, mobile-first design with focused product display
 
+## System Improvements & Feedback
+
+### Critical Priority Issues
+
+**1. Performance Optimization**
+- Component refactoring: StoresGallery (826 lines) needs to be broken into smaller components
+- Implement lazy loading for images
+- Add virtualização for large product lists
+- Add useMemo and useCallback for expensive operations
+- Remove production console.logs
+
+**2. UX/UI Enhancements**
+- Add debounce to search functionality (500ms delay)
+- Implement detailed skeleton loading states
+- Create more informative empty states
+- Improve visual feedback for loading/error states
+- Add proper accessibility (ARIA labels, focus management)
+
+**3. Missing Core Features**
+- Advanced filtering (price, category, location)
+- Persistent favorites (currently only localStorage)
+- Push notifications for deals
+- Better native sharing
+- Basic offline mode capabilities
+- Enhanced analytics beyond basic view tracking
+
+### Medium Priority Improvements
+
+**4. Code Quality & Architecture**
+- Extract business logic from UI components
+- Create custom hooks (useSearch, useProducts)
+- Standardize error handling across the app
+- Reduce component complexity (some components 200+ lines)
+
+**5. SEO & Marketing**
+- Dynamic meta tags per store
+- Open Graph tags for social sharing
+- Schema.org structured data for products
+- Sitemap generation
+- Google Analytics integration
+
+**6. Store Management Features**
+- Bulk product operations
+- Advanced inventory management
+- Sales analytics dashboard
+- Customer engagement metrics
+- Export capabilities for store data
+
+### Low Priority Enhancements
+
+**7. Technical Debt**
+- API response caching optimization
+- Database query optimization
+- Bundle size optimization
+- Error boundary implementation
+- Automated testing setup
+
 ## External Dependencies
 
 ### Database & Infrastructure
