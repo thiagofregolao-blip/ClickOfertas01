@@ -539,10 +539,22 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
     return shuffled.slice(0, count);
   };
   
-  // Criar displayProducts - APENAS produtos em destaque (máximo 2)
+  // Criar displayProducts - 2 produtos em destaque + 3 produtos aleatórios
   const displayProducts = (() => {
-    // Mostrar APENAS produtos em destaque, máximo 2
-    return featuredFromDifferentCategories.slice(0, 2);
+    // 2 produtos em destaque (fixos)
+    const fixedOffers = featuredFromDifferentCategories.slice(0, 2);
+    
+    // Produtos já usados (para não repetir)
+    const usedProductIds = new Set(fixedOffers.map(p => p.id));
+    const availableProducts = [...featuredFromDifferentCategories.slice(2), ...regularProducts]
+      .filter(p => !usedProductIds.has(p.id));
+    
+    // 3 produtos aleatórios do restante (com rotação a cada 1 minuto)
+    const rotationSeed = getCurrentRotationSeed() + store.id.charCodeAt(0);
+    const randomProducts = getRandomProducts(availableProducts, 3, rotationSeed);
+    
+    // Combinar: 2 destaque + 3 aleatórios = 5 produtos total
+    return [...fixedOffers, ...randomProducts].slice(0, 5);
   })();
 
   return (
