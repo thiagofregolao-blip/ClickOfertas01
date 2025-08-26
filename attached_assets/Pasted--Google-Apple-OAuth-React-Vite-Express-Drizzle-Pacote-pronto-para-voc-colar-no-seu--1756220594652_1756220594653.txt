@@ -1,0 +1,575 @@
+# Google & Apple OAuth — React (Vite) + Express + Drizzle
+
+> Pacote pronto para você colar no seu projeto. Inclui: **Passport.js (Google + Apple), rotas Express, schema Drizzle, sessão com cookie**, e **botões React (shadcn/ui)**.
+
+---
+
+## 0) Pacotes a instalar
+
+**Servidor**
+
+```bash
+npm i passport passport-google-oauth20 passport-apple express-session connect-pg-simple uuid dotenv
+```
+
+> Assumo que você já tem `pg`, `drizzle-orm` e `drizzle-kit` instalados.
+
+**Cliente**
+
+```bash
+npm i wouter
+# (shadcn/ui já presente no seu stack)
+```
+
+---
+
+## 1) Variáveis de ambiente (.env)
+
+```ini
+# Banco
+DATABASE_URL=postgres://user:pass@localhost:5432/sua_db
+
+# Sessão
+SESSION_SECRET=troque-por-uma-string-bem-grande
+FRONTEND_URL=http://localhost:5173
+API_BASE_URL=http://localhost:4000
+
+# Google OAuth (Cloud Console → Credentials → OAuth 2.0 Client ID)
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_CALLBACK_PATH=/api/auth/google/callback
+
+# Apple OAuth (Apple Developer → Identifiers → Service ID + Keys)
+APPLE_CLIENT_ID=com.seu.dominio.web     # Service ID (não é Bundle ID)
+APPLE_TEAM_ID=ABCDE12345                # Team ID
+APPLE_KEY_ID=XYZ123ABC                  # Key ID
+APPLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+APPLE_CALLBACK_PATH=/api/auth/apple/callback
+```
+
+**Redirect URIs autorizadas**
+
+* Google: `${API_BASE_URL}${GOOGLE_CALLBACK_PATH}` (ex.: `http://localhost:4000/api/auth/google/callback`)
+* Apple: `${API_BASE_URL}${APPLE_CALLBACK_PATH}` (ex.: `http://localhost:4000/api/auth/apple/callback`)
+
+> **Apple em produção exige HTTPS**. Em dev, use `http://localhost`.
+
+---
+
+## 2) Drizzle ORM — schema
+
+`/server/db/schema.ts`
+
+```ts
+import { pgTable, text, timestamp, primaryKey } from 'drizzle-orm/pg-core';
+
+export const users = pgTable('users', {
+  id: text('id').primaryKey(), // UUID v4 em string
+  email: text('email').notNull().unique(),
+  name: text('name'),
+  avatarUrl: text('avatar_url'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const accounts = pgTable('accounts', {
+  id: text('id').primaryKey(), // UUID v4
+  userId: text('user_id').notNull(),
+  provider: text('provider').notNull(), // 'google' | 'apple'
+  providerAccountId: text('provider_account_id').notNull().unique(),
+  email: text('email'),
+  accessToken: text('access_token'),
+  refreshToken: text('refresh_token'),
+  idToken: text('id_token'), // útil p/ Apple
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Se quiser FKs explícitas, adicione via migrations SQL ou drizzle relations.
+```
+
+> Migração SQL (se preferir manual): crie as tabelas `users` e `accounts` com colunas acima (types `text`, `timestamptz`).
+
+---
+
+## 3) Drizzle — conexão
+
+`/server/db/index.ts`
+
+```ts
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from './schema';
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle(pool, { schema });
+export { pool };
+```
+
+---
+
+## 4) Express + sessão + Passport
+
+`/server/app.ts`
+
+```ts
+import 'dotenv/config';
+import express from 'express';
+import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
+import passport from 'passport';
+import cors from 'cors';
+import { pool } from './db';
+import './auth/passport'; // registra estratégias
+
+const app = express();
+const PgSession = connectPgSimple(session);
+
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true,
+}));
+
+app.use(express.json());
+
+app.use(
+  session({
+    store: new PgSession({ pool }),
+    secret: process.env.SESSION_SECRET!,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 1000 * 60 * 60 * 24 * 30, // 30d
+    },
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Rotas de auth
+import authRouter from './auth/routes';
+app.use('/api/auth', authRouter);
+
+// Quem sou eu
+app.get('/api/me', (req, res) => {
+  if (!req.user) return res.status(401).json({ user: null });
+  res.json({ user: req.user });
+});
+
+// Logout
+app.post('/api/logout', (req, res, next) => {
+  req.logout(err => {
+    if (err) return next(err);
+    req.session?.destroy(() => {
+      res.clearCookie('connect.sid');
+      res.json({ ok: true });
+    });
+  });
+});
+
+export default app;
+```
+
+`/server/index.ts`
+
+```ts
+import app from './app';
+
+const port = Number(process.env.PORT ?? 4000);
+app.listen(port, () => console.log(`API on :${port}`));
+```
+
+---
+
+## 5) Passport — estratégias e serialize/deserialize
+
+`/server/auth/passport.ts`
+
+```ts
+import passport from 'passport';
+import { Strategy as GoogleStrategy, Profile as GoogleProfile } from 'passport-google-oauth20';
+import { Strategy as AppleStrategy } from 'passport-apple';
+import { v4 as uuidv4 } from 'uuid';
+import { db } from '../db';
+import { users, accounts } from '../db/schema';
+import { eq, and } from 'drizzle-orm';
+
+// Serialização da sessão
+passport.serializeUser((user: any, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id: string, done) => {
+  try {
+    const [u] = await db.select().from(users).where(eq(users.id, id));
+    done(null, u ?? null);
+  } catch (e) {
+    done(e);
+  }
+});
+
+async function findOrCreateUserFromAccount({
+  provider,
+  providerAccountId,
+  email,
+  name,
+  avatarUrl,
+  tokens,
+}: {
+  provider: 'google' | 'apple';
+  providerAccountId: string;
+  email?: string | null;
+  name?: string | null;
+  avatarUrl?: string | null;
+  tokens?: { accessToken?: string | null; refreshToken?: string | null; idToken?: string | null };
+}) {
+  // 1) Já existe conta?
+  const [acc] = await db
+    .select()
+    .from(accounts)
+    .where(and(eq(accounts.provider, provider), eq(accounts.providerAccountId, providerAccountId)));
+
+  if (acc) {
+    const [u] = await db.select().from(users).where(eq(users.id, acc.userId));
+    return u!;
+  }
+
+  // 2) Existe usuário com mesmo email? (link automático)
+  let existingUser = undefined as any;
+  if (email) {
+    const [u] = await db.select().from(users).where(eq(users.email, email));
+    existingUser = u;
+  }
+
+  const userId = existingUser?.id ?? uuidv4();
+
+  if (!existingUser) {
+    await db.insert(users).values({
+      id: userId,
+      email: email ?? `${provider}:${providerAccountId}@no-email.local`,
+      name: name ?? null,
+      avatarUrl: avatarUrl ?? null,
+    });
+  }
+
+  await db.insert(accounts).values({
+    id: uuidv4(),
+    userId,
+    provider,
+    providerAccountId,
+    email: email ?? null,
+    accessToken: tokens?.accessToken ?? null,
+    refreshToken: tokens?.refreshToken ?? null,
+    idToken: tokens?.idToken ?? null,
+  });
+
+  const [user] = await db.select().from(users).where(eq(users.id, userId));
+  return user!;
+}
+
+// Google OAuth 2.0
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      callbackURL: `${process.env.API_BASE_URL}${process.env.GOOGLE_CALLBACK_PATH}`,
+      passReqToCallback: false,
+    },
+    async (_accessToken, _refreshToken, profile: GoogleProfile, done) => {
+      try {
+        const email = profile.emails?.[0]?.value ?? null;
+        const name = profile.displayName ?? null;
+        const avatar = profile.photos?.[0]?.value ?? null;
+
+        const user = await findOrCreateUserFromAccount({
+          provider: 'google',
+          providerAccountId: profile.id,
+          email,
+          name,
+          avatarUrl: avatar,
+          tokens: { accessToken: _accessToken, refreshToken: _refreshToken },
+        });
+        return done(null, user);
+      } catch (e) {
+        return done(e as any);
+      }
+    }
+  )
+);
+
+// Apple (OpenID Connect)
+passport.use(
+  new AppleStrategy(
+    {
+      clientID: process.env.APPLE_CLIENT_ID!, // Service ID
+      teamID: process.env.APPLE_TEAM_ID!,
+      keyID: process.env.APPLE_KEY_ID!,
+      privateKeyString: process.env.APPLE_PRIVATE_KEY!,
+      callbackURL: `${process.env.API_BASE_URL}${process.env.APPLE_CALLBACK_PATH}`,
+      scope: ['name', 'email'],
+      passReqToCallback: false,
+    },
+    async (accessToken, refreshToken, idToken, profile, done) => {
+      try {
+        // `profile` vem do id_token; nem sempre traz email/nome em retornos subsequentes.
+        const appleId = (profile as any).id as string; // subject
+        const email = (profile as any).email as string | undefined; // pode ser private relay
+        const name = (profile as any).name?.firstName
+          ? `${(profile as any).name.firstName} ${(profile as any).name?.lastName ?? ''}`.trim()
+          : null;
+
+        const user = await findOrCreateUserFromAccount({
+          provider: 'apple',
+          providerAccountId: appleId,
+          email: email ?? null,
+          name: name ?? null,
+          avatarUrl: null,
+          tokens: { accessToken, refreshToken, idToken },
+        });
+        return done(null, user);
+      } catch (e) {
+        return done(e as any);
+      }
+    }
+  )
+);
+```
+
+---
+
+## 6) Rotas de autenticação (Express)
+
+`/server/auth/routes.ts`
+
+```ts
+import { Router } from 'express';
+import passport from 'passport';
+
+const router = Router();
+
+// GOOGLE
+router.get(
+  '/google',
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    prompt: 'select_account',
+    state: true,
+  })
+);
+
+router.get(
+  '/google/callback',
+  passport.authenticate('google', {
+    failureRedirect: `${process.env.FRONTEND_URL}/login?error=google`,
+    successRedirect: `${process.env.FRONTEND_URL}/app`,
+    session: true,
+  })
+);
+
+// APPLE
+router.get(
+  '/apple',
+  passport.authenticate('apple', {
+    scope: ['name', 'email'],
+    state: true,
+  })
+);
+
+router.post(
+  '/apple/callback',
+  // Apple pode chamar por POST; também aceite GET se necessário.
+  passport.authenticate('apple', {
+    failureRedirect: `${process.env.FRONTEND_URL}/login?error=apple`,
+    successRedirect: `${process.env.FRONTEND_URL}/app`,
+    session: true,
+  })
+);
+
+router.get(
+  '/apple/callback',
+  passport.authenticate('apple', {
+    failureRedirect: `${process.env.FRONTEND_URL}/login?error=apple`,
+    successRedirect: `${process.env.FRONTEND_URL}/app`,
+    session: true,
+  })
+);
+
+export default router;
+```
+
+> **Nota:** Apple frequentemente retorna no **POST**. Mantivemos ambos.
+
+---
+
+## 7) Protegendo rotas da API
+
+`/server/auth/ensureAuth.ts`
+
+```ts
+import { Request, Response, NextFunction } from 'express';
+export function ensureAuth(req: Request, res: Response, next: NextFunction) {
+  if (req.isAuthenticated && req.isAuthenticated()) return next();
+  return res.status(401).json({ error: 'unauthorized' });
+}
+```
+
+Uso:
+
+```ts
+import { ensureAuth } from './auth/ensureAuth';
+app.get('/api/private', ensureAuth, (req, res) => {
+  res.json({ ok: true });
+});
+```
+
+---
+
+## 8) Frontend — Botões de login (React + shadcn/ui)
+
+`/web/src/pages/Login.tsx`
+
+```tsx
+import { Button } from "@/components/ui/button";
+
+const API = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000';
+
+export default function LoginPage() {
+  const loginGoogle = () => {
+    window.location.href = `${API}/api/auth/google`;
+  };
+  const loginApple = () => {
+    window.location.href = `${API}/api/auth/apple`;
+  };
+
+  return (
+    <div className="min-h-dvh grid place-items-center p-6">
+      <div className="w-full max-w-sm space-y-4">
+        <h1 className="text-2xl font-semibold">Entrar</h1>
+        <Button className="w-full" variant="default" onClick={loginGoogle}>
+          Continuar com Google
+        </Button>
+        <Button className="w-full" variant="secondary" onClick={loginApple}>
+          Continuar com Apple
+        </Button>
+      </div>
+    </div>
+  );
+}
+```
+
+**Roteamento (Wouter) — proteção simples**
+
+`/web/src/App.tsx`
+
+```tsx
+import { Route, Switch, Redirect } from 'wouter';
+import LoginPage from './pages/Login';
+import Home from './pages/Home';
+import { useEffect, useState } from 'react';
+
+const API = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000';
+
+function useMe() {
+  const [me, setMe] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    fetch(`${API}/api/me`, { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => { setMe(d.user); })
+      .finally(() => setLoading(false));
+  }, []);
+  return { me, loading };
+}
+
+function PrivateRoute({ component: Comp }: any) {
+  const { me, loading } = useMe();
+  if (loading) return <div className="p-6">Carregando…</div>;
+  if (!me) return <Redirect to="/login" />;
+  return <Comp />;
+}
+
+export default function App() {
+  return (
+    <Switch>
+      <Route path="/login" component={LoginPage} />
+      <Route path="/app" component={() => <PrivateRoute component={Home} />} />
+      <Route>404</Route>
+    </Switch>
+  );
+}
+```
+
+**Menu de usuário + logout**
+
+```tsx
+function UserMenu() {
+  const API = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000';
+  const logout = async () => {
+    await fetch(`${API}/api/logout`, { method: 'POST', credentials: 'include' });
+    window.location.href = '/login';
+  };
+  return <button onClick={logout}>Sair</button>;
+}
+```
+
+---
+
+## 9) Passos de configuração no Google/Apple
+
+### Google Cloud Console
+
+1. Crie um **OAuth 2.0 Client ID** (tipo *Web application*).
+2. **Authorized redirect URI**: `http://localhost:4000/api/auth/google/callback` (e a URL de prod).
+3. Publique a tela de consentimento (External) com domínios autorizados.
+
+### Apple Developer (Web)
+
+1. **Service ID** (ex.: `com.seu.dominio.web`) → Configure **Return URLs** com `https://seu-dominio.com/api/auth/apple/callback` e `http://localhost:4000/api/auth/apple/callback` para dev.
+2. **Chave** para Sign in with Apple (Key ID) associada ao seu Service ID.
+3. **Domain association** (em produção): se usar Apple JS, hospede `.well-known/apple-developer-domain-association` no domínio. Para este fluxo via Passport, assegure que o **Return URL** bate 100% com o cadastrado.
+4. Apple só retorna **nome** e **email** no **primeiro login**; salve-os no seu DB.
+
+---
+
+## 10) Checklist & Debug
+
+* **Cookie não chega no front?**
+
+  * Mesma origem? Se domínios diferentes, habilite `cors({ origin: FRONTEND_URL, credentials: true })` e mantenha `credentials: 'include'` nos fetches.
+  * Em produção, use HTTPS e `cookie.secure = true`.
+
+* **Google `redirect_uri_mismatch`**: a URL de callback cadastrada não bate com a da sua app.
+
+* **Google `invalid_client`/`unauthorized_client`**: Client ID/secret errados ou consentimento não publicado.
+
+* **Apple `invalid_client`/`invalid_grant`**: `clientID` deve ser **Service ID**; cheque Team/Key ID e a **private key** (atenção às quebras de linha).
+
+* **Apple não retorna email**: comportamento normal após o 1º login; use o email salvo na 1ª vez.
+
+---
+
+## 11) Alternativa sem sessão (JWT)
+
+Se preferir **stateless**: troque o callback para emitir um **JWT** e setar em **cookie HTTP-only** (ou retornar ao front para armazenar). Com Passport, use `session: false` e um handler custom no callback:
+
+```ts
+router.get('/google/callback', (req, res, next) => {
+  passport.authenticate('google', { session: false }, (err, user) => {
+    if (err || !user) return res.redirect(`${process.env.FRONTEND_URL}/login?error=google`);
+    const token = signJwt(user); // implemente
+    res.cookie('auth', token, { httpOnly: true, sameSite: 'lax', secure: isProd, maxAge: 30*24*60*60*1000 });
+    return res.redirect(`${process.env.FRONTEND_URL}/app`);
+  })(req, res, next);
+});
+```
+
+> A versão com sessão (acima) é mais rápida de pôr de pé. Depois você pode migrar para JWT se quiser multi-serviços.
+
+---
+
+Pronto! Com isso você tem **Google + Apple** funcionando na sua web PWA com **React + Express + Drizzle**. Se me passar o repositório ou a URL do seu ambiente, ajusto as rotas/callbacks e reviso os erros de OAuth que aparecerem.
