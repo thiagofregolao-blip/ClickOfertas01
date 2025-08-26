@@ -468,25 +468,25 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
         <div className="relative px-4 py-3 flex items-center backdrop-blur-[0.5px]">
           <Link href={`/flyer/${store.slug}`}>
             <div 
-              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-lg ring-1 ring-white/10 cursor-pointer hover:scale-105 transition-transform"
+              className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-lg ring-1 ring-white/10 cursor-pointer hover:scale-105 transition-transform"
               style={{ backgroundColor: store.themeColor || '#E11D48' }}
             >
               {store.logoUrl ? (
                 <img 
                   src={store.logoUrl} 
                   alt={store.name}
-                  className="w-10 h-10 rounded-full object-contain bg-white/90 p-0.5"
+                  className="w-12 h-12 rounded-full object-contain bg-white/90 p-0.5"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
                     const parent = target.parentElement as HTMLElement;
                     if (parent) {
-                      parent.innerHTML = `<span class="text-lg drop-shadow-sm">${store.name.charAt(0)}</span>`;
+                      parent.innerHTML = `<span class="text-xl drop-shadow-sm">${store.name.charAt(0)}</span>`;
                     }
                   }}
                 />
               ) : (
-                <span className="text-lg drop-shadow-sm">{store.name.charAt(0)}</span>
+                <span className="text-xl drop-shadow-sm">{store.name.charAt(0)}</span>
               )}
             </div>
           </Link>
