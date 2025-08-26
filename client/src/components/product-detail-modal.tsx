@@ -284,66 +284,6 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 </div>
               )}
 
-              {/* Botões de Ação - Verticais no lado esquerdo da imagem */}
-              <div className="absolute left-3 bottom-3 flex flex-col gap-2 z-10">
-                <div className="flex flex-col items-center">
-                  <Button
-                    onClick={() => toggleLike(product.id)}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border-none shadow-lg hover:bg-white"
-                  >
-                    <Heart className={`h-4 w-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
-                  </Button>
-                </div>
-                
-                <div className="flex flex-col items-center">
-                  <Button
-                    onClick={() => handleSaveProduct(product.id)}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border-none shadow-lg hover:bg-white"
-                  >
-                    <Bookmark className={`h-4 w-4 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
-                  </Button>
-                </div>
-                
-                <div className="flex flex-col items-center">
-                  <Button
-                    onClick={handleShare}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border-none shadow-lg hover:bg-white"
-                  >
-                    <Share2 className="h-4 w-4 text-gray-700" />
-                  </Button>
-                </div>
-                
-                {store.whatsapp && (
-                  <div className="flex flex-col items-center">
-                    <Button
-                      onClick={handleContact}
-                      size="sm"
-                      className="flex items-center justify-center w-10 h-10 rounded-full text-white shadow-lg bg-[#25D366] hover:bg-[#128C7E]"
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-                
-                {store.latitude && store.longitude && (
-                  <div className="flex flex-col items-center">
-                    <Button
-                      onClick={handleDirections}
-                      size="sm"
-                      className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg"
-                      data-testid="button-directions-modal"
-                    >
-                      <MapPin className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
 
             </div>
 
@@ -484,6 +424,62 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   </div>
                 ) : null;
               })()}
+
+              {/* Barra de Ação - Inferior no Mobile */}
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <div className="flex flex-wrap gap-3 justify-center">
+                  <Button
+                    onClick={() => toggleLike(product.id)}
+                    variant="outline"
+                    className="flex items-center gap-2 px-4 py-2 h-auto border-red-200 hover:bg-red-50"
+                  >
+                    <Heart className={`h-4 w-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
+                    <span className="text-sm font-medium text-red-500">Curtir</span>
+                  </Button>
+                  
+                  <Button
+                    onClick={() => handleSaveProduct(product.id)}
+                    variant="outline"
+                    className={`flex items-center gap-2 px-4 py-2 h-auto ${isAuthenticated ? 'border-blue-200 hover:bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}
+                  >
+                    <Bookmark className={`h-4 w-4 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <span className={`text-sm font-medium ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`}>Salvar</span>
+                  </Button>
+                  
+                  <Button
+                    onClick={handleShare}
+                    variant="outline"
+                    className="flex items-center gap-2 px-4 py-2 h-auto border-gray-200 hover:bg-gray-50"
+                  >
+                    <Share2 className="h-4 w-4 text-gray-700" />
+                    <span className="text-sm font-medium text-gray-700">Compartilhar</span>
+                  </Button>
+                </div>
+                
+                {/* Segunda linha para contato e direções */}
+                <div className="flex flex-wrap gap-3 justify-center mt-3">
+                  {store.whatsapp && (
+                    <Button
+                      onClick={handleContact}
+                      className="flex items-center gap-2 px-6 py-2 h-auto bg-[#25D366] hover:bg-[#128C7E] text-white"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      <span className="text-sm font-medium">Entrar em Contato</span>
+                    </Button>
+                  )}
+                  
+                  {store.latitude && store.longitude && (
+                    <Button
+                      onClick={handleDirections}
+                      className="flex items-center gap-2 px-6 py-2 h-auto bg-blue-500 hover:bg-blue-600 text-white"
+                      data-testid="button-directions-modal"
+                    >
+                      <MapPin className="h-4 w-4" />
+                      <span className="text-sm font-medium">Ver Localização</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
 
             </div>
           </div>
