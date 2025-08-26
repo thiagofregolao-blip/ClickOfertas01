@@ -691,7 +691,9 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
                 href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Olá! Vi suas ofertas no Click Ofertas Paraguai e gostaria de mais informações.`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-green-600 hover:text-green-700 transition-colors"
+                className="text-green-600 hover:text-green-700 transition-colors relative z-10 cursor-pointer"
+                onClick={(e) => e.stopPropagation()}
+                data-testid={`whatsapp-link-${store.slug}`}
               >
                 📱 WhatsApp
               </a>
@@ -701,7 +703,9 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
                 href={`https://instagram.com/${store.instagram.replace('@', '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-pink-600 hover:text-pink-700 transition-colors"
+                className="text-pink-600 hover:text-pink-700 transition-colors relative z-10 cursor-pointer"
+                onClick={(e) => e.stopPropagation()}
+                data-testid={`instagram-link-${store.slug}`}
               >
                 📸 Instagram
               </a>
