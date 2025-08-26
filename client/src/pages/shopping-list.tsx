@@ -105,20 +105,13 @@ export default function ShoppingList() {
 
         // Nome da loja
         pdf.setFontSize(16);
-        pdf.text(`🏪 ${group.store.name}`, 20, yPosition);
+        pdf.text(`${group.store.name}`, 20, yPosition);
         yPosition += 8;
         
         // Total da loja
         pdf.setFontSize(12);
         pdf.text(`Total: US$ ${storeTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 20, yPosition);
         yPosition += 8;
-        
-        // Endereço se disponível
-        if (group.store.address) {
-          pdf.setFontSize(10);
-          pdf.text(`📍 ${group.store.address}`, 20, yPosition);
-          yPosition += 8;
-        }
         
         yPosition += 5;
 
