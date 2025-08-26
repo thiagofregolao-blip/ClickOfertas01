@@ -207,6 +207,31 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               </Button>
             </div>
 
+            {/* Nome da Loja e Badges - Acima da Imagem */}
+            <div className="absolute top-4 left-4 z-20 max-w-[60%]">
+              <div className="flex flex-col gap-2">
+                <h2 className="text-sm font-medium text-white flex items-center gap-2 drop-shadow-lg">
+                  <div 
+                    className="w-3 h-3 rounded-full border border-white/30"
+                    style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                  />
+                  {store.name}
+                </h2>
+                <div className="flex flex-wrap gap-1">
+                  {product.isFeatured && (
+                    <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-none text-xs shadow-lg">
+                      🔥 Destaque
+                    </Badge>
+                  )}
+                  {product.category && (
+                    <Badge className="bg-white/90 text-gray-800 border-none text-xs shadow-lg">
+                      {product.category}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Galeria de Imagens */}
             <div 
               className="relative h-64 bg-gray-100 flex-shrink-0 overflow-hidden"
@@ -290,30 +315,6 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
             {/* Conteúdo Scrollável */}
             <div className="flex-1 overflow-y-auto p-4 pb-4">
-              {/* Nome da Loja */}
-              <div className="mb-2">
-                <div className="flex items-center justify-between gap-2">
-                  <h2 className="text-sm font-medium text-gray-600 flex items-center gap-2 flex-1">
-                    <div 
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: store.themeColor || '#E11D48' }}
-                    />
-                    {store.name}
-                  </h2>
-                  <div className="flex gap-1 mr-8">
-                    {product.isFeatured && (
-                      <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-none text-xs">
-                        🔥 Destaque
-                      </Badge>
-                    )}
-                    {product.category && (
-                      <Badge variant="secondary" className="text-xs px-2 py-1">
-                        {product.category}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
               
               {/* Informações do Produto */}
               <div className="mb-4">
