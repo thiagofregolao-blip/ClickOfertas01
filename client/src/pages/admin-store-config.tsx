@@ -130,7 +130,7 @@ export default function AdminStoreConfig() {
       ...data,
       latitude: data.latitude && data.latitude.trim() ? data.latitude : undefined,
       longitude: data.longitude && data.longitude.trim() ? data.longitude : undefined,
-      customUsdBrlRate: data.customUsdBrlRate && data.customUsdBrlRate.trim() ? data.customUsdBrlRate : undefined,
+      customUsdBrlRate: data.customUsdBrlRate && data.customUsdBrlRate.trim() ? Number(data.customUsdBrlRate) : undefined,
     };
     saveMutation.mutate(payload);
   };
@@ -282,7 +282,7 @@ export default function AdminStoreConfig() {
                     <Input
                       id="whatsapp"
                       {...form.register("whatsapp")}
-                      placeholder="+595 991 123456"
+                      placeholder="+595 21 123-4567"
                       data-testid="input-whatsapp"
                       className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700"
                     />

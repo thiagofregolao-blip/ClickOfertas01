@@ -2,8 +2,6 @@ import {
   users,
   stores,
   products,
-  categories,
-  categorySellers,
   savedProducts,
   storyViews,
   flyerViews,
@@ -17,13 +15,6 @@ import {
   type Product,
   type InsertProduct,
   type UpdateProduct,
-  type Category,
-  type InsertCategory,
-  type UpdateCategory,
-  type CategorySeller,
-  type InsertCategorySeller,
-  type UpdateCategorySeller,
-  type CategoryWithSellers,
   type StoreWithProducts,
   type SavedProduct,
   type InsertSavedProduct,
@@ -53,16 +44,6 @@ export interface IStorage {
   getStoreBySlug(slug: string): Promise<StoreWithProducts | undefined>;
   getAllActiveStores(): Promise<StoreWithProducts[]>;
   deleteStore(storeId: string, userId: string): Promise<void>;
-
-  // Category operations
-  getStoreCategories(storeId: string): Promise<CategoryWithSellers[]>;
-  createCategory(storeId: string, category: InsertCategory): Promise<Category>;
-  updateCategory(categoryId: string, category: UpdateCategory): Promise<Category>;
-  deleteCategory(categoryId: string, storeId: string): Promise<void>;
-  createCategorySeller(categoryId: string, seller: InsertCategorySeller): Promise<CategorySeller>;
-  updateCategorySeller(sellerId: string, seller: UpdateCategorySeller): Promise<CategorySeller>;
-  deleteCategorySeller(sellerId: string, categoryId: string): Promise<void>;
-  createDefaultCategories(storeId: string): Promise<void>;
 
   // Product operations
   getStoreProducts(storeId: string): Promise<Product[]>;
@@ -222,101 +203,6 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(stores.id, storeId), eq(stores.userId, userId)));
   }
 
-  // Category operations
-  async getStoreCategories(storeId: string): Promise<CategoryWithSellers[]> {
-    const storeCategories = await db
-      .select()
-      .from(categories)
-      .where(and(eq(categories.storeId, storeId), eq(categories.isActive, true)))
-      .orderBy(categories.sortOrder, categories.createdAt);
-
-    const categoriesWithSellers = await Promise.all(
-      storeCategories.map(async (category) => {
-        const sellers = await db
-          .select()
-          .from(categorySellers)
-          .where(and(eq(categorySellers.categoryId, category.id), eq(categorySellers.isActive, true)))
-          .orderBy(categorySellers.sortOrder, categorySellers.createdAt);
-
-        return {
-          ...category,
-          sellers,
-        };
-      })
-    );
-
-    return categoriesWithSellers;
-  }
-
-  async createCategory(storeId: string, categoryData: InsertCategory): Promise<Category> {
-    const [category] = await db
-      .insert(categories)
-      .values({
-        ...categoryData,
-        storeId,
-      })
-      .returning();
-    return category;
-  }
-
-  async updateCategory(categoryId: string, categoryData: UpdateCategory): Promise<Category> {
-    const [category] = await db
-      .update(categories)
-      .set({ ...categoryData, updatedAt: new Date() })
-      .where(eq(categories.id, categoryId))
-      .returning();
-    return category;
-  }
-
-  async deleteCategory(categoryId: string, storeId: string): Promise<void> {
-    await db
-      .delete(categories)
-      .where(and(eq(categories.id, categoryId), eq(categories.storeId, storeId)));
-  }
-
-  async createCategorySeller(categoryId: string, sellerData: InsertCategorySeller): Promise<CategorySeller> {
-    const [seller] = await db
-      .insert(categorySellers)
-      .values({
-        ...sellerData,
-        categoryId,
-      })
-      .returning();
-    return seller;
-  }
-
-  async updateCategorySeller(sellerId: string, sellerData: UpdateCategorySeller): Promise<CategorySeller> {
-    const [seller] = await db
-      .update(categorySellers)
-      .set({ ...sellerData, updatedAt: new Date() })
-      .where(eq(categorySellers.id, sellerId))
-      .returning();
-    return seller;
-  }
-
-  async deleteCategorySeller(sellerId: string, categoryId: string): Promise<void> {
-    await db
-      .delete(categorySellers)
-      .where(and(eq(categorySellers.id, sellerId), eq(categorySellers.categoryId, categoryId)));
-  }
-
-  async createDefaultCategories(storeId: string): Promise<void> {
-    const defaultCategories = [
-      { name: "Perfumaria", sortOrder: "1" },
-      { name: "Cosméticos", sortOrder: "2" },
-      { name: "Moda", sortOrder: "3" },
-      { name: "Eletrônicos", sortOrder: "4" },
-      { name: "Casa e Decoração", sortOrder: "5" },
-    ];
-
-    for (const categoryData of defaultCategories) {
-      await this.createCategory(storeId, {
-        ...categoryData,
-        isDefault: true,
-      });
-    }
-  }
-
   // Product operations
   async getStoreProducts(storeId: string): Promise<Product[]> {
     return await db
@@ -390,10 +276,7 @@ export class DatabaseStorage implements IStorage {
         productDescription: products.description,
         productPrice: products.price,
         productImageUrl: products.imageUrl,
-        productImageUrl2: products.imageUrl2,
-        productImageUrl3: products.imageUrl3,
         productCategory: products.category,
-        productCategoryId: products.categoryId,
         productIsFeatured: products.isFeatured,
         productShowInStories: products.showInStories,
         productIsActive: products.isActive,
@@ -439,10 +322,7 @@ export class DatabaseStorage implements IStorage {
         description: result.productDescription,
         price: result.productPrice,
         imageUrl: result.productImageUrl,
-        imageUrl2: result.productImageUrl2,
-        imageUrl3: result.productImageUrl3,
         category: result.productCategory,
-        categoryId: result.productCategoryId,
         isFeatured: result.productIsFeatured,
         showInStories: result.productShowInStories,
         isActive: result.productIsActive,

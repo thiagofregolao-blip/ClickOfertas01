@@ -68,42 +68,17 @@ export const stores = pgTable("stores", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Categories table - categorias personalizadas por loja
-export const categories = pgTable("categories", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
-  name: varchar("name").notNull(),
-  isDefault: boolean("is_default").default(false), // categorias padrão do sistema
-  isActive: boolean("is_active").default(true),
-  sortOrder: varchar("sort_order").default("0"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Category sellers table - vendedores/WhatsApp por categoria
-export const categorySellers = pgTable("category_sellers", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  categoryId: varchar("category_id").notNull().references(() => categories.id, { onDelete: "cascade" }),
-  name: varchar("name").notNull(), // Nome do vendedor
-  whatsapp: varchar("whatsapp").notNull(), // Número do WhatsApp
-  isActive: boolean("is_active").default(true),
-  sortOrder: varchar("sort_order").default("0"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
 // Products table
 export const products = pgTable("products", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
-  categoryId: varchar("category_id").references(() => categories.id, { onDelete: "set null" }), // Nova referência
   name: text("name").notNull(),
   description: text("description"),
   price: decimal("price", { precision: 12, scale: 2 }).notNull(),
   imageUrl: text("image_url"),
   imageUrl2: text("image_url2"),
   imageUrl3: text("image_url3"),
-  category: varchar("category").default("Perfumaria"), // Manter para retrocompatibilidade
+  category: varchar("category").default("Perfumaria"),
   isFeatured: boolean("is_featured").default(false),
   showInStories: boolean("show_in_stories").default(false),
   isActive: boolean("is_active").default(true),
@@ -162,36 +137,15 @@ export const storesRelations = relations(stores, ({ one, many }) => ({
     fields: [stores.userId],
     references: [users.id],
   }),
-  categories: many(categories),
   products: many(products),
   storyViews: many(storyViews),
   flyerViews: many(flyerViews),
-}));
-
-export const categoriesRelations = relations(categories, ({ one, many }) => ({
-  store: one(stores, {
-    fields: [categories.storeId],
-    references: [stores.id],
-  }),
-  sellers: many(categorySellers),
-  products: many(products),
-}));
-
-export const categorySellersRelations = relations(categorySellers, ({ one }) => ({
-  category: one(categories, {
-    fields: [categorySellers.categoryId],
-    references: [categories.id],
-  }),
 }));
 
 export const productsRelations = relations(products, ({ one, many }) => ({
   store: one(stores, {
     fields: [products.storeId],
     references: [stores.id],
-  }),
-  category: one(categories, {
-    fields: [products.categoryId],
-    references: [categories.id],
   }),
   savedProducts: many(savedProducts),
   productLikes: many(productLikes),
@@ -273,25 +227,6 @@ export const insertProductLikeSchema = createInsertSchema(productLikes).omit({
   id: true,
   likedAt: true,
 });
-
-// Category schemas
-export const insertCategorySchema = createInsertSchema(categories).omit({
-  id: true,
-  storeId: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const updateCategorySchema = insertCategorySchema.partial();
-
-export const insertCategorySellerSchema = createInsertSchema(categorySellers).omit({
-  id: true,
-  categoryId: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const updateCategorySellerSchema = insertCategorySellerSchema.partial();
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -380,21 +315,4 @@ export type ProductWithStore = Product & {
 
 export type SavedProductWithDetails = SavedProduct & {
   product: ProductWithStore;
-};
-
-// Category types
-export type Category = typeof categories.$inferSelect;
-export type InsertCategory = z.infer<typeof insertCategorySchema>;
-export type UpdateCategory = z.infer<typeof updateCategorySchema>;
-
-export type CategorySeller = typeof categorySellers.$inferSelect;
-export type InsertCategorySeller = z.infer<typeof insertCategorySellerSchema>;
-export type UpdateCategorySeller = z.infer<typeof updateCategorySellerSchema>;
-
-export type CategoryWithSellers = Category & {
-  sellers: CategorySeller[];
-};
-
-export type ProductWithCategory = Product & {
-  category: Category | null;
 };
