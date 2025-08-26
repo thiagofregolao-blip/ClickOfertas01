@@ -630,7 +630,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     style={{ backgroundColor: store.themeColor || '#E11D48' }}
                   />
                   <h2 className="text-sm font-medium text-gray-600">
-                    {store.name}
+                    {store.name.split(' ').slice(0, 2).join(' ')}
                   </h2>
                 </div>
                 <div className="flex items-center gap-2">
@@ -694,9 +694,9 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     onClick={() => toggleLike(product.id)}
                     variant="outline"
                     size="sm"
-                    className="flex items-center justify-center w-12 h-12 rounded-full border-gray-200 hover:bg-gray-50"
+                    className="flex items-center justify-center w-10 h-10 rounded-full border-gray-200 hover:bg-gray-50"
                   >
-                    <Heart className={`h-5 w-5 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
+                    <Heart className={`h-4 w-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
                   </Button>
                   <span className="text-xs text-gray-700 font-medium">Curtir</span>
                 </div>
@@ -706,9 +706,9 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     onClick={() => handleSaveProduct(product.id)}
                     variant="outline"
                     size="sm"
-                    className="flex items-center justify-center w-12 h-12 rounded-full border-gray-200 hover:bg-gray-50"
+                    className="flex items-center justify-center w-10 h-10 rounded-full border-gray-200 hover:bg-gray-50"
                   >
-                    <Bookmark className={`h-5 w-5 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <Bookmark className={`h-4 w-4 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
                   </Button>
                   <span className={`text-xs font-medium ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`}>Salvar</span>
                 </div>
@@ -718,9 +718,9 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     onClick={handleShare}
                     variant="outline"
                     size="sm"
-                    className="flex items-center justify-center w-12 h-12 rounded-full border-gray-200 hover:bg-gray-50"
+                    className="flex items-center justify-center w-10 h-10 rounded-full border-gray-200 hover:bg-gray-50"
                   >
-                    <Share2 className="h-5 w-5 text-gray-700" />
+                    <Share2 className="h-4 w-4 text-gray-700" />
                   </Button>
                   <span className="text-xs text-gray-700 font-medium">Compartilhar</span>
                 </div>
@@ -730,9 +730,9 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     <Button
                       onClick={handleContact}
                       size="sm"
-                      className="flex items-center justify-center w-12 h-12 rounded-full bg-[#25D366] hover:bg-[#128C7E] text-white"
+                      className="flex items-center justify-center w-10 h-10 rounded-full bg-[#25D366] hover:bg-[#128C7E] text-white"
                     >
-                      <MessageCircle className="h-5 w-5" />
+                      <MessageCircle className="h-4 w-4" />
                     </Button>
                     <span className="text-xs text-[#25D366] font-medium">Contato</span>
                   </div>
@@ -743,10 +743,10 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     <Button
                       onClick={handleDirections}
                       size="sm"
-                      className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+                      className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
                       data-testid="button-directions-modal"
                     >
-                      <MapPin className="h-5 w-5" />
+                      <MapPin className="h-4 w-4" />
                     </Button>
                     <span className="text-xs text-blue-500 font-medium">Localização</span>
                   </div>
