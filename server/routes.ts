@@ -43,6 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName: z.string().min(2, "Sobrenome deve ter pelo menos 2 caracteres"), 
         email: z.string().email("Email inválido"),
         phone: z.string().optional(),
+        profileImageUrl: z.string().optional(),
       });
       
       const updateData = updateSchema.parse(req.body);
@@ -71,6 +72,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error updating user:", error);
       res.status(500).json({ message: "Erro ao atualizar perfil" });
+    }
+  });
+
+  // Object storage endpoints for profile photos
+  app.post("/api/objects/upload", isAuthenticated, async (req: any, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  app.put("/api/profile-images", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims?.sub || req.user.id;
+      if (!req.body.imageURL) {
+        return res.status(400).json({ error: "imageURL é obrigatório" });
+      }
+
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        req.body.imageURL,
+        {
+          owner: userId,
+          visibility: "public", // Fotos de perfil são públicas
+        }
+      );
+
+      res.status(200).json({
+        objectPath: objectPath,
+      });
+    } catch (error) {
+      console.error("Error setting profile image:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Serve private objects (profile photos)
+  app.get("/objects/:objectPath(*)", async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error accessing object:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
     }
   });
 
