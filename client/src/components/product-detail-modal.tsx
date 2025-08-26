@@ -43,7 +43,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
   const [isClosing, setIsClosing] = useState(false);
   const { isMobile, isDesktop } = useAppVersion();
   const { toast } = useToast();
-  const { handleDoubleTap, handleSaveProduct, isProductLiked, toggleLike } = useEngagement();
+  const { handleDoubleTap, handleSaveProduct, isProductLiked, isProductSaved, toggleLike } = useEngagement();
   const { isAuthenticated } = useAuth();
 
   // Touch gestures para navegação de imagens
@@ -550,11 +550,31 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                       onClick={() => handleSaveProduct(product.id)}
                       variant="outline"
                       size="sm"
-                      className={`flex items-center justify-center w-12 h-12 rounded-full ${isAuthenticated ? 'border-blue-200 hover:bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}
+                      className={`flex items-center justify-center w-12 h-12 rounded-full ${
+                        isAuthenticated && isProductSaved(product.id) 
+                          ? 'border-blue-500 bg-blue-50 hover:bg-blue-100' 
+                          : isAuthenticated 
+                            ? 'border-blue-200 hover:bg-blue-50' 
+                            : 'border-gray-200 hover:bg-gray-50'
+                      }`}
                     >
-                      <Bookmark className={`h-5 w-5 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
+                      <Bookmark className={`h-5 w-5 ${
+                        isAuthenticated && isProductSaved(product.id)
+                          ? 'text-blue-600 fill-blue-600'
+                          : isAuthenticated 
+                            ? 'text-blue-600' 
+                            : 'text-gray-400'
+                      }`} />
                     </Button>
-                    <span className={`text-xs font-medium ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`}>Salvar</span>
+                    <span className={`text-xs font-medium ${
+                      isAuthenticated && isProductSaved(product.id)
+                        ? 'text-blue-700'
+                        : isAuthenticated 
+                          ? 'text-blue-600' 
+                          : 'text-gray-400'
+                    }`}>
+                      {isAuthenticated && isProductSaved(product.id) ? 'Salvo' : 'Salvar'}
+                    </span>
                   </div>
                   
                   <div className="flex flex-col items-center gap-1">
@@ -765,11 +785,29 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     onClick={() => handleSaveProduct(product.id)}
                     variant="outline"
                     size="sm"
-                    className="flex items-center justify-center w-8 h-8 rounded-full border-gray-200 hover:bg-gray-50"
+                    className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                      isAuthenticated && isProductSaved(product.id)
+                        ? 'border-blue-500 bg-blue-50 hover:bg-blue-100'
+                        : 'border-gray-200 hover:bg-gray-50'
+                    }`}
                   >
-                    <Bookmark className={`h-4 w-4 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <Bookmark className={`h-4 w-4 ${
+                      isAuthenticated && isProductSaved(product.id)
+                        ? 'text-blue-600 fill-blue-600'
+                        : isAuthenticated 
+                          ? 'text-blue-600' 
+                          : 'text-gray-400'
+                    }`} />
                   </Button>
-                  <span className={`text-xs font-medium ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`}>Salvar</span>
+                  <span className={`text-xs font-medium ${
+                    isAuthenticated && isProductSaved(product.id)
+                      ? 'text-blue-700'
+                      : isAuthenticated 
+                        ? 'text-blue-600' 
+                        : 'text-gray-400'
+                  }`}>
+                    {isAuthenticated && isProductSaved(product.id) ? 'Salvo' : 'Salvar'}
+                  </span>
                 </div>
                 
                 <div className="flex flex-col items-center gap-1">

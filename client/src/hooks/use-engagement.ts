@@ -10,6 +10,7 @@ export function useEngagement() {
   const queryClient = useQueryClient();
   const [hearts, setHearts] = useState<Array<{ id: string; x: number; y: number }>>([]);
   const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set());
+  const [savedProducts, setSavedProducts] = useState<Set<string>>(new Set());
 
   // Curtir produto (sem autenticação necessária)
   const likeProductMutation = useMutation({
@@ -26,7 +27,14 @@ export function useEngagement() {
     mutationFn: async (productId: string) => {
       return apiRequest("POST", `/api/products/${productId}/save`);
     },
-    onSuccess: () => {
+    onSuccess: (_, productId) => {
+      // Atualizar estado local
+      setSavedProducts(prev => {
+        const newSet = new Set(prev);
+        newSet.add(productId);
+        return newSet;
+      });
+      
       // Invalidar cache dos produtos salvos
       queryClient.invalidateQueries({ queryKey: ['/api/saved-products'] });
       toast({
@@ -129,7 +137,24 @@ export function useEngagement() {
       return;
     }
     
-    saveProductMutation.mutate(productId);
+    const isSaved = savedProducts.has(productId);
+    
+    if (isSaved) {
+      // Remover dos salvos localmente (otimistic update)
+      setSavedProducts(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(productId);
+        return newSet;
+      });
+      
+      toast({
+        title: "Produto removido!",
+        description: "O produto foi removido dos seus salvos.",
+      });
+    } else {
+      // Salvar produto
+      saveProductMutation.mutate(productId);
+    }
   };
 
   // Registrar view de story
@@ -146,6 +171,11 @@ export function useEngagement() {
   const isProductLiked = (productId: string) => {
     return likedProducts.has(productId);
   };
+  
+  // Função para verificar se um produto foi salvo
+  const isProductSaved = (productId: string) => {
+    return savedProducts.has(productId);
+  };
 
   return {
     hearts,
@@ -156,7 +186,9 @@ export function useEngagement() {
     isLiking: likeProductMutation.isPending,
     isSaving: saveProductMutation.isPending,
     isProductLiked,
+    isProductSaved,
     likedProducts,
+    savedProducts,
     toggleLike,
   };
 }

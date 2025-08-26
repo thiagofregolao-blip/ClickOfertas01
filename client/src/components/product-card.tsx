@@ -55,7 +55,7 @@ export default function ProductCard({
   onClick,
   customUsdBrlRate
 }: ProductCardProps) {
-  const { hearts, handleDoubleTap, handleSaveProduct, isSaving, isProductLiked, toggleLike } = useEngagement();
+  const { hearts, handleDoubleTap, handleSaveProduct, isSaving, isProductLiked, isProductSaved, toggleLike } = useEngagement();
   const { isAuthenticated } = useAuth();
   const categoryColors = getCategoryColors(product.category || undefined);
   
@@ -92,10 +92,20 @@ export default function ProductCard({
               handleSaveProduct(product.id);
             }}
             disabled={isSaving}
-            className="bg-white/90 hover:bg-white backdrop-blur-sm p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
-            title="Salvar produto"
+            className={`backdrop-blur-sm p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110 ${
+              isAuthenticated && isProductSaved(product.id)
+                ? 'bg-blue-100/90 hover:bg-blue-200/90'
+                : 'bg-white/90 hover:bg-white'
+            }`}
+            title={isAuthenticated && isProductSaved(product.id) ? "Produto salvo" : "Salvar produto"}
           >
-            <Bookmark className={`w-4 h-4 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
+            <Bookmark className={`w-4 h-4 ${
+              isAuthenticated && isProductSaved(product.id)
+                ? 'text-blue-600 fill-blue-600'
+                : isAuthenticated 
+                  ? 'text-blue-600' 
+                  : 'text-gray-400'
+            }`} />
           </button>
         </div>
       )}
