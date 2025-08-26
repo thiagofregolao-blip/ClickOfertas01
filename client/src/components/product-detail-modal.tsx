@@ -288,20 +288,6 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 </div>
               </div>
               
-              {/* Carrossel de Produtos - Indicadores */}
-              {(() => {
-                const storeProducts = store.products?.filter(p => p.isActive) || [];
-                const currentIndex = storeProducts.findIndex(p => p.id === product.id);
-                const totalProducts = storeProducts.length;
-                
-                return totalProducts > 1 ? (
-                  <div className="flex items-center gap-2 mr-2">
-                    <span className="text-xs text-gray-500">
-                      {currentIndex + 1}/{totalProducts}
-                    </span>
-                  </div>
-                ) : null;
-              })()}
               
               <Button
                 onClick={onClose}
@@ -313,165 +299,148 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               </Button>
             </div>
 
-            {/* Galeria de Imagens */}
+            {/* Conteúdo Scrollável - Imagem e informações juntas */}
             <div 
-              className="relative h-64 bg-gray-100 flex-shrink-0 overflow-hidden"
-              onTouchStart={onImageTouchStart}
-              onTouchMove={onImageTouchMove}
-              onTouchEnd={onImageTouchEnd}
-            >
-              {images.length > 0 ? (
-                <>
-                  <div className="relative w-full h-full overflow-hidden">
-                    {/* Imagem atual */}
-                    <img
-                      src={images[currentImageIndex]}
-                      alt={product.name}
-                      className={`absolute inset-0 w-full h-full object-cover ${
-                        isTransitioning 
-                          ? slideDirection === 'left' 
-                            ? 'animate-slide-out-left' 
-                            : 'animate-slide-out-right'
-                          : ''
-                      }`}
-                      onDoubleClick={(e) => handleDoubleTap(product.id, e)}
-                    />
-                    
-                    {/* Próxima imagem (durante transição) */}
-                    {isTransitioning && (
-                      <img
-                        src={images[nextImageIndex]}
-                        alt={product.name}
-                        className={`absolute inset-0 w-full h-full object-cover ${
-                          slideDirection === 'left'
-                            ? 'animate-slide-in-right'
-                            : 'animate-slide-in-left'
-                        }`}
-                      />
-                    )}
-                  </div>
-                  
-                  {/* Navegação de imagens */}
-                  {images.length > 1 && (
-                    <>
-                      <button
-                        onClick={prevImage}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white rounded-full p-2 backdrop-blur-sm"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={nextImage}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white rounded-full p-2 backdrop-blur-sm"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-                      
-                      {/* Indicadores */}
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1">
-                        {images.map((_, index) => (
-                          <div
-                            key={index}
-                            className={`w-2 h-2 rounded-full ${
-                              index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </>
-              ) : (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                  <div className="text-gray-400 text-center">
-                    <div className="w-16 h-16 bg-gray-300 rounded-lg mx-auto mb-2"></div>
-                    <p className="text-sm">Sem imagem</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Carrossel de Produtos - Navegação */}
-              {(() => {
-                const storeProducts = store.products?.filter(p => p.isActive) || [];
-                const currentIndex = storeProducts.findIndex(p => p.id === product.id);
-                const totalProducts = storeProducts.length;
-                
-                const navigateToProduct = (direction: 'prev' | 'next') => {
-                  if (totalProducts <= 1) return;
-                  
-                  let newIndex;
-                  if (direction === 'prev') {
-                    newIndex = currentIndex > 0 ? currentIndex - 1 : totalProducts - 1;
-                  } else {
-                    newIndex = currentIndex < totalProducts - 1 ? currentIndex + 1 : 0;
-                  }
-                  
-                  const newProduct = storeProducts[newIndex];
-                  if (newProduct) {
-                    setCurrentImageIndex(0);
-                    // Transição mais suave com animação
-                    setIsClosing(true);
-                    setTimeout(() => {
-                      setIsClosing(false);
-                      onClose();
-                      setTimeout(() => {
-                        window.dispatchEvent(new CustomEvent('openProductModal', {
-                          detail: { product: newProduct, store }
-                        }));
-                      }, 50);
-                    }, 200);
-                  }
-                };
-                
-                return totalProducts > 1 ? (
-                  <>
-                    <button
-                      onClick={() => navigateToProduct('prev')}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 rounded-full p-2 shadow-lg z-10"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => navigateToProduct('next')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 rounded-full p-2 shadow-lg z-10"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
-                  </>
-                ) : null;
-              })()}
-
-              {/* Informações do Carrossel na parte inferior */}
-              {(() => {
-                const storeProducts = store.products?.filter(p => p.isActive) || [];
-                const totalProducts = storeProducts.length;
-                
-                return totalProducts > 1 ? (
-                  <div className="mt-4 pt-3 border-t border-gray-200 text-center">
-                    <p className="text-xs text-gray-500">
-                      💡 Deslize para esquerda/direita ou use as setas para ver outros produtos desta loja
-                    </p>
-                  </div>
-                ) : null;
-              })()}
-
-            </div>
-
-
-            {/* Conteúdo Scrollável com barra de rolagem funcional */}
-            <div 
-              className="flex-1 min-h-0 overflow-y-scroll p-4 pb-6"
-              style={{ maxHeight: 'calc(100vh - 320px)' }}
+              className="flex-1 min-h-0 overflow-y-scroll"
               onTouchStart={onProductTouchStart}
               onTouchMove={onProductTouchMove}
               onTouchEnd={onProductTouchEnd}
             >
-              
+              {/* Galeria de Imagens - Agora dentro do scroll */}
+              <div 
+                className="relative h-64 bg-gray-100 flex-shrink-0 overflow-hidden"
+                onTouchStart={onImageTouchStart}
+                onTouchMove={onImageTouchMove}
+                onTouchEnd={onImageTouchEnd}
+              >
+                {images.length > 0 ? (
+                  <>
+                    <div className="relative w-full h-full overflow-hidden">
+                      {/* Imagem atual */}
+                      <img
+                        src={images[currentImageIndex]}
+                        alt={product.name}
+                        className={`absolute inset-0 w-full h-full object-cover ${
+                          isTransitioning 
+                            ? slideDirection === 'left' 
+                              ? 'animate-slide-out-left' 
+                              : 'animate-slide-out-right'
+                            : ''
+                        }`}
+                        onDoubleClick={(e) => handleDoubleTap(product.id, e)}
+                      />
+                      
+                      {/* Próxima imagem (durante transição) */}
+                      {isTransitioning && (
+                        <img
+                          src={images[nextImageIndex]}
+                          alt={product.name}
+                          className={`absolute inset-0 w-full h-full object-cover ${
+                            slideDirection === 'left'
+                              ? 'animate-slide-in-right'
+                              : 'animate-slide-in-left'
+                          }`}
+                        />
+                      )}
+                    </div>
+                    
+                    {/* Navegação de imagens */}
+                    {images.length > 1 && (
+                      <>
+                        <button
+                          onClick={prevImage}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white rounded-full p-2 backdrop-blur-sm"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={nextImage}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white rounded-full p-2 backdrop-blur-sm"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </button>
+                        
+                        {/* Indicadores */}
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1">
+                          {images.map((_, index) => (
+                            <div
+                              key={index}
+                              className={`w-2 h-2 rounded-full ${
+                                index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <div className="text-gray-400 text-center">
+                      <div className="w-16 h-16 bg-gray-300 rounded-lg mx-auto mb-2"></div>
+                      <p className="text-sm">Sem imagem</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Carrossel de Produtos - Navegação */}
+                {(() => {
+                  const storeProducts = store.products?.filter(p => p.isActive) || [];
+                  const currentIndex = storeProducts.findIndex(p => p.id === product.id);
+                  const totalProducts = storeProducts.length;
+                  
+                  const navigateToProduct = (direction: 'prev' | 'next') => {
+                    if (totalProducts <= 1) return;
+                    
+                    let newIndex;
+                    if (direction === 'prev') {
+                      newIndex = currentIndex > 0 ? currentIndex - 1 : totalProducts - 1;
+                    } else {
+                      newIndex = currentIndex < totalProducts - 1 ? currentIndex + 1 : 0;
+                    }
+                    
+                    const newProduct = storeProducts[newIndex];
+                    if (newProduct) {
+                      setCurrentImageIndex(0);
+                      // Transição mais suave com animação
+                      setIsClosing(true);
+                      setTimeout(() => {
+                        setIsClosing(false);
+                        onClose();
+                        setTimeout(() => {
+                          window.dispatchEvent(new CustomEvent('openProductModal', {
+                            detail: { product: newProduct, store }
+                          }));
+                        }, 50);
+                      }, 200);
+                    }
+                  };
+                  
+                  return totalProducts > 1 ? (
+                    <>
+                      <button
+                        onClick={() => navigateToProduct('prev')}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 rounded-full p-2 shadow-lg z-10"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => navigateToProduct('next')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 rounded-full p-2 shadow-lg z-10"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                    </>
+                  ) : null;
+                })()}
+              </div>
+
               {/* Informações do Produto */}
-              <div className="mb-4">
-                <div className="mb-3">
-                  <h1 className="text-xl font-bold text-gray-900">{product.name}</h1>
-                </div>
+              <div className="p-4 pb-6">
+                <div className="mb-4">
+                  <div className="mb-3">
+                    <h1 className="text-xl font-bold text-gray-900">{product.name}</h1>
+                  </div>
                 
                 {/* Preços */}
                 <div className="mb-3">
@@ -512,9 +481,9 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     <p className="text-gray-700 leading-relaxed">{product.description}</p>
                   </div>
                 )}
-              </div>
+                </div>
 
-              <Separator className="mb-4" />
+                <Separator className="mb-4" />
 
               {/* Produtos Similares */}
               {(() => {
@@ -644,7 +613,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   )}
                 </div>
               </div>
-
+            </div>
             </div>
           </div>
         </DialogContent>
