@@ -195,41 +195,37 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
       }}>
         <DialogContent className={`w-full h-full max-w-none max-h-none m-0 p-0 bg-white ${isClosing ? 'animate-modal-zoom-out' : ''}`}>
           <div className="relative h-full flex flex-col">
-            {/* Header com botão de fechar */}
-            <div className="absolute top-4 right-4 z-20">
-              <Button
-                onClick={onClose}
-                variant="secondary"
-                size="icon"
-                className="rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-sm"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Nome da Loja e Badges - Acima da Imagem */}
-            <div className="absolute top-4 left-4 z-20 max-w-[60%]">
-              <div className="flex flex-col gap-2">
-                <h2 className="text-sm font-medium text-white flex items-center gap-2 drop-shadow-lg">
+            {/* Nome da Loja e Badges - Área separada acima da imagem */}
+            <div className="bg-white border-b px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex items-center gap-2">
                   <div 
-                    className="w-3 h-3 rounded-full border border-white/30"
+                    className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: store.themeColor || '#E11D48' }}
                   />
-                  {store.name}
-                </h2>
-                <div className="flex flex-wrap gap-1">
+                  <h2 className="text-sm font-medium text-gray-600">{store.name}</h2>
+                </div>
+                <div className="flex items-center gap-1">
                   {product.isFeatured && (
-                    <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-none text-xs shadow-lg">
+                    <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-none text-xs">
                       🔥 Destaque
                     </Badge>
                   )}
                   {product.category && (
-                    <Badge className="bg-white/90 text-gray-800 border-none text-xs shadow-lg">
+                    <Badge variant="secondary" className="text-xs px-2 py-1">
                       {product.category}
                     </Badge>
                   )}
                 </div>
               </div>
+              <Button
+                onClick={onClose}
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
 
             {/* Galeria de Imagens */}
@@ -426,58 +422,70 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 ) : null;
               })()}
 
-              {/* Barra de Ação - Inferior no Mobile */}
+              {/* Barra de Ação - Ícones pequenos com funções abaixo */}
               <div className="mt-6 pt-4 border-t border-gray-200">
-                <div className="flex flex-wrap gap-3 justify-center">
-                  <Button
-                    onClick={() => toggleLike(product.id)}
-                    variant="outline"
-                    className="flex items-center gap-2 px-4 py-2 h-auto border-red-200 hover:bg-red-50"
-                  >
-                    <Heart className={`h-4 w-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
-                    <span className="text-sm font-medium text-red-500">Curtir</span>
-                  </Button>
-                  
-                  <Button
-                    onClick={() => handleSaveProduct(product.id)}
-                    variant="outline"
-                    className={`flex items-center gap-2 px-4 py-2 h-auto ${isAuthenticated ? 'border-blue-200 hover:bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}
-                  >
-                    <Bookmark className={`h-4 w-4 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
-                    <span className={`text-sm font-medium ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`}>Salvar</span>
-                  </Button>
-                  
-                  <Button
-                    onClick={handleShare}
-                    variant="outline"
-                    className="flex items-center gap-2 px-4 py-2 h-auto border-gray-200 hover:bg-gray-50"
-                  >
-                    <Share2 className="h-4 w-4 text-gray-700" />
-                    <span className="text-sm font-medium text-gray-700">Compartilhar</span>
-                  </Button>
-                </div>
-                
-                {/* Segunda linha para contato e direções */}
-                <div className="flex flex-wrap gap-3 justify-center mt-3">
-                  {store.whatsapp && (
+                <div className="flex justify-center gap-6">
+                  <div className="flex flex-col items-center gap-1">
                     <Button
-                      onClick={handleContact}
-                      className="flex items-center gap-2 px-6 py-2 h-auto bg-[#25D366] hover:bg-[#128C7E] text-white"
+                      onClick={() => toggleLike(product.id)}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center justify-center w-12 h-12 rounded-full border-red-200 hover:bg-red-50"
                     >
-                      <MessageCircle className="h-4 w-4" />
-                      <span className="text-sm font-medium">Entrar em Contato</span>
+                      <Heart className={`h-5 w-5 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
                     </Button>
+                    <span className="text-xs text-red-500 font-medium">Curtir</span>
+                  </div>
+                  
+                  <div className="flex flex-col items-center gap-1">
+                    <Button
+                      onClick={() => handleSaveProduct(product.id)}
+                      variant="outline"
+                      size="sm"
+                      className={`flex items-center justify-center w-12 h-12 rounded-full ${isAuthenticated ? 'border-blue-200 hover:bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}
+                    >
+                      <Bookmark className={`h-5 w-5 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
+                    </Button>
+                    <span className={`text-xs font-medium ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`}>Salvar</span>
+                  </div>
+                  
+                  <div className="flex flex-col items-center gap-1">
+                    <Button
+                      onClick={handleShare}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center justify-center w-12 h-12 rounded-full border-gray-200 hover:bg-gray-50"
+                    >
+                      <Share2 className="h-5 w-5 text-gray-700" />
+                    </Button>
+                    <span className="text-xs text-gray-700 font-medium">Compartilhar</span>
+                  </div>
+                  
+                  {store.whatsapp && (
+                    <div className="flex flex-col items-center gap-1">
+                      <Button
+                        onClick={handleContact}
+                        size="sm"
+                        className="flex items-center justify-center w-12 h-12 rounded-full bg-[#25D366] hover:bg-[#128C7E] text-white"
+                      >
+                        <MessageCircle className="h-5 w-5" />
+                      </Button>
+                      <span className="text-xs text-[#25D366] font-medium">Contato</span>
+                    </div>
                   )}
                   
                   {store.latitude && store.longitude && (
-                    <Button
-                      onClick={handleDirections}
-                      className="flex items-center gap-2 px-6 py-2 h-auto bg-blue-500 hover:bg-blue-600 text-white"
-                      data-testid="button-directions-modal"
-                    >
-                      <MapPin className="h-4 w-4" />
-                      <span className="text-sm font-medium">Ver Localização</span>
-                    </Button>
+                    <div className="flex flex-col items-center gap-1">
+                      <Button
+                        onClick={handleDirections}
+                        size="sm"
+                        className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+                        data-testid="button-directions-modal"
+                      >
+                        <MapPin className="h-5 w-5" />
+                      </Button>
+                      <span className="text-xs text-blue-500 font-medium">Localização</span>
+                    </div>
                   )}
                 </div>
               </div>
