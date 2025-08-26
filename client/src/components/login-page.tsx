@@ -17,8 +17,17 @@ interface LoginPageProps {
   onClose: () => void;
 }
 
-// Schema para cadastro  
-const registerSchema = z.object({
+// Schema para cadastro de usuário normal
+const userRegisterSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  lastName: z.string().optional(),
+  phone: z.string().optional(),
+});
+
+// Schema para cadastro de lojista  
+const storeRegisterSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
   storeName: z.string().min(2, "Nome da loja deve ter pelo menos 2 caracteres"),
@@ -33,17 +42,30 @@ const loginSchema = z.object({
   password: z.string().min(1, "Senha é obrigatória"),
 });
 
-type RegisterFormData = z.infer<typeof registerSchema>;
+type UserRegisterFormData = z.infer<typeof userRegisterSchema>;
+type StoreRegisterFormData = z.infer<typeof storeRegisterSchema>;
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [currentView, setCurrentView] = useState<'home' | 'login' | 'register'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'user-login' | 'user-register' | 'store-login' | 'store-register'>('home');
 
-  // Form para cadastro
-  const registerForm = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+  // Form para cadastro de usuário normal
+  const userRegisterForm = useForm<UserRegisterFormData>({
+    resolver: zodResolver(userRegisterSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      firstName: "",
+      lastName: "",
+      phone: "",
+    },
+  });
+
+  // Form para cadastro de lojista
+  const storeRegisterForm = useForm<StoreRegisterFormData>({
+    resolver: zodResolver(storeRegisterSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -63,10 +85,10 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
     },
   });
 
-  // Mutation para cadastro
-  const registerMutation = useMutation({
-    mutationFn: async (data: RegisterFormData) => {
-      return await apiRequest("POST", "/api/auth/register", data);
+  // Mutation para cadastro de usuário
+  const userRegisterMutation = useMutation({
+    mutationFn: async (data: UserRegisterFormData) => {
+      return await apiRequest("POST", "/api/auth/register-user", data);
     },
     onSuccess: () => {
       toast({
@@ -75,7 +97,31 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       onClose();
-      // Redireciona para admin
+      // Usuário normal fica na galeria
+      window.location.reload();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro no cadastro",
+        description: error.message || "Ocorreu um erro. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation para cadastro de lojista
+  const storeRegisterMutation = useMutation({
+    mutationFn: async (data: StoreRegisterFormData) => {
+      return await apiRequest("POST", "/api/auth/register-store", data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Cadastro realizado!",
+        description: "Bem-vindo ao Panfleto Rápido!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      onClose();
+      // Lojista vai para admin
       window.location.href = "/admin";
     },
     onError: (error: any) => {
@@ -92,15 +138,20 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
     mutationFn: async (data: LoginFormData) => {
       return await apiRequest("POST", "/api/auth/login", data);
     },
-    onSuccess: () => {
+    onSuccess: (userData) => {
       toast({
         title: "Login realizado!",
         description: "Bem-vindo de volta!",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       onClose();
-      // Redireciona para admin
-      window.location.href = "/admin";
+      
+      // Verifica se tem loja para decidir o redirecionamento
+      if (userData.hasStore) {
+        window.location.href = "/admin";
+      } else {
+        window.location.reload();
+      }
     },
     onError: (error: any) => {
       toast({
@@ -111,8 +162,12 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
     },
   });
 
-  const handleRegister = (data: RegisterFormData) => {
-    registerMutation.mutate(data);
+  const handleUserRegister = (data: UserRegisterFormData) => {
+    userRegisterMutation.mutate(data);
+  };
+
+  const handleStoreRegister = (data: StoreRegisterFormData) => {
+    storeRegisterMutation.mutate(data);
   };
 
   const handleLogin = (data: LoginFormData) => {
@@ -128,7 +183,8 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
   };
 
   const resetForms = () => {
-    registerForm.reset();
+    userRegisterForm.reset();
+    storeRegisterForm.reset();
     loginForm.reset();
   };
 
@@ -137,14 +193,24 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
     setCurrentView('home');
   };
 
-  const goToLogin = () => {
+  const goToUserLogin = () => {
     resetForms();
-    setCurrentView('login');
+    setCurrentView('user-login');
   };
 
-  const goToRegister = () => {
+  const goToUserRegister = () => {
     resetForms();
-    setCurrentView('register');
+    setCurrentView('user-register');
+  };
+
+  const goToStoreLogin = () => {
+    resetForms();
+    setCurrentView('store-login');
+  };
+
+  const goToStoreRegister = () => {
+    resetForms();
+    setCurrentView('store-register');
   };
 
   return (
@@ -164,28 +230,28 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
                   Panfleto Rápido
                 </h1>
                 <p className="text-gray-600 mt-2">
-                  Crie panfletos digitais para sua loja
+                  Descubra ofertas incríveis das melhores lojas
                 </p>
               </div>
             </div>
 
-            {/* Botões principais */}
+            {/* Botões principais - USUARIOS */}
             <div className="space-y-4">
               <Button
-                onClick={goToLogin}
+                onClick={goToUserLogin}
                 className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-medium"
-                data-testid="button-go-login"
+                data-testid="button-go-user-login"
               >
-                Login
+                🔥 Entrar e ver ofertas
               </Button>
               
               <Button
-                onClick={goToRegister}
+                onClick={goToUserRegister}
                 variant="outline"
                 className="w-full h-12 border-2 hover:bg-gray-50 font-medium"
-                data-testid="button-go-register"
+                data-testid="button-go-user-register"
               >
-                Cadastrar
+                ⭐ Cadastrar-se gratuitamente
               </Button>
             </div>
 
@@ -213,11 +279,24 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
                 </Button>
               </div>
             </div>
+
+            {/* Separador para lojistas */}
+            <div className="pt-6 border-t border-gray-200">
+              <p className="text-sm text-gray-500 mb-3">Tem uma loja?</p>
+              <Button
+                onClick={goToStoreLogin}
+                variant="outline"
+                className="w-full h-10 text-sm border border-orange-300 text-orange-700 hover:bg-orange-50 font-medium"
+                data-testid="button-go-store-login"
+              >
+                🏪 Logista clique aqui
+              </Button>
+            </div>
           </div>
         )}
 
-        {/* LOGIN VIEW */}
-        {currentView === 'login' && (
+        {/* USER LOGIN VIEW */}
+        {currentView === 'user-login' && (
           <div className="space-y-6 p-6">
             <div className="flex items-center space-x-4 mb-8">
               <Button
@@ -230,8 +309,8 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
                 <ArrowLeft className="w-4 h-4" />
               </Button>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Fazer Login</h2>
-                <p className="text-gray-600">Entre na sua conta</p>
+                <h2 className="text-2xl font-bold text-gray-900">Entrar</h2>
+                <p className="text-gray-600">Acesse sua conta e veja ofertas exclusivas</p>
               </div>
             </div>
 
@@ -307,9 +386,9 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
               <p className="text-sm text-gray-600">
                 Não tem conta?{" "}
                 <button
-                  onClick={goToRegister}
+                  onClick={goToUserRegister}
                   className="text-primary hover:underline font-semibold"
-                  data-testid="link-go-register"
+                  data-testid="link-go-user-register"
                 >
                   Cadastre-se aqui
                 </button>
@@ -318,8 +397,8 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
           </div>
         )}
 
-        {/* REGISTER VIEW */}
-        {currentView === 'register' && (
+        {/* USER REGISTER VIEW */}
+        {currentView === 'user-register' && (
           <div className="space-y-6 p-6">
             <div className="flex items-center space-x-4 mb-6">
               <Button
@@ -333,21 +412,59 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
               </Button>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Criar Conta</h2>
-                <p className="text-gray-600">Cadastre sua loja</p>
+                <p className="text-gray-600">Junte-se e descubra ofertas exclusivas</p>
               </div>
             </div>
 
-            <Form {...registerForm}>
-              <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-5">
+            <Form {...userRegisterForm}>
+              <form onSubmit={userRegisterForm.handleSubmit(handleUserRegister)} className="space-y-5">
                 
-                {/* Dados de acesso */}
-                <div className="space-y-4 p-4 bg-gray-50 rounded-lg border">
-                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                    Dados de Acesso
-                  </h3>
-                  
+                {/* Dados pessoais */}
+                <div className="space-y-4">
                   <FormField
-                    control={registerForm.control}
+                    control={userRegisterForm.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-medium text-gray-700">
+                          Nome *
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Seu primeiro nome"
+                            className="h-11 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
+                            {...field}
+                            data-testid="input-user-register-firstname"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={userRegisterForm.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-medium text-gray-700">
+                          Sobrenome
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Seu sobrenome"
+                            className="h-11 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
+                            {...field}
+                            data-testid="input-user-register-lastname"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={userRegisterForm.control}
                     name="email"
                     render={({ field }) => (
                       <FormItem>
@@ -361,7 +478,7 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
                             type="email"
                             className="h-11 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
                             {...field}
-                            data-testid="input-register-email"
+                            data-testid="input-user-register-email"
                           />
                         </FormControl>
                         <FormMessage />
@@ -370,7 +487,7 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
                   />
 
                   <FormField
-                    control={registerForm.control}
+                    control={userRegisterForm.control}
                     name="password"
                     render={({ field }) => (
                       <FormItem>
@@ -384,36 +501,7 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
                             type="password"
                             className="h-11 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
                             {...field}
-                            data-testid="input-register-password"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Dados da loja */}
-                <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <h3 className="text-sm font-semibold text-blue-700 uppercase tracking-wider">
-                    Dados da Loja
-                  </h3>
-                  
-                  <FormField
-                    control={registerForm.control}
-                    name="storeName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2 font-medium text-gray-700">
-                          <Building className="w-4 h-4 text-primary" />
-                          Nome da loja *
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Ex: Minha Loja"
-                            className="h-11 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
-                            {...field}
-                            data-testid="input-register-storename"
+                            data-testid="input-user-register-password"
                           />
                         </FormControl>
                         <FormMessage />
@@ -422,70 +510,20 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
                   />
 
                   <FormField
-                    control={registerForm.control}
+                    control={userRegisterForm.control}
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="flex items-center gap-2 font-medium text-gray-700">
                           <Phone className="w-4 h-4 text-primary" />
-                          Telefone
+                          Telefone (opcional)
                         </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="(11) 99999-9999"
                             className="h-11 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
                             {...field}
-                            data-testid="input-register-phone"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Localização */}
-                <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <h3 className="text-sm font-semibold text-green-700 uppercase tracking-wider">
-                    Localização
-                  </h3>
-                  
-                  <FormField
-                    control={registerForm.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2 font-medium text-gray-700">
-                          <MapPin className="w-4 h-4 text-primary" />
-                          Endereço
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Rua das Flores, 123"
-                            className="h-11 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
-                            {...field}
-                            data-testid="input-register-address"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={registerForm.control}
-                    name="city"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-medium text-gray-700">
-                          Cidade
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="São Paulo"
-                            className="h-11 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
-                            {...field}
-                            data-testid="input-register-city"
+                            data-testid="input-user-register-phone"
                           />
                         </FormControl>
                         <FormMessage />
@@ -498,10 +536,10 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
                   <Button
                     type="submit"
                     className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-semibold text-base shadow-lg"
-                    disabled={registerMutation.isPending}
-                    data-testid="button-register-submit"
+                    disabled={userRegisterMutation.isPending}
+                    data-testid="button-user-register-submit"
                   >
-                    {registerMutation.isPending ? (
+                    {userRegisterMutation.isPending ? (
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                         Criando conta...
@@ -518,9 +556,322 @@ export default function LoginPage({ isOpen, onClose }: LoginPageProps) {
               <p className="text-sm text-gray-600">
                 Já tem conta?{" "}
                 <button
-                  onClick={goToLogin}
+                  onClick={goToUserLogin}
                   className="text-primary hover:underline font-semibold"
-                  data-testid="link-go-login"
+                  data-testid="link-go-user-login"
+                >
+                  Faça login aqui
+                </button>
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* STORE LOGIN VIEW */}
+        {currentView === 'store-login' && (
+          <div className="space-y-6 p-6">
+            <div className="flex items-center space-x-4 mb-8">
+              <Button
+                variant="ghost" 
+                size="sm"
+                onClick={goBack}
+                className="p-2 hover:bg-gray-100 rounded-full"
+                data-testid="button-back-from-store-login"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Login Lojista</h2>
+                <p className="text-gray-600">Acesse o painel da sua loja</p>
+              </div>
+            </div>
+
+            <Form {...loginForm}>
+              <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-6">
+                <FormField
+                  control={loginForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2 font-medium text-gray-700">
+                        <Mail className="w-4 h-4 text-primary" />
+                        Email
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="seu@email.com"
+                          type="email"
+                          className="h-12 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary text-base"
+                          {...field}
+                          data-testid="input-store-login-email"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={loginForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2 font-medium text-gray-700">
+                        <Lock className="w-4 h-4 text-primary" />
+                        Senha
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Sua senha"
+                          type="password"
+                          className="h-12 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary text-base"
+                          {...field}
+                          data-testid="input-store-login-password"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="pt-2">
+                  <Button
+                    type="submit"
+                    className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-semibold text-base shadow-lg"
+                    disabled={loginMutation.isPending}
+                    data-testid="button-store-login-submit"
+                  >
+                    {loginMutation.isPending ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Entrando...
+                      </div>
+                    ) : (
+                      "🏪 Acessar Painel"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+
+            <div className="text-center pt-4">
+              <p className="text-sm text-gray-600">
+                Não tem loja cadastrada?{" "}
+                <button
+                  onClick={goToStoreRegister}
+                  className="text-orange-600 hover:underline font-semibold"
+                  data-testid="link-go-store-register"
+                >
+                  Cadastre sua loja
+                </button>
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* STORE REGISTER VIEW */}
+        {currentView === 'store-register' && (
+          <div className="space-y-6 p-6">
+            <div className="flex items-center space-x-4 mb-6">
+              <Button
+                variant="ghost"
+                size="sm" 
+                onClick={goBack}
+                className="p-2 hover:bg-gray-100 rounded-full"
+                data-testid="button-back-from-store-register"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Cadastrar Loja</h2>
+                <p className="text-gray-600">Crie panfletos digitais para sua loja</p>
+              </div>
+            </div>
+
+            <Form {...storeRegisterForm}>
+              <form onSubmit={storeRegisterForm.handleSubmit(handleStoreRegister)} className="space-y-5">
+                
+                {/* Dados de acesso */}
+                <div className="space-y-4 p-4 bg-gray-50 rounded-lg border">
+                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                    Dados de Acesso
+                  </h3>
+                  
+                  <FormField
+                    control={storeRegisterForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2 font-medium text-gray-700">
+                          <Mail className="w-4 h-4 text-primary" />
+                          Email *
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="seu@email.com"
+                            type="email"
+                            className="h-11 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
+                            {...field}
+                            data-testid="input-store-register-email"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={storeRegisterForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2 font-medium text-gray-700">
+                          <Lock className="w-4 h-4 text-primary" />
+                          Senha *
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Mínimo 6 caracteres"
+                            type="password"
+                            className="h-11 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
+                            {...field}
+                            data-testid="input-store-register-password"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Dados da loja */}
+                <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h3 className="text-sm font-semibold text-blue-700 uppercase tracking-wider">
+                    Dados da Loja
+                  </h3>
+                  
+                  <FormField
+                    control={storeRegisterForm.control}
+                    name="storeName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2 font-medium text-gray-700">
+                          <Building className="w-4 h-4 text-primary" />
+                          Nome da loja *
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Ex: Minha Loja"
+                            className="h-11 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
+                            {...field}
+                            data-testid="input-store-register-storename"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={storeRegisterForm.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2 font-medium text-gray-700">
+                          <Phone className="w-4 h-4 text-primary" />
+                          Telefone
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="(11) 99999-9999"
+                            className="h-11 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
+                            {...field}
+                            data-testid="input-store-register-phone"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Localização */}
+                <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                  <h3 className="text-sm font-semibold text-green-700 uppercase tracking-wider">
+                    Localização
+                  </h3>
+                  
+                  <FormField
+                    control={storeRegisterForm.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2 font-medium text-gray-700">
+                          <MapPin className="w-4 h-4 text-primary" />
+                          Endereço
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Rua das Flores, 123"
+                            className="h-11 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
+                            {...field}
+                            data-testid="input-store-register-address"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={storeRegisterForm.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-medium text-gray-700">
+                          Cidade
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="São Paulo"
+                            className="h-11 border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
+                            {...field}
+                            data-testid="input-store-register-city"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="pt-4">
+                  <Button
+                    type="submit"
+                    className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-semibold text-base shadow-lg"
+                    disabled={storeRegisterMutation.isPending}
+                    data-testid="button-store-register-submit"
+                  >
+                    {storeRegisterMutation.isPending ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Criando loja...
+                      </div>
+                    ) : (
+                      "🏪 Criar minha loja"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+
+            <div className="text-center pt-2">
+              <p className="text-sm text-gray-600">
+                Já tem loja cadastrada?{" "}
+                <button
+                  onClick={goToStoreLogin}
+                  className="text-orange-600 hover:underline font-semibold"
+                  data-testid="link-go-store-login"
                 >
                   Faça login aqui
                 </button>

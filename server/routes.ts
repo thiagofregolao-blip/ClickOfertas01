@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, registerUserSchema, loginUserSchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
@@ -95,22 +95,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create session
-      req.login(user, (err) => {
+      req.login(user, async (err) => {
         if (err) {
           console.error("Session error:", err);
           return res.status(500).json({ message: "Erro ao criar sessão" });
         }
+        // Verifica se o usuário tem uma loja
+        const userStore = await storage.getUserStore(user.id);
         res.json({ 
           message: "Login realizado com sucesso",
           user: {
             id: user.id,
             email: user.email,
             storeName: user.storeName
-          }
+          },
+          hasStore: !!userStore
         });
       });
     } catch (error) {
       console.error("Login error:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Erro interno do servidor" });
+      }
+    }
+  });
+
+  // New registration routes for user/store separation
+
+  // Register normal user (no store)
+  app.post('/api/auth/register-user', async (req, res) => {
+    try {
+      const userData = registerUserNormalSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "Email já está em uso" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
+
+      // Create new user (normal user, no store)
+      const user = await storage.createUser({
+        email: userData.email,
+        password: hashedPassword,
+        firstName: userData.firstName,
+        lastName: userData.lastName || null,
+        phone: userData.phone || null,
+        provider: 'email',
+        isEmailVerified: false
+      });
+
+      // Create session
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Session error:", err);
+          return res.status(500).json({ message: "Erro ao criar sessão" });
+        }
+        res.status(201).json({ 
+          message: "Usuário criado com sucesso",
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName
+          },
+          hasStore: false
+        });
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Erro interno do servidor" });
+      }
+    }
+  });
+
+  // Register store owner (with store)
+  app.post('/api/auth/register-store', async (req, res) => {
+    try {
+      const userData = registerStoreOwnerSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "Email já está em uso" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
+
+      // Create new user (store owner)
+      const user = await storage.createUser({
+        email: userData.email,
+        password: hashedPassword,
+        storeName: userData.storeName,
+        phone: userData.phone || null,
+        address: userData.address || null,
+        city: userData.city || null,
+        provider: 'email',
+        isEmailVerified: false
+      });
+
+      // Create session
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Session error:", err);
+          return res.status(500).json({ message: "Erro ao criar sessão" });
+        }
+        res.status(201).json({ 
+          message: "Loja criada com sucesso",
+          user: {
+            id: user.id,
+            email: user.email,
+            storeName: user.storeName
+          },
+          hasStore: true
+        });
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
       if (error instanceof z.ZodError) {
         res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       } else {

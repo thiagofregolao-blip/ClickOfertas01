@@ -233,7 +233,26 @@ export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// Esquemas de validação para cadastro
+// Schema para cadastro de usuários normais (sem loja)
+export const registerUserNormalSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  lastName: z.string().optional(),
+  phone: z.string().optional(),
+});
+
+// Schema para cadastro de lojistas (com loja)
+export const registerStoreOwnerSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  storeName: z.string().min(2, "Nome da loja deve ter pelo menos 2 caracteres"),
+  phone: z.string().optional(),
+  address: z.string().optional(), 
+  city: z.string().optional(),
+});
+
+// Esquemas de validação para cadastro (compatibilidade)
 export const registerUserSchema = createInsertSchema(users, {
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
@@ -262,6 +281,8 @@ export const loginUserSchema = z.object({
   password: z.string().min(1, "Senha é obrigatória"),
 });
 
+export type RegisterUserNormalType = z.infer<typeof registerUserNormalSchema>;
+export type RegisterStoreOwnerType = z.infer<typeof registerStoreOwnerSchema>;
 export type RegisterUserType = z.infer<typeof registerUserSchema>;
 export type LoginUserType = z.infer<typeof loginUserSchema>;
 
