@@ -146,7 +146,7 @@ export default function ShoppingList() {
       for (let i = 1; i <= pageCount; i++) {
         pdf.setPage(i);
         pdf.setFontSize(8);
-        pdf.text('Gerado por Panfleto Rápido', 20, 285);
+        pdf.text('Gerado por Click Ofertas Paraguai', 20, 285);
         pdf.text(`Página ${i} de ${pageCount}`, 170, 285);
       }
 

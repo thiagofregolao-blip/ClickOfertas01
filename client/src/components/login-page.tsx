@@ -123,7 +123,7 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
     onSuccess: () => {
       toast({
         title: "Cadastro realizado!",
-        description: "Bem-vindo ao Panfleto Rápido!",
+        description: "Bem-vindo ao Click Ofertas Paraguai!",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       onClose();
@@ -147,7 +147,7 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
     onSuccess: () => {
       toast({
         title: "Cadastro realizado!",
-        description: "Bem-vindo ao Panfleto Rápido!",
+        description: "Bem-vindo ao Click Ofertas Paraguai!",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       onClose();
@@ -351,7 +351,7 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
-                  Panfleto Rápido
+                  Click Ofertas Paraguai
                 </h1>
                 <p className="text-gray-600 mt-2">
                   {mode === 'user' 

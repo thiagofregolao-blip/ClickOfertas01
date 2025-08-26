@@ -40,7 +40,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
               <FileText className="text-primary text-2xl" />
-              <h1 className="text-xl font-bold text-gray-900">Panfleto Rápido</h1>
+              <h1 className="text-xl font-bold text-gray-900">Click Ofertas Paraguai</h1>
               {store && (
                 <span className="text-sm text-gray-500">• {store.name}</span>
               )}

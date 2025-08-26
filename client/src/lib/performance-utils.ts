@@ -1,5 +1,5 @@
 /**
- * Utilitários de Performance para Panfleto Rápido
+ * Utilitários de Performance para Click Ofertas Paraguai
  * 
  * Funções para otimizar performance da aplicação
  */

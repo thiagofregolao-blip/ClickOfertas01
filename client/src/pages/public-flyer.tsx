@@ -19,12 +19,12 @@ import { useAppVersion } from "@/hooks/use-mobile";
 /**
  * Página Pública dos Panfletos - Suporta duas versões:
  * 
- * VERSÃO MOBILE (Panfleto Rápido Mobile):
+ * VERSÃO MOBILE (Click Ofertas Paraguai Mobile):
  * - Layout Instagram Stories para /stores/:slug
  * - Cards compactos e otimizados para touch
  * - Navegação por swipe e toque
  * 
- * VERSÃO DESKTOP (Panfleto Rápido Desktop):
+ * VERSÃO DESKTOP (Click Ofertas Paraguai Desktop):
  * - Layout tradicional de panfleto para /flyer/:slug  
  * - Grid de produtos otimizado para mouse
  * - Mais informações visíveis simultaneamente

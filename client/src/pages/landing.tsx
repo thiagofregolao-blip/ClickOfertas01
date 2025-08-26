@@ -6,7 +6,7 @@ import { useState } from "react";
 import LoginPage from "@/components/login-page";
 
 /**
- * Página de Aterrissagem - Panfleto Rápido
+ * Página de Aterrissagem - Click Ofertas Paraguai
  * 
  * Apresenta as duas versões da aplicação:
  * - Mobile: Instagram-style, otimizado para smartphones
@@ -30,7 +30,7 @@ export default function Landing() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
               <FileText className="text-primary text-2xl" />
-              <h1 className="text-xl font-bold text-gray-900">Panfleto Rápido</h1>
+              <h1 className="text-xl font-bold text-gray-900">Click Ofertas Paraguai</h1>
             </div>
             <div className="flex gap-3">
               <Button 

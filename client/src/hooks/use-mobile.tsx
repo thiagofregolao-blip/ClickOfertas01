@@ -2,8 +2,8 @@ import * as React from "react"
 
 // Configuração das versões da aplicação
 export const APP_VERSIONS = {
-  MOBILE: 'Panfleto Rápido Mobile',
-  DESKTOP: 'Panfleto Rápido Desktop'
+  MOBILE: 'Click Ofertas Paraguai Mobile',
+  DESKTOP: 'Click Ofertas Paraguai Desktop'
 } as const
 
 export type AppVersionType = 'mobile' | 'desktop'

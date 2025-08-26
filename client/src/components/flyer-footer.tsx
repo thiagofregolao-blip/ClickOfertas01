@@ -106,7 +106,7 @@ export default function FlyerFooter({ store, onWhatsAppClick, onInstagramClick, 
       <div className="border-t border-white/20 mt-6 pt-6 text-center">
         <p className="text-white/75">
           Promoções válidas até acabar o estoque • Gerado por{' '}
-          <span className="text-white font-semibold">Panfleto Rápido</span>
+          <span className="text-white font-semibold">Click Ofertas Paraguai</span>
         </p>
       </div>
     </div>

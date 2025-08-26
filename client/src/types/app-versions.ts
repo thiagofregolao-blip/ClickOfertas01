@@ -1,5 +1,5 @@
 /**
- * Definições das versões da aplicação Panfleto Rápido
+ * Definições das versões da aplicação Click Ofertas Paraguai
  * 
  * Esta aplicação possui duas versões otimizadas para diferentes dispositivos:
  */
@@ -7,7 +7,7 @@
 export const APP_CONFIG = {
   // Configurações da versão Mobile
   MOBILE: {
-    name: 'Panfleto Rápido Mobile',
+    name: 'Click Ofertas Paraguai Mobile',
     description: 'Versão otimizada para smartphones e tablets',
     breakpoint: 768, // px
     features: [
@@ -26,7 +26,7 @@ export const APP_CONFIG = {
 
   // Configurações da versão Desktop
   DESKTOP: {
-    name: 'Panfleto Rápido Desktop', 
+    name: 'Click Ofertas Paraguai Desktop', 
     description: 'Versão otimizada para computadores e notebooks',
     breakpoint: 768, // px (acima deste valor)
     features: [

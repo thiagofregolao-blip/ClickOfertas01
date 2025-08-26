@@ -1,8 +1,8 @@
-# Panfleto Rápido
+# Click Ofertas Paraguai
 
 ## Overview
 
-Panfleto Rápido is a web application that enables store owners to create digital flyers by managing products and automatically generating shareable promotional content. The system features two distinct frontend interfaces: an admin panel for store management and a public-facing flyer display with Instagram-style feed and intelligent search capabilities. Built as a full-stack TypeScript application, it uses React for the frontend, Express.js for the backend, and PostgreSQL with Drizzle ORM for data persistence.
+Click Ofertas Paraguai is a web application that enables store owners to create digital flyers by managing products and automatically generating shareable promotional content. The system features two distinct frontend interfaces: an admin panel for store management and a public-facing flyer display with Instagram-style feed and intelligent search capabilities. Built as a full-stack TypeScript application, it uses React for the frontend, Express.js for the backend, and PostgreSQL with Drizzle ORM for data persistence.
 
 ## User Preferences
 

@@ -225,7 +225,7 @@ export default function StoresGallery() {
       <div className="border-b sticky top-0 z-10" style={{ backgroundColor: '#21409A' }}>
         <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-white">🛍️ Panfleto Rápido</h1>
+            <h1 className="text-2xl font-bold text-white">🛍️ Click Ofertas Paraguai</h1>
             <div className="flex items-center gap-3">
               {isAuthenticated ? (
                 // Usuário logado - mostrar informações e menu
@@ -644,7 +644,7 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
           <div className="flex items-center space-x-4 text-sm">
             {store.whatsapp && (
               <a 
-                href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Olá! Vi suas ofertas no Panfleto Rápido e gostaria de mais informações.`}
+                href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Olá! Vi suas ofertas no Click Ofertas Paraguai e gostaria de mais informações.`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-green-600 hover:text-green-700 transition-colors"
