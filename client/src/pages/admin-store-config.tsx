@@ -159,94 +159,227 @@ export default function AdminStoreConfig() {
             <CardTitle>Configurações da Loja</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome da Loja *</Label>
-                  <Input
-                    id="name"
-                    {...form.register("name")}
-                    placeholder="Ex: Mercadinho Silva"
-                    data-testid="input-store-name"
-                  />
-                  {form.formState.errors.name && (
-                    <p className="text-sm text-red-600">{form.formState.errors.name.message}</p>
-                  )}
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              
+              {/* Seção: Dados da Loja */}
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 rounded-xl p-6 border-l-4 border-blue-400">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">🏪</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Dados da Loja</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Informações básicas e identidade visual</p>
+                  </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="logoUrl">Logo da Empresa</Label>
-                  <div className="space-y-3">
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nome da Loja *</Label>
                     <Input
-                      id="logoUrl"
-                      {...form.register("logoUrl")}
-                      placeholder="https://exemplo.com/logo.png"
-                      data-testid="input-logo-url"
+                      id="name"
+                      {...form.register("name")}
+                      placeholder="Ex: Mercadinho Silva"
+                      data-testid="input-store-name"
+                      className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700"
                     />
-                    <p className="text-sm text-gray-600">
-                      Cole aqui o link (URL) da imagem do seu logo. Recomendamos formato PNG ou JPG.
-                    </p>
-                    {form.watch("logoUrl") && (
-                      <div className="mt-2">
-                        <p className="text-sm font-medium mb-1">Preview:</p>
-                        <img 
-                          src={form.watch("logoUrl") || ""} 
-                          alt="Preview do logo"
-                          className="h-12 w-auto object-contain border rounded p-1"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                          onLoad={(e) => {
-                            e.currentTarget.style.display = 'block';
-                          }}
-                        />
-                      </div>
+                    {form.formState.errors.name && (
+                      <p className="text-sm text-red-600">{form.formState.errors.name.message}</p>
                     )}
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="themeColor">Cor do Tema</Label>
-                  <div className="flex items-center space-x-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="logoUrl">Logo da Empresa</Label>
+                    <div className="space-y-3">
+                      <Input
+                        id="logoUrl"
+                        {...form.register("logoUrl")}
+                        placeholder="https://exemplo.com/logo.png"
+                        data-testid="input-logo-url"
+                        className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700"
+                      />
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        Cole aqui o link (URL) da imagem do seu logo. Recomendamos formato PNG ou JPG.
+                      </p>
+                      {form.watch("logoUrl") && (
+                        <div className="mt-2">
+                          <p className="text-sm font-medium mb-1">Preview:</p>
+                          <img 
+                            src={form.watch("logoUrl") || ""} 
+                            alt="Preview do logo"
+                            className="h-12 w-auto object-contain border rounded p-1 bg-white"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                            onLoad={(e) => {
+                              e.currentTarget.style.display = 'block';
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="themeColor">Cor do Tema</Label>
+                    <div className="flex items-center space-x-3">
+                      <Input
+                        id="themeColor"
+                        type="color"
+                        value={form.watch("themeColor") || "#E11D48"}
+                        onChange={(e) => form.setValue("themeColor", e.target.value)}
+                        className="w-16 h-12 p-1 border-blue-200 dark:border-blue-700"
+                        data-testid="input-theme-color"
+                      />
+                      <Input
+                        value={form.watch("themeColor") || "#E11D48"}
+                        onChange={(e) => form.setValue("themeColor", e.target.value)}
+                        placeholder="#E11D48"
+                        className="flex-1 bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700"
+                        data-testid="input-theme-color-text"
+                      />
+                    </div>
+                    {form.formState.errors.themeColor && (
+                      <p className="text-sm text-red-600">{form.formState.errors.themeColor.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="currency">Símbolo da Moeda</Label>
+                    <Select 
+                      value={form.watch("currency") || ""} 
+                      onValueChange={(value) => form.setValue("currency", value)}
+                    >
+                      <SelectTrigger data-testid="select-currency" className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Gs.">Gs. (Guarani)</SelectItem>
+                        <SelectItem value="US$">US$ (Dólar)</SelectItem>
+                        <SelectItem value="R$">R$ (Real)</SelectItem>
+                        <SelectItem value="€">€ (Euro)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Seção: Contatos e Redes Sociais */}
+              <div className="bg-gradient-to-r from-green-50 to-emerald-100 dark:from-green-950/30 dark:to-emerald-900/30 rounded-xl p-6 border-l-4 border-green-400">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">📱</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Contatos e Redes Sociais</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Como os clientes podem entrar em contato</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="whatsapp">WhatsApp</Label>
                     <Input
-                      id="themeColor"
-                      type="color"
-                      value={form.watch("themeColor") || "#E11D48"}
-                      onChange={(e) => form.setValue("themeColor", e.target.value)}
-                      className="w-20 h-12 p-1"
-                      data-testid="input-theme-color"
-                    />
-                    <Input
-                      value={form.watch("themeColor") || "#E11D48"}
-                      onChange={(e) => form.setValue("themeColor", e.target.value)}
-                      placeholder="#E11D48"
-                      className="flex-1"
-                      data-testid="input-theme-color-text"
+                      id="whatsapp"
+                      {...form.register("whatsapp")}
+                      placeholder="+595 21 123-4567"
+                      data-testid="input-whatsapp"
+                      className="bg-white dark:bg-gray-800 border-green-200 dark:border-green-700"
                     />
                   </div>
-                  {form.formState.errors.themeColor && (
-                    <p className="text-sm text-red-600">{form.formState.errors.themeColor.message}</p>
-                  )}
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="currency">Símbolo da Moeda</Label>
-                  <Select 
-                    value={form.watch("currency") || ""} 
-                    onValueChange={(value) => form.setValue("currency", value)}
-                  >
-                    <SelectTrigger data-testid="select-currency">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Gs.">Gs. (Guarani)</SelectItem>
-                      <SelectItem value="US$">US$ (Dólar)</SelectItem>
-                      <SelectItem value="R$">R$ (Real)</SelectItem>
-                      <SelectItem value="€">€ (Euro)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2">
+                    <Label htmlFor="instagram">Instagram</Label>
+                    <Input
+                      id="instagram"
+                      {...form.register("instagram")}
+                      placeholder="@mercadinhosilva"
+                      data-testid="input-instagram"
+                      className="bg-white dark:bg-gray-800 border-green-200 dark:border-green-700"
+                    />
+                  </div>
                 </div>
+              </div>
 
+              {/* Seção: Localização e Endereço */}
+              <div className="bg-gradient-to-r from-amber-50 to-orange-100 dark:from-amber-950/30 dark:to-orange-900/30 rounded-xl p-6 border-l-4 border-amber-400">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">📍</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Localização e Endereço</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Onde sua loja está localizada</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Endereço</Label>
+                    <Textarea
+                      id="address"
+                      {...form.register("address")}
+                      placeholder="Rua das Flores, 123, Centro - Asunción"
+                      rows={3}
+                      data-testid="input-address"
+                      className="bg-white dark:bg-gray-800 border-amber-200 dark:border-amber-700"
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-base font-medium">Coordenadas GPS (opcional)</Label>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Adicione as coordenadas da sua loja para mostrar o botão "Como chegar" no seu flyer.
+                        Você pode encontrar as coordenadas no Google Maps.
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="latitude">Latitude</Label>
+                        <Input
+                          id="latitude"
+                          {...form.register("latitude")}
+                          placeholder="-25.2637"
+                          data-testid="input-latitude"
+                          className="bg-white dark:bg-gray-800 border-amber-200 dark:border-amber-700"
+                        />
+                        {form.formState.errors.latitude && (
+                          <p className="text-sm text-red-600">{form.formState.errors.latitude.message}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="longitude">Longitude</Label>
+                        <Input
+                          id="longitude"
+                          {...form.register("longitude")}
+                          placeholder="-57.5759"
+                          data-testid="input-longitude"
+                          className="bg-white dark:bg-gray-800 border-amber-200 dark:border-amber-700"
+                        />
+                        {form.formState.errors.longitude && (
+                          <p className="text-sm text-red-600">{form.formState.errors.longitude.message}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Seção: Configurações Avançadas */}
+              <div className="bg-gradient-to-r from-purple-50 to-violet-100 dark:from-purple-950/30 dark:to-violet-900/30 rounded-xl p-6 border-l-4 border-purple-400">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">⚙️</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Configurações Avançadas</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Opções de personalização avançada</p>
+                  </div>
+                </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor="customUsdBrlRate">Taxa USD/BRL Personalizada (opcional)</Label>
                   <Input
@@ -256,83 +389,14 @@ export default function AdminStoreConfig() {
                     type="number"
                     step="0.01"
                     data-testid="input-custom-usd-brl-rate"
+                    className="bg-white dark:bg-gray-800 border-purple-200 dark:border-purple-700"
                   />
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Deixe em branco para usar a cotação automática da API. Defina sua própria taxa para ter controle total sobre os preços.
                   </p>
                   {form.formState.errors.customUsdBrlRate && (
                     <p className="text-sm text-red-600">{form.formState.errors.customUsdBrlRate.message}</p>
                   )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="whatsapp">WhatsApp</Label>
-                  <Input
-                    id="whatsapp"
-                    {...form.register("whatsapp")}
-                    placeholder="+595 21 123-4567"
-                    data-testid="input-whatsapp"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="instagram">Instagram</Label>
-                  <Input
-                    id="instagram"
-                    {...form.register("instagram")}
-                    placeholder="@mercadinhosilva"
-                    data-testid="input-instagram"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address">Endereço</Label>
-                <Textarea
-                  id="address"
-                  {...form.register("address")}
-                  placeholder="Rua das Flores, 123, Centro - Asunción"
-                  rows={3}
-                  data-testid="input-address"
-                />
-              </div>
-
-              {/* Localização GPS */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-base font-medium">Localização GPS</Label>
-                  <p className="text-sm text-gray-600">
-                    Adicione as coordenadas da sua loja para mostrar o botão "Como chegar" no seu flyer.
-                    Você pode encontrar as coordenadas no Google Maps.
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="latitude">Latitude</Label>
-                    <Input
-                      id="latitude"
-                      {...form.register("latitude")}
-                      placeholder="-25.2637"
-                      data-testid="input-latitude"
-                    />
-                    {form.formState.errors.latitude && (
-                      <p className="text-sm text-red-600">{form.formState.errors.latitude.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="longitude">Longitude</Label>
-                    <Input
-                      id="longitude"
-                      {...form.register("longitude")}
-                      placeholder="-57.5759"
-                      data-testid="input-longitude"
-                    />
-                    {form.formState.errors.longitude && (
-                      <p className="text-sm text-red-600">{form.formState.errors.longitude.message}</p>
-                    )}
-                  </div>
                 </div>
               </div>
 
