@@ -866,9 +866,9 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               </div>
             )}
 
-            <Separator className="mb-6" />
+            <Separator className="mb-10" />
 
-            {/* Produtos Similares */}
+            {/* Produtos Similares - Alinhados com botões de ação */}
             {(() => {
               const similarProducts = store.products?.filter(p => 
                 p.id !== product.id && 
