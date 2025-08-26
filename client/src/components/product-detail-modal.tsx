@@ -815,7 +815,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
           </div>
 
           {/* Detalhes do Produto (Direita) */}
-          <div className="p-6 overflow-y-auto">
+          <div className="p-6 overflow-y-auto relative">
             
             <DialogHeader className="mb-4">
               <DialogTitle className="text-2xl font-bold text-blue-600">
@@ -866,9 +866,9 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               </div>
             )}
 
-            <Separator className="mb-16" />
+            <Separator className="mb-6" />
 
-            {/* Produtos Similares - Alinhados com botões de ação */}
+            {/* Produtos Similares - Fixados no alinhamento da barra de ação */}
             {(() => {
               const similarProducts = store.products?.filter(p => 
                 p.id !== product.id && 
@@ -877,7 +877,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
               ).slice(0, 5) || [];
               
               return similarProducts.length > 0 ? (
-                <div className="mb-6">
+                <div className="absolute bottom-16 left-0 right-0">
                   <h4 className="font-medium text-gray-900 mb-3 px-4">Produtos similares</h4>
                   
                   <div className="px-4">
