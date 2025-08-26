@@ -25,13 +25,18 @@ export default function StoresGallery() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isUserConfigOpen, setIsUserConfigOpen] = useState(false);
-  const { user, isAuthenticated, error } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   
   // Fecha o menu do usuário quando clica fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isUserMenuOpen) {
-        setIsUserMenuOpen(false);
+        const target = event.target as HTMLElement;
+        // Verifica se o clique foi fora do menu do usuário
+        if (!target.closest('[data-testid="button-user-menu"]') && 
+            !target.closest('.user-dropdown-menu')) {
+          setIsUserMenuOpen(false);
+        }
       }
     };
     
@@ -204,23 +209,27 @@ export default function StoresGallery() {
                   
                   {/* Menu dropdown do usuário */}
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border py-2 z-50">
+                    <div className="user-dropdown-menu absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border py-2 z-50">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setIsUserMenuOpen(false);
                           setIsUserConfigOpen(true);
                         }}
                         className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
+                        data-testid="button-user-config"
                       >
                         <Settings className="w-4 h-4" />
                         Configurações
                       </button>
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setIsUserMenuOpen(false);
                           window.location.href = '/api/logout';
                         }}
                         className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                        data-testid="button-user-logout"
                       >
                         <LogOut className="w-4 h-4" />
                         Sair
