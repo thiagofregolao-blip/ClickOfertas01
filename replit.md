@@ -111,6 +111,32 @@ Preferred communication style: Simple, everyday language.
 - Error boundary implementation
 - Automated testing setup
 
+## Funcionalidades Futuras Propostas
+
+### **8. Mídia Dinâmica para Produtos (Prioridade: Alta)**
+**Descrição**: Permitir que lojistas adicionem vídeos além de imagens nos produtos do flyer
+**Benefícios**:
+- Maior engajamento visual (vídeos prendem mais atenção)
+- Melhor demonstração de produtos em movimento
+- Feed mais dinâmico tipo Instagram/TikTok
+- Diferencial competitivo no mercado
+- Potencial aumento nas conversões de venda
+
+**Implementação Técnica Sugerida**:
+- Campo `mediaType` no schema do produto ("image", "video", "carousel")
+- URL flexível para diferentes tipos de mídia
+- Controles opcionais de play/pause para vídeos
+- Autoplay silencioso para não incomodar usuários
+- Fallback inteligente (se vídeo não carregar, mostra imagem)
+- Configuração por loja para permitir/desabilitar vídeos
+- Limitação de tamanho de arquivo para performance
+- Suporte a formatos MP4, WebM
+
+**Considerações de Performance**:
+- Impacto no consumo de dados móveis
+- Otimização de carregamento para não travar a página
+- Gestão do consumo de bateria com autoplay
+
 ## External Dependencies
 
 ### Database & Infrastructure
