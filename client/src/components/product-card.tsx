@@ -171,10 +171,8 @@ export default function ProductCard({
               
               {/* Badge de chama para produtos em destaque */}
               {(product.isFeatured && showFeaturedBadge) && (
-                <div className="absolute -top-1 -right-2">
-                  <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full shadow-lg flex items-center gap-0.5">
-                    <span className="text-xs">🔥</span>
-                  </div>
+                <div className="absolute -top-2 -right-4">
+                  <span className="text-lg">🔥</span>
                 </div>
               )}
             </div>
