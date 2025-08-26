@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Settings, Package, Eye, BarChart3, LogOut, Menu, X } from "lucide-react";
+import { FileText, Settings, Package, Eye, BarChart3, LogOut, Menu, X, Tags } from "lucide-react";
 import { useState } from "react";
 import type { Store } from "@shared/schema";
 
@@ -23,6 +23,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: "Dashboard", href: "/", icon: BarChart3 },
     { name: "Configurações", href: "/admin/config", icon: Settings },
     { name: "Produtos", href: "/admin/products", icon: Package },
+    { name: "Categorias", href: "/admin/categories", icon: Tags },
     { name: "Pré-visualização", href: "/admin/preview", icon: Eye },
   ];
 

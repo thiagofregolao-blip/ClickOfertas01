@@ -16,11 +16,12 @@ import {
   Phone,
   MessageCircle
 } from "lucide-react";
-import type { Product, StoreWithProducts } from "@shared/schema";
+import type { Product, StoreWithProducts, CategoryWithSellers } from "@shared/schema";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppVersion } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -45,6 +46,16 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
   const { toast } = useToast();
   const { handleDoubleTap, handleSaveProduct, isProductLiked, toggleLike } = useEngagement();
   const { isAuthenticated } = useAuth();
+
+  // Buscar informações da categoria do produto se ela existir
+  const { data: productCategory } = useQuery<CategoryWithSellers[]>({
+    queryKey: ["/api/stores", store?.id, "categories"],
+    enabled: !!store?.id && !!product?.categoryId,
+    select: (categories: CategoryWithSellers[]) => {
+      return categories?.find(cat => cat.id === product?.categoryId);
+    },
+    retry: false,
+  });
 
   // Touch gestures para navegação de imagens
   const [touchStartImage, setTouchStartImage] = useState<number | null>(null);
@@ -228,15 +239,34 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
   };
 
   const handleContact = () => {
-    if (store.whatsapp) {
-      const message = `Olá! Vi o produto "${product.name}" no seu panfleto e gostaria de mais informações.`;
-      const whatsappUrl = `https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+    // Verificar se existe vendedor ativo na categoria do produto
+    const activeSeller = productCategory?.sellers?.find((seller: any) => seller.isActive);
+    
+    let whatsappNumber: string | null = null;
+    let contactName = store?.name || "loja";
+    
+    if (activeSeller) {
+      whatsappNumber = activeSeller.whatsapp;
+      contactName = activeSeller.name;
+    } else if (store?.whatsapp) {
+      whatsappNumber = store.whatsapp;
+    }
+    
+    if (whatsappNumber) {
+      const message = `🛍️ Olá, ${contactName}! Vi o produto "${product?.name}" no panfleto da ${store?.name} e gostaria de mais informações.
+      
+💰 Preço: ${store?.currency || "Gs."} ${Number(product?.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+
+Poderia me ajudar com mais detalhes?`;
+      
+      const cleanWhatsapp = whatsappNumber.replace(/\D/g, '');
+      const whatsappUrl = `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
-    // Fallback se não houver WhatsApp
     } else {
       toast({
         title: "Contato não disponível",
-        description: "Esta loja não configurou informações de contato.",
+        description: "Esta loja não configurou informações de contato para este produto.",
+        variant: "destructive",
       });
     }
   };

@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertCategorySchema, updateCategorySchema, insertCategorySellerSchema, updateCategorySellerSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
@@ -346,6 +346,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims?.sub || req.user.id;
       const storeData = insertStoreSchema.parse(req.body);
       const store = await storage.createStore(userId, storeData);
+      
+      // Criar categorias padrão para a nova loja
+      await storage.createDefaultCategories(store.id);
+      
       res.status(201).json(store);
     } catch (error) {
       console.error("Error creating store:", error);
@@ -408,6 +412,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching public store:", error);
       res.status(500).json({ message: "Failed to fetch store" });
+    }
+  });
+
+  // Category routes
+  app.get('/api/stores/:storeId/categories', isAuthenticated, async (req: any, res) => {
+    try {
+      const { storeId } = req.params;
+      const categories = await storage.getStoreCategories(storeId);
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      res.status(500).json({ message: "Failed to fetch categories" });
+    }
+  });
+
+  app.post('/api/stores/:storeId/categories', isAuthenticated, async (req: any, res) => {
+    try {
+      const { storeId } = req.params;
+      const categoryData = insertCategorySchema.parse(req.body);
+      const category = await storage.createCategory(storeId, categoryData);
+      res.status(201).json(category);
+    } catch (error) {
+      console.error("Error creating category:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to create category" });
+      }
+    }
+  });
+
+  app.patch('/api/categories/:categoryId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { categoryId } = req.params;
+      const categoryData = updateCategorySchema.parse(req.body);
+      const category = await storage.updateCategory(categoryId, categoryData);
+      res.json(category);
+    } catch (error) {
+      console.error("Error updating category:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to update category" });
+      }
+    }
+  });
+
+  app.delete('/api/stores/:storeId/categories/:categoryId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { storeId, categoryId } = req.params;
+      await storage.deleteCategory(categoryId, storeId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      res.status(500).json({ message: "Failed to delete category" });
+    }
+  });
+
+  // Category seller routes
+  app.post('/api/categories/:categoryId/sellers', isAuthenticated, async (req: any, res) => {
+    try {
+      const { categoryId } = req.params;
+      const sellerData = insertCategorySellerSchema.parse(req.body);
+      const seller = await storage.createCategorySeller(categoryId, sellerData);
+      res.status(201).json(seller);
+    } catch (error) {
+      console.error("Error creating category seller:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to create category seller" });
+      }
+    }
+  });
+
+  app.patch('/api/category-sellers/:sellerId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { sellerId } = req.params;
+      const sellerData = updateCategorySellerSchema.parse(req.body);
+      const seller = await storage.updateCategorySeller(sellerId, sellerData);
+      res.json(seller);
+    } catch (error) {
+      console.error("Error updating category seller:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to update category seller" });
+      }
+    }
+  });
+
+  app.delete('/api/categories/:categoryId/sellers/:sellerId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { categoryId, sellerId } = req.params;
+      await storage.deleteCategorySeller(sellerId, categoryId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting category seller:", error);
+      res.status(500).json({ message: "Failed to delete category seller" });
     }
   });
 
