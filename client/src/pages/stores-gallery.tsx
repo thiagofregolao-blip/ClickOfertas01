@@ -226,7 +226,7 @@ export default function StoresGallery() {
                         onClick={(e) => {
                           e.stopPropagation();
                           setIsUserMenuOpen(false);
-                          window.location.href = '/api/logout';
+                          window.location.href = '/api/auth/logout?redirect_uri=/cards';
                         }}
                         className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-red-600"
                         data-testid="button-user-logout"

@@ -102,7 +102,13 @@ export async function setupOAuthProviders(app: Express) {
   // Generic logout
   app.get('/api/auth/logout', (req, res) => {
     req.logout(() => {
-      res.redirect('/');
+      // Verifica se tem redirect_uri no query
+      const redirectUri = req.query.redirect_uri as string;
+      if (redirectUri && redirectUri.startsWith('/')) {
+        res.redirect(redirectUri);
+      } else {
+        res.redirect('/');
+      }
     });
   });
 }
