@@ -539,18 +539,22 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
     return shuffled.slice(0, count);
   };
   
-  // Criar displayProducts - priorizar apenas produtos em destaque
+  // Criar displayProducts - 2 produtos em destaque + 3 produtos regulares
   const displayProducts = (() => {
-    // Se há produtos em destaque, mostrar apenas eles (máximo 2)
-    if (featuredFromDifferentCategories.length > 0) {
-      return featuredFromDifferentCategories.slice(0, 2);
-    }
+    // 2 produtos em destaque (fixos)
+    const fixedOffers = featuredFromDifferentCategories.slice(0, 2);
     
-    // Se não há produtos em destaque, mostrar produtos regulares com rotação
+    // Produtos já usados (para não repetir)
+    const usedProductIds = new Set(fixedOffers.map(p => p.id));
+    const availableProducts = [...featuredFromDifferentCategories.slice(2), ...regularProducts]
+      .filter(p => !usedProductIds.has(p.id));
+    
+    // 3 produtos regulares aleatórios (com rotação)
     const rotationSeed = getCurrentRotationSeed() + store.id.charCodeAt(0);
-    const randomProducts = getRandomProducts(regularProducts, 5, rotationSeed);
+    const randomProducts = getRandomProducts(availableProducts, 3, rotationSeed);
     
-    return randomProducts;
+    // Combinar: 2 destaque + 3 regulares = 5 produtos total
+    return [...fixedOffers, ...randomProducts].slice(0, 5);
   })();
 
   return (
