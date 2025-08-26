@@ -171,8 +171,8 @@ export default function ProductCard({
               
               {/* Badge de chama para produtos em destaque */}
               {(product.isFeatured && showFeaturedBadge) && (
-                <div className="absolute -top-2 -right-4">
-                  <span className="text-lg">🔥</span>
+                <div className="absolute -top-3 left-0">
+                  <span className="text-lg animate-flame">🔥</span>
                 </div>
               )}
             </div>
