@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,7 +11,6 @@ import { StoreStoriesSection } from "@/components/store-stories";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import LoginPage from "@/components/login-page";
-import UserConfigModal from "@/components/user-config-modal";
 import { useAppVersion, type AppVersionType } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import type { StoreWithProducts, Product } from "@shared/schema";
@@ -24,8 +23,8 @@ export default function StoresGallery() {
   const [selectedStore, setSelectedStore] = useState<StoreWithProducts | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isUserConfigOpen, setIsUserConfigOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
   
   // Fecha o menu do usuário quando clica fora
   useEffect(() => {
@@ -214,7 +213,7 @@ export default function StoresGallery() {
                         onClick={(e) => {
                           e.stopPropagation();
                           setIsUserMenuOpen(false);
-                          setIsUserConfigOpen(true);
+                          setLocation('/settings');
                         }}
                         className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
                         data-testid="button-user-config"
@@ -311,14 +310,6 @@ export default function StoresGallery() {
         mode="user"
       />
 
-      {/* User Config Modal - Configurações do Usuário */}
-      {user && (
-        <UserConfigModal
-          isOpen={isUserConfigOpen}
-          onClose={() => setIsUserConfigOpen(false)}
-          user={user}
-        />
-      )}
     </div>
   );
 }

@@ -28,7 +28,7 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
                     <img 
                       src={user.profileImageUrl} 
                       alt="Meu Perfil"
-                      className="w-18 h-18 rounded-full object-cover"
+                      className="w-full h-full rounded-full object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
