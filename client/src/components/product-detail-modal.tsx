@@ -47,23 +47,28 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
   const { isAuthenticated } = useAuth();
 
   // Touch gestures para navegação de imagens
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [touchStartImage, setTouchStartImage] = useState<number | null>(null);
+  const [touchEndImage, setTouchEndImage] = useState<number | null>(null);
+  
+  // Touch gestures para carrossel de produtos
+  const [touchStartProduct, setTouchStartProduct] = useState<number | null>(null);
+  const [touchEndProduct, setTouchEndProduct] = useState<number | null>(null);
 
   const minSwipeDistance = 50;
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
+  // Gestures para imagens do produto
+  const onImageTouchStart = (e: React.TouchEvent) => {
+    setTouchEndImage(null);
+    setTouchStartImage(e.targetTouches[0].clientX);
   };
 
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+  const onImageTouchMove = (e: React.TouchEvent) => {
+    setTouchEndImage(e.targetTouches[0].clientX);
   };
 
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
+  const onImageTouchEnd = () => {
+    if (!touchStartImage || !touchEndImage) return;
+    const distance = touchStartImage - touchEndImage;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
 
@@ -72,6 +77,58 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
     }
     if (isRightSwipe && images.length > 1) {
       prevImage();
+    }
+  };
+
+  // Gestures para carrossel de produtos
+  const onProductTouchStart = (e: React.TouchEvent) => {
+    setTouchEndProduct(null);
+    setTouchStartProduct(e.targetTouches[0].clientX);
+  };
+
+  const onProductTouchMove = (e: React.TouchEvent) => {
+    setTouchEndProduct(e.targetTouches[0].clientX);
+  };
+
+  const onProductTouchEnd = () => {
+    if (!touchStartProduct || !touchEndProduct) return;
+    const distance = touchStartProduct - touchEndProduct;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    const storeProducts = store?.products?.filter(p => p.isActive) || [];
+    const currentIndex = storeProducts.findIndex(p => p.id === product.id);
+    const totalProducts = storeProducts.length;
+
+    if (totalProducts <= 1) return;
+
+    if (isLeftSwipe) {
+      // Próximo produto
+      const newIndex = currentIndex < totalProducts - 1 ? currentIndex + 1 : 0;
+      const newProduct = storeProducts[newIndex];
+      if (newProduct) {
+        setCurrentImageIndex(0);
+        onClose();
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('openProductModal', {
+            detail: { product: newProduct, store }
+          }));
+        }, 100);
+      }
+    }
+    if (isRightSwipe) {
+      // Produto anterior
+      const newIndex = currentIndex > 0 ? currentIndex - 1 : totalProducts - 1;
+      const newProduct = storeProducts[newIndex];
+      if (newProduct) {
+        setCurrentImageIndex(0);
+        onClose();
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('openProductModal', {
+            detail: { product: newProduct, store }
+          }));
+        }, 100);
+      }
     }
   };
 
@@ -249,9 +306,9 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
             {/* Galeria de Imagens */}
             <div 
               className="relative h-64 bg-gray-100 flex-shrink-0 overflow-hidden"
-              onTouchStart={onTouchStart}
-              onTouchMove={onTouchMove}
-              onTouchEnd={onTouchEnd}
+              onTouchStart={onImageTouchStart}
+              onTouchMove={onImageTouchMove}
+              onTouchEnd={onImageTouchEnd}
             >
               {images.length > 0 ? (
                 <>
@@ -388,7 +445,12 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
 
             {/* Conteúdo Scrollável com barra de rolagem aprimorada */}
-            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 p-4 pb-6" style={{ maxHeight: 'calc(100vh - 320px)' }}>
+            <div 
+              className="flex-1 overflow-y-auto p-4 pb-6"
+              onTouchStart={onProductTouchStart}
+              onTouchMove={onProductTouchMove}
+              onTouchEnd={onProductTouchEnd}
+            >
               
               {/* Informações do Produto */}
               <div className="mb-4">
