@@ -17,12 +17,34 @@ import NotFound from "@/pages/not-found";
 function Router() {
   const { user, isAuthenticated, isLoading } = useAuth();
 
+  if (isLoading) {
+    // Durante carregamento, registrar todas as rotas mas mostrar loading
+    const LoadingComponent = () => (
+      <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+
+    return (
+      <Switch>
+        <Route path="/" component={Landing} />
+        <Route path="/cards" component={LoadingComponent} />
+        <Route path="/flyer/:slug" component={LoadingComponent} />
+        <Route path="/stores/:slug" component={LoadingComponent} />
+        <Route path="/admin" component={LoadingComponent} />
+        <Route path="/admin/*" component={LoadingComponent} />
+        <Route path="/settings" component={LoadingComponent} />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
+
   return (
     <Switch>
-      {isLoading ? (
-        // Loading state - mostra página inicial
-        <Route path="/" component={Landing} />
-      ) : !isAuthenticated ? (
+      {!isAuthenticated ? (
         // Usuário não logado - acesso público
         <>
           <Route path="/" component={Landing} />
