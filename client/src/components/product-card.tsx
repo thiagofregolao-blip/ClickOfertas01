@@ -67,12 +67,14 @@ export default function ProductCard({
 
   const productContent = (
     <div 
-      className={`relative ${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center flex flex-col h-full min-h-[200px] sm:min-h-[220px] ${
+      className={`relative ${categoryColors.bg} ${product.isFeatured && showFeaturedBadge ? 'border-2 border-transparent bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 p-0.5 animate-pulse' : `border-2 ${categoryColors.border}`} overflow-hidden group text-center flex flex-col h-full min-h-[200px] sm:min-h-[220px] ${
         onClick ? 'cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]' : ''
-      }`}
+      } ${product.isFeatured && showFeaturedBadge ? 'rounded-lg' : ''}`}
       onClick={handleCardClick}
       data-testid={`card-product-${product.id}`}
     >
+      {/* Container interno para produtos em destaque */}
+      <div className={`${product.isFeatured && showFeaturedBadge ? `${categoryColors.bg} border-2 ${categoryColors.border} rounded-lg h-full flex flex-col` : 'h-full flex flex-col'}`}>
       {/* Engagement Buttons */}
       {enableEngagement && (
         <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
@@ -134,13 +136,6 @@ export default function ProductCard({
           <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-300 rounded opacity-30"></div>
         </div>
         
-        {(product.isFeatured && showFeaturedBadge) && (
-          <div className="absolute top-1 right-1">
-            <div className="featured-badge bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs px-1 py-0.5 rounded shadow-lg animate-pulse">
-              🔥
-            </div>
-          </div>
-        )}
       </div>
       
       <div className="product-content p-2 flex flex-col h-full">
@@ -187,6 +182,7 @@ export default function ProductCard({
             })()}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
