@@ -695,9 +695,9 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                             }}
                             variant="outline"
                             size="icon"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm border-gray-200 hover:bg-white shadow-lg"
+                            className="fixed right-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full bg-white/95 backdrop-blur-sm border-gray-200 hover:bg-white shadow-xl"
                           >
-                            <ChevronRight className="h-4 w-4" />
+                            <ChevronRight className="h-5 w-5" />
                           </Button>
                         )}
                         
