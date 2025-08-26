@@ -344,34 +344,18 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                       )}
                     </div>
                     
-                    {/* Navegação de imagens */}
+                    {/* Indicadores */}
                     {images.length > 1 && (
-                      <>
-                        <button
-                          onClick={prevImage}
-                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white rounded-full p-2 backdrop-blur-sm"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={nextImage}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white rounded-full p-2 backdrop-blur-sm"
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </button>
-                        
-                        {/* Indicadores */}
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1">
-                          {images.map((_, index) => (
-                            <div
-                              key={index}
-                              className={`w-2 h-2 rounded-full ${
-                                index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </>
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1">
+                        {images.map((_, index) => (
+                          <div
+                            key={index}
+                            className={`w-2 h-2 rounded-full ${
+                              index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                            }`}
+                          />
+                        ))}
+                      </div>
                     )}
                   </>
                 ) : (
@@ -645,35 +629,19 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   onDoubleClick={(e) => handleDoubleTap(product.id, e)}
                 />
                 
-                {/* Navegação de imagens */}
+                {/* Indicadores */}
                 {images.length > 1 && (
-                  <>
-                    <button
-                      onClick={prevImage}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white rounded-full p-2 backdrop-blur-sm transition-all"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={nextImage}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white rounded-full p-2 backdrop-blur-sm transition-all"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-                    
-                    {/* Indicadores */}
-                    <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-1">
-                      {images.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentImageIndex(index)}
-                          className={`w-2 h-2 rounded-full transition-all ${
-                            index === currentImageIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/75'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </>
+                  <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-1">
+                    {images.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentImageIndex(index)}
+                        className={`w-2 h-2 rounded-full transition-all ${
+                          index === currentImageIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/75'
+                        }`}
+                      />
+                    ))}
+                  </div>
                 )}
 
                 {/* Botões de Ação - Centralizados no inferior da imagem */}
