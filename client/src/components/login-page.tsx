@@ -98,8 +98,8 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
       });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       onClose();
-      // Usuário normal fica na galeria
-      window.location.reload();
+      // Usuário normal vai para galeria de lojas
+      window.location.href = "/";
     },
     onError: (error: any) => {
       toast({
@@ -122,8 +122,8 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
       });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       onClose();
-      // Lojista vai para admin
-      window.location.href = "/admin";
+      // Lojista vai para painel admin
+      window.location.href = "/";
     },
     onError: (error: any) => {
       toast({

@@ -19,7 +19,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Handle both OAuth and traditional login sessions
       const userId = req.user.claims?.sub || req.user.id;
       const user = await storage.getUser(userId);
-      res.json(user);
+      
+      // Verifica se o usuário tem uma loja
+      const userStore = await storage.getUserStore(userId);
+      const userWithStoreInfo = {
+        ...user,
+        hasStore: !!userStore
+      };
+      
+      res.json(userWithStoreInfo);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });

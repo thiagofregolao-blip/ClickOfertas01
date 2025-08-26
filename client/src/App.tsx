@@ -14,26 +14,42 @@ import StoresGallery from "@/pages/stores-gallery";
 import NotFound from "@/pages/not-found";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
+      {isLoading ? (
+        // Loading state - mostra página inicial
+        <Route path="/" component={Landing} />
+      ) : !isAuthenticated ? (
+        // Usuário não logado - acesso público
         <>
           <Route path="/" component={Landing} />
           <Route path="/cards" component={StoresGallery} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
         </>
-      ) : (
+      ) : user?.hasStore ? (
+        // Lojista logado - painel admin
         <>
           <Route path="/" component={AdminDashboard} />
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/config" component={AdminStoreConfig} />
           <Route path="/admin/products" component={AdminProducts} />
           <Route path="/admin/preview" component={AdminPreview} />
+          <Route path="/cards" component={StoresGallery} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
+        </>
+      ) : (
+        // Usuário normal logado - galeria de lojas
+        <>
+          <Route path="/" component={StoresGallery} />
+          <Route path="/cards" component={StoresGallery} />
+          <Route path="/flyer/:slug" component={PublicFlyer} />
+          <Route path="/stores/:slug" component={PublicFlyer} />
+          {/* Bloqueia acesso ao admin para usuários normais */}
+          <Route path="/admin*" component={NotFound} />
         </>
       )}
       <Route component={NotFound} />
