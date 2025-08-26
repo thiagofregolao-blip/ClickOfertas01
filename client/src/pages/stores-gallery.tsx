@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +13,10 @@ import { ProductDetailModal } from "@/components/product-detail-modal";
 import LoginPage from "@/components/login-page";
 import { useAppVersion, type AppVersionType } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
+import { useDebounce } from "@/hooks/use-debounce";
+import { LazyImage } from "@/components/lazy-image";
+import { SearchResultItem } from "@/components/search-result-item";
+import { StoreResultItem } from "@/components/store-result-item";
 import type { StoreWithProducts, Product } from "@shared/schema";
 
 // Função para limitar nome a duas palavras no mobile
@@ -23,7 +27,8 @@ function limitStoreName(name: string, isMobile: boolean): string {
 }
 
 export default function StoresGallery() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const searchQuery = useDebounce(searchInput, 500); // Debounce de 500ms
   const { isMobile, isDesktop, version, versionName } = useAppVersion();
   const [viewMode, setViewMode] = useState<AppVersionType>('mobile');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -57,10 +62,7 @@ export default function StoresGallery() {
     setViewMode(version);
   }, [version]);
 
-  // Log da versão atual (para desenvolvimento)
-  useEffect(() => {
-    console.log(`🎯 Executando: ${versionName} (${version})`);
-  }, [versionName, version]);
+  // Performance: Remover logs em produção
   
   // Event listener para produtos similares
   useEffect(() => {
@@ -84,8 +86,8 @@ export default function StoresGallery() {
     refetchOnReconnect: false, // Evita refetch ao reconectar
   });
 
-  // Função para verificar se a loja postou produtos hoje
-  const hasProductsToday = (store: StoreWithProducts): boolean => {
+  // Função otimizada para verificar se a loja postou produtos hoje
+  const hasProductsToday = useCallback((store: StoreWithProducts): boolean => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
@@ -95,42 +97,48 @@ export default function StoresGallery() {
       productDate.setHours(0, 0, 0, 0);
       return productDate.getTime() === today.getTime() && product.isActive;
     });
-  };
+  }, []);
 
-  // Filtrar e ordenar lojas
-  const filteredStores = stores?.filter(store => {
-    if (!searchQuery.trim()) return true;
+  // Filtrar e ordenar lojas com memoização
+  const filteredStores = useMemo(() => {
+    if (!stores) return [];
     
-    const query = searchQuery.toLowerCase();
-    
-    // Buscar no nome da loja
-    if (store.name.toLowerCase().includes(query)) return true;
-    
-    // Buscar nos produtos
-    return store.products.some(product => 
-      product.isActive && (
-        product.name.toLowerCase().includes(query) ||
-        product.description?.toLowerCase().includes(query) ||
-        product.category?.toLowerCase().includes(query)
-      )
-    );
-  }).sort((a, b) => {
-    // Priorizar lojas que postaram produtos hoje
-    const aHasToday = hasProductsToday(a);
-    const bHasToday = hasProductsToday(b);
-    
-    if (aHasToday && !bHasToday) return -1;
-    if (!aHasToday && bHasToday) return 1;
-    
-    // Se ambas têm ou não têm produtos hoje, ordenar por mais recente
-    const aLatest = Math.max(...a.products.map(p => p.updatedAt ? new Date(p.updatedAt).getTime() : 0));
-    const bLatest = Math.max(...b.products.map(p => p.updatedAt ? new Date(p.updatedAt).getTime() : 0));
-    
-    return bLatest - aLatest;
-  }) || [];
+    return stores.filter(store => {
+      if (!searchQuery.trim()) return true;
+      
+      const query = searchQuery.toLowerCase();
+      
+      // Buscar no nome da loja
+      if (store.name.toLowerCase().includes(query)) return true;
+      
+      // Buscar nos produtos
+      return store.products.some(product => 
+        product.isActive && (
+          product.name.toLowerCase().includes(query) ||
+          product.description?.toLowerCase().includes(query) ||
+          product.category?.toLowerCase().includes(query)
+        )
+      );
+    }).sort((a, b) => {
+      // Priorizar lojas que postaram produtos hoje
+      const aHasToday = hasProductsToday(a);
+      const bHasToday = hasProductsToday(b);
+      
+      if (aHasToday && !bHasToday) return -1;
+      if (!aHasToday && bHasToday) return 1;
+      
+      // Se ambas têm ou não têm produtos hoje, ordenar por mais recente
+      const aLatest = Math.max(...a.products.map(p => p.updatedAt ? new Date(p.updatedAt).getTime() : 0));
+      const bLatest = Math.max(...b.products.map(p => p.updatedAt ? new Date(p.updatedAt).getTime() : 0));
+      
+      return bLatest - aLatest;
+    });
+  }, [stores, searchQuery, hasProductsToday]);
 
-  // Criar resultados de busca combinados (lojas + produtos)
-  const searchResults = searchQuery.trim() && stores ? (() => {
+  // Criar resultados de busca combinados com memoização
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim() || !stores) return [];
+    
     const query = searchQuery.toLowerCase();
     const results: Array<{ type: 'store' | 'product', data: any, store: any }> = [];
     
@@ -163,7 +171,7 @@ export default function StoresGallery() {
       }
       return 0;
     });
-  })() : [];
+  }, [searchQuery, stores]);
 
   if (isLoading) {
     return (
@@ -300,8 +308,8 @@ export default function StoresGallery() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
               placeholder="Buscar produtos ou lojas..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-red-300 focus:ring-red-200"
             />
           </div>
@@ -425,162 +433,6 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
   );
 }
 
-// Componente para mostrar lojas nos resultados de busca
-function StoreResultItem({ 
-  store, 
-  searchQuery,
-  isMobile = false,
-  onProductClick
-}: { 
-  store: StoreWithProducts,
-  searchQuery: string,
-  isMobile?: boolean,
-  onProductClick?: (product: Product) => void
-}) {
-  const [, setLocation] = useLocation();
-  const activeProducts = store.products.filter(p => p.isActive);
-  const featuredProducts = activeProducts.filter(p => p.isFeatured).slice(0, 3);
-  const displayProducts = featuredProducts.length > 0 ? featuredProducts : activeProducts.slice(0, 3);
-
-  const handleStoreClick = () => {
-    setLocation(`/flyer/${store.slug}`);
-  };
-
-  return (
-    <button 
-      onClick={handleStoreClick}
-      className={`${isMobile ? 'p-3' : 'p-4'} hover:bg-blue-50 transition-all border-l-4 border-blue-500 bg-blue-25 w-full text-left cursor-pointer`}
-    >
-      {/* Store Header */}
-      <div className="flex items-center gap-3">
-        <div 
-          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
-          style={{ backgroundColor: store.themeColor || '#E11D48' }}
-        >
-          🏪
-        </div>
-        <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-            <span>{limitStoreName(store.name, isMobile)}</span>
-            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-              LOJA
-            </span>
-          </h3>
-          <p className="text-xs text-gray-500">
-            {activeProducts.length} produto{activeProducts.length !== 1 ? 's' : ''} disponível{activeProducts.length !== 1 ? 'is' : ''}
-          </p>
-        </div>
-      </div>
-    </button>
-  );
-}
-
-function SearchResultItem({ 
-  product, 
-  store, 
-  onClick,
-  isMobile = false
-}: { 
-  product: Product & { store: StoreWithProducts }, 
-  store: StoreWithProducts,
-  onClick?: () => void,
-  isMobile?: boolean
-}) {
-  return (
-    <div 
-      className={`${isMobile ? 'p-3' : 'p-4'} hover:bg-blue-50 hover:border-l-4 hover:border-blue-500 transition-all cursor-pointer border-l-4 border-transparent group`}
-      onClick={onClick}
-      data-testid={`search-result-${product.id}`}
-      title="Clique para ver detalhes do produto"
-    >
-      <div className={`flex items-center ${isMobile ? 'gap-3' : 'gap-4'}`}>
-        {/* Product Image */}
-        <div className={`${isMobile ? 'w-12 h-12' : 'w-16 h-16'} flex-shrink-0`}>
-          <img
-            src={product.imageUrl || '/api/placeholder/64/64'}
-            alt={product.name}
-            className="w-full h-full object-cover rounded-lg border"
-          />
-        </div>
-
-        {/* Product Info */}
-        <div className="flex-1 min-w-0 overflow-hidden">
-          <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0 overflow-hidden">
-              <div className="flex items-center gap-2 overflow-hidden">
-                <h3 className="font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors flex-1 min-w-0">
-                  {product.name}
-                  {product.isFeatured && (
-                    <Badge className="ml-2 text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none">
-                      🔥 Destaque
-                    </Badge>
-                  )}
-                </h3>
-                <div className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                  👆
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2 mt-1 overflow-hidden">
-                <div 
-                  className="w-4 h-4 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: store.themeColor || '#E11D48' }}
-                />
-                <span className="text-sm text-gray-600 truncate flex-1 min-w-0">{store.name}</span>
-                {product.category && (
-                  <span className="text-xs text-gray-400 flex-shrink-0">• {product.category}</span>
-                )}
-              </div>
-              
-              {product.description && (
-                <p className={`text-xs text-gray-500 mt-1 ${isMobile ? 'line-clamp-1 break-words' : 'line-clamp-2'} max-w-full overflow-hidden`}>
-                  {product.description}
-                </p>
-              )}
-            </div>
-
-            {/* Price and Action */}
-            <div className={`flex-shrink-0 text-right ${isMobile ? 'ml-2' : 'ml-4'} ${isMobile ? 'min-w-0' : ''}`}>
-              <div className={`flex items-end ${isMobile ? 'justify-end flex-wrap' : 'justify-center'} gap-0.5 mb-1`} style={{ color: store.themeColor || '#E11D48' }}>
-                <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>{store.currency || 'Gs.'}</span>
-                <div className="flex items-start">
-                  {(() => {
-                    const price = Number(product.price || 0);
-                    const integerPart = Math.floor(price);
-                    const decimalPart = Math.round((price - integerPart) * 100);
-                    return (
-                      <>
-                        <span className={`${isMobile ? 'text-lg' : 'text-xl md:text-2xl'} font-bold`}>
-                          {integerPart.toLocaleString('pt-BR')}
-                        </span>
-                        <span className="text-xs font-medium mt-0.5">
-                          ,{String(decimalPart).padStart(2, '0')}
-                        </span>
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-              <Link href={`/flyer/${store.slug}`}>
-                <button
-                  className={`${isMobile ? 'text-xs py-1 px-2' : 'text-xs py-1 px-3'} font-medium rounded-full border transition-all hover:scale-105`}
-                  style={{ 
-                    borderColor: store.themeColor || '#E11D48',
-                    color: store.themeColor || '#E11D48',
-                    background: `linear-gradient(135deg, transparent, ${store.themeColor || '#E11D48'}10)`
-                  }}
-                >
-                  {isMobile ? 'Ver' : 'Ver loja'}
-                </button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }: { 
   store: StoreWithProducts, 
   searchQuery?: string, 
@@ -680,7 +532,7 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
               style={{ backgroundColor: store.themeColor || '#E11D48' }}
             >
               {store.logoUrl ? (
-                <img 
+                <LazyImage
                   src={store.logoUrl} 
                   alt={store.name}
                   className="rounded-full object-cover"
@@ -689,14 +541,7 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
                     height: '3.75rem',
                     filter: 'brightness(1.1) contrast(1.3) saturate(1.1)'
                   }}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    const parent = target.parentElement as HTMLElement;
-                    if (parent) {
-                      parent.innerHTML = `<span class="text-xl drop-shadow-sm">${store.name.charAt(0)}</span>`;
-                    }
-                  }}
+                  placeholder={store.name.charAt(0)}
                 />
               ) : (
                 <span className="text-xl drop-shadow-sm">{store.name.charAt(0)}</span>
