@@ -519,8 +519,8 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
   
   // Sistema de rotação simples com timestamp
   const getCurrentRotationSeed = () => {
-    // Muda a cada 10 minutos (600.000 ms)
-    return Math.floor(Date.now() / (10 * 60 * 1000));
+    // Muda a cada 1 minuto (60.000 ms)
+    return Math.floor(Date.now() / (1 * 60 * 1000));
   };
   
   // Função de randomização com seed determinístico  
