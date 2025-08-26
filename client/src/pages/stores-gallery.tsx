@@ -517,36 +517,30 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
   
   const featuredFromDifferentCategories = Object.values(featuredByCategory);
   
-  // Sistema de rotação: 2 ofertas fixas + 3 produtos aleatórios
-  const [rotationSeed, setRotationSeed] = useState(() => Math.floor(Date.now() / (10 * 60 * 1000))); // Muda a cada 10 minutos
+  // Sistema de rotação simples com timestamp
+  const getCurrentRotationSeed = () => {
+    // Muda a cada 10 minutos (600.000 ms)
+    return Math.floor(Date.now() / (10 * 60 * 1000));
+  };
   
-  useEffect(() => {
-    // Timer para atualizar produtos aleatórios a cada 10 minutos
-    const interval = setInterval(() => {
-      setRotationSeed(Math.floor(Date.now() / (10 * 60 * 1000)));
-    }, 10 * 60 * 1000); // 10 minutos
-    
-    return () => clearInterval(interval);
-  }, []);
-  
-  // Função de randomização com seed
+  // Função de randomização com seed determinístico  
   const seededRandom = (seed: number) => {
     let x = Math.sin(seed) * 10000;
     return x - Math.floor(x);
   };
   
   // Randomizar produtos usando seed
-  const getRandomProducts = useCallback((products: any[], count: number, seed: number) => {
+  const getRandomProducts = (products: any[], count: number, seed: number) => {
     const shuffled = [...products];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const randomIndex = Math.floor(seededRandom(seed + i) * (i + 1));
       [shuffled[i], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[i]];
     }
     return shuffled.slice(0, count);
-  }, []);
+  };
   
-  // Criar displayProducts com rotação
-  const displayProducts = useMemo(() => {
+  // Criar displayProducts com sistema de rotação
+  const displayProducts = (() => {
     // 2 primeiras ofertas fixas (produtos em destaque)
     const fixedOffers = featuredFromDifferentCategories.slice(0, 2);
     
@@ -555,11 +549,12 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
     const availableProducts = [...featuredFromDifferentCategories.slice(2), ...regularProducts]
       .filter(p => !usedProductIds.has(p.id));
     
-    // 3 produtos aleatórios do restante
-    const randomProducts = getRandomProducts(availableProducts, 3, rotationSeed + store.id.charCodeAt(0));
+    // 3 produtos aleatórios do restante (seed único por loja + timestamp)
+    const rotationSeed = getCurrentRotationSeed() + store.id.charCodeAt(0);
+    const randomProducts = getRandomProducts(availableProducts, 3, rotationSeed);
     
     return [...fixedOffers, ...randomProducts].slice(0, 5);
-  }, [featuredFromDifferentCategories, regularProducts, rotationSeed, store.id, getRandomProducts]);
+  })();
 
   return (
     <div className="bg-white mb-3 border-b">
