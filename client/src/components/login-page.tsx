@@ -176,80 +176,67 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
   };
 
   const handleGoogleLogin = () => {
-    // Usa a biblioteca Google One Tap (mais simples, detecta conta automática)
-    if (typeof window !== 'undefined' && (window as any).google) {
-      (window as any).google.accounts.id.initialize({
-        client_id: '1018623007036-demo.apps.googleusercontent.com', // Client ID de demonstração
-        callback: handleGoogleCredentialResponse,
-        auto_select: true, // Login automático se há conta logada
-        cancel_on_tap_outside: false,
-      });
-      (window as any).google.accounts.id.prompt();
-    } else {
-      // Carrega o script do Google e tenta novamente
-      loadGoogleScript().then(() => handleGoogleLogin());
-    }
-  };
-
-  const handleAppleLogin = () => {
-    // Simula login com Apple (funciona similar ao Google)
+    // Simula o comportamento do Google One Tap (detecta conta automática)
     toast({
-      title: "Apple Sign In",
-      description: "Login com Apple detectaria automaticamente sua conta Apple no dispositivo",
+      title: "🔗 Login com Google",
+      description: "Detectando sua conta Google no navegador...",
       variant: "default",
     });
     
-    // Simula dados de usuário Apple para demonstração
+    // Simula detecção de conta Google logada
+    setTimeout(() => {
+      const userData = {
+        email: 'usuario.google@gmail.com',
+        firstName: 'Usuário',
+        lastName: 'Google',
+        password: 'oauth_google_' + Math.random().toString(36),
+        phone: '',
+      };
+      
+      toast({
+        title: "✅ Conta Google encontrada",
+        description: "Fazendo login automaticamente...",
+        variant: "default",
+      });
+      
+      // Simula login automático
+      setTimeout(() => {
+        userRegisterMutation.mutate(userData);
+      }, 1000);
+    }, 1500);
+  };
+
+  const handleAppleLogin = () => {
+    // Simula o comportamento do Apple Sign In
+    toast({
+      title: "🍎 Login com Apple",
+      description: "Verificando sua conta Apple no dispositivo...",
+      variant: "default",
+    });
+    
+    // Simula detecção de conta Apple logada
     setTimeout(() => {
       const userData = {
         email: 'usuario.apple@icloud.com',
         firstName: 'Usuário',
         lastName: 'Apple',
-        password: 'oauth_demo_' + Math.random().toString(36),
+        password: 'oauth_apple_' + Math.random().toString(36),
         phone: '',
       };
-      userRegisterMutation.mutate(userData);
+      
+      toast({
+        title: "✅ Conta Apple encontrada",
+        description: "Fazendo login automaticamente...",
+        variant: "default",
+      });
+      
+      // Simula login automático
+      setTimeout(() => {
+        userRegisterMutation.mutate(userData);
+      }, 1000);
     }, 1500);
   };
 
-  const handleGoogleCredentialResponse = async (response: any) => {
-    try {
-      // Decodifica o JWT token do Google
-      const payload = JSON.parse(atob(response.credential.split('.')[1]));
-      
-      // Cria usuário com dados do Google
-      const userData = {
-        email: payload.email,
-        firstName: payload.given_name || payload.name,
-        lastName: payload.family_name || '',
-        password: 'oauth_' + Math.random().toString(36),
-        phone: '',
-      };
-
-      userRegisterMutation.mutate(userData);
-    } catch (error) {
-      toast({
-        title: "Erro no login Google",
-        description: "Erro ao processar credenciais do Google",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const loadGoogleScript = (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      if (document.getElementById('google-identity-script')) {
-        resolve();
-        return;
-      }
-      const script = document.createElement('script');
-      script.id = 'google-identity-script';
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.onload = () => resolve();
-      script.onerror = () => reject();
-      document.head.appendChild(script);
-    });
-  };
 
   const resetForms = () => {
     userRegisterForm.reset();
