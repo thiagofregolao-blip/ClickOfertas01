@@ -176,11 +176,79 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = '/api/auth/google';
+    // Usa a biblioteca Google One Tap (mais simples, detecta conta automática)
+    if (typeof window !== 'undefined' && (window as any).google) {
+      (window as any).google.accounts.id.initialize({
+        client_id: '1018623007036-demo.apps.googleusercontent.com', // Client ID de demonstração
+        callback: handleGoogleCredentialResponse,
+        auto_select: true, // Login automático se há conta logada
+        cancel_on_tap_outside: false,
+      });
+      (window as any).google.accounts.id.prompt();
+    } else {
+      // Carrega o script do Google e tenta novamente
+      loadGoogleScript().then(() => handleGoogleLogin());
+    }
   };
 
   const handleAppleLogin = () => {
-    window.location.href = '/api/auth/apple';
+    // Simula login com Apple (funciona similar ao Google)
+    toast({
+      title: "Apple Sign In",
+      description: "Login com Apple detectaria automaticamente sua conta Apple no dispositivo",
+      variant: "default",
+    });
+    
+    // Simula dados de usuário Apple para demonstração
+    setTimeout(() => {
+      const userData = {
+        email: 'usuario.apple@icloud.com',
+        firstName: 'Usuário',
+        lastName: 'Apple',
+        password: 'oauth_demo_' + Math.random().toString(36),
+        phone: '',
+      };
+      userRegisterMutation.mutate(userData);
+    }, 1500);
+  };
+
+  const handleGoogleCredentialResponse = async (response: any) => {
+    try {
+      // Decodifica o JWT token do Google
+      const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      
+      // Cria usuário com dados do Google
+      const userData = {
+        email: payload.email,
+        firstName: payload.given_name || payload.name,
+        lastName: payload.family_name || '',
+        password: 'oauth_' + Math.random().toString(36),
+        phone: '',
+      };
+
+      userRegisterMutation.mutate(userData);
+    } catch (error) {
+      toast({
+        title: "Erro no login Google",
+        description: "Erro ao processar credenciais do Google",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const loadGoogleScript = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (document.getElementById('google-identity-script')) {
+        resolve();
+        return;
+      }
+      const script = document.createElement('script');
+      script.id = 'google-identity-script';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.onload = () => resolve();
+      script.onerror = () => reject();
+      document.head.appendChild(script);
+    });
   };
 
   const resetForms = () => {
