@@ -18,7 +18,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff, ChevronLeft, ChevronRight, Upload, Download, FileSpreadsheet, Package, Camera, Settings, PlayCircle, CircleX } from "lucide-react";
-import type { Store, Product, InsertProduct } from "@shared/schema";
+import type { Store, Product, InsertProduct, CategoryWithSellers } from "@shared/schema";
 import { z } from "zod";
 import { PhotoCapture } from "@/components/PhotoCapture";
 import * as XLSX from 'xlsx';
@@ -60,6 +60,13 @@ export default function AdminProducts() {
 
   const { data: store } = useQuery<Store>({
     queryKey: ["/api/stores/me"],
+    retry: false,
+  });
+
+  // Buscar categorias da loja
+  const { data: storeCategories = [] } = useQuery<CategoryWithSellers[]>({
+    queryKey: ["/api/stores", store?.id, "categories"],
+    enabled: !!store?.id,
     retry: false,
   });
 
@@ -268,7 +275,7 @@ export default function AdminProducts() {
       'Nome do Produto': product.name,
       'Descrição': product.description || '',
       'Preço': product.price,
-      'Categoria': product.category || 'Perfumaria',
+      'Categoria': product.category || 'Geral',
       'URL da Imagem 1': product.imageUrl || '',
       'URL da Imagem 2': product.imageUrl2 || '',
       'URL da Imagem 3': product.imageUrl3 || '',
@@ -318,7 +325,7 @@ export default function AdminProducts() {
           name: row['Nome do Produto'] || '',
           description: row['Descrição'] || '',
           price: String(row['Preço'] || '0').replace(/[^0-9.,]/g, '').replace(/\./g, '').replace(',', '.'),
-          category: row['Categoria'] || 'Perfumaria',
+          category: row['Categoria'] || 'Geral',
           imageUrl: row['URL da Imagem 1'] || row['URL da Imagem'] || '',
           imageUrl2: row['URL da Imagem 2'] || '',
           imageUrl3: row['URL da Imagem 3'] || '',
@@ -555,17 +562,22 @@ export default function AdminProducts() {
                       <div className="space-y-2">
                         <Label htmlFor="category" className="text-gray-700 font-medium">Categoria</Label>
                         <Select 
-                          value={form.watch("category") || "Perfumaria"} 
+                          value={form.watch("category") || (storeCategories.length > 0 ? storeCategories[0].name : "Geral")} 
                           onValueChange={(value) => form.setValue("category", value)}
                         >
                           <SelectTrigger className="border-gray-300 focus:border-blue-500" data-testid="select-product-category">
-                            <SelectValue />
+                            <SelectValue placeholder="Selecione uma categoria" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Perfumaria">Perfumaria</SelectItem>
-                            <SelectItem value="Bebidas">Bebidas</SelectItem>
-                            <SelectItem value="Eletrônica">Eletrônica</SelectItem>
-                            <SelectItem value="Cosméticos">Cosméticos</SelectItem>
+                            {storeCategories.length > 0 ? (
+                              storeCategories.map((category) => (
+                                <SelectItem key={category.id} value={category.name}>
+                                  {category.name}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="Geral">Geral</SelectItem>
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
