@@ -303,7 +303,7 @@ export default function StoresGallery() {
 
       {/* Feed Unificado */}
       <UnifiedFeedView 
-        stores={filteredStores} 
+        stores={searchQuery.trim() ? stores || [] : filteredStores} 
         searchQuery={searchQuery} 
         searchResults={searchResults} 
         isMobile={isMobile}
@@ -392,7 +392,7 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
           )
         ) : (
           // Layout de Feed Normal
-          stores.map((store) => (
+          filteredStores.map((store) => (
             <StorePost 
               key={store.id} 
               store={store} 
@@ -470,9 +470,9 @@ function StoreResultItem({
                 title={`Ver detalhes: ${product.name}`}
               >
                 <div className="aspect-square bg-gray-100 rounded mb-1 overflow-hidden">
-                  {product.images && product.images.length > 0 ? (
+                  {product.imageUrl ? (
                     <img 
-                      src={product.images[0]} 
+                      src={product.imageUrl} 
                       alt={product.name}
                       className="w-full h-full object-cover"
                     />
