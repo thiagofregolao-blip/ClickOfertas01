@@ -541,20 +541,18 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
   
   // Criar displayProducts - 2 produtos em destaque + 3 produtos aleatórios
   const displayProducts = (() => {
-    // 2 produtos em destaque (fixos)
-    const fixedOffers = featuredFromDifferentCategories.slice(0, 2);
+    // Pegar exatamente 2 produtos em destaque
+    const featuredProducts = filteredProducts.filter(p => p.isFeatured).slice(0, 2);
     
-    // Produtos já usados (para não repetir)
-    const usedProductIds = new Set(fixedOffers.map(p => p.id));
-    const availableProducts = regularProducts
-      .filter(p => !usedProductIds.has(p.id));
+    // Pegar produtos regulares (não em destaque) 
+    const nonFeaturedProducts = filteredProducts.filter(p => !p.isFeatured);
     
     // 3 produtos aleatórios do restante (com rotação a cada 1 minuto)
     const rotationSeed = getCurrentRotationSeed() + store.id.charCodeAt(0);
-    const randomProducts = getRandomProducts(availableProducts, 3, rotationSeed);
+    const randomProducts = getRandomProducts(nonFeaturedProducts, 3, rotationSeed);
     
-    // Combinar: 2 destaque + 3 aleatórios = 5 produtos total
-    return [...fixedOffers, ...randomProducts].slice(0, 5);
+    // Combinar: 2 destaque + 3 regulares = 5 produtos total
+    return [...featuredProducts, ...randomProducts].slice(0, 5);
   })();
 
   return (
