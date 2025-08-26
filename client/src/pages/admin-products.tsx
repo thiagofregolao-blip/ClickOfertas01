@@ -18,7 +18,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff, ChevronLeft, ChevronRight, Upload, Download, FileSpreadsheet, Package, Camera, Settings, PlayCircle, CircleX } from "lucide-react";
-import type { Store, Product, InsertProduct, CategoryWithSellers } from "@shared/schema";
+import type { Store, Product, InsertProduct, Category } from "@shared/schema";
 import { z } from "zod";
 import { PhotoCapture } from "@/components/PhotoCapture";
 import * as XLSX from 'xlsx';
@@ -64,7 +64,7 @@ export default function AdminProducts() {
   });
 
   // Buscar categorias da loja
-  const { data: storeCategories = [] } = useQuery<CategoryWithSellers[]>({
+  const { data: storeCategories = [] } = useQuery<Category[]>({
     queryKey: ["/api/stores", store?.id, "categories"],
     enabled: !!store?.id,
     retry: false,

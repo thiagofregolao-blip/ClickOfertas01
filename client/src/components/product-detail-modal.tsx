@@ -16,12 +16,11 @@ import {
   Phone,
   MessageCircle
 } from "lucide-react";
-import type { Product, StoreWithProducts, CategoryWithSellers } from "@shared/schema";
+import type { Product, StoreWithProducts } from "@shared/schema";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppVersion } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -47,587 +46,345 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
   const { handleDoubleTap, handleSaveProduct, isProductLiked, toggleLike } = useEngagement();
   const { isAuthenticated } = useAuth();
 
-  // Buscar informações da categoria do produto se ela existir
-  const { data: productCategory } = useQuery<CategoryWithSellers[]>({
-    queryKey: ["/api/stores", store?.id, "categories"],
-    enabled: !!store?.id && !!product?.categoryId,
-    select: (categories: CategoryWithSellers[]) => {
-      return categories?.find(cat => cat.id === product?.categoryId);
-    },
-    retry: false,
-  });
-
-  // Touch gestures para navegação de imagens
-  const [touchStartImage, setTouchStartImage] = useState<number | null>(null);
-  const [touchEndImage, setTouchEndImage] = useState<number | null>(null);
-  
-  // Touch gestures para carrossel de produtos
-  const [touchStartProduct, setTouchStartProduct] = useState<number | null>(null);
-  const [touchEndProduct, setTouchEndProduct] = useState<number | null>(null);
-
-  const minSwipeDistance = 50;
-
-  // Gestures para imagens do produto
-  const onImageTouchStart = (e: React.TouchEvent) => {
-    setTouchEndImage(null);
-    setTouchStartImage(e.targetTouches[0].clientX);
-  };
-
-  const onImageTouchMove = (e: React.TouchEvent) => {
-    setTouchEndImage(e.targetTouches[0].clientX);
-  };
-
-  const onImageTouchEnd = () => {
-    if (!touchStartImage || !touchEndImage) return;
-    const distance = touchStartImage - touchEndImage;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe && images.length > 1) {
-      nextImage();
-    }
-    if (isRightSwipe && images.length > 1) {
-      prevImage();
-    }
-  };
-
-  // Gestures para carrossel de produtos
-  const onProductTouchStart = (e: React.TouchEvent) => {
-    setTouchEndProduct(null);
-    setTouchStartProduct(e.targetTouches[0].clientX);
-  };
-
-  const onProductTouchMove = (e: React.TouchEvent) => {
-    setTouchEndProduct(e.targetTouches[0].clientX);
-  };
-
-  const onProductTouchEnd = () => {
-    if (!touchStartProduct || !touchEndProduct) return;
-    const distance = touchStartProduct - touchEndProduct;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    const storeProducts = store?.products?.filter(p => p.isActive) || [];
-    const currentIndex = storeProducts.findIndex(p => p.id === product.id);
-    const totalProducts = storeProducts.length;
-
-    if (totalProducts <= 1) return;
-
-    if (isLeftSwipe) {
-      // Próximo produto
-      const newIndex = currentIndex < totalProducts - 1 ? currentIndex + 1 : 0;
-      const newProduct = storeProducts[newIndex];
-      if (newProduct) {
-        setCurrentImageIndex(0);
-        // Transição mais suave
-        setIsClosing(true);
-        setTimeout(() => {
-          setIsClosing(false);
-          onClose();
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('openProductModal', {
-              detail: { product: newProduct, store }
-            }));
-          }, 50);
-        }, 200);
-      }
-    }
-    if (isRightSwipe) {
-      // Produto anterior
-      const newIndex = currentIndex > 0 ? currentIndex - 1 : totalProducts - 1;
-      const newProduct = storeProducts[newIndex];
-      if (newProduct) {
-        setCurrentImageIndex(0);
-        // Transição mais suave
-        setIsClosing(true);
-        setTimeout(() => {
-          setIsClosing(false);
-          onClose();
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('openProductModal', {
-              detail: { product: newProduct, store }
-            }));
-          }, 50);
-        }, 200);
-      }
-    }
-  };
-
-  // Reset image index when product changes
   useEffect(() => {
+    if (!isOpen || !product) return;
     setCurrentImageIndex(0);
-  }, [product?.id]);
+    setNextImageIndex(1);
+    setIsClosing(false);
+  }, [isOpen, product]);
 
   if (!product || !store) return null;
 
-  // Múltiplas fotos para produtos da Shopping China - Tamanhos padronizados
-  const getProductImages = (product: Product) => {
-    if (!product.imageUrl) return [];
-    
-    // Para Shopping China, adicionar fotos adicionais com tamanhos padronizados
-    if (store?.slug === 'shopping-china') {
-      const baseImages = [
-        product.imageUrl,
-        'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=600&fit=crop&crop=center',
-        'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=600&h=600&fit=crop&crop=center',
-        'https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?w=600&h=600&fit=crop&crop=center',
-        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop&crop=center'
-      ];
-      return baseImages.slice(0, 4); // Máximo de 4 fotos
-    }
-    
-    // Para outras lojas, usar apenas a imagem principal
-    return [product.imageUrl];
-  };
-  
-  const images = getProductImages(product);
+  // Lista de imagens válidas
+  const imageUrls = [product.imageUrl, product.imageUrl2, product.imageUrl3]
+    .filter(Boolean) as string[];
+
+  if (imageUrls.length === 0) {
+    imageUrls.push("https://via.placeholder.com/400x400?text=Sem+Imagem");
+  }
 
   const nextImage = () => {
-    if (images.length > 1 && !isTransitioning) {
-      const nextIndex = (currentImageIndex + 1) % images.length;
-      setNextImageIndex(nextIndex);
+    if (isTransitioning || imageUrls.length <= 1) return;
+    
+    setIsTransitioning(true);
+    setSlideDirection('left');
+    const newIndex = (currentImageIndex + 1) % imageUrls.length;
+    setNextImageIndex(newIndex);
+    
+    setTimeout(() => {
+      setCurrentImageIndex(newIndex);
+      setSlideDirection('right');
+      setIsTransitioning(false);
+    }, 150);
+  };
+
+  const previousImage = () => {
+    if (isTransitioning || imageUrls.length <= 1) return;
+    
+    setIsTransitioning(true);
+    setSlideDirection('right');
+    const newIndex = currentImageIndex === 0 ? imageUrls.length - 1 : currentImageIndex - 1;
+    setNextImageIndex(newIndex);
+    
+    setTimeout(() => {
+      setCurrentImageIndex(newIndex);
       setSlideDirection('left');
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentImageIndex(nextIndex);
-        setIsTransitioning(false);
-      }, 350);
+      setIsTransitioning(false);
+    }, 150);
+  };
+
+  // Handlers de eventos mobile
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX = e.changedTouches[0].screenX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    touchEndX = e.changedTouches[0].screenX;
+    const distance = touchStartX - touchEndX;
+    const threshold = 100;
+
+    if (Math.abs(distance) > threshold) {
+      if (distance > 0) {
+        nextImage();
+      } else {
+        previousImage();
+      }
     }
   };
 
-  const prevImage = () => {
-    if (images.length > 1 && !isTransitioning) {
-      const prevIndex = (currentImageIndex - 1 + images.length) % images.length;
-      setNextImageIndex(prevIndex);
-      setSlideDirection('right');
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentImageIndex(prevIndex);
-        setIsTransitioning(false);
-      }, 350);
+  // Lógica de formatação de moeda
+  const formatPrice = (price: string) => {
+    const numPrice = Number(price || 0);
+    
+    if (store.currency === 'USD' && store.displayCurrency === 'BRL' && store.customUsdBrlRate) {
+      const convertedPrice = numPrice * parseFloat(store.customUsdBrlRate);
+      return `R$ ${convertedPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
     }
+    
+    const currencySymbol = store.displayCurrency === 'BRL' ? 'R$' : (store.currency || 'Gs.');
+    return `${currencySymbol} ${numPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  };
+
+  const getOriginalPriceDisplay = () => {
+    if (store.currency === 'USD' && store.displayCurrency === 'BRL' && store.customUsdBrlRate) {
+      const numPrice = Number(product.price || 0);
+      return `USD $${numPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    }
+    return null;
+  };
+
+  const handleClose = () => {
+    if (isClosing) return;
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+      setIsClosing(false);
+    }, 200);
   };
 
   const handleShare = async () => {
     const shareData = {
-      title: `${product.name} - ${store.name}`,
-      text: `Confira este produto na ${store.name}!`,
+      title: product.name,
+      text: `Confira este produto: ${product.name} - ${formatPrice(product.price)} na ${store.name}`,
       url: window.location.href
     };
 
-    if (navigator.share && typeof navigator.canShare === 'function') {
-      try {
+    try {
+      if (navigator.share && isMobile) {
         await navigator.share(shareData);
-      } catch (err) {
-        // User cancelled
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: "Compartilhado!",
+          description: "Produto compartilhado com sucesso",
+        });
+      } else {
+        const text = `${shareData.title} - ${shareData.text}\n${shareData.url}`;
+        await navigator.clipboard.writeText(text);
         toast({
           title: "Link copiado!",
-          description: "Link do produto copiado para área de transferência.",
-        });
-      } catch (err) {
-        toast({
-          title: "Erro ao copiar",
-          description: "Não foi possível copiar o link.",
-          variant: "destructive",
+          description: "Link do produto copiado para a área de transferência",
         });
       }
-    }
-  };
-
-  const handleContact = () => {
-    // Verificar se existe vendedor ativo na categoria do produto
-    const activeSeller = productCategory?.sellers?.find((seller: any) => seller.isActive);
-    
-    let whatsappNumber: string | null = null;
-    let contactName = store?.name || "loja";
-    
-    if (activeSeller) {
-      whatsappNumber = activeSeller.whatsapp;
-      contactName = activeSeller.name;
-    } else if (store?.whatsapp) {
-      whatsappNumber = store.whatsapp;
-    }
-    
-    if (whatsappNumber) {
-      const message = `🛍️ Olá, ${contactName}! Vi o produto "${product?.name}" no panfleto da ${store?.name} e gostaria de mais informações.
-      
-💰 Preço: ${store?.currency || "Gs."} ${Number(product?.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-
-Poderia me ajudar com mais detalhes?`;
-      
-      const cleanWhatsapp = whatsappNumber.replace(/\D/g, '');
-      const whatsappUrl = `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(message)}`;
-      window.open(whatsappUrl, '_blank');
-    } else {
+    } catch (error) {
+      console.error('Erro ao compartilhar:', error);
       toast({
-        title: "Contato não disponível",
-        description: "Esta loja não configurou informações de contato para este produto.",
+        title: "Erro",
+        description: "Não foi possível compartilhar o produto",
         variant: "destructive",
       });
     }
   };
 
-  const handleDirections = () => {
-    if (store?.latitude && store?.longitude) {
-      const googleMapsUrl = `https://www.google.com/maps?q=${store.latitude},${store.longitude}`;
-      window.open(googleMapsUrl, '_blank');
+  const handleSave = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login necessário",
+        description: "Faça login para salvar produtos",
+        variant: "destructive",
+      });
+      return;
     }
+    handleSaveProduct(product.id);
   };
 
-  // Layout Mobile (Fullscreen)
+  const handleLike = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login necessário", 
+        description: "Faça login para curtir produtos",
+        variant: "destructive",
+      });
+      return;
+    }
+    toggleLike(product.id);
+  };
+
+  const handleContact = () => {
+    if (!store.whatsapp) {
+      toast({
+        title: "WhatsApp não disponível",
+        description: "Esta loja não possui WhatsApp cadastrado",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const message = encodeURIComponent(
+      `🛍️ Olá, ${store.name}! Tenho interesse no produto:\n\n*${product.name}*\n\nPreço: ${formatPrice(product.price)}\n\nPoderia me dar mais informações?`
+    );
+    const whatsappNumber = store.whatsapp.replace(/\D/g, '');
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  // VERSÃO MOBILE: Fullscreen Modal
   if (isMobile) {
     return (
-      <Dialog open={isOpen} onOpenChange={(open) => {
-        if (!open) {
-          setIsClosing(true);
-          setTimeout(() => {
-            setIsClosing(false);
-            onClose();
-          }, 400);
-        }
-      }}>
-        <DialogContent className={`w-full h-full max-w-none max-h-none m-0 p-0 bg-white ${isClosing ? 'animate-modal-zoom-out' : ''}`}>
-          <div className="relative h-full flex flex-col overflow-hidden">
-            {/* Nome da Loja e Badges - Área separada acima da imagem */}
-            <div className="bg-white border-b px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: store.themeColor || '#E11D48' }}
-                  />
-                  <h2 className="text-sm font-medium text-gray-600">
-                    {store.name.split(' ').slice(0, 2).join(' ')}
-                  </h2>
-                </div>
-                <div className="flex items-center gap-1">
-                  {product.isFeatured && (
-                    <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-none text-xs">
-                      🔥 Destaque
-                    </Badge>
-                  )}
-                  {product.category && (
-                    <Badge variant="secondary" className="text-xs px-2 py-1">
-                      {product.category}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-              
-              
-              <Button
-                onClick={onClose}
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-gray-400 hover:text-gray-600"
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent 
+          className={`w-screen h-screen max-w-none max-h-none m-0 p-0 rounded-none bg-white transition-transform duration-300 ${
+            isClosing ? 'translate-y-full' : 'translate-y-0'
+          }`}
+          style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0,
+            zIndex: 9999
+          }}
+        >
+          <div className="flex flex-col h-full">
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b bg-white z-10">
+              <h2 className="font-semibold text-lg truncate flex-1 mr-4">{product.name}</h2>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleClose}
+                className="shrink-0"
               >
-                <X className="h-4 w-4" />
+                <X className="w-5 h-5" />
               </Button>
             </div>
 
-            {/* Conteúdo Scrollável - Imagem e informações juntas */}
+            {/* Image Section */}
             <div 
-              className="flex-1 min-h-0 overflow-y-scroll"
-              onTouchStart={onProductTouchStart}
-              onTouchMove={onProductTouchMove}
-              onTouchEnd={onProductTouchEnd}
+              className="relative flex-1 bg-gray-100 overflow-hidden"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
             >
-              {/* Galeria de Imagens - Agora dentro do scroll */}
-              <div 
-                className="relative h-64 bg-gray-100 flex-shrink-0 overflow-hidden"
-                onTouchStart={onImageTouchStart}
-                onTouchMove={onImageTouchMove}
-                onTouchEnd={onImageTouchEnd}
-              >
-                {images.length > 0 ? (
+              <div className="relative w-full h-full">
+                <img
+                  src={imageUrls[currentImageIndex]}
+                  alt={product.name}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  onDoubleClick={handleLike}
+                />
+
+                {/* Navigation Arrows */}
+                {imageUrls.length > 1 && (
                   <>
-                    <div className="relative w-full h-full overflow-hidden">
-                      {/* Imagem atual */}
-                      <img
-                        src={images[currentImageIndex]}
-                        alt={product.name}
-                        className={`absolute inset-0 w-full h-full object-cover ${
-                          isTransitioning 
-                            ? slideDirection === 'left' 
-                              ? 'animate-slide-out-left' 
-                              : 'animate-slide-out-right'
-                            : ''
-                        }`}
-                        onDoubleClick={(e) => handleDoubleTap(product.id, e)}
-                      />
-                      
-                      {/* Próxima imagem (durante transição) */}
-                      {isTransitioning && (
-                        <img
-                          src={images[nextImageIndex]}
-                          alt={product.name}
-                          className={`absolute inset-0 w-full h-full object-cover ${
-                            slideDirection === 'left'
-                              ? 'animate-slide-in-right'
-                              : 'animate-slide-in-left'
-                          }`}
-                        />
-                      )}
-                    </div>
-                    
-                    {/* Indicadores */}
-                    {images.length > 1 && (
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1">
-                        {images.map((_, index) => (
-                          <div
-                            key={index}
-                            className={`w-2 h-2 rounded-full ${
-                              index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={previousImage}
+                      disabled={isTransitioning}
+                      className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full w-10 h-10 p-0"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={nextImage}
+                      disabled={isTransitioning}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full w-10 h-10 p-0"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </Button>
                   </>
-                ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                    <div className="text-gray-400 text-center">
-                      <div className="w-16 h-16 bg-gray-300 rounded-lg mx-auto mb-2"></div>
-                      <p className="text-sm">Sem imagem</p>
-                    </div>
+                )}
+
+                {/* Image Indicators */}
+                {imageUrls.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                    {imageUrls.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentImageIndex(index)}
+                        className={`w-2 h-2 rounded-full transition-colors ${
+                          index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                        }`}
+                      />
+                    ))}
                   </div>
                 )}
 
-                {/* Carrossel de Produtos - Navegação */}
-                {(() => {
-                  const storeProducts = store.products?.filter(p => p.isActive) || [];
-                  const currentIndex = storeProducts.findIndex(p => p.id === product.id);
-                  const totalProducts = storeProducts.length;
-                  
-                  const navigateToProduct = (direction: 'prev' | 'next') => {
-                    if (totalProducts <= 1) return;
-                    
-                    let newIndex;
-                    if (direction === 'prev') {
-                      newIndex = currentIndex > 0 ? currentIndex - 1 : totalProducts - 1;
-                    } else {
-                      newIndex = currentIndex < totalProducts - 1 ? currentIndex + 1 : 0;
-                    }
-                    
-                    const newProduct = storeProducts[newIndex];
-                    if (newProduct) {
-                      setCurrentImageIndex(0);
-                      // Transição mais suave com animação
-                      setIsClosing(true);
-                      setTimeout(() => {
-                        setIsClosing(false);
-                        onClose();
-                        setTimeout(() => {
-                          window.dispatchEvent(new CustomEvent('openProductModal', {
-                            detail: { product: newProduct, store }
-                          }));
-                        }, 50);
-                      }, 200);
-                    }
-                  };
-                  
-                  return totalProducts > 1 ? (
-                    <>
-                      <button
-                        onClick={() => navigateToProduct('prev')}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 rounded-full p-2 shadow-lg z-10"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => navigateToProduct('next')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 rounded-full p-2 shadow-lg z-10"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-                    </>
-                  ) : null;
-                })()}
-              </div>
-
-              {/* Informações do Produto */}
-              <div className="p-4 pb-6">
-                <div className="mb-4">
-                  <div className="mb-3">
-                    <h1 className="text-xl font-bold text-gray-900">{product.name}</h1>
-                  </div>
-                
-                {/* Preços */}
-                <div className="mb-3">
-                  <div className="flex items-end gap-2">
-                    {/* Preço em Dólares - Principal */}
-                    <div className="flex items-end gap-1" style={{ color: store.themeColor || '#E11D48' }}>
-                      <span className="text-sm font-medium">{store.currency || 'Gs.'}</span>
-                      <span className="text-3xl font-bold">
-                        {(() => {
-                          const priceStr = String(product.price || '0');
-                          const price = parseFloat(priceStr);
-                          return new Intl.NumberFormat('pt-BR', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                          }).format(price);
-                        })()}
-                      </span>
-                    </div>
-                    
-                    {/* Preço em Reais - Secundário */}
-                    <div className="flex items-end gap-1 text-gray-600">
-                      <span className="text-xs font-medium">R$</span>
-                      <span className="text-lg font-medium">
-                        {(() => {
-                          const priceUSD = Number(product.price || 0);
-                          const rate = store.customUsdBrlRate ? Number(store.customUsdBrlRate) : 5.47;
-                          const priceBRL = priceUSD * rate;
-                          return priceBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                        })()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Descrição */}
-                {product.description && (
-                  <div className="mb-4">
-                    <p className="text-gray-700 leading-relaxed">{product.description}</p>
-                  </div>
-                )}
-                </div>
-
-                <Separator className="mb-4" />
-
-              {/* Produtos Similares */}
-              {(() => {
-                const similarProducts = store.products?.filter(p => 
-                  p.id !== product.id && 
-                  p.isActive && 
-                  p.category === product.category
-                ).slice(0, 4) || [];
-                
-                return similarProducts.length > 0 ? (
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-gray-900 mb-3">Produtos similares</h3>
-                    
-                    <div className="grid grid-cols-4 gap-2">
-                      {similarProducts.map((similarProduct) => (
-                        <div 
-                          key={similarProduct.id} 
-                          className="cursor-pointer hover:opacity-80 transition-opacity"
-                          onClick={() => {
-                            setCurrentImageIndex(0);
-                            onClose();
-                            setTimeout(() => {
-                              window.dispatchEvent(new CustomEvent('openProductModal', {
-                                detail: { product: similarProduct, store }
-                              }));
-                            }, 100);
-                          }}
-                        >
-                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-1">
-                            {similarProduct.imageUrl ? (
-                              <img 
-                                src={similarProduct.imageUrl} 
-                                alt={similarProduct.name}
-                                className="w-full h-full object-cover hover:scale-105 transition-transform"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                <div className="w-4 h-4 bg-gray-300 rounded"></div>
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xs font-medium text-gray-900 line-clamp-1 mb-1">
-                              {similarProduct.name}
-                            </p>
-                            <p className="text-xs font-bold" style={{ color: store.themeColor || '#E11D48' }}>
-                              {store.currency || 'Gs.'} {(() => {
-                                const price = parseFloat(String(similarProduct.price || '0'));
-                                return new Intl.NumberFormat('pt-BR', {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2
-                                }).format(price);
-                              })()}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null;
-              })()}
-
-              {/* Barra de Ação - Ícones pequenos com funções abaixo */}
-              <div className="mt-6 pt-4 border-t border-gray-200">
-                <div className="flex justify-center gap-6">
-                  <div className="flex flex-col items-center gap-1">
-                    <Button
-                      onClick={() => toggleLike(product.id)}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center justify-center w-12 h-12 rounded-full border-red-200 hover:bg-red-50"
-                    >
-                      <Heart className={`h-5 w-5 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
-                    </Button>
-                    <span className="text-xs text-red-500 font-medium">Curtir</span>
-                  </div>
-                  
-                  <div className="flex flex-col items-center gap-1">
-                    <Button
-                      onClick={() => handleSaveProduct(product.id)}
-                      variant="outline"
-                      size="sm"
-                      className={`flex items-center justify-center w-12 h-12 rounded-full ${isAuthenticated ? 'border-blue-200 hover:bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}
-                    >
-                      <Bookmark className={`h-5 w-5 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
-                    </Button>
-                    <span className={`text-xs font-medium ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`}>Salvar</span>
-                  </div>
-                  
-                  <div className="flex flex-col items-center gap-1">
-                    <Button
-                      onClick={handleShare}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center justify-center w-12 h-12 rounded-full border-gray-200 hover:bg-gray-50"
-                    >
-                      <Share2 className="h-5 w-5 text-gray-700" />
-                    </Button>
-                    <span className="text-xs text-gray-700 font-medium">Compartilhar</span>
-                  </div>
-                  
-                  {store.whatsapp && (
-                    <div className="flex flex-col items-center gap-1">
-                      <Button
-                        onClick={handleContact}
-                        size="sm"
-                        className="flex items-center justify-center w-12 h-12 rounded-full bg-[#25D366] hover:bg-[#128C7E] text-white"
-                      >
-                        <MessageCircle className="h-5 w-5" />
-                      </Button>
-                      <span className="text-xs text-[#25D366] font-medium">Contato</span>
-                    </div>
-                  )}
-                  
-                  {store.latitude && store.longitude && (
-                    <div className="flex flex-col items-center gap-1">
-                      <Button
-                        onClick={handleDirections}
-                        size="sm"
-                        className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
-                        data-testid="button-directions-modal"
-                      >
-                        <MapPin className="h-5 w-5" />
-                      </Button>
-                      <span className="text-xs text-blue-500 font-medium">Localização</span>
-                    </div>
-                  )}
+                {/* Like/Save Actions */}
+                <div className="absolute top-4 right-4 flex flex-col space-y-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleLike}
+                    className={`rounded-full w-10 h-10 p-0 transition-colors ${
+                      isProductLiked(product.id) 
+                        ? 'bg-red-500/90 text-white hover:bg-red-600/90' 
+                        : 'bg-black/30 text-white hover:bg-black/50'
+                    }`}
+                  >
+                    <Heart className={`w-5 h-5 ${isProductLiked(product.id) ? 'fill-current' : ''}`} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSave}
+                    className="bg-black/30 hover:bg-black/50 text-white rounded-full w-10 h-10 p-0"
+                  >
+                    <Bookmark className="w-5 h-5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleShare}
+                    className="bg-black/30 hover:bg-black/50 text-white rounded-full w-10 h-10 p-0"
+                  >
+                    <Share2 className="w-5 h-5" />
+                  </Button>
                 </div>
               </div>
             </div>
+
+            {/* Product Details */}
+            <div className="bg-white p-4 border-t">
+              <div className="space-y-3">
+                {/* Price */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-2xl font-bold text-green-600">
+                      {formatPrice(product.price)}
+                    </span>
+                    {getOriginalPriceDisplay() && (
+                      <span className="text-sm text-gray-500 ml-2">
+                        ({getOriginalPriceDisplay()})
+                      </span>
+                    )}
+                  </div>
+                  {product.isFeatured && (
+                    <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                      <Star className="w-3 h-3 mr-1" />
+                      Destaque
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Description */}
+                {product.description && (
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    {product.description}
+                  </p>
+                )}
+
+                {/* Category */}
+                {product.category && (
+                  <div className="flex items-center text-sm text-gray-500">
+                    <span>Categoria: {product.category}</span>
+                  </div>
+                )}
+
+                {/* Contact Button */}
+                {store.whatsapp && (
+                  <Button
+                    onClick={handleContact}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 rounded-lg transition-colors"
+                  >
+                    <MessageCircle className="w-5 h-5 mr-2" />
+                    Falar com {store.name}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </DialogContent>
@@ -635,260 +392,192 @@ Poderia me ajudar com mais detalhes?`;
     );
   }
 
-  // Layout Desktop (Modal Centralizado)
+  // VERSÃO DESKTOP: Modal centralizado
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      if (!open) {
-        setIsClosing(true);
-        setTimeout(() => {
-          setIsClosing(false);
-          onClose();
-        }, 250);
-      }
-    }}>
-      <DialogContent className={`max-w-4xl max-h-[90vh] p-0 bg-white overflow-hidden ${isClosing ? 'animate-modal-zoom-out' : ''}`}>
-        <div className="grid grid-cols-2 h-full">
-          {/* Galeria de Imagens (Esquerda) */}
-          <div className="relative bg-gray-100">
-            {images.length > 0 ? (
-              <>
-                <img
-                  src={images[currentImageIndex]}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                  onDoubleClick={(e) => handleDoubleTap(product.id, e)}
-                />
-                
-                {/* Indicadores */}
-                {images.length > 1 && (
-                  <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-1">
-                    {images.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentImageIndex(index)}
-                        className={`w-2 h-2 rounded-full transition-all ${
-                          index === currentImageIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/75'
-                        }`}
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
+        <div className="flex h-full max-h-[90vh]">
+          {/* Left: Image Gallery */}
+          <div className="flex-1 relative bg-gray-100">
+            <div className="relative w-full h-full min-h-[500px] overflow-hidden">
+              <img
+                src={imageUrls[currentImageIndex]}
+                alt={product.name}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-200 hover:scale-105"
+                onDoubleClick={handleLike}
+              />
+
+              {/* Navigation */}
+              {imageUrls.length > 1 && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={previousImage}
+                    disabled={isTransitioning}
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full w-10 h-10 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={nextImage}
+                    disabled={isTransitioning}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full w-10 h-10 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </Button>
+                </>
+              )}
+
+              {/* Thumbnails */}
+              {imageUrls.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                  {imageUrls.map((url, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`w-12 h-12 rounded border-2 overflow-hidden transition-all ${
+                        index === currentImageIndex
+                          ? 'border-white shadow-lg'
+                          : 'border-white/50 hover:border-white/80'
+                      }`}
+                    >
+                      <img
+                        src={url}
+                        alt={`${product.name} ${index + 1}`}
+                        className="w-full h-full object-cover"
                       />
-                    ))}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="absolute top-4 right-4 flex space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLike}
+                  className={`rounded-full w-10 h-10 p-0 transition-colors ${
+                    isProductLiked(product.id)
+                      ? 'bg-red-500/90 text-white hover:bg-red-600/90'
+                      : 'bg-black/30 text-white hover:bg-black/50'
+                  }`}
+                >
+                  <Heart className={`w-5 h-5 ${isProductLiked(product.id) ? 'fill-current' : ''}`} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSave}
+                  className="bg-black/30 hover:bg-black/50 text-white rounded-full w-10 h-10 p-0"
+                >
+                  <Bookmark className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleShare}
+                  className="bg-black/30 hover:bg-black/50 text-white rounded-full w-10 h-10 p-0"
+                >
+                  <Share2 className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Product Details */}
+          <div className="w-80 bg-white flex flex-col">
+            <DialogHeader className="p-6 pb-4">
+              <div className="flex justify-between items-start">
+                <DialogTitle className="text-xl font-bold text-gray-900 leading-tight pr-4">
+                  {product.name}
+                </DialogTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClose}
+                  className="shrink-0 -mr-2 -mt-2"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+            </DialogHeader>
+
+            <div className="flex-1 px-6 pb-6 overflow-y-auto">
+              <div className="space-y-4">
+                {/* Price */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-3xl font-bold text-green-600">
+                      {formatPrice(product.price)}
+                    </span>
+                    {getOriginalPriceDisplay() && (
+                      <div className="text-sm text-gray-500 mt-1">
+                        ({getOriginalPriceDisplay()})
+                      </div>
+                    )}
+                  </div>
+                  {product.isFeatured && (
+                    <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                      <Star className="w-3 h-3 mr-1" />
+                      Destaque
+                    </Badge>
+                  )}
+                </div>
+
+                <Separator />
+
+                {/* Description */}
+                {product.description && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">Descrição</h4>
+                    <p className="text-gray-600 text-sm leading-relaxed">
+                      {product.description}
+                    </p>
                   </div>
                 )}
 
-                {/* Botões de Ação - Centralizados no inferior da imagem */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-10">
-                  <div className="flex flex-col items-center gap-1">
-                    <Button
-                      onClick={() => toggleLike(product.id)}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center justify-center w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border-none shadow-lg hover:bg-white"
-                    >
-                      <Heart className={`h-5 w-5 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
-                    </Button>
-                    <span className="text-[10px] text-white font-medium drop-shadow-lg">Curtir</span>
+                {/* Category */}
+                {product.category && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">Categoria</h4>
+                    <Badge variant="outline">{product.category}</Badge>
                   </div>
-                  
-                  <div className="flex flex-col items-center gap-1">
-                    <Button
-                      onClick={() => handleSaveProduct(product.id)}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center justify-center w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border-none shadow-lg hover:bg-white"
-                    >
-                      <Bookmark className={`h-5 w-5 ${isAuthenticated ? 'text-blue-600' : 'text-gray-400'}`} />
-                    </Button>
-                    <span className="text-[10px] text-white font-medium drop-shadow-lg">Salvar</span>
-                  </div>
-                  
-                  <div className="flex flex-col items-center gap-1">
-                    <Button
-                      onClick={handleShare}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center justify-center w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm border-none shadow-lg hover:bg-white"
-                    >
-                      <Share2 className="h-5 w-5 text-gray-700" />
-                    </Button>
-                    <span className="text-[10px] text-white font-medium drop-shadow-lg">Compartilhar</span>
-                  </div>
-                  
-                  {store.whatsapp && (
-                    <div className="flex flex-col items-center gap-1">
-                      <Button
-                        onClick={handleContact}
-                        size="sm"
-                        className="flex items-center justify-center w-12 h-12 rounded-full text-white shadow-lg bg-[#25D366] hover:bg-[#128C7E]"
-                      >
-                        <MessageCircle className="h-5 w-5" />
-                      </Button>
-                      <span className="text-[10px] text-white font-medium drop-shadow-lg">Contato</span>
+                )}
+
+                <Separator />
+
+                {/* Store Info */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Loja</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <span className="font-medium">{store.name}</span>
                     </div>
-                  )}
-                  
-                  {store.latitude && store.longitude && (
-                    <div className="flex flex-col items-center gap-1">
-                      <Button
-                        onClick={handleDirections}
-                        size="sm"
-                        className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg"
-                        data-testid="button-directions-modal"
-                      >
-                        <MapPin className="h-5 w-5" />
-                      </Button>
-                      <span className="text-[10px] text-white font-medium drop-shadow-lg">Como chegar</span>
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                <div className="text-gray-400 text-center">
-                  <div className="w-20 h-20 bg-gray-300 rounded-lg mx-auto mb-3"></div>
-                  <p>Sem imagem disponível</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Detalhes do Produto (Direita) */}
-          <div className="p-6 overflow-y-auto">
-            {/* Nome da Loja */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-medium text-gray-600 flex items-center gap-2 flex-1">
-                  <div 
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: store.themeColor || '#E11D48' }}
-                  />
-                  {store.name}
-                </h3>
-                <div className="flex gap-2 mr-8">
-                  {product.isFeatured && (
-                    <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-none text-xs">
-                      🔥 Destaque
-                    </Badge>
-                  )}
-                  {product.category && (
-                    <Badge variant="secondary" className="text-xs px-2 py-1">
-                      {product.category}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            <DialogHeader className="mb-4">
-              <DialogTitle className="text-2xl font-bold text-blue-600">
-                {product.name}
-              </DialogTitle>
-            </DialogHeader>
-
-            {/* Preços no formato iPhone */}
-            <div className="mb-6">
-              <p className="text-sm text-gray-600 font-medium mb-2">A partir de</p>
-              
-              <div className="flex items-end gap-3">
-                {/* Preço em Dólares - Principal */}
-                <div className="flex items-end gap-2">
-                  <span className="text-lg font-medium" style={{ color: '#A21614' }}>US$</span>
-                  <span className="text-4xl font-bold" style={{ color: '#A21614' }}>
-                    {(() => {
-                      const priceStr = String(product.price || '0');
-                      const price = parseFloat(priceStr);
-                      return new Intl.NumberFormat('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      }).format(price);
-                    })()}
-                  </span>
-                </div>
-                
-                {/* Preço em Reais - Secundário */}
-                <div className="flex items-end gap-1 text-gray-600">
-                  <span className="text-sm font-medium">R$</span>
-                  <span className="text-xl font-medium">
-                    {(() => {
-                      const priceUSD = Number(product.price || 0);
-                      const rate = store.customUsdBrlRate ? Number(store.customUsdBrlRate) : 5.47;
-                      const priceBRL = priceUSD * rate;
-                      return priceBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    })()}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Descrição */}
-            {product.description && (
-              <div className="mb-8">
-                <h4 className="font-medium text-gray-900 mb-2">Descrição</h4>
-                <p className="text-gray-700 leading-relaxed text-base">{product.description}</p>
-              </div>
-            )}
-
-            <Separator className="mb-6" />
-
-            {/* Produtos Similares */}
-            {(() => {
-              const similarProducts = store.products?.filter(p => 
-                p.id !== product.id && 
-                p.isActive && 
-                p.category === product.category
-              ).slice(0, 5) || [];
-              
-              return similarProducts.length > 0 ? (
-                <div className="mb-6">
-                  <h4 className="font-medium text-gray-900 mb-3">Produtos similares</h4>
-                  
-                  <div className="grid grid-cols-5 gap-3">
-                    {similarProducts.map((similarProduct) => (
-                      <div 
-                        key={similarProduct.id} 
-                        className="cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() => {
-                          setCurrentImageIndex(0);
-                          onClose();
-                          setTimeout(() => {
-                            window.dispatchEvent(new CustomEvent('openProductModal', {
-                              detail: { product: similarProduct, store }
-                            }));
-                          }, 100);
-                        }}
-                      >
-                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
-                          {similarProduct.imageUrl ? (
-                            <img 
-                              src={similarProduct.imageUrl} 
-                              alt={similarProduct.name}
-                              className="w-full h-full object-cover hover:scale-105 transition-transform"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                              <div className="w-3 h-3 bg-gray-300 rounded"></div>
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs font-medium text-gray-900 line-clamp-1 mb-1">
-                            {similarProduct.name}
-                          </p>
-                          <p className="text-xs font-bold" style={{ color: store.themeColor || '#E11D48' }}>
-                            {store.currency || 'Gs.'} {(() => {
-                              const price = parseFloat(String(similarProduct.price || '0'));
-                              return new Intl.NumberFormat('pt-BR', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                              }).format(price);
-                            })()}
-                          </p>
-                        </div>
+                    {store.address && (
+                      <div className="flex items-start text-sm text-gray-600">
+                        <MapPin className="w-4 h-4 mr-2 mt-0.5 text-gray-400 shrink-0" />
+                        <span>{store.address}</span>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
-              ) : null;
-            })()}
 
+                {/* Contact Button */}
+                {store.whatsapp && (
+                  <Button
+                    onClick={handleContact}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 rounded-lg transition-colors mt-6"
+                  >
+                    <MessageCircle className="w-5 h-5 mr-2" />
+                    Falar com {store.name}
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </DialogContent>
