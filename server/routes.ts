@@ -16,7 +16,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
+      // Handle both OAuth and traditional login sessions
       const userId = req.user.claims?.sub || req.user.id;
+      console.log("User session:", req.user);
+      console.log("User ID extracted:", userId);
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -48,7 +51,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Create session
-      req.login({ id: user.id, user }, (err) => {
+      req.login(user, (err) => {
         if (err) {
           console.error("Session error:", err);
           return res.status(500).json({ message: "Erro ao criar sessão" });
@@ -94,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create session
-      req.login({ id: user.id, user }, (err) => {
+      req.login(user, (err) => {
         if (err) {
           console.error("Session error:", err);
           return res.status(500).json({ message: "Erro ao criar sessão" });
@@ -121,7 +124,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Store routes
   app.get('/api/stores/me', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
+      console.log("Store request - User ID:", userId);
       const store = await storage.getUserStore(userId);
       res.json(store);
     } catch (error) {
@@ -132,7 +136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/stores', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const storeData = insertStoreSchema.parse(req.body);
       const store = await storage.createStore(userId, storeData);
       res.status(201).json(store);
@@ -165,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/stores/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       await storage.deleteStore(id, userId);
       res.status(204).send();
     } catch (error) {
@@ -313,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/products/:productId/save', isAuthenticated, async (req: any, res) => {
     try {
       const { productId } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       
       const saveData = insertSavedProductSchema.parse({
         productId,
@@ -331,7 +335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Buscar produtos salvos
   app.get('/api/saved-products', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const savedProducts = await storage.getSavedProducts(userId);
       res.json(savedProducts);
     } catch (error) {
