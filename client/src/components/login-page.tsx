@@ -287,18 +287,6 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
                   </div>
                 </div>
 
-                {/* Link para lojistas */}
-                <div className="pt-6 border-t border-gray-200">
-                  <p className="text-sm text-gray-500 mb-3">Tem uma loja?</p>
-                  <Button
-                    onClick={goToStoreLogin}
-                    variant="outline"
-                    className="w-full h-10 text-sm border border-orange-300 text-orange-700 hover:bg-orange-50 font-medium"
-                    data-testid="button-go-store-login"
-                  >
-                    🏪 Acessar painel da loja
-                  </Button>
-                </div>
               </>
             ) : (
               <>
