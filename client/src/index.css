@@ -282,3 +282,52 @@ html {
   animation: flame 2s infinite ease-in-out;
   display: inline-block;
 }
+
+/* Badge de etiqueta para produtos em destaque */
+.featured-tag {
+  background: linear-gradient(135deg, #ff4444, #ff6b35);
+  color: white;
+  padding: 3px 8px 3px 6px;
+  border-radius: 0 4px 4px 0;
+  position: relative;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transform: rotate(-8deg);
+  animation: pulse-tag 2s infinite ease-in-out;
+}
+
+.featured-tag::before {
+  content: '';
+  position: absolute;
+  left: -3px;
+  top: 0;
+  width: 0;
+  height: 0;
+  border-top: 12px solid #cc3333;
+  border-left: 3px solid transparent;
+  border-bottom: 12px solid #cc3333;
+}
+
+.featured-tag::after {
+  content: '';
+  position: absolute;
+  left: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 3px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.8;
+}
+
+@keyframes pulse-tag {
+  0%, 100% {
+    transform: rotate(-8deg) scale(1);
+  }
+  50% {
+    transform: rotate(-8deg) scale(1.05);
+  }
+}

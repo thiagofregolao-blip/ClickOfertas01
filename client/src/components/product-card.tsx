@@ -135,6 +135,15 @@ export default function ProductCard({
           >
             <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-300 rounded opacity-30"></div>
           </div>
+
+          {/* Badge de etiqueta para produtos em destaque */}
+          {(product.isFeatured && showFeaturedBadge) && (
+            <div className="absolute top-1 right-1 z-10">
+              <div className="featured-tag">
+                <span className="text-white text-xs font-bold">🔥</span>
+              </div>
+            </div>
+          )}
         </div>
         
         <div className="product-content p-2 flex flex-col h-full">
@@ -169,12 +178,6 @@ export default function ProductCard({
                 })()}
               </div>
               
-              {/* Badge de chama para produtos em destaque */}
-              {(product.isFeatured && showFeaturedBadge) && (
-                <div className="absolute -top-3 left-0">
-                  <span className="text-lg animate-flame">🔥</span>
-                </div>
-              )}
             </div>
 
             {/* Preço em Real - para todas as lojas */}
