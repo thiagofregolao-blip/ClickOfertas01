@@ -342,10 +342,18 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
                   {searchResults.length} resultado{searchResults.length > 1 ? 's' : ''} para "{searchQuery}" 
                   <span className="ml-2 text-xs text-gray-500">• Ordenado por menor preço</span>
                 </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  💡 Clique nos produtos para ver detalhes
+                </p>
               </div>
               <div className="divide-y divide-gray-100">
                 {searchResults.map((result) => (
-                  <SearchResultItem key={`${result.store.id}-${result.id}`} product={result} store={result.store} />
+                  <SearchResultItem 
+                    key={`${result.store.id}-${result.id}`} 
+                    product={result} 
+                    store={result.store}
+                    onClick={() => onProductSelect(result, result.store)}
+                  />
                 ))}
               </div>
             </div>
@@ -381,9 +389,22 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
 // Remove this component, we'll add the modal directly to the main component
 
 
-function SearchResultItem({ product, store }: { product: Product & { store: StoreWithProducts }, store: StoreWithProducts }) {
+function SearchResultItem({ 
+  product, 
+  store, 
+  onClick 
+}: { 
+  product: Product & { store: StoreWithProducts }, 
+  store: StoreWithProducts,
+  onClick?: () => void
+}) {
   return (
-    <div className="p-4 hover:bg-gray-50 transition-colors">
+    <div 
+      className="p-4 hover:bg-blue-50 hover:border-l-4 hover:border-blue-500 transition-all cursor-pointer border-l-4 border-transparent group" 
+      onClick={onClick}
+      data-testid={`search-result-${product.id}`}
+      title="Clique para ver detalhes do produto"
+    >
       <div className="flex items-center gap-4">
         {/* Product Image */}
         <div className="w-16 h-16 flex-shrink-0">
@@ -398,14 +419,19 @@ function SearchResultItem({ product, store }: { product: Product & { store: Stor
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 truncate">
-                {product.name}
-                {product.isFeatured && (
-                  <Badge className="ml-2 text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none">
-                    🔥 Destaque
-                  </Badge>
-                )}
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                  {product.name}
+                  {product.isFeatured && (
+                    <Badge className="ml-2 text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none">
+                      🔥 Destaque
+                    </Badge>
+                  )}
+                </h3>
+                <div className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                  👆
+                </div>
+              </div>
               
               <div className="flex items-center gap-2 mt-1">
                 <div 
