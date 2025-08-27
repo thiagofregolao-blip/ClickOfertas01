@@ -6,6 +6,7 @@ import { Clock, Gift, Sparkles } from "lucide-react";
 import type { Product } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { formatBrazilianPrice, formatPriceWithCurrency } from "@/lib/priceUtils";
 
 interface ScratchCardProps {
   product: Product;
@@ -368,15 +369,15 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             <div className="bg-gradient-to-r from-red-50 to-orange-50 p-4 rounded-lg mb-4">
               <div className="text-center space-y-2">
                 <div className="text-sm text-gray-500 line-through">
-                  Preço normal: {currency} {product.price}
+                  Preço normal: {formatPriceWithCurrency(product.price || '0', currency)}
                 </div>
                 <div className="text-3xl font-bold text-red-600 flex items-center justify-center gap-2">
                   <Sparkles className="w-6 h-6" />
-                  {currency} {product.scratchPrice}
+                  {formatPriceWithCurrency(product.scratchPrice || '0', currency)}
                 </div>
                 {product.scratchPrice && product.price && (
                   <div className="text-lg text-green-600 font-bold">
-                    Você economiza: {currency} {(parseFloat(product.price) - parseFloat(product.scratchPrice)).toFixed(2)}
+                    Você economiza: {formatPriceWithCurrency((parseFloat(product.price) - parseFloat(product.scratchPrice || '0')), currency)}
                   </div>
                 )}
                 
@@ -467,15 +468,15 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
               {/* Preços */}
               <div className="flex flex-col items-center justify-center mt-auto space-y-1">
                 <div className="text-xs text-gray-500 line-through">
-                  De: {currency} {product.price}
+                  De: {formatPriceWithCurrency(product.price || '0', currency)}
                 </div>
                 <div className="text-lg sm:text-xl font-bold text-red-600 flex items-center gap-1">
                   <Sparkles className="w-4 h-4" />
-                  {currency} {product.scratchPrice}
+                  {formatPriceWithCurrency(product.scratchPrice || '0', currency)}
                 </div>
                 {product.scratchPrice && product.price && (
                   <div className="text-xs text-green-600 font-semibold">
-                    Economize: {currency} {(parseFloat(product.price) - parseFloat(product.scratchPrice)).toFixed(2)}
+                    Economize: {formatPriceWithCurrency((parseFloat(product.price) - parseFloat(product.scratchPrice || '0')), currency)}
                   </div>
                 )}
               </div>
@@ -527,7 +528,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             
             {/* Preço de oferta */}
             <div className="text-lg font-bold text-red-600 opacity-40">
-              {currency} {product.scratchPrice}
+              {formatPriceWithCurrency(product.scratchPrice || '0', currency)}
             </div>
           </div>
 

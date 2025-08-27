@@ -6,6 +6,7 @@ import { Likeable } from "@/components/heart-animation";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAuth } from "@/hooks/useAuth";
 import ScratchCard from "./scratch-card";
+import { formatBrazilianPrice } from "@/lib/priceUtils";
 
 
 interface ProductCardProps {
@@ -184,24 +185,9 @@ export default function ProductCard({
             
             <div className="flex items-end justify-center gap-0.5 relative">
               <span className="text-xs sm:text-sm font-medium self-end" style={{ color: '#A21614' }}>US$</span>
-              <div className="flex items-start">
-                {(() => {
-                  const price = Number(product.price || 0);
-                  const integerPart = Math.floor(price);
-                  const decimalPart = Math.round((price - integerPart) * 100);
-                  return (
-                    <>
-                      <span className="text-lg sm:text-xl md:text-2xl font-bold leading-none" style={{ color: '#A21614' }}>
-                        {integerPart.toLocaleString('pt-BR')}
-                      </span>
-                      <span className="text-xs sm:text-sm font-medium mt-0.5 leading-none" style={{ color: '#A21614' }}>
-                        ,{String(decimalPart).padStart(2, '0')}
-                      </span>
-                    </>
-                  );
-                })()}
-              </div>
-              
+              <span className="text-lg sm:text-xl md:text-2xl font-bold leading-none" style={{ color: '#A21614' }}>
+                {formatBrazilianPrice(product.price || '0')}
+              </span>
             </div>
 
             {/* Preço em Real - para todas as lojas */}
@@ -211,7 +197,7 @@ export default function ProductCard({
                 // Usar taxa personalizada da loja ou taxa padrão 5.47
                 const rate = customUsdBrlRate || 5.47;
                 const priceBRL = priceUSD * rate;
-                return priceBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                return formatBrazilianPrice(priceBRL);
               })()}
             </div>
           </div>

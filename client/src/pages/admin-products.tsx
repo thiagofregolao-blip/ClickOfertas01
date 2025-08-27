@@ -86,7 +86,7 @@ export default function AdminProducts() {
       // Campos de raspadinha
       isScratchCard: false,
       scratchPrice: "",
-      scratchExpiresAt: null,
+      scratchExpiresAt: "",
       scratchTimeLimitMinutes: "60",
       maxScratchRedemptions: "10",
       scratchMessage: "Você ganhou um super desconto! Raspe aqui e confira",
@@ -97,18 +97,11 @@ export default function AdminProducts() {
     mutationFn: async (data: ProductFormData) => {
       if (!store?.id) throw new Error("Store not found");
       
-      // Clean price - remove currency symbols, dots, commas and convert to number
-      const cleanPrice = data.price
-        .replace(/[^0-9.,]/g, '') // Remove everything except numbers, dots and commas
-        .replace(/\./g, '') // Remove thousand separators (dots)
-        .replace(',', '.'); // Replace comma decimal separator with dot
+      // Apenas converter para número sem alterar formato
+      const cleanPrice = data.price;
       
       // Limpar preço da raspadinha se fornecido
-      const cleanScratchPrice = data.scratchPrice ? 
-        data.scratchPrice
-          .replace(/[^0-9.,]/g, '')
-          .replace(/\./g, '')
-          .replace(',', '.') : null;
+      const cleanScratchPrice = data.scratchPrice || null;
       
       const productData = {
         ...data,
