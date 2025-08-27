@@ -14,19 +14,45 @@
     <meta name="msapplication-TileColor" content="#21409A">
     <meta name="msapplication-tap-highlight" content="no">
     
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json">
+    <!-- PWA Manifest embutido no HTML -->
+    <script>
+      // Criar manifest dinamicamente
+      const manifestData = {
+        "name": "Click Ofertas Paraguai",
+        "short_name": "Click Ofertas", 
+        "description": "Crie e compartilhe panfletos digitais das suas ofertas",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#ffffff",
+        "theme_color": "#21409A",
+        "orientation": "portrait-primary",
+        "scope": "/",
+        "icons": [
+          {
+            "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%2321409A' d='M0 0h512v512H0z'/%3E%3Cpath fill='white' d='M128 128h256v64H128zm0 96h256v64H128zm0 96h192v64H128z'/%3E%3C/svg%3E",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any"
+          }
+        ]
+      };
+      
+      const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+      const manifestURL = URL.createObjectURL(manifestBlob);
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = manifestURL;
+      document.head.appendChild(link);
+    </script>
     
     <!-- PWA Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="/icon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/icon-16x16.png">
     <link rel="shortcut icon" href="/icon-32x32.png">
     
-    <!-- Apple Touch Icons (usando ícones que funcionam) -->
-    <link rel="apple-touch-icon" href="/icon-180x180.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="/icon-144x144.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/icon-180x180.png">
+    
+    <!-- Apple Touch Icon embutido -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cpath fill='%2321409A' d='M0 0h180v180H0z'/%3E%3Cpath fill='white' d='M36 36h108v27H36zm0 40.5h108v27H36zm0 40.5h81v27H36z'/%3E%3C/svg%3E">
     
     <!-- iOS PWA Configuration -->
     <meta name="apple-mobile-web-app-capable" content="yes">
