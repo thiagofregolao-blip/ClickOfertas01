@@ -559,19 +559,15 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             <div className="flex gap-3">
               <button 
                 onClick={() => {
-                  // Apenas gerar cupom se ainda não foi gerado
-                  if (timeLeft && timeLeft > 0 && !couponGenerated) {
+                  // Sempre gerar cupom quando não foi gerado ainda
+                  if (!couponGenerated) {
                     generateCouponMutation.mutate(product.id);
-                    // FICAR no modal para ver o cupom gerado
                   }
-                  // Se cupom já foi gerado, não fazer nada - usuário pode fechar o modal se quiser
                 }}
                 className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 px-4 rounded-lg transition-all"
-                disabled={timeLeft === 0 || generateCouponMutation.isPending || couponGenerated}
+                disabled={generateCouponMutation.isPending}
               >
-                {timeLeft === 0 ? (
-                  "Oferta Expirada"
-                ) : generateCouponMutation.isPending ? (
+                {generateCouponMutation.isPending ? (
                   "Gerando cupom..."
                 ) : couponGenerated ? (
                   <>✅ Cupom Gerado!</>
