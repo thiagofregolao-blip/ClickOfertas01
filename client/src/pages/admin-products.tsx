@@ -27,6 +27,8 @@ import { saveAs } from 'file-saver';
 const productFormSchema = insertProductSchema.extend({
   name: z.string().min(1, "Nome do produto é obrigatório"),
   price: z.string().min(1, "Preço é obrigatório"),
+  scratchPrice: z.string().optional(),
+  scratchExpiresAt: z.string().optional(),
 });
 
 type ProductFormData = z.infer<typeof productFormSchema>;
@@ -280,8 +282,6 @@ export default function AdminProducts() {
   };
 
   const onSubmit = (data: ProductFormData) => {
-    console.log("🚀 Frontend: Enviando dados do produto:", data);
-    console.log("🚀 Frontend: Erros do formulário:", form.formState.errors);
     saveMutation.mutate(data);
   };
 

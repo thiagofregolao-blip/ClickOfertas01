@@ -442,23 +442,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/stores/:storeId/products/:productId', isAuthenticated, async (req: any, res) => {
     try {
       const { storeId, productId } = req.params;
-      console.log("🔧 PATCH Product Debug:", {
-        productId,
-        storeId,
-        body: req.body
-      });
-      
       const productData = updateProductSchema.parse(req.body);
-      console.log("✅ Validated product data:", productData);
-      
       const product = await storage.updateProduct(productId, storeId, productData);
-      console.log("✅ Product updated successfully:", product);
-      
       res.json(product);
     } catch (error) {
-      console.error("❌ Error updating product:", error);
+      console.error("Error updating product:", error);
       if (error instanceof z.ZodError) {
-        console.error("❌ Validation errors:", error.errors);
         res.status(400).json({ message: "Invalid data", errors: error.errors });
       } else {
         res.status(500).json({ message: "Failed to update product" });
