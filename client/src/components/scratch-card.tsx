@@ -68,7 +68,18 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     mutationFn: async (productId: string) => {
       console.log('🚀 FRONTEND: Iniciando chamada para gerar cupom:', productId);
       try {
-        const response = await apiRequest(`/api/products/${productId}/generate-coupon`, 'POST');
+        const response = await fetch(`/api/products/${productId}/generate-coupon`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+        
+        if (!response.ok) {
+          const error = await response.text();
+          throw new Error(`${response.status}: ${error}`);
+        }
         console.log('📡 FRONTEND: Resposta da API:', response);
         const data = await response.json();
         console.log('📄 FRONTEND: Dados recebidos:', data);
