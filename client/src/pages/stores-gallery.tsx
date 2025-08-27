@@ -178,7 +178,7 @@ export default function StoresGallery() {
     return (
       <div className="min-h-screen bg-gray-100">
         {/* Header */}
-        <div className="bg-white border-b sticky top-0 z-10">
+        <div className="bg-white border-b sticky top-0 z-50">
           <div className="max-w-2xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <Skeleton className="h-8 w-48" />
@@ -223,7 +223,7 @@ export default function StoresGallery() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header Responsivo */}
-      <div className="border-b sticky top-0 z-10" style={{ backgroundColor: '#21409A' }}>
+      <div className="border-b sticky top-0 z-50" style={{ backgroundColor: '#21409A' }}>
         <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-white">🛍️ Click Ofertas Paraguai</h1>
