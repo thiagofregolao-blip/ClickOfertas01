@@ -1,0 +1,184 @@
+Perfeito — li seu código com atenção. Aqui vai um diagnóstico direto + ajustes cirúrgicos (sem reescrever tudo).
+
+1) “Barra de progresso na frente do card”
+
+No trecho que você enviou não existe uma barra de progresso visível — então suponho que seja um componente global (ex.: um top-loader) ou um badge que está interceptando toque. Os dois cenários comuns e como corrigir:
+
+Cenário A — componente global (top loader) está sobre os cards
+
+Garanta que o container do card crie um contexto isolado e que os elementos interativos fiquem acima dele:
+
+No <Card ...> adicione isolate (Tailwind) e, se necessário, z-10.
+
+Em qualquer barra global, adicione pointer-events: none para não bloquear gesto de raspar.
+
+<Card className="relative isolate z-10 border-2 border-yellow-400 bg-gradient-to-br from-yellow-100 to-orange-100 shadow-lg cursor-pointer select-none">
+
+
+Cenário B — algum “indicador/etiqueta” do próprio card está por cima e pegando toque
+
+Para etiquetas/overlays informativos (timer, badges, “??/????”), mantenha:
+
+pointer-events: none
+
+z-index acima visualmente do canvas se quiser ver, mas sem capturar toque.
+
+No seu código, o badge “RASPE!” tem z-20 (ok), e o selo de desconto progressivo está com z-0 (ok visualmente). Se alguma “barra” sua estiver dentro do card, deixe-a assim:
+
+<div className="absolute ... pointer-events-none z-20">...</div>
+
+
+Dica: se for um top-loader tipo NProgress, defina pointer-events:none no seletor .bar (ou componente) e um z-index que não ultrapasse o do cabeçalho.
+
+2) “Raspadinha abre rápido e sem fluidez”
+
+A sensação de “abre rápido” vem principalmente de dois pontos no seu código:
+
+Cálculo de progresso superestimado
+Você estima o progresso como área_do_pincel * quantidade_de_toques. Como há sobreposição de toques, isso superconta e dispara o threshold (70%) cedo demais.
+
+Sem “atrito” inicial
+Você começa a raspar imediatamente no touchstart/mousedown. Isso dá efeito “on/off”, pouco natural.
+
+Como corrigir, pontualmente
+(A) Calcular progresso pelo alpha real (amostragem leve)
+
+Troque a conta por “nº de pixels transparentes no canvas”, amostrando para não travar. Faça a leitura só dentro de requestAnimationFrame (não em todo move):
+
+Passos:
+
+Crie um rafId e um flag para “precisaRecalcular”.
+
+No handleScratch, só marque precisaRecalcular = true.
+
+Em um loop de rAF, se precisaRecalcular, rode:
+
+getImageData (uma vez), conte apenas 1 a cada N pixels (ex.: step=6).
+
+pct = transparentCount / totalSampled.
+
+setScratchProgress(pct).
+
+Microtrecho (só a ideia, não reescrevendo tudo):
+
+// fora: let rafId:number|null=null, needsProgress=false;
+needsProgress = true;
+if (!rafId) rafId = requestAnimationFrame(measure);
+
+function measure(){
+  if (needsProgress && ctx) {
+    needsProgress = false;
+    const step = 6;
+    const { width, height } = canvas;
+    const data = ctx.getImageData(0,0,width,height).data;
+    let transparent = 0, total = 0;
+    for (let i = 3; i < data.length; i += 4*step) {
+      total++;
+      if (data[i] === 0) transparent++;
+    }
+    const pct = transparent / total;
+    setScratchProgress(pct);
+    if (pct >= 0.7 && !isRevealed) { /* ver item (D) para animação */ }
+  }
+  rafId = requestAnimationFrame(measure);
+}
+
+(B) Segurar 120–150ms antes de “valer” o scratch
+
+Isso deixa o gesto mais natural e evita acidentes.
+
+Passos:
+
+Guarde pressT no down/start.
+
+Em move, só apague se now - pressT >= 120.
+
+(C) Interpolar entre pontos para não “pular”
+
+Hoje você abre só um círculo por evento. Se o dedo anda rápido, vira pontilhado (e o cálculo real do alpha (A) vai flutuar).
+Passos:
+
+Guarde lastX,lastY.
+
+No move, desenhe uma linha entre o ponto anterior e o atual com:
+
+ctx.globalCompositeOperation = 'destination-out'
+
+ctx.lineCap='round', ctx.lineJoin='round', ctx.lineWidth = scratchRadius*2
+
+ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y); ctx.stroke();
+
+(Mantém o visual de borracha contínua, sem precisar aumentar demais o brush.)
+
+(D) Revelar com transição (em vez de “teleportar”)
+
+Hoje, assim que progress >= 0.7, você troca o JSX inteiro — dá salto.
+Passos (simples e sem reestrutura grande):
+
+Adicione um estado isFading para o canvas.
+
+Quando bater o threshold:
+
+setIsFading(true);
+
+aguarde ~220ms;
+
+setIsRevealed(true) e então mutate.
+
+No <canvas ...> aplique uma classe que faz opacity:0 e leve transform:scale(1.02) com transition: .22s ease.
+Isso dá um “sumir suave” antes do conteúdo revelado montar.
+
+(E) DPI correto (nitidez + progresso coerente)
+
+Você seta canvas.width/height com getBoundingClientRect(), mas não considera devicePixelRatio. Em telas retina, o alpha real não bate o que o usuário vê.
+
+Passos:
+
+const dpr = window.devicePixelRatio || 1;
+
+canvas.width = Math.round(rect.width * dpr);
+
+canvas.height = Math.round(rect.height * dpr);
+
+ctx.scale(dpr, dpr);
+
+Mantenha o CSS (w-full h-full) como está.
+
+Refaça o desenho inicial depois de escalar.
+
+(F) Reset quando o produto muda / resize
+
+Em useEffect que inicializa o canvas, limpe:
+
+scratchedAreas.current = [];
+
+setScratchProgress(0); setIsRevealed(false);
+
+Adote um ResizeObserver no wrapper para reconfigurar o canvas se o card mudar de tamanho (mobile -> rotate, grid responsivo, etc.), redesenhando a camada dourada.
+
+(G) Som sem estourar limite de AudioContext
+
+Você cria um AudioContext a cada movimento. Navegadores (especialmente iOS) limitam contexts e isso pode ficar “seco”/cortar.
+Passos:
+
+Crie um audioCtx em ref no primeiro gesto válido.
+
+Toque o efeito no máx. 1 vez a cada ~120ms (cooldown simples por timestamp).
+
+Resumo dos pontos mínimos que eu aplicaria já
+
+pointer-events: none na barra global/indicadores e isolate + (opcional) z-10 no <Card>.
+
+Progresso baseado em alpha real com amostragem em requestAnimationFrame.
+
+Delay de início ~120ms antes de raspar “de fato”.
+
+Traçado contínuo (lineTo) com lineWidth = radius*2, lineCap='round'.
+
+Fade-out do canvas (~220ms) antes de trocar para o card revelado.
+
+Escalonar por devicePixelRatio e reinit no resize.
+
+Reutilizar AudioContext e aplicar cooldown.
+
+Se quiser, me diga qual é a “barra de progresso” específica (nome do componente/selector) e onde ela está no DOM. Aí eu te digo exatamente onde colocar pointer-events: none e qual z-index usar para não conflitar com o stack dos cards.
