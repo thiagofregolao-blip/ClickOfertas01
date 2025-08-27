@@ -4,6 +4,7 @@
   "description": "Crie e compartilhe panfletos digitais das suas ofertas",
   "start_url": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
   "orientation": "portrait-primary",
