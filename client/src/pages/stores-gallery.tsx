@@ -11,6 +11,7 @@ import { StoreStoriesSection } from "@/components/store-stories";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import LoginPage from "@/components/login-page";
+import PWAInstallButton from "@/components/pwa-install-button";
 import { useAppVersion, type AppVersionType } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -305,6 +306,13 @@ export default function StoresGallery() {
             </div>
           </div>
           
+        </div>
+      </div>
+
+      {/* Botão de Instalação PWA */}
+      <div className="bg-white border-b">
+        <div className={`mx-auto py-2 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
+          <PWAInstallButton variant="card" className="mb-2" />
         </div>
       </div>
 
