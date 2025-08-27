@@ -562,9 +562,12 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
                   // Gerar cupom se ainda não foi gerado
                   if (timeLeft && timeLeft > 0 && !couponGenerated) {
                     generateCouponMutation.mutate(product.id);
+                    // NÃO fechar modal nem redirecionar - deixar o usuário ver o cupom
+                  } else if (couponGenerated) {
+                    // Se cupom já foi gerado, pode prosseguir
+                    setShowModal(false);
+                    onClick?.(product);
                   }
-                  setShowModal(false);
-                  onClick?.(product);
                 }}
                 className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 px-4 rounded-lg transition-all"
                 disabled={timeLeft === 0 || generateCouponMutation.isPending}
@@ -573,6 +576,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
                   "Oferta Expirada"
                 ) : generateCouponMutation.isPending ? (
                   "Gerando cupom..."
+                ) : !couponGenerated ? (
+                  <>🎫 Gerar Cupom</>
                 ) : (
                   <>🛒 Aproveitar Oferta</>
                 )}
