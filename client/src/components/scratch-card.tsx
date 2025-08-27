@@ -123,30 +123,35 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
-    // Raio muito menor para ser mais difícil
-    const scratchRadius = 8;
+    // Raio maior para raspagem mais natural
+    const scratchRadius = 25;
 
-    // Verificar sobreposição com distância menor para mais fluidez
-    const hasNearbyArea = scratchedAreas.current.some(area => {
-      const distance = Math.sqrt(Math.pow(area.x - x, 2) + Math.pow(area.y - y, 2));
-      return distance < scratchRadius * 0.5; // Permite mais sobreposição
-    });
-
-    if (!hasNearbyArea) {
-      // Adicionar área raspada
-      scratchedAreas.current.push({ x, y, radius: scratchRadius });
+    // Som de scratch
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      
+      oscillator.frequency.setValueAtTime(150 + Math.random() * 50, audioCtx.currentTime);
+      oscillator.type = 'sawtooth';
+      gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+      
+      oscillator.start(audioCtx.currentTime);
+      oscillator.stop(audioCtx.currentTime + 0.1);
+    } catch (e) {
+      // Som não disponível
     }
 
-    // Scratch mais suave com gradiente
+    // Adicionar sempre para raspagem contínua
+    scratchedAreas.current.push({ x, y, radius: scratchRadius });
+
+    // Scratch natural - sem gradiente, mais sólido
     ctx.globalCompositeOperation = 'destination-out';
-    
-    // Criar gradiente radial para scratch mais suave
-    const gradient = ctx.createRadialGradient(x, y, 0, x, y, scratchRadius);
-    gradient.addColorStop(0, 'rgba(0,0,0,1)');
-    gradient.addColorStop(0.7, 'rgba(0,0,0,0.8)');
-    gradient.addColorStop(1, 'rgba(0,0,0,0.2)');
-    
-    ctx.fillStyle = gradient;
+    ctx.fillStyle = 'rgba(0,0,0,1)';
     ctx.beginPath();
     ctx.arc(x, y, scratchRadius, 0, Math.PI * 2);
     ctx.fill();
@@ -157,8 +162,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const progress = Math.min(scratchedPixels / totalPixels, 1);
     setScratchProgress(progress);
 
-    // Revelar apenas se passou de 95% (muito mais rígido)
-    if (progress >= 0.95 && !isRevealed) {
+    // Revelar com 70% para ficar natural
+    if (progress >= 0.7 && !isRevealed) {
       setIsRevealed(true);
       scratchMutation.mutate(product.id);
     }
@@ -344,25 +349,6 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           </div>
         )}
 
-        {/* Progress indicator - aparece gradualmente */}
-        {scratchProgress > 0.1 && scratchProgress < 0.95 && (
-          <div className="absolute bottom-2 left-2 right-2 z-0">
-            <div className="bg-white/90 rounded-full h-3 overflow-hidden border border-yellow-400">
-              <div 
-                className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 transition-all duration-500"
-                style={{ width: `${(scratchProgress / 0.95) * 100}%` }}
-              />
-            </div>
-            <div className="text-center text-white text-xs mt-1 font-bold drop-shadow-lg">
-              {Math.round((scratchProgress / 0.95) * 100)}% raspado
-            </div>
-            {scratchProgress > 0.8 && (
-              <div className="text-center text-white text-[10px] mt-0.5 font-medium opacity-80">
-                Continue raspando... Quase lá!
-              </div>
-            )}
-          </div>
-        )}
       </CardContent>
     </Card>
   );
