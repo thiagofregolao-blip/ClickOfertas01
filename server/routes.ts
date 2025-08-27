@@ -426,6 +426,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/stores/:storeId/products', isAuthenticated, async (req: any, res) => {
     try {
       const { storeId } = req.params;
+      
+      // Converter scratchExpiresAt de string para Date se fornecido
+      if (req.body.scratchExpiresAt && req.body.scratchExpiresAt !== "") {
+        req.body.scratchExpiresAt = new Date(req.body.scratchExpiresAt);
+      } else if (req.body.scratchExpiresAt === "") {
+        req.body.scratchExpiresAt = null;
+      }
+      
       const productData = insertProductSchema.parse(req.body);
       const product = await storage.createProduct(storeId, productData);
       res.status(201).json(product);
@@ -442,6 +450,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/stores/:storeId/products/:productId', isAuthenticated, async (req: any, res) => {
     try {
       const { storeId, productId } = req.params;
+      
+      // Converter scratchExpiresAt de string para Date se fornecido
+      if (req.body.scratchExpiresAt && req.body.scratchExpiresAt !== "") {
+        req.body.scratchExpiresAt = new Date(req.body.scratchExpiresAt);
+      } else if (req.body.scratchExpiresAt === "") {
+        req.body.scratchExpiresAt = null;
+      }
+      
       const productData = updateProductSchema.parse(req.body);
       const product = await storage.updateProduct(productId, storeId, productData);
       res.json(product);
