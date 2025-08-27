@@ -129,8 +129,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const progress = Math.min(scratchedPixels / totalPixels, 1);
     setScratchProgress(progress);
 
-    // Revelar se passou de 30%
-    if (progress > 0.3 && !isRevealed) {
+    // Revelar se passou de 80%
+    if (progress > 0.8 && !isRevealed) {
       setIsRevealed(true);
       scratchMutation.mutate(product.id);
     }
@@ -302,13 +302,16 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
         />
 
         {/* Progress indicator */}
-        {scratchProgress > 0 && scratchProgress < 0.3 && (
+        {scratchProgress > 0 && scratchProgress < 0.8 && (
           <div className="absolute bottom-2 left-2 right-2 z-10">
             <div className="bg-white/80 rounded-full h-2 overflow-hidden">
               <div 
                 className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 transition-all duration-300"
-                style={{ width: `${(scratchProgress / 0.3) * 100}%` }}
+                style={{ width: `${(scratchProgress / 0.8) * 100}%` }}
               />
+            </div>
+            <div className="text-center text-white text-xs mt-1 font-bold drop-shadow">
+              {Math.round((scratchProgress / 0.8) * 100)}% raspado
             </div>
           </div>
         )}
