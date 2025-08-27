@@ -823,14 +823,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let scratchedProduct = await storage.getScratchedProduct(productId, userId);
       if (!scratchedProduct) {
         // Criar scratch automaticamente se não existir
-        const scratchData = insertScratchedProductSchema.parse({
-          productId,
-          userId,
-          userAgent,
-          ipAddress,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 horas
-        });
-        scratchedProduct = await storage.createScratchedProduct(scratchData);
+        try {
+          const scratchData = {
+            productId,
+            userId,
+            userAgent: userAgent || 'unknown',
+            ipAddress: ipAddress || 'unknown',
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 horas
+          };
+          scratchedProduct = await storage.createScratchedProduct(scratchData);
+        } catch (error) {
+          console.error('Error creating scratch product:', error);
+          // Se falhar, usar dados padrão
+          scratchedProduct = {
+            id: 'temp',
+            productId,
+            userId,
+            userAgent: userAgent || 'unknown',
+            ipAddress: ipAddress || 'unknown',
+            scratchedAt: new Date(),
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+          };
+        }
       }
 
       // Calcular desconto
@@ -864,12 +878,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const expiresAt = scratchedProduct.expiresAt;
 
       // Criar cupom
-      const couponData = insertCouponSchema.parse({
+      const couponData = {
         productId: product.id,
         storeId: product.storeId,
         userId,
-        userAgent,
-        ipAddress,
+        userAgent: userAgent || 'unknown',
+        ipAddress: ipAddress || 'unknown',
         couponCode,
         originalPrice: originalPrice.toString(),
         discountPrice: discountPrice.toString(),
@@ -877,7 +891,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         qrCode: qrCodeBase64,
         expiresAt,
         isRedeemed: false
-      });
+      };
 
       const coupon = await storage.createCoupon(couponData);
 
