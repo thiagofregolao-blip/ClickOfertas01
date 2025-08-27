@@ -102,9 +102,18 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     });
   }, [product.scratchMessage]);
 
-  // Função de scratch
+  // Throttle para evitar múltiplos scratches muito rápidos
+  const lastScratchTime = useRef<number>(0);
+  const SCRATCH_THROTTLE = 50; // 50ms entre scratches
+
+  // Função de scratch melhorada
   const handleScratch = (clientX: number, clientY: number) => {
     if (!canvasRef.current || isRevealed) return;
+
+    // Throttle scratches
+    const now = Date.now();
+    if (now - lastScratchTime.current < SCRATCH_THROTTLE) return;
+    lastScratchTime.current = now;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -114,23 +123,34 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
-    // Adicionar área raspada
-    scratchedAreas.current.push({ x, y, radius: 20 });
+    // Raio menor para ser menos sensível
+    const scratchRadius = 12;
+
+    // Verificar se já existe área próxima (evitar sobreposição)
+    const hasNearbyArea = scratchedAreas.current.some(area => {
+      const distance = Math.sqrt(Math.pow(area.x - x, 2) + Math.pow(area.y - y, 2));
+      return distance < scratchRadius;
+    });
+
+    if (!hasNearbyArea) {
+      // Adicionar área raspada apenas se não há sobreposição
+      scratchedAreas.current.push({ x, y, radius: scratchRadius });
+    }
 
     // Limpar área circular
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
-    ctx.arc(x, y, 20, 0, Math.PI * 2);
+    ctx.arc(x, y, scratchRadius, 0, Math.PI * 2);
     ctx.fill();
 
-    // Calcular progresso de scratch
+    // Calcular progresso mais preciso
     const totalPixels = canvas.width * canvas.height;
-    const scratchedPixels = scratchedAreas.current.length * Math.PI * 400; // aproximação
+    const scratchedPixels = scratchedAreas.current.length * Math.PI * (scratchRadius * scratchRadius);
     const progress = Math.min(scratchedPixels / totalPixels, 1);
     setScratchProgress(progress);
 
-    // Revelar se passou de 80%
-    if (progress > 0.8 && !isRevealed) {
+    // Revelar apenas se passou de 85% (mais rígido)
+    if (progress >= 0.85 && !isRevealed) {
       setIsRevealed(true);
       scratchMutation.mutate(product.id);
     }
@@ -301,18 +321,38 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           style={{ touchAction: 'none' }}
         />
 
-        {/* Progress indicator */}
-        {scratchProgress > 0 && scratchProgress < 0.8 && (
+        {/* Efeito gradual do desconto - aparece conforme raspa */}
+        {scratchProgress > 0.3 && !isRevealed && (
+          <div className="absolute top-2 right-2 z-15">
+            <div 
+              className={`bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold transition-all duration-700 ${
+                scratchProgress > 0.6 ? 'animate-pulse opacity-100 scale-100' : 'opacity-70 scale-90'
+              }`}
+            >
+              {scratchProgress > 0.7 ? (
+                `-${currency}${(parseFloat(product.price!) - parseFloat(product.scratchPrice!)).toFixed(2)}`
+              ) : scratchProgress > 0.5 ? '????' : '??'}
+            </div>
+          </div>
+        )}
+
+        {/* Progress indicator - aparece gradualmente */}
+        {scratchProgress > 0.1 && scratchProgress < 0.85 && (
           <div className="absolute bottom-2 left-2 right-2 z-10">
-            <div className="bg-white/80 rounded-full h-2 overflow-hidden">
+            <div className="bg-white/90 rounded-full h-3 overflow-hidden border border-yellow-400">
               <div 
-                className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 transition-all duration-300"
-                style={{ width: `${(scratchProgress / 0.8) * 100}%` }}
+                className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 transition-all duration-500"
+                style={{ width: `${(scratchProgress / 0.85) * 100}%` }}
               />
             </div>
-            <div className="text-center text-white text-xs mt-1 font-bold drop-shadow">
-              {Math.round((scratchProgress / 0.8) * 100)}% raspado
+            <div className="text-center text-white text-xs mt-1 font-bold drop-shadow-lg">
+              {Math.round((scratchProgress / 0.85) * 100)}% raspado
             </div>
+            {scratchProgress > 0.7 && (
+              <div className="text-center text-white text-[10px] mt-0.5 font-medium opacity-80">
+                Continue raspando...
+              </div>
+            )}
           </div>
         )}
       </CardContent>
