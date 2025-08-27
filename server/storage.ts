@@ -7,6 +7,7 @@ import {
   flyerViews,
   productLikes,
   scratchedProducts,
+  coupons,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -28,6 +29,9 @@ import {
   type ScratchedProduct,
   type InsertScratchedProduct,
   type SavedProductWithDetails,
+  type Coupon,
+  type InsertCoupon,
+  type CouponWithDetails,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, gte } from "drizzle-orm";
@@ -71,6 +75,13 @@ export interface IStorage {
   createScratchedProduct(scratch: InsertScratchedProduct): Promise<ScratchedProduct>;
   getScratchedProduct(productId: string, userId?: string): Promise<ScratchedProduct | undefined>;
   updateScratchRedemptionCount(productId: string): Promise<void>;
+
+  // Coupon operations
+  createCoupon(coupon: InsertCoupon): Promise<Coupon>;
+  getUserCoupons(userId?: string): Promise<CouponWithDetails[]>;
+  getCouponByCode(couponCode: string): Promise<CouponWithDetails | undefined>;
+  redeemCoupon(couponCode: string): Promise<Coupon>;
+  getCoupon(couponId: string): Promise<CouponWithDetails | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -563,6 +574,165 @@ export class DatabaseStorage implements IStorage {
       .where(eq(products.id, productId));
     
     return product?.currentScratchRedemptions || "0";
+  }
+
+  // Coupon operations
+  async createCoupon(couponData: InsertCoupon): Promise<Coupon> {
+    const [coupon] = await db
+      .insert(coupons)
+      .values(couponData)
+      .returning();
+    return coupon;
+  }
+
+  async getUserCoupons(userId?: string): Promise<CouponWithDetails[]> {
+    const conditions = [];
+    if (userId) {
+      conditions.push(eq(coupons.userId, userId));
+    }
+
+    const userCoupons = await db
+      .select({
+        id: coupons.id,
+        productId: coupons.productId,
+        storeId: coupons.storeId,
+        userId: coupons.userId,
+        userAgent: coupons.userAgent,
+        ipAddress: coupons.ipAddress,
+        couponCode: coupons.couponCode,
+        originalPrice: coupons.originalPrice,
+        discountPrice: coupons.discountPrice,
+        discountPercentage: coupons.discountPercentage,
+        qrCode: coupons.qrCode,
+        expiresAt: coupons.expiresAt,
+        isRedeemed: coupons.isRedeemed,
+        redeemedAt: coupons.redeemedAt,
+        createdAt: coupons.createdAt,
+        product: {
+          id: products.id,
+          name: products.name,
+          description: products.description,
+          price: products.price,
+          imageUrl: products.imageUrl,
+          category: products.category,
+        },
+        store: {
+          id: stores.id,
+          name: stores.name,
+          logoUrl: stores.logoUrl,
+          themeColor: stores.themeColor,
+          currency: stores.currency,
+          whatsapp: stores.whatsapp,
+          slug: stores.slug,
+        },
+      })
+      .from(coupons)
+      .leftJoin(products, eq(coupons.productId, products.id))
+      .leftJoin(stores, eq(coupons.storeId, stores.id))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(coupons.createdAt));
+
+    return userCoupons as CouponWithDetails[];
+  }
+
+  async getCouponByCode(couponCode: string): Promise<CouponWithDetails | undefined> {
+    const [coupon] = await db
+      .select({
+        id: coupons.id,
+        productId: coupons.productId,
+        storeId: coupons.storeId,
+        userId: coupons.userId,
+        userAgent: coupons.userAgent,
+        ipAddress: coupons.ipAddress,
+        couponCode: coupons.couponCode,
+        originalPrice: coupons.originalPrice,
+        discountPrice: coupons.discountPrice,
+        discountPercentage: coupons.discountPercentage,
+        qrCode: coupons.qrCode,
+        expiresAt: coupons.expiresAt,
+        isRedeemed: coupons.isRedeemed,
+        redeemedAt: coupons.redeemedAt,
+        createdAt: coupons.createdAt,
+        product: {
+          id: products.id,
+          name: products.name,
+          description: products.description,
+          price: products.price,
+          imageUrl: products.imageUrl,
+          category: products.category,
+        },
+        store: {
+          id: stores.id,
+          name: stores.name,
+          logoUrl: stores.logoUrl,
+          themeColor: stores.themeColor,
+          currency: stores.currency,
+          whatsapp: stores.whatsapp,
+          slug: stores.slug,
+        },
+      })
+      .from(coupons)
+      .leftJoin(products, eq(coupons.productId, products.id))
+      .leftJoin(stores, eq(coupons.storeId, stores.id))
+      .where(eq(coupons.couponCode, couponCode));
+
+    return coupon as CouponWithDetails | undefined;
+  }
+
+  async redeemCoupon(couponCode: string): Promise<Coupon> {
+    const [coupon] = await db
+      .update(coupons)
+      .set({
+        isRedeemed: true,
+        redeemedAt: new Date(),
+      })
+      .where(eq(coupons.couponCode, couponCode))
+      .returning();
+    return coupon;
+  }
+
+  async getCoupon(couponId: string): Promise<CouponWithDetails | undefined> {
+    const [coupon] = await db
+      .select({
+        id: coupons.id,
+        productId: coupons.productId,
+        storeId: coupons.storeId,
+        userId: coupons.userId,
+        userAgent: coupons.userAgent,
+        ipAddress: coupons.ipAddress,
+        couponCode: coupons.couponCode,
+        originalPrice: coupons.originalPrice,
+        discountPrice: coupons.discountPrice,
+        discountPercentage: coupons.discountPercentage,
+        qrCode: coupons.qrCode,
+        expiresAt: coupons.expiresAt,
+        isRedeemed: coupons.isRedeemed,
+        redeemedAt: coupons.redeemedAt,
+        createdAt: coupons.createdAt,
+        product: {
+          id: products.id,
+          name: products.name,
+          description: products.description,
+          price: products.price,
+          imageUrl: products.imageUrl,
+          category: products.category,
+        },
+        store: {
+          id: stores.id,
+          name: stores.name,
+          logoUrl: stores.logoUrl,
+          themeColor: stores.themeColor,
+          currency: stores.currency,
+          whatsapp: stores.whatsapp,
+          slug: stores.slug,
+        },
+      })
+      .from(coupons)
+      .leftJoin(products, eq(coupons.productId, products.id))
+      .leftJoin(stores, eq(coupons.storeId, stores.id))
+      .where(eq(coupons.id, couponId));
+
+    return coupon as CouponWithDetails | undefined;
   }
 }
 

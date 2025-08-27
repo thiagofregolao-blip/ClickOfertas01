@@ -146,6 +146,25 @@ export const scratchedProducts = pgTable("scratched_products", {
   hasRedeemed: boolean("has_redeemed").default(false), // Se já foi até a loja comprar
 });
 
+// Cupons gerados pelas raspadinhas
+export const coupons = pgTable("coupons", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  couponCode: varchar("coupon_code").unique().notNull(), // Código único do cupom
+  originalPrice: decimal("original_price", { precision: 12, scale: 2 }).notNull(),
+  discountPrice: decimal("discount_price", { precision: 12, scale: 2 }).notNull(),
+  discountPercentage: varchar("discount_percentage").notNull(), // Porcentagem de desconto
+  qrCode: text("qr_code").notNull(), // Base64 do QR Code
+  expiresAt: timestamp("expires_at").notNull(), // Quando expira o cupom
+  isRedeemed: boolean("is_redeemed").default(false), // Se já foi utilizado
+  redeemedAt: timestamp("redeemed_at"), // Quando foi utilizado
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   stores: many(stores),
@@ -216,6 +235,17 @@ export const scratchedProductsRelations = relations(scratchedProducts, ({ one })
   }),
 }));
 
+export const couponsRelations = relations(coupons, ({ one }) => ({
+  product: one(products, {
+    fields: [coupons.productId],
+    references: [products.id],
+  }),
+  store: one(stores, {
+    fields: [coupons.storeId],
+    references: [stores.id],
+  }),
+}));
+
 // Insert schemas
 export const insertStoreSchema = createInsertSchema(stores).omit({
   id: true,
@@ -261,6 +291,11 @@ export const insertProductLikeSchema = createInsertSchema(productLikes).omit({
 export const insertScratchedProductSchema = createInsertSchema(scratchedProducts).omit({
   id: true,
   scratchedAt: true,
+});
+
+export const insertCouponSchema = createInsertSchema(coupons).omit({
+  id: true,
+  createdAt: true,
 });
 
 // Types
@@ -341,6 +376,8 @@ export type ProductLike = typeof productLikes.$inferSelect;
 export type InsertProductLike = z.infer<typeof insertProductLikeSchema>;
 export type ScratchedProduct = typeof scratchedProducts.$inferSelect;
 export type InsertScratchedProduct = z.infer<typeof insertScratchedProductSchema>;
+export type Coupon = typeof coupons.$inferSelect;
+export type InsertCoupon = z.infer<typeof insertCouponSchema>;
 
 export type StoreWithProducts = Store & {
   products: Product[];
@@ -352,4 +389,9 @@ export type ProductWithStore = Product & {
 
 export type SavedProductWithDetails = SavedProduct & {
   product: ProductWithStore;
+};
+
+export type CouponWithDetails = Coupon & {
+  product: Product;
+  store: Store;
 };

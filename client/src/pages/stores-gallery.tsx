@@ -274,6 +274,22 @@ export default function StoresGallery() {
                         onClick={(e) => {
                           e.stopPropagation();
                           setIsUserMenuOpen(false);
+                          setLocation('/my-coupons');
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
+                        data-testid="button-my-coupons"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+                          <line x1="8" y1="2" x2="8" y2="22"/>
+                          <line x1="16" y1="2" x2="16" y2="22"/>
+                        </svg>
+                        Meus Cupons
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsUserMenuOpen(false);
                           window.location.href = '/api/auth/logout?redirect_uri=/cards';
                         }}
                         className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-red-600"

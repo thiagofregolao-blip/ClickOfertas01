@@ -3,10 +3,11 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
+import QRCode from "qrcode";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -799,6 +800,182 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching USD/BRL rate:", error);
       res.status(500).json({ message: "Failed to fetch exchange rate" });
+    }
+  });
+
+  // COUPON ROUTES
+  
+  // Criar cupom após raspar produto
+  app.post('/api/products/:productId/generate-coupon', async (req: any, res) => {
+    try {
+      const { productId } = req.params;
+      const userId = req.user?.claims?.sub || req.user?.id; // pode ser anônimo
+      const userAgent = req.get('User-Agent');
+      const ipAddress = req.ip;
+
+      // Buscar o produto e a loja
+      const product = await storage.getProductById(productId);
+      if (!product || !product.isScratchCard) {
+        return res.status(400).json({ message: "Produto não é uma raspadinha válida" });
+      }
+
+      // Verificar se o usuário já raspou este produto
+      const scratchedProduct = await storage.getScratchedProduct(productId, userId);
+      if (!scratchedProduct) {
+        return res.status(400).json({ message: "Produto não foi raspado ainda" });
+      }
+
+      // Calcular desconto
+      const originalPrice = parseFloat(product.price || '0');
+      const discountPrice = parseFloat(product.scratchPrice || '0');
+      const discountPercentage = originalPrice > 0 ? Math.round(((originalPrice - discountPrice) / originalPrice) * 100) : 0;
+
+      // Gerar código único do cupom
+      const couponCode = `OFERTA${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+
+      // Gerar QR Code
+      const qrCodeData = JSON.stringify({
+        code: couponCode,
+        productId: product.id,
+        storeId: product.storeId,
+        originalPrice,
+        discountPrice,
+        discountPercentage
+      });
+      
+      const qrCodeBase64 = await QRCode.toDataURL(qrCodeData, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+
+      // Data de expiração do cupom (mesmo tempo da raspadinha)
+      const expiresAt = scratchedProduct.expiresAt;
+
+      // Criar cupom
+      const couponData = insertCouponSchema.parse({
+        productId: product.id,
+        storeId: product.storeId,
+        userId,
+        userAgent,
+        ipAddress,
+        couponCode,
+        originalPrice: originalPrice.toString(),
+        discountPrice: discountPrice.toString(),
+        discountPercentage: discountPercentage.toString(),
+        qrCode: qrCodeBase64,
+        expiresAt,
+        isRedeemed: false
+      });
+
+      const coupon = await storage.createCoupon(couponData);
+
+      res.status(201).json({
+        success: true,
+        coupon: {
+          id: coupon.id,
+          couponCode: coupon.couponCode,
+          discountPercentage,
+          originalPrice,
+          discountPrice,
+          qrCode: qrCodeBase64,
+          expiresAt: coupon.expiresAt
+        }
+      });
+    } catch (error) {
+      console.error("Error generating coupon:", error);
+      res.status(500).json({ message: "Erro ao gerar cupom" });
+    }
+  });
+
+  // Buscar cupons do usuário
+  app.get('/api/coupons/user', async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.id;
+      const coupons = await storage.getUserCoupons(userId);
+      res.json(coupons);
+    } catch (error) {
+      console.error("Error fetching user coupons:", error);
+      res.status(500).json({ message: "Erro ao buscar cupons" });
+    }
+  });
+
+  // Buscar cupom por código (para validação do lojista)
+  app.get('/api/coupons/:couponCode', async (req, res) => {
+    try {
+      const { couponCode } = req.params;
+      const coupon = await storage.getCouponByCode(couponCode);
+      
+      if (!coupon) {
+        return res.status(404).json({ message: "Cupom não encontrado" });
+      }
+
+      // Verificar se ainda é válido
+      if (new Date(coupon.expiresAt) <= new Date()) {
+        return res.status(400).json({ message: "Cupom expirado" });
+      }
+
+      if (coupon.isRedeemed) {
+        return res.status(400).json({ message: "Cupom já foi utilizado" });
+      }
+
+      res.json(coupon);
+    } catch (error) {
+      console.error("Error fetching coupon:", error);
+      res.status(500).json({ message: "Erro ao buscar cupom" });
+    }
+  });
+
+  // Resgatar cupom (marcar como utilizado)
+  app.post('/api/coupons/:couponCode/redeem', isAuthenticated, async (req, res) => {
+    try {
+      const { couponCode } = req.params;
+      
+      // Verificar se cupom existe e é válido
+      const coupon = await storage.getCouponByCode(couponCode);
+      if (!coupon) {
+        return res.status(404).json({ message: "Cupom não encontrado" });
+      }
+
+      if (new Date(coupon.expiresAt) <= new Date()) {
+        return res.status(400).json({ message: "Cupom expirado" });
+      }
+
+      if (coupon.isRedeemed) {
+        return res.status(400).json({ message: "Cupom já foi utilizado" });
+      }
+
+      // Marcar como resgatado
+      const redeemedCoupon = await storage.redeemCoupon(couponCode);
+
+      res.json({
+        success: true,
+        message: "Cupom resgatado com sucesso",
+        coupon: redeemedCoupon
+      });
+    } catch (error) {
+      console.error("Error redeeming coupon:", error);
+      res.status(500).json({ message: "Erro ao resgatar cupom" });
+    }
+  });
+
+  // Buscar detalhes de um cupom específico
+  app.get('/api/coupons/details/:couponId', async (req, res) => {
+    try {
+      const { couponId } = req.params;
+      const coupon = await storage.getCoupon(couponId);
+      
+      if (!coupon) {
+        return res.status(404).json({ message: "Cupom não encontrado" });
+      }
+
+      res.json(coupon);
+    } catch (error) {
+      console.error("Error fetching coupon details:", error);
+      res.status(500).json({ message: "Erro ao buscar detalhes do cupom" });
     }
   });
 

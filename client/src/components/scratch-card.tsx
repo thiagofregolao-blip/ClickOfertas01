@@ -2,11 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Gift, Sparkles } from "lucide-react";
+import { Clock, Gift, Sparkles, Download, Share2, QrCode, CheckCircle } from "lucide-react";
 import type { Product } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { formatBrazilianPrice, formatPriceWithCurrency } from "@/lib/priceUtils";
+import jsPDF from "jspdf";
+import { useToast } from "@/hooks/use-toast";
 
 interface ScratchCardProps {
   product: Product;
@@ -30,7 +32,10 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const [isFading, setIsFading] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [coupon, setCoupon] = useState<any>(null);
+  const [couponGenerated, setCouponGenerated] = useState(false);
   const scratchedAreas = useRef<ScratchArea[]>([]);
+  const { toast } = useToast();
   
   // FASE 1: AudioContext otimizado
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -55,6 +60,31 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
         setTimeLeft(Math.max(0, Math.floor((expirationTime - now) / 1000)));
       }
       if (onRevealed) onRevealed(product);
+    }
+  });
+
+  // Mutation para gerar cupom
+  const generateCouponMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const response = await apiRequest(`/api/products/${productId}/generate-coupon`, 'POST');
+      return response.json();
+    },
+    onSuccess: (data: any) => {
+      if (data?.success && data?.coupon) {
+        setCoupon(data.coupon);
+        setCouponGenerated(true);
+        toast({
+          title: "🎉 Cupom gerado!",
+          description: "Seu cupom de desconto foi criado com sucesso!",
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao gerar cupom",
+        description: "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
     }
   });
 
@@ -329,9 +359,87 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     return `${minutes}m ${secs}s`;
   };
 
+  // Função para baixar PDF do cupom
+  const downloadPDF = () => {
+    if (!coupon) return;
+    
+    const originalPrice = parseFloat(product.price || '0');
+    const discountPrice = parseFloat(product.scratchPrice || '0');
+    const discountPercentage = originalPrice > 0 ? Math.round(((originalPrice - discountPrice) / originalPrice) * 100) : 0;
+    
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.text('🎉 CUPOM DE DESCONTO', 20, 30);
+    
+    // Informações da loja (você pode buscar da store)
+    doc.setFontSize(14);
+    doc.text('Loja: CellShop Importados Paraguay', 20, 50);
+    
+    // Produto
+    doc.setFontSize(12);
+    doc.text(`Produto: ${product.name}`, 20, 70);
+    
+    // Desconto
+    doc.setFontSize(16);
+    doc.text(`🔥 ${discountPercentage}% DE DESCONTO!`, 20, 90);
+    
+    // Preços
+    doc.setFontSize(12);
+    doc.text(`De: ${formatPriceWithCurrency(product.price || '0', currency)}`, 20, 110);
+    doc.text(`Por: ${formatPriceWithCurrency(product.scratchPrice || '0', currency)}`, 20, 125);
+    
+    // Código do cupom
+    doc.setFontSize(14);
+    doc.text(`Código: ${coupon.couponCode}`, 20, 150);
+    
+    // Validade
+    const expirationDate = new Date(coupon.expiresAt).toLocaleString('pt-BR');
+    doc.text(`Válido até: ${expirationDate}`, 20, 170);
+    
+    // QR Code (como imagem)
+    if (coupon.qrCode) {
+      doc.addImage(coupon.qrCode, 'PNG', 120, 80, 60, 60);
+    }
+    
+    // Instruções
+    doc.setFontSize(10);
+    doc.text('Apresente este cupom na loja para resgatar o desconto', 20, 200);
+    
+    doc.save(`cupom-${coupon.couponCode}.pdf`);
+  };
+  
+  // Função para compartilhar no WhatsApp
+  const shareOnWhatsApp = () => {
+    if (!coupon) return;
+    
+    const originalPrice = parseFloat(product.price || '0');
+    const discountPrice = parseFloat(product.scratchPrice || '0');
+    const discountPercentage = originalPrice > 0 ? Math.round(((originalPrice - discountPrice) / originalPrice) * 100) : 0;
+    
+    const message = `🎉 *CUPOM DE DESCONTO*\n\n` +
+      `📱 *${product.name}*\n` +
+      `🏪 *CellShop Importados Paraguay*\n\n` +
+      `🔥 *${discountPercentage}% DE DESCONTO!*\n\n` +
+      `💰 De: ${formatPriceWithCurrency(product.price || '0', currency)}\n` +
+      `💸 Por: ${formatPriceWithCurrency(product.scratchPrice || '0', currency)}\n\n` +
+      `🎫 *Código:* ${coupon.couponCode}\n` +
+      `⏰ *Válido até:* ${new Date(coupon.expiresAt).toLocaleString('pt-BR')}\n\n` +
+      `📍 Apresente este cupom na loja para resgatar!`;
+    
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   // Modal de produto detalhado
   const ProductModal = () => {
     if (!showModal) return null;
+    
+    // Calcular porcentagem de desconto
+    const originalPrice = parseFloat(product.price || '0');
+    const discountPrice = parseFloat(product.scratchPrice || '0');
+    const discountPercentage = originalPrice > 0 ? Math.round(((originalPrice - discountPrice) / originalPrice) * 100) : 0;
     
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -375,11 +483,16 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
                   <Sparkles className="w-6 h-6" />
                   {formatPriceWithCurrency(product.scratchPrice || '0', currency)}
                 </div>
-                {product.scratchPrice && product.price && (
-                  <div className="text-lg text-green-600 font-bold">
-                    Você economiza: {formatPriceWithCurrency((parseFloat(product.price) - parseFloat(product.scratchPrice || '0')), currency)}
+                
+                {/* NOVA: Porcentagem de desconto */}
+                <div className="bg-green-100 border border-green-300 rounded-lg p-3 my-3">
+                  <div className="text-2xl font-bold text-green-700 flex items-center justify-center gap-2">
+                    🔥 {discountPercentage}% DE DESCONTO!
                   </div>
-                )}
+                  <div className="text-sm text-green-600 mt-1">
+                    Você economiza: {formatPriceWithCurrency((originalPrice - discountPrice), currency)}
+                  </div>
+                </div>
                 
                 {/* Timer de expiração */}
                 {timeLeft !== null && timeLeft > 0 && (
@@ -390,6 +503,77 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
                 )}
               </div>
             </div>
+            
+            {/* Seção de Cupom */}
+            {timeLeft !== null && timeLeft > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <div className="text-center">
+                  {!couponGenerated ? (
+                    <>
+                      <h4 className="font-bold text-blue-800 mb-2">🎫 Gere seu cupom de desconto</h4>
+                      <p className="text-sm text-blue-600 mb-3">Guarde este cupom e apresente na loja!</p>
+                      <Button 
+                        onClick={() => generateCouponMutation.mutate(product.id)}
+                        disabled={generateCouponMutation.isPending}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                      >
+                        {generateCouponMutation.isPending ? (
+                          "Gerando..."
+                        ) : (
+                          <>🎫 Gerar Cupom</>
+                        )}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-center gap-2 mb-3">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <h4 className="font-bold text-green-800">Cupom Gerado!</h4>
+                      </div>
+                      
+                      {/* QR Code */}
+                      {coupon?.qrCode && (
+                        <div className="mb-3">
+                          <img 
+                            src={coupon.qrCode} 
+                            alt="QR Code do cupom" 
+                            className="mx-auto w-32 h-32 border border-gray-300 rounded"
+                          />
+                        </div>
+                      )}
+                      
+                      {/* Código do cupom */}
+                      <div className="bg-white border border-dashed border-gray-400 rounded p-2 mb-3">
+                        <p className="text-xs text-gray-600">Código do cupom:</p>
+                        <p className="font-mono font-bold text-lg">{coupon?.couponCode}</p>
+                      </div>
+                      
+                      {/* Botões de ação do cupom */}
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={downloadPDF}
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                        >
+                          <Download className="w-4 h-4 mr-1" />
+                          PDF
+                        </Button>
+                        <Button 
+                          onClick={shareOnWhatsApp}
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 bg-green-50 border-green-300 text-green-700 hover:bg-green-100"
+                        >
+                          <Share2 className="w-4 h-4 mr-1" />
+                          WhatsApp
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
             
             {/* Botões de ação */}
             <div className="flex gap-3">
@@ -475,9 +659,14 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
                   {formatPriceWithCurrency(product.scratchPrice || '0', currency)}
                 </div>
                 {product.scratchPrice && product.price && (
-                  <div className="text-xs text-green-600 font-semibold">
-                    Economize: {formatPriceWithCurrency((parseFloat(product.price) - parseFloat(product.scratchPrice || '0')), currency)}
-                  </div>
+                  <>
+                    <div className="text-xs text-green-600 font-semibold">
+                      Economize: {formatPriceWithCurrency((parseFloat(product.price) - parseFloat(product.scratchPrice || '0')), currency)}
+                    </div>
+                    <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                      {discountPercentage}% OFF
+                    </div>
+                  </>
                 )}
               </div>
             </div>
