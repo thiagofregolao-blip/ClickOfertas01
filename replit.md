@@ -163,3 +163,50 @@ Preferred communication style: Simple, everyday language.
 - **TypeScript**: Full type safety across the stack
 - **Development**: TSX for server development with hot reload
 - **Linting**: ESBuild for production bundling
+
+## PWA & App Store Distribution
+
+### Progressive Web App (PWA)
+- **Status**: ✅ Fully implemented and functional
+- **Features**: Offline support, installable, native app experience
+- **Compatibility**: iOS (Safari) and Android (Chrome) tested and working
+- **Installation**: Automatic prompt on Android, manual process on iOS
+
+### App Store Distribution Options
+
+#### Google Play Store (Android) - RECOMENDADO
+**Método**: Trusted Web Activities (TWA)
+- **Ferramenta**: PWABuilder.com (gratuita e automática)
+- **Processo**:
+  1. Acesse pwabuilder.com
+  2. Cole URL: https://click-ofertas-paraguai.replit.app
+  3. Gera APK automaticamente usando o PWA existente
+  4. Assina digitalmente o APK
+  5. Publica na Google Play Store
+- **Custo**: $25 USD (taxa única de registro)
+- **Tempo**: ~30 minutos para gerar + tempo de aprovação Google
+- **Vantagem**: Usa exatamente o PWA atual sem modificações
+
+#### Apple App Store (iOS) - MAIS COMPLEXO
+**Método**: Hybrid App (requer conversão)
+- **Limitação**: Apple não aceita PWAs diretos na App Store
+- **Ferramentas**: Ionic Capacitor ou Apache Cordova
+- **Processo**:
+  1. Instalar Capacitor: `npm install @capacitor/core @capacitor/ios`
+  2. Inicializar: `npx cap init "Click Ofertas" "com.clickofertas.app"`
+  3. Adicionar iOS: `npx cap add ios`
+  4. Abrir no Xcode para compilação
+  5. Submeter à App Store via Xcode
+- **Custo**: $99 USD/ano (Apple Developer Program)
+- **Tempo**: Algumas horas de setup + tempo de aprovação Apple
+- **Desvantagem**: Requer conversão e manutenção adicional
+
+#### Estratégia Recomendada
+1. **Fase 1**: Google Play Store via TWA (mais fácil, barato, rápido)
+2. **Fase 2**: Apple App Store via Capacitor (se houver demanda iOS significativa)
+
+#### Status Atual
+- ✅ PWA totalmente funcional e pronto para distribuição
+- ✅ Manifest, ícones, service worker implementados
+- ✅ Compatibilidade iOS/Android verificada
+- 🎯 Pronto para empacotamento nas lojas quando solicitado
