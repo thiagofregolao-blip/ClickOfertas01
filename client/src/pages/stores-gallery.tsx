@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart } from "lucide-react";
+import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X } from "lucide-react";
 import { StoreStoriesSection } from "@/components/store-stories";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
@@ -330,8 +330,17 @@ export default function StoresGallery() {
               placeholder="Buscar produtos ou lojas..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-red-300 focus:ring-red-200"
+              className="pl-10 pr-10 py-2 w-full border-gray-200 focus:border-red-300 focus:ring-red-200"
             />
+            {searchInput && (
+              <button
+                onClick={() => setSearchInput('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                title="Limpar busca"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -17,23 +17,8 @@ export default function PWAInstallButton({ variant = "button", className = "" }:
   // Detectar se é iOS
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
-  // Não mostrar se já está instalado
+  // Não mostrar nada se já está instalado
   if (isInstalled) {
-    if (variant === "card") {
-      return (
-        <Card className={`border-green-200 bg-green-50 ${className}`}>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <div>
-                <p className="text-sm font-medium text-green-800">App Instalado</p>
-                <p className="text-xs text-green-600">Click Ofertas está no seu dispositivo</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
     return null;
   }
 
