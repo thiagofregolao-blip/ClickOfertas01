@@ -34,6 +34,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const audioCtxRef = useRef<AudioContext | null>(null);
   const lastSoundTime = useRef<number>(0);
   const SOUND_COOLDOWN = 120; // ms
+  
+  // FASE 2: Progresso por alpha real e traçado contínuo
+  const rafId = useRef<number | null>(null);
+  const needsProgressCalc = useRef<boolean>(false);
+  const lastPoint = useRef<{ x: number; y: number } | null>(null);
 
   // Mutation para marcar produto como "raspado"
   const scratchMutation = useMutation({
@@ -81,6 +86,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     setScratchProgress(0);
     setIsRevealed(false);
     setIsFading(false);
+    lastPoint.current = null;
+    needsProgressCalc.current = false;
 
     // FASE 1: Configurar DPI correto para telas retina
     const rect = canvas.getBoundingClientRect();
@@ -124,6 +131,70 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Throttle reduzido para mais fluidez
   const lastScratchTime = useRef<number>(0);
   const SCRATCH_THROTTLE = 16; // ~60fps para maior fluidez
+  
+  // FASE 2: Função para medir progresso real por alpha
+  const measureRealProgress = () => {
+    if (!canvasRef.current || !needsProgressCalc.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    try {
+      needsProgressCalc.current = false;
+      const step = 6; // Amostragem a cada 6 pixels para performance
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      
+      let transparent = 0;
+      let total = 0;
+      
+      // Amostragem inteligente
+      for (let i = 3; i < data.length; i += 4 * step) {
+        total++;
+        if (data[i] === 0) transparent++; // Canal alpha = 0 (transparente)
+      }
+      
+      const progress = total > 0 ? transparent / total : 0;
+      setScratchProgress(progress);
+      
+      // Revelar com threshold
+      if (progress >= 0.7 && !isRevealed && !isFading) {
+        setIsFading(true);
+        setTimeout(() => {
+          setIsRevealed(true);
+          scratchMutation.mutate(product.id);
+        }, 220);
+      }
+    } catch (e) {
+      // Fallback silencioso se getImageData falhar
+    }
+  };
+  
+  // Loop de RAF para medição otimizada
+  const startProgressLoop = () => {
+    if (rafId.current) return;
+    
+    const loop = () => {
+      measureRealProgress();
+      rafId.current = requestAnimationFrame(loop);
+    };
+    
+    rafId.current = requestAnimationFrame(loop);
+  };
+  
+  // Cleanup do RAF
+  useEffect(() => {
+    return () => {
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = null;
+      }
+    };
+  }, []);
 
   // Função de scratch melhorada
   const handleScratch = (clientX: number, clientY: number) => {
@@ -175,38 +246,38 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       }
     }
 
-    // Adicionar sempre para raspagem contínua
-    scratchedAreas.current.push({ x, y, radius: scratchRadius });
-
-    // Scratch natural - sem gradiente, mais sólido
+    // FASE 2: Traçado contínuo com lineTo
     ctx.globalCompositeOperation = 'destination-out';
-    ctx.fillStyle = 'rgba(0,0,0,1)';
-    ctx.beginPath();
-    ctx.arc(x, y, scratchRadius, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Calcular progresso com base nas dimensões CSS
-    const canvasRect = canvas.getBoundingClientRect();
-    const totalPixels = canvasRect.width * canvasRect.height;
-    const scratchedPixels = scratchedAreas.current.length * Math.PI * (scratchRadius * scratchRadius);
-    const progress = Math.min(scratchedPixels / totalPixels, 1);
-    setScratchProgress(progress);
-
-    // FASE 1: Revelar com transição suave
-    if (progress >= 0.7 && !isRevealed && !isFading) {
-      setIsFading(true);
-      
-      // Aguardar fade-out antes de revelar
-      setTimeout(() => {
-        setIsRevealed(true);
-        scratchMutation.mutate(product.id);
-      }, 220);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = scratchRadius * 2;
+    
+    if (lastPoint.current) {
+      // Desenhar linha contínua do ponto anterior
+      ctx.beginPath();
+      ctx.moveTo(lastPoint.current.x, lastPoint.current.y);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    } else {
+      // Primeiro ponto - desenhar círculo
+      ctx.fillStyle = 'rgba(0,0,0,1)';
+      ctx.beginPath();
+      ctx.arc(x, y, scratchRadius, 0, Math.PI * 2);
+      ctx.fill();
     }
+    
+    // Atualizar último ponto
+    lastPoint.current = { x, y };
+    
+    // FASE 2: Marcar para recálculo de progresso real
+    needsProgressCalc.current = true;
+    startProgressLoop();
   };
 
   // Event handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsScratching(true);
+    lastPoint.current = null; // Reset traçado
     handleScratch(e.clientX, e.clientY);
   };
 
@@ -218,12 +289,14 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   const handleMouseUp = () => {
     setIsScratching(false);
+    lastPoint.current = null; // Finalizar traçado
   };
 
   // Touch handlers
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
     setIsScratching(true);
+    lastPoint.current = null; // Reset traçado
     const touch = e.touches[0];
     handleScratch(touch.clientX, touch.clientY);
   };
@@ -239,6 +312,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault();
     setIsScratching(false);
+    lastPoint.current = null; // Finalizar traçado
   };
 
   // Formatar tempo restante
