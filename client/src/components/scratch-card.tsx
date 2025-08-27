@@ -352,7 +352,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
               <img
                 src={product.imageUrl}
                 alt={product.name}
-                className="w-full h-48 object-cover rounded-lg mb-4"
+                className="w-full h-64 object-contain rounded-lg mb-4 bg-gray-50"
               />
             )}
             
@@ -421,6 +421,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   
   // Render do produto revelado
   if (isRevealed) {
+    // Calcular porcentagem de desconto
+    const originalPrice = parseFloat(product.price || '0');
+    const discountPrice = parseFloat(product.scratchPrice || '0');
+    const discountPercentage = originalPrice > 0 ? Math.round(((originalPrice - discountPrice) / originalPrice) * 100) : 0;
+    
     return (
       <>
         <div 
@@ -428,13 +433,6 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           onClick={() => setShowModal(true)}
           data-testid={`card-product-revealed-${product.id}`}
         >
-          {/* Badge de oferta especial */}
-          <div className="absolute top-2 right-2 z-10">
-            <Badge className="bg-red-500 text-white animate-pulse text-xs">
-              REVELADO!
-            </Badge>
-          </div>
-
           {/* Timer */}
           {timeLeft !== null && timeLeft > 0 && (
             <div className="absolute top-2 left-2 z-10">
@@ -444,13 +442,6 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
               </Badge>
             </div>
           )}
-          
-          {/* Indicação para clicar - suave */}
-          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-10">
-            <div className="bg-blue-500/90 text-white px-2 py-1 rounded-md text-[10px] font-medium shadow-sm animate-pulse">
-              👆 Toque para detalhes
-            </div>
-          </div>
 
           <div className="h-full flex flex-col p-3">
             {/* Imagem do produto */}
@@ -478,17 +469,20 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
                 <div className="text-xs text-gray-500 line-through">
                   De: {currency} {product.price}
                 </div>
+                <div className="text-sm font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                  🎉 Parabéns! Você ganhou {discountPercentage}% de desconto!
+                </div>
                 <div className="text-lg sm:text-xl font-bold text-red-600 flex items-center gap-1">
                   <Sparkles className="w-4 h-4" />
                   {currency} {product.scratchPrice}
                 </div>
-                {product.scratchPrice && product.price && (
-                  <div className="text-xs text-green-600 font-semibold">
-                    Economize: {currency} {(parseFloat(product.price) - parseFloat(product.scratchPrice)).toFixed(2)}
-                  </div>
-                )}
               </div>
             </div>
+          </div>
+          
+          {/* Badge horizontal no final do card */}
+          <div className="w-full bg-blue-500 text-white py-2 px-3 text-xs font-medium">
+            👆 Toque para mais detalhes
           </div>
         </div>
         <ProductModal />
