@@ -616,11 +616,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/stores/:storeId/analytics', isAuthenticated, async (req: any, res) => {
     try {
       const { storeId } = req.params;
-      const analytics = await storage.getStoreAnalytics(storeId);
+      const { days = '7' } = req.query;
+      const analytics = await storage.getStoreAnalytics(storeId, parseInt(days as string));
       res.json(analytics);
     } catch (error) {
       console.error("Error fetching analytics:", error);
       res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
+  // Analytics para o usuário logado (suas próprias lojas)
+  app.get('/api/analytics/overview', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { days = '7' } = req.query;
+      
+      // Buscar lojas do usuário
+      const userStores = await storage.getStoresByUserId(userId);
+      if (!userStores || userStores.length === 0) {
+        return res.json({
+          storyViews: 0,
+          flyerViews: 0,
+          productLikes: 0,
+          productsSaved: 0,
+        });
+      }
+
+      // Agregar analytics de todas as lojas do usuário
+      let totalAnalytics = {
+        storyViews: 0,
+        flyerViews: 0,
+        productLikes: 0,
+        productsSaved: 0,
+      };
+
+      for (const store of userStores) {
+        const storeAnalytics = await storage.getStoreAnalytics(store.id, parseInt(days as string));
+        totalAnalytics.storyViews += storeAnalytics.storyViews;
+        totalAnalytics.flyerViews += storeAnalytics.flyerViews;
+        totalAnalytics.productLikes += storeAnalytics.productLikes;
+        totalAnalytics.productsSaved += storeAnalytics.productsSaved;
+      }
+
+      res.json(totalAnalytics);
+    } catch (error) {
+      console.error("Error fetching overview analytics:", error);
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
+  // Produtos mais engajados do usuário
+  app.get('/api/analytics/products', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { days = '7' } = req.query;
+      
+      // Buscar lojas do usuário
+      const userStores = await storage.getStoresByUserId(userId);
+      if (!userStores || userStores.length === 0) {
+        return res.json([]);
+      }
+
+      // Buscar produtos mais engajados de todas as lojas
+      let allTopProducts: any[] = [];
+      
+      for (const store of userStores) {
+        const storeTopProducts = await storage.getTopProductsByEngagement(store.id, parseInt(days as string));
+        allTopProducts.push(...storeTopProducts);
+      }
+
+      // Ordenar por engajamento total e pegar os top 10
+      allTopProducts.sort((a, b) => {
+        const engagementA = a.likes + a.saves + a.views;
+        const engagementB = b.likes + b.saves + b.views;
+        return engagementB - engagementA;
+      });
+
+      res.json(allTopProducts.slice(0, 10));
+    } catch (error) {
+      console.error("Error fetching product analytics:", error);
+      res.status(500).json({ message: "Failed to fetch product analytics" });
     }
   });
 

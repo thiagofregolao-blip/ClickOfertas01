@@ -27,7 +27,7 @@ import {
   type SavedProductWithDetails,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, count } from "drizzle-orm";
+import { eq, and, desc, count, gte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -59,7 +59,9 @@ export interface IStorage {
   removeSavedProduct(savedProductId: string, userId: string): Promise<void>;
   createStoryView(view: InsertStoryView): Promise<StoryView>;
   createFlyerView(view: InsertFlyerView): Promise<FlyerView>;
-  getStoreAnalytics(storeId: string): Promise<any>;
+  getStoreAnalytics(storeId: string, days?: number): Promise<any>;
+  getStoresByUserId(userId: string): Promise<Store[]>;
+  getTopProductsByEngagement(storeId: string, days?: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -171,6 +173,13 @@ export class DatabaseStorage implements IStorage {
       ...store,
       products: storeProducts,
     };
+  }
+
+  async getStoresByUserId(userId: string): Promise<Store[]> {
+    return await db
+      .select()
+      .from(stores)
+      .where(eq(stores.userId, userId));
   }
 
   async getAllActiveStores(): Promise<StoreWithProducts[]> {
@@ -377,32 +386,55 @@ export class DatabaseStorage implements IStorage {
     return view;
   }
 
-  async getStoreAnalytics(storeId: string): Promise<any> {
+  async getStoreAnalytics(storeId: string, days: number = 7): Promise<any> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
     // Contar visualizações de stories
     const [storyViewsResult] = await db
       .select({ total: count() })
       .from(storyViews)
-      .where(eq(storyViews.storeId, storeId));
+      .where(
+        and(
+          eq(storyViews.storeId, storeId),
+          gte(storyViews.viewedAt, startDate)
+        )
+      );
 
     // Contar visualizações de panfletos
     const [flyerViewsResult] = await db
       .select({ total: count() })
       .from(flyerViews)
-      .where(eq(flyerViews.storeId, storeId));
+      .where(
+        and(
+          eq(flyerViews.storeId, storeId),
+          gte(flyerViews.viewedAt, startDate)
+        )
+      );
 
     // Contar curtidas de produtos da loja
     const [likesResult] = await db
       .select({ total: count() })
       .from(productLikes)
       .innerJoin(products, eq(productLikes.productId, products.id))
-      .where(eq(products.storeId, storeId));
+      .where(
+        and(
+          eq(products.storeId, storeId),
+          gte(productLikes.likedAt, startDate)
+        )
+      );
 
     // Contar produtos salvos da loja
     const [savedResult] = await db
       .select({ total: count() })
       .from(savedProducts)
       .innerJoin(products, eq(savedProducts.productId, products.id))
-      .where(eq(products.storeId, storeId));
+      .where(
+        and(
+          eq(products.storeId, storeId),
+          gte(savedProducts.createdAt, startDate)
+        )
+      );
 
     return {
       storyViews: storyViewsResult?.total || 0,
@@ -410,6 +442,56 @@ export class DatabaseStorage implements IStorage {
       productLikes: likesResult?.total || 0,
       productsSaved: savedResult?.total || 0,
     };
+  }
+
+  async getTopProductsByEngagement(storeId: string, days: number = 7): Promise<any[]> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    // Buscar produtos com suas métricas de engajamento
+    const topProducts = await db
+      .select({
+        id: products.id,
+        name: products.name,
+        category: products.category,
+        imageUrl: products.imageUrl,
+        likes: count(productLikes.id),
+        saves: count(savedProducts.id),
+        views: count(storyViews.id),
+      })
+      .from(products)
+      .leftJoin(
+        productLikes, 
+        and(
+          eq(productLikes.productId, products.id),
+          gte(productLikes.likedAt, startDate)
+        )
+      )
+      .leftJoin(
+        savedProducts, 
+        and(
+          eq(savedProducts.productId, products.id),
+          gte(savedProducts.createdAt, startDate)
+        )
+      )
+      .leftJoin(
+        storyViews, 
+        and(
+          eq(storyViews.productId, products.id),
+          gte(storyViews.viewedAt, startDate)
+        )
+      )
+      .where(eq(products.storeId, storeId))
+      .groupBy(products.id, products.name, products.category, products.imageUrl)
+      .orderBy(desc(count(productLikes.id)), desc(count(savedProducts.id)))
+      .limit(10);
+
+    return topProducts.map(product => ({
+      ...product,
+      likes: Number(product.likes),
+      saves: Number(product.saves),
+      views: Number(product.views),
+    }));
   }
 
 

@@ -24,6 +24,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: "Configurações", href: "/admin/config", icon: Settings },
     { name: "Produtos", href: "/admin/products", icon: Package },
     { name: "Pré-visualização", href: "/admin/preview", icon: Eye },
+    { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   ];
 
   const isActiveLink = (href: string) => {
