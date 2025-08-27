@@ -55,7 +55,7 @@ export default function CouponDetails() {
 
   // Buscar detalhes do cupom
   const { data: coupon, isLoading: couponLoading, error } = useQuery<CouponDetails>({
-    queryKey: [`/api/coupons/${couponId}`],
+    queryKey: [`/api/coupons/details/${couponId}`],
     enabled: !!couponId && !!isAuthenticated,
     retry: false,
   });
