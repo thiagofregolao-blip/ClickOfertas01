@@ -66,10 +66,20 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Mutation para gerar cupom
   const generateCouponMutation = useMutation({
     mutationFn: async (productId: string) => {
-      const response = await apiRequest(`/api/products/${productId}/generate-coupon`, 'POST');
-      return response.json();
+      console.log('🚀 FRONTEND: Iniciando chamada para gerar cupom:', productId);
+      try {
+        const response = await apiRequest(`/api/products/${productId}/generate-coupon`, 'POST');
+        console.log('📡 FRONTEND: Resposta da API:', response);
+        const data = await response.json();
+        console.log('📄 FRONTEND: Dados recebidos:', data);
+        return data;
+      } catch (error) {
+        console.error('💥 FRONTEND: Erro na requisição:', error);
+        throw error;
+      }
     },
     onSuccess: (data: any) => {
+      console.log('✅ FRONTEND: Sucesso na mutation:', data);
       if (data?.success && data?.coupon) {
         setCoupon(data.coupon);
         setCouponGenerated(true);
@@ -80,9 +90,10 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       }
     },
     onError: (error: any) => {
+      console.error('❌ FRONTEND: Erro na mutation:', error);
       toast({
         title: "Erro ao gerar cupom",
-        description: "Tente novamente mais tarde.",
+        description: `Erro: ${error.message}`,
         variant: "destructive",
       });
     }
@@ -560,8 +571,12 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
               <button 
                 onClick={() => {
                   // Sempre gerar cupom quando não foi gerado ainda
+                  console.log('🎯 BOTÃO CLICADO! Status:', { couponGenerated, productId: product.id });
                   if (!couponGenerated) {
+                    console.log('📞 Chamando generateCouponMutation...');
                     generateCouponMutation.mutate(product.id);
+                  } else {
+                    console.log('⚠️ Cupom já foi gerado, ignorando clique');
                   }
                 }}
                 className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 px-4 rounded-lg transition-all"
