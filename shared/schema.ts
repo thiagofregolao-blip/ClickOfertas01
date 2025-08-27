@@ -229,6 +229,8 @@ export const insertProductSchema = createInsertSchema(products).omit({
   storeId: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  scratchExpiresAt: z.union([z.string(), z.date()]).optional().nullable(),
 });
 
 export const updateStoreSchema = insertStoreSchema.extend({
