@@ -331,7 +331,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   if (isRevealed) {
     return (
       <Card className="relative border-4 border-yellow-400 bg-gradient-to-br from-yellow-50 to-orange-50 shadow-lg">
-        <CardContent className="p-4">
+        <CardContent className="p-3 h-48 overflow-hidden flex flex-col">
           {/* Badge de oferta especial */}
           <div className="absolute -top-2 -right-2 z-10">
             <Badge className="bg-red-500 text-white animate-pulse">
@@ -349,49 +349,49 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             </div>
           )}
 
-          <div className="space-y-3">
-            {/* Imagem do produto */}
+          <div className="flex-1 flex flex-col justify-between space-y-2">
+            {/* Imagem do produto - reduzida */}
             {product.imageUrl && (
-              <div className="relative">
+              <div className="relative flex-shrink-0">
                 <img
                   src={product.imageUrl}
                   alt={product.name}
-                  className="w-full h-32 object-cover rounded border-2 border-yellow-200"
+                  className="w-full h-20 object-cover rounded border-2 border-yellow-200"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-yellow-400/20 to-transparent rounded"></div>
               </div>
             )}
 
-            {/* Nome do produto */}
-            <h3 className="font-bold text-gray-800 text-center">{product.name}</h3>
+            {/* Nome do produto - compacto */}
+            <h3 className="font-bold text-gray-800 text-center text-sm leading-tight">{product.name}</h3>
 
-            {/* Preços */}
+            {/* Preços - compactos */}
             <div className="text-center space-y-1">
-              <div className="text-sm text-gray-500 line-through">
+              <div className="text-xs text-gray-500 line-through">
                 De: {currency} {product.price}
               </div>
-              <div className="text-2xl font-bold text-red-600 flex items-center justify-center gap-2">
-                <Sparkles className="w-5 h-5" />
+              <div className="text-lg font-bold text-red-600 flex items-center justify-center gap-1">
+                <Sparkles className="w-4 h-4" />
                 Por: {currency} {product.scratchPrice}
               </div>
               {product.scratchPrice && product.price && (
-                <div className="text-sm text-green-600 font-semibold">
+                <div className="text-xs text-green-600 font-semibold">
                   Economia: {currency} {(parseFloat(product.price) - parseFloat(product.scratchPrice)).toFixed(2)}
                 </div>
               )}
             </div>
 
-            {/* Botão de ação */}
+            {/* Botão de ação - compacto */}
             <Button 
               onClick={() => onClick?.(product)}
-              className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3"
+              className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-2 text-sm flex-shrink-0"
               disabled={timeLeft === 0}
             >
               {timeLeft === 0 ? (
                 "Oferta Expirada"
               ) : (
                 <>
-                  <Gift className="w-4 h-4 mr-2" />
+                  <Gift className="w-3 h-3 mr-1" />
                   Ver Produto
                 </>
               )}
@@ -404,8 +404,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Render do card para raspar
   return (
-    <Card className="relative isolate z-10 border-2 border-yellow-400 bg-gradient-to-br from-yellow-100 to-orange-100 shadow-lg cursor-pointer select-none">
-      <CardContent className="p-0 relative h-48">
+    <Card className="relative isolate z-10 border-2 border-yellow-400 bg-gradient-to-br from-yellow-100 to-orange-100 shadow-lg cursor-pointer select-none h-48">
+      <CardContent className="p-0 relative h-full w-full overflow-hidden">
         {/* Badge indicativo */}
         <div className="absolute -top-2 -right-2 z-20">
           <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white animate-bounce">
@@ -429,10 +429,10 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           </div>
         </div>
 
-        {/* Canvas de scratch com transição suave */}
+        {/* Canvas de scratch com transição suave - cobertura total */}
         <canvas
           ref={canvasRef}
-          className={`absolute inset-0 w-full h-full rounded cursor-pointer transition-all duration-200 ease-out ${
+          className={`absolute inset-0 w-full h-full cursor-pointer transition-all duration-200 ease-out ${
             isFading ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
           }`}
           onMouseDown={handleMouseDown}
@@ -442,7 +442,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          style={{ touchAction: 'none' }}
+          style={{ touchAction: 'none', display: 'block' }}
         />
 
         {/* Efeito gradual do desconto - aparece conforme raspa */}
