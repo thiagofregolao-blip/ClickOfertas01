@@ -504,73 +504,53 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
               </div>
             </div>
             
-            {/* Seção de Cupom */}
-            {timeLeft !== null && timeLeft > 0 && (
+            {/* Seção de Cupom - Mostrar apenas se cupom foi gerado */}
+            {couponGenerated && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                 <div className="text-center">
-                  {!couponGenerated ? (
-                    <>
-                      <h4 className="font-bold text-blue-800 mb-2">🎫 Gere seu cupom de desconto</h4>
-                      <p className="text-sm text-blue-600 mb-3">Guarde este cupom e apresente na loja!</p>
-                      <Button 
-                        onClick={() => generateCouponMutation.mutate(product.id)}
-                        disabled={generateCouponMutation.isPending}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                      >
-                        {generateCouponMutation.isPending ? (
-                          "Gerando..."
-                        ) : (
-                          <>🎫 Gerar Cupom</>
-                        )}
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex items-center justify-center gap-2 mb-3">
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                        <h4 className="font-bold text-green-800">Cupom Gerado!</h4>
-                      </div>
-                      
-                      {/* QR Code */}
-                      {coupon?.qrCode && (
-                        <div className="mb-3">
-                          <img 
-                            src={coupon.qrCode} 
-                            alt="QR Code do cupom" 
-                            className="mx-auto w-32 h-32 border border-gray-300 rounded"
-                          />
-                        </div>
-                      )}
-                      
-                      {/* Código do cupom */}
-                      <div className="bg-white border border-dashed border-gray-400 rounded p-2 mb-3">
-                        <p className="text-xs text-gray-600">Código do cupom:</p>
-                        <p className="font-mono font-bold text-lg">{coupon?.couponCode}</p>
-                      </div>
-                      
-                      {/* Botões de ação do cupom */}
-                      <div className="flex gap-2">
-                        <Button 
-                          onClick={downloadPDF}
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                        >
-                          <Download className="w-4 h-4 mr-1" />
-                          PDF
-                        </Button>
-                        <Button 
-                          onClick={shareOnWhatsApp}
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 bg-green-50 border-green-300 text-green-700 hover:bg-green-100"
-                        >
-                          <Share2 className="w-4 h-4 mr-1" />
-                          WhatsApp
-                        </Button>
-                      </div>
-                    </>
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <h4 className="font-bold text-green-800">Cupom Gerado!</h4>
+                  </div>
+                  
+                  {/* QR Code */}
+                  {coupon?.qrCode && (
+                    <div className="mb-3">
+                      <img 
+                        src={coupon.qrCode} 
+                        alt="QR Code do cupom" 
+                        className="mx-auto w-32 h-32 border border-gray-300 rounded"
+                      />
+                    </div>
                   )}
+                  
+                  {/* Código do cupom */}
+                  <div className="bg-white border border-dashed border-gray-400 rounded p-2 mb-3">
+                    <p className="text-xs text-gray-600">Código do cupom:</p>
+                    <p className="font-mono font-bold text-lg">{coupon?.couponCode}</p>
+                  </div>
+                  
+                  {/* Botões de ação do cupom */}
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={downloadPDF}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      PDF
+                    </Button>
+                    <Button 
+                      onClick={shareOnWhatsApp}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 bg-green-50 border-green-300 text-green-700 hover:bg-green-100"
+                    >
+                      <Share2 className="w-4 h-4 mr-1" />
+                      WhatsApp
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -579,14 +559,20 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             <div className="flex gap-3">
               <button 
                 onClick={() => {
+                  // Gerar cupom se ainda não foi gerado
+                  if (timeLeft && timeLeft > 0 && !couponGenerated) {
+                    generateCouponMutation.mutate(product.id);
+                  }
                   setShowModal(false);
                   onClick?.(product);
                 }}
                 className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 px-4 rounded-lg transition-all"
-                disabled={timeLeft === 0}
+                disabled={timeLeft === 0 || generateCouponMutation.isPending}
               >
                 {timeLeft === 0 ? (
                   "Oferta Expirada"
+                ) : generateCouponMutation.isPending ? (
+                  "Gerando cupom..."
                 ) : (
                   <>🛒 Aproveitar Oferta</>
                 )}
