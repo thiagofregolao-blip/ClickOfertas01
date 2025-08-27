@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff, ChevronLeft, ChevronRight, Upload, Download, FileSpreadsheet, Package, Camera, Settings, PlayCircle, CircleX } from "lucide-react";
+import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff, ChevronLeft, ChevronRight, Upload, Download, FileSpreadsheet, Package, Camera, Settings, PlayCircle, CircleX, Gift, Clock } from "lucide-react";
 import type { Store, Product, InsertProduct } from "@shared/schema";
 import { z } from "zod";
 import { PhotoCapture } from "@/components/PhotoCapture";
@@ -81,6 +81,13 @@ export default function AdminProducts() {
       isFeatured: false,
       showInStories: false,
       isActive: true,
+      // Campos de raspadinha
+      isScratchCard: false,
+      scratchPrice: "",
+      scratchExpiresAt: null,
+      scratchTimeLimitMinutes: "60",
+      maxScratchRedemptions: "10",
+      scratchMessage: "Você ganhou um super desconto! Raspe aqui e confira",
     },
   });
 
@@ -94,9 +101,18 @@ export default function AdminProducts() {
         .replace(/\./g, '') // Remove thousand separators (dots)
         .replace(',', '.'); // Replace comma decimal separator with dot
       
+      // Limpar preço da raspadinha se fornecido
+      const cleanScratchPrice = data.scratchPrice ? 
+        data.scratchPrice
+          .replace(/[^0-9.,]/g, '')
+          .replace(/\./g, '')
+          .replace(',', '.') : null;
+      
       const productData = {
         ...data,
         price: cleanPrice,
+        scratchPrice: cleanScratchPrice,
+        scratchExpiresAt: data.scratchExpiresAt ? new Date(data.scratchExpiresAt).toISOString() : null,
       };
 
       if (editingProduct) {
@@ -223,6 +239,13 @@ export default function AdminProducts() {
       isFeatured: false,
       showInStories: false,
       isActive: true,
+      // Campos de raspadinha - valores padrão
+      isScratchCard: false,
+      scratchPrice: "",
+      scratchExpiresAt: null,
+      scratchTimeLimitMinutes: "60",
+      maxScratchRedemptions: "10",
+      scratchMessage: "Você ganhou um super desconto! Raspe aqui e confira",
     });
     setShowAddForm(true);
   };
@@ -239,6 +262,13 @@ export default function AdminProducts() {
       isFeatured: product.isFeatured,
       showInStories: product.showInStories || false,
       isActive: product.isActive,
+      // Campos de raspadinha
+      isScratchCard: product.isScratchCard || false,
+      scratchPrice: product.scratchPrice?.toString() || "",
+      scratchExpiresAt: product.scratchExpiresAt ? new Date(product.scratchExpiresAt).toISOString().slice(0, 16) : null,
+      scratchTimeLimitMinutes: product.scratchTimeLimitMinutes || "60",
+      maxScratchRedemptions: product.maxScratchRedemptions || "10",
+      scratchMessage: product.scratchMessage || "Você ganhou um super desconto! Raspe aqui e confira",
     });
     setShowAddForm(true);
   };
@@ -633,6 +663,135 @@ export default function AdminProducts() {
                         />
                       </div>
                     </div>
+                  </div>
+
+                  {/* Configuração de Raspadinha */}
+                  <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                    <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
+                      <Gift className="w-5 h-5 mr-2 text-orange-600" />
+                      Configuração de Raspadinha
+                    </h3>
+                    
+                    {/* Switch para ativar raspadinha */}
+                    <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg border border-orange-200 mb-4">
+                      <Switch
+                        id="scratch-card"
+                        checked={form.watch("isScratchCard") || false}
+                        onCheckedChange={(checked) => form.setValue("isScratchCard", checked)}
+                        data-testid="switch-scratch-card"
+                      />
+                      <Label htmlFor="scratch-card" className="text-orange-800 font-medium">
+                        Ativar Raspadinha para este produto
+                      </Label>
+                    </div>
+                    
+                    {/* Campos da raspadinha - só aparecem se ativado */}
+                    {form.watch("isScratchCard") && (
+                      <div className="space-y-4 p-4 bg-orange-25 rounded-lg">
+                        {/* Preço com desconto */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="scratch-price" className="text-gray-700 font-medium">Preço com Desconto *</Label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 font-medium bg-gray-100 px-2 py-1 rounded text-sm">
+                                {store?.currency}
+                              </span>
+                              <Input
+                                id="scratch-price"
+                                {...form.register("scratchPrice")}
+                                placeholder="Ex: 15.000 (menor que o preço normal)"
+                                className="pl-16 placeholder:text-gray-400 border-gray-300 focus:border-orange-500"
+                                data-testid="input-scratch-price"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="scratch-time-limit" className="text-gray-700 font-medium">Tempo Limite (minutos)</Label>
+                            <Select
+                              value={form.watch("scratchTimeLimitMinutes") || "60"}
+                              onValueChange={(value) => form.setValue("scratchTimeLimitMinutes", value)}
+                            >
+                              <SelectTrigger className="border-gray-300 focus:border-orange-500">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="30">30 minutos</SelectItem>
+                                <SelectItem value="60">1 hora</SelectItem>
+                                <SelectItem value="120">2 horas</SelectItem>
+                                <SelectItem value="180">3 horas</SelectItem>
+                                <SelectItem value="360">6 horas</SelectItem>
+                                <SelectItem value="720">12 horas</SelectItem>
+                                <SelectItem value="1440">24 horas</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        
+                        {/* Data de expiração e limite de raspagens */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="scratch-expires" className="text-gray-700 font-medium">Data de Expiração da Promoção</Label>
+                            <Input
+                              id="scratch-expires"
+                              type="datetime-local"
+                              {...form.register("scratchExpiresAt")}
+                              className="border-gray-300 focus:border-orange-500"
+                              data-testid="input-scratch-expires"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="max-redemptions" className="text-gray-700 font-medium">Máximo de Raspagens</Label>
+                            <Select
+                              value={form.watch("maxScratchRedemptions") || "10"}
+                              onValueChange={(value) => form.setValue("maxScratchRedemptions", value)}
+                            >
+                              <SelectTrigger className="border-gray-300 focus:border-orange-500">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="5">5 pessoas</SelectItem>
+                                <SelectItem value="10">10 pessoas</SelectItem>
+                                <SelectItem value="25">25 pessoas</SelectItem>
+                                <SelectItem value="50">50 pessoas</SelectItem>
+                                <SelectItem value="100">100 pessoas</SelectItem>
+                                <SelectItem value="999">Ilimitado</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        
+                        {/* Mensagem personalizada */}
+                        <div className="space-y-2">
+                          <Label htmlFor="scratch-message" className="text-gray-700 font-medium">Mensagem da Raspadinha</Label>
+                          <Textarea
+                            id="scratch-message"
+                            {...form.register("scratchMessage")}
+                            placeholder="Você ganhou um super desconto! Raspe aqui e confira"
+                            className="placeholder:text-gray-400 border-gray-300 focus:border-orange-500"
+                            rows={3}
+                            data-testid="textarea-scratch-message"
+                          />
+                          <p className="text-xs text-gray-500">Esta mensagem aparecerá na superfície dourada da raspadinha</p>
+                        </div>
+                        
+                        {/* Aviso sobre desconto */}
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                          <div className="flex items-start space-x-2">
+                            <Clock className="w-4 h-4 text-yellow-600 mt-0.5" />
+                            <div>
+                              <p className="text-yellow-800 text-sm font-medium">Importante:</p>
+                              <p className="text-yellow-700 text-xs mt-1">
+                                • O preço com desconto deve ser menor que o preço normal<br/>
+                                • Após raspar, o cliente terá o tempo limite especificado para aproveitar<br/>
+                                • A promoção expira automaticamente na data definida
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Configurações */}

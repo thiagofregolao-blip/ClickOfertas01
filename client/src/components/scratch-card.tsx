@@ -120,7 +120,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     ctx.shadowOffsetY = 1;
     ctx.shadowBlur = 2;
     
-    const lines = product.scratchMessage?.split(' ') || ['Raspe', 'aqui!'];
+    const lines = product.scratchMessage?.split(' ') || ['Você', 'ganhou', 'um', 'super', 'desconto!', 'Raspe', 'aqui', 'e', 'confira'];
     const lineHeight = 20;
     const startY = cssHeight / 2 - (lines.length * lineHeight) / 2;
     
@@ -445,11 +445,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             </div>
           )}
           
-          {/* Indicação para clicar */}
+          {/* Indicação para clicar - suave */}
           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-10">
-            <Badge className="bg-blue-500 text-white animate-bounce text-xs">
-              👆 Clique para ver detalhes
-            </Badge>
+            <div className="bg-blue-500/90 text-white px-2 py-1 rounded-md text-[10px] font-medium shadow-sm animate-pulse">
+              👆 Toque para detalhes
+            </div>
           </div>
 
           <div className="h-full flex flex-col p-3">
