@@ -123,8 +123,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
-    // Raio maior para scratch mais fluido
-    const scratchRadius = 18;
+    // Raio muito menor para ser mais difícil
+    const scratchRadius = 8;
 
     // Verificar sobreposição com distância menor para mais fluidez
     const hasNearbyArea = scratchedAreas.current.some(area => {
@@ -157,8 +157,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const progress = Math.min(scratchedPixels / totalPixels, 1);
     setScratchProgress(progress);
 
-    // Revelar apenas se passou de 85% (mais rígido)
-    if (progress >= 0.85 && !isRevealed) {
+    // Revelar apenas se passou de 95% (muito mais rígido)
+    if (progress >= 0.95 && !isRevealed) {
       setIsRevealed(true);
       scratchMutation.mutate(product.id);
     }
@@ -331,7 +331,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
         {/* Efeito gradual do desconto - aparece conforme raspa */}
         {scratchProgress > 0.3 && !isRevealed && (
-          <div className="absolute top-2 right-2 z-5">
+          <div className="absolute top-2 right-2 z-0">
             <div 
               className={`bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold transition-all duration-700 ${
                 scratchProgress > 0.6 ? 'animate-pulse opacity-100 scale-100' : 'opacity-70 scale-90'
@@ -345,20 +345,20 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
         )}
 
         {/* Progress indicator - aparece gradualmente */}
-        {scratchProgress > 0.1 && scratchProgress < 0.85 && (
-          <div className="absolute bottom-2 left-2 right-2 z-5">
+        {scratchProgress > 0.1 && scratchProgress < 0.95 && (
+          <div className="absolute bottom-2 left-2 right-2 z-0">
             <div className="bg-white/90 rounded-full h-3 overflow-hidden border border-yellow-400">
               <div 
                 className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 transition-all duration-500"
-                style={{ width: `${(scratchProgress / 0.85) * 100}%` }}
+                style={{ width: `${(scratchProgress / 0.95) * 100}%` }}
               />
             </div>
             <div className="text-center text-white text-xs mt-1 font-bold drop-shadow-lg">
-              {Math.round((scratchProgress / 0.85) * 100)}% raspado
+              {Math.round((scratchProgress / 0.95) * 100)}% raspado
             </div>
-            {scratchProgress > 0.7 && (
+            {scratchProgress > 0.8 && (
               <div className="text-center text-white text-[10px] mt-0.5 font-medium opacity-80">
-                Continue raspando...
+                Continue raspando... Quase lá!
               </div>
             )}
           </div>
