@@ -466,13 +466,18 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
               
               {/* Preços */}
               <div className="flex flex-col items-center justify-center mt-auto space-y-1">
-                <div className="text-sm font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                  🎉 Parabéns! Você ganhou {discountPercentage}% de desconto!
+                <div className="text-xs text-gray-500 line-through">
+                  De: {currency} {product.price}
                 </div>
                 <div className="text-lg sm:text-xl font-bold text-red-600 flex items-center gap-1">
                   <Sparkles className="w-4 h-4" />
-                  {currency} {product.price}
+                  {currency} {product.scratchPrice}
                 </div>
+                {product.scratchPrice && product.price && (
+                  <div className="text-xs text-green-600 font-semibold">
+                    Economize: {currency} {(parseFloat(product.price) - parseFloat(product.scratchPrice)).toFixed(2)}
+                  </div>
+                )}
               </div>
             </div>
           </div>
