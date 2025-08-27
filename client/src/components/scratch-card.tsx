@@ -26,8 +26,14 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const [isScratching, setIsScratching] = useState(false);
   const [scratchProgress, setScratchProgress] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
+  const [isFading, setIsFading] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const scratchedAreas = useRef<ScratchArea[]>([]);
+  
+  // FASE 1: AudioContext otimizado
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const lastSoundTime = useRef<number>(0);
+  const SOUND_COOLDOWN = 120; // ms
 
   // Mutation para marcar produto como "raspado"
   const scratchMutation = useMutation({
@@ -62,7 +68,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  // Inicializar canvas
+  // FASE 1: Inicializar canvas com DPI correto
   useEffect(() => {
     if (!canvasRef.current) return;
     
@@ -70,19 +76,32 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Configurar tamanho do canvas
+    // Reset estado ao mudar produto
+    scratchedAreas.current = [];
+    setScratchProgress(0);
+    setIsRevealed(false);
+    setIsFading(false);
+
+    // FASE 1: Configurar DPI correto para telas retina
     const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    const dpr = window.devicePixelRatio || 1;
+    
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+    ctx.scale(dpr, dpr);
+    
+    // Usar dimensões CSS para cálculos
+    const cssWidth = rect.width;
+    const cssHeight = rect.height;
 
     // Desenhar camada de "scratch"
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    const gradient = ctx.createLinearGradient(0, 0, cssWidth, cssHeight);
     gradient.addColorStop(0, '#FFD700');
     gradient.addColorStop(0.5, '#FFA500');
     gradient.addColorStop(1, '#FF6347');
 
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, cssWidth, cssHeight);
 
     // Adicionar texto
     ctx.fillStyle = 'white';
@@ -95,12 +114,12 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     
     const lines = product.scratchMessage?.split(' ') || ['Raspe', 'aqui!'];
     const lineHeight = 20;
-    const startY = canvas.height / 2 - (lines.length * lineHeight) / 2;
+    const startY = cssHeight / 2 - (lines.length * lineHeight) / 2;
     
     lines.forEach((line, index) => {
-      ctx.fillText(line, canvas.width / 2, startY + (index * lineHeight));
+      ctx.fillText(line, cssWidth / 2, startY + (index * lineHeight));
     });
-  }, [product.scratchMessage]);
+  }, [product.id, product.scratchMessage]);
 
   // Throttle reduzido para mais fluidez
   const lastScratchTime = useRef<number>(0);
@@ -126,24 +145,34 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     // Raio maior para raspagem mais natural
     const scratchRadius = 25;
 
-    // Som de scratch
-    try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-      
-      oscillator.frequency.setValueAtTime(150 + Math.random() * 50, audioCtx.currentTime);
-      oscillator.type = 'sawtooth';
-      gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-      
-      oscillator.start(audioCtx.currentTime);
-      oscillator.stop(audioCtx.currentTime + 0.1);
-    } catch (e) {
-      // Som não disponível
+    // FASE 1: Som otimizado com AudioContext reutilizável
+    const soundNow = Date.now();
+    if (soundNow - lastSoundTime.current >= SOUND_COOLDOWN) {
+      try {
+        // Criar AudioContext apenas uma vez
+        if (!audioCtxRef.current) {
+          audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        
+        const audioCtx = audioCtxRef.current;
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.frequency.setValueAtTime(150 + Math.random() * 50, audioCtx.currentTime);
+        oscillator.type = 'sawtooth';
+        gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.1);
+        
+        lastSoundTime.current = soundNow;
+      } catch (e) {
+        // Som não disponível
+      }
     }
 
     // Adicionar sempre para raspagem contínua
@@ -156,16 +185,22 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     ctx.arc(x, y, scratchRadius, 0, Math.PI * 2);
     ctx.fill();
 
-    // Calcular progresso mais preciso
-    const totalPixels = canvas.width * canvas.height;
+    // Calcular progresso com base nas dimensões CSS
+    const canvasRect = canvas.getBoundingClientRect();
+    const totalPixels = canvasRect.width * canvasRect.height;
     const scratchedPixels = scratchedAreas.current.length * Math.PI * (scratchRadius * scratchRadius);
     const progress = Math.min(scratchedPixels / totalPixels, 1);
     setScratchProgress(progress);
 
-    // Revelar com 70% para ficar natural
-    if (progress >= 0.7 && !isRevealed) {
-      setIsRevealed(true);
-      scratchMutation.mutate(product.id);
+    // FASE 1: Revelar com transição suave
+    if (progress >= 0.7 && !isRevealed && !isFading) {
+      setIsFading(true);
+      
+      // Aguardar fade-out antes de revelar
+      setTimeout(() => {
+        setIsRevealed(true);
+        scratchMutation.mutate(product.id);
+      }, 220);
     }
   };
 
@@ -295,7 +330,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Render do card para raspar
   return (
-    <Card className="relative border-2 border-yellow-400 bg-gradient-to-br from-yellow-100 to-orange-100 shadow-lg cursor-pointer select-none">
+    <Card className="relative isolate z-10 border-2 border-yellow-400 bg-gradient-to-br from-yellow-100 to-orange-100 shadow-lg cursor-pointer select-none">
       <CardContent className="p-0 relative h-48">
         {/* Badge indicativo */}
         <div className="absolute -top-2 -right-2 z-20">
@@ -320,10 +355,12 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           </div>
         </div>
 
-        {/* Canvas de scratch */}
+        {/* Canvas de scratch com transição suave */}
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 w-full h-full rounded cursor-pointer"
+          className={`absolute inset-0 w-full h-full rounded cursor-pointer transition-all duration-200 ease-out ${
+            isFading ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
+          }`}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -336,7 +373,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
         {/* Efeito gradual do desconto - aparece conforme raspa */}
         {scratchProgress > 0.3 && !isRevealed && (
-          <div className="absolute top-2 right-2 z-0">
+          <div className="absolute top-2 right-2 z-0 pointer-events-none">
             <div 
               className={`bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold transition-all duration-700 ${
                 scratchProgress > 0.6 ? 'animate-pulse opacity-100 scale-100' : 'opacity-70 scale-90'
