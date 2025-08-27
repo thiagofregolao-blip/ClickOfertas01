@@ -5,6 +5,7 @@ import type { Product } from "@shared/schema";
 import { Likeable } from "@/components/heart-animation";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAuth } from "@/hooks/useAuth";
+import ScratchCard from "./scratch-card";
 
 
 interface ProductCardProps {
@@ -64,6 +65,27 @@ export default function ProductCard({
       onClick(product);
     }
   };
+
+  // Verificar se é uma raspadinha ativa
+  const isScratchCard = product.isScratchCard && 
+    product.scratchExpiresAt && 
+    new Date(product.scratchExpiresAt) > new Date();
+
+  // Se for raspadinha, mostrar ScratchCard
+  if (isScratchCard) {
+    return (
+      <ScratchCard
+        product={product}
+        currency={currency}
+        themeColor={themeColor}
+        onClick={onClick}
+        onRevealed={() => {
+          // Atualizar produto revelado se necessário
+          console.log('Produto raspado:', product.name);
+        }}
+      />
+    );
+  }
 
   const productContent = (
     <div 

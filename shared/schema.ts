@@ -83,6 +83,14 @@ export const products = pgTable("products", {
   showInStories: boolean("show_in_stories").default(false),
   isActive: boolean("is_active").default(true),
   sortOrder: varchar("sort_order").default("0"),
+  // Campos para funcionalidade de Raspadinha
+  isScratchCard: boolean("is_scratch_card").default(false),
+  scratchPrice: decimal("scratch_price", { precision: 12, scale: 2 }), // Preço especial após raspar
+  scratchExpiresAt: timestamp("scratch_expires_at"), // Quando expira a oferta global
+  scratchTimeLimitMinutes: varchar("scratch_time_limit_minutes").default("60"), // Tempo limite após raspar (em minutos)
+  maxScratchRedemptions: varchar("max_scratch_redemptions").default("10"), // Quantas pessoas podem raspar
+  currentScratchRedemptions: varchar("current_scratch_redemptions").default("0"), // Quantas já rasparam
+  scratchMessage: text("scratch_message").default("Raspe aqui e ganhe um super desconto!"), // Mensagem na raspadinha
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -126,6 +134,18 @@ export const productLikes = pgTable("product_likes", {
   likedAt: timestamp("liked_at").defaultNow(),
 });
 
+// Raspadinhas que foram "raspadas" pelos usuários
+export const scratchedProducts = pgTable("scratched_products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  scratchedAt: timestamp("scratched_at").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(), // Quando expira para este usuário específico
+  hasRedeemed: boolean("has_redeemed").default(false), // Se já foi até a loja comprar
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   stores: many(stores),
@@ -150,6 +170,7 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   savedProducts: many(savedProducts),
   productLikes: many(productLikes),
   storyViews: many(storyViews),
+  scratchedProducts: many(scratchedProducts),
 }));
 
 export const savedProductsRelations = relations(savedProducts, ({ one }) => ({
@@ -184,6 +205,13 @@ export const flyerViewsRelations = relations(flyerViews, ({ one }) => ({
 export const productLikesRelations = relations(productLikes, ({ one }) => ({
   product: one(products, {
     fields: [productLikes.productId],
+    references: [products.id],
+  }),
+}));
+
+export const scratchedProductsRelations = relations(scratchedProducts, ({ one }) => ({
+  product: one(products, {
+    fields: [scratchedProducts.productId],
     references: [products.id],
   }),
 }));
@@ -226,6 +254,11 @@ export const insertFlyerViewSchema = createInsertSchema(flyerViews).omit({
 export const insertProductLikeSchema = createInsertSchema(productLikes).omit({
   id: true,
   likedAt: true,
+});
+
+export const insertScratchedProductSchema = createInsertSchema(scratchedProducts).omit({
+  id: true,
+  scratchedAt: true,
 });
 
 // Types
@@ -304,6 +337,8 @@ export type FlyerView = typeof flyerViews.$inferSelect;
 export type InsertFlyerView = z.infer<typeof insertFlyerViewSchema>;
 export type ProductLike = typeof productLikes.$inferSelect;
 export type InsertProductLike = z.infer<typeof insertProductLikeSchema>;
+export type ScratchedProduct = typeof scratchedProducts.$inferSelect;
+export type InsertScratchedProduct = z.infer<typeof insertScratchedProductSchema>;
 
 export type StoreWithProducts = Store & {
   products: Product[];

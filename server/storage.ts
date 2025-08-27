@@ -6,6 +6,7 @@ import {
   storyViews,
   flyerViews,
   productLikes,
+  scratchedProducts,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -24,6 +25,8 @@ import {
   type InsertFlyerView,
   type ProductLike,
   type InsertProductLike,
+  type ScratchedProduct,
+  type InsertScratchedProduct,
   type SavedProductWithDetails,
 } from "@shared/schema";
 import { db } from "./db";
@@ -51,6 +54,7 @@ export interface IStorage {
   updateProduct(productId: string, storeId: string, product: UpdateProduct): Promise<Product>;
   deleteProduct(productId: string, storeId: string): Promise<void>;
   getProduct(productId: string, storeId: string): Promise<Product | undefined>;
+  getProductById(productId: string): Promise<Product | undefined>;
 
   // Engagement operations
   createProductLike(like: InsertProductLike): Promise<ProductLike>;
@@ -62,6 +66,11 @@ export interface IStorage {
   getStoreAnalytics(storeId: string, days?: number): Promise<any>;
   getStoresByUserId(userId: string): Promise<Store[]>;
   getTopProductsByEngagement(storeId: string, days?: number): Promise<any[]>;
+
+  // Scratch card operations
+  createScratchedProduct(scratch: InsertScratchedProduct): Promise<ScratchedProduct>;
+  getScratchedProduct(productId: string, userId?: string): Promise<ScratchedProduct | undefined>;
+  updateScratchRedemptionCount(productId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -253,6 +262,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(products)
       .where(and(eq(products.id, productId), eq(products.storeId, storeId)));
+    return product;
+  }
+
+  async getProductById(productId: string): Promise<Product | undefined> {
+    const [product] = await db
+      .select()
+      .from(products)
+      .where(eq(products.id, productId));
     return product;
   }
 
@@ -504,6 +521,48 @@ export class DatabaseStorage implements IStorage {
       .replace(/\s+/g, "-")
       .replace(/-+/g, "-")
       .trim();
+  }
+
+  // Scratch card operations
+  async createScratchedProduct(scratchData: InsertScratchedProduct): Promise<ScratchedProduct> {
+    const [scratch] = await db
+      .insert(scratchedProducts)
+      .values(scratchData)
+      .returning();
+    return scratch;
+  }
+
+  async getScratchedProduct(productId: string, userId?: string): Promise<ScratchedProduct | undefined> {
+    const conditions = [eq(scratchedProducts.productId, productId)];
+    if (userId) {
+      conditions.push(eq(scratchedProducts.userId, userId));
+    }
+
+    const [scratch] = await db
+      .select()
+      .from(scratchedProducts)
+      .where(and(...conditions))
+      .orderBy(desc(scratchedProducts.scratchedAt));
+    
+    return scratch;
+  }
+
+  async updateScratchRedemptionCount(productId: string): Promise<void> {
+    await db
+      .update(products)
+      .set({
+        currentScratchRedemptions: (parseInt(await this.getCurrentScratchCount(productId)) + 1).toString()
+      })
+      .where(eq(products.id, productId));
+  }
+
+  private async getCurrentScratchCount(productId: string): Promise<string> {
+    const [product] = await db
+      .select({ currentScratchRedemptions: products.currentScratchRedemptions })
+      .from(products)
+      .where(eq(products.id, productId));
+    
+    return product?.currentScratchRedemptions || "0";
   }
 }
 

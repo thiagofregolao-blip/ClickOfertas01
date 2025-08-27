@@ -1,0 +1,318 @@
+import { useState, useRef, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Clock, Gift, Sparkles } from "lucide-react";
+import type { Product } from "@shared/schema";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+
+interface ScratchCardProps {
+  product: Product;
+  currency: string;
+  themeColor: string;
+  onRevealed?: (product: Product) => void;
+  onClick?: (product: Product) => void;
+}
+
+interface ScratchArea {
+  x: number;
+  y: number;
+  radius: number;
+}
+
+export default function ScratchCard({ product, currency, themeColor, onRevealed, onClick }: ScratchCardProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isScratching, setIsScratching] = useState(false);
+  const [scratchProgress, setScratchProgress] = useState(0);
+  const [isRevealed, setIsRevealed] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const scratchedAreas = useRef<ScratchArea[]>([]);
+
+  // Mutation para marcar produto como "raspado"
+  const scratchMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const response = await apiRequest(`/api/products/${productId}/scratch`, 'POST');
+      return response.json();
+    },
+    onSuccess: (data: any) => {
+      if (data?.expiresAt) {
+        const expirationTime = new Date(data.expiresAt).getTime();
+        const now = Date.now();
+        setTimeLeft(Math.max(0, Math.floor((expirationTime - now) / 1000)));
+      }
+      if (onRevealed) onRevealed(product);
+    }
+  });
+
+  // Timer countdown
+  useEffect(() => {
+    if (timeLeft === null || timeLeft <= 0) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  // Inicializar canvas
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Configurar tamanho do canvas
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    // Desenhar camada de "scratch"
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, '#FFD700');
+    gradient.addColorStop(0.5, '#FFA500');
+    gradient.addColorStop(1, '#FF6347');
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Adicionar texto
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+    ctx.shadowBlur = 2;
+    
+    const lines = product.scratchMessage?.split(' ') || ['Raspe', 'aqui!'];
+    const lineHeight = 20;
+    const startY = canvas.height / 2 - (lines.length * lineHeight) / 2;
+    
+    lines.forEach((line, index) => {
+      ctx.fillText(line, canvas.width / 2, startY + (index * lineHeight));
+    });
+  }, [product.scratchMessage]);
+
+  // Função de scratch
+  const handleScratch = (clientX: number, clientY: number) => {
+    if (!canvasRef.current || isRevealed) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    // Adicionar área raspada
+    scratchedAreas.current.push({ x, y, radius: 20 });
+
+    // Limpar área circular
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, 20, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Calcular progresso de scratch
+    const totalPixels = canvas.width * canvas.height;
+    const scratchedPixels = scratchedAreas.current.length * Math.PI * 400; // aproximação
+    const progress = Math.min(scratchedPixels / totalPixels, 1);
+    setScratchProgress(progress);
+
+    // Revelar se passou de 30%
+    if (progress > 0.3 && !isRevealed) {
+      setIsRevealed(true);
+      scratchMutation.mutate(product.id);
+    }
+  };
+
+  // Event handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsScratching(true);
+    handleScratch(e.clientX, e.clientY);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isScratching) {
+      handleScratch(e.clientX, e.clientY);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsScratching(false);
+  };
+
+  // Touch handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    setIsScratching(true);
+    const touch = e.touches[0];
+    handleScratch(touch.clientX, touch.clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    if (isScratching) {
+      const touch = e.touches[0];
+      handleScratch(touch.clientX, touch.clientY);
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    setIsScratching(false);
+  };
+
+  // Formatar tempo restante
+  const formatTimeLeft = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${secs}s`;
+    }
+    return `${minutes}m ${secs}s`;
+  };
+
+  // Render do produto revelado
+  if (isRevealed) {
+    return (
+      <Card className="relative border-4 border-yellow-400 bg-gradient-to-br from-yellow-50 to-orange-50 shadow-lg">
+        <CardContent className="p-4">
+          {/* Badge de oferta especial */}
+          <div className="absolute -top-2 -right-2 z-10">
+            <Badge className="bg-red-500 text-white animate-pulse">
+              SUPER OFERTA!
+            </Badge>
+          </div>
+
+          {/* Timer */}
+          {timeLeft !== null && timeLeft > 0 && (
+            <div className="absolute top-2 left-2 z-10">
+              <Badge variant="secondary" className="bg-orange-100 text-orange-800 flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {formatTimeLeft(timeLeft)}
+              </Badge>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            {/* Imagem do produto */}
+            {product.imageUrl && (
+              <div className="relative">
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="w-full h-32 object-cover rounded border-2 border-yellow-200"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-yellow-400/20 to-transparent rounded"></div>
+              </div>
+            )}
+
+            {/* Nome do produto */}
+            <h3 className="font-bold text-gray-800 text-center">{product.name}</h3>
+
+            {/* Preços */}
+            <div className="text-center space-y-1">
+              <div className="text-sm text-gray-500 line-through">
+                De: {currency} {product.price}
+              </div>
+              <div className="text-2xl font-bold text-red-600 flex items-center justify-center gap-2">
+                <Sparkles className="w-5 h-5" />
+                Por: {currency} {product.scratchPrice}
+              </div>
+              {product.scratchPrice && product.price && (
+                <div className="text-sm text-green-600 font-semibold">
+                  Economia: {currency} {(parseFloat(product.price) - parseFloat(product.scratchPrice)).toFixed(2)}
+                </div>
+              )}
+            </div>
+
+            {/* Botão de ação */}
+            <Button 
+              onClick={() => onClick?.(product)}
+              className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3"
+              disabled={timeLeft === 0}
+            >
+              {timeLeft === 0 ? (
+                "Oferta Expirada"
+              ) : (
+                <>
+                  <Gift className="w-4 h-4 mr-2" />
+                  Ver Produto
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Render do card para raspar
+  return (
+    <Card className="relative border-2 border-yellow-400 bg-gradient-to-br from-yellow-100 to-orange-100 shadow-lg cursor-pointer select-none">
+      <CardContent className="p-0 relative h-48">
+        {/* Badge indicativo */}
+        <div className="absolute -top-2 -right-2 z-20">
+          <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white animate-bounce">
+            <Sparkles className="w-3 h-3 mr-1" />
+            RASPE!
+          </Badge>
+        </div>
+
+        {/* Produto por trás (parcialmente visível) */}
+        <div className="absolute inset-0 p-4 flex flex-col items-center justify-center bg-white">
+          {product.imageUrl && (
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              className="w-20 h-20 object-cover rounded mb-2 opacity-30"
+            />
+          )}
+          <h3 className="font-bold text-gray-600 text-center text-sm opacity-40">{product.name}</h3>
+          <div className="text-lg font-bold text-red-600 opacity-40">
+            {currency} {product.scratchPrice}
+          </div>
+        </div>
+
+        {/* Canvas de scratch */}
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full rounded cursor-pointer"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{ touchAction: 'none' }}
+        />
+
+        {/* Progress indicator */}
+        {scratchProgress > 0 && scratchProgress < 0.3 && (
+          <div className="absolute bottom-2 left-2 right-2 z-10">
+            <div className="bg-white/80 rounded-full h-2 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 transition-all duration-300"
+                style={{ width: `${(scratchProgress / 0.3) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
