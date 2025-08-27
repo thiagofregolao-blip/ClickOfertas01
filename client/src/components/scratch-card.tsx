@@ -102,9 +102,9 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     });
   }, [product.scratchMessage]);
 
-  // Throttle para evitar múltiplos scratches muito rápidos
+  // Throttle reduzido para mais fluidez
   const lastScratchTime = useRef<number>(0);
-  const SCRATCH_THROTTLE = 50; // 50ms entre scratches
+  const SCRATCH_THROTTLE = 16; // ~60fps para maior fluidez
 
   // Função de scratch melhorada
   const handleScratch = (clientX: number, clientY: number) => {
@@ -123,22 +123,30 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
-    // Raio menor para ser menos sensível
-    const scratchRadius = 12;
+    // Raio maior para scratch mais fluido
+    const scratchRadius = 18;
 
-    // Verificar se já existe área próxima (evitar sobreposição)
+    // Verificar sobreposição com distância menor para mais fluidez
     const hasNearbyArea = scratchedAreas.current.some(area => {
       const distance = Math.sqrt(Math.pow(area.x - x, 2) + Math.pow(area.y - y, 2));
-      return distance < scratchRadius;
+      return distance < scratchRadius * 0.5; // Permite mais sobreposição
     });
 
     if (!hasNearbyArea) {
-      // Adicionar área raspada apenas se não há sobreposição
+      // Adicionar área raspada
       scratchedAreas.current.push({ x, y, radius: scratchRadius });
     }
 
-    // Limpar área circular
+    // Scratch mais suave com gradiente
     ctx.globalCompositeOperation = 'destination-out';
+    
+    // Criar gradiente radial para scratch mais suave
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, scratchRadius);
+    gradient.addColorStop(0, 'rgba(0,0,0,1)');
+    gradient.addColorStop(0.7, 'rgba(0,0,0,0.8)');
+    gradient.addColorStop(1, 'rgba(0,0,0,0.2)');
+    
+    ctx.fillStyle = gradient;
     ctx.beginPath();
     ctx.arc(x, y, scratchRadius, 0, Math.PI * 2);
     ctx.fill();
@@ -323,7 +331,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
         {/* Efeito gradual do desconto - aparece conforme raspa */}
         {scratchProgress > 0.3 && !isRevealed && (
-          <div className="absolute top-2 right-2 z-15">
+          <div className="absolute top-2 right-2 z-5">
             <div 
               className={`bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold transition-all duration-700 ${
                 scratchProgress > 0.6 ? 'animate-pulse opacity-100 scale-100' : 'opacity-70 scale-90'
@@ -338,7 +346,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
         {/* Progress indicator - aparece gradualmente */}
         {scratchProgress > 0.1 && scratchProgress < 0.85 && (
-          <div className="absolute bottom-2 left-2 right-2 z-10">
+          <div className="absolute bottom-2 left-2 right-2 z-5">
             <div className="bg-white/90 rounded-full h-3 overflow-hidden border border-yellow-400">
               <div 
                 className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 transition-all duration-500"
