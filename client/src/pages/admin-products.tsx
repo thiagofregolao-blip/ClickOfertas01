@@ -242,7 +242,7 @@ export default function AdminProducts() {
       // Campos de raspadinha - valores padrão
       isScratchCard: false,
       scratchPrice: "",
-      scratchExpiresAt: null,
+      scratchExpiresAt: "",
       scratchTimeLimitMinutes: "60",
       maxScratchRedemptions: "10",
       scratchMessage: "Você ganhou um super desconto! Raspe aqui e confira",
@@ -265,7 +265,7 @@ export default function AdminProducts() {
       // Campos de raspadinha
       isScratchCard: product.isScratchCard || false,
       scratchPrice: product.scratchPrice?.toString() || "",
-      scratchExpiresAt: product.scratchExpiresAt ? new Date(product.scratchExpiresAt).toISOString().slice(0, 16) : null,
+      scratchExpiresAt: product.scratchExpiresAt ? new Date(product.scratchExpiresAt).toISOString().slice(0, 16) : "",
       scratchTimeLimitMinutes: product.scratchTimeLimitMinutes || "60",
       maxScratchRedemptions: product.maxScratchRedemptions || "10",
       scratchMessage: product.scratchMessage || "Você ganhou um super desconto! Raspe aqui e confira",
@@ -280,6 +280,8 @@ export default function AdminProducts() {
   };
 
   const onSubmit = (data: ProductFormData) => {
+    console.log("🚀 Frontend: Enviando dados do produto:", data);
+    console.log("🚀 Frontend: Erros do formulário:", form.formState.errors);
     saveMutation.mutate(data);
   };
 
