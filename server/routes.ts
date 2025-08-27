@@ -808,14 +808,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Criar cupom após raspar produto
   app.post('/api/products/:productId/generate-coupon', isAuthenticated, async (req: any, res) => {
     try {
+      console.log('🎫 INICIANDO GERAÇÃO DE CUPOM');
       const { productId } = req.params;
       const userId = req.user?.claims?.sub || req.user?.id;
       const userAgent = req.get('User-Agent');
       const ipAddress = req.ip;
 
+      console.log('📋 Dados recebidos:', { productId, userId, userAgent, ipAddress });
+
       // Buscar o produto e a loja
+      console.log('🔍 Buscando produto...');
       const product = await storage.getProductById(productId);
+      console.log('📦 Produto encontrado:', product);
+      
       if (!product || !product.isScratchCard) {
+        console.log('❌ Produto não é raspadinha válida');
         return res.status(400).json({ message: "Produto não é uma raspadinha válida" });
       }
 
@@ -893,7 +900,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isRedeemed: false
       };
 
+      console.log('💾 Criando cupom no banco...');
       const coupon = await storage.createCoupon(couponData);
+      console.log('✅ Cupom criado com sucesso:', coupon);
 
       res.status(201).json({
         success: true,
@@ -908,8 +917,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
-      console.error("Error generating coupon:", error);
-      res.status(500).json({ message: "Erro ao gerar cupom" });
+      console.error("🚨 ERRO COMPLETO AO GERAR CUPOM:");
+      console.error("🔥 Message:", error.message);
+      console.error("🔥 Stack:", error.stack);
+      console.error("🔥 Full error:", JSON.stringify(error, null, 2));
+      res.status(500).json({ 
+        message: "Erro ao gerar cupom",
+        error: error.message,
+        details: error.stack
+      });
     }
   });
 
