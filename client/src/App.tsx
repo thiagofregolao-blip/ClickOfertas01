@@ -15,6 +15,7 @@ import StoresGallery from "@/pages/stores-gallery";
 import UserSettingsPage from "@/pages/user-settings";
 import ShoppingList from "@/pages/shopping-list";
 import MyCoupons from "@/pages/my-coupons";
+import CouponDetails from "@/pages/coupon-details";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -42,6 +43,7 @@ function Router() {
         <Route path="/settings" component={LoadingComponent} />
         <Route path="/shopping-list" component={LoadingComponent} />
         <Route path="/my-coupons" component={LoadingComponent} />
+        <Route path="/coupon" component={LoadingComponent} />
         <Route component={NotFound} />
       </Switch>
     );
@@ -70,6 +72,7 @@ function Router() {
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/my-coupons" component={MyCoupons} />
+          <Route path="/coupon" component={CouponDetails} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
         </>
@@ -81,6 +84,7 @@ function Router() {
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/my-coupons" component={MyCoupons} />
+          <Route path="/coupon" component={CouponDetails} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
           {/* Bloqueia acesso ao admin para usuários normais */}

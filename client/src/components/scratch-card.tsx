@@ -66,42 +66,29 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Mutation para gerar cupom
   const generateCouponMutation = useMutation({
     mutationFn: async (productId: string) => {
-      console.log('🚀 FRONTEND: Iniciando chamada para gerar cupom:', productId);
-      try {
-        const response = await fetch(`/api/products/${productId}/generate-coupon`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        });
-        
-        if (!response.ok) {
-          const error = await response.text();
-          throw new Error(`${response.status}: ${error}`);
-        }
-        console.log('📡 FRONTEND: Resposta da API:', response);
-        const data = await response.json();
-        console.log('📄 FRONTEND: Dados recebidos:', data);
-        return data;
-      } catch (error) {
-        console.error('💥 FRONTEND: Erro na requisição:', error);
-        throw error;
+      const response = await fetch(`/api/products/${productId}/generate-coupon`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`${response.status}: ${error}`);
       }
+      
+      return await response.json();
     },
     onSuccess: (data: any) => {
-      console.log('✅ FRONTEND: Sucesso na mutation:', data);
       if (data?.success && data?.coupon) {
-        setCoupon(data.coupon);
-        setCouponGenerated(true);
-        toast({
-          title: "🎉 Cupom gerado!",
-          description: "Seu cupom de desconto foi criado com sucesso!",
-        });
+        // Redirecionar para a página do cupom
+        setShowModal(false);
+        window.location.href = `/coupon?id=${data.coupon.id}`;
       }
     },
     onError: (error: any) => {
-      console.error('❌ FRONTEND: Erro na mutation:', error);
       toast({
         title: "Erro ao gerar cupom",
         description: `Erro: ${error.message}`,
@@ -581,13 +568,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             <div className="flex gap-3">
               <button 
                 onClick={() => {
-                  // Sempre gerar cupom quando não foi gerado ainda
-                  console.log('🎯 BOTÃO CLICADO! Status:', { couponGenerated, productId: product.id });
                   if (!couponGenerated) {
-                    console.log('📞 Chamando generateCouponMutation...');
                     generateCouponMutation.mutate(product.id);
-                  } else {
-                    console.log('⚠️ Cupom já foi gerado, ignorando clique');
                   }
                 }}
                 className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 px-4 rounded-lg transition-all"
