@@ -28,6 +28,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const [isRevealed, setIsRevealed] = useState(false);
   const [isFading, setIsFading] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState(false);
   const scratchedAreas = useRef<ScratchArea[]>([]);
   
   // FASE 1: AudioContext otimizado
@@ -327,140 +328,246 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     return `${minutes}m ${secs}s`;
   };
 
+  // Modal de produto detalhado
+  const ProductModal = () => {
+    if (!showModal) return null;
+    
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6">
+            {/* Header do modal */}
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-xl font-bold text-gray-800">🎉 Oferta Revelada!</h2>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            
+            {/* Imagem do produto */}
+            {product.imageUrl && (
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                className="w-full h-48 object-cover rounded-lg mb-4"
+              />
+            )}
+            
+            {/* Nome do produto */}
+            <h3 className="text-lg font-bold text-gray-800 mb-2">{product.name}</h3>
+            
+            {/* Descrição */}
+            {product.description && (
+              <p className="text-gray-600 mb-4">{product.description}</p>
+            )}
+            
+            {/* Preços destacados */}
+            <div className="bg-gradient-to-r from-red-50 to-orange-50 p-4 rounded-lg mb-4">
+              <div className="text-center space-y-2">
+                <div className="text-sm text-gray-500 line-through">
+                  Preço normal: {currency} {product.price}
+                </div>
+                <div className="text-3xl font-bold text-red-600 flex items-center justify-center gap-2">
+                  <Sparkles className="w-6 h-6" />
+                  {currency} {product.scratchPrice}
+                </div>
+                {product.scratchPrice && product.price && (
+                  <div className="text-lg text-green-600 font-bold">
+                    Você economiza: {currency} {(parseFloat(product.price) - parseFloat(product.scratchPrice)).toFixed(2)}
+                  </div>
+                )}
+                
+                {/* Timer de expiração */}
+                {timeLeft !== null && timeLeft > 0 && (
+                  <div className="bg-orange-100 text-orange-800 px-3 py-2 rounded-full inline-flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    <span className="font-semibold">Válido por: {formatTimeLeft(timeLeft)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Botões de ação */}
+            <div className="flex gap-3">
+              <button 
+                onClick={() => {
+                  setShowModal(false);
+                  onClick?.(product);
+                }}
+                className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 px-4 rounded-lg transition-all"
+                disabled={timeLeft === 0}
+              >
+                {timeLeft === 0 ? (
+                  "Oferta Expirada"
+                ) : (
+                  <>🛒 Aproveitar Oferta</>
+                )}
+              </button>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
   // Render do produto revelado
   if (isRevealed) {
     return (
-      <Card className="relative border-4 border-yellow-400 bg-gradient-to-br from-yellow-50 to-orange-50 shadow-lg">
-        <CardContent className="p-3 h-48 overflow-hidden flex flex-col">
+      <>
+        <div 
+          className="relative bg-gradient-to-br from-yellow-50 to-orange-50 border-4 border-yellow-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
+          onClick={() => setShowModal(true)}
+          data-testid={`card-product-revealed-${product.id}`}
+        >
           {/* Badge de oferta especial */}
-          <div className="absolute -top-2 -right-2 z-10">
-            <Badge className="bg-red-500 text-white animate-pulse">
-              SUPER OFERTA!
+          <div className="absolute top-2 right-2 z-10">
+            <Badge className="bg-red-500 text-white animate-pulse text-xs">
+              REVELADO!
             </Badge>
           </div>
 
           {/* Timer */}
           {timeLeft !== null && timeLeft > 0 && (
             <div className="absolute top-2 left-2 z-10">
-              <Badge variant="secondary" className="bg-orange-100 text-orange-800 flex items-center gap-1">
+              <Badge variant="secondary" className="bg-orange-100 text-orange-800 flex items-center gap-1 text-xs">
                 <Clock className="w-3 h-3" />
                 {formatTimeLeft(timeLeft)}
               </Badge>
             </div>
           )}
+          
+          {/* Indicação para clicar */}
+          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-10">
+            <Badge className="bg-blue-500 text-white animate-bounce text-xs">
+              👆 Clique para ver detalhes
+            </Badge>
+          </div>
 
-          <div className="flex-1 flex flex-col justify-between space-y-2">
-            {/* Imagem do produto - reduzida */}
-            {product.imageUrl && (
-              <div className="relative flex-shrink-0">
+          <div className="h-full flex flex-col p-3">
+            {/* Imagem do produto */}
+            <div className="relative mb-2">
+              {product.imageUrl ? (
                 <img
                   src={product.imageUrl}
                   alt={product.name}
-                  className="w-full h-20 object-cover rounded border-2 border-yellow-200"
+                  className="w-full h-20 md:h-24 lg:h-28 object-cover rounded border-2 border-yellow-200"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-yellow-400/20 to-transparent rounded"></div>
-              </div>
-            )}
-
-            {/* Nome do produto - compacto */}
-            <h3 className="font-bold text-gray-800 text-center text-sm leading-tight">{product.name}</h3>
-
-            {/* Preços - compactos */}
-            <div className="text-center space-y-1">
-              <div className="text-xs text-gray-500 line-through">
-                De: {currency} {product.price}
-              </div>
-              <div className="text-lg font-bold text-red-600 flex items-center justify-center gap-1">
-                <Sparkles className="w-4 h-4" />
-                Por: {currency} {product.scratchPrice}
-              </div>
-              {product.scratchPrice && product.price && (
-                <div className="text-xs text-green-600 font-semibold">
-                  Economia: {currency} {(parseFloat(product.price) - parseFloat(product.scratchPrice)).toFixed(2)}
+              ) : (
+                <div className="w-full h-20 md:h-24 lg:h-28 bg-gray-100 flex items-center justify-center rounded border-2 border-yellow-200">
+                  <div className="w-8 h-8 bg-gray-300 rounded opacity-30"></div>
                 </div>
               )}
+              <div className="absolute inset-0 bg-gradient-to-t from-yellow-400/20 to-transparent rounded"></div>
             </div>
 
-            {/* Botão de ação - compacto */}
-            <Button 
-              onClick={() => onClick?.(product)}
-              className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-2 text-sm flex-shrink-0"
-              disabled={timeLeft === 0}
-            >
-              {timeLeft === 0 ? (
-                "Oferta Expirada"
-              ) : (
-                <>
-                  <Gift className="w-3 h-3 mr-1" />
-                  Ver Produto
-                </>
-              )}
-            </Button>
+            <div className="flex flex-col h-full">
+              {/* Nome do produto */}
+              <h3 className="text-xs sm:text-sm font-bold text-blue-600 mb-1 line-clamp-2 text-center">{product.name}</h3>
+              
+              {/* Preços */}
+              <div className="flex flex-col items-center justify-center mt-auto space-y-1">
+                <div className="text-xs text-gray-500 line-through">
+                  De: {currency} {product.price}
+                </div>
+                <div className="text-lg sm:text-xl font-bold text-red-600 flex items-center gap-1">
+                  <Sparkles className="w-4 h-4" />
+                  {currency} {product.scratchPrice}
+                </div>
+                {product.scratchPrice && product.price && (
+                  <div className="text-xs text-green-600 font-semibold">
+                    Economize: {currency} {(parseFloat(product.price) - parseFloat(product.scratchPrice)).toFixed(2)}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <ProductModal />
+      </>
     );
   }
 
   // Render do card para raspar
   return (
-    <Card className="relative isolate z-10 border-2 border-yellow-400 bg-gradient-to-br from-yellow-100 to-orange-100 shadow-lg cursor-pointer select-none h-48">
-      <CardContent className="p-0 relative h-full w-full overflow-hidden">
-        {/* Badge indicativo */}
-        <div className="absolute -top-2 -right-2 z-20">
-          <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white animate-bounce">
-            <Sparkles className="w-3 h-3 mr-1" />
-            RASPE!
-          </Badge>
-        </div>
-
-        {/* Produto por trás (parcialmente visível) */}
-        <div className="absolute inset-0 p-4 flex flex-col items-center justify-center bg-white">
-          {product.imageUrl && (
-            <img
-              src={product.imageUrl}
-              alt={product.name}
-              className="w-20 h-20 object-cover rounded mb-2 opacity-30"
-            />
-          )}
-          <h3 className="font-bold text-gray-600 text-center text-sm opacity-40">{product.name}</h3>
-          <div className="text-lg font-bold text-red-600 opacity-40">
-            {currency} {product.scratchPrice}
+    <>
+      <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
+        <div className="p-0 relative h-full w-full overflow-hidden">
+          {/* Badge indicativo */}
+          <div className="absolute top-2 right-2 z-20">
+            <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white animate-bounce text-xs">
+              <Sparkles className="w-3 h-3 mr-1" />
+              RASPE!
+            </Badge>
           </div>
-        </div>
 
-        {/* Canvas de scratch com transição suave - cobertura total */}
-        <canvas
-          ref={canvasRef}
-          className={`absolute inset-0 w-full h-full cursor-pointer transition-all duration-200 ease-out ${
-            isFading ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
-          }`}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{ touchAction: 'none', display: 'block' }}
-        />
-
-        {/* Efeito gradual do desconto - aparece conforme raspa */}
-        {scratchProgress > 0.3 && !isRevealed && (
-          <div className="absolute top-2 right-2 z-0 pointer-events-none">
-            <div 
-              className={`bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold transition-all duration-700 ${
-                scratchProgress > 0.6 ? 'animate-pulse opacity-100 scale-100' : 'opacity-70 scale-90'
-              }`}
-            >
-              {scratchProgress > 0.7 ? (
-                `-${currency}${(parseFloat(product.price!) - parseFloat(product.scratchPrice!)).toFixed(2)}`
-              ) : scratchProgress > 0.5 ? '????' : '??'}
+          {/* Produto por trás (parcialmente visível) */}
+          <div className="absolute inset-0 p-3 flex flex-col justify-center items-center bg-white">
+            {/* Imagem */}
+            <div className="relative mb-2">
+              {product.imageUrl ? (
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="w-16 h-16 md:w-20 md:h-20 object-cover rounded opacity-30"
+                />
+              ) : (
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 flex items-center justify-center rounded opacity-30">
+                  <div className="w-6 h-6 bg-gray-300 rounded opacity-50"></div>
+                </div>
+              )}
+            </div>
+            
+            {/* Nome */}
+            <h3 className="text-xs sm:text-sm font-bold text-gray-600 text-center opacity-40 line-clamp-2 mb-2">{product.name}</h3>
+            
+            {/* Preço de oferta */}
+            <div className="text-lg font-bold text-red-600 opacity-40">
+              {currency} {product.scratchPrice}
             </div>
           </div>
-        )}
 
-      </CardContent>
-    </Card>
+          {/* Canvas de scratch com transição suave - cobertura total */}
+          <canvas
+            ref={canvasRef}
+            className={`absolute inset-0 w-full h-full cursor-pointer transition-all duration-200 ease-out ${
+              isFading ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
+            }`}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ touchAction: 'none', display: 'block' }}
+          />
+
+          {/* Efeito gradual do desconto - aparece conforme raspa */}
+          {scratchProgress > 0.3 && !isRevealed && (
+            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-0 pointer-events-none">
+              <div 
+                className={`bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold transition-all duration-700 ${
+                  scratchProgress > 0.6 ? 'animate-pulse opacity-100 scale-100' : 'opacity-70 scale-90'
+                }`}
+              >
+                {scratchProgress > 0.7 ? (
+                  `-${currency}${(parseFloat(product.price!) - parseFloat(product.scratchPrice!)).toFixed(2)}`
+                ) : scratchProgress > 0.5 ? '????' : '??'}
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </>
   );
 }
