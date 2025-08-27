@@ -806,10 +806,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // COUPON ROUTES
   
   // Criar cupom após raspar produto
-  app.post('/api/products/:productId/generate-coupon', async (req: any, res) => {
+  app.post('/api/products/:productId/generate-coupon', isAuthenticated, async (req: any, res) => {
     try {
       const { productId } = req.params;
-      const userId = req.user?.claims?.sub || req.user?.id; // pode ser anônimo
+      const userId = req.user?.claims?.sub || req.user?.id;
       const userAgent = req.get('User-Agent');
       const ipAddress = req.ip;
 
@@ -819,10 +819,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Produto não é uma raspadinha válida" });
       }
 
-      // Verificar se o usuário já raspou este produto
-      const scratchedProduct = await storage.getScratchedProduct(productId, userId);
+      // Verificar se o usuário já raspou este produto, se não, criar automaticamente
+      let scratchedProduct = await storage.getScratchedProduct(productId, userId);
       if (!scratchedProduct) {
-        return res.status(400).json({ message: "Produto não foi raspado ainda" });
+        // Criar scratch automaticamente se não existir
+        const scratchData = insertScratchedProductSchema.parse({
+          productId,
+          userId,
+          userAgent,
+          ipAddress,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 horas
+        });
+        scratchedProduct = await storage.createScratchedProduct(scratchData);
       }
 
       // Calcular desconto
