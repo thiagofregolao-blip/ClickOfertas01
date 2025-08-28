@@ -1067,6 +1067,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Nova rota: Sincronizar contadores de raspadinhas com cupons existentes
+  app.post('/api/stores/me/sync-scratch-counters', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+      
+      // Buscar a loja do usuário
+      const store = await storage.getUserStore(userId);
+      if (!store) {
+        return res.status(404).json({ message: "Loja não encontrada" });
+      }
+
+      // Buscar produtos da loja com raspadinha
+      const allProducts = await db
+        .select()
+        .from(products)
+        .where(eq(products.storeId, store.id));
+
+      const scratchProducts = allProducts.filter(p => p.isScratchCard);
+      
+      let updatedCount = 0;
+      
+      // Para cada produto com raspadinha, contar cupons existentes e atualizar contador
+      for (const product of scratchProducts) {
+        const [couponCount] = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(coupons)
+          .where(eq(coupons.productId, product.id));
+        
+        const actualCount = couponCount?.count || 0;
+        
+        // Atualizar o contador do produto
+        await db
+          .update(products)
+          .set({
+            currentScratchRedemptions: actualCount.toString()
+          })
+          .where(eq(products.id, product.id));
+        
+        updatedCount++;
+      }
+
+      res.json({
+        success: true,
+        message: `${updatedCount} produtos sincronizados`,
+        updatedProducts: updatedCount
+      });
+    } catch (error) {
+      console.error("Erro ao sincronizar contadores:", error);
+      res.status(500).json({ message: "Erro interno" });
+    }
+  });
+
   // Buscar cupom por código (para validação do lojista)
   app.get('/api/coupons/:couponCode', async (req, res) => {
     try {
