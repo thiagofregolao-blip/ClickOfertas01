@@ -22,7 +22,6 @@ interface ScratchArea {
 }
 
 export default function ScratchCard({ product, currency, themeColor, onRevealed, onClick }: ScratchCardProps) {
-  console.log(`🎨 SCRATCHCARD INICIADO para: ${product.name}`);
   
   const qc = useQueryClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -42,25 +41,14 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const { data: eligibility, refetch: checkEligibility, isLoading, error } = useQuery({
     queryKey: ['/api/scratch/offers', product.id, 'eligibility'],
     queryFn: async () => {
-      console.log(`🔗 FAZENDO REQUEST para: /api/scratch/offers/${product.id}/eligibility`);
-      const result = await apiRequest("GET", `/api/scratch/offers/${product.id}/eligibility`);
-      console.log(`📦 RESPOSTA RAW:`, result);
-      return result;
+return await apiRequest("GET", `/api/scratch/offers/${product.id}/eligibility`).then(r => r.json());
     },
     enabled: !!product?.id,
     staleTime: 15_000,
     retry: false,
   });
 
-  console.log(`🔍 ELIGIBILITY DEBUG para ${product.name}:`, {
-    isLoading,
-    error: error?.message,
-    eligibility,
-    enabled: !!product?.id,
-    productId: product.id
-  });
 
-  console.log(`🧪 DETAILED ELIGIBILITY para ${product.name}:`, JSON.stringify(eligibility, null, 2));
 
   // Estado otimizado
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -73,12 +61,6 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const lastScratchTime = useRef<number>(0);
   const SCRATCH_THROTTLE = 16; // ~60fps
 
-  console.log(`🖼️ CANVAS DEBUG para ${product.name}:`, {
-    canvasRef: !!canvasRef.current,
-    isScratching,
-    scratchProgress,
-    isRevealed
-  });
 
   // Mutation para marcar produto como "raspado"
   const scratchMutation = useMutation({
@@ -224,7 +206,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     
     try {
       needsProgressCalc.current = false;
-      const step = 6;
+      const step = 4; // Amostragem mais precisa
       
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
@@ -240,7 +222,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       const progress = total > 0 ? transparent / total : 0;
       setScratchProgress(progress);
       
-      if (progress >= 0.7 && !isRevealed && !isFading) {
+      if (progress >= 0.4 && !isRevealed && !isFading) { // Threshold menor = mais fácil revelar
         setIsFading(true);
         setTimeout(() => {
           setIsRevealed(true);
@@ -281,7 +263,6 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Função de scratch
   const handleScratch = (clientX: number, clientY: number) => {
-    console.log(`✋ SCRATCH EVENT: x=${clientX}, y=${clientY}, revealed=${isRevealed}`);
     if (!canvasRef.current || isRevealed) return;
 
     const now = Date.now();
@@ -296,7 +277,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
-    const scratchRadius = 25;
+    const scratchRadius = 35; // Raio maior para raspar mais fácil
 
     // Som
     const soundNow = Date.now();
@@ -351,7 +332,6 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Event handlers
   const handleMouseDown = (e: React.MouseEvent) => {
-    console.log(`🖱️ MOUSE DOWN em ${product.name}`);
     setIsScratching(true);
     lastPoint.current = null;
     handleScratch(e.clientX, e.clientY);
@@ -369,7 +349,6 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    console.log(`👆 TOUCH START em ${product.name}`);
     e.preventDefault();
     setIsScratching(true);
     lastPoint.current = null;
@@ -406,13 +385,6 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // **MEGA FIX**: Mostrar raspadinha por padrão, só ocultar se explicitamente inelegível
   const shouldShowScratchCard = true; // SEMPRE mostrar raspadinha como fallback seguro
   
-  console.log(`🎯 RENDER DECISION para ${product.name}:`, {
-    error: !!error,
-    noEligibility: !eligibility,
-    hasEligible: eligibility && 'eligible' in eligibility,
-    isEligible: eligibility && 'eligible' in eligibility ? eligibility.eligible : 'N/A',
-    shouldShowScratchCard
-  });
 
   if (shouldShowScratchCard) {
     return (
