@@ -120,6 +120,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       // Invalidar cache para refletir mudanças
       queryClient.invalidateQueries({ queryKey: ['scratch-status', product.id] });
       if (onRevealed) onRevealed(product);
+      
+      // NOVO: Gerar cupom automaticamente após raspar
+      setTimeout(() => {
+        generateCouponMutation.mutate(product.id);
+      }, 800); // Delay para melhor UX visual
     },
     onError: (error: any) => {
       setIsFading(false);
