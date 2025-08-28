@@ -51,8 +51,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     isLoading,
     error: error?.message,
     eligibility,
-    enabled: !!product?.id
+    enabled: !!product?.id,
+    productId: product.id
   });
+
+  console.log(`🧪 DETAILED ELIGIBILITY para ${product.name}:`, JSON.stringify(eligibility, null, 2));
 
   // Estado otimizado
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -395,8 +398,18 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     );
   }
 
-  // Error state ou elegível
-  if (error || !eligibility || ('eligible' in eligibility && eligibility.eligible)) {
+  // **CRITICAL FIX**: Renderizar raspadinha quando elegível OU em caso de erro/fallback
+  const shouldShowScratchCard = error || !eligibility || (eligibility && 'eligible' in eligibility && eligibility.eligible);
+  
+  console.log(`🎯 RENDER DECISION para ${product.name}:`, {
+    error: !!error,
+    noEligibility: !eligibility,
+    hasEligible: eligibility && 'eligible' in eligibility,
+    isEligible: eligibility && 'eligible' in eligibility ? eligibility.eligible : 'N/A',
+    shouldShowScratchCard
+  });
+
+  if (shouldShowScratchCard) {
     return (
       <div className="relative isolate z-10 bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-300 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] select-none">
         
