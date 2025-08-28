@@ -123,23 +123,28 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           console.log("🔄 Redirecionando para login...");
           window.location.href = "/api/login";
         }, 3000);
-      } else if (error.message.includes('cooldown') || error.message.includes('Aguarde')) {
+      }
+      // Verificar se é erro 400 (já resgatado ou cooldown)
+      else if (error.message.includes('400')) {
+        console.log("⏰ Usuário já resgatou ou está em cooldown - atualizando estado visual");
+        // Fechar modal se estiver aberto
+        setShowModal(false);
+        // Atualizar eligibilidade para refletir estado real
+        checkEligibility();
+        
         toast({
-          title: "⏰ Aguarde um pouco",
-          description: "Você precisa esperar 24h após gerar um cupom para este produto",
+          title: "⏰ Calma aí!",
+          description: "Você já pegou este cupom ou precisa aguardar 24h para raspar novamente!",
           variant: "destructive",
-        });
-      } else if (error.message.includes('já possui um cupom ativo')) {
-        toast({
-          title: "😊 Cupom já ativo",
-          description: "Você já tem um cupom válido para este produto!",
-          variant: "destructive",
+          duration: 3000,
         });
       } else {
+        // Outros erros
         toast({
-          title: "Erro ao gerar cupom",
-          description: `Erro: ${error.message}`,
+          title: "😅 Ops, algo deu errado",
+          description: "Tente novamente em alguns segundos",
           variant: "destructive",
+          duration: 3000,
         });
       }
     }
