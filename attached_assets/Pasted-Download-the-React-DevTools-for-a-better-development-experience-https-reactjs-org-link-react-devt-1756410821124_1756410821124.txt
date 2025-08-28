@@ -1,0 +1,22 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+main.tsx:40 SW registration failed:  TypeError: Failed to register a ServiceWorker: The URL protocol of the script ('blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/e3b2f2a5-a751-473f-a735-04a63fc0847c') is not supported.
+    at main.tsx:35:29
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/1873b7fc-5faf-4cea-a916-a72d81c8b3c2:1 Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/1873b7fc-5faf-4cea-a916-a72d81c8b3c2:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+br-galaxy-s24-s928-sm-s928bzklbra-thumb-539573233:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+@radix-ui_react-dialog.js?v=8b1ec45d:337 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ @radix-ui_react-dialog.js?v=8b1ec45d:337
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=8b1ec45d:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=8b1ec45d:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=8b1ec45d:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=8b1ec45d:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=8b1ec45d:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=8b1ec45d:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=8b1ec45d:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=8b1ec45d:19416
+commitRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=8b1ec45d:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=8b1ec45d:18627Understand this warning
+admin-products.tsx:592 📋 Form submit event disparado! SyntheticBaseEvent {_reactName: 'onSubmit', _targetInst: null, type: 'submit', nativeEvent: SubmitEvent, target: form.space-y-6, …}
+admin-products.tsx:593 🔧 handleSubmit será chamado...

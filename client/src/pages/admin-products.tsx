@@ -591,7 +591,23 @@ export default function AdminProducts() {
               <form onSubmit={(e) => {
                 console.log("📋 Form submit event disparado!", e);
                 console.log("🔧 handleSubmit será chamado...");
-                return form.handleSubmit(onSubmit)(e);
+                console.log("🔍 Estado atual do form:", {
+                  isValid: form.formState.isValid,
+                  errors: form.formState.errors,
+                  isDirty: form.formState.isDirty,
+                  isSubmitting: form.formState.isSubmitting,
+                });
+                
+                return form.handleSubmit(
+                  (data) => {
+                    console.log("✅ Validação passou! Chamando onSubmit...");
+                    onSubmit(data);
+                  },
+                  (errors) => {
+                    console.error("❌ ERROS DE VALIDAÇÃO encontrados:", errors);
+                    console.error("🚫 Formulário não será enviado devido a erros!");
+                  }
+                )(e);
               }} className="space-y-6">
                   {/* Informações Básicas */}
                   <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
