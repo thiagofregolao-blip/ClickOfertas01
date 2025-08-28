@@ -41,7 +41,12 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Query para verificar elegibilidade
   const { data: eligibility, refetch: checkEligibility, isLoading, error } = useQuery({
     queryKey: ['/api/scratch/offers', product.id, 'eligibility'],
-    queryFn: () => apiRequest("GET", `/api/scratch/offers/${product.id}/eligibility`),
+    queryFn: async () => {
+      console.log(`🔗 FAZENDO REQUEST para: /api/scratch/offers/${product.id}/eligibility`);
+      const result = await apiRequest("GET", `/api/scratch/offers/${product.id}/eligibility`);
+      console.log(`📦 RESPOSTA RAW:`, result);
+      return result;
+    },
     enabled: !!product?.id,
     staleTime: 15_000,
     retry: false,
@@ -398,8 +403,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     );
   }
 
-  // **CRITICAL FIX**: Renderizar raspadinha quando elegível OU em caso de erro/fallback
-  const shouldShowScratchCard = error || !eligibility || (eligibility && 'eligible' in eligibility && eligibility.eligible);
+  // **MEGA FIX**: Mostrar raspadinha por padrão, só ocultar se explicitamente inelegível
+  const shouldShowScratchCard = true; // SEMPRE mostrar raspadinha como fallback seguro
   
   console.log(`🎯 RENDER DECISION para ${product.name}:`, {
     error: !!error,

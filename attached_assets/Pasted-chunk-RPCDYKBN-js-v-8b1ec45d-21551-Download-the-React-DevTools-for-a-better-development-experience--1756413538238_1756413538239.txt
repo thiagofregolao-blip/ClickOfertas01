@@ -1,0 +1,426 @@
+chunk-RPCDYKBN.js?v=8b1ec45d:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+public-flyer.tsx:52 📱 Executando: Click Ofertas Paraguai Desktop - Modo: Panfleto
+main.tsx:40 SW registration failed:  TypeError: Failed to register a ServiceWorker: The URL protocol of the script ('blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/2813a31c-8c6d-47d3-a1dd-11af91235230') is not supported.
+    at main.tsx:35:29
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/cffce9ad-f904-4838-92e9-135343ab7467:1 Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/cffce9ad-f904-4838-92e9-135343ab7467:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Smartphone Blackview N6000 8GB/256GB:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2026-01-28T15:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Wed Jan 28 2026 12:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Smartphone Blackview N6000 8GB/256GB
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Smartphone Blackview N6000 8GB/256GB
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Smartphone Blackview N6000 8GB/256GB: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Smartphone Blackview N6000 8GB/256GB: undefined
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Smartphone Blackview N6000 8GB/256GB: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Speaker Amazon Echo Dot com Alexa 5ª Geração:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-29T09:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Fri Aug 29 2025 06:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Speaker Amazon Echo Dot com Alexa 5ª Geração
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Speaker Amazon Echo Dot com Alexa 5ª Geração
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Speaker Amazon Echo Dot com Alexa 5ª Geração: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Speaker Amazon Echo Dot com Alexa 5ª Geração: undefined
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Speaker Amazon Echo Dot com Alexa 5ª Geração: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Drone Syma W3 Câmera 2K/WiFi/GPS:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-28T21:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Thu Aug 28 2025 18:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Drone Syma W3 Câmera 2K/WiFi/GPS
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Drone Syma W3 Câmera 2K/WiFi/GPS
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Drone Syma W3 Câmera 2K/WiFi/GPS: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Drone Syma W3 Câmera 2K/WiFi/GPS: undefined
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Drone Syma W3 Câmera 2K/WiFi/GPS: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Gamepad para Smartphone GameSir G8 Galileo Type-C:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-30T15:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Sat Aug 30 2025 12:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Gamepad para Smartphone GameSir G8 Galileo Type-C
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Gamepad para Smartphone GameSir G8 Galileo Type-C
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Gamepad para Smartphone GameSir G8 Galileo Type-C: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Gamepad para Smartphone GameSir G8 Galileo Type-C: undefined
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Gamepad para Smartphone GameSir G8 Galileo Type-C: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Monitor para Selfie Kingma VL-PH01:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-12-30T15:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Tue Dec 30 2025 12:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Monitor para Selfie Kingma VL-PH01
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Monitor para Selfie Kingma VL-PH01
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Monitor para Selfie Kingma VL-PH01: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Monitor para Selfie Kingma VL-PH01: undefined
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Monitor para Selfie Kingma VL-PH01: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Gimbal Portátil FeiyuTech VB-4 para Smartphone:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: null
+product-card.tsx:79    scratchExpiresAtParsed: null
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Gimbal Portátil FeiyuTech VB-4 para Smartphone
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Gimbal Portátil FeiyuTech VB-4 para Smartphone
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Gimbal Portátil FeiyuTech VB-4 para Smartphone: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Gimbal Portátil FeiyuTech VB-4 para Smartphone: undefined
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Gimbal Portátil FeiyuTech VB-4 para Smartphone: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-29T15:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Fri Aug 29 2025 12:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone: undefined
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - MacBook Pro M3:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-28T16:23:04.093Z
+product-card.tsx:79    scratchExpiresAtParsed: Thu Aug 28 2025 13:23:04 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: true
+product-card.tsx:82    finalCondition: false
+product-card.tsx:83    willShowScratchCard: false
+product-card.tsx:84    ---
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Máscara para Cílios Maybelline Sky High 6mL:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-28T02:50:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Wed Aug 27 2025 23:50:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: true
+product-card.tsx:82    finalCondition: false
+product-card.tsx:83    willShowScratchCard: false
+product-card.tsx:84    ---
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Perfume Lancôme La Vie est Belle EDP 100mL:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-28T18:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Thu Aug 28 2025 15:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: true
+product-card.tsx:82    finalCondition: false
+product-card.tsx:83    willShowScratchCard: false
+product-card.tsx:84    ---
+public-flyer.tsx:92 📊 Registrando view da loja: CellShop Importados Paraguay
+br-galaxy-s24-s928-sm-s928bzklbra-thumb-539573233:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Smartphone Blackview N6000 8GB/256GB:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2026-01-28T15:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Wed Jan 28 2026 12:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Smartphone Blackview N6000 8GB/256GB
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Smartphone Blackview N6000 8GB/256GB
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Smartphone Blackview N6000 8GB/256GB: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Smartphone Blackview N6000 8GB/256GB: undefined
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Smartphone Blackview N6000 8GB/256GB: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Speaker Amazon Echo Dot com Alexa 5ª Geração:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-29T09:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Fri Aug 29 2025 06:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Speaker Amazon Echo Dot com Alexa 5ª Geração
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Speaker Amazon Echo Dot com Alexa 5ª Geração
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Speaker Amazon Echo Dot com Alexa 5ª Geração: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Speaker Amazon Echo Dot com Alexa 5ª Geração: undefined
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Speaker Amazon Echo Dot com Alexa 5ª Geração: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Drone Syma W3 Câmera 2K/WiFi/GPS:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-28T21:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Thu Aug 28 2025 18:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Drone Syma W3 Câmera 2K/WiFi/GPS
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Drone Syma W3 Câmera 2K/WiFi/GPS
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Drone Syma W3 Câmera 2K/WiFi/GPS: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Drone Syma W3 Câmera 2K/WiFi/GPS: undefined
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Drone Syma W3 Câmera 2K/WiFi/GPS: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Gamepad para Smartphone GameSir G8 Galileo Type-C:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-30T15:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Sat Aug 30 2025 12:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Gamepad para Smartphone GameSir G8 Galileo Type-C
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Gamepad para Smartphone GameSir G8 Galileo Type-C
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Gamepad para Smartphone GameSir G8 Galileo Type-C: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Gamepad para Smartphone GameSir G8 Galileo Type-C: undefined
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Gamepad para Smartphone GameSir G8 Galileo Type-C: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Monitor para Selfie Kingma VL-PH01:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-12-30T15:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Tue Dec 30 2025 12:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Monitor para Selfie Kingma VL-PH01
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Monitor para Selfie Kingma VL-PH01
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Monitor para Selfie Kingma VL-PH01: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Monitor para Selfie Kingma VL-PH01: undefined
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Monitor para Selfie Kingma VL-PH01: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Gimbal Portátil FeiyuTech VB-4 para Smartphone:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: null
+product-card.tsx:79    scratchExpiresAtParsed: null
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Gimbal Portátil FeiyuTech VB-4 para Smartphone
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Gimbal Portátil FeiyuTech VB-4 para Smartphone
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Gimbal Portátil FeiyuTech VB-4 para Smartphone: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Gimbal Portátil FeiyuTech VB-4 para Smartphone: undefined
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Gimbal Portátil FeiyuTech VB-4 para Smartphone: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-29T15:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Fri Aug 29 2025 12:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone: undefined
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - MacBook Pro M3:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-28T16:23:04.093Z
+product-card.tsx:79    scratchExpiresAtParsed: Thu Aug 28 2025 13:23:04 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: true
+product-card.tsx:82    finalCondition: false
+product-card.tsx:83    willShowScratchCard: false
+product-card.tsx:84    ---
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Máscara para Cílios Maybelline Sky High 6mL:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-28T02:50:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Wed Aug 27 2025 23:50:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: true
+product-card.tsx:82    finalCondition: false
+product-card.tsx:83    willShowScratchCard: false
+product-card.tsx:84    ---
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Perfume Lancôme La Vie est Belle EDP 100mL:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-28T18:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Thu Aug 28 2025 15:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:15 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: true
+product-card.tsx:82    finalCondition: false
+product-card.tsx:83    willShowScratchCard: false
+product-card.tsx:84    ---
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Smartphone Blackview N6000 8GB/256GB
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Smartphone Blackview N6000 8GB/256GB: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Smartphone Blackview N6000 8GB/256GB: {}
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Smartphone Blackview N6000 8GB/256GB: Object
+scratch-card.tsx:404 🎯 RENDER DECISION para Smartphone Blackview N6000 8GB/256GB: Object
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Speaker Amazon Echo Dot com Alexa 5ª Geração
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Speaker Amazon Echo Dot com Alexa 5ª Geração: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Speaker Amazon Echo Dot com Alexa 5ª Geração: {}
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Speaker Amazon Echo Dot com Alexa 5ª Geração: Object
+scratch-card.tsx:404 🎯 RENDER DECISION para Speaker Amazon Echo Dot com Alexa 5ª Geração: Object
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Drone Syma W3 Câmera 2K/WiFi/GPS
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Drone Syma W3 Câmera 2K/WiFi/GPS: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Drone Syma W3 Câmera 2K/WiFi/GPS: {}
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Drone Syma W3 Câmera 2K/WiFi/GPS: Object
+scratch-card.tsx:404 🎯 RENDER DECISION para Drone Syma W3 Câmera 2K/WiFi/GPS: Object
+mbp14-m3-pro-max-spgray-select-202310:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Gamepad para Smartphone GameSir G8 Galileo Type-C
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Gamepad para Smartphone GameSir G8 Galileo Type-C: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Gamepad para Smartphone GameSir G8 Galileo Type-C: {}
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Gamepad para Smartphone GameSir G8 Galileo Type-C: Object
+scratch-card.tsx:404 🎯 RENDER DECISION para Gamepad para Smartphone GameSir G8 Galileo Type-C: Object
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Monitor para Selfie Kingma VL-PH01
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Monitor para Selfie Kingma VL-PH01: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Monitor para Selfie Kingma VL-PH01: {}
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Monitor para Selfie Kingma VL-PH01: Object
+scratch-card.tsx:404 🎯 RENDER DECISION para Monitor para Selfie Kingma VL-PH01: Object
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Gimbal Portátil FeiyuTech VB-4 para Smartphone
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Gimbal Portátil FeiyuTech VB-4 para Smartphone: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Gimbal Portátil FeiyuTech VB-4 para Smartphone: {}
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Gimbal Portátil FeiyuTech VB-4 para Smartphone: Object
+scratch-card.tsx:404 🎯 RENDER DECISION para Gimbal Portátil FeiyuTech VB-4 para Smartphone: Object
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone: {}
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone: Object
+scratch-card.tsx:404 🎯 RENDER DECISION para Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Smartphone Blackview N6000 8GB/256GB:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2026-01-28T15:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Wed Jan 28 2026 12:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:16 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Smartphone Blackview N6000 8GB/256GB
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Smartphone Blackview N6000 8GB/256GB
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Smartphone Blackview N6000 8GB/256GB: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Smartphone Blackview N6000 8GB/256GB: {}
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Smartphone Blackview N6000 8GB/256GB: Object
+scratch-card.tsx:404 🎯 RENDER DECISION para Smartphone Blackview N6000 8GB/256GB: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Speaker Amazon Echo Dot com Alexa 5ª Geração:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-29T09:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Fri Aug 29 2025 06:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:16 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Speaker Amazon Echo Dot com Alexa 5ª Geração
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Speaker Amazon Echo Dot com Alexa 5ª Geração
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Speaker Amazon Echo Dot com Alexa 5ª Geração: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Speaker Amazon Echo Dot com Alexa 5ª Geração: {}
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Speaker Amazon Echo Dot com Alexa 5ª Geração: Object
+scratch-card.tsx:404 🎯 RENDER DECISION para Speaker Amazon Echo Dot com Alexa 5ª Geração: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Drone Syma W3 Câmera 2K/WiFi/GPS:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-28T21:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Thu Aug 28 2025 18:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:16 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Drone Syma W3 Câmera 2K/WiFi/GPS
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Drone Syma W3 Câmera 2K/WiFi/GPS
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Drone Syma W3 Câmera 2K/WiFi/GPS: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Drone Syma W3 Câmera 2K/WiFi/GPS: {}
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Drone Syma W3 Câmera 2K/WiFi/GPS: Object
+scratch-card.tsx:404 🎯 RENDER DECISION para Drone Syma W3 Câmera 2K/WiFi/GPS: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Gamepad para Smartphone GameSir G8 Galileo Type-C:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-30T15:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Sat Aug 30 2025 12:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:16 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Gamepad para Smartphone GameSir G8 Galileo Type-C
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Gamepad para Smartphone GameSir G8 Galileo Type-C
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Gamepad para Smartphone GameSir G8 Galileo Type-C: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Gamepad para Smartphone GameSir G8 Galileo Type-C: {}
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Gamepad para Smartphone GameSir G8 Galileo Type-C: Object
+scratch-card.tsx:404 🎯 RENDER DECISION para Gamepad para Smartphone GameSir G8 Galileo Type-C: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Monitor para Selfie Kingma VL-PH01:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-12-30T15:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Tue Dec 30 2025 12:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:16 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Monitor para Selfie Kingma VL-PH01
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Monitor para Selfie Kingma VL-PH01
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Monitor para Selfie Kingma VL-PH01: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Monitor para Selfie Kingma VL-PH01: {}
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Monitor para Selfie Kingma VL-PH01: Object
+scratch-card.tsx:404 🎯 RENDER DECISION para Monitor para Selfie Kingma VL-PH01: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Gimbal Portátil FeiyuTech VB-4 para Smartphone:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: null
+product-card.tsx:79    scratchExpiresAtParsed: null
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:16 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Gimbal Portátil FeiyuTech VB-4 para Smartphone
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Gimbal Portátil FeiyuTech VB-4 para Smartphone
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Gimbal Portátil FeiyuTech VB-4 para Smartphone: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Gimbal Portátil FeiyuTech VB-4 para Smartphone: {}
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Gimbal Portátil FeiyuTech VB-4 para Smartphone: Object
+scratch-card.tsx:404 🎯 RENDER DECISION para Gimbal Portátil FeiyuTech VB-4 para Smartphone: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-29T15:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Fri Aug 29 2025 12:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:16 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: false
+product-card.tsx:82    finalCondition: true
+product-card.tsx:83    willShowScratchCard: true
+product-card.tsx:84    ---
+product-card.tsx:89 🚀 RENDERIZANDO SCRATCHCARD para: Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone
+scratch-card.tsx:25 🎨 SCRATCHCARD INICIADO para: Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone
+scratch-card.tsx:50 🔍 ELIGIBILITY DEBUG para Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone: Object
+scratch-card.tsx:58 🧪 DETAILED ELIGIBILITY para Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone: {}
+scratch-card.tsx:71 🖼️ CANVAS DEBUG para Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone: Object
+scratch-card.tsx:404 🎯 RENDER DECISION para Gimbal Portátil FeiyuTech Scorp Mini P para Smartphone: Object
+product-card.tsx:76 🔍 DEBUG RASPADINHA - MacBook Pro M3:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-28T16:23:04.093Z
+product-card.tsx:79    scratchExpiresAtParsed: Thu Aug 28 2025 13:23:04 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:16 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: true
+product-card.tsx:82    finalCondition: false
+product-card.tsx:83    willShowScratchCard: false
+product-card.tsx:84    ---
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Máscara para Cílios Maybelline Sky High 6mL:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-28T02:50:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Wed Aug 27 2025 23:50:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:16 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: true
+product-card.tsx:82    finalCondition: false
+product-card.tsx:83    willShowScratchCard: false
+product-card.tsx:84    ---
+product-card.tsx:76 🔍 DEBUG RASPADINHA - Perfume Lancôme La Vie est Belle EDP 100mL:
+product-card.tsx:77    isScratchCard: true
+product-card.tsx:78    scratchExpiresAt: 2025-08-28T18:00:00.000Z
+product-card.tsx:79    scratchExpiresAtParsed: Thu Aug 28 2025 15:00:00 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:80    now: Thu Aug 28 2025 17:38:16 GMT-0300 (Hora padrão do Paraguai)
+product-card.tsx:81    isExpired: true
+product-card.tsx:82    finalCondition: false
+product-card.tsx:83    willShowScratchCard: false
+product-card.tsx:84    ---
