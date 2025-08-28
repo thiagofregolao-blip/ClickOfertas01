@@ -69,8 +69,7 @@ export default function ProductCard({
 
   // Verificar se é uma raspadinha ativa
   const isScratchCard = product.isScratchCard && 
-    product.scratchExpiresAt && 
-    new Date(product.scratchExpiresAt) > new Date();
+    (!product.scratchExpiresAt || new Date(product.scratchExpiresAt) > new Date());
 
   // Se for raspadinha, mostrar ScratchCard
   if (isScratchCard) {
