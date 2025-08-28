@@ -848,7 +848,6 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
         </div>
       </div>
-      <CouponModal />
     </>
   );
 }
