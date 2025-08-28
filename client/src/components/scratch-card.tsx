@@ -45,11 +45,12 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const { toast } = useToast();
 
   // Query para verificar elegibilidade
-  const { data: eligibility, refetch: checkEligibility } = useQuery({
+  const { data: eligibility, refetch: checkEligibility, isLoading, error } = useQuery({
     queryKey: ['/api/scratch/offers', product.id, 'eligibility'],
     queryFn: () => apiRequest(`/api/scratch/offers/${product.id}/eligibility`),
     retry: false,
   });
+
   
   // FASE 1: AudioContext otimizado
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -836,8 +837,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Função para renderizar diferentes estados baseado na elegibilidade
   const renderCardState = () => {
-    // Se ainda não carregou elegibilidade, mostrar loading
-    if (!eligibility || typeof eligibility !== 'object') {
+    // Se ainda está carregando, mostrar loading
+    if (isLoading) {
       return (
         <div className="relative isolate z-10 bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-gray-300 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] select-none">
           <div className="p-4 relative h-full w-full flex flex-col justify-center items-center">
@@ -846,6 +847,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           </div>
         </div>
       );
+    }
+
+    // Se deu erro, mostrar como elegível (fallback)
+    if (error || !eligibility) {
+      return renderScratchCard();
     }
 
     // Se já tem cupom ativo
@@ -983,6 +989,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     }
 
     // Se elegível (estado normal da raspadinha)
+    return renderScratchCard();
+  };
+
+  // Função separada para renderizar card de raspadinha
+  const renderScratchCard = () => {
     return (
       <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
         <div className="p-0 relative h-full w-full overflow-hidden">
