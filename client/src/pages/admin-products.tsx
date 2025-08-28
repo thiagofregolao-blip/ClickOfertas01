@@ -89,8 +89,8 @@ export default function AdminProducts() {
       isScratchCard: false,
       scratchPrice: "",
       scratchExpiresAt: "",
-      scratchTimeLimitMinutes: "60",
-      maxScratchRedemptions: "10",
+      scratchTimeLimitMinutes: 60,
+      maxScratchRedemptions: 10,
       scratchMessage: "Você ganhou um super desconto! Raspe aqui e confira",
     },
   });
@@ -142,6 +142,12 @@ export default function AdminProducts() {
         imageUrl3: "",
         isFeatured: false,
         isActive: true,
+        isScratchCard: false,
+        scratchPrice: "",
+        scratchExpiresAt: "",
+        scratchTimeLimitMinutes: 60,
+        maxScratchRedemptions: 10,
+        scratchMessage: "Você ganhou um super desconto! Raspe aqui e confira",
       });
     },
     onError: (error) => {
@@ -706,8 +712,8 @@ export default function AdminProducts() {
                           <div className="space-y-2">
                             <Label htmlFor="scratch-time-limit" className="text-gray-700 font-medium">Tempo Limite (minutos)</Label>
                             <Select
-                              value={form.watch("scratchTimeLimitMinutes") || "60"}
-                              onValueChange={(value) => form.setValue("scratchTimeLimitMinutes", value)}
+                              value={form.watch("scratchTimeLimitMinutes")?.toString() || "60"}
+                              onValueChange={(value) => form.setValue("scratchTimeLimitMinutes", parseInt(value))}
                             >
                               <SelectTrigger className="border-gray-300 focus:border-orange-500">
                                 <SelectValue />
@@ -741,8 +747,8 @@ export default function AdminProducts() {
                           <div className="space-y-2">
                             <Label htmlFor="max-redemptions" className="text-gray-700 font-medium">Máximo de Raspagens</Label>
                             <Select
-                              value={form.watch("maxScratchRedemptions") || "10"}
-                              onValueChange={(value) => form.setValue("maxScratchRedemptions", value)}
+                              value={form.watch("maxScratchRedemptions")?.toString() || "10"}
+                              onValueChange={(value) => form.setValue("maxScratchRedemptions", parseInt(value))}
                             >
                               <SelectTrigger className="border-gray-300 focus:border-orange-500">
                                 <SelectValue />
