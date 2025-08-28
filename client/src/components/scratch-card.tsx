@@ -108,8 +108,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       if (error.message.includes('401') || error.message.includes('Unauthorized')) {
         toast({
           title: "🔐 Cadastro necessário",
-          description: "Para pegar este cupom exclusivo, faça seu cadastro! Redirecionando...",
-          duration: 3000,
+          description: "Para pegar este cupom exclusivo, faça seu cadastro! Redirecionando... (Use aba incógnita para testar como usuário novo)",
+          duration: 4000,
         });
         
         // Redirecionar diretamente após 3 segundos
