@@ -1,0 +1,219 @@
+perfeito — li tudo. segue uma revisão direta, separando erros/risco (quebra hoje) de melhorias priorizadas (ganho rápido) e ajustes estruturais (solidificar campanha/aleatoriedade).
+
+Sumário Executivo
+
+Estado atual funciona, mas há inconsistências entre front/back/schema que podem causar comportamentos errados em produção (principalmente elegibilidade, timers e geração de cupom).
+
+Os maiores pontos: rota faltando no back usada pelo front, loop rAF sem desligar, status/TTL confusos entre campanha, offer, e cupom, e concorrência no limite de cupons por produto.
+
+A. Problemas que quebram (bugs/imprecisões)
+
+Rota inexistente usada no front
+
+O front chama POST /api/products/:id/scratch (via scratchMutation) ao revelar, mas essa rota não existe nas rotas do back mostradas.
+
+Efeitos: o front espera expiresAt para o “timer” após revelar, mas nunca recebe; além disso, o timeLeft setado não é exibido em lugar nenhum.
+
+Query de elegibilidade sem queryFn
+
+useQuery({ queryKey, retry:false }) sem queryFn. A menos que você tenha um defaultQueryFn global, essa query não busca nada.
+
+Em seguida você chama checkEligibility() (refetch) no onError do cupom — que não terá efeito sem queryFn.
+
+rAF loop nunca é cancelado
+
+startProgressLoop() cria um requestAnimationFrame que permanece rodando mesmo após reveal/unmount.
+
+Efeitos: consumo de CPU/bateria e possíveis setState em componente desmontado.
+
+Modal “gerar cupom” não existe
+
+Você usa onClick={() => isRevealed && setShowModal(true)}, mas não há modal controlado por showModal.
+
+Apenas há o modal de cupom gerado (showCouponModal). Resultado: clique pós-reveal não abre nada.
+
+Status/TTL trocados
+
+scratchOffers.expiresAt é setado com product.scratchExpiresAt (fim da campanha/raspadinha do produto), enquanto o timer esperado pelo front (após raspar) é um TTL curto (ex.: 30–120 min).
+
+Consequência: o usuário pode ficar preso em “tem ativo” até o fim da campanha, ignorando cooldown de 24h. A lógica conflita com a regra de “1 por dia”.
+
+Campos numéricos armazenados como varchar
+
+maxScratchRedemptions e currentScratchRedemptions são varchar. O back faz parseInt e faz update não atômico.
+
+Risco: corridas de concorrência (duas requisições simultâneas), valores inválidos, conversão custosa.
+
+Incremento de contador não atômico
+
+Fluxo: lê current, compara com max, gera cupom, depois update(current+1).
+
+Sem transação/condição no WHERE, duas requisições podem estourar quota.
+
+Elegibilidade de guests sempre eligible:true
+
+GET /eligibility retorna eligible:true para não logados. No front isso faz aparecer sempre, mas o POST /generate-coupon exige login → UX de frustração + refresh loop no flyer.
+
+Recursos não limpos
+
+AudioContext nunca é suspended/closed na desmontagem → consumo de recursos.
+
+Resize não observado → canvas não reconfigura ao mudar layout/rotação.
+
+Botões com handlers vazios
+
+“Baixar PDF” e “Compartilhar” com stubs. Em produção, isso se torna “botão morto”.
+
+B. Melhorias rápidas (baixo esforço, alto impacto)
+
+Unificar o momento de geração
+
+Opção A (mais simples): Gerar cupom ao atingir 70% (no reveal) e abrir o modal já com os dados — elimina o “clique extra”.
+
+Opção B: manter clique, mas criar o modal controlado por showModal com CTA “Gerar cupom”.
+
+Corrigir a consulta de elegibilidade
+
+Adicionar queryFn (ou garantir defaultQueryFn). Sem isso, toda a UI de eligible/cooldown/hasActive perde sentido.
+
+Garantir revalidação após generate-coupon (refetch) para mostrar estado “Resgatado”.
+
+Parar o loop rAF e fechar áudio
+
+Cancelar rAF:
+
+ao reveal, ao desmontar, e quando não está raspando por algum tempo;
+
+audioCtxRef.current?.suspend() no blur/inatividade e close() no unmount.
+
+Pointer-events no overlay pós-reveal
+
+Depois do fade-out do canvas, colocar pointer-events:none para o clique passar para o container (e abrir modal/CTA).
+
+Mensagens claras para guest
+
+Se guestMode:true, renderizar selo “Faça login para pegar o cupom”. Evita atrito de raspar e só depois ser redirecionado.
+
+Timer coerente com negócio
+
+Definir dois tempos distintos:
+
+TTL de reveal (ex.: 30–60 min) → fica em scratchOffers.expiresAt.
+
+Validade do cupom (ex.: 30 dias) → fica em coupons.expiresAt.
+
+O front deve exibir ambos nas telas corretas (timer curto na raspadinha; validade longa no cupom).
+
+Índices essenciais
+
+scratch_offers (user_id, product_id, created_at desc)
+
+coupons (user_id, created_at desc)
+
+(opcional) products (store_id, is_scratch_card)
+
+UX de fallback
+
+Se quota acabou no meio do reveal: mensagem “Cupons esgotados” com CTA para ver outros produtos/seguir loja.
+
+C. Ajustes estruturais (para robustez)
+
+Estado e enum de scratchOffers
+
+Trocar enum ["available", "revealed"] por algo completo:
+
+"eligible" | "revealed" | "expired" | "redeemed"
+
+Atualizar rotas para respeitar cooldown e não bloquear após 24h por conta de revealed antigo (quando o negócio permitir).
+
+Separar Campanha do Produto
+
+Hoje scratchExpiresAt vive no produto e “quota” também. Para campanhas pontuais, criar campaigns:
+
+campaign(id, productId, startAt, endAt, couponQuota, remaining, revealTtlSec, maxPerUser=1, showProbability, …)
+
+scratchOffers e coupons referenciam campaignId.
+
+Isso resolve: várias campanhas no mesmo produto, métricas limpas e o requisito “voltar ao preço normal ao fim”.
+
+Exibição aleatória estável
+
+No GET /eligibility, decidir show com hash estável HMAC(userId|anonId + campaignId + dia) e/ou pacing por slots para distribuir quota no tempo.
+
+Assim o card não some/aparece a cada refresh e não queima toda quota no começo.
+
+Concorrência e atomicidade
+
+Em POST /generate-coupon:
+
+Rodar tudo em transação;
+
+Decrementar remainingCoupons/current com condição no WHERE (remaining > 0) e retornar 409 se esgotado;
+
+Garantir 1 cupom por usuário/campanha com índice único lógico (ex.: (userId, campaignId) enquanto usedAt IS NULL).
+
+Guest flow consistente
+
+Se permitir raspar como guest, garanta um anonId (cookie httpOnly) para:
+
+estabilidade do “random” por pessoa,
+
+impedir reexibições,
+
+converter para userId ao logar (linkar offers/coupons).
+
+Alternativa: pedir login antes do reveal.
+
+IP/Proxy
+
+Se estiver atrás de proxy/CDN, configurar app.set('trust proxy', true) para IP correto em req.ip.
+
+D. Coisas menores (mas boas)
+
+Remover imports não usados (jsPDF, formatBrazilianPrice) ou implementar suas funções (PDF/share).
+
+toLocaleString() e data/hora: fixar America/Asuncion para coerência na exibição.
+
+Adicionar ResizeObserver para redesenhar o canvas quando o card mudar de tamanho (grid responsivo/rotação).
+
+Garantir que imagens não são desenhadas no canvas (você não desenha, bom) → evita “taint” do canvas.
+
+Adicionar logs estruturados (campos fixos) para auditar reveal/coupon.
+
+Rate limiting fino nas rotas de elegibilidade e generate.
+
+E. Critérios de aceite práticos (para validar correções)
+
+Front
+
+Elegibilidade busca e muda UI entre: “Raspe”, “Resgatado”, “Cooldown”, “Login necessário”.
+
+rAF para quando isRevealed === true e no unmount.
+
+Após reveal, clique abre modal (ou cupom abre direto).
+
+Back
+
+Com 2 requisições simultâneas no mesmo produto, nunca gera 2 cupons se quota=1.
+
+Cooldown de 24h respeitado mesmo com refresh.
+
+Fim de campanha → card some; cupom já emitido continua válido até seu expiresAt (ou regra definida).
+
+Dados
+
+Índices criados; números são integer; sem strings para contadores.
+
+Prioridade (ordem sugerida)
+
+Corrigir queryFn da elegibilidade e remover/alinhar scratchMutation (ou criar rota correspondente).
+
+Parar rAF/fechar áudio no unmount/reveal; pointer-events:none no canvas pós-reveal; implementar modal de ação.
+
+Ajustar TTL: scratchOffers.expiresAt = reveal TTL (curto) e coupons.expiresAt = validade longa.
+
+Tornar max/current redemptions inteiro e implementar update atômico + transação.
+
+Ajustar eligibility para aleatoriedade estável e regra de campanha/horário.
+
+(Estrutural) Introduzir Campaign se for rodar múltiplas janelas por produto.
