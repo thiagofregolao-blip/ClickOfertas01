@@ -67,26 +67,8 @@ export default function ProductCard({
     }
   };
 
-  // Verificar se é uma raspadinha ativa
-  const isScratchCard = product.isScratchCard && 
-    product.scratchExpiresAt && 
-    new Date(product.scratchExpiresAt) > new Date();
-
-  // Se for raspadinha, mostrar ScratchCard
-  if (isScratchCard) {
-    return (
-      <ScratchCard
-        product={product}
-        currency={currency}
-        themeColor={themeColor}
-        onClick={onClick}
-        onRevealed={() => {
-          // Atualizar produto revelado se necessário
-          console.log('Produto raspado:', product.name);
-        }}
-      />
-    );
-  }
+  // CORRIGIDO: Produto original SEMPRE aparece normal
+  // Clones virtuais são exibidos separadamente no flyer
 
   const productContent = (
     <div 

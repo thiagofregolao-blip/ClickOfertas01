@@ -953,6 +953,66 @@ export class DatabaseStorage implements IStorage {
     return createdClones;
   }
 
+  // NOVO: Buscar todos os clones virtuais disponíveis de um usuário
+  async getUserAvailableClones(userId: string): Promise<VirtualScratchCloneWithDetails[]> {
+    const clones = await db
+      .select({
+        id: virtualScratchClones.id,
+        campaignId: virtualScratchClones.campaignId,
+        productId: virtualScratchClones.productId,
+        storeId: virtualScratchClones.storeId,
+        assignedUserId: virtualScratchClones.assignedUserId,
+        productName: virtualScratchClones.productName,
+        productDescription: virtualScratchClones.productDescription,
+        originalPrice: virtualScratchClones.originalPrice,
+        discountPrice: virtualScratchClones.discountPrice,
+        productImageUrl: virtualScratchClones.productImageUrl,
+        productCategory: virtualScratchClones.productCategory,
+        isUsed: virtualScratchClones.isUsed,
+        isExpired: virtualScratchClones.isExpired,
+        notificationSent: virtualScratchClones.notificationSent,
+        usedAt: virtualScratchClones.usedAt,
+        expiresAt: virtualScratchClones.expiresAt,
+        createdAt: virtualScratchClones.createdAt,
+        campaign: {
+          id: scratchCampaigns.id,
+          title: scratchCampaigns.title,
+          description: scratchCampaigns.description,
+          discountPercentage: scratchCampaigns.discountPercentage,
+        },
+        product: {
+          id: products.id,
+          name: products.name,
+          description: products.description,
+          price: products.price,
+          imageUrl: products.imageUrl,
+          category: products.category,
+        },
+        store: {
+          id: stores.id,
+          name: stores.name,
+          logoUrl: stores.logoUrl,
+          themeColor: stores.themeColor,
+          currency: stores.currency,
+          whatsapp: stores.whatsapp,
+          slug: stores.slug,
+        },
+      })
+      .from(virtualScratchClones)
+      .leftJoin(scratchCampaigns, eq(virtualScratchClones.campaignId, scratchCampaigns.id))
+      .leftJoin(products, eq(virtualScratchClones.productId, products.id))
+      .leftJoin(stores, eq(virtualScratchClones.storeId, stores.id))
+      .where(and(
+        eq(virtualScratchClones.assignedUserId, userId),
+        eq(virtualScratchClones.isUsed, false),
+        eq(virtualScratchClones.isExpired, false),
+        gte(virtualScratchClones.expiresAt, new Date())
+      ))
+      .orderBy(virtualScratchClones.createdAt);
+
+    return clones as VirtualScratchCloneWithDetails[];
+  }
+
   async getUserAvailableClone(userId: string, productId: string): Promise<VirtualScratchCloneWithDetails | undefined> {
     const [clone] = await db
       .select({

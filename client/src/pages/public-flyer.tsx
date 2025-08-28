@@ -7,6 +7,7 @@ import { Share, Download, Printer, MoreVertical, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import ProductCard from "@/components/product-card";
+import ScratchCard from "@/components/scratch-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import FlyerHeader from "@/components/flyer-header";
 import FlyerFooter from "@/components/flyer-footer";
@@ -15,6 +16,7 @@ import type { StoreWithProducts, Product } from "@shared/schema";
 import { InstagramStories } from "@/components/instagram-stories";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAppVersion } from "@/hooks/use-mobile";
+import { useAuth } from "@/hooks/useAuth";
 
 /**
  * Página Pública dos Panfletos - Suporta duas versões:
@@ -45,6 +47,7 @@ export default function PublicFlyer() {
   const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set());
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedStore, setSelectedStore] = useState<StoreWithProducts | null>(null);
+  const { isAuthenticated } = useAuth();
 
   // Log da versão e modo de acesso (para desenvolvimento)
   useEffect(() => {
@@ -83,6 +86,14 @@ export default function PublicFlyer() {
     refetchOnMount: false,
     refetchOnReconnect: false, // Evita refetch desnecessário
     enabled: isStoriesView, // Só busca quando é stories
+  });
+
+  // NOVO: Buscar clones virtuais disponíveis para usuário autenticado
+  const { data: virtualClones = [] } = useQuery<any[]>({
+    queryKey: ['/api/virtual-clones/user'],
+    enabled: isAuthenticated, // Só busca se autenticado
+    staleTime: 60_000, // Cache por 1 minuto
+    retry: false, // Não retry se não autenticado
   });
 
   // Registrar visualização do panfleto/loja quando carregado
@@ -458,171 +469,123 @@ export default function PublicFlyer() {
           )}
 
           {/* Products Grid */}
-          {filteredProducts.length > 0 ? (
+          {filteredProducts.length > 0 || virtualClones.length > 0 ? (
             storeParams ? (
               // Layout moderno para páginas de loja individual (/stores/:slug)
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {/* PRODUTOS ORIGINAIS */}
                 {filteredProducts.map((product) => (
-                  <div key={product.id} className="relative bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 group">
-                    {/* Engagement Buttons */}
-                    <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const isCurrentlyLiked = likedProducts.has(product.id);
-                          
-                          // Alternar like/unlike
-                          setLikedProducts(prev => {
-                            const newSet = new Set(prev);
-                            if (newSet.has(product.id)) {
-                              newSet.delete(product.id); // Descurtir
-                            } else {
-                              newSet.add(product.id); // Curtir
-                            }
-                            return newSet;
-                          });
-                          
-                          // Criar animação de coração apenas quando curtir
-                          if (!isCurrentlyLiked) {
-                            // Simular createHeart aqui - você pode importar createHeart do hook se precisar
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const heartElement = document.createElement('div');
-                            heartElement.innerHTML = '❤️';
-                            heartElement.style.position = 'fixed';
-                            heartElement.style.left = (e.clientX - 10) + 'px';
-                            heartElement.style.top = (e.clientY - 10) + 'px';
-                            heartElement.style.fontSize = '20px';
-                            heartElement.style.pointerEvents = 'none';
-                            heartElement.style.zIndex = '9999';
-                            heartElement.style.animation = 'heartFloat 1.5s ease-out forwards';
-                            document.body.appendChild(heartElement);
-                            
-                            setTimeout(() => {
-                              document.body.removeChild(heartElement);
-                            }, 1500);
-                          }
-                          
-                          fetch(`/api/products/${product.id}/like`, { method: 'POST' });
-                        }}
-                        className="bg-white/90 hover:bg-white backdrop-blur-sm p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
-                        title={likedProducts.has(product.id) ? "Descurtir produto" : "Curtir produto"}
-                      >
-                        <svg className={`w-4 h-4 ${likedProducts.has(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} fill={likedProducts.has(product.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          fetch(`/api/products/${product.id}/save`, { method: 'POST' })
-                            .then(res => res.ok ? alert('Produto salvo!') : alert('Faça login para salvar'));
-                        }}
-                        className="bg-white/90 hover:bg-white backdrop-blur-sm p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
-                        title="Salvar produto"
-                      >
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                        </svg>
-                      </button>
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    currency={store?.currency || "USD"}
+                    themeColor={store?.themeColor || "#E11D48"}
+                    showFeaturedBadge={true}
+                    enableEngagement={true}
+                    onClick={(product) => {
+                      setSelectedProduct(product);
+                      setSelectedStore(store || null);
+                    }}
+                  />
+                ))}
+                
+                {/* CLONES VIRTUAIS - aparecem como raspadinhas com badge */}
+                {virtualClones.map((clone) => (
+                  <div key={`clone-${clone.id}`} className="relative">
+                    {/* Badge Clone Virtual */}
+                    <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                      Clone Virtual
                     </div>
-                    {/* Nome do produto - TOPO */}
-                    <div className="p-4 pt-12 bg-gradient-to-r from-gray-50 to-gray-100 border-b">
-                      <h3 className="font-bold text-lg text-gray-800 text-center line-clamp-2 min-h-[3.5rem] flex items-center justify-center">
-                        {product.name}
-                      </h3>
-                      {product.isFeatured && (
-                        <div className="flex justify-center mt-2">
-                          <span className="bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs px-3 py-1 rounded-full shadow-md">
-                            ⭐ Produto em Destaque
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Imagem do produto - CENTRO */}
-                    <div className="relative h-56 bg-gray-100">
-                      {product.imageUrl ? (
-                        <img 
-                          src={product.imageUrl}
-                          alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                          <span className="text-6xl">📦</span>
-                        </div>
-                      )}
-                      {product.category && (
-                        <div className="absolute top-3 left-3">
-                          <span className="bg-white/95 backdrop-blur-sm text-sm px-3 py-1 rounded-full text-gray-700 shadow-md border">
-                            {product.category}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Descrição e preço - PARTE INFERIOR */}
-                    <div className="p-6 bg-white">
-                      {product.description && (
-                        <p className="text-gray-600 mb-4 line-clamp-3 leading-relaxed">
-                          {product.description}
-                        </p>
-                      )}
-                      
-                      {/* Preço e botão WhatsApp */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-2xl font-bold text-gray-900">
-                            {store.currency || "Gs."} {Number(product.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </span>
-                        </div>
-                        
-                        {/* Botão WhatsApp */}
-                        {store.whatsapp && (
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              const message = encodeURIComponent(
-                                `🛍️ Olá! Tenho interesse no produto:\n\n*${product.name}*\n\nPreço: ${store.currency || "Gs."} ${Number(product.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n\nPoderia me dar mais informações?`
-                              );
-                              const whatsappNumber = store.whatsapp!.replace(/\D/g, '');
-                              const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
-                              window.open(whatsappUrl, '_blank');
-                            }}
-                            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2 relative z-10 cursor-pointer"
-                            title="Perguntar no WhatsApp"
-                            data-testid={`whatsapp-product-${product.id}`}
-                          >
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
-                            </svg>
-                            <span className="hidden sm:inline">WhatsApp</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                    <ScratchCard
+                      product={{
+                        id: clone.productId,
+                        name: clone.productName,
+                        description: clone.productDescription,
+                        price: clone.originalPrice,
+                        discountPrice: clone.discountPrice,
+                        imageUrl: clone.productImageUrl,
+                        category: clone.productCategory,
+                        storeId: clone.storeId,
+                        isActive: true,
+                        isFeatured: false,
+                        showInStories: false,
+                        isScratchCard: false, // IMPORTANTE: produto do clone não é scratch card
+                        scratchMessage: "Você ganhou um desconto especial!",
+                        scratchDiscountPrice: clone.discountPrice,
+                        scratchExpiresAt: clone.expiresAt,
+                        scratchCouponCode: `CLONE-${clone.id}`,
+                        createdAt: clone.createdAt,
+                        updatedAt: clone.createdAt
+                      }}
+                      currency={store?.currency || "USD"}
+                      themeColor={store?.themeColor || "#E11D48"}
+                      onClick={(product) => {
+                        setSelectedProduct(product);
+                        setSelectedStore(store || null);
+                      }}
+                    />
                   </div>
                 ))}
               </div>
             ) : (
-              // Layout original para flyers normais (/flyer/:slug)
+              // Layout compacto para tela cheia (/flyer/:slug)
               <div className={`grid gap-${isStoriesView ? '6' : '3'} ${
                 isStoriesView 
                   ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
                   : 'grid-cols-3 md:grid-cols-4 lg:grid-cols-6'
               }`}>
+                {/* PRODUTOS ORIGINAIS */}
                 {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id}
                     product={product}
-                    currency={store.currency || "Gs."}
-                    themeColor={store.themeColor || "#E11D48"}
+                    currency={store?.currency || "Gs."}
+                    themeColor={store?.themeColor || "#E11D48"}
                     showFeaturedBadge={product.isFeatured || false}
                     enableEngagement={true}
-                    onClick={(product) => setSelectedProduct(product)}
-                    customUsdBrlRate={store.customUsdBrlRate ? Number(store.customUsdBrlRate) : undefined}
+                    onClick={(product) => {
+                      setSelectedProduct(product);
+                      setSelectedStore(store || null);
+                    }}
+                    customUsdBrlRate={store?.customUsdBrlRate ? Number(store.customUsdBrlRate) : undefined}
                   />
+                ))}
+                
+                {/* CLONES VIRTUAIS - aparecem como raspadinhas com badge */}
+                {virtualClones.map((clone) => (
+                  <div key={`clone-${clone.id}`} className="relative">
+                    {/* Badge Clone Virtual */}
+                    <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                      Clone Virtual
+                    </div>
+                    <ScratchCard
+                      product={{
+                        id: clone.productId,
+                        name: clone.productName,
+                        description: clone.productDescription,
+                        price: clone.originalPrice,
+                        imageUrl: clone.productImageUrl,
+                        category: clone.productCategory,
+                        storeId: clone.storeId,
+                        isActive: true,
+                        isFeatured: false,
+                        showInStories: false,
+                        isScratchCard: false, // IMPORTANTE: produto do clone não é scratch card
+                        scratchMessage: "Você ganhou um desconto especial!",
+                        scratchDiscountPrice: clone.discountPrice,
+                        scratchExpiresAt: clone.expiresAt,
+                        scratchCouponCode: `CLONE-${clone.id}`,
+                        createdAt: clone.createdAt,
+                        updatedAt: clone.createdAt
+                      }}
+                      currency={store?.currency || "USD"}
+                      themeColor={store?.themeColor || "#E11D48"}
+                      onClick={(product) => {
+                        setSelectedProduct(product);
+                        setSelectedStore(store || null);
+                      }}
+                    />
+                  </div>
                 ))}
               </div>
             )

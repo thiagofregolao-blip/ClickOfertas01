@@ -1107,7 +1107,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 4. Buscar clone virtual disponível do usuário para um produto específico
+  // 4. Buscar todos os clones virtuais disponíveis do usuário
+  app.get('/api/virtual-clones/user', async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      const clones = await storage.getUserAvailableClones(userId);
+
+      res.json({
+        clones
+      });
+    } catch (error) {
+      console.error("Error fetching user clones:", error);
+      res.status(500).json({ message: "Erro ao buscar clones do usuário" });
+    }
+  });
+
+  // 5. Buscar clone virtual disponível do usuário para um produto específico
   app.get('/api/virtual-clones/:productId/user', async (req: any, res) => {
     try {
       const { productId } = req.params;
