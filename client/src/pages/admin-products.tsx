@@ -29,6 +29,8 @@ const productFormSchema = insertProductSchema.extend({
   price: z.string().min(1, "Preço é obrigatório"),
   scratchPrice: z.string().optional(),
   scratchExpiresAt: z.string().optional(),
+  scratchTimeLimitMinutes: z.number().optional(),
+  maxScratchRedemptions: z.number().optional(),
 });
 
 type ProductFormData = z.infer<typeof productFormSchema>;
@@ -76,7 +78,7 @@ export default function AdminProducts() {
     defaultValues: {
       name: "",
       description: "",
-      price: "",
+      price: "0",
       imageUrl: "",
       imageUrl2: "",
       imageUrl3: "",
@@ -134,7 +136,7 @@ export default function AdminProducts() {
       form.reset({
         name: "",
         description: "",
-        price: "",
+        price: "0",
         imageUrl: "",
         imageUrl2: "",
         imageUrl3: "",
@@ -238,8 +240,8 @@ export default function AdminProducts() {
       isScratchCard: false,
       scratchPrice: "",
       scratchExpiresAt: "",
-      scratchTimeLimitMinutes: "60",
-      maxScratchRedemptions: "10",
+      scratchTimeLimitMinutes: 60,
+      maxScratchRedemptions: 10,
       scratchMessage: "Você ganhou um super desconto! Raspe aqui e confira",
     });
     setShowAddForm(true);
@@ -261,8 +263,8 @@ export default function AdminProducts() {
       isScratchCard: product.isScratchCard || false,
       scratchPrice: product.scratchPrice?.toString() || "",
       scratchExpiresAt: product.scratchExpiresAt ? new Date(product.scratchExpiresAt).toISOString().slice(0, 16) : "",
-      scratchTimeLimitMinutes: product.scratchTimeLimitMinutes || "60",
-      maxScratchRedemptions: product.maxScratchRedemptions || "10",
+      scratchTimeLimitMinutes: product.scratchTimeLimitMinutes || 60,
+      maxScratchRedemptions: product.maxScratchRedemptions || 10,
       scratchMessage: product.scratchMessage || "Você ganhou um super desconto! Raspe aqui e confira",
     });
     setShowAddForm(true);
@@ -274,8 +276,8 @@ export default function AdminProducts() {
     form.reset();
   };
 
-  const onSubmit = (data: ProductFormData) => {
-    saveMutation.mutate(data);
+  const onSubmit = (data: any) => {
+    saveMutation.mutate(data as ProductFormData);
   };
 
   // Função para exportar produtos para Excel
