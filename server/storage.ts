@@ -8,6 +8,8 @@ import {
   productLikes,
   scratchedProducts,
   coupons,
+  scratchCampaigns,
+  virtualScratchClones,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -32,6 +34,12 @@ import {
   type Coupon,
   type InsertCoupon,
   type CouponWithDetails,
+  type ScratchCampaign,
+  type InsertScratchCampaign,
+  type VirtualScratchClone,
+  type InsertVirtualScratchClone,
+  type ScratchCampaignWithDetails,
+  type VirtualScratchCloneWithDetails,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, gte } from "drizzle-orm";
@@ -86,6 +94,27 @@ export interface IStorage {
   // Verificação para galeria
   shouldShowProductInGallery(productId: string): Promise<boolean>;
   getCouponsCountForProduct(productId: string): Promise<number>;
+  
+  // Scratch Campaign operations (NEW - Virtual Clones System)
+  createScratchCampaign(campaign: InsertScratchCampaign): Promise<ScratchCampaign>;
+  getScratchCampaignByProduct(productId: string): Promise<ScratchCampaignWithDetails | undefined>;
+  updateScratchCampaign(campaignId: string, updates: Partial<ScratchCampaign>): Promise<ScratchCampaign>;
+  deactivateScratchCampaign(campaignId: string): Promise<void>;
+  getCampaignStats(campaignId: string): Promise<{usedClones: number, totalClones: number, expiredClones: number}>;
+  
+  // Virtual Clone operations (NEW)
+  createVirtualClones(campaignId: string, assignedUserIds: string[], productSnapshot: any): Promise<VirtualScratchClone[]>;
+  getUserAvailableClone(userId: string, productId: string): Promise<VirtualScratchCloneWithDetails | undefined>;
+  markCloneAsUsed(cloneId: string): Promise<VirtualScratchClone>;
+  markExpiredClones(): Promise<void>;
+  deleteUnusedClones(campaignId: string): Promise<void>;
+  
+  // User lottery/selection operations (NEW)
+  getAllRegisteredUsers(): Promise<User[]>;
+  selectRandomUsers(userPool: User[], maxSelections: number): Promise<User[]>;
+  
+  // Delete cupom
+  deleteCoupon(couponId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -783,6 +812,257 @@ export class DatabaseStorage implements IStorage {
   // Excluir cupom
   async deleteCoupon(couponId: string): Promise<void> {
     await db.delete(coupons).where(eq(coupons.id, couponId));
+  }
+
+  // ================================
+  // SCRATCH CAMPAIGN OPERATIONS (NEW)
+  // ================================
+
+  async createScratchCampaign(campaign: InsertScratchCampaign): Promise<ScratchCampaign> {
+    const [createdCampaign] = await db
+      .insert(scratchCampaigns)
+      .values(campaign)
+      .returning();
+    return createdCampaign;
+  }
+
+  async getScratchCampaignByProduct(productId: string): Promise<ScratchCampaignWithDetails | undefined> {
+    const [campaign] = await db
+      .select({
+        id: scratchCampaigns.id,
+        productId: scratchCampaigns.productId,
+        storeId: scratchCampaigns.storeId,
+        title: scratchCampaigns.title,
+        description: scratchCampaigns.description,
+        discountPrice: scratchCampaigns.discountPrice,
+        discountPercentage: scratchCampaigns.discountPercentage,
+        isActive: scratchCampaigns.isActive,
+        maxClones: scratchCampaigns.maxClones,
+        clonesCreated: scratchCampaigns.clonesCreated,
+        clonesUsed: scratchCampaigns.clonesUsed,
+        distributeToAll: scratchCampaigns.distributeToAll,
+        selectedUserIds: scratchCampaigns.selectedUserIds,
+        expiresAt: scratchCampaigns.expiresAt,
+        cloneExpirationHours: scratchCampaigns.cloneExpirationHours,
+        createdAt: scratchCampaigns.createdAt,
+        updatedAt: scratchCampaigns.updatedAt,
+        product: {
+          id: products.id,
+          name: products.name,
+          description: products.description,
+          price: products.price,
+          imageUrl: products.imageUrl,
+          category: products.category,
+        },
+        store: {
+          id: stores.id,
+          name: stores.name,
+          logoUrl: stores.logoUrl,
+          themeColor: stores.themeColor,
+          currency: stores.currency,
+          whatsapp: stores.whatsapp,
+          slug: stores.slug,
+        },
+      })
+      .from(scratchCampaigns)
+      .leftJoin(products, eq(scratchCampaigns.productId, products.id))
+      .leftJoin(stores, eq(scratchCampaigns.storeId, stores.id))
+      .where(and(
+        eq(scratchCampaigns.productId, productId),
+        eq(scratchCampaigns.isActive, true)
+      ));
+
+    return campaign as ScratchCampaignWithDetails | undefined;
+  }
+
+  async updateScratchCampaign(campaignId: string, updates: Partial<ScratchCampaign>): Promise<ScratchCampaign> {
+    const [updatedCampaign] = await db
+      .update(scratchCampaigns)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(scratchCampaigns.id, campaignId))
+      .returning();
+    return updatedCampaign;
+  }
+
+  async deactivateScratchCampaign(campaignId: string): Promise<void> {
+    await db
+      .update(scratchCampaigns)
+      .set({
+        isActive: false,
+        updatedAt: new Date(),
+      })
+      .where(eq(scratchCampaigns.id, campaignId));
+  }
+
+  async getCampaignStats(campaignId: string): Promise<{usedClones: number, totalClones: number, expiredClones: number}> {
+    const totalResult = await db
+      .select({ count: count() })
+      .from(virtualScratchClones)
+      .where(eq(virtualScratchClones.campaignId, campaignId));
+
+    const usedResult = await db
+      .select({ count: count() })
+      .from(virtualScratchClones)
+      .where(and(
+        eq(virtualScratchClones.campaignId, campaignId),
+        eq(virtualScratchClones.isUsed, true)
+      ));
+
+    const expiredResult = await db
+      .select({ count: count() })
+      .from(virtualScratchClones)
+      .where(and(
+        eq(virtualScratchClones.campaignId, campaignId),
+        eq(virtualScratchClones.isExpired, true)
+      ));
+
+    return {
+      totalClones: Number(totalResult[0]?.count || 0),
+      usedClones: Number(usedResult[0]?.count || 0),
+      expiredClones: Number(expiredResult[0]?.count || 0),
+    };
+  }
+
+  // ================================
+  // VIRTUAL CLONE OPERATIONS (NEW)
+  // ================================
+
+  async createVirtualClones(campaignId: string, assignedUserIds: string[], productSnapshot: any): Promise<VirtualScratchClone[]> {
+    const clonesToCreate = assignedUserIds.map((userId) => ({
+      campaignId,
+      productId: productSnapshot.id,
+      storeId: productSnapshot.storeId,
+      assignedUserId: userId,
+      productName: productSnapshot.name,
+      productDescription: productSnapshot.description,
+      originalPrice: productSnapshot.price,
+      discountPrice: productSnapshot.discountPrice,
+      productImageUrl: productSnapshot.imageUrl,
+      productCategory: productSnapshot.category,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas por padrão
+    }));
+
+    const createdClones = await db
+      .insert(virtualScratchClones)
+      .values(clonesToCreate)
+      .returning();
+
+    return createdClones;
+  }
+
+  async getUserAvailableClone(userId: string, productId: string): Promise<VirtualScratchCloneWithDetails | undefined> {
+    const [clone] = await db
+      .select({
+        id: virtualScratchClones.id,
+        campaignId: virtualScratchClones.campaignId,
+        productId: virtualScratchClones.productId,
+        storeId: virtualScratchClones.storeId,
+        assignedUserId: virtualScratchClones.assignedUserId,
+        productName: virtualScratchClones.productName,
+        productDescription: virtualScratchClones.productDescription,
+        originalPrice: virtualScratchClones.originalPrice,
+        discountPrice: virtualScratchClones.discountPrice,
+        productImageUrl: virtualScratchClones.productImageUrl,
+        productCategory: virtualScratchClones.productCategory,
+        isUsed: virtualScratchClones.isUsed,
+        isExpired: virtualScratchClones.isExpired,
+        notificationSent: virtualScratchClones.notificationSent,
+        usedAt: virtualScratchClones.usedAt,
+        expiresAt: virtualScratchClones.expiresAt,
+        createdAt: virtualScratchClones.createdAt,
+        campaign: {
+          id: scratchCampaigns.id,
+          title: scratchCampaigns.title,
+          description: scratchCampaigns.description,
+          discountPercentage: scratchCampaigns.discountPercentage,
+        },
+        product: {
+          id: products.id,
+          name: products.name,
+          description: products.description,
+          price: products.price,
+          imageUrl: products.imageUrl,
+          category: products.category,
+        },
+        store: {
+          id: stores.id,
+          name: stores.name,
+          logoUrl: stores.logoUrl,
+          themeColor: stores.themeColor,
+          currency: stores.currency,
+          whatsapp: stores.whatsapp,
+          slug: stores.slug,
+        },
+      })
+      .from(virtualScratchClones)
+      .leftJoin(scratchCampaigns, eq(virtualScratchClones.campaignId, scratchCampaigns.id))
+      .leftJoin(products, eq(virtualScratchClones.productId, products.id))
+      .leftJoin(stores, eq(virtualScratchClones.storeId, stores.id))
+      .where(and(
+        eq(virtualScratchClones.assignedUserId, userId),
+        eq(virtualScratchClones.productId, productId),
+        eq(virtualScratchClones.isUsed, false),
+        eq(virtualScratchClones.isExpired, false),
+        gte(virtualScratchClones.expiresAt, new Date())
+      ));
+
+    return clone as VirtualScratchCloneWithDetails | undefined;
+  }
+
+  async markCloneAsUsed(cloneId: string): Promise<VirtualScratchClone> {
+    const [updatedClone] = await db
+      .update(virtualScratchClones)
+      .set({
+        isUsed: true,
+        usedAt: new Date(),
+      })
+      .where(eq(virtualScratchClones.id, cloneId))
+      .returning();
+    return updatedClone;
+  }
+
+  async markExpiredClones(): Promise<void> {
+    await db
+      .update(virtualScratchClones)
+      .set({
+        isExpired: true,
+      })
+      .where(and(
+        eq(virtualScratchClones.isUsed, false),
+        eq(virtualScratchClones.isExpired, false),
+        gte(new Date(), virtualScratchClones.expiresAt)
+      ));
+  }
+
+  async deleteUnusedClones(campaignId: string): Promise<void> {
+    await db
+      .delete(virtualScratchClones)
+      .where(and(
+        eq(virtualScratchClones.campaignId, campaignId),
+        eq(virtualScratchClones.isUsed, false)
+      ));
+  }
+
+  // ================================
+  // USER LOTTERY/SELECTION OPERATIONS (NEW)
+  // ================================
+
+  async getAllRegisteredUsers(): Promise<User[]> {
+    const allUsers = await db
+      .select()
+      .from(users)
+      .where(eq(users.isEmailVerified, true)); // Só usuários verificados
+
+    return allUsers;
+  }
+
+  async selectRandomUsers(userPool: User[], maxSelections: number): Promise<User[]> {
+    // Implementação de sorteio aleatório simples
+    const shuffled = [...userPool].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, maxSelections);
   }
 }
 

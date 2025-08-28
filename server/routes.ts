@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, insertScratchCampaignSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
@@ -1098,6 +1098,243 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting coupon:", error);
       res.status(500).json({ message: "Erro ao excluir cupom" });
+    }
+  });
+
+  // ====================================================
+  // VIRTUAL SCRATCH CARD CAMPAIGN ROUTES (NEW SYSTEM)
+  // ====================================================
+
+  // 1. Criar nova campanha de raspagem virtual
+  app.post('/api/scratch-campaigns', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.id;
+      const campaignData = insertScratchCampaignSchema.parse(req.body);
+
+      // Verificar se o usuário é dono da loja do produto
+      const product = await storage.getProductById(campaignData.productId);
+      if (!product) {
+        return res.status(404).json({ message: "Produto não encontrado" });
+      }
+
+      const store = await storage.getUserStore(userId);
+      if (!store || store.id !== product.storeId) {
+        return res.status(403).json({ message: "Você não tem permissão para criar campanhas neste produto" });
+      }
+
+      // Verificar se já existe campanha ativa para este produto
+      const existingCampaign = await storage.getScratchCampaignByProduct(campaignData.productId);
+      if (existingCampaign) {
+        return res.status(400).json({ message: "Já existe uma campanha ativa para este produto" });
+      }
+
+      const campaign = await storage.createScratchCampaign({
+        ...campaignData,
+        storeId: store.id,
+      });
+
+      res.status(201).json({
+        success: true,
+        campaign
+      });
+    } catch (error) {
+      console.error("Error creating scratch campaign:", error);
+      res.status(500).json({ message: "Erro ao criar campanha de raspagem" });
+    }
+  });
+
+  // 2. Buscar campanha por produto
+  app.get('/api/scratch-campaigns/product/:productId', async (req, res) => {
+    try {
+      const { productId } = req.params;
+      const campaign = await storage.getScratchCampaignByProduct(productId);
+      
+      if (!campaign) {
+        return res.status(404).json({ message: "Nenhuma campanha ativa encontrada para este produto" });
+      }
+
+      // Buscar estatísticas da campanha
+      const stats = await storage.getCampaignStats(campaign.id);
+
+      res.json({
+        campaign,
+        stats
+      });
+    } catch (error) {
+      console.error("Error fetching campaign:", error);
+      res.status(500).json({ message: "Erro ao buscar campanha" });
+    }
+  });
+
+  // 3. Distribuir clones virtuais por sorteio
+  app.post('/api/scratch-campaigns/:campaignId/distribute', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.id;
+      const { campaignId } = req.params;
+      const { distributeToAll, maxUsers } = req.body;
+
+      // Buscar todos os usuários registrados
+      const allUsers = await storage.getAllRegisteredUsers();
+      if (allUsers.length === 0) {
+        return res.status(400).json({ message: "Nenhum usuário registrado encontrado" });
+      }
+
+      // Determinar usuários para sorteio
+      let selectedUsers = allUsers;
+      if (!distributeToAll && maxUsers) {
+        const maxSelections = Math.min(parseInt(maxUsers), allUsers.length);
+        selectedUsers = await storage.selectRandomUsers(allUsers, maxSelections);
+      }
+
+      // Buscar campanha para obter dados do produto
+      const campaign = await storage.getScratchCampaignByProduct(""); // TODO: melhorar busca
+      if (!campaign) {
+        return res.status(404).json({ message: "Campanha não encontrada" });
+      }
+
+      // Criar snapshot do produto para os clones
+      const product = await storage.getProductById(campaign.productId);
+      const productSnapshot = {
+        id: product.id,
+        storeId: product.storeId,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        discountPrice: campaign.discountPrice,
+        imageUrl: product.imageUrl,
+        category: product.category,
+      };
+
+      // Criar clones virtuais para os usuários selecionados
+      const userIds = selectedUsers.map(user => user.id);
+      const clones = await storage.createVirtualClones(campaignId, userIds, productSnapshot);
+
+      // Atualizar estatísticas da campanha
+      await storage.updateScratchCampaign(campaignId, {
+        clonesCreated: clones.length.toString(),
+      });
+
+      res.json({
+        success: true,
+        message: `${clones.length} clones virtuais distribuídos com sucesso`,
+        totalUsers: selectedUsers.length,
+        clonesCreated: clones.length
+      });
+    } catch (error) {
+      console.error("Error distributing virtual clones:", error);
+      res.status(500).json({ message: "Erro ao distribuir clones virtuais" });
+    }
+  });
+
+  // 4. Buscar clone virtual disponível do usuário para um produto específico
+  app.get('/api/virtual-clones/:productId/user', async (req: any, res) => {
+    try {
+      const { productId } = req.params;
+      const userId = req.user?.claims?.sub || req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      const clone = await storage.getUserAvailableClone(userId, productId);
+
+      if (!clone) {
+        return res.json({ hasClone: false, clone: null });
+      }
+
+      res.json({
+        hasClone: true,
+        clone
+      });
+    } catch (error) {
+      console.error("Error fetching user clone:", error);
+      res.status(500).json({ message: "Erro ao buscar clone do usuário" });
+    }
+  });
+
+  // 5. Raspar clone virtual (substitui a raspagem tradicional)
+  app.post('/api/virtual-clones/:cloneId/scratch', async (req: any, res) => {
+    try {
+      const { cloneId } = req.params;
+      const userId = req.user?.claims?.sub || req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Buscar clone e validar (busca direta por ID seria melhor)
+      const clone = await storage.getUserAvailableClone(userId, "");
+      if (!clone || clone.id !== cloneId) {
+        return res.status(404).json({ message: "Clone não encontrado ou não disponível" });
+      }
+
+      if (clone.isUsed || clone.isExpired) {
+        return res.status(400).json({ message: "Clone já foi usado ou expirou" });
+      }
+
+      // Marcar clone como usado
+      await storage.markCloneAsUsed(cloneId);
+
+      // Criar cupom baseado no clone
+      const couponCode = `CLONE${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // Cupom expira em 7 dias
+
+      // Gerar QR Code
+      const qrCodeData = JSON.stringify({
+        code: couponCode,
+        productId: clone.productId,
+        storeId: clone.storeId,
+        originalPrice: clone.originalPrice,
+        discountPrice: clone.discountPrice,
+        type: 'virtual_clone'
+      });
+      const qrCodeBase64 = await QRCode.toDataURL(qrCodeData);
+
+      const couponData = {
+        cloneId: cloneId,
+        productId: clone.productId,
+        storeId: clone.storeId,
+        userId: userId,
+        userAgent: req.get('User-Agent') || 'unknown',
+        ipAddress: req.ip || 'unknown',
+        couponCode,
+        originalPrice: clone.originalPrice.toString(),
+        discountPrice: clone.discountPrice.toString(),
+        discountPercentage: clone.campaign?.discountPercentage || "0",
+        qrCode: qrCodeBase64,
+        expiresAt,
+        isRedeemed: false
+      };
+
+      const coupon = await storage.createCoupon(couponData);
+
+      res.json({
+        success: true,
+        coupon: {
+          id: coupon.id,
+          couponCode: coupon.couponCode,
+          discountPercentage: clone.campaign?.discountPercentage || "0",
+          originalPrice: clone.originalPrice,
+          discountPrice: clone.discountPrice,
+          qrCode: qrCodeBase64,
+          expiresAt: coupon.expiresAt
+        }
+      });
+    } catch (error) {
+      console.error("Error scratching virtual clone:", error);
+      res.status(500).json({ message: "Erro ao raspar clone virtual" });
+    }
+  });
+
+  // 6. Task de limpeza: marcar clones expirados
+  app.post('/api/maintenance/mark-expired-clones', async (req, res) => {
+    try {
+      await storage.markExpiredClones();
+      res.json({ success: true, message: "Clones expirados marcados com sucesso" });
+    } catch (error) {
+      console.error("Error marking expired clones:", error);
+      res.status(500).json({ message: "Erro ao marcar clones expirados" });
     }
   });
 

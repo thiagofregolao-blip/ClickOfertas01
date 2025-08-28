@@ -55,7 +55,23 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const needsProgressCalc = useRef<boolean>(false);
   const lastPoint = useRef<{ x: number; y: number } | null>(null);
 
-  // NOVO: Query para verificar status do scratch
+  // NOVO: Query para verificar clone virtual disponível
+  const { data: virtualClone, isLoading: loadingClone } = useQuery({
+    queryKey: ['virtual-clone', product.id],
+    queryFn: async () => {
+      const response = await fetch(`/api/virtual-clones/${product.id}/user`, { 
+        credentials: 'include' 
+      });
+      if (!response.ok) {
+        if (response.status === 401) return { hasClone: false, clone: null };
+        throw new Error('Falha ao carregar clone virtual');
+      }
+      return response.json() as Promise<{ hasClone: boolean; clone?: any }>;
+    },
+    staleTime: 60_000, // Cache por 1 minuto
+  });
+
+  // Query original para verificar status do scratch tradicional
   const { data: scratchStatus, isLoading: loadingStatus, isError: statusError } = useQuery({
     queryKey: ['scratch-status', product.id],
     queryFn: async () => {
@@ -66,10 +82,25 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       return response.json() as Promise<{ redeemed: boolean; expiresAt?: string; coupon?: any }>;
     },
     staleTime: 60_000, // Cache por 1 minuto
+    enabled: !virtualClone?.hasClone, // Só verificar tradicional se não tem clone virtual
   });
 
-  // NOVO: Sincronizar estado local com o servidor
+  // NOVO: Sincronizar estado local com clone virtual ou scratch tradicional
   useEffect(() => {
+    // Priorizar clone virtual se disponível
+    if (virtualClone?.hasClone && virtualClone?.clone) {
+      const clone = virtualClone.clone;
+      setIsRevealed(clone.isUsed);
+      
+      if (clone.expiresAt) {
+        const expirationTime = new Date(clone.expiresAt).getTime();
+        const now = Date.now();
+        setTimeLeft(Math.max(0, Math.floor((expirationTime - now) / 1000)));
+      }
+      return;
+    }
+
+    // Fallback para scratch tradicional
     if (!scratchStatus) return;
 
     const redeemed = !!scratchStatus.redeemed;
@@ -90,9 +121,58 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       setCoupon(null);
       setCouponGenerated(false);
     }
-  }, [scratchStatus]);
+  }, [scratchStatus, virtualClone]);
 
-  // Mutation para marcar produto como "raspado"
+  // NOVA: Mutation para raspar clone virtual
+  const scratchVirtualCloneMutation = useMutation({
+    mutationFn: async (cloneId: string) => {
+      const response = await fetch(`/api/virtual-clones/${cloneId}/scratch`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`${response.status}: ${error}`);
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data: any) => {
+      setIsRevealed(true);
+      
+      // Invalidar caches para refletir mudanças
+      queryClient.invalidateQueries({ queryKey: ['virtual-clone', product.id] });
+      queryClient.invalidateQueries({ queryKey: ['coupons'] });
+      if (onRevealed) onRevealed(product);
+      
+      // Mostrar cupom diretamente (clone virtual já gera cupom automaticamente)
+      if (data?.success && data?.coupon) {
+        setCoupon(data.coupon);
+        setCouponGenerated(true);
+        setShowCouponModal(true);
+        
+        toast({
+          title: "🎉 Clone virtual raspado!",
+          description: "Seu cupom foi gerado automaticamente!",
+          duration: 3000,
+        });
+      }
+    },
+    onError: (error: any) => {
+      setIsFading(false);
+      toast({
+        title: 'Não foi possível raspar o clone',
+        description: String(error?.message || 'Tente novamente.'),
+        variant: 'destructive',
+      });
+    }
+  });
+
+  // Mutation original para marcar produto tradicional como "raspado"
   const scratchMutation = useMutation({
     mutationFn: async (productId: string) => {
       const response = await fetch(`/api/products/${productId}/scratch`, {
@@ -197,8 +277,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // FASE 1: Inicializar canvas com DPI correto
   useEffect(() => {
-    // NOVO: Não inicializar canvas se já revelado ou carregando
-    if (isRevealed || loadingStatus) return;
+    // NOVO: Não inicializar canvas se já revelado ou carregando (considera ambos os tipos)
+    if (isRevealed || loadingStatus || loadingClone) return;
     if (!canvasRef.current) return;
     
     const canvas = canvasRef.current;
@@ -249,7 +329,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     lines.forEach((line, index) => {
       ctx.fillText(line, cssWidth / 2, startY + (index * lineHeight));
     });
-  }, [product.id, product.scratchMessage, isRevealed, loadingStatus]);
+  }, [product.id, product.scratchMessage, isRevealed, loadingStatus, loadingClone]);
 
   // Throttle reduzido para mais fluidez
   const lastScratchTime = useRef<number>(0);
@@ -284,12 +364,20 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       const progress = total > 0 ? transparent / total : 0;
       setScratchProgress(progress);
       
-      // Revelar com threshold
+      // Revelar com threshold - usar mutation apropriada
       if (progress >= 0.7 && !isRevealed && !isFading) {
         setIsFading(true);
         setTimeout(() => {
           setIsRevealed(true);
-          scratchMutation.mutate(product.id);
+          
+          // Decidir qual mutation usar baseado no contexto
+          if (virtualClone?.hasClone && virtualClone?.clone) {
+            // Usar mutation de clone virtual
+            scratchVirtualCloneMutation.mutate(virtualClone.clone.id);
+          } else {
+            // Usar mutation tradicional
+            scratchMutation.mutate(product.id);
+          }
         }, 220);
       }
     } catch (e) {
@@ -319,8 +407,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     };
   }, []);
 
-  // NOVO: Função para verificar bloqueio
-  const blocked = () => isRevealed || loadingStatus || statusError;
+  // NOVO: Função para verificar bloqueio (considera ambos os tipos)
+  const blocked = () => isRevealed || loadingStatus || loadingClone || statusError;
 
   // Função de scratch melhorada
   const handleScratch = (clientX: number, clientY: number) => {
@@ -685,8 +773,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     );
   };
   
-  // NOVO: Loading skeleton enquanto carrega status
-  if (loadingStatus) {
+  // NOVO: Loading skeleton enquanto carrega status (considera ambos os tipos)
+  if (loadingStatus || loadingClone) {
     return (
       <div className="relative bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 min-h-[200px] sm:min-h-[220px] rounded-md animate-pulse" />
     );
@@ -706,15 +794,23 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           onClick={() => setShowModal(true)}
           data-testid={`card-product-revealed-${product.id}`}
         >
-          {/* Timer */}
-          {timeLeft !== null && timeLeft > 0 && (
-            <div className="absolute top-2 left-2 z-10">
+          {/* Badges: Timer e Tipo de Clone */}
+          <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+            {/* Indicador de Clone Virtual */}
+            {virtualClone?.hasClone && (
+              <Badge variant="secondary" className="bg-purple-100 text-purple-800 flex items-center gap-1 text-xs">
+                ✨ Clone Virtual
+              </Badge>
+            )}
+            
+            {/* Timer */}
+            {timeLeft !== null && timeLeft > 0 && (
               <Badge variant="secondary" className="bg-orange-100 text-orange-800 flex items-center gap-1 text-xs">
                 <Clock className="w-3 h-3" />
                 {formatTimeLeft(timeLeft)}
               </Badge>
-            </div>
-          )}
+            )}
+          </div>
 
           <div className="h-full flex flex-col p-3">
             {/* Imagem do produto */}

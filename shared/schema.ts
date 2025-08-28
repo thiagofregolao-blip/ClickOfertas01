@@ -134,10 +134,70 @@ export const productLikes = pgTable("product_likes", {
   likedAt: timestamp("liked_at").defaultNow(),
 });
 
-// Raspadinhas que foram "raspadas" pelos usuários
-export const scratchedProducts = pgTable("scratched_products", {
+// Campanhas de Raspagem - quando lojista ativa raspadinha
+export const scratchCampaigns = pgTable("scratch_campaigns", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  
+  // Configurações da Campanha
+  title: text("title").notNull().default("Raspe e ganhe desconto!"),
+  description: text("description").default("Raspe aqui e ganhe um super desconto!"),
+  discountPrice: decimal("discount_price", { precision: 12, scale: 2 }).notNull(),
+  discountPercentage: varchar("discount_percentage").notNull(),
+  
+  // Controles da Campanha
+  isActive: boolean("is_active").default(true),
+  maxClones: varchar("max_clones").default("10"), // Quantidade de clones a criar
+  clonesCreated: varchar("clones_created").default("0"), // Quantos clones foram criados
+  clonesUsed: varchar("clones_used").default("0"), // Quantos foram raspados
+  
+  // Opções de Distribuição
+  distributeToAll: boolean("distribute_to_all").default(false), // Se true, sorteia entre todos os usuários
+  selectedUserIds: text("selected_user_ids"), // JSON array de IDs específicos (se não for para todos)
+  
+  // Validade
+  expiresAt: timestamp("expires_at"), // Quando a campanha expira
+  cloneExpirationHours: varchar("clone_expiration_hours").default("24"), // Horas para clone expirar se não usado
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Clones Virtuais - produtos temporários para raspagem
+export const virtualScratchClones = pgTable("virtual_scratch_clones", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").notNull().references(() => scratchCampaigns.id, { onDelete: "cascade" }),
+  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  
+  // Usuário sorteado para este clone
+  assignedUserId: varchar("assigned_user_id").references(() => users.id, { onDelete: "cascade" }),
+  
+  // Dados do produto clonado (snapshot para manter consistência)
+  productName: text("product_name").notNull(),
+  productDescription: text("product_description"),
+  originalPrice: decimal("original_price", { precision: 12, scale: 2 }).notNull(),
+  discountPrice: decimal("discount_price", { precision: 12, scale: 2 }).notNull(),
+  productImageUrl: text("product_image_url"),
+  productCategory: varchar("product_category"),
+  
+  // Estado do clone
+  isUsed: boolean("is_used").default(false), // Se já foi raspado
+  isExpired: boolean("is_expired").default(false), // Se expirou sem ser usado
+  notificationSent: boolean("notification_sent").default(false), // Se notificação foi enviada
+  
+  // Timestamps
+  usedAt: timestamp("used_at"), // Quando foi raspado
+  expiresAt: timestamp("expires_at").notNull(), // Quando expira se não for usado
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Raspadinhas que foram "raspadas" pelos usuários (atualizado para referenciar clones)
+export const scratchedProducts = pgTable("scratched_products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  cloneId: varchar("clone_id").references(() => virtualScratchClones.id, { onDelete: "cascade" }), // Nova referência
+  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }), // Mantém para compatibilidade
   userId: varchar("user_id"), // pode ser anônimo
   userAgent: text("user_agent"),
   ipAddress: varchar("ip_address"),
@@ -146,10 +206,11 @@ export const scratchedProducts = pgTable("scratched_products", {
   hasRedeemed: boolean("has_redeemed").default(false), // Se já foi até a loja comprar
 });
 
-// Cupons gerados pelas raspadinhas
+// Cupons gerados pelas raspadinhas (agora referencia clone)
 export const coupons = pgTable("coupons", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  cloneId: varchar("clone_id").references(() => virtualScratchClones.id, { onDelete: "cascade" }), // Nova referência
+  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }), // Mantém para compatibilidade
   storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
   userId: varchar("user_id"), // pode ser anônimo
   userAgent: text("user_agent"),
@@ -179,6 +240,8 @@ export const storesRelations = relations(stores, ({ one, many }) => ({
   products: many(products),
   storyViews: many(storyViews),
   flyerViews: many(flyerViews),
+  scratchCampaigns: many(scratchCampaigns),
+  virtualScratchClones: many(virtualScratchClones),
 }));
 
 export const productsRelations = relations(products, ({ one, many }) => ({
@@ -190,6 +253,8 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   productLikes: many(productLikes),
   storyViews: many(storyViews),
   scratchedProducts: many(scratchedProducts),
+  scratchCampaigns: many(scratchCampaigns),
+  virtualScratchClones: many(virtualScratchClones),
 }));
 
 export const savedProductsRelations = relations(savedProducts, ({ one }) => ({
@@ -233,6 +298,43 @@ export const scratchedProductsRelations = relations(scratchedProducts, ({ one })
     fields: [scratchedProducts.productId],
     references: [products.id],
   }),
+  clone: one(virtualScratchClones, {
+    fields: [scratchedProducts.cloneId],
+    references: [virtualScratchClones.id],
+  }),
+}));
+
+export const scratchCampaignsRelations = relations(scratchCampaigns, ({ one, many }) => ({
+  product: one(products, {
+    fields: [scratchCampaigns.productId],
+    references: [products.id],
+  }),
+  store: one(stores, {
+    fields: [scratchCampaigns.storeId],
+    references: [stores.id],
+  }),
+  virtualClones: many(virtualScratchClones),
+}));
+
+export const virtualScratchClonesRelations = relations(virtualScratchClones, ({ one, many }) => ({
+  campaign: one(scratchCampaigns, {
+    fields: [virtualScratchClones.campaignId],
+    references: [scratchCampaigns.id],
+  }),
+  product: one(products, {
+    fields: [virtualScratchClones.productId],
+    references: [products.id],
+  }),
+  store: one(stores, {
+    fields: [virtualScratchClones.storeId],
+    references: [stores.id],
+  }),
+  assignedUser: one(users, {
+    fields: [virtualScratchClones.assignedUserId],
+    references: [users.id],
+  }),
+  scratchedProducts: many(scratchedProducts),
+  coupons: many(coupons),
 }));
 
 export const couponsRelations = relations(coupons, ({ one }) => ({
@@ -243,6 +345,10 @@ export const couponsRelations = relations(coupons, ({ one }) => ({
   store: one(stores, {
     fields: [coupons.storeId],
     references: [stores.id],
+  }),
+  clone: one(virtualScratchClones, {
+    fields: [coupons.cloneId],
+    references: [virtualScratchClones.id],
   }),
 }));
 
@@ -296,6 +402,22 @@ export const insertScratchedProductSchema = createInsertSchema(scratchedProducts
 export const insertCouponSchema = createInsertSchema(coupons).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertScratchCampaignSchema = createInsertSchema(scratchCampaigns).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  expiresAt: z.union([z.string(), z.date()]).optional().nullable(),
+});
+
+export const insertVirtualScratchCloneSchema = createInsertSchema(virtualScratchClones).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  expiresAt: z.union([z.string(), z.date()]).optional(),
+  usedAt: z.union([z.string(), z.date()]).optional().nullable(),
 });
 
 // Types
@@ -378,6 +500,10 @@ export type ScratchedProduct = typeof scratchedProducts.$inferSelect;
 export type InsertScratchedProduct = z.infer<typeof insertScratchedProductSchema>;
 export type Coupon = typeof coupons.$inferSelect;
 export type InsertCoupon = z.infer<typeof insertCouponSchema>;
+export type ScratchCampaign = typeof scratchCampaigns.$inferSelect;
+export type InsertScratchCampaign = z.infer<typeof insertScratchCampaignSchema>;
+export type VirtualScratchClone = typeof virtualScratchClones.$inferSelect;
+export type InsertVirtualScratchClone = z.infer<typeof insertVirtualScratchCloneSchema>;
 
 export type StoreWithProducts = Store & {
   products: Product[];
@@ -394,4 +520,17 @@ export type SavedProductWithDetails = SavedProduct & {
 export type CouponWithDetails = Coupon & {
   product: Product;
   store: Store;
+};
+
+export type ScratchCampaignWithDetails = ScratchCampaign & {
+  product: Product;
+  store: Store;
+  virtualClones?: VirtualScratchClone[];
+};
+
+export type VirtualScratchCloneWithDetails = VirtualScratchClone & {
+  campaign: ScratchCampaign;
+  product: Product;
+  store: Store;
+  assignedUser?: User;
 };
