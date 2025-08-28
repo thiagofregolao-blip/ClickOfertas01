@@ -10,7 +10,7 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import type { Product } from "@shared/schema";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { formatBrazilianPrice, formatPriceWithCurrency } from "@/lib/priceUtils";
 import jsPDF from "jspdf";
@@ -43,6 +43,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const [showCouponModal, setShowCouponModal] = useState(false);
   const scratchedAreas = useRef<ScratchArea[]>([]);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // FASE 1: AudioContext otimizado
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -53,6 +54,43 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const rafId = useRef<number | null>(null);
   const needsProgressCalc = useRef<boolean>(false);
   const lastPoint = useRef<{ x: number; y: number } | null>(null);
+
+  // NOVO: Query para verificar status do scratch
+  const { data: scratchStatus, isLoading: loadingStatus, isError: statusError } = useQuery({
+    queryKey: ['scratch-status', product.id],
+    queryFn: async () => {
+      const response = await fetch(`/api/products/${product.id}/scratch-status`, { 
+        credentials: 'include' 
+      });
+      if (!response.ok) throw new Error('Falha ao carregar status da raspadinha');
+      return response.json() as Promise<{ redeemed: boolean; expiresAt?: string; coupon?: any }>;
+    },
+    staleTime: 60_000, // Cache por 1 minuto
+  });
+
+  // NOVO: Sincronizar estado local com o servidor
+  useEffect(() => {
+    if (!scratchStatus) return;
+
+    const redeemed = !!scratchStatus.redeemed;
+    setIsRevealed(redeemed);
+
+    if (scratchStatus.expiresAt) {
+      const expirationTime = new Date(scratchStatus.expiresAt).getTime();
+      const now = Date.now();
+      setTimeLeft(Math.max(0, Math.floor((expirationTime - now) / 1000)));
+    } else {
+      setTimeLeft(null);
+    }
+
+    if (scratchStatus.coupon) {
+      setCoupon(scratchStatus.coupon);
+      setCouponGenerated(true);
+    } else {
+      setCoupon(null);
+      setCouponGenerated(false);
+    }
+  }, [scratchStatus]);
 
   // Mutation para marcar produto como "raspado"
   const scratchMutation = useMutation({
@@ -66,7 +104,18 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
         const now = Date.now();
         setTimeLeft(Math.max(0, Math.floor((expirationTime - now) / 1000)));
       }
+      setIsRevealed(true);
+      // Invalidar cache para refletir mudanças
+      queryClient.invalidateQueries({ queryKey: ['scratch-status', product.id] });
       if (onRevealed) onRevealed(product);
+    },
+    onError: (error: any) => {
+      setIsFading(false);
+      toast({
+        title: 'Não foi possível concluir o resgate',
+        description: String(error?.message || 'Tente novamente.'),
+        variant: 'destructive',
+      });
     }
   });
 
@@ -131,16 +180,17 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // FASE 1: Inicializar canvas com DPI correto
   useEffect(() => {
+    // NOVO: Não inicializar canvas se já revelado ou carregando
+    if (isRevealed || loadingStatus) return;
     if (!canvasRef.current) return;
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Reset estado ao mudar produto
+    // Reset estado ao mudar produto (sem setIsRevealed(false) - controlado pelo servidor)
     scratchedAreas.current = [];
     setScratchProgress(0);
-    setIsRevealed(false);
     setIsFading(false);
     lastPoint.current = null;
     needsProgressCalc.current = false;
@@ -182,7 +232,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     lines.forEach((line, index) => {
       ctx.fillText(line, cssWidth / 2, startY + (index * lineHeight));
     });
-  }, [product.id, product.scratchMessage]);
+  }, [product.id, product.scratchMessage, isRevealed, loadingStatus]);
 
   // Throttle reduzido para mais fluidez
   const lastScratchTime = useRef<number>(0);
@@ -252,9 +302,12 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     };
   }, []);
 
+  // NOVO: Função para verificar bloqueio
+  const blocked = () => isRevealed || loadingStatus || statusError;
+
   // Função de scratch melhorada
   const handleScratch = (clientX: number, clientY: number) => {
-    if (!canvasRef.current || isRevealed) return;
+    if (!canvasRef.current || blocked()) return;
 
     // Throttle scratches
     const now = Date.now();
@@ -332,6 +385,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Event handlers
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (blocked()) return;
     setIsScratching(true);
     lastPoint.current = null; // Reset traçado
     handleScratch(e.clientX, e.clientY);
@@ -351,6 +405,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Touch handlers
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
+    if (blocked()) return;
     setIsScratching(true);
     lastPoint.current = null; // Reset traçado
     const touch = e.touches[0];
@@ -612,6 +667,13 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       </div>
     );
   };
+  
+  // NOVO: Loading skeleton enquanto carrega status
+  if (loadingStatus) {
+    return (
+      <div className="relative bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 min-h-[200px] sm:min-h-[220px] rounded-md animate-pulse" />
+    );
+  }
   
   // Render do produto revelado
   if (isRevealed) {

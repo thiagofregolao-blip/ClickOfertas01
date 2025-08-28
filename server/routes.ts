@@ -583,6 +583,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Scratch card routes
+  // Nova rota para verificar status de raspadinha
+  app.get('/api/products/:id/scratch-status', async (req: any, res) => {
+    try {
+      const { id: productId } = req.params;
+      const userId = req.user?.claims?.sub || req.user?.id; // pode ser anônimo
+
+      // Verificar se produto existe e é raspadinha
+      const product = await storage.getProductById(productId);
+      if (!product || !product.isScratchCard) {
+        return res.status(400).json({ message: "Produto não é uma raspadinha" });
+      }
+
+      // Verificar se usuário já raspou este produto
+      const existingScratch = await storage.getScratchedProduct(productId, userId);
+      
+      if (!existingScratch) {
+        // Usuário nunca raspou este produto
+        return res.json({ 
+          redeemed: false,
+          expiresAt: null,
+          coupon: null 
+        });
+      }
+
+      // Verificar se o scratch ainda é válido (não expirou)
+      const now = new Date();
+      const isExpired = new Date(existingScratch.expiresAt) <= now;
+
+      if (isExpired) {
+        // Scratch expirou - consideramos como não resgatado
+        return res.json({ 
+          redeemed: false,
+          expiresAt: null,
+          coupon: null 
+        });
+      }
+
+      // Scratch ainda válido - buscar cupom se existir
+      let coupon = null;
+      try {
+        const userCoupons = await storage.getUserCoupons(userId);
+        coupon = userCoupons.find(c => c.productId === productId) || null;
+      } catch (error) {
+        console.log("Nenhum cupom encontrado para este produto");
+      }
+
+      return res.json({
+        redeemed: true,
+        expiresAt: existingScratch.expiresAt,
+        coupon: coupon
+      });
+
+    } catch (error) {
+      console.error("Error checking scratch status:", error);
+      res.status(500).json({ message: "Erro ao verificar status da raspadinha" });
+    }
+  });
+
   app.post('/api/products/:productId/scratch', async (req: any, res) => {
     try {
       const { productId } = req.params;
