@@ -95,8 +95,20 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Mutation para marcar produto como "raspado"
   const scratchMutation = useMutation({
     mutationFn: async (productId: string) => {
-      const response = await apiRequest(`/api/products/${productId}/scratch`, 'POST');
-      return response.json();
+      const response = await fetch(`/api/products/${productId}/scratch`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`${response.status}: ${error}`);
+      }
+      
+      return await response.json();
     },
     onSuccess: (data: any) => {
       if (data?.expiresAt) {
