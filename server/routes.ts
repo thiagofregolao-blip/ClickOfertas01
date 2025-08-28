@@ -3,7 +3,9 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, scratchOffers } from "@shared/schema";
+import { and, eq, or, gt } from "drizzle-orm";
+import { db } from "./db";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
@@ -582,6 +584,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Nova rota: Verificar elegibilidade
+  app.get('/api/scratch/offers/:productId/eligibility', async (req: any, res) => {
+    try {
+      const { productId } = req.params;
+      
+      // Se não estiver autenticado, é elegível (guest mode)
+      if (!req.isAuthenticated() || !req.user?.claims?.sub) {
+        return res.json({
+          eligible: true,
+          hasActive: false,
+          guestMode: true
+        });
+      }
+      
+      const userId = req.user.claims.sub;
+
+      const [existingOffer] = await db
+        .select()
+        .from(scratchOffers)
+        .where(
+          and(
+            eq(scratchOffers.userId, userId),
+            eq(scratchOffers.productId, productId),
+            or(
+              eq(scratchOffers.status, "eligible"),
+              eq(scratchOffers.status, "revealed"),
+              gt(scratchOffers.cooldownUntil, new Date())
+            )
+          )
+        )
+        .limit(1);
+
+      if (existingOffer) {
+        if (existingOffer.status === "revealed" && existingOffer.expiresAt && existingOffer.expiresAt > new Date()) {
+          return res.json({
+            eligible: false,
+            hasActive: true,
+            activeOffer: existingOffer
+          });
+        }
+        if (existingOffer.cooldownUntil && existingOffer.cooldownUntil > new Date()) {
+          return res.json({
+            eligible: false,
+            cooldownUntil: existingOffer.cooldownUntil
+          });
+        }
+      }
+
+      return res.json({
+        eligible: true,
+        hasActive: false
+      });
+    } catch (error) {
+      console.error("Erro ao verificar elegibilidade:", error);
+      res.status(500).json({ message: "Erro interno" });
+    }
+  });
+
   // Scratch card routes
   app.post('/api/products/:productId/scratch', async (req: any, res) => {
     try {
@@ -816,6 +876,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('📋 Dados recebidos:', { productId, userId, userAgent, ipAddress });
 
+      // NOVO: Verificar elegibilidade primeiro
+      const [existingOffer] = await db
+        .select()
+        .from(scratchOffers)
+        .where(
+          and(
+            eq(scratchOffers.userId, userId),
+            eq(scratchOffers.productId, productId),
+            or(
+              eq(scratchOffers.status, "eligible"),
+              eq(scratchOffers.status, "revealed"),
+              gt(scratchOffers.cooldownUntil, new Date())
+            )
+          )
+        )
+        .limit(1);
+
+      if (existingOffer) {
+        if (existingOffer.status === "revealed" && existingOffer.expiresAt && existingOffer.expiresAt > new Date()) {
+          return res.status(400).json({
+            message: "Você já possui um cupom ativo para este produto",
+            activeOffer: existingOffer
+          });
+        }
+        if (existingOffer.cooldownUntil && existingOffer.cooldownUntil > new Date()) {
+          return res.status(400).json({
+            message: "Aguarde antes de tentar novamente",
+            cooldownUntil: existingOffer.cooldownUntil
+          });
+        }
+      }
+
       // Buscar o produto e a loja
       console.log('🔍 Buscando produto...');
       const product = await storage.getProductById(productId);
@@ -826,33 +918,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Produto não é uma raspadinha válida" });
       }
 
-      // Verificar se o usuário já raspou este produto, se não, criar automaticamente
-      let scratchedProduct = await storage.getScratchedProduct(productId, userId);
-      if (!scratchedProduct) {
-        // Criar scratch automaticamente se não existir
-        try {
-          const scratchData = {
-            productId,
-            userId,
-            userAgent: userAgent || 'unknown',
-            ipAddress: ipAddress || 'unknown',
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 horas
-          };
-          scratchedProduct = await storage.createScratchedProduct(scratchData);
-        } catch (error) {
-          console.error('Error creating scratch product:', error);
-          // Se falhar, usar dados padrão
-          scratchedProduct = {
-            id: 'temp',
-            productId,
-            userId,
-            userAgent: userAgent || 'unknown',
-            ipAddress: ipAddress || 'unknown',
-            scratchedAt: new Date(),
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
-          };
-        }
-      }
+      // NOVO: Criar scratch offer (estado "revealed")
+      const scratchOffer = await storage.createScratchOffer({
+        userId,
+        productId,
+        status: "revealed",
+        revealedAt: new Date(),
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000),      // 30 min
+        cooldownUntil: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
+      });
 
       // Calcular desconto
       const originalPrice = parseFloat(product.price || '0');
@@ -881,9 +955,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      // Data de expiração do cupom (mesmo tempo da raspadinha)
-      const expiresAt = scratchedProduct.expiresAt;
-
       // Criar cupom
       const couponData = {
         productId: product.id,
@@ -896,7 +967,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         discountPrice: discountPrice.toString(),
         discountPercentage: discountPercentage.toString(),
         qrCode: qrCodeBase64,
-        expiresAt,
+        expiresAt: scratchOffer.expiresAt,
         isRedeemed: false
       };
 

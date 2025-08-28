@@ -10,7 +10,7 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import type { Product } from "@shared/schema";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { formatBrazilianPrice, formatPriceWithCurrency } from "@/lib/priceUtils";
 import jsPDF from "jspdf";
@@ -43,6 +43,12 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const [showCouponModal, setShowCouponModal] = useState(false);
   const scratchedAreas = useRef<ScratchArea[]>([]);
   const { toast } = useToast();
+
+  // Query para verificar elegibilidade
+  const { data: eligibility, refetch: checkEligibility } = useQuery({
+    queryKey: ['/api/scratch/offers', product.id, 'eligibility'],
+    retry: false,
+  });
   
   // FASE 1: AudioContext otimizado
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -117,6 +123,18 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           console.log("🔄 Redirecionando para login...");
           window.location.href = "/api/login";
         }, 3000);
+      } else if (error.message.includes('cooldown') || error.message.includes('Aguarde')) {
+        toast({
+          title: "⏰ Aguarde um pouco",
+          description: "Você precisa esperar 24h após gerar um cupom para este produto",
+          variant: "destructive",
+        });
+      } else if (error.message.includes('já possui um cupom ativo')) {
+        toast({
+          title: "😊 Cupom já ativo",
+          description: "Você já tem um cupom válido para este produto!",
+          variant: "destructive",
+        });
       } else {
         toast({
           title: "Erro ao gerar cupom",

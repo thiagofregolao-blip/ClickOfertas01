@@ -395,3 +395,20 @@ export type CouponWithDetails = Coupon & {
   product: Product;
   store: Store;
 };
+
+// --- Scratch Offers ---
+export const scratchOffers = pgTable("scratch_offers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  productId: varchar("product_id").references(() => products.id),
+  status: varchar("status").notNull().default("eligible"), // "eligible", "revealed", "expired", "redeemed"
+  createdAt: timestamp("created_at").defaultNow(),
+  revealedAt: timestamp("revealed_at"),
+  expiresAt: timestamp("expires_at"),
+  cooldownUntil: timestamp("cooldown_until"),
+  // Adição necessária porque o storage atualiza 'updatedAt'
+  updatedAt: timestamp("updated_at"),
+});
+
+export type ScratchOffer = typeof scratchOffers.$inferSelect;
+export type InsertScratchOffer = typeof scratchOffers.$inferInsert;
