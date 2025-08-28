@@ -35,7 +35,6 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, gte } from "drizzle-orm";
-import { scratchOffers, type ScratchOffer, type InsertScratchOffer } from "@shared/schema";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -779,39 +778,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(coupons.id, couponId));
 
     return coupon as CouponWithDetails | undefined;
-  }
-
-  // Scratch Offers
-  async createScratchOffer(offer: InsertScratchOffer): Promise<ScratchOffer> {
-    const [newOffer] = await db
-      .insert(scratchOffers)
-      .values(offer)
-      .returning();
-    return newOffer;
-  }
-
-  async getScratchOffer(userId: string, productId: string): Promise<ScratchOffer | undefined> {
-    const [offer] = await db
-      .select()
-      .from(scratchOffers)
-      .where(
-        and(
-          eq(scratchOffers.userId, userId),
-          eq(scratchOffers.productId, productId)
-        )
-      )
-      .orderBy(desc(scratchOffers.createdAt))
-      .limit(1);
-    return offer;
-  }
-
-  async updateScratchOffer(id: string, updates: Partial<ScratchOffer>): Promise<ScratchOffer> {
-    const [updated] = await db
-      .update(scratchOffers)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(scratchOffers.id, id))
-      .returning();
-    return updated;
   }
 }
 

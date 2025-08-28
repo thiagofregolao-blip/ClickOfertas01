@@ -3,9 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, scratchOffers, products, coupons } from "@shared/schema";
-import { and, eq, or, gt, desc, sql } from "drizzle-orm";
-import { db } from "./db";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
@@ -584,69 +582,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Nova rota: Verificar elegibilidade
-  app.get('/api/scratch/offers/:productId/eligibility', async (req: any, res) => {
-    try {
-      // Não permitir cache (sempre estado mais recente)
-      res.set('Cache-Control', 'no-store');
-      
-      const { productId } = req.params;
-      
-      // Se não estiver autenticado, é elegível (guest mode)
-      if (!req.isAuthenticated() || !req.user?.claims?.sub) {
-        return res.json({
-          eligible: true,
-          hasActive: false,
-          guestMode: true
-        });
-      }
-      
-      const userId = req.user.claims.sub;
-
-      // Verificar se há cupom ativo na tabela coupons
-      const [existingCoupon] = await db
-        .select()
-        .from(coupons)
-        .where(
-          and(
-            eq(coupons.userId, userId),
-            eq(coupons.productId, productId)
-          )
-        )
-        .orderBy(desc(coupons.createdAt))
-        .limit(1);
-
-      if (existingCoupon) {
-        // Se cupom não foi resgatado e ainda está válido
-        if (!existingCoupon.isRedeemed && existingCoupon.expiresAt && existingCoupon.expiresAt > new Date()) {
-          return res.json({
-            eligible: false,
-            hasActive: true,
-            activeCoupon: existingCoupon
-          });
-        }
-        
-        // Se foi resgatado ou expirado há menos de 24h, aplicar cooldown
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        if (existingCoupon.createdAt && existingCoupon.createdAt > twentyFourHoursAgo) {
-          const cooldownUntil = new Date(existingCoupon.createdAt.getTime() + 24 * 60 * 60 * 1000);
-          return res.json({
-            eligible: false,
-            cooldownUntil: cooldownUntil
-          });
-        }
-      }
-
-      return res.json({
-        eligible: true,
-        hasActive: false
-      });
-    } catch (error) {
-      console.error("Erro ao verificar elegibilidade:", error);
-      res.status(500).json({ message: "Erro interno" });
-    }
-  });
-
   // Scratch card routes
   app.post('/api/products/:productId/scratch', async (req: any, res) => {
     try {
@@ -667,8 +602,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verificar se ainda há resgates disponíveis
-      const maxRedemptions = product.maxScratchRedemptions || 10;
-      const currentRedemptions = product.currentScratchRedemptions || 0;
+      const maxRedemptions = parseInt(product.maxScratchRedemptions || "10");
+      const currentRedemptions = parseInt(product.currentScratchRedemptions || "0");
       
       if (currentRedemptions >= maxRedemptions) {
         return res.status(400).json({ message: "Limite de resgates atingido" });
@@ -881,39 +816,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('📋 Dados recebidos:', { productId, userId, userAgent, ipAddress });
 
-      // NOVO: Verificar elegibilidade usando a mesma lógica da consulta
-      const [existingCoupon] = await db
-        .select()
-        .from(coupons)
-        .where(
-          and(
-            eq(coupons.userId, userId),
-            eq(coupons.productId, productId)
-          )
-        )
-        .orderBy(desc(coupons.createdAt))
-        .limit(1);
-
-      if (existingCoupon) {
-        // Se cupom não foi resgatado e ainda está válido
-        if (!existingCoupon.isRedeemed && existingCoupon.expiresAt && existingCoupon.expiresAt > new Date()) {
-          return res.status(400).json({
-            message: "Você já possui um cupom ativo para este produto",
-            activeCoupon: existingCoupon
-          });
-        }
-        
-        // Se foi resgatado ou expirado há menos de 24h, aplicar cooldown
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        if (existingCoupon.createdAt && existingCoupon.createdAt > twentyFourHoursAgo) {
-          const cooldownUntil = new Date(existingCoupon.createdAt.getTime() + 24 * 60 * 60 * 1000);
-          return res.status(400).json({
-            message: "Aguarde 24h antes de tentar novamente",
-            cooldownUntil: cooldownUntil
-          });
-        }
-      }
-
       // Buscar o produto e a loja
       console.log('🔍 Buscando produto...');
       const product = await storage.getProductById(productId);
@@ -924,15 +826,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Produto não é uma raspadinha válida" });
       }
 
-      // NOVO: Criar scratch offer (estado "revealed")
-      const scratchOffer = await storage.createScratchOffer({
-        userId,
-        productId,
-        status: "revealed",
-        revealedAt: new Date(),
-        expiresAt: new Date(Date.now() + 30 * 60 * 1000),      // 30 min
-        cooldownUntil: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
-      });
+      // Verificar se o usuário já raspou este produto, se não, criar automaticamente
+      let scratchedProduct = await storage.getScratchedProduct(productId, userId);
+      if (!scratchedProduct) {
+        // Criar scratch automaticamente se não existir
+        try {
+          const scratchData = {
+            productId,
+            userId,
+            userAgent: userAgent || 'unknown',
+            ipAddress: ipAddress || 'unknown',
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 horas
+          };
+          scratchedProduct = await storage.createScratchedProduct(scratchData);
+        } catch (error) {
+          console.error('Error creating scratch product:', error);
+          // Se falhar, usar dados padrão
+          scratchedProduct = {
+            id: 'temp',
+            productId,
+            userId,
+            userAgent: userAgent || 'unknown',
+            ipAddress: ipAddress || 'unknown',
+            scratchedAt: new Date(),
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+          };
+        }
+      }
 
       // Calcular desconto
       const originalPrice = parseFloat(product.price || '0');
@@ -961,6 +881,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
+      // Data de expiração do cupom (mesmo tempo da raspadinha)
+      const expiresAt = scratchedProduct.expiresAt;
+
       // Criar cupom
       const couponData = {
         productId: product.id,
@@ -973,18 +896,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         discountPrice: discountPrice.toString(),
         discountPercentage: discountPercentage.toString(),
         qrCode: qrCodeBase64,
-        expiresAt: scratchOffer.expiresAt,
+        expiresAt,
         isRedeemed: false
       };
 
       console.log('💾 Criando cupom no banco...');
       const coupon = await storage.createCoupon(couponData);
       console.log('✅ Cupom criado com sucesso:', coupon);
-
-      // Atualizar contador de resgates do produto
-      console.log('📊 Atualizando contador de resgates...');
-      await storage.updateScratchRedemptionCount(productId);
-      console.log('✅ Contador atualizado com sucesso');
 
       res.status(201).json({
         success: true,
@@ -1020,116 +938,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user coupons:", error);
       res.status(500).json({ message: "Erro ao buscar cupons" });
-    }
-  });
-
-  // Nova rota: Estatísticas de raspadinhas para o dashboard
-  app.get('/api/stores/me/scratch-stats', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.user?.id;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "Usuário não autenticado" });
-      }
-      
-      // Buscar a loja do usuário
-      const store = await storage.getUserStore(userId);
-      if (!store) {
-        return res.status(404).json({ message: "Loja não encontrada" });
-      }
-
-      // Buscar produtos da loja com raspadinha
-      const allProducts = await db
-        .select()
-        .from(products)
-        .where(eq(products.storeId, store.id));
-
-      const scratchProducts = allProducts.filter(p => p.isScratchCard);
-      
-      // Calcular estatísticas
-      const totalScratchProducts = scratchProducts.length;
-      const totalMaxRedemptions = scratchProducts.reduce((sum, p) => 
-        sum + (p.maxScratchRedemptions || 0), 0
-      );
-      const totalCurrentRedemptions = scratchProducts.reduce((sum, p) => 
-        sum + (p.currentScratchRedemptions || 0), 0
-      );
-      const totalRemainingRedemptions = totalMaxRedemptions - totalCurrentRedemptions;
-
-      // Contar cupons gerados da loja
-      const [couponsResult] = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(coupons)
-        .where(eq(coupons.storeId, store.id));
-      
-      const totalCouponsGenerated = couponsResult?.count || 0;
-
-      res.json({
-        totalScratchProducts,
-        totalMaxRedemptions,
-        totalCurrentRedemptions,
-        totalRemainingRedemptions,
-        totalCouponsGenerated
-      });
-    } catch (error) {
-      console.error("Erro ao buscar estatísticas de raspadinhas:", error);
-      res.status(500).json({ message: "Erro interno" });
-    }
-  });
-
-  // Nova rota: Sincronizar contadores de raspadinhas com cupons existentes
-  app.post('/api/stores/me/sync-scratch-counters', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.user?.id;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "Usuário não autenticado" });
-      }
-      
-      // Buscar a loja do usuário
-      const store = await storage.getUserStore(userId);
-      if (!store) {
-        return res.status(404).json({ message: "Loja não encontrada" });
-      }
-
-      // Buscar produtos da loja com raspadinha
-      const allProducts = await db
-        .select()
-        .from(products)
-        .where(eq(products.storeId, store.id));
-
-      const scratchProducts = allProducts.filter(p => p.isScratchCard);
-      
-      let updatedCount = 0;
-      
-      // Para cada produto com raspadinha, contar cupons existentes e atualizar contador
-      for (const product of scratchProducts) {
-        const [couponCount] = await db
-          .select({ count: sql<number>`count(*)` })
-          .from(coupons)
-          .where(eq(coupons.productId, product.id));
-        
-        const actualCount = couponCount?.count || 0;
-        
-        // Atualizar o contador do produto
-        await db
-          .update(products)
-          .set({
-            currentScratchRedemptions: actualCount
-          })
-          .where(eq(products.id, product.id));
-        
-        updatedCount++;
-      }
-
-      res.json({
-        success: true,
-        message: `${updatedCount} produtos sincronizados`,
-        updatedProducts: updatedCount
-      });
-    } catch (error) {
-      console.error("Erro ao sincronizar contadores:", error);
-      res.status(500).json({ message: "Erro interno" });
     }
   });
 

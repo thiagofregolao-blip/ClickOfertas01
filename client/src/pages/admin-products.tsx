@@ -29,8 +29,6 @@ const productFormSchema = insertProductSchema.extend({
   price: z.string().min(1, "Preço é obrigatório"),
   scratchPrice: z.string().optional(),
   scratchExpiresAt: z.string().optional(),
-  scratchTimeLimitMinutes: z.union([z.string(), z.number()]).optional(),
-  maxScratchRedemptions: z.union([z.string(), z.number()]).optional(),
 });
 
 type ProductFormData = z.infer<typeof productFormSchema>;
@@ -78,7 +76,7 @@ export default function AdminProducts() {
     defaultValues: {
       name: "",
       description: "",
-      price: "0",
+      price: "",
       imageUrl: "",
       imageUrl2: "",
       imageUrl3: "",
@@ -89,21 +87,15 @@ export default function AdminProducts() {
       isScratchCard: false,
       scratchPrice: "",
       scratchExpiresAt: "",
-      scratchTimeLimitMinutes: 60,
-      maxScratchRedemptions: 10,
+      scratchTimeLimitMinutes: "60",
+      maxScratchRedemptions: "10",
       scratchMessage: "Você ganhou um super desconto! Raspe aqui e confira",
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: async (data: ProductFormData) => {
-      console.log("🚀 saveMutation.mutationFn EXECUTANDO!");
-      console.log("📦 Dados recebidos na mutation:", data);
-      
-      if (!store?.id) {
-        console.error("❌ Store não encontrada:", store);
-        throw new Error("Store not found");
-      }
+      if (!store?.id) throw new Error("Store not found");
       
       // Apenas converter para número sem alterar formato
       const cleanPrice = data.price;
@@ -116,38 +108,20 @@ export default function AdminProducts() {
         price: cleanPrice,
         scratchPrice: cleanScratchPrice,
         scratchExpiresAt: data.scratchExpiresAt ? new Date(data.scratchExpiresAt).toISOString() : null,
-        scratchTimeLimitMinutes: data.scratchTimeLimitMinutes?.toString() || "60",
-        maxScratchRedemptions: typeof data.maxScratchRedemptions === 'string' ? parseInt(data.maxScratchRedemptions) || 10 : data.maxScratchRedemptions || 10,
       };
 
-      console.log("📋 Dados finais para envio:", productData);
-      console.log("🔄 Tipo de operação:", editingProduct ? "PATCH (editar)" : "POST (criar)");
-
       if (editingProduct) {
-        const url = `/api/stores/${store.id}/products/${editingProduct.id}`;
-        console.log("🌐 URL PATCH:", url);
-        const response = await apiRequest("PATCH", url, productData);
-        console.log("✅ Resposta PATCH:", response);
-        return response;
+        await apiRequest("PATCH", `/api/stores/${store.id}/products/${editingProduct.id}`, productData);
       } else {
-        const url = `/api/stores/${store.id}/products`;
-        console.log("🌐 URL POST:", url);
-        const response = await apiRequest("POST", url, productData);
-        console.log("✅ Resposta POST:", response);
-        return response;
+        await apiRequest("POST", `/api/stores/${store.id}/products`, productData);
       }
     },
-    onSuccess: (data) => {
-      console.log("🎉 saveMutation.onSuccess EXECUTADO!");
-      console.log("📊 Dados de resposta:", data);
-      
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/stores", store?.id, "products"] });
       toast({
         title: "Sucesso!",
         description: editingProduct ? "Produto atualizado com sucesso" : "Produto criado com sucesso",
       });
-      
-      console.log("🔄 Fechando modal e limpando estado...");
       
       // Se não for para adicionar mais produtos ou se estiver editando, fechar o modal
       if (!addMoreProducts || editingProduct) {
@@ -160,28 +134,16 @@ export default function AdminProducts() {
       form.reset({
         name: "",
         description: "",
-        price: "0",
+        price: "",
         imageUrl: "",
         imageUrl2: "",
         imageUrl3: "",
         isFeatured: false,
         isActive: true,
-        isScratchCard: false,
-        scratchPrice: "",
-        scratchExpiresAt: "",
-        scratchTimeLimitMinutes: 60,
-        maxScratchRedemptions: 10,
-        scratchMessage: "Você ganhou um super desconto! Raspe aqui e confira",
       });
     },
     onError: (error) => {
-      console.error("❌ saveMutation.onError EXECUTADO!");
-      console.error("🔥 Erro completo:", error);
-      console.error("📝 Mensagem do erro:", error.message);
-      console.error("🏷️ Tipo do erro:", typeof error);
-      
       if (isUnauthorizedError(error)) {
-        console.error("🔐 Erro de autorização detectado!");
         toast({
           title: "Unauthorized",
           description: "You are logged out. Logging in again...",
@@ -192,8 +154,6 @@ export default function AdminProducts() {
         }, 500);
         return;
       }
-      
-      console.error("🚨 Erro genérico de salvamento");
       toast({
         title: "Erro",
         description: "Falha ao salvar produto",
@@ -278,8 +238,8 @@ export default function AdminProducts() {
       isScratchCard: false,
       scratchPrice: "",
       scratchExpiresAt: "",
-      scratchTimeLimitMinutes: 60,
-      maxScratchRedemptions: 10,
+      scratchTimeLimitMinutes: "60",
+      maxScratchRedemptions: "10",
       scratchMessage: "Você ganhou um super desconto! Raspe aqui e confira",
     });
     setShowAddForm(true);
@@ -301,8 +261,8 @@ export default function AdminProducts() {
       isScratchCard: product.isScratchCard || false,
       scratchPrice: product.scratchPrice?.toString() || "",
       scratchExpiresAt: product.scratchExpiresAt ? new Date(product.scratchExpiresAt).toISOString().slice(0, 16) : "",
-      scratchTimeLimitMinutes: product.scratchTimeLimitMinutes || 60,
-      maxScratchRedemptions: product.maxScratchRedemptions || 10,
+      scratchTimeLimitMinutes: product.scratchTimeLimitMinutes || "60",
+      maxScratchRedemptions: product.maxScratchRedemptions || "10",
       scratchMessage: product.scratchMessage || "Você ganhou um super desconto! Raspe aqui e confira",
     });
     setShowAddForm(true);
@@ -314,22 +274,8 @@ export default function AdminProducts() {
     form.reset();
   };
 
-  const onSubmit = (data: any) => {
-    console.log("🎯 onSubmit CHAMADO! Dados do formulário:", data);
-    console.log("🔍 Estado do form:", {
-      isValid: form.formState.isValid,
-      errors: form.formState.errors,
-      isDirty: form.formState.isDirty,
-    });
-    console.log("🏪 Store ID:", store?.id);
-    console.log("✏️ Editando produto:", editingProduct);
-    
-    try {
-      saveMutation.mutate(data as ProductFormData);
-      console.log("✅ Mutation chamada com sucesso");
-    } catch (error) {
-      console.error("❌ Erro ao chamar mutation:", error);
-    }
+  const onSubmit = (data: ProductFormData) => {
+    saveMutation.mutate(data);
   };
 
   // Função para exportar produtos para Excel
@@ -590,27 +536,7 @@ export default function AdminProducts() {
               </DialogTitle>
             </DialogHeader>
               
-              <form onSubmit={(e) => {
-                console.log("📋 Form submit event disparado!", e);
-                console.log("🔧 handleSubmit será chamado...");
-                console.log("🔍 Estado atual do form:", {
-                  isValid: form.formState.isValid,
-                  errors: form.formState.errors,
-                  isDirty: form.formState.isDirty,
-                  isSubmitting: form.formState.isSubmitting,
-                });
-                
-                return form.handleSubmit(
-                  (data) => {
-                    console.log("✅ Validação passou! Chamando onSubmit...");
-                    onSubmit(data);
-                  },
-                  (errors) => {
-                    console.error("❌ ERROS DE VALIDAÇÃO encontrados:", errors);
-                    console.error("🚫 Formulário não será enviado devido a erros!");
-                  }
-                )(e);
-              }} className="space-y-6">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* Informações Básicas */}
                   <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
                     <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
@@ -778,8 +704,8 @@ export default function AdminProducts() {
                           <div className="space-y-2">
                             <Label htmlFor="scratch-time-limit" className="text-gray-700 font-medium">Tempo Limite (minutos)</Label>
                             <Select
-                              value={form.watch("scratchTimeLimitMinutes")?.toString() || "60"}
-                              onValueChange={(value) => form.setValue("scratchTimeLimitMinutes", parseInt(value))}
+                              value={form.watch("scratchTimeLimitMinutes") || "60"}
+                              onValueChange={(value) => form.setValue("scratchTimeLimitMinutes", value)}
                             >
                               <SelectTrigger className="border-gray-300 focus:border-orange-500">
                                 <SelectValue />
@@ -813,8 +739,8 @@ export default function AdminProducts() {
                           <div className="space-y-2">
                             <Label htmlFor="max-redemptions" className="text-gray-700 font-medium">Máximo de Raspagens</Label>
                             <Select
-                              value={form.watch("maxScratchRedemptions")?.toString() || "10"}
-                              onValueChange={(value) => form.setValue("maxScratchRedemptions", parseInt(value))}
+                              value={form.watch("maxScratchRedemptions") || "10"}
+                              onValueChange={(value) => form.setValue("maxScratchRedemptions", value)}
                             >
                               <SelectTrigger className="border-gray-300 focus:border-orange-500">
                                 <SelectValue />
