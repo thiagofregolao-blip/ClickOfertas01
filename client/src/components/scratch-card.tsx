@@ -50,10 +50,17 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Query para verificar elegibilidade (AGORA COM queryFn REAL)
   const { data: eligibility, refetch: checkEligibility, isLoading, error } = useQuery({
     queryKey: ['/api/scratch/offers', product.id, 'eligibility'],
-    queryFn: () => apiRequest(`/api/scratch/offers/${product.id}/eligibility`),
+    queryFn: () => apiRequest("GET", `/api/scratch/offers/${product.id}/eligibility`),
     enabled: !!product?.id,
     staleTime: 15_000,
     retry: false,
+  });
+
+  console.log(`🔍 ELIGIBILITY DEBUG para ${product.name}:`, {
+    isLoading,
+    error: error?.message,
+    eligibility,
+    enabled: !!product?.id
   });
 
   
