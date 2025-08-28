@@ -108,15 +108,17 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       if (error.message.includes('401') || error.message.includes('Unauthorized')) {
         toast({
           title: "🔐 Cadastro necessário",
-          description: "Para pegar este cupom exclusivo, faça seu cadastro!",
-          action: {
-            label: "Fazer Cadastro",
-            onClick: () => {
-              window.location.href = "/api/login";
-            }
-          },
+          description: "Para pegar este cupom exclusivo, faça seu cadastro! Clique aqui para se registrar.",
           duration: 5000,
         });
+        
+        // Aguardar um pouco e redirecionar
+        setTimeout(() => {
+          const shouldRedirect = confirm("Deseja fazer seu cadastro agora para pegar este cupom exclusivo?");
+          if (shouldRedirect) {
+            window.location.href = "/api/login";
+          }
+        }, 2000);
       } else {
         toast({
           title: "Erro ao gerar cupom",
