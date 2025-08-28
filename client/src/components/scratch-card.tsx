@@ -71,23 +71,10 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     staleTime: 60_000, // Cache por 1 minuto
   });
 
-  // Query original para verificar status do scratch tradicional
-  const { data: scratchStatus, isLoading: loadingStatus, isError: statusError } = useQuery({
-    queryKey: ['scratch-status', product.id],
-    queryFn: async () => {
-      const response = await fetch(`/api/products/${product.id}/scratch-status`, { 
-        credentials: 'include' 
-      });
-      if (!response.ok) throw new Error('Falha ao carregar status da raspadinha');
-      return response.json() as Promise<{ redeemed: boolean; expiresAt?: string; coupon?: any }>;
-    },
-    staleTime: 60_000, // Cache por 1 minuto
-    enabled: !virtualClone?.hasClone, // Só verificar tradicional se não tem clone virtual
-  });
+  // SISTEMA UNIFICADO: Apenas clones virtuais
 
-  // NOVO: Sincronizar estado local com clone virtual ou scratch tradicional
+  // SISTEMA UNIFICADO: Sincronizar apenas com clones virtuais
   useEffect(() => {
-    // Priorizar clone virtual se disponível
     if (virtualClone?.hasClone && virtualClone?.clone) {
       const clone = virtualClone.clone;
       setIsRevealed(clone.isUsed);
@@ -97,31 +84,14 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
         const now = Date.now();
         setTimeLeft(Math.max(0, Math.floor((expirationTime - now) / 1000)));
       }
-      return;
-    }
-
-    // Fallback para scratch tradicional
-    if (!scratchStatus) return;
-
-    const redeemed = !!scratchStatus.redeemed;
-    setIsRevealed(redeemed);
-
-    if (scratchStatus.expiresAt) {
-      const expirationTime = new Date(scratchStatus.expiresAt).getTime();
-      const now = Date.now();
-      setTimeLeft(Math.max(0, Math.floor((expirationTime - now) / 1000)));
     } else {
+      // Produto sem clone virtual = estado inicial limpo
+      setIsRevealed(false);
       setTimeLeft(null);
-    }
-
-    if (scratchStatus.coupon) {
-      setCoupon(scratchStatus.coupon);
-      setCouponGenerated(true);
-    } else {
       setCoupon(null);
       setCouponGenerated(false);
     }
-  }, [scratchStatus, virtualClone]);
+  }, [virtualClone]);
 
   // NOVA: Mutation para raspar clone virtual
   const scratchVirtualCloneMutation = useMutation({
@@ -172,49 +142,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     }
   });
 
-  // Mutation original para marcar produto tradicional como "raspado"
-  const scratchMutation = useMutation({
-    mutationFn: async (productId: string) => {
-      const response = await fetch(`/api/products/${productId}/scratch`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`${response.status}: ${error}`);
-      }
-      
-      return await response.json();
-    },
-    onSuccess: (data: any) => {
-      if (data?.expiresAt) {
-        const expirationTime = new Date(data.expiresAt).getTime();
-        const now = Date.now();
-        setTimeLeft(Math.max(0, Math.floor((expirationTime - now) / 1000)));
-      }
-      setIsRevealed(true);
-      // Invalidar cache para refletir mudanças
-      queryClient.invalidateQueries({ queryKey: ['scratch-status', product.id] });
-      if (onRevealed) onRevealed(product);
-      
-      // NOVO: Gerar cupom automaticamente após raspar
-      setTimeout(() => {
-        generateCouponMutation.mutate(product.id);
-      }, 800); // Delay para melhor UX visual
-    },
-    onError: (error: any) => {
-      setIsFading(false);
-      toast({
-        title: 'Não foi possível concluir o resgate',
-        description: String(error?.message || 'Tente novamente.'),
-        variant: 'destructive',
-      });
-    }
-  });
+  // REMOVIDO: Mutation tradicional - usamos apenas clones virtuais
 
   // Mutation para gerar cupom
   const generateCouponMutation = useMutation({
@@ -277,8 +205,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // FASE 1: Inicializar canvas com DPI correto
   useEffect(() => {
-    // NOVO: Não inicializar canvas se já revelado ou carregando (considera ambos os tipos)
-    if (isRevealed || loadingStatus || loadingClone) return;
+    // SISTEMA UNIFICADO: Não inicializar canvas se já revelado ou carregando clone
+    if (isRevealed || loadingClone) return;
     if (!canvasRef.current) return;
     
     const canvas = canvasRef.current;
@@ -329,7 +257,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     lines.forEach((line, index) => {
       ctx.fillText(line, cssWidth / 2, startY + (index * lineHeight));
     });
-  }, [product.id, product.scratchMessage, isRevealed, loadingStatus, loadingClone]);
+  }, [product.id, product.scratchMessage, isRevealed, loadingClone]);
 
   // Throttle reduzido para mais fluidez
   const lastScratchTime = useRef<number>(0);
@@ -370,13 +298,16 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
         setTimeout(() => {
           setIsRevealed(true);
           
-          // Decidir qual mutation usar baseado no contexto
+          // SISTEMA UNIFICADO: Apenas clones virtuais
           if (virtualClone?.hasClone && virtualClone?.clone) {
-            // Usar mutation de clone virtual
             scratchVirtualCloneMutation.mutate(virtualClone.clone.id);
           } else {
-            // Usar mutation tradicional
-            scratchMutation.mutate(product.id);
+            // Produto sem clone = não pode raspar
+            toast({
+              title: 'Raspadinha indisponível',
+              description: 'Este produto não tem clones virtuais disponíveis.',
+              variant: 'destructive',
+            });
           }
         }, 220);
       }
@@ -407,8 +338,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     };
   }, []);
 
-  // NOVO: Função para verificar bloqueio (considera ambos os tipos)
-  const blocked = () => isRevealed || loadingStatus || loadingClone || statusError;
+  // SISTEMA UNIFICADO: Verificar bloqueio apenas para clones virtuais
+  const blocked = () => isRevealed || loadingClone;
 
   // Função de scratch melhorada
   const handleScratch = (clientX: number, clientY: number) => {
@@ -773,8 +704,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     );
   };
   
-  // NOVO: Loading skeleton enquanto carrega status (considera ambos os tipos)
-  if (loadingStatus || loadingClone) {
+  // SISTEMA UNIFICADO: Loading apenas para clones virtuais
+  if (loadingClone) {
     return (
       <div className="relative bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 min-h-[200px] sm:min-h-[220px] rounded-md animate-pulse" />
     );
