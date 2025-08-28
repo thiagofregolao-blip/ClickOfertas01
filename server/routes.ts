@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupOAuthProviders } from "./authProviders";
 import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, scratchOffers } from "@shared/schema";
-import { and, eq, or, gt } from "drizzle-orm";
+import { and, eq, or, gt, desc } from "drizzle-orm";
 import { db } from "./db";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
@@ -606,14 +606,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(
           and(
             eq(scratchOffers.userId, userId),
-            eq(scratchOffers.productId, productId),
-            or(
-              eq(scratchOffers.status, "eligible"),
-              eq(scratchOffers.status, "revealed"),
-              gt(scratchOffers.cooldownUntil, new Date())
-            )
+            eq(scratchOffers.productId, productId)
           )
         )
+        .orderBy(desc(scratchOffers.createdAt))
         .limit(1);
 
       if (existingOffer) {
