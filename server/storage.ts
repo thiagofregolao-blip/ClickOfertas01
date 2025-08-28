@@ -82,6 +82,10 @@ export interface IStorage {
   getCouponByCode(couponCode: string): Promise<CouponWithDetails | undefined>;
   redeemCoupon(couponCode: string): Promise<Coupon>;
   getCoupon(couponId: string): Promise<CouponWithDetails | undefined>;
+  
+  // Verificação para galeria
+  shouldShowProductInGallery(productId: string): Promise<boolean>;
+  getCouponsCountForProduct(productId: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -211,15 +215,24 @@ export class DatabaseStorage implements IStorage {
     
     const storesWithProducts = await Promise.all(
       activeStores.map(async (store) => {
-        const storeProducts = await db
+        const allProducts = await db
           .select()
           .from(products)
           .where(and(eq(products.storeId, store.id), eq(products.isActive, true)))
           .orderBy(desc(products.isFeatured), products.sortOrder, products.createdAt);
 
+        // Filtrar produtos que devem aparecer na galeria
+        const filteredProducts = [];
+        for (const product of allProducts) {
+          const shouldShow = await this.shouldShowProductInGallery(product.id);
+          if (shouldShow) {
+            filteredProducts.push(product);
+          }
+        }
+
         return {
           ...store,
-          products: storeProducts,
+          products: filteredProducts,
         };
       })
     );
@@ -689,6 +702,38 @@ export class DatabaseStorage implements IStorage {
       .where(eq(coupons.couponCode, couponCode))
       .returning();
     return coupon;
+  }
+
+  // Função para verificar se produto deve aparecer na galeria
+  async shouldShowProductInGallery(productId: string): Promise<boolean> {
+    // Buscar produto
+    const product = await this.getProductById(productId);
+    if (!product) return false;
+    
+    // Se não é raspadinha, sempre mostrar
+    if (!product.isScratchCard) return true;
+    
+    // Se raspadinha expirou, sempre mostrar
+    if (!product.scratchExpiresAt || new Date(product.scratchExpiresAt) <= new Date()) {
+      return true;
+    }
+    
+    // Se é raspadinha ativa, verificar se atingiu o limite
+    const maxRedemptions = parseInt(product.maxScratchRedemptions || "0");
+    const couponsGenerated = await this.getCouponsCountForProduct(productId);
+    
+    // Se gerou todos os cupons disponíveis, mostrar na galeria
+    return couponsGenerated >= maxRedemptions;
+  }
+
+  // Contar cupons gerados para um produto
+  async getCouponsCountForProduct(productId: string): Promise<number> {
+    const result = await db
+      .select({ count: count() })
+      .from(coupons)
+      .where(eq(coupons.productId, productId));
+    
+    return Number(result[0]?.count || 0);
   }
 
   async getCoupon(couponId: string): Promise<CouponWithDetails | undefined> {
