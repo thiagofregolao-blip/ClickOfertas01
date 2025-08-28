@@ -116,7 +116,7 @@ export default function AdminProducts() {
         price: cleanPrice,
         scratchPrice: cleanScratchPrice,
         scratchExpiresAt: data.scratchExpiresAt ? new Date(data.scratchExpiresAt).toISOString() : null,
-        scratchTimeLimitMinutes: typeof data.scratchTimeLimitMinutes === 'string' ? parseInt(data.scratchTimeLimitMinutes) || 60 : data.scratchTimeLimitMinutes || 60,
+        scratchTimeLimitMinutes: data.scratchTimeLimitMinutes?.toString() || "60",
         maxScratchRedemptions: typeof data.maxScratchRedemptions === 'string' ? parseInt(data.maxScratchRedemptions) || 10 : data.maxScratchRedemptions || 10,
       };
 

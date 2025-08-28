@@ -1,0 +1,297 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+main.tsx:40 SW registration failed:  TypeError: Failed to register a ServiceWorker: The URL protocol of the script ('blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/b0c175f5-9a60-4ece-8235-fd0c31913af0') is not supported.
+    at main.tsx:35:29
+9f303d13-3377-4813-b083-90ae0e7bbb7b:1 Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+9f303d13-3377-4813-b083-90ae0e7bbb7b:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+br-galaxy-s24-s928-sm-s928bzklbra-thumb-539573233:1  GET https://images.samsung.com/is/image/samsung/p6pim/br/2401/gallery/br-galaxy-s24-s928-sm-s928bzklbra-thumb-539573233 404 (Not Found)
+Image
+commitMount @ chunk-RPCDYKBN.js?v=8b1ec45d:8412
+commitLayoutEffectOnFiber @ chunk-RPCDYKBN.js?v=8b1ec45d:17102
+commitLayoutMountEffects_complete @ chunk-RPCDYKBN.js?v=8b1ec45d:17980
+commitLayoutEffects_begin @ chunk-RPCDYKBN.js?v=8b1ec45d:17969
+commitLayoutEffects @ chunk-RPCDYKBN.js?v=8b1ec45d:17920
+commitRootImpl @ chunk-RPCDYKBN.js?v=8b1ec45d:19353
+commitRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=8b1ec45d:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=8b1ec45d:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=8b1ec45d:555
+flush @ @tanstack_react-query.js?v=8b1ec45d:569
+batch @ @tanstack_react-query.js?v=8b1ec45d:587
+dispatch_fn @ @tanstack_react-query.js?v=8b1ec45d:996
+setData @ @tanstack_react-query.js?v=8b1ec45d:696
+onSuccess @ @tanstack_react-query.js?v=8b1ec45d:897
+resolve @ @tanstack_react-query.js?v=8b1ec45d:456
+Promise.then
+run @ @tanstack_react-query.js?v=8b1ec45d:498
+start @ @tanstack_react-query.js?v=8b1ec45d:536
+fetch @ @tanstack_react-query.js?v=8b1ec45d:926
+executeFetch_fn @ @tanstack_react-query.js?v=8b1ec45d:2211
+setOptions @ @tanstack_react-query.js?v=8b1ec45d:1955
+(anonymous) @ @tanstack_react-query.js?v=8b1ec45d:3032
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=8b1ec45d:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=8b1ec45d:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=8b1ec45d:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=8b1ec45d:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=8b1ec45d:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=8b1ec45d:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=8b1ec45d:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=8b1ec45d:19416
+commitRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=8b1ec45d:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=8b1ec45d:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=8b1ec45d:555
+flush @ @tanstack_react-query.js?v=8b1ec45d:569
+batch @ @tanstack_react-query.js?v=8b1ec45d:587
+dispatch_fn @ @tanstack_react-query.js?v=8b1ec45d:996
+setData @ @tanstack_react-query.js?v=8b1ec45d:696
+onSuccess @ @tanstack_react-query.js?v=8b1ec45d:897
+resolve @ @tanstack_react-query.js?v=8b1ec45d:456
+Promise.then
+run @ @tanstack_react-query.js?v=8b1ec45d:498
+start @ @tanstack_react-query.js?v=8b1ec45d:536
+fetch @ @tanstack_react-query.js?v=8b1ec45d:926
+executeFetch_fn @ @tanstack_react-query.js?v=8b1ec45d:2211
+onSubscribe @ @tanstack_react-query.js?v=8b1ec45d:1898
+subscribe @ @tanstack_react-query.js?v=8b1ec45d:24
+(anonymous) @ @tanstack_react-query.js?v=8b1ec45d:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=8b1ec45d:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=8b1ec45d:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=8b1ec45d:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=8b1ec45d:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=8b1ec45d:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=8b1ec45d:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=8b1ec45d:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=8b1ec45d:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=8b1ec45d:19416
+commitRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=8b1ec45d:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=8b1ec45d:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=8b1ec45d:555
+flush @ @tanstack_react-query.js?v=8b1ec45d:569
+batch @ @tanstack_react-query.js?v=8b1ec45d:587
+dispatch_fn @ @tanstack_react-query.js?v=8b1ec45d:996
+setData @ @tanstack_react-query.js?v=8b1ec45d:696
+onSuccess @ @tanstack_react-query.js?v=8b1ec45d:897
+resolve @ @tanstack_react-query.js?v=8b1ec45d:456
+Promise.then
+run @ @tanstack_react-query.js?v=8b1ec45d:498
+start @ @tanstack_react-query.js?v=8b1ec45d:536
+fetch @ @tanstack_react-query.js?v=8b1ec45d:926
+executeFetch_fn @ @tanstack_react-query.js?v=8b1ec45d:2211
+onSubscribe @ @tanstack_react-query.js?v=8b1ec45d:1898
+subscribe @ @tanstack_react-query.js?v=8b1ec45d:24
+(anonymous) @ @tanstack_react-query.js?v=8b1ec45d:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=8b1ec45d:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=8b1ec45d:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=8b1ec45d:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=8b1ec45d:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=8b1ec45d:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=8b1ec45d:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=8b1ec45d:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=8b1ec45d:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=8b1ec45d:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=8b1ec45d:19432
+commitRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=8b1ec45d:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:18718
+workLoop @ chunk-RPCDYKBN.js?v=8b1ec45d:197
+flushWork @ chunk-RPCDYKBN.js?v=8b1ec45d:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=8b1ec45d:384Understand this error
+@radix-ui_react-dialog.js?v=8b1ec45d:337 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ @radix-ui_react-dialog.js?v=8b1ec45d:337
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=8b1ec45d:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=8b1ec45d:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=8b1ec45d:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=8b1ec45d:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=8b1ec45d:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=8b1ec45d:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=8b1ec45d:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=8b1ec45d:19416
+commitRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=8b1ec45d:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=8b1ec45d:18627Understand this warning
+admin-products.tsx:594 📋 Form submit event disparado! SyntheticBaseEvent {_reactName: 'onSubmit', _targetInst: null, type: 'submit', nativeEvent: SubmitEvent, target: form.space-y-6, …}
+admin-products.tsx:595 🔧 handleSubmit será chamado...
+admin-products.tsx:596 🔍 Estado atual do form: {isValid: false, errors: {…}, isDirty: false, isSubmitting: false}
+admin-products.tsx:605 ✅ Validação passou! Chamando onSubmit...
+admin-products.tsx:318 🎯 onSubmit CHAMADO! Dados do formulário: {name: 'Drone Syma W3 Câmera 2K/WiFi/GPS', description: 'Drone com câmera 2K, WiFi para transmissão ao vivo, GPS para voo estável', price: '169.00', imageUrl: 'https://cellshop.com/media/catalog/product/3/3/3397039_1_1.jpg', imageUrl2: '', …}
+admin-products.tsx:319 🔍 Estado do form: {isValid: false, errors: {…}, isDirty: false}
+admin-products.tsx:324 🏪 Store ID: 44e54a5c-f8a9-4993-ae43-2bd0fc3efbd2
+admin-products.tsx:325 ✏️ Editando produto: {id: '201d664c-231f-4d2f-bb74-bba687093493', storeId: '44e54a5c-f8a9-4993-ae43-2bd0fc3efbd2', name: 'Drone Syma W3 Câmera 2K/WiFi/GPS', description: 'Drone com câmera 2K, WiFi para transmissão ao vivo, GPS para voo estável', price: '169.00', …}
+admin-products.tsx:329 ✅ Mutation chamada com sucesso
+admin-products.tsx:100 🚀 saveMutation.mutationFn EXECUTANDO!
+admin-products.tsx:101 📦 Dados recebidos na mutation: {name: 'Drone Syma W3 Câmera 2K/WiFi/GPS', description: 'Drone com câmera 2K, WiFi para transmissão ao vivo, GPS para voo estável', price: '169.00', imageUrl: 'https://cellshop.com/media/catalog/product/3/3/3397039_1_1.jpg', imageUrl2: '', …}
+admin-products.tsx:123 📋 Dados finais para envio: {name: 'Drone Syma W3 Câmera 2K/WiFi/GPS', description: 'Drone com câmera 2K, WiFi para transmissão ao vivo, GPS para voo estável', price: '169.00', imageUrl: 'https://cellshop.com/media/catalog/product/3/3/3397039_1_1.jpg', imageUrl2: '', …}
+admin-products.tsx:124 🔄 Tipo de operação: PATCH (editar)
+admin-products.tsx:128 🌐 URL PATCH: /api/stores/44e54a5c-f8a9-4993-ae43-2bd0fc3efbd2/products/201d664c-231f-4d2f-bb74-bba687093493
+queryClient.ts:15  PATCH https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/api/stores/44e54a5c-f8a9-4993-ae43-2bd0fc3efbd2/products/201d664c-231f-4d2f-bb74-bba687093493 400 (Bad Request)
+apiRequest @ queryClient.ts:15
+mutationFn @ admin-products.tsx:129
+fn @ @tanstack_react-query.js?v=8b1ec45d:1189
+run @ @tanstack_react-query.js?v=8b1ec45d:494
+start @ @tanstack_react-query.js?v=8b1ec45d:536
+execute @ @tanstack_react-query.js?v=8b1ec45d:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=8b1ec45d:2630
+(anonymous) @ @tanstack_react-query.js?v=8b1ec45d:3295
+onSubmit @ admin-products.tsx:328
+(anonymous) @ admin-products.tsx:606
+(anonymous) @ chunk-4BFJKWC4.js?v=8b1ec45d:1465
+await in (anonymous)
+onSubmit @ admin-products.tsx:612
+callCallback2 @ chunk-RPCDYKBN.js?v=8b1ec45d:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=8b1ec45d:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=8b1ec45d:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=8b1ec45d:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=8b1ec45d:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=8b1ec45d:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=8b1ec45d:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=8b1ec45d:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=8b1ec45d:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=8b1ec45d:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=8b1ec45d:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=8b1ec45d:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=8b1ec45d:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=8b1ec45d:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=8b1ec45d:5449Understand this error
+admin-products.tsx:178 ❌ saveMutation.onError EXECUTADO!
+onError @ admin-products.tsx:178
+execute @ @tanstack_react-query.js?v=8b1ec45d:1254
+await in execute
+mutate @ @tanstack_react-query.js?v=8b1ec45d:2630
+(anonymous) @ @tanstack_react-query.js?v=8b1ec45d:3295
+onSubmit @ admin-products.tsx:328
+(anonymous) @ admin-products.tsx:606
+(anonymous) @ chunk-4BFJKWC4.js?v=8b1ec45d:1465
+await in (anonymous)
+onSubmit @ admin-products.tsx:612
+callCallback2 @ chunk-RPCDYKBN.js?v=8b1ec45d:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=8b1ec45d:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=8b1ec45d:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=8b1ec45d:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=8b1ec45d:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=8b1ec45d:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=8b1ec45d:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=8b1ec45d:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=8b1ec45d:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=8b1ec45d:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=8b1ec45d:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=8b1ec45d:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=8b1ec45d:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=8b1ec45d:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=8b1ec45d:5449Understand this error
+admin-products.tsx:179 🔥 Erro completo: Error: 400: {"message":"Invalid data","errors":[{"code":"invalid_type","expected":"string","received":"number","path":["scratchTimeLimitMinutes"],"message":"Expected string, received number"}]}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:22:3)
+    at async Object.mutationFn (admin-products.tsx:129:26)
+onError @ admin-products.tsx:179
+execute @ @tanstack_react-query.js?v=8b1ec45d:1254
+await in execute
+mutate @ @tanstack_react-query.js?v=8b1ec45d:2630
+(anonymous) @ @tanstack_react-query.js?v=8b1ec45d:3295
+onSubmit @ admin-products.tsx:328
+(anonymous) @ admin-products.tsx:606
+(anonymous) @ chunk-4BFJKWC4.js?v=8b1ec45d:1465
+await in (anonymous)
+onSubmit @ admin-products.tsx:612
+callCallback2 @ chunk-RPCDYKBN.js?v=8b1ec45d:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=8b1ec45d:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=8b1ec45d:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=8b1ec45d:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=8b1ec45d:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=8b1ec45d:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=8b1ec45d:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=8b1ec45d:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=8b1ec45d:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=8b1ec45d:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=8b1ec45d:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=8b1ec45d:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=8b1ec45d:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=8b1ec45d:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=8b1ec45d:5449Understand this error
+admin-products.tsx:180 📝 Mensagem do erro: 400: {"message":"Invalid data","errors":[{"code":"invalid_type","expected":"string","received":"number","path":["scratchTimeLimitMinutes"],"message":"Expected string, received number"}]}
+onError @ admin-products.tsx:180
+execute @ @tanstack_react-query.js?v=8b1ec45d:1254
+await in execute
+mutate @ @tanstack_react-query.js?v=8b1ec45d:2630
+(anonymous) @ @tanstack_react-query.js?v=8b1ec45d:3295
+onSubmit @ admin-products.tsx:328
+(anonymous) @ admin-products.tsx:606
+(anonymous) @ chunk-4BFJKWC4.js?v=8b1ec45d:1465
+await in (anonymous)
+onSubmit @ admin-products.tsx:612
+callCallback2 @ chunk-RPCDYKBN.js?v=8b1ec45d:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=8b1ec45d:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=8b1ec45d:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=8b1ec45d:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=8b1ec45d:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=8b1ec45d:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=8b1ec45d:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=8b1ec45d:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=8b1ec45d:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=8b1ec45d:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=8b1ec45d:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=8b1ec45d:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=8b1ec45d:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=8b1ec45d:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=8b1ec45d:5449Understand this error
+admin-products.tsx:181 🏷️ Tipo do erro: object
+onError @ admin-products.tsx:181
+execute @ @tanstack_react-query.js?v=8b1ec45d:1254
+await in execute
+mutate @ @tanstack_react-query.js?v=8b1ec45d:2630
+(anonymous) @ @tanstack_react-query.js?v=8b1ec45d:3295
+onSubmit @ admin-products.tsx:328
+(anonymous) @ admin-products.tsx:606
+(anonymous) @ chunk-4BFJKWC4.js?v=8b1ec45d:1465
+await in (anonymous)
+onSubmit @ admin-products.tsx:612
+callCallback2 @ chunk-RPCDYKBN.js?v=8b1ec45d:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=8b1ec45d:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=8b1ec45d:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=8b1ec45d:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=8b1ec45d:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=8b1ec45d:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=8b1ec45d:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=8b1ec45d:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=8b1ec45d:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=8b1ec45d:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=8b1ec45d:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=8b1ec45d:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=8b1ec45d:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=8b1ec45d:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=8b1ec45d:5449Understand this error
+admin-products.tsx:196 🚨 Erro genérico de salvamento
+onError @ admin-products.tsx:196
+execute @ @tanstack_react-query.js?v=8b1ec45d:1254
+await in execute
+mutate @ @tanstack_react-query.js?v=8b1ec45d:2630
+(anonymous) @ @tanstack_react-query.js?v=8b1ec45d:3295
+onSubmit @ admin-products.tsx:328
+(anonymous) @ admin-products.tsx:606
+(anonymous) @ chunk-4BFJKWC4.js?v=8b1ec45d:1465
+await in (anonymous)
+onSubmit @ admin-products.tsx:612
+callCallback2 @ chunk-RPCDYKBN.js?v=8b1ec45d:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=8b1ec45d:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=8b1ec45d:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=8b1ec45d:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=8b1ec45d:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=8b1ec45d:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=8b1ec45d:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=8b1ec45d:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=8b1ec45d:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=8b1ec45d:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=8b1ec45d:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=8b1ec45d:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=8b1ec45d:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=8b1ec45d:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=8b1ec45d:5449Understand this error
