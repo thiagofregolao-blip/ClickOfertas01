@@ -31,6 +31,8 @@ interface ScratchArea {
 }
 
 export default function ScratchCard({ product, currency, themeColor, onRevealed, onClick }: ScratchCardProps) {
+  console.log(`🎨 SCRATCHCARD INICIADO para: ${product.name}`);
+  
   const qc = useQueryClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScratching, setIsScratching] = useState(false);

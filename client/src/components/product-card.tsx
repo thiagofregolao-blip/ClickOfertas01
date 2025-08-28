@@ -86,6 +86,7 @@ export default function ProductCard({
 
   // Se for raspadinha, mostrar ScratchCard
   if (isScratchCard) {
+    console.log(`🚀 RENDERIZANDO SCRATCHCARD para: ${product.name}`);
     return (
       <ScratchCard
         product={product}
