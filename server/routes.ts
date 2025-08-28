@@ -599,31 +599,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const userId = req.user.claims.sub;
+      console.log(`🔍 Verificando elegibilidade para userId: ${userId}, productId: ${productId}`);
 
-      const [existingOffer] = await db
+      // Verificar se há cupom ativo na tabela coupons
+      const [existingCoupon] = await db
         .select()
-        .from(scratchOffers)
+        .from(coupons)
         .where(
           and(
-            eq(scratchOffers.userId, userId),
-            eq(scratchOffers.productId, productId)
+            eq(coupons.userId, userId),
+            eq(coupons.productId, productId)
           )
         )
-        .orderBy(desc(scratchOffers.createdAt))
+        .orderBy(desc(coupons.createdAt))
         .limit(1);
 
-      if (existingOffer) {
-        if (existingOffer.status === "revealed" && existingOffer.expiresAt && existingOffer.expiresAt > new Date()) {
+      console.log(`🔍 Cupom encontrado:`, existingCoupon);
+
+      if (existingCoupon) {
+        // Se cupom não foi resgatado e ainda está válido
+        if (!existingCoupon.isRedeemed && existingCoupon.expiresAt && existingCoupon.expiresAt > new Date()) {
           return res.json({
             eligible: false,
             hasActive: true,
-            activeOffer: existingOffer
+            activeCoupon: existingCoupon
           });
         }
-        if (existingOffer.cooldownUntil && existingOffer.cooldownUntil > new Date()) {
+        
+        // Se foi resgatado ou expirado há menos de 24h, aplicar cooldown
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        if (existingCoupon.createdAt && existingCoupon.createdAt > twentyFourHoursAgo) {
+          const cooldownUntil = new Date(existingCoupon.createdAt.getTime() + 24 * 60 * 60 * 1000);
           return res.json({
             eligible: false,
-            cooldownUntil: existingOffer.cooldownUntil
+            cooldownUntil: cooldownUntil
           });
         }
       }
