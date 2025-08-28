@@ -70,6 +70,19 @@ export default function ProductCard({
   // Verificar se é uma raspadinha ativa
   const isScratchCard = product.isScratchCard && 
     (!product.scratchExpiresAt || new Date(product.scratchExpiresAt) > new Date());
+  
+  // DEBUG: Log para identificar o problema
+  if (product.isScratchCard) {
+    console.log(`🔍 DEBUG RASPADINHA - ${product.name}:`, {
+      isScratchCard: product.isScratchCard,
+      scratchExpiresAt: product.scratchExpiresAt,
+      scratchExpiresAtParsed: product.scratchExpiresAt ? new Date(product.scratchExpiresAt) : null,
+      now: new Date(),
+      isExpired: product.scratchExpiresAt ? new Date(product.scratchExpiresAt) <= new Date() : false,
+      finalCondition: isScratchCard,
+      willShowScratchCard: isScratchCard
+    });
+  }
 
   // Se for raspadinha, mostrar ScratchCard
   if (isScratchCard) {
