@@ -10,7 +10,7 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import type { Product } from "@shared/schema";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { formatBrazilianPrice, formatPriceWithCurrency } from "@/lib/priceUtils";
 import jsPDF from "jspdf";
@@ -31,6 +31,7 @@ interface ScratchArea {
 }
 
 export default function ScratchCard({ product, currency, themeColor, onRevealed, onClick }: ScratchCardProps) {
+  const qc = useQueryClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScratching, setIsScratching] = useState(false);
   const [scratchProgress, setScratchProgress] = useState(0);
@@ -44,10 +45,12 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const scratchedAreas = useRef<ScratchArea[]>([]);
   const { toast } = useToast();
 
-  // Query para verificar elegibilidade
+  // Query para verificar elegibilidade (AGORA COM queryFn REAL)
   const { data: eligibility, refetch: checkEligibility, isLoading, error } = useQuery({
     queryKey: ['/api/scratch/offers', product.id, 'eligibility'],
     queryFn: () => apiRequest(`/api/scratch/offers/${product.id}/eligibility`),
+    enabled: !!product?.id,
+    staleTime: 15_000,
     retry: false,
   });
 
@@ -109,6 +112,22 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           description: "Veja os detalhes do seu cupom!",
           duration: 3000,
         });
+
+        // 1) Atualiza a elegibilidade IMEDIATAMENTE (optimistic)
+        qc.setQueryData(
+          ['/api/scratch/offers', product.id, 'eligibility'],
+          () => ({
+            eligible: false,
+            hasActive: true,
+            activeOffer: {
+              productId: product.id,
+              status: 'revealed',
+              expiresAt: data.coupon.expiresAt,
+            },
+          })
+        );
+        // 2) Confirma com o servidor
+        qc.invalidateQueries({ queryKey: ['/api/scratch/offers', product.id, 'eligibility'] });
       }
     },
     onError: (error: any) => {
@@ -148,6 +167,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           variant: "destructive",
           duration: 3000,
         });
+        // Em erro genérico também vale refazer elegibilidade, para garantir estado correto
+        qc.invalidateQueries({ queryKey: ['/api/scratch/offers', product.id, 'eligibility'] });
       }
     }
   });
@@ -168,6 +189,24 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
     return () => clearInterval(timer);
   }, [timeLeft]);
+
+  // 🔕 Garantir que o rAF pare após revelar e no unmount
+  useEffect(() => {
+    if (isRevealed && rafId.current) {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = null;
+    }
+    return () => {
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = null;
+      }
+      // Fecha/suspende áudio
+      try { 
+        audioCtxRef.current?.close?.(); 
+      } catch {}
+    };
+  }, [isRevealed]);
 
   // FASE 1: Inicializar canvas com DPI correto
   useEffect(() => {
@@ -1035,7 +1074,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           <canvas
             ref={canvasRef}
             className={`absolute inset-0 w-full h-full cursor-pointer transition-all duration-200 ease-out ${
-              isFading ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
+              isFading ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'
             } ${isRevealed ? 'pointer-events-none' : ''}`}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}

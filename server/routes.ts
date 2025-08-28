@@ -587,6 +587,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Nova rota: Verificar elegibilidade
   app.get('/api/scratch/offers/:productId/eligibility', async (req: any, res) => {
     try {
+      // Não permitir cache (sempre estado mais recente)
+      res.set('Cache-Control', 'no-store');
+      
       const { productId } = req.params;
       
       // Se não estiver autenticado, é elegível (guest mode)
@@ -599,7 +602,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const userId = req.user.claims.sub;
-      console.log(`🔍 Verificando elegibilidade para userId: ${userId}, productId: ${productId}`);
 
       // Verificar se há cupom ativo na tabela coupons
       const [existingCoupon] = await db
@@ -613,8 +615,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         )
         .orderBy(desc(coupons.createdAt))
         .limit(1);
-
-      console.log(`🔍 Cupom encontrado:`, existingCoupon);
 
       if (existingCoupon) {
         // Se cupom não foi resgatado e ainda está válido
