@@ -47,10 +47,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Query para verificar elegibilidade
   const { data: eligibility, refetch: checkEligibility } = useQuery({
     queryKey: ['/api/scratch/offers', product.id, 'eligibility'],
-    queryFn: async () => {
-      const response = await apiRequest(`/api/scratch/offers/${product.id}/eligibility`);
-      return response.json();
-    },
+    queryFn: () => apiRequest(`/api/scratch/offers/${product.id}/eligibility`),
     retry: false,
   });
   
