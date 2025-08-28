@@ -809,9 +809,109 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
 
 
-  // Render do card para raspar
-  return (
-    <>
+  // Função para renderizar diferentes estados baseado na elegibilidade
+  const renderCardState = () => {
+    // Se ainda não carregou elegibilidade, mostrar loading
+    if (!eligibility || typeof eligibility !== 'object') {
+      return (
+        <div className="relative isolate z-10 bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-gray-300 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] select-none">
+          <div className="p-4 relative h-full w-full flex flex-col justify-center items-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500 mb-2"></div>
+            <p className="text-sm text-gray-500">Verificando disponibilidade...</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Se já tem cupom ativo
+    if ('eligible' in eligibility && !eligibility.eligible && 'hasActive' in eligibility && eligibility.hasActive) {
+      return (
+        <div className="relative isolate z-10 bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] select-none">
+          <div className="p-4 relative h-full w-full flex flex-col justify-center items-center">
+            {/* Badge indicativo */}
+            <div className="absolute top-2 right-2 z-20">
+              <Badge className="bg-green-500 text-white text-xs">
+                <CheckCircle className="w-3 h-3 mr-1" />
+                RESGATADO
+              </Badge>
+            </div>
+
+            {/* Produto */}
+            <div className="mb-3">
+              {product.imageUrl ? (
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="w-16 h-16 md:w-20 md:h-20 object-cover rounded"
+                />
+              ) : (
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 flex items-center justify-center rounded">
+                  <div className="w-6 h-6 bg-gray-300 rounded"></div>
+                </div>
+              )}
+            </div>
+            
+            <h3 className="text-xs sm:text-sm font-bold text-gray-700 text-center line-clamp-2 mb-2">{product.name}</h3>
+            
+            <div className="text-green-600 font-bold text-sm mb-2">
+              ✅ Oferta já resgatada
+            </div>
+            
+            <p className="text-xs text-gray-500 text-center">
+              Você já pegou este cupom!
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // Se está em cooldown
+    if ('eligible' in eligibility && !eligibility.eligible && 'cooldownUntil' in eligibility && eligibility.cooldownUntil) {
+      const cooldownDate = new Date(eligibility.cooldownUntil as string);
+      const timeUntilCooldown = Math.max(0, Math.floor((cooldownDate.getTime() - Date.now()) / 1000));
+      
+      return (
+        <div className="relative isolate z-10 bg-gradient-to-br from-orange-100 to-red-100 border-2 border-orange-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] select-none">
+          <div className="p-4 relative h-full w-full flex flex-col justify-center items-center">
+            {/* Badge indicativo */}
+            <div className="absolute top-2 right-2 z-20">
+              <Badge className="bg-orange-500 text-white text-xs">
+                <Clock className="w-3 h-3 mr-1" />
+                AGUARDE
+              </Badge>
+            </div>
+
+            {/* Produto */}
+            <div className="mb-3 opacity-60">
+              {product.imageUrl ? (
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="w-16 h-16 md:w-20 md:h-20 object-cover rounded"
+                />
+              ) : (
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 flex items-center justify-center rounded">
+                  <div className="w-6 h-6 bg-gray-300 rounded"></div>
+                </div>
+              )}
+            </div>
+            
+            <h3 className="text-xs sm:text-sm font-bold text-gray-700 text-center line-clamp-2 mb-2 opacity-60">{product.name}</h3>
+            
+            <div className="text-orange-600 font-bold text-sm mb-2">
+              ⏰ Aguarde 24h
+            </div>
+            
+            <p className="text-xs text-gray-500 text-center">
+              {timeUntilCooldown > 0 ? `Disponível em ${formatTimeLeft(timeUntilCooldown)}` : 'Disponível em breve'}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // Se elegível (estado normal da raspadinha)
+    return (
       <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
         <div className="p-0 relative h-full w-full overflow-hidden">
           {/* Badge indicativo */}
@@ -881,6 +981,99 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
         </div>
       </div>
+    );
+  };
+
+  // Render do card para raspar
+  return (
+    <>
+      {renderCardState()}
+      {ProductModal()}
+      
+      {/* Modal de cupom gerado */}
+      {showCouponModal && coupon && (
+        <Dialog open={showCouponModal} onOpenChange={setShowCouponModal}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 w-[calc(100vw-2rem)] sm:w-full">
+            <DialogHeader>
+              <DialogTitle className="text-xl sm:text-2xl font-bold text-center">🎫 Seu Cupom de Desconto</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4 sm:space-y-6 p-1">
+              {/* Produto */}
+              <div className="text-center">
+                {product.imageUrl && (
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg mx-auto mb-4 border-4 border-green-200"
+                  />
+                )}
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">{product.name}</h3>
+              </div>
+
+              {/* Desconto destacado */}
+              <div className="text-center bg-gradient-to-r from-red-50 to-orange-50 p-4 sm:p-6 rounded-lg">
+                <div className="text-2xl sm:text-4xl font-bold text-red-600 mb-2">
+                  🔥 {coupon.discountPercentage}% OFF
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-green-600 mb-2">
+                  Por apenas: {formatPriceWithCurrency(coupon.discountPrice, currency)}
+                </div>
+                <div className="text-base sm:text-lg text-gray-500 line-through">
+                  De: {formatPriceWithCurrency(coupon.originalPrice, currency)}
+                </div>
+              </div>
+
+              {/* QR Code e Código */}
+              <div className="text-center bg-white border-2 border-dashed border-gray-300 p-4 sm:p-6 rounded-lg">
+                {coupon.qrCode && (
+                  <div className="mb-4">
+                    <img
+                      src={coupon.qrCode}
+                      alt="QR Code do cupom"
+                      className="w-32 h-32 sm:w-48 sm:h-48 mx-auto border border-gray-200 rounded"
+                    />
+                  </div>
+                )}
+                
+                <div className="bg-gray-100 rounded-lg p-3 sm:p-4">
+                  <p className="text-xs sm:text-sm text-gray-600 mb-1">Código do cupom:</p>
+                  <p className="text-lg sm:text-2xl font-mono font-bold text-gray-800 break-all">{coupon.couponCode}</p>
+                </div>
+              </div>
+
+              {/* Botões de ação */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  onClick={downloadPDF}
+                  variant="outline"
+                  className="flex-1 w-full"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Baixar PDF
+                </Button>
+                <Button 
+                  onClick={shareOnWhatsApp}
+                  className="flex-1 w-full bg-green-600 hover:bg-green-700"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Compartilhar
+                </Button>
+              </div>
+
+              {/* Instruções */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                <h4 className="font-semibold text-blue-800 mb-2 text-sm sm:text-base">📍 Como usar este cupom:</h4>
+                <ul className="text-xs sm:text-sm text-blue-700 space-y-1">
+                  <li>• Apresente este cupom na loja</li>
+                  <li>• Mostre o QR Code ou o código</li>
+                  <li>• Aproveite seu desconto!</li>
+                </ul>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }
