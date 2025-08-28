@@ -3,6 +3,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, Gift, Sparkles, Download, Share2, QrCode, CheckCircle } from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
 import type { Product } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -34,6 +40,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const [showModal, setShowModal] = useState(false);
   const [coupon, setCoupon] = useState<any>(null);
   const [couponGenerated, setCouponGenerated] = useState(false);
+  const [showCouponModal, setShowCouponModal] = useState(false);
   const scratchedAreas = useRef<ScratchArea[]>([]);
   const { toast } = useToast();
   
@@ -83,9 +90,17 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     },
     onSuccess: (data: any) => {
       if (data?.success && data?.coupon) {
-        // Redirecionar para a página do cupom
+        // Salvar dados do cupom e abrir modal
+        setCoupon(data.coupon);
+        setCouponGenerated(true);
         setShowModal(false);
-        window.location.href = `/coupon?id=${data.coupon.id}`;
+        setShowCouponModal(true);
+        
+        toast({
+          title: "🎉 Cupom gerado!",
+          description: "Veja os detalhes do seu cupom!",
+          duration: 3000,
+        });
       }
     },
     onError: (error: any) => {
@@ -670,9 +685,131 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           </div>
         </div>
         <ProductModal />
+        <CouponModal />
       </>
     );
   }
+
+  // Modal de Cupom
+  const CouponModal = () => {
+    if (!showCouponModal || !coupon) return null;
+
+    const isExpired = new Date(coupon.expiresAt) <= new Date();
+
+    return (
+      <Dialog open={showCouponModal} onOpenChange={setShowCouponModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center">🎫 Seu Cupom de Desconto</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Status Badge */}
+            <div className="text-center">
+              {coupon.isRedeemed ? (
+                <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-600 px-4 py-2 rounded-full">
+                  <CheckCircle className="w-4 h-4" />
+                  Cupom Utilizado
+                </div>
+              ) : isExpired ? (
+                <div className="inline-flex items-center gap-2 bg-red-100 text-red-600 px-4 py-2 rounded-full">
+                  <Clock className="w-4 h-4" />
+                  Cupom Expirado
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-2 bg-green-100 text-green-600 px-4 py-2 rounded-full">
+                  <CheckCircle className="w-4 h-4" />
+                  Cupom Ativo
+                </div>
+              )}
+            </div>
+
+            {/* Produto */}
+            <div className="text-center">
+              {product.imageUrl && (
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="w-32 h-32 object-cover rounded-lg mx-auto mb-4 border-4 border-green-200"
+                />
+              )}
+              <h3 className="text-xl font-bold text-gray-800 mb-2">{product.name}</h3>
+            </div>
+
+            {/* Desconto destacado */}
+            <div className="text-center bg-gradient-to-r from-red-50 to-orange-50 p-6 rounded-lg">
+              <div className="text-4xl font-bold text-red-600 mb-2">
+                🔥 {coupon.discountPercentage}% OFF
+              </div>
+              <div className="text-2xl font-bold text-green-600 mb-2">
+                Por apenas: {formatPriceWithCurrency(coupon.discountPrice, currency)}
+              </div>
+              <div className="text-lg text-gray-500 line-through">
+                De: {formatPriceWithCurrency(coupon.originalPrice, currency)}
+              </div>
+              <div className="text-sm text-green-600 mt-2">
+                Economia: {formatPriceWithCurrency((parseFloat(coupon.originalPrice) - parseFloat(coupon.discountPrice)), currency)}
+              </div>
+            </div>
+
+            {/* QR Code e Código */}
+            <div className="text-center bg-white border-2 border-dashed border-gray-300 p-6 rounded-lg">
+              {coupon.qrCode && (
+                <div className="mb-4">
+                  <img
+                    src={coupon.qrCode}
+                    alt="QR Code do cupom"
+                    className="w-48 h-48 mx-auto border border-gray-200 rounded"
+                  />
+                </div>
+              )}
+              
+              <div className="bg-gray-100 rounded-lg p-4">
+                <p className="text-sm text-gray-600 mb-1">Código do cupom:</p>
+                <p className="text-2xl font-mono font-bold text-gray-800">{coupon.couponCode}</p>
+              </div>
+            </div>
+
+            {/* Data de expiração */}
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                Válido até: <span className="font-semibold">{new Date(coupon.expiresAt).toLocaleString('pt-BR')}</span>
+              </p>
+            </div>
+
+            {/* Botões de ação */}
+            <div className="flex gap-3">
+              <Button 
+                onClick={downloadPDF}
+                variant="outline"
+                className="flex-1"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Baixar PDF
+              </Button>
+              <Button 
+                onClick={shareOnWhatsApp}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Compartilhar
+              </Button>
+            </div>
+
+            {/* Instruções */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-800 mb-2">📍 Como usar este cupom:</h4>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Apresente este cupom na loja</li>
+                <li>• Mostre o QR Code ou o código</li>
+                <li>• Aproveite seu desconto!</li>
+              </ul>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
   // Render do card para raspar
   return (
@@ -746,6 +883,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
         </div>
       </div>
+      <CouponModal />
     </>
   );
 }
