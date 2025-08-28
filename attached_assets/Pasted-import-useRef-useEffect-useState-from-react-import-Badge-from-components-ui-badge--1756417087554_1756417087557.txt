@@ -1,0 +1,487 @@
+import { useRef, useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Clock, Sparkles, CheckCircle, Download, Share2 } from 'lucide-react';
+import { Product } from '@shared/schema';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import jsPDF from 'jspdf';
+
+interface ScratchCardProps {
+  product: Product;
+  currency: string;
+  onRevealed?: (product: Product) => void;
+}
+
+// Função para formatar preço
+const formatPriceWithCurrency = (price: string | number, currency: string): string => {
+  const n = typeof price === 'string' ? parseFloat(price || '0') : (price ?? 0);
+  const formattedPrice = n.toFixed(2).replace('.', ',');
+  return `${currency}$ ${formattedPrice}`;
+};
+
+export default function ScratchCard({ product, currency, onRevealed }: ScratchCardProps) {
+  // Estados
+  const [isRevealed, setIsRevealed] = useState(false);
+  const [scratchProgress, setScratchProgress] = useState(0);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [isFading, setIsFading] = useState(false);
+  const [coupon, setCoupon] = useState<any>(null);
+  const [couponGenerated, setCouponGenerated] = useState(false);
+  const [showCouponModal, setShowCouponModal] = useState(false);
+
+  // Refs
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const scratchedAreas = useRef<Array<{ x: number; y: number; radius: number }>>([]);
+  const { toast } = useToast();
+
+  // Áudio
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const lastSoundTime = useRef<number>(0);
+  const SOUND_COOLDOWN = 120; // ms
+
+  // Progresso e desenho
+  const rafId = useRef<number | null>(null);
+  const needsProgressCalc = useRef<boolean>(false);
+  const lastPoint = useRef<{ x: number; y: number } | null>(null);
+
+  // React Query
+  const queryClient = useQueryClient();
+
+  // ===== NOVO: buscar status no backend =====
+  const { data: scratchStatus, isLoading: loadingStatus, isError: statusError } = useQuery({
+    queryKey: ['scratch-status', product.id],
+    queryFn: async () => {
+      const r = await fetch(`/api/products/${product.id}/scratch-status`, { credentials: 'include' });
+      if (!r.ok) throw new Error('Falha ao carregar status da raspadinha');
+      // esperado: { redeemed: boolean, expiresAt?: string, coupon?: {...} }
+      return r.json() as Promise<{ redeemed: boolean; expiresAt?: string; coupon?: any }>;
+    },
+    staleTime: 60_000,
+  });
+
+  // Sincronizar estado local com o servidor
+  useEffect(() => {
+    if (!scratchStatus) return;
+
+    const redeemed = !!scratchStatus.redeemed;
+    setIsRevealed(redeemed);
+
+    if (scratchStatus.expiresAt) {
+      const expirationTime = new Date(scratchStatus.expiresAt).getTime();
+      const now = Date.now();
+      setTimeLeft(Math.max(0, Math.floor((expirationTime - now) / 1000)));
+    } else {
+      setTimeLeft(null);
+    }
+
+    if (scratchStatus.coupon) {
+      setCoupon(scratchStatus.coupon);
+      setCouponGenerated(true);
+    } else {
+      setCoupon(null);
+      setCouponGenerated(false);
+    }
+  }, [scratchStatus]);
+
+  // Mutation para marcar produto como "raspado"
+  const scratchMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const response = await apiRequest(`/api/products/${productId}/scratch`, 'POST');
+      return response.json();
+    },
+    onSuccess: (data: any) => {
+      if (data?.expiresAt) {
+        const expirationTime = new Date(data.expiresAt).getTime();
+        const now = Date.now();
+        setTimeLeft(Math.max(0, Math.floor((expirationTime - now) / 1000)));
+      }
+      setIsRevealed(true);
+      queryClient.invalidateQueries({ queryKey: ['scratch-status', product.id] });
+      onRevealed?.(product);
+    },
+    onError: (error: any) => {
+      setIsFading(false);
+      toast({
+        title: 'Não foi possível concluir o resgate',
+        description: String(error?.message || 'Tente novamente.'),
+        variant: 'destructive',
+      });
+    }
+  });
+
+  // Mutation para gerar cupom (igual ao seu)
+  const generateCouponMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const response = await fetch(`/api/products/${productId}/generate-coupon`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`${response.status}: ${error}`);
+      }
+      return await response.json();
+    },
+    onSuccess: (data: any) => {
+      if (data?.success && data?.coupon) {
+        setCoupon(data.coupon);
+        setCouponGenerated(true);
+        setShowModal(false);
+        setShowCouponModal(true);
+        toast({
+          title: "🎉 Cupom gerado!",
+          description: "Veja os detalhes do seu cupom!",
+          duration: 3000,
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao gerar cupom",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Timer countdown
+  useEffect(() => {
+    if (timeLeft === null || timeLeft <= 0) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  // Inicializar canvas com DPI correto — NÃO inicializa se já revelado
+  useEffect(() => {
+    if (isRevealed || loadingStatus) return;           // <- bloqueia init quando já resgatado ou carregando
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Reset estado ao mudar produto (SEM setIsRevealed(false)!)
+    scratchedAreas.current = [];
+    setScratchProgress(0);
+    setIsFading(false);
+    lastPoint.current = null;
+    needsProgressCalc.current = false;
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // limpa transform antiga
+    ctx.scale(dpr, dpr);
+
+    // Camada de cobertura metalizada
+    const gradient = ctx.createLinearGradient(0, 0, rect.width, rect.height);
+    gradient.addColorStop(0, '#c0c0c0');
+    gradient.addColorStop(0.2, '#e8e8e8');
+    gradient.addColorStop(0.4, '#b8b8b8');
+    gradient.addColorStop(0.6, '#d8d8d8');
+    gradient.addColorStop(0.8, '#a8a8a8');
+    gradient.addColorStop(1, '#c8c8c8');
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, rect.width, rect.height);
+
+    // Textura
+    for (let i = 0; i < 15; i++) {
+      const lineY = (rect.height / 15) * i;
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 + Math.random() * 0.15})`;
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(0, lineY);
+      ctx.lineTo(rect.width, lineY + Math.random() * 4 - 2);
+      ctx.stroke();
+    }
+
+    // Instruções
+    ctx.fillStyle = 'rgba(80, 80, 80, 0.9)';
+    ctx.font = 'bold 16px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('👆 RASPE AQUI', rect.width / 2, rect.height / 2 - 10);
+
+    ctx.font = '12px Arial, sans-serif';
+    ctx.fillStyle = 'rgba(100, 100, 100, 0.8)';
+    ctx.fillText('Descubra sua oferta!', rect.width / 2, rect.height / 2 + 15);
+
+    // Apagar ao desenhar
+    ctx.globalCompositeOperation = 'destination-out';
+
+    return () => {
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+    };
+  }, [product.id, isRevealed, loadingStatus]);
+
+  // Som de raspagem otimizado
+  const playScratchSound = () => {
+    const now = Date.now();
+    if (now - lastSoundTime.current < SOUND_COOLDOWN) return;
+
+    try {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+
+      const audioCtx = audioCtxRef.current;
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.frequency.setValueAtTime(100 + Math.random() * 50, audioCtx.currentTime);
+      oscillator.type = 'sawtooth';
+
+      gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.015, audioCtx.currentTime + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+
+      oscillator.start(audioCtx.currentTime);
+      oscillator.stop(audioCtx.currentTime + 0.08);
+
+      lastSoundTime.current = now;
+    } catch (error) {
+      // Som opcional, não quebrar a funcionalidade
+    }
+  };
+
+  // Calcular progresso por transparência REAL
+  const calculateProgressOptimized = () => {
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    try {
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+
+      let transparentPixels = 0;
+      let totalPixels = 0;
+
+      // Sampling: 1 em cada 16 pixels (4x4)
+      for (let i = 0; i < data.length; i += 64) { // 16 px * 4 comps
+        const alpha = data[i + 3];
+        totalPixels++;
+        if (alpha < 128) transparentPixels++;
+      }
+
+      const progress = totalPixels > 0 ? transparentPixels / totalPixels : 0;
+      setScratchProgress(progress);
+
+      // Auto-revelar (chama servidor e só muda UI no onSuccess)
+      if (progress > 0.65 && !isRevealed && !scratchMutation.isPending) {
+        setIsFading(true);
+        setTimeout(() => {
+          scratchMutation.mutate(product.id);
+        }, 200);
+      }
+    } catch (error) {
+      console.warn('Erro ao calcular progresso:', error);
+    }
+
+    needsProgressCalc.current = false;
+    rafId.current = null;
+  };
+
+  // Desenhar círculo de raspagem
+  const drawScratchCircle = (x: number, y: number, pressure: number = 1) => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+
+    const canvasX = (x - rect.left) * dpr;
+    const canvasY = (y - rect.top) * dpr;
+
+    const baseRadius = 24;
+    const radius = baseRadius * (0.7 + pressure * 0.6);
+
+    ctx.beginPath();
+    ctx.arc(canvasX, canvasY, radius, 0, 2 * Math.PI);
+    ctx.fill();
+
+    if (!needsProgressCalc.current) {
+      needsProgressCalc.current = true;
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+      rafId.current = requestAnimationFrame(calculateProgressOptimized);
+    }
+  };
+
+  // Desenhar linha contínua entre pontos
+  const drawScratchLine = (x1: number, y1: number, x2: number, y2: number, pressure: number = 1) => {
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+
+    const canvasX1 = (x1 - rect.left) * dpr;
+    const canvasY1 = (y1 - rect.top) * dpr;
+    const canvasX2 = (x2 - rect.left) * dpr;
+    const canvasY2 = (y2 - rect.top) * dpr;
+
+    const baseWidth = 48;
+    const lineWidth = baseWidth * (0.7 + pressure * 0.6);
+
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.beginPath();
+    ctx.moveTo(canvasX1, canvasY1);
+    ctx.lineTo(canvasX2, canvasY2);
+    ctx.stroke();
+  };
+
+  // Handlers (bloquear se já revelado ou carregando)
+  const blocked = () => isRevealed || loadingStatus || statusError;
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (blocked()) return;
+    e.preventDefault();
+    const x = e.clientX;
+    const y = e.clientY;
+    lastPoint.current = { x, y };
+    drawScratchCircle(x, y, 1);
+    playScratchSound();
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (blocked() || !lastPoint.current) return;
+
+    e.preventDefault();
+    const x = e.clientX;
+    const y = e.clientY;
+
+    drawScratchLine(lastPoint.current.x, lastPoint.current.y, x, y, 1);
+    drawScratchCircle(x, y, 1);
+    lastPoint.current = { x, y };
+    playScratchSound();
+  };
+
+  const handleMouseUp = () => {
+    lastPoint.current = null;
+  };
+
+  // Handlers de toque com pressão
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (blocked()) return;
+    e.preventDefault();
+    if (e.touches.length === 0) return;
+
+    const touch = e.touches[0];
+    const x = touch.clientX;
+    the const y = touch.clientY;
+    const pressure = (touch as any).force || 1;
+
+    lastPoint.current = { x, y };
+    drawScratchCircle(x, y, pressure);
+    playScratchSound();
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (blocked() || !lastPoint.current || e.touches.length === 0) return;
+
+    e.preventDefault();
+    const touch = e.touches[0];
+    const x = touch.clientX;
+    const y = touch.clientY;
+    const pressure = (touch as any).force || 1;
+
+    drawScratchLine(lastPoint.current.x, lastPoint.current.y, x, y, pressure);
+    drawScratchCircle(x, y, pressure);
+    lastPoint.current = { x, y };
+    playScratchSound();
+  };
+
+  const handleTouchEnd = () => {
+    lastPoint.current = null;
+  };
+
+  // Helper para formatar tempo restante
+  const formatTimeLeft = (seconds: number) => {
+    if (seconds < 60) {
+      return `${seconds}s`;
+    }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  // Função para baixar PDF do cupom
+  const downloadPDF = () => {
+    if (!coupon) return;
+
+    const doc = new jsPDF();
+
+    // Header
+    doc.setFontSize(20);
+    doc.text('🎉 CUPOM DE DESCONTO', 20, 30);
+
+    // Informações do produto
+    doc.setFontSize(14);
+    doc.text(`Produto: ${product.name}`, 20, 50);
+
+    // Desconto
+    doc.setFontSize(16);
+    doc.text(`🔥 ${coupon.discountPercentage}% DE DESCONTO!`, 20, 70);
+
+    // Preços
+    doc.setFontSize(12);
+    doc.text(`De: ${formatPriceWithCurrency(coupon.originalPrice, currency)}`, 20, 90);
+    doc.text(`Por: ${formatPriceWithCurrency(coupon.discountPrice, currency)}`, 20, 105);
+
+    // Código do cupom
+    doc.setFontSize(14);
+    doc.text(`Código: ${coupon.couponCode}`, 20, 130);
+
+    // Validade
+    const expirationDate = new Date(coupon.expiresAt).toLocaleString('pt-BR');
+    doc.text(`Válido até: ${expirationDate}`, 20, 150);
+
+    // QR Code (como imagem)
+    if (coupon.qrCode) {
+      try {
+        doc.addImage(coupon.qrCode, 'PNG', 120, 80, 60, 60);
+      } catch {
+        // ignora se não for uma dataURL válida
+      }
+    }
+
+    // Instruções
+    doc.setFontSize(10);
+    doc.text('Apresente este cupom na loja para resgatar o desconto', 20, 200);
+
+    doc.save(`cupom-${coupon.couponCode}.pdf`);
+  };
