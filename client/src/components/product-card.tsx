@@ -73,15 +73,15 @@ export default function ProductCard({
   
   // DEBUG: Log para identificar o problema
   if (product.isScratchCard) {
-    console.log(`🔍 DEBUG RASPADINHA - ${product.name}:`, {
-      isScratchCard: product.isScratchCard,
-      scratchExpiresAt: product.scratchExpiresAt,
-      scratchExpiresAtParsed: product.scratchExpiresAt ? new Date(product.scratchExpiresAt) : null,
-      now: new Date(),
-      isExpired: product.scratchExpiresAt ? new Date(product.scratchExpiresAt) <= new Date() : false,
-      finalCondition: isScratchCard,
-      willShowScratchCard: isScratchCard
-    });
+    console.log(`🔍 DEBUG RASPADINHA - ${product.name}:`);
+    console.log(`   isScratchCard: ${product.isScratchCard}`);
+    console.log(`   scratchExpiresAt: ${product.scratchExpiresAt}`);
+    console.log(`   scratchExpiresAtParsed: ${product.scratchExpiresAt ? new Date(product.scratchExpiresAt) : null}`);
+    console.log(`   now: ${new Date()}`);
+    console.log(`   isExpired: ${product.scratchExpiresAt ? new Date(product.scratchExpiresAt) <= new Date() : false}`);
+    console.log(`   finalCondition: ${isScratchCard}`);
+    console.log(`   willShowScratchCard: ${isScratchCard}`);
+    console.log(`   ---`);
   }
 
   // Se for raspadinha, mostrar ScratchCard
