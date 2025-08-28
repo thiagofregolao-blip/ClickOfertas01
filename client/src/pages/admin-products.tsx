@@ -97,7 +97,13 @@ export default function AdminProducts() {
 
   const saveMutation = useMutation({
     mutationFn: async (data: ProductFormData) => {
-      if (!store?.id) throw new Error("Store not found");
+      console.log("🚀 saveMutation.mutationFn EXECUTANDO!");
+      console.log("📦 Dados recebidos na mutation:", data);
+      
+      if (!store?.id) {
+        console.error("❌ Store não encontrada:", store);
+        throw new Error("Store not found");
+      }
       
       // Apenas converter para número sem alterar formato
       const cleanPrice = data.price;
@@ -112,18 +118,34 @@ export default function AdminProducts() {
         scratchExpiresAt: data.scratchExpiresAt ? new Date(data.scratchExpiresAt).toISOString() : null,
       };
 
+      console.log("📋 Dados finais para envio:", productData);
+      console.log("🔄 Tipo de operação:", editingProduct ? "PATCH (editar)" : "POST (criar)");
+
       if (editingProduct) {
-        await apiRequest("PATCH", `/api/stores/${store.id}/products/${editingProduct.id}`, productData);
+        const url = `/api/stores/${store.id}/products/${editingProduct.id}`;
+        console.log("🌐 URL PATCH:", url);
+        const response = await apiRequest("PATCH", url, productData);
+        console.log("✅ Resposta PATCH:", response);
+        return response;
       } else {
-        await apiRequest("POST", `/api/stores/${store.id}/products`, productData);
+        const url = `/api/stores/${store.id}/products`;
+        console.log("🌐 URL POST:", url);
+        const response = await apiRequest("POST", url, productData);
+        console.log("✅ Resposta POST:", response);
+        return response;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("🎉 saveMutation.onSuccess EXECUTADO!");
+      console.log("📊 Dados de resposta:", data);
+      
       queryClient.invalidateQueries({ queryKey: ["/api/stores", store?.id, "products"] });
       toast({
         title: "Sucesso!",
         description: editingProduct ? "Produto atualizado com sucesso" : "Produto criado com sucesso",
       });
+      
+      console.log("🔄 Fechando modal e limpando estado...");
       
       // Se não for para adicionar mais produtos ou se estiver editando, fechar o modal
       if (!addMoreProducts || editingProduct) {
@@ -151,7 +173,13 @@ export default function AdminProducts() {
       });
     },
     onError: (error) => {
+      console.error("❌ saveMutation.onError EXECUTADO!");
+      console.error("🔥 Erro completo:", error);
+      console.error("📝 Mensagem do erro:", error.message);
+      console.error("🏷️ Tipo do erro:", typeof error);
+      
       if (isUnauthorizedError(error)) {
+        console.error("🔐 Erro de autorização detectado!");
         toast({
           title: "Unauthorized",
           description: "You are logged out. Logging in again...",
@@ -162,6 +190,8 @@ export default function AdminProducts() {
         }, 500);
         return;
       }
+      
+      console.error("🚨 Erro genérico de salvamento");
       toast({
         title: "Erro",
         description: "Falha ao salvar produto",
@@ -283,7 +313,21 @@ export default function AdminProducts() {
   };
 
   const onSubmit = (data: any) => {
-    saveMutation.mutate(data as ProductFormData);
+    console.log("🎯 onSubmit CHAMADO! Dados do formulário:", data);
+    console.log("🔍 Estado do form:", {
+      isValid: form.formState.isValid,
+      errors: form.formState.errors,
+      isDirty: form.formState.isDirty,
+    });
+    console.log("🏪 Store ID:", store?.id);
+    console.log("✏️ Editando produto:", editingProduct);
+    
+    try {
+      saveMutation.mutate(data as ProductFormData);
+      console.log("✅ Mutation chamada com sucesso");
+    } catch (error) {
+      console.error("❌ Erro ao chamar mutation:", error);
+    }
   };
 
   // Função para exportar produtos para Excel
@@ -544,7 +588,11 @@ export default function AdminProducts() {
               </DialogTitle>
             </DialogHeader>
               
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form onSubmit={(e) => {
+                console.log("📋 Form submit event disparado!", e);
+                console.log("🔧 handleSubmit será chamado...");
+                return form.handleSubmit(onSubmit)(e);
+              }} className="space-y-6">
                   {/* Informações Básicas */}
                   <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
                     <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
