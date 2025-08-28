@@ -1,0 +1,115 @@
+Diagnóstico (por que o card continua “RASPE!”)
+
+A UI depende de eligibility para mudar para “RESGATADO”, mas…
+
+tua useQuery não tem queryFn → em muitos setups ela nunca busca nada.
+
+mesmo quando gera o cupom com sucesso, você não refaz a consulta de elegibilidade (só dá refetch no onError).
+
+resultado: o componente continua no estado “elegível” (RASPE!) até um reload, enquanto o backend já marcou como ativo — por isso, ao clicar de novo, o servidor responde “já pegou o cupom”.
+
+Loop de rAF e canvas seguem ativos após o reveal.
+Visualmente o overlay some, mas o “card-base” ainda é o de raspadinha; como eligibility não muda, você vê exatamente a imagem que mandou (opacidade e badge “RASPE!”).
+
+Possível cache do endpoint de elegibilidade.
+Se algum proxy/navegador cachear, a resposta “ainda elegível” volta mesmo após emitir cupom.
+
+Correção mínima (sem refatorar fluxo)
+1) Faça a useQuery realmente buscar
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+const qc = useQueryClient();
+
+const { data: eligibility, isLoading: checkingEligibility } = useQuery({
+  queryKey: ['/api/scratch/offers', product.id, 'eligibility'],
+  queryFn: async () => {
+    const r = await apiRequest(`/api/scratch/offers/${product.id}/eligibility`);
+    return r.json();
+  },
+  enabled: !!product?.id,
+  staleTime: 15_000,
+});
+
+2) Atualize a UI na hora que o cupom é gerado
+
+No onSuccess do generateCouponMutation, faça otimista + invalidação:
+
+onSuccess: (data: any) => {
+  if (data?.success && data?.coupon) {
+    setCoupon(data.coupon);
+    setCouponGenerated(true);
+    setShowModal(false);
+    setShowCouponModal(true);
+
+    // 2a) Atualiza o cache para este produto imediatamente
+    qc.setQueryData(
+      ['/api/scratch/offers', product.id, 'eligibility'],
+      (prev) => ({
+        eligible: false,
+        hasActive: true,
+        activeOffer: {
+          // se o back não retorna offer, derive um mínimo:
+          productId: product.id,
+          status: 'revealed',
+          expiresAt: data.coupon.expiresAt, // ou Date.now()+30*60*1000 se preferir TTL curto
+        },
+      })
+    );
+
+    // 2b) E ainda dispara um refetch real para confirmar com o servidor
+    qc.invalidateQueries({ queryKey: ['/api/scratch/offers', product.id, 'eligibility'] });
+
+    toast({ title: "🎉 Cupom gerado!", description: "Veja os detalhes do seu cupom!", duration: 3000 });
+  }
+}
+
+
+Isso faz o card trocar na mesma hora para o bloco “RESGATADO”, e depois confirma com o backend.
+
+3) Garanta que o endpoint não seja cacheado
+
+No backend da elegibilidade:
+
+app.get('/api/scratch/offers/:productId/eligibility', async (req, res) => {
+  res.set('Cache-Control', 'no-store'); // <— evita resposta velha
+  // ... resto da lógica
+});
+
+4) Pare o loop e desative o overlay após reveal
+
+Quando isFading/isRevealed ficar true:
+
+cancelAnimationFrame(rafId.current) e zere rafId.current.
+
+Coloque pointer-events: none no <canvas> enquanto ele some (você já aplica a transição; falta cortar eventos).
+
+Ex. no JSX do canvas:
+
+className={`absolute inset-0 w-full h-full transition-all duration-200 ${isFading ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'}`}
+
+
+E num useEffect:
+
+useEffect(() => {
+  if (isRevealed && rafId.current) {
+    cancelAnimationFrame(rafId.current);
+    rafId.current = null;
+  }
+  return () => { if (rafId.current) cancelAnimationFrame(rafId.current); };
+}, [isRevealed]);
+
+5) (Opcional, mas recomendado) Mostre “Login para pegar” para guest
+
+Hoje a elegibilidade retorna { eligible: true, guestMode: true } para não logados. Renderize um aviso/CTA antes da raspagem para evitar frustração (o back exige login no POST /generate-coupon).
+
+Checklist rápido de validação
+
+ Gerar cupom → imediatamente o card muda para “RESGATADO” (sem reload).
+
+ Reabrir a lista / navegar entre telas → continua “RESGATADO”.
+
+ Clicar de novo no card não tenta raspar; abre a visualização do cupom/aviso.
+
+ Endpoint de elegibilidade retorna valores atuais (sem cache).
+
+ rAF e AudioContext param/congelam após reveal (sem CPU extra).
