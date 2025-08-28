@@ -648,57 +648,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userAgent = req.get('User-Agent');
       const ipAddress = req.ip;
 
-      // Verificar se o produto é uma raspadinha válida
+      // Verificar se o produto existe
       const product = await storage.getProductById(productId);
-      if (!product || !product.isScratchCard || !product.scratchExpiresAt) {
-        return res.status(400).json({ message: "Produto não é uma raspadinha válida" });
+      if (!product) {
+        return res.status(400).json({ message: "Produto não encontrado" });
       }
 
-      // Verificar se a raspadinha ainda está ativa
-      if (new Date(product.scratchExpiresAt) <= new Date()) {
-        return res.status(400).json({ message: "Raspadinha expirada" });
-      }
+      // REMOVIDO: Validação antiga que impedia re-raspagem
+      // Agora permitimos raspagem livre para clones virtuais
 
-      // Verificar se ainda há resgates disponíveis
-      const maxRedemptions = parseInt(product.maxScratchRedemptions || "10");
-      const currentRedemptions = parseInt(product.currentScratchRedemptions || "0");
-      
-      if (currentRedemptions >= maxRedemptions) {
-        return res.status(400).json({ message: "Limite de resgates atingido" });
-      }
-
-      // Verificar se usuário já raspou este produto (se logado)
-      if (userId) {
-        const existingScratch = await storage.getScratchedProduct(productId, userId);
-        if (existingScratch) {
-          return res.status(400).json({ message: "Você já raspou este produto" });
-        }
-      }
-
-      // Calcular data de expiração do resgate individual (ex: 1 hora após raspar)
-      const timeLimitMinutes = parseInt(product.scratchTimeLimitMinutes || "60");
-      const expiresAt = new Date();
-      expiresAt.setMinutes(expiresAt.getMinutes() + timeLimitMinutes);
-
-      // Criar registro de raspadinha
-      const scratchData = insertScratchedProductSchema.parse({
-        productId,
-        userId,
-        userAgent,
-        ipAddress,
-        expiresAt,
-        hasRedeemed: false
-      });
-
-      const scratchedProduct = await storage.createScratchedProduct(scratchData);
-
-      // Atualizar contador de resgates do produto
-      await storage.updateScratchRedemptionCount(productId);
-
+      // SISTEMA SIMPLIFICADO: Resposta direta para raspadinha tradicional
       res.status(201).json({
         success: true,
-        expiresAt: scratchedProduct.expiresAt,
-        timeLeftMinutes: timeLimitMinutes
+        message: "Produto raspado com sucesso!"
       });
     } catch (error) {
       console.error("Error scratching product:", error);
