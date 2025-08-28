@@ -881,34 +881,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('📋 Dados recebidos:', { productId, userId, userAgent, ipAddress });
 
-      // NOVO: Verificar elegibilidade primeiro
-      const [existingOffer] = await db
+      // NOVO: Verificar elegibilidade usando a mesma lógica da consulta
+      const [existingCoupon] = await db
         .select()
-        .from(scratchOffers)
+        .from(coupons)
         .where(
           and(
-            eq(scratchOffers.userId, userId),
-            eq(scratchOffers.productId, productId),
-            or(
-              eq(scratchOffers.status, "eligible"),
-              eq(scratchOffers.status, "revealed"),
-              gt(scratchOffers.cooldownUntil, new Date())
-            )
+            eq(coupons.userId, userId),
+            eq(coupons.productId, productId)
           )
         )
+        .orderBy(desc(coupons.createdAt))
         .limit(1);
 
-      if (existingOffer) {
-        if (existingOffer.status === "revealed" && existingOffer.expiresAt && existingOffer.expiresAt > new Date()) {
+      if (existingCoupon) {
+        // Se cupom não foi resgatado e ainda está válido
+        if (!existingCoupon.isRedeemed && existingCoupon.expiresAt && existingCoupon.expiresAt > new Date()) {
           return res.status(400).json({
             message: "Você já possui um cupom ativo para este produto",
-            activeOffer: existingOffer
+            activeCoupon: existingCoupon
           });
         }
-        if (existingOffer.cooldownUntil && existingOffer.cooldownUntil > new Date()) {
+        
+        // Se foi resgatado ou expirado há menos de 24h, aplicar cooldown
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        if (existingCoupon.createdAt && existingCoupon.createdAt > twentyFourHoursAgo) {
+          const cooldownUntil = new Date(existingCoupon.createdAt.getTime() + 24 * 60 * 60 * 1000);
           return res.status(400).json({
-            message: "Aguarde antes de tentar novamente",
-            cooldownUntil: existingOffer.cooldownUntil
+            message: "Aguarde 24h antes de tentar novamente",
+            cooldownUntil: cooldownUntil
           });
         }
       }
