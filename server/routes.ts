@@ -971,6 +971,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const coupon = await storage.createCoupon(couponData);
       console.log('✅ Cupom criado com sucesso:', coupon);
 
+      // Atualizar contador de resgates do produto
+      console.log('📊 Atualizando contador de resgates...');
+      await storage.updateScratchRedemptionCount(productId);
+      console.log('✅ Contador atualizado com sucesso');
+
       res.status(201).json({
         success: true,
         coupon: {
