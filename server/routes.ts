@@ -658,8 +658,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verificar se ainda há resgates disponíveis
-      const maxRedemptions = parseInt(product.maxScratchRedemptions || "10");
-      const currentRedemptions = parseInt(product.currentScratchRedemptions || "0");
+      const maxRedemptions = product.maxScratchRedemptions || 10;
+      const currentRedemptions = product.currentScratchRedemptions || 0;
       
       if (currentRedemptions >= maxRedemptions) {
         return res.status(400).json({ message: "Limite de resgates atingido" });
@@ -1039,10 +1039,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calcular estatísticas
       const totalScratchProducts = scratchProducts.length;
       const totalMaxRedemptions = scratchProducts.reduce((sum, p) => 
-        sum + parseInt(p.maxScratchRedemptions || "0"), 0
+        sum + (p.maxScratchRedemptions || 0), 0
       );
       const totalCurrentRedemptions = scratchProducts.reduce((sum, p) => 
-        sum + parseInt(p.currentScratchRedemptions || "0"), 0
+        sum + (p.currentScratchRedemptions || 0), 0
       );
       const totalRemainingRedemptions = totalMaxRedemptions - totalCurrentRedemptions;
 
@@ -1105,7 +1105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await db
           .update(products)
           .set({
-            currentScratchRedemptions: actualCount.toString()
+            currentScratchRedemptions: actualCount
           })
           .where(eq(products.id, product.id));
         

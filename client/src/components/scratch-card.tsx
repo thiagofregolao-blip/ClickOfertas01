@@ -47,6 +47,10 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Query para verificar elegibilidade
   const { data: eligibility, refetch: checkEligibility } = useQuery({
     queryKey: ['/api/scratch/offers', product.id, 'eligibility'],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/scratch/offers/${product.id}/eligibility`);
+      return response.json();
+    },
     retry: false,
   });
   
@@ -270,9 +274,17 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   
   // Loop de RAF para medição otimizada
   const startProgressLoop = () => {
-    if (rafId.current) return;
+    if (rafId.current || isRevealed) return; // Não iniciar se já revelado
     
     const loop = () => {
+      if (isRevealed) {
+        // Parar loop se revelado
+        if (rafId.current) {
+          cancelAnimationFrame(rafId.current);
+          rafId.current = null;
+        }
+        return;
+      }
       measureRealProgress();
       rafId.current = requestAnimationFrame(loop);
     };
@@ -280,12 +292,23 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     rafId.current = requestAnimationFrame(loop);
   };
   
-  // Cleanup do RAF
+  // Cleanup do RAF - parar quando revelado ou no unmount
+  useEffect(() => {
+    if (isRevealed && rafId.current) {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = null;
+    }
+  }, [isRevealed]);
+  
   useEffect(() => {
     return () => {
       if (rafId.current) {
         cancelAnimationFrame(rafId.current);
         rafId.current = null;
+      }
+      // Limpar AudioContext
+      if (audioCtxRef.current) {
+        audioCtxRef.current.suspend().catch(() => {});
       }
     };
   }, []);
@@ -915,6 +938,53 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       );
     }
 
+    // Se elegível mas é guest mode - mostrar aviso
+    if ('eligible' in eligibility && eligibility.eligible && 'guestMode' in eligibility && eligibility.guestMode) {
+      return (
+        <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] select-none">
+          <div className="p-4 relative h-full w-full flex flex-col justify-center items-center">
+            <div className="absolute top-2 right-2 z-20">
+              <Badge className="bg-blue-500 text-white text-xs">
+                <Gift className="w-3 h-3 mr-1" />
+                LOGIN
+              </Badge>
+            </div>
+
+            <div className="mb-3">
+              {product.imageUrl ? (
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="w-16 h-16 md:w-20 md:h-20 object-cover rounded opacity-80"
+                />
+              ) : (
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 flex items-center justify-center rounded opacity-80">
+                  <div className="w-6 h-6 bg-gray-300 rounded"></div>
+                </div>
+              )}
+            </div>
+            
+            <h3 className="text-xs sm:text-sm font-bold text-gray-700 text-center line-clamp-2 mb-2 opacity-80">{product.name}</h3>
+            
+            <div className="text-blue-600 font-bold text-sm mb-2 text-center">
+              🎁 Faça login para ganhar cupom!
+            </div>
+            
+            <p className="text-xs text-gray-500 text-center mb-3">
+              Cadastre-se para raspar e ganhar desconto
+            </p>
+            
+            <button
+              onClick={() => window.location.href = "/api/login"}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold transition-colors"
+            >
+              Fazer Login
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     // Se elegível (estado normal da raspadinha)
     return (
       <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
@@ -958,7 +1028,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             ref={canvasRef}
             className={`absolute inset-0 w-full h-full cursor-pointer transition-all duration-200 ease-out ${
               isFading ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
-            }`}
+            } ${isRevealed ? 'pointer-events-none' : ''}`}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -966,7 +1036,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            style={{ touchAction: 'none', display: 'block' }}
+            style={{ 
+              touchAction: 'none', 
+              display: 'block',
+              pointerEvents: isRevealed ? 'none' : 'auto'
+            }}
           />
 
           {/* Efeito gradual do desconto - aparece conforme raspa */}

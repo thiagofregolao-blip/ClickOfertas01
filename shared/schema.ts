@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   boolean,
   index,
+  integer,
   jsonb,
   pgTable,
   text,
@@ -88,8 +89,8 @@ export const products = pgTable("products", {
   scratchPrice: decimal("scratch_price", { precision: 12, scale: 2 }), // Preço especial após raspar
   scratchExpiresAt: timestamp("scratch_expires_at"), // Quando expira a oferta global
   scratchTimeLimitMinutes: varchar("scratch_time_limit_minutes").default("60"), // Tempo limite após raspar (em minutos)
-  maxScratchRedemptions: varchar("max_scratch_redemptions").default("10"), // Quantas pessoas podem raspar
-  currentScratchRedemptions: varchar("current_scratch_redemptions").default("0"), // Quantas já rasparam
+  maxScratchRedemptions: integer("max_scratch_redemptions").default(10), // Quantas pessoas podem raspar
+  currentScratchRedemptions: integer("current_scratch_redemptions").default(0), // Quantas já rasparam
   scratchMessage: text("scratch_message").default("Raspe aqui e ganhe um super desconto!"), // Mensagem na raspadinha
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
