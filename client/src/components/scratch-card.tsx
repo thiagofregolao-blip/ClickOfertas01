@@ -74,6 +74,13 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const needsProgressCalc = useRef<boolean>(false);
   const lastPoint = useRef<{ x: number; y: number } | null>(null);
 
+  console.log(`🖼️ CANVAS DEBUG para ${product.name}:`, {
+    canvasRef: !!canvasRef.current,
+    isScratching,
+    scratchProgress,
+    isRevealed
+  });
+
   // Mutation para marcar produto como "raspado"
   const scratchMutation = useMutation({
     mutationFn: async (productId: string) => {
@@ -361,6 +368,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Função de scratch melhorada
   const handleScratch = (clientX: number, clientY: number) => {
+    console.log(`✋ SCRATCH EVENT: x=${clientX}, y=${clientY}, revealed=${isRevealed}`);
     if (!canvasRef.current || isRevealed) return;
 
     // Throttle scratches
@@ -439,6 +447,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Event handlers
   const handleMouseDown = (e: React.MouseEvent) => {
+    console.log(`🖱️ MOUSE DOWN em ${product.name}`);
     setIsScratching(true);
     lastPoint.current = null; // Reset traçado
     handleScratch(e.clientX, e.clientY);
@@ -457,6 +466,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Touch handlers
   const handleTouchStart = (e: React.TouchEvent) => {
+    console.log(`👆 TOUCH START em ${product.name}`);
     e.preventDefault();
     setIsScratching(true);
     lastPoint.current = null; // Reset traçado
