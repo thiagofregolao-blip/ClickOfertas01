@@ -104,11 +104,26 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       }
     },
     onError: (error: any) => {
-      toast({
-        title: "Erro ao gerar cupom",
-        description: `Erro: ${error.message}`,
-        variant: "destructive",
-      });
+      // Verificar se é erro 401 (usuário não logado)
+      if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+        toast({
+          title: "🔐 Cadastro necessário",
+          description: "Para pegar este cupom exclusivo, faça seu cadastro!",
+          action: {
+            label: "Fazer Cadastro",
+            onClick: () => {
+              window.location.href = "/api/login";
+            }
+          },
+          duration: 5000,
+        });
+      } else {
+        toast({
+          title: "Erro ao gerar cupom",
+          description: `Erro: ${error.message}`,
+          variant: "destructive",
+        });
+      }
     }
   });
 
@@ -689,68 +704,68 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
         <ProductModal />
         {showCouponModal && coupon && (
           <Dialog open={showCouponModal} onOpenChange={setShowCouponModal}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 w-[calc(100vw-2rem)] sm:w-full">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-center">🎫 Seu Cupom de Desconto</DialogTitle>
+                <DialogTitle className="text-xl sm:text-2xl font-bold text-center">🎫 Seu Cupom de Desconto</DialogTitle>
               </DialogHeader>
               
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6 p-1">
                 {/* Produto */}
                 <div className="text-center">
                   {product.imageUrl && (
                     <img
                       src={product.imageUrl}
                       alt={product.name}
-                      className="w-32 h-32 object-cover rounded-lg mx-auto mb-4 border-4 border-green-200"
+                      className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg mx-auto mb-4 border-4 border-green-200"
                     />
                   )}
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">{product.name}</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">{product.name}</h3>
                 </div>
 
                 {/* Desconto destacado */}
-                <div className="text-center bg-gradient-to-r from-red-50 to-orange-50 p-6 rounded-lg">
-                  <div className="text-4xl font-bold text-red-600 mb-2">
+                <div className="text-center bg-gradient-to-r from-red-50 to-orange-50 p-4 sm:p-6 rounded-lg">
+                  <div className="text-2xl sm:text-4xl font-bold text-red-600 mb-2">
                     🔥 {coupon.discountPercentage}% OFF
                   </div>
-                  <div className="text-2xl font-bold text-green-600 mb-2">
+                  <div className="text-xl sm:text-2xl font-bold text-green-600 mb-2">
                     Por apenas: {formatPriceWithCurrency(coupon.discountPrice, currency)}
                   </div>
-                  <div className="text-lg text-gray-500 line-through">
+                  <div className="text-base sm:text-lg text-gray-500 line-through">
                     De: {formatPriceWithCurrency(coupon.originalPrice, currency)}
                   </div>
                 </div>
 
                 {/* QR Code e Código */}
-                <div className="text-center bg-white border-2 border-dashed border-gray-300 p-6 rounded-lg">
+                <div className="text-center bg-white border-2 border-dashed border-gray-300 p-4 sm:p-6 rounded-lg">
                   {coupon.qrCode && (
                     <div className="mb-4">
                       <img
                         src={coupon.qrCode}
                         alt="QR Code do cupom"
-                        className="w-48 h-48 mx-auto border border-gray-200 rounded"
+                        className="w-32 h-32 sm:w-48 sm:h-48 mx-auto border border-gray-200 rounded"
                       />
                     </div>
                   )}
                   
-                  <div className="bg-gray-100 rounded-lg p-4">
-                    <p className="text-sm text-gray-600 mb-1">Código do cupom:</p>
-                    <p className="text-2xl font-mono font-bold text-gray-800">{coupon.couponCode}</p>
+                  <div className="bg-gray-100 rounded-lg p-3 sm:p-4">
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1">Código do cupom:</p>
+                    <p className="text-lg sm:text-2xl font-mono font-bold text-gray-800 break-all">{coupon.couponCode}</p>
                   </div>
                 </div>
 
                 {/* Botões de ação */}
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button 
                     onClick={downloadPDF}
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 w-full"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Baixar PDF
                   </Button>
                   <Button 
                     onClick={shareOnWhatsApp}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    className="flex-1 w-full bg-green-600 hover:bg-green-700"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Compartilhar
@@ -758,9 +773,9 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
                 </div>
 
                 {/* Instruções */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-blue-800 mb-2">📍 Como usar este cupom:</h4>
-                  <ul className="text-sm text-blue-700 space-y-1">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                  <h4 className="font-semibold text-blue-800 mb-2 text-sm sm:text-base">📍 Como usar este cupom:</h4>
+                  <ul className="text-xs sm:text-sm text-blue-700 space-y-1">
                     <li>• Apresente este cupom na loja</li>
                     <li>• Mostre o QR Code ou o código</li>
                     <li>• Aproveite seu desconto!</li>
