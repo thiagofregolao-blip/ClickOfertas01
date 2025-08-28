@@ -53,6 +53,20 @@ export default function AdminDashboard() {
     refetchInterval: 10 * 60 * 1000, // Revalida a cada 10 minutos
   });
 
+  // Buscar estatísticas das raspadinhas
+  const { data: scratchStats, isLoading: scratchStatsLoading } = useQuery<{
+    totalScratchProducts: number;
+    totalMaxRedemptions: number;
+    totalCurrentRedemptions: number;
+    totalRemainingRedemptions: number;
+    totalCouponsGenerated: number;
+  }>({
+    queryKey: ['/api/stores/me/scratch-stats'],
+    enabled: !!store?.id,
+    staleTime: 30 * 1000, // 30 segundos
+    retry: false,
+  });
+
   const copyLinkMutation = useMutation({
     mutationFn: async () => {
       if (!store?.slug) throw new Error("Store not found");
@@ -192,6 +206,70 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Estatísticas das Raspadinhas */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            🎁 Estatísticas das Raspadinhas
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Produtos com Raspadinha</p>
+                    <p className="text-3xl font-bold text-blue-600" data-testid="text-scratch-products">
+                      {scratchStatsLoading ? "..." : (scratchStats?.totalScratchProducts || 0)}
+                    </p>
+                  </div>
+                  <div className="text-blue-500 text-2xl">🎁</div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Já Raspadas</p>
+                    <p className="text-3xl font-bold text-orange-600" data-testid="text-scratched-count">
+                      {scratchStatsLoading ? "..." : (scratchStats?.totalCurrentRedemptions || 0)}
+                    </p>
+                  </div>
+                  <div className="text-orange-500 text-2xl">✨</div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Raspadinhas Restantes</p>
+                    <p className="text-3xl font-bold text-green-600" data-testid="text-remaining-scratches">
+                      {scratchStatsLoading ? "..." : (scratchStats?.totalRemainingRedemptions || 0)}
+                    </p>
+                  </div>
+                  <div className="text-green-500 text-2xl">⚡</div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Cupons Gerados</p>
+                    <p className="text-3xl font-bold text-purple-600" data-testid="text-coupons-generated">
+                      {scratchStatsLoading ? "..." : (scratchStats?.totalCouponsGenerated || 0)}
+                    </p>
+                  </div>
+                  <div className="text-purple-500 text-2xl">🎫</div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Main Content */}

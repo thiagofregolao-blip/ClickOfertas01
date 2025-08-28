@@ -3,8 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, scratchOffers } from "@shared/schema";
-import { and, eq, or, gt, desc } from "drizzle-orm";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, scratchOffers, products, coupons } from "@shared/schema";
+import { and, eq, or, gt, desc, sql } from "drizzle-orm";
 import { db } from "./db";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
@@ -1010,6 +1010,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user coupons:", error);
       res.status(500).json({ message: "Erro ao buscar cupons" });
+    }
+  });
+
+  // Nova rota: Estatísticas de raspadinhas para o dashboard
+  app.get('/api/stores/me/scratch-stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+      
+      // Buscar a loja do usuário
+      const store = await storage.getUserStore(userId);
+      if (!store) {
+        return res.status(404).json({ message: "Loja não encontrada" });
+      }
+
+      // Buscar produtos da loja com raspadinha
+      const allProducts = await db
+        .select()
+        .from(products)
+        .where(eq(products.storeId, store.id));
+
+      const scratchProducts = allProducts.filter(p => p.isScratchCard);
+      
+      // Calcular estatísticas
+      const totalScratchProducts = scratchProducts.length;
+      const totalMaxRedemptions = scratchProducts.reduce((sum, p) => 
+        sum + parseInt(p.maxScratchRedemptions || "0"), 0
+      );
+      const totalCurrentRedemptions = scratchProducts.reduce((sum, p) => 
+        sum + parseInt(p.currentScratchRedemptions || "0"), 0
+      );
+      const totalRemainingRedemptions = totalMaxRedemptions - totalCurrentRedemptions;
+
+      // Contar cupons gerados da loja
+      const [couponsResult] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(coupons)
+        .where(eq(coupons.storeId, store.id));
+      
+      const totalCouponsGenerated = couponsResult?.count || 0;
+
+      res.json({
+        totalScratchProducts,
+        totalMaxRedemptions,
+        totalCurrentRedemptions,
+        totalRemainingRedemptions,
+        totalCouponsGenerated
+      });
+    } catch (error) {
+      console.error("Erro ao buscar estatísticas de raspadinhas:", error);
+      res.status(500).json({ message: "Erro interno" });
     }
   });
 
