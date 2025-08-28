@@ -217,9 +217,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
         cancelAnimationFrame(rafId.current);
         rafId.current = null;
       }
-      // Fecha/suspende áudio
+      // Fecha/suspende áudio SAFELY
       try { 
-        audioCtxRef.current?.close?.(); 
+        if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
+          audioCtxRef.current.close();
+        }
       } catch {}
     };
   }, [isRevealed]);
@@ -359,10 +361,12 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
         cancelAnimationFrame(rafId.current);
         rafId.current = null;
       }
-      // Limpar AudioContext
-      if (audioCtxRef.current) {
-        audioCtxRef.current.suspend().catch(() => {});
-      }
+      // Limpar AudioContext SAFELY
+      try {
+        if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
+          audioCtxRef.current.close();
+        }
+      } catch {}
     };
   }, []);
 
