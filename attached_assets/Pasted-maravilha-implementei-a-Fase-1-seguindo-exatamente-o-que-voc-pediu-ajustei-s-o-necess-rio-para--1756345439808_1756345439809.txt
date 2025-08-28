@@ -1,0 +1,267 @@
+maravilha! implementei a Fase 1 seguindo exatamente o que você pediu — ajustei só o necessário para ficar consistente (ex.: coluna updatedAt que era usada no storage mas não existia no schema).
+Abaixo estão os diffs mínimos por arquivo + observações rápidas.
+
+1) shared/schema.ts — adicionar tabela scratch_offers
+
+(coloque logo após a tabela coupons; garanta que os imports existam: pgTable, varchar, timestamp de drizzle-orm/pg-core e sql de drizzle-orm)
+
+--- a/shared/schema.ts
++++ b/shared/schema.ts
+@@
++// --- Scratch Offers ---
++export const scratchOffers = pgTable("scratch_offers", {
++  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
++  userId: varchar("user_id").references(() => users.id),
++  productId: varchar("product_id").references(() => products.id),
++  status: varchar("status").notNull().default("eligible"), // "eligible", "revealed", "expired", "redeemed"
++  createdAt: timestamp("created_at").defaultNow(),
++  revealedAt: timestamp("revealed_at"),
++  expiresAt: timestamp("expires_at"),
++  cooldownUntil: timestamp("cooldown_until"),
++  // Adição necessária porque o storage atualiza 'updatedAt'
++  updatedAt: timestamp("updated_at"),
++});
++
++export type ScratchOffer = typeof scratchOffers.$inferSelect;
++export type InsertScratchOffer = typeof scratchOffers.$inferInsert;
+
+
+Nota de migração: gerar migration com updated_at incluído. Se preferir não ter updatedAt, eu removo do storage.
+
+2) server/storage.ts — novos métodos (usando this.db)
+
+(garanta os imports: and, eq, desc de drizzle-orm; scratchOffers, ScratchOffer, InsertScratchOffer de @shared/schema)
+
+--- a/server/storage.ts
++++ b/server/storage.ts
+@@
+-import { and, eq } from "drizzle-orm";
++import { and, eq, desc } from "drizzle-orm";
++import { scratchOffers, type ScratchOffer, type InsertScratchOffer } from "@shared/schema";
+@@
+ export class DatabaseStorage {
+   constructor(private db: DB) {}
+@@
++  // Scratch Offers
++  async createScratchOffer(offer: InsertScratchOffer): Promise<ScratchOffer> {
++    const [newOffer] = await this.db
++      .insert(scratchOffers)
++      .values(offer)
++      .returning();
++    return newOffer;
++  }
++
++  async getScratchOffer(userId: string, productId: string): Promise<ScratchOffer | undefined> {
++    const [offer] = await this.db
++      .select()
++      .from(scratchOffers)
++      .where(
++        and(
++          eq(scratchOffers.userId, userId),
++          eq(scratchOffers.productId, productId)
++        )
++      )
++      .orderBy(desc(scratchOffers.createdAt))
++      .limit(1);
++    return offer;
++  }
++
++  async updateScratchOffer(id: string, updates: Partial<ScratchOffer>): Promise<ScratchOffer> {
++    const [updated] = await this.db
++      .update(scratchOffers)
++      .set({ ...updates, updatedAt: new Date() })
++      .where(eq(scratchOffers.id, id))
++      .returning();
++    return updated;
++  }
+ }
+
+3) server/routes.ts — rota de elegibilidade + substituir generate-coupon
+
+(garanta os imports: and, eq, or, gt de drizzle-orm; scratchOffers de @shared/schema; db no escopo)
+
+--- a/server/routes.ts
++++ b/server/routes.ts
+@@
++import { and, eq, or, gt } from "drizzle-orm";
++import { scratchOffers } from "@shared/schema";
+@@
++// Nova rota: Verificar elegibilidade
++app.get('/api/scratch/offers/:productId/eligibility', isAuthenticated, async (req: any, res) => {
++  try {
++    const { productId } = req.params;
++    const userId = req.user.claims.sub;
++
++    const [existingOffer] = await db
++      .select()
++      .from(scratchOffers)
++      .where(
++        and(
++          eq(scratchOffers.userId, userId),
++          eq(scratchOffers.productId, productId),
++          or(
++            eq(scratchOffers.status, "eligible"),
++            eq(scratchOffers.status, "revealed"),
++            gt(scratchOffers.cooldownUntil, new Date())
++          )
++        )
++      )
++      .limit(1);
++
++    if (existingOffer) {
++      if (existingOffer.status === "revealed" && existingOffer.expiresAt && existingOffer.expiresAt > new Date()) {
++        return res.json({
++          eligible: false,
++          hasActive: true,
++          activeOffer: existingOffer
++        });
++      }
++      if (existingOffer.cooldownUntil && existingOffer.cooldownUntil > new Date()) {
++        return res.json({
++          eligible: false,
++          cooldownUntil: existingOffer.cooldownUntil
++        });
++      }
++    }
++
++    return res.json({
++      eligible: true,
++      hasActive: false
++    });
++  } catch (error) {
++    console.error("Erro ao verificar elegibilidade:", error);
++    res.status(500).json({ message: "Erro interno" });
++  }
++});
+@@
+-// POST /api/products/:productId/generate-coupon (antigo)
++// Substituir a rota POST /api/products/:productId/generate-coupon
+ app.post('/api/products/:productId/generate-coupon', isAuthenticated, async (req: any, res) => {
+   try {
+     const { productId } = req.params;
+     const userId = req.user.claims.sub;
+-    // ... implementação anterior ...
++    // 1) Verificar elegibilidade via endpoint
++    const eligibilityCheck = await fetch(`${req.protocol}://${req.get('host')}/api/scratch/offers/${productId}/eligibility`, {
++      headers: { 'Authorization': req.headers.authorization as string }
++    });
++    const eligibility = await eligibilityCheck.json();
++    if (!eligibility.eligible) {
++      return res.status(400).json({
++        message: "Não elegível para nova raspadinha",
++        eligibility
++      });
++    }
++
++    // 2) Criar scratch offer (estado "revealed")
++    const scratchOffer = await storage.createScratchOffer({
++      userId,
++      productId,
++      status: "revealed",
++      revealedAt: new Date(),
++      expiresAt: new Date(Date.now() + 30 * 60 * 1000),      // 30 min
++      cooldownUntil: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
++    });
++
++    // 3) Gerar cupom normal (código existente)
++    const product = await storage.getProduct(productId);
++    if (!product) {
++      return res.status(404).json({ message: "Produto não encontrado" });
++    }
++    // ... resto do código de geração de cupom permanece igual ...
++    // Retorne também algum identificador/expiração da oferta se desejar:
++    // ex.: res.json({ cupom, scratchOffer });
+   } catch (error) {
+     console.error("Erro ao gerar cupom com scratch:", error);
+     res.status(500).json({ message: "Erro interno" });
+   }
+ });
+
+
+Obs.: Se preferir, dá para chamar a lógica de elegibilidade direto (sem fetch para si mesmo). Mantive como você pediu.
+
+4) client/src/components/scratch-card.tsx — checar elegibilidade antes de renderizar
+
+(garanta o import: useQuery de @tanstack/react-query; já existe apiRequest no seu projeto)
+
+--- a/client/src/components/scratch-card.tsx
++++ b/client/src/components/scratch-card.tsx
+@@
+-import { useMutation } from "@tanstack/react-query";
++import { useMutation, useQuery } from "@tanstack/react-query";
+@@
+ export default function ScratchCard({ product, currency, themeColor, onRevealed, onClick }: ScratchCardProps) {
++  // 1) Verificação de elegibilidade antes de mostrar o card
++  const { data: eligibility, isLoading: checkingEligibility } = useQuery({
++    queryKey: ['/api/scratch/offers', product.id, 'eligibility'],
++    queryFn: async () => {
++      const res = await apiRequest(`/api/scratch/offers/${product.id}/eligibility`);
++      return res.json();
++    },
++    enabled: !!product?.id,
++  });
++
+   const canvasRef = useRef<HTMLCanvasElement>(null);
+@@
+-  // RENDER CARD PARA RASPAR
++  // 0) Estados de verificação de elegibilidade
++  if (checkingEligibility) {
++    return (
++      <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 h-48">
++        <div className="flex items-center justify-center h-full">
++          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
++          <span className="ml-2">Verificando disponibilidade...</span>
++        </div>
++      </div>
++    );
++  }
++
++  if (eligibility && eligibility.eligible === false) {
++    if (eligibility.hasActive && eligibility.activeOffer) {
++      const exp = eligibility.activeOffer.expiresAt ? new Date(eligibility.activeOffer.expiresAt) : null;
++      return (
++        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 p-6 text-center">
++          <h3 className="text-xl font-bold text-gray-800 mb-2">🎫 Você já tem um cupom ativo!</h3>
++          {exp && <p className="text-gray-600">Expira: {exp.toLocaleString()}</p>}
++          <p className="text-sm text-gray-500 mt-2">Use antes que expire.</p>
++        </div>
++      );
++    }
++    if (eligibility.cooldownUntil) {
++      const cooldownDate = new Date(eligibility.cooldownUntil);
++      return (
++        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 p-6 text-center">
++          <h3 className="text-xl font-bold text-gray-800 mb-2">⏰ Aguarde um pouco!</h3>
++          <p className="text-gray-600">Próxima raspadinha disponível em: {cooldownDate.toLocaleString()}</p>
++          <p className="text-sm text-gray-500 mt-2">Cada pessoa pode raspar apenas 1 vez por dia.</p>
++        </div>
++      );
++    }
++    // não elegível por outro motivo → não renderiza
++    return null;
++  }
++
++  // RENDER CARD PARA RASPAR (elegível)
+   return (
+     <Card className="relative border-2 border-yellow-400 bg-gradient-to-br from-yellow-100 to-orange-100 shadow-lg cursor-pointer select-none">
+       <CardContent className="p-0 relative h-48">
+
+
+Dica: se quiser tipar a resposta:
+
+type EligibilityResponse =
+  | { eligible: true; hasActive: false }
+  | { eligible: false; hasActive: true; activeOffer: any }
+  | { eligible: false; cooldownUntil: string };
+
+Testes rápidos (manuais)
+
+Sem ofertas anteriores → endpoint retorna { eligible:true } → raspadinha aparece.
+
+Revelar cupom → POST /generate-coupon cria scratch_offers com status:"revealed", expiresAt (+30min), cooldownUntil (+24h).
+
+Página recarregada durante a validade → eligibility responde eligible:false, hasActive:true → card não volta; mostra bloco “cupom ativo”.
+
+Durante cooldown → eligibility responde eligible:false, cooldownUntil:... → card mostra aviso de cooldown.
+
+Após expirar + fora do cooldown → volta a { eligible:true }.
