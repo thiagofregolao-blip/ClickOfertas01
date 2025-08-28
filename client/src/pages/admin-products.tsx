@@ -29,8 +29,8 @@ const productFormSchema = insertProductSchema.extend({
   price: z.string().min(1, "Preço é obrigatório"),
   scratchPrice: z.string().optional(),
   scratchExpiresAt: z.string().optional(),
-  scratchTimeLimitMinutes: z.number().optional(),
-  maxScratchRedemptions: z.number().optional(),
+  scratchTimeLimitMinutes: z.union([z.string(), z.number()]).optional(),
+  maxScratchRedemptions: z.union([z.string(), z.number()]).optional(),
 });
 
 type ProductFormData = z.infer<typeof productFormSchema>;
@@ -116,6 +116,8 @@ export default function AdminProducts() {
         price: cleanPrice,
         scratchPrice: cleanScratchPrice,
         scratchExpiresAt: data.scratchExpiresAt ? new Date(data.scratchExpiresAt).toISOString() : null,
+        scratchTimeLimitMinutes: typeof data.scratchTimeLimitMinutes === 'string' ? parseInt(data.scratchTimeLimitMinutes) || 60 : data.scratchTimeLimitMinutes || 60,
+        maxScratchRedemptions: typeof data.maxScratchRedemptions === 'string' ? parseInt(data.maxScratchRedemptions) || 10 : data.maxScratchRedemptions || 10,
       };
 
       console.log("📋 Dados finais para envio:", productData);
