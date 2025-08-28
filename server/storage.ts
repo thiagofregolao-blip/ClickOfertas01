@@ -779,6 +779,11 @@ export class DatabaseStorage implements IStorage {
 
     return coupon as CouponWithDetails | undefined;
   }
+
+  // Excluir cupom
+  async deleteCoupon(couponId: string): Promise<void> {
+    await db.delete(coupons).where(eq(coupons.id, couponId));
+  }
 }
 
 export const storage = new DatabaseStorage();

@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Download, Share2, QrCode, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
+import { Clock, Download, Share2, QrCode, CheckCircle, XCircle, ArrowLeft, Trash2 } from "lucide-react";
 import { formatBrazilianPrice, formatPriceWithCurrency } from "@/lib/priceUtils";
 import jsPDF from "jspdf";
 import { useToast } from "@/hooks/use-toast";
@@ -45,12 +45,45 @@ export default function MyCoupons() {
   const [selectedCoupon, setSelectedCoupon] = useState<CouponWithDetails | null>(null);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
 
   // Buscar cupons do usuário
   const { data: coupons = [], isLoading: couponsLoading, error } = useQuery<CouponWithDetails[]>({
     queryKey: ["/api/coupons/user"],
     enabled: !!isAuthenticated,
     retry: false,
+  });
+
+  // Mutation para excluir cupom
+  const deleteCouponMutation = useMutation({
+    mutationFn: async (couponId: string) => {
+      const response = await fetch(`/api/coupons/${couponId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`${response.status}: ${error}`);
+      }
+      
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Cupom excluído!",
+        description: "O cupom foi removido permanentemente.",
+      });
+      // Atualizar lista de cupons
+      queryClient.invalidateQueries({ queryKey: ["/api/coupons/user"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao excluir cupom",
+        description: String(error?.message || 'Tente novamente.'),
+        variant: "destructive",
+      });
+    }
   });
 
   // Função para baixar PDF do cupom
@@ -217,7 +250,7 @@ export default function MyCoupons() {
                   onClick={() => !coupon.isRedeemed && !isExpired && setSelectedCoupon(coupon)}
                 >
                   <CardContent className="p-4">
-                    {/* Status Badge */}
+                    {/* Status Badge e botão excluir */}
                     <div className="flex justify-between items-start mb-3">
                       <Badge 
                         className={
@@ -244,8 +277,24 @@ export default function MyCoupons() {
                         )}
                       </Badge>
                       
-                      <div className="text-right text-xs text-gray-500">
-                        {new Date(coupon.createdAt).toLocaleDateString('pt-BR')}
+                      <div className="flex items-center gap-2">
+                        <div className="text-xs text-gray-500">
+                          {new Date(coupon.createdAt).toLocaleDateString('pt-BR')}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm('Tem certeza que deseja excluir este cupom?')) {
+                              deleteCouponMutation.mutate(coupon.id);
+                            }
+                          }}
+                          disabled={deleteCouponMutation.isPending}
+                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
                       </div>
                     </div>
 

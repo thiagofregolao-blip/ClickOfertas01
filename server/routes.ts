@@ -1075,6 +1075,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Excluir cupom 
+  app.delete('/api/coupons/:couponId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { couponId } = req.params;
+      const userId = req.user?.claims?.sub || req.user?.id;
+      
+      // Verificar se cupom existe e pertence ao usuário
+      const coupon = await storage.getCoupon(couponId);
+      if (!coupon) {
+        return res.status(404).json({ message: "Cupom não encontrado" });
+      }
+      
+      if (coupon.userId !== userId) {
+        return res.status(403).json({ message: "Não autorizado a excluir este cupom" });
+      }
+      
+      // Excluir cupom
+      await storage.deleteCoupon(couponId);
+      
+      res.json({ success: true, message: "Cupom excluído com sucesso" });
+    } catch (error) {
+      console.error("Error deleting coupon:", error);
+      res.status(500).json({ message: "Erro ao excluir cupom" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
