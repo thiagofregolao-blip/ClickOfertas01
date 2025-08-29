@@ -269,9 +269,10 @@ export const promotionScratches = pgTable("promotion_scratches", {
   ipAddress: varchar("ip_address"),
   couponCode: varchar("coupon_code").unique().notNull(), // Código do cupom gerado
   scratchedAt: timestamp("scratched_at").defaultNow(),
-  expiresAt: timestamp("expires_at").notNull(), // Quando o cupom expira
+  // REMOVIDO: expiresAt - coluna não existe no banco atual
   isUsed: boolean("is_used").default(false), // Se cupom foi utilizado
   usedAt: timestamp("used_at"), // Quando foi utilizado
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Relations

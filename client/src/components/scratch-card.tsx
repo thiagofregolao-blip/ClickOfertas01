@@ -314,8 +314,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // FASE 1: Inicializar canvas com DPI correto
   useEffect(() => {
-    // SISTEMA UNIFICADO: Não inicializar canvas se já revelado ou carregando clone
-    if (isRevealed || loadingClone) return;
+    // SISTEMA UNIFICADO: Não inicializar canvas se já revelado
+    // Para promoções, ignore loadingClone - só check loadingPromotion
+    if (isRevealed) return;
+    if (isPromotion && loadingPromotion) return;
+    if (!isPromotion && !isVirtualClone && loadingClone) return;
     if (!canvasRef.current) return;
     
     const canvas = canvasRef.current;
