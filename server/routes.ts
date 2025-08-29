@@ -959,7 +959,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Data de expiração do cupom (mesmo tempo da raspadinha)
       const expiresAt = scratchedProduct.expiresAt;
 
-      // Criar cupom (sem usar base para promoções)
+      // Criar cupom (salvando dados da promoção quando productId = null)
       const couponData = {
         id: `coupon-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         productId: isPromotion ? null : product.id, // null para promoções
@@ -968,6 +968,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userAgent: userAgent || 'unknown',
         ipAddress: ipAddress || 'unknown',
         couponCode,
+        
+        // 🎯 SALVAR DADOS DA PROMOÇÃO (quando productId = null)
+        promotionName: isPromotion ? product.name : null,
+        promotionImageUrl: isPromotion ? product.imageUrl : null, 
+        promotionDescription: isPromotion ? product.description : null,
+        
         originalPrice: originalPrice.toString(),
         discountPrice: discountPrice.toString(),
         discountPercentage: discountPercentage.toString(),

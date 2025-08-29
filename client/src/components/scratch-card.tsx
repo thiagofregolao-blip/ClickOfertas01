@@ -56,6 +56,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const [showModal, setShowModal] = useState(false);
   const [coupon, setCoupon] = useState<any>(null);
   const [couponGenerated, setCouponGenerated] = useState(false);
+  const [generatingCoupon, setGeneratingCoupon] = useState(false); // 🚫 FLAG ANTI-DUPLICAÇÃO
   const [showCouponModal, setShowCouponModal] = useState(false);
   const scratchedAreas = useRef<ScratchArea[]>([]);
   const { toast } = useToast();
@@ -106,6 +107,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       return await response.json();
     },
     onSuccess: (data: any) => {
+      setGeneratingCoupon(false); // ✅ Resetar flag
       if (data?.success && data?.coupon) {
         // Salvar dados do cupom e abrir modal
         setCoupon(data.coupon);
@@ -121,6 +123,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       }
     },
     onError: (error: any) => {
+      setGeneratingCoupon(false); // ✅ Resetar flag
       toast({
         title: "Erro ao gerar cupom",
         description: `Erro: ${error.message}`,
@@ -305,8 +308,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           setIsRevealed(true);
           
           // SISTEMA SIMPLIFICADO: Baseado apenas no tipo
-          // PRODUTO NORMAL: Sempre gera cupom
-          generateCouponMutation.mutate(product.id);
+          // PRODUTO NORMAL: Sempre gera cupom (com proteção anti-duplicação)
+          if (!generatingCoupon && !couponGenerated) {
+            setGeneratingCoupon(true);
+            generateCouponMutation.mutate(product.id);
+          }
         }, 220);
       }
     } catch (e) {
@@ -724,12 +730,13 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             <div className="flex gap-3">
               <button 
                 onClick={() => {
-                  if (!couponGenerated) {
+                  if (!generatingCoupon && !couponGenerated) {
+                    setGeneratingCoupon(true);
                     generateCouponMutation.mutate(product.id);
                   }
                 }}
                 className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 px-4 rounded-lg transition-all"
-                disabled={generateCouponMutation.isPending}
+                disabled={generateCouponMutation.isPending || generatingCoupon}
               >
                 {generateCouponMutation.isPending ? (
                   "Gerando cupom..."
@@ -926,10 +933,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     <>
       <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
         <div className="p-0 relative h-full w-full isolate">
-          {/* 🚨 ALERTA VISUAL MEGA ÓBVIO - TEMPORÁRIO PARA DEBUG */}
-          <div className="absolute -top-4 left-0 right-0 bg-red-600 text-white text-center py-2 z-50 pointer-events-none animate-pulse text-sm font-bold">
-            🚨 RASPADINHA AQUI! CLIQUE E ARRASTE! 🚨
-          </div>
+          {/* DEBUG REMOVIDO ✅ */}
           
           {/* Badge indicativo - CORREÇÃO: pointer-events-none para não bloquear canvas */}
           <div className="absolute top-2 right-2 z-10 pointer-events-none">
@@ -986,9 +990,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
                 height: '100%',
                 zIndex: 999,  // Z-index MÁXIMO
                 pointerEvents: 'auto',
-                cursor: 'crosshair',
-                backgroundColor: 'rgba(255,0,0,0.3)',  // Fundo vermelho mais visível
-                border: '3px solid blue'  // Borda azul para ver exatamente onde está
+                cursor: 'crosshair'
+                // 🎯 ESTILOS DEBUG REMOVIDOS ✅
               }}
             />
           )}

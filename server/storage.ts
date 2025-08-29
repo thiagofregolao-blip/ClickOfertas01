@@ -682,6 +682,12 @@ export class DatabaseStorage implements IStorage {
         userAgent: coupons.userAgent,
         ipAddress: coupons.ipAddress,
         couponCode: coupons.couponCode,
+        
+        // 🎯 DADOS DA PROMOÇÃO (novos campos)
+        promotionName: coupons.promotionName,
+        promotionImageUrl: coupons.promotionImageUrl, 
+        promotionDescription: coupons.promotionDescription,
+        
         originalPrice: coupons.originalPrice,
         discountPrice: coupons.discountPrice,
         discountPercentage: coupons.discountPercentage,

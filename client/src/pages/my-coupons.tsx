@@ -13,6 +13,12 @@ import { useLocation } from "wouter";
 interface CouponWithDetails {
   id: string;
   couponCode: string;
+  
+  // 🎯 DADOS DA PROMOÇÃO (novos campos para promoções)
+  promotionName?: string;
+  promotionImageUrl?: string;
+  promotionDescription?: string;
+  
   originalPrice: string;
   discountPrice: string;
   discountPercentage: string;
@@ -21,7 +27,7 @@ interface CouponWithDetails {
   isRedeemed: boolean;
   redeemedAt?: string;
   createdAt: string;
-  product: {
+  product?: {  // ❗ Agora opcional (null para promoções)
     id: string;
     name: string;
     description?: string;
@@ -98,9 +104,10 @@ export default function MyCoupons() {
     doc.setFontSize(14);
     doc.text(`Loja: ${coupon.store.name}`, 20, 50);
     
-    // Produto
+    // Produto/Promoção
     doc.setFontSize(12);
-    doc.text(`Produto: ${coupon.product?.name || 'Promoção Especial'}`, 20, 70);
+    const itemName = coupon.promotionName || coupon.product?.name || 'Promoção Especial';
+    doc.text(`Produto: ${itemName}`, 20, 70);
     
     // Desconto
     doc.setFontSize(16);
@@ -146,7 +153,7 @@ export default function MyCoupons() {
   const shareOnWhatsApp = (coupon: CouponWithDetails) => {
     const currency = coupon.store.currency || 'Gs.';
     const message = `🎉 *CUPOM DE DESCONTO*\n\n` +
-      `📱 *${coupon.product?.name || 'Promoção Especial'}*\n` +
+      `📱 *${coupon.promotionName || coupon.product?.name || 'Promoção Especial'}*\n` +
       `🏪 *${coupon.store.name}*\n\n` +
       `🔥 *${coupon.discountPercentage}% DE DESCONTO!*\n\n` +
       `💰 De: ${formatPriceWithCurrency(coupon.originalPrice, currency)}\n` +
@@ -298,18 +305,18 @@ export default function MyCoupons() {
                       </div>
                     </div>
 
-                    {/* Imagem do produto */}
-                    {coupon.product?.imageUrl && (
+                    {/* Imagem do produto/promoção */}
+                    {(coupon.promotionImageUrl || coupon.product?.imageUrl) && (
                       <img
-                        src={coupon.product.imageUrl}
-                        alt={coupon.product.name || 'Promoção'}
+                        src={coupon.promotionImageUrl || coupon.product?.imageUrl}
+                        alt={coupon.promotionName || coupon.product?.name || 'Promoção'}
                         className="w-full h-32 object-cover rounded-lg mb-3"
                       />
                     )}
 
                     {/* Info do produto */}
                     <h3 className="font-bold text-sm mb-1 line-clamp-2">
-                      {coupon.product?.name || 'Promoção Especial'}
+                      {coupon.promotionName || coupon.product?.name || 'Promoção Especial'}
                     </h3>
                     <p className="text-xs text-gray-600 mb-2">
                       {coupon.store.name}

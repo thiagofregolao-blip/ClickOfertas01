@@ -217,6 +217,12 @@ export const coupons = pgTable("coupons", {
   userAgent: text("user_agent"),
   ipAddress: varchar("ip_address"),
   couponCode: varchar("coupon_code").unique().notNull(), // Código único do cupom
+  
+  // 🎯 DADOS DA PROMOÇÃO (quando productId = null)
+  promotionName: text("promotion_name"), // Nome da promoção raspada
+  promotionImageUrl: text("promotion_image_url"), // Imagem da promoção raspada  
+  promotionDescription: text("promotion_description"), // Descrição da promoção
+  
   originalPrice: decimal("original_price", { precision: 12, scale: 2 }).notNull(),
   discountPrice: decimal("discount_price", { precision: 12, scale: 2 }).notNull(),
   discountPercentage: varchar("discount_percentage").notNull(), // Porcentagem de desconto
