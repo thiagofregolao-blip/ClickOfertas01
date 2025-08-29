@@ -33,6 +33,9 @@ interface ScratchArea {
 
 export default function ScratchCard({ product, currency, themeColor, onRevealed, onClick }: ScratchCardProps) {
   
+  console.log(`%c🔥🔥🔥 SCRATCHCARD COMPONENTE EXECUTANDO! 🔥🔥🔥`, 
+    'background: red; color: white; padding: 15px; font-size: 30px; font-weight: bold;');
+  
   // 🔍 DEBUG: Log inicial dos props
   console.log("🎯 ScratchCard RENDERIZADO:", {
     productId: product.id,
