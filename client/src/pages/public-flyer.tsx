@@ -100,12 +100,6 @@ export default function PublicFlyer() {
   });
   const virtualClones = virtualClonesResponse?.clones || [];
   
-  // 🔍 DEBUG: Verificar clones recebidos
-  console.log('🔍 CLONES VIRTUAIS RECEBIDOS:', virtualClones.map(c => ({
-    id: c.id,
-    productId: c.productId,
-    productName: c.productName
-  })));
 
   // Registrar visualização do panfleto/loja quando carregado
   // CORREÇÃO: Removido recordFlyerView das dependências para evitar loop infinito

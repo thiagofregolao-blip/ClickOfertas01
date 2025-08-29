@@ -976,59 +976,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             shouldRenderCover: isVirtualClone && virtualCloneId
           })}
           
-          {/* DEBUG: Verificar condições */}
-          {console.log('🔍 DEBUG COBERTURA:', {
-            isVirtualClone,
-            virtualCloneId,
-            shouldRender: isVirtualClone && virtualCloneId
-          })}
           
-          {/* TESTE FINAL: Cobertura que funciona 100% */}
+          {/* Cobertura de raspadinha para clones virtuais */}
           {isVirtualClone && virtualCloneId && (
             <>
-              {console.log('✅ RENDERIZANDO COBERTURA PARA CLONE:', virtualCloneId)}
-              
-              {/* COBERTURA OVERLAY TOTAL */}
-              <div
-                style={{
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  width: '100vw',
-                  height: '100vh',
-                  zIndex: 999999,
-                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer'
-                }}
-                onClick={(e) => {
-                  console.log('🎲 CLIQUE NO OVERLAY TOTAL!');
-                  e.currentTarget.style.display = 'none';
-                  if (virtualCloneId) {
-                    scratchVirtualCloneMutation.mutate(virtualCloneId);
-                  }
-                }}
-              >
-                <div style={{
-                  background: 'linear-gradient(45deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%)',
-                  padding: '40px',
-                  borderRadius: '20px',
-                  color: 'white',
-                  textAlign: 'center',
-                  fontSize: '24px',
-                  fontWeight: 'bold'
-                }}>
-                  🎲 RASPADINHA<br/>
-                  iPhone 15 Pro Max<br/>
-                  <div style={{ fontSize: '16px', marginTop: '10px' }}>
-                    Clique para raspar e ganhar desconto!
-                  </div>
-                </div>
-              </div>
-
-              {/* COBERTURA LOCAL TAMBÉM */}
+              {/* Cobertura principal clicável */}
               <div
                 style={{
                   position: 'absolute',
@@ -1036,7 +988,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  zIndex: 50,
+                  zIndex: 99999,
                   background: 'linear-gradient(45deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%)',
                   opacity: 0.95,
                   cursor: 'pointer',
@@ -1044,20 +996,24 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: 'white',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
+                  pointerEvents: 'auto'
                 }}
                 onClick={(e) => {
-                  console.log('🎲 CLIQUE NA COBERTURA LOCAL!');
+                  console.log('🎲 Raspando clone virtual:', virtualCloneId);
                   e.currentTarget.style.display = 'none';
-                  // Esconder overlay também
-                  const overlay = document.querySelector('[style*="position: fixed"][style*="100vw"]') as HTMLElement;
-                  if (overlay) overlay.style.display = 'none';
                   if (virtualCloneId) {
                     scratchVirtualCloneMutation.mutate(virtualCloneId);
                   }
                 }}
               >
-                🎲 RASPADINHA
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>🎲</div>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold' }}>RASPADINHA</div>
+                  <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '4px' }}>
+                    Clique para raspar!
+                  </div>
+                </div>
               </div>
             </>
           )}
