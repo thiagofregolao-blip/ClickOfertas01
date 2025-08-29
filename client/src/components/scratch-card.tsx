@@ -967,27 +967,24 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             </div>
           </div>
 
-          {/* Canvas de cobertura - posição absoluta simples */}
-          <canvas
-            ref={canvasRef}
-            width={300}
-            height={200}
+          {/* TESTE: DIV SIMPLES no lugar do canvas */}
+          <div
             onMouseDown={(e) => {
-              console.log('🎨 MOUSE DOWN NO CANVAS!', { isVirtualClone, virtualCloneId });
+              console.log('🎨 MOUSE DOWN NO DIV TESTE!', { isVirtualClone, virtualCloneId });
               if (blocked()) {
                 console.log('❌ Bloqueado pela função blocked()');
                 return;
               }
-              console.log('✅ Iniciando raspagem no canvas...');
+              console.log('✅ Iniciando raspagem no div...');
               handleMouseDown(e);
             }}
             onTouchStart={(e) => {
-              console.log('📱 TOUCH START NO CANVAS!', { isVirtualClone, virtualCloneId });
+              console.log('📱 TOUCH START NO DIV TESTE!', { isVirtualClone, virtualCloneId });
               if (blocked()) {
                 console.log('❌ Bloqueado pela função blocked()');
                 return;
               }
-              console.log('✅ Iniciando raspagem touch no canvas...');
+              console.log('✅ Iniciando raspagem touch no div...');
               handleTouchStart(e);
             }}
             style={{ 
@@ -998,10 +995,21 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
               height: '100%',
               zIndex: 50,
               cursor: 'pointer',
-              backgroundColor: 'rgba(255,255,0,0.8)',
-              border: '3px solid red'
+              backgroundColor: 'rgba(255,0,255,0.8)',
+              border: '4px solid black',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'black',
+              fontWeight: 'bold',
+              fontSize: '16px'
             }}
-          />
+          >
+            CLIQUE AQUI PARA RASPAR
+          </div>
+          
+          {/* Canvas escondido para manter a referência */}
+          <canvas ref={canvasRef} style={{ display: 'none' }} />
 
           {/* Efeito gradual do desconto - aparece conforme raspa */}
           {scratchProgress > 0.3 && !isRevealed && (
