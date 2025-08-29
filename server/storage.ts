@@ -1462,6 +1462,123 @@ export class DatabaseStorage implements IStorage {
     })) as PromotionWithDetails[];
   }
 
+  async getPromotionScratchStatus(promotionId: string, userId?: string, userAgent?: string, ipAddress?: string): Promise<{ isUsed: boolean; scratch?: any }> {
+    // Verificar se promoção existe e está ativa
+    const [promotion] = await db
+      .select()
+      .from(promotions)
+      .where(eq(promotions.id, promotionId));
+
+    if (!promotion || !promotion.isActive) {
+      return { isUsed: true }; // Inativa ou inexistente = considera usada
+    }
+
+    // Verificar se ainda está no período válido
+    const now = new Date();
+    if (now < new Date(promotion.validFrom) || now > new Date(promotion.validUntil)) {
+      return { isUsed: true }; // Fora do período = considera usada
+    }
+
+    // Buscar scratch existente do usuário para esta promoção
+    const conditions = [eq(promotionScratches.promotionId, promotionId)];
+    
+    if (userId) {
+      conditions.push(eq(promotionScratches.userId, userId));
+    } else {
+      // Para usuários não autenticados, usar userAgent + IP
+      if (userAgent) conditions.push(eq(promotionScratches.userAgent, userAgent));
+      if (ipAddress) conditions.push(eq(promotionScratches.ipAddress, ipAddress));
+    }
+
+    const [existingScratch] = await db
+      .select()
+      .from(promotionScratches)
+      .where(and(...conditions));
+
+    return {
+      isUsed: !!existingScratch?.isUsed,
+      scratch: existingScratch
+    };
+  }
+
+  async scratchPromotion(promotionId: string, userId?: string, userAgent?: string, ipAddress?: string): Promise<{ success: boolean; message: string; coupon?: any }> {
+    try {
+      // Verificar se pode raspar
+      const status = await this.getPromotionScratchStatus(promotionId, userId, userAgent, ipAddress);
+      if (status.isUsed) {
+        return { success: false, message: "Promoção já foi utilizada ou não está disponível" };
+      }
+
+      // Buscar dados da promoção
+      const [promotion] = await db
+        .select()
+        .from(promotions)
+        .where(eq(promotions.id, promotionId));
+
+      if (!promotion) {
+        return { success: false, message: "Promoção não encontrada" };
+      }
+
+      // Verificar se ainda há vagas disponíveis
+      const totalScratches = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(promotionScratches)
+        .where(and(
+          eq(promotionScratches.promotionId, promotionId),
+          eq(promotionScratches.isUsed, true)
+        ));
+
+      const currentUsage = totalScratches[0]?.count || 0;
+      const maxClients = parseInt(promotion.maxClients);
+
+      if (currentUsage >= maxClients) {
+        return { success: false, message: "Limite de participantes atingido" };
+      }
+
+      // Criar scratch record
+      const scratchData = {
+        promotionId,
+        userId: userId || null,
+        userAgent: userAgent || null,
+        ipAddress: ipAddress || null,
+        isUsed: true,
+        usedAt: new Date(),
+        couponCode: `PROMO-${promotionId}-${Date.now().toString(36)}`
+      };
+
+      const [scratch] = await db
+        .insert(promotionScratches)
+        .values(scratchData)
+        .returning();
+
+      // Atualizar contador da promoção
+      await db
+        .update(promotions)
+        .set({ 
+          usedCount: (currentUsage + 1).toString(),
+          updatedAt: new Date()
+        })
+        .where(eq(promotions.id, promotionId));
+
+      return {
+        success: true,
+        message: "Promoção raspada com sucesso!",
+        coupon: {
+          couponCode: scratch.couponCode,
+          promotionName: promotion.name,
+          discountPrice: promotion.promotionalPrice,
+          originalPrice: promotion.originalPrice,
+          discountPercentage: promotion.discountPercentage,
+          expiresAt: promotion.validUntil,
+          scratchMessage: promotion.scratchMessage
+        }
+      };
+    } catch (error) {
+      console.error("Erro ao raspar promoção:", error);
+      return { success: false, message: "Erro interno do servidor" };
+    }
+  }
+
   async getPromotionStats(promotionId: string): Promise<any> {
     const promotion = await db
       .select()

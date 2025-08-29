@@ -12,7 +12,7 @@ import { ProductDetailModal } from "@/components/product-detail-modal";
 import FlyerHeader from "@/components/flyer-header";
 import FlyerFooter from "@/components/flyer-footer";
 import { downloadFlyerAsPNG } from "@/lib/flyer-utils";
-import type { StoreWithProducts, Product } from "@shared/schema";
+import type { StoreWithProducts, Product, PromotionWithDetails } from "@shared/schema";
 import { InstagramStories } from "@/components/instagram-stories";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAppVersion } from "@/hooks/use-mobile";
@@ -99,6 +99,15 @@ export default function PublicFlyer() {
     retry: false, // Não retry se não autenticado
   });
   const virtualClones = virtualClonesResponse?.clones || [];
+
+  // NOVO: Buscar promoções ativas para exibir como scratch cards
+  const { data: activePromotions = [] } = useQuery<PromotionWithDetails[]>({
+    queryKey: ['/api/public/promotions/active'],
+    staleTime: 2 * 60 * 1000, // 2 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+  });
   
 
   // Registrar visualização do panfleto/loja quando carregado
@@ -113,14 +122,15 @@ export default function PublicFlyer() {
   
   // Event listener para produtos similares
   useEffect(() => {
-    const handleOpenProductModal = (event: CustomEvent) => {
-      const { product, store } = event.detail;
+    const handleOpenProductModal = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { product, store } = customEvent.detail;
       setSelectedProduct(product);
       setSelectedStore(store);
     };
     
-    window.addEventListener('openProductModal', handleOpenProductModal);
-    return () => window.removeEventListener('openProductModal', handleOpenProductModal);
+    window.addEventListener('openProductModal', handleOpenProductModal as EventListener);
+    return () => window.removeEventListener('openProductModal', handleOpenProductModal as EventListener);
   }, []);
 
   const handleShare = async () => {
@@ -494,6 +504,44 @@ export default function PublicFlyer() {
                   />
                 ))}
                 
+                {/* PROMOÇÕES ATIVAS - aparecem como raspadinhas com badge */}
+                {activePromotions.map((promotion) => (
+                  <div key={`promotion-${promotion.id}`} className="relative">
+                    {/* Badge Promoção */}
+                    <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                      🎁 PROMOÇÃO
+                    </div>
+                    <ScratchCard
+                      isPromotion={true}
+                      promotionId={promotion.id}
+                      product={{
+                        id: promotion.id,
+                        name: promotion.name,
+                        description: promotion.description || "",
+                        price: promotion.originalPrice,
+                        imageUrl: promotion.imageUrl || "",
+                        category: promotion.category,
+                        storeId: promotion.storeId,
+                        isActive: true,
+                        isFeatured: false,
+                        showInStories: false,
+                        isScratchCard: true,
+                        scratchMessage: promotion.scratchMessage || "Parabéns! Você ganhou um desconto especial!",
+                        scratchPrice: promotion.promotionalPrice,
+                        scratchExpiresAt: promotion.validUntil ? promotion.validUntil : new Date().toISOString(),
+                        createdAt: promotion.createdAt,
+                        updatedAt: promotion.updatedAt
+                      }}
+                      currency={store?.currency || "USD"}
+                      themeColor={store?.themeColor || "#E11D48"}
+                      onClick={(product) => {
+                        setSelectedProduct(product);
+                        setSelectedStore(store || null);
+                      }}
+                    />
+                  </div>
+                ))}
+
                 {/* CLONES VIRTUAIS - aparecem como raspadinhas com badge */}
                 {virtualClones.map((clone) => (
                   <div key={`clone-${clone.id}`} className="relative">
@@ -557,6 +605,44 @@ export default function PublicFlyer() {
                   />
                 ))}
                 
+                {/* PROMOÇÕES ATIVAS - aparecem como raspadinhas com badge */}
+                {activePromotions.map((promotion) => (
+                  <div key={`promotion-${promotion.id}`} className="relative">
+                    {/* Badge Promoção */}
+                    <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                      🎁 PROMOÇÃO
+                    </div>
+                    <ScratchCard
+                      isPromotion={true}
+                      promotionId={promotion.id}
+                      product={{
+                        id: promotion.id,
+                        name: promotion.name,
+                        description: promotion.description || "",
+                        price: promotion.originalPrice,
+                        imageUrl: promotion.imageUrl || "",
+                        category: promotion.category,
+                        storeId: promotion.storeId,
+                        isActive: true,
+                        isFeatured: false,
+                        showInStories: false,
+                        isScratchCard: true,
+                        scratchMessage: promotion.scratchMessage || "Parabéns! Você ganhou um desconto especial!",
+                        scratchPrice: promotion.promotionalPrice,
+                        scratchExpiresAt: promotion.validUntil ? promotion.validUntil : new Date().toISOString(),
+                        createdAt: promotion.createdAt,
+                        updatedAt: promotion.updatedAt
+                      }}
+                      currency={store?.currency || "USD"}
+                      themeColor={store?.themeColor || "#E11D48"}
+                      onClick={(product) => {
+                        setSelectedProduct(product);
+                        setSelectedStore(store || null);
+                      }}
+                    />
+                  </div>
+                ))}
+
                 {/* CLONES VIRTUAIS - aparecem como raspadinhas com badge */}
                 {virtualClones.map((clone) => (
                   <div key={`clone-${clone.id}`} className="relative">

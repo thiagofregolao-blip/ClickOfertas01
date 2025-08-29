@@ -412,6 +412,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PUBLIC: Buscar promoções ativas (usado no flyer público)
+  app.get('/api/public/promotions/active', async (req, res) => {
+    try {
+      const activePromotions = await storage.getActivePromotions();
+      res.json(activePromotions);
+    } catch (error) {
+      console.error("Error fetching active promotions:", error);
+      res.status(500).json({ message: "Failed to fetch active promotions" });
+    }
+  });
+
+  // Verificar status de uma promoção específica para o usuário
+  app.get('/api/promotions/:promotionId/status', async (req: any, res) => {
+    try {
+      const { promotionId } = req.params;
+      const userId = req.user?.claims?.sub;
+      const userAgent = req.headers['user-agent'];
+      const ipAddress = req.ip || req.connection?.remoteAddress;
+
+      const status = await storage.getPromotionScratchStatus(promotionId, userId, userAgent, ipAddress);
+      res.json(status);
+    } catch (error) {
+      console.error("Error checking promotion status:", error);
+      res.status(500).json({ message: "Failed to check promotion status" });
+    }
+  });
+
+  // Raspar uma promoção
+  app.post('/api/promotions/:promotionId/scratch', async (req: any, res) => {
+    try {
+      const { promotionId } = req.params;
+      const userId = req.user?.claims?.sub;
+      const userAgent = req.headers['user-agent'];
+      const ipAddress = req.ip || req.connection?.remoteAddress;
+
+      const result = await storage.scratchPromotion(promotionId, userId, userAgent, ipAddress);
+      
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error("Error scratching promotion:", error);
+      res.status(500).json({ message: "Failed to scratch promotion" });
+    }
+  });
+
   // Product routes
   app.get('/api/stores/:storeId/products', isAuthenticated, async (req: any, res) => {
     try {

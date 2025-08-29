@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Eye, BarChart3, Gift } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import PromotionForm from "@/components/promotion-form";
 import type { Promotion, PromotionWithDetails } from "@shared/schema";
 
 export default function AdminPromotions() {
@@ -276,14 +277,14 @@ export default function AdminPromotions() {
                       <div
                         className="bg-primary h-2 rounded-full"
                         style={{
-                          width: `${Math.min((parseInt(promotion.usedCount) / parseInt(promotion.maxClients)) * 100, 100)}%`
+                          width: `${Math.min((parseInt(promotion.usedCount || "0") / parseInt(promotion.maxClients || "1")) * 100, 100)}%`
                         }}
                       ></div>
                     </div>
                   </div>
 
                   <div className="text-sm text-muted-foreground">
-                    <div>Válida: {formatDate(promotion.validFrom)} - {formatDate(promotion.validUntil)}</div>
+                    <div>Válida: {promotion.validFrom ? formatDate(promotion.validFrom) : "N/A"} - {promotion.validUntil ? formatDate(promotion.validUntil) : "N/A"}</div>
                   </div>
 
                   <div className="flex gap-2 pt-2">
@@ -323,30 +324,16 @@ export default function AdminPromotions() {
         )}
       </div>
 
-      {/* TODO: Modal de edição/criação */}
+      {/* Modal de edição/criação */}
       {editingPromotion && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <CardTitle>
-                {editingPromotion.id ? "Editar Promoção" : "Nova Promoção"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">
-                  Formulário de criação/edição em desenvolvimento...
-                </p>
-                <Button 
-                  onClick={() => setEditingPromotion(null)}
-                  className="mt-4"
-                >
-                  Fechar
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <PromotionForm
+          promotion={editingPromotion}
+          onClose={() => setEditingPromotion(null)}
+          onSuccess={() => {
+            // Atualizar lista de promoções
+            queryClient.invalidateQueries({ queryKey: ["/api/promotions"] });
+          }}
+        />
       )}
     </AdminLayout>
   );
