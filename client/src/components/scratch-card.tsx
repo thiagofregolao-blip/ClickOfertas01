@@ -143,8 +143,10 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  // FASE 1: Inicializar canvas com DPI correto
+  // 🚀 FORÇAR INICIALIZAÇÃO DIRETA DO CANVAS
   useEffect(() => {
+    console.log(`%c🚀 USEEFFECT EXECUTADO! 🚀`, 
+      'background: red; color: white; padding: 10px; font-size: 20px; font-weight: bold;');
     console.log("🎨 CANVAS useEffect chamado:", {
       productId: product.id,
       isRevealed,
@@ -152,7 +154,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       canvasExists: !!canvasRef.current
     });
     
-    // SISTEMA SIMPLIFICADO: Canvas só para produtos com isScratchCard
+    // FORÇA INICIALIZAÇÃO MESMO SE CONDIÇÕES NÃO ESTIVEREM PERFEITAS
     if (isRevealed) {
       console.log("❌ Canvas NÃO inicializado: isRevealed=true");
       return;
@@ -161,18 +163,23 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       console.log("❌ Canvas NÃO inicializado: !isScratchCard");
       return;
     }
-    // REMOVIDO: Verificação de loading desnecessária
-    if (!canvasRef.current) {
-      console.log("❌ Canvas NÃO inicializado: canvasRef.current=null");
-      return;
-    }
     
-    console.log("✅ Canvas INICIALIZANDO...");
-    
-    
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    // TIMEOUT PARA GARANTIR QUE O CANVAS EXISTE
+    setTimeout(() => {
+      if (!canvasRef.current) {
+        console.log("❌ Canvas NÃO inicializado: canvasRef.current=null APÓS timeout");
+        return;
+      }
+      
+      console.log(`%c✅ Canvas INICIALIZANDO COM TIMEOUT! ✅`, 
+        'background: green; color: white; padding: 5px; font-size: 16px; font-weight: bold;');
+      
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        console.log("❌ Sem contexto 2D!");
+        return;
+      }
 
     // Reset estado ao mudar produto (sem setIsRevealed(false) - controlado pelo servidor)
     scratchedAreas.current = [];
@@ -226,8 +233,9 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       ctx.fillText(line, cssWidth / 2, startY + (index * lineHeight));
     });
     
-    console.log(`%c🏁 TEXTURA COMPLETA! Canvas pronto para ser riscado! 🏁`, 
-      'background: green; color: white; padding: 5px; font-size: 16px; font-weight: bold;');
+      console.log(`%c🏁 TEXTURA COMPLETA! Canvas pronto para ser riscado! 🏁`, 
+        'background: green; color: white; padding: 5px; font-size: 16px; font-weight: bold;');
+    }, 100); // 100ms timeout
   }, [product.id, product.scratchMessage, isRevealed]);
 
   // Throttle reduzido para mais fluidez
@@ -957,8 +965,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
               }}
             />
           )}
-          {/* 🔍 DEBUG: Log visual do canvas */}
-          {product.isScratchCard && !isRevealed && console.log("🎨 CANVAS RENDERIZADO na tela para:", product.id)}
+          {/* 🔍 DEBUG: Log visual do canvas - REMOVIDO PARA CORRIGIR ERRO */}
 
           {/* Efeito gradual do desconto - aparece conforme raspa */}
           {scratchProgress > 0.3 && !isRevealed && (
