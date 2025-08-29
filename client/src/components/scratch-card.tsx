@@ -238,18 +238,65 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const cssWidth = actualWidth;
     const cssHeight = actualHeight;
 
-    // Desenhar camada de "scratch"
-    console.log(`%c🎨 DESENHANDO TEXTURA INICIAL! 🎨`, 
-      'background: gold; color: black; padding: 5px; font-size: 16px; font-weight: bold;');
-    console.log("🌈 Criando gradiente:", { cssWidth, cssHeight });
+    // Desenhar camada de "scratch" - VERSÃO PREMIUM
+    console.log(`%c🎨✨ DESENHANDO TEXTURA PREMIUM! ✨🎨`, 
+      'background: linear-gradient(45deg, #FFD700, #FF1493); color: white; padding: 8px; font-size: 18px; font-weight: bold;');
+    console.log("🌈 Criando gradiente vibrante:", { cssWidth, cssHeight });
     
+    // 🎨 GRADIENTE PREMIUM: Laranja → Rosa → Roxo
     const gradient = ctx.createLinearGradient(0, 0, cssWidth, cssHeight);
-    gradient.addColorStop(0, '#FFD700');
-    gradient.addColorStop(0.5, '#FFA500');
-    gradient.addColorStop(1, '#FF6347');
+    gradient.addColorStop(0, '#FF8C00');    // Laranja vibrante
+    gradient.addColorStop(0.4, '#FF4500');  // Laranja-vermelho
+    gradient.addColorStop(0.7, '#FF1493');  // Rosa pink
+    gradient.addColorStop(1, '#8A2BE2');    // Roxo vibrante
 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, cssWidth, cssHeight);
+    
+    // ✨ EFEITO 1: Linhas diagonais brilhantes
+    console.log("⚡ Adicionando linhas brilhantes...");
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+    ctx.shadowBlur = 4;
+    
+    // Linhas diagonais cruzadas
+    const lineSpacing = cssWidth / 6;
+    for (let i = 0; i < 4; i++) {
+      // Linhas da esquerda para direita
+      ctx.beginPath();
+      ctx.moveTo(i * lineSpacing, 0);
+      ctx.lineTo(i * lineSpacing + cssHeight, cssHeight);
+      ctx.stroke();
+      
+      // Linhas da direita para esquerda
+      ctx.beginPath();
+      ctx.moveTo(cssWidth - (i * lineSpacing), 0);
+      ctx.lineTo(cssWidth - (i * lineSpacing + cssHeight), cssHeight);
+      ctx.stroke();
+    }
+    
+    // ✨ EFEITO 2: Partículas de brilho pequenas
+    console.log("⭐ Adicionando partículas brilhantes...");
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
+    ctx.shadowBlur = 3;
+    
+    // Posições das partículas (pequenas estrelas)
+    const sparklePositions = [
+      { x: cssWidth * 0.2, y: cssHeight * 0.15 }, { x: cssWidth * 0.8, y: cssHeight * 0.2 },
+      { x: cssWidth * 0.1, y: cssHeight * 0.4 }, { x: cssWidth * 0.9, y: cssHeight * 0.35 },
+      { x: cssWidth * 0.3, y: cssHeight * 0.6 }, { x: cssWidth * 0.7, y: cssHeight * 0.65 },
+      { x: cssWidth * 0.15, y: cssHeight * 0.8 }, { x: cssWidth * 0.85, y: cssHeight * 0.85 },
+      { x: cssWidth * 0.5, y: cssHeight * 0.1 }, { x: cssWidth * 0.4, y: cssHeight * 0.9 }
+    ];
+    
+    sparklePositions.forEach(pos => {
+      // Desenhar estrela pequena (4 pontos)
+      ctx.font = 'bold 8px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('✦', pos.x, pos.y);
+    });
     
     console.log("✅ Gradiente desenhado!");
 
@@ -271,29 +318,46 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     ];
     
     dollarPositions.forEach(pos => {
-      // ✨ EFEITO DE BRILHO: Múltiplas camadas de sombra
-      // Camada 1: Brilho externo branco
-      ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+      // 💰 SÍMBOLO $ PREMIUM 3D - 5 CAMADAS
+      
+      // Camada 1: Sombra profunda (efeito 3D)
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 3;
+      ctx.shadowBlur = 6;
+      ctx.fillStyle = '#B8860B'; // Dourado escuro
+      ctx.fillText('$', pos.x + 1, pos.y + 1);
+      
+      // Camada 2: Brilho externo dourado
+      ctx.shadowColor = 'rgba(255, 215, 0, 0.9)';
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#FFD700'; // Dourado médio
+      ctx.fillText('$', pos.x, pos.y);
+      
+      // Camada 3: Brilho médio
+      ctx.shadowColor = 'rgba(255, 255, 0, 0.7)';
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.shadowBlur = 6;
       ctx.fillStyle = '#FFFF00'; // Amarelo brilhante
       ctx.fillText('$', pos.x, pos.y);
       
-      // Camada 2: Brilho dourado
-      ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-      ctx.shadowBlur = 4;
-      ctx.fillStyle = '#FFD700'; // Dourado
+      // Camada 4: Highlight superior (efeito metálico)
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
+      ctx.shadowOffsetX = -1;
+      ctx.shadowOffsetY = -1;
+      ctx.shadowBlur = 3;
+      ctx.fillStyle = '#FFFACD'; // Amarelo clarinho
       ctx.fillText('$', pos.x, pos.y);
       
-      // Camada 3: Símbolo principal
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      // Camada 5: Símbolo principal com contorno
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
       ctx.shadowOffsetX = 1;
       ctx.shadowOffsetY = 1;
-      ctx.shadowBlur = 2;
-      ctx.fillStyle = '#FFF8DC'; // Dourado claro
+      ctx.shadowBlur = 1;
+      ctx.fillStyle = '#FFF8DC'; // Dourado claro final
       ctx.fillText('$', pos.x, pos.y);
     });
     
