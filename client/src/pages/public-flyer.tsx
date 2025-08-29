@@ -92,10 +92,20 @@ export default function PublicFlyer() {
   const { data: virtualClonesResponse } = useQuery<{ clones: any[] }>({
     queryKey: ['/api/virtual-clones/user'],
     enabled: isAuthenticated, // Só busca se autenticado
-    staleTime: 60_000, // Cache por 1 minuto
+    staleTime: 0, // SEM CACHE - sempre busca dados frescos
+    gcTime: 0, // SEM CACHE
+    refetchOnWindowFocus: true, // Refetch quando voltar para a aba
+    refetchOnMount: true, // Refetch ao montar
     retry: false, // Não retry se não autenticado
   });
   const virtualClones = virtualClonesResponse?.clones || [];
+  
+  // 🔍 DEBUG: Verificar clones recebidos
+  console.log('🔍 CLONES VIRTUAIS RECEBIDOS:', virtualClones.map(c => ({
+    id: c.id,
+    productId: c.productId,
+    productName: c.productName
+  })));
 
   // Registrar visualização do panfleto/loja quando carregado
   // CORREÇÃO: Removido recordFlyerView das dependências para evitar loop infinito

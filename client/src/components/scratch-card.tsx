@@ -41,7 +41,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     isScratchCard: product.isScratchCard,
     isVirtualClone,
     virtualCloneId,
-    scratchPrice: product.scratchPrice
+    scratchPrice: product.scratchPrice,
+    props: { isVirtualClone, virtualCloneId } // Debug das props que chegam
   });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScratching, setIsScratching] = useState(false);
