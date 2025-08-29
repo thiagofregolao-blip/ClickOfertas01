@@ -347,37 +347,15 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       const x = cssWidth / 2;
       const y = startY + (index * lineHeight);
       
-      // 🔥 CAMADA 1: Sombra profunda para contraste máximo
+      // ✨ TEXTO SIMPLES E LEGÍVEL
+      // Sombra escura para contraste
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-      ctx.shadowOffsetX = 3;
-      ctx.shadowOffsetY = 3;
-      ctx.shadowBlur = 6;
-      ctx.fillStyle = '#8B4513'; // Marrom escuro para sombra
-      ctx.fillText(line, x, y);
-      
-      // ✨ CAMADA 2: Contorno branco espesso
-      ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
       ctx.shadowBlur = 4;
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.lineWidth = 4;
-      ctx.strokeText(line, x, y);
       
-      // 🌟 CAMADA 3: Texto principal branco brilhante
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-      ctx.shadowOffsetX = 1;
-      ctx.shadowOffsetY = 1;
-      ctx.shadowBlur = 2;
-      ctx.fillStyle = '#FFFFFF'; // Branco puro
-      ctx.fillText(line, x, y);
-      
-      // ⭐ CAMADA 4: Brilho superior sutil
-      ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = -1;
-      ctx.shadowBlur = 1;
-      ctx.fillStyle = '#FFFACD'; // Branco levemente amarelado
+      // Texto branco limpo
+      ctx.fillStyle = '#FFFFFF';
       ctx.fillText(line, x, y);
     });
     
