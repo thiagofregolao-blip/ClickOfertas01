@@ -451,6 +451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/stores/:storeId/products/:productId', isAuthenticated, async (req: any, res) => {
     try {
       const { storeId, productId } = req.params;
+      const userId = req.user?.claims?.sub || req.user?.id;
       
       // Converter scratchExpiresAt de string para Date se fornecido
       if (req.body.scratchExpiresAt && req.body.scratchExpiresAt !== "") {
@@ -459,8 +460,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.body.scratchExpiresAt = null;
       }
       
+      // Verificar se está ativando raspadinha
+      const isActivatingScatch = req.body.isScratchCard === true;
+      const productBefore = await storage.getProductById(productId);
+      const wasAlreadyScratch = productBefore?.isScratchCard === true;
+      
       const productData = updateProductSchema.parse(req.body);
       const product = await storage.updateProduct(productId, storeId, productData);
+      
+      // NOVO: Se está ativando raspadinha pela primeira vez, criar campanha automaticamente
+      if (isActivatingScatch && !wasAlreadyScratch) {
+        try {
+          // Verificar se já existe campanha para este produto
+          const existingCampaign = await storage.getScratchCampaignByProduct(productId);
+          
+          if (!existingCampaign) {
+            console.log(`🎯 Criando campanha automática de clones virtuais para produto: ${product.name}`);
+            
+            // Criar campanha automática
+            const campaign = await storage.createScratchCampaign({
+              productId: product.id,
+              storeId: product.storeId,
+              title: `Raspadinha: ${product.name}`,
+              description: `Clone virtual automático para ${product.name}`,
+              discountPercentage: product.scratchDiscountPrice ? 
+                Math.round(((Number(product.price) - Number(product.scratchDiscountPrice)) / Number(product.price)) * 100) : 
+                10, // 10% padrão se não tiver desconto específico
+              maxRedemptions: Number(product.maxScratchRedemptions) || 100,
+              expiresAt: product.scratchExpiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 dias padrão
+              isActive: true,
+            });
+            
+            // Buscar todos os usuários registrados para distribuir clones
+            const allUsers = await storage.getAllUsers();
+            const userIds = allUsers.map(user => user.id);
+            
+            if (userIds.length > 0) {
+              // Criar snapshot do produto para os clones
+              const productSnapshot = {
+                id: product.id,
+                storeId: product.storeId,
+                name: product.name,
+                description: product.description,
+                price: product.price,
+                discountPrice: product.scratchDiscountPrice || product.price,
+                imageUrl: product.imageUrl,
+                category: product.category,
+              };
+              
+              // Criar clones virtuais para todos os usuários
+              const clones = await storage.createVirtualClones(campaign.id, userIds, productSnapshot);
+              
+              console.log(`✅ Campanha criada! ${clones.length} clones virtuais distribuídos para usuários`);
+            }
+          }
+        } catch (campaignError) {
+          console.error("Erro ao criar campanha automática:", campaignError);
+          // Não falhar a atualização do produto por causa disso
+        }
+      }
+      
       res.json(product);
     } catch (error) {
       console.error("Error updating product:", error);
