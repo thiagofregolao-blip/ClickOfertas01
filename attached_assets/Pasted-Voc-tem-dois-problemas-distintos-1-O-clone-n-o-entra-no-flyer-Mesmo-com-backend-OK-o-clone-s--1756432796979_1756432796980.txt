@@ -1,0 +1,83 @@
+Você tem dois problemas distintos:
+
+1) O clone não entra no flyer
+
+Mesmo com backend OK, o clone só aparece se o frontend realmente o incluir na lista. Checklist rápido:
+
+Busque os clones do usuário: GET /api/virtual-clones/user.
+
+Insira cada clone como um card próprio (além do produto original), sem deduplicar por product.id.
+
+Use key={"clone-" + clone.id}.
+
+Monte o product do card a partir do clone (nome, imagem, etc.) e passe o preço de raspadinha pelo clone.discountPrice.
+
+Passe as props certas: isVirtualClone={true} e virtualCloneId={clone.id}.
+
+Mantenha o produto original normalmente (não altere).
+
+Se a lista atual só mapeia products, ela nunca mostrará clones — precisa mesclar products + userClones (apenas os do usuário e não-expirados).
+
+2) Quando o clone aparece, não dá pra clicar/raspar
+
+Isso é bug de empilhamento (stacking context/z-index): a camada branca do conteúdo está por cima da cobertura. A correção mínima e determinística:
+
+Ajuste no ScratchCard
+
+Troque as classes/estilos para garantir ordem clara no mesmo contexto:
+
+- <div className="p-0 relative h-full w-full overflow-hidden">
++ <div className="p-0 relative h-full w-full overflow-hidden isolate">
+    {/* CONTEÚDO BRANCO */}
+-   <div className="absolute inset-0 p-3 ... bg-white">
++   <div className="absolute inset-0 z-0 p-3 ... bg-white pointer-events-none">
+      ...
+    </div>
+
+    {/* COBERTURA (só para clones) */}
+    {isVirtualClone && virtualCloneId && (
+      <>
+-       <div className="absolute top-0 left-0 w-full h-full cursor-pointer"
+-            style={{ zIndex: 100, ... }}
++       <div className="absolute inset-0 z-50 cursor-pointer pointer-events-auto"
++            style={{ /* debug opcional: background:'rgba(0,0,0,.6)' */ }}
+             onClick={(e) => {
+               e.currentTarget.style.display = 'none';
+               scratchVirtualCloneMutation.mutate(virtualCloneId!);
+             }}
+       />
+-       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+-            style={{ zIndex: 200, ... }}>
++       <div className="absolute inset-0 z-60 flex items-center justify-center pointer-events-none">
+          RASPE AQUI
+       </div>
+      </>
+    )}
+</div>
+
+
+Por que funciona:
+
+isolate cria um contexto único; dentro dele, o conteúdo fica em z-0 e a cobertura em z-50/60.
+
+pointer-events-none no conteúdo garante que os cliques vão para a cobertura.
+
+inset-0 evita qualquer falha de dimensionamento.
+
+Se ainda não clicar
+
+Verifique se algum pai tem transform, filter, opacity < 1, contain, etc. Se tiver, mantenha o isolate exatamente no contêiner posicionado que envolve conteúdo + cobertura (como acima).
+
+Como último recurso no debug, suba para z-[9999] na cobertura e force z-0 no conteúdo.
+
+Use document.elementFromPoint(x,y) no DevTools: se ele retorna o bloco branco, ainda tem algo por cima.
+
+Plano de ação direto
+
+Mescle products + GET /api/virtual-clones/user no flyer; gere cards separados para clones (com isVirtualClone/virtualCloneId).
+
+Aplique o patch de z-index/isolate/pointer-events acima no ScratchCard.
+
+Teste rápido: o card do clone deve surgir além do produto original e a cobertura deve ficar visível e clicável; o clique deve ocultar a cobertura e chamar o endpoint de raspagem (cupom gerado).
+
+Com isso, você resolve tanto a ausência do clone no flyer quanto a cobertura invisível/ineficaz quando ele aparece.

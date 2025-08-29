@@ -942,7 +942,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           </div>
 
           {/* Produto por trás (parcialmente visível) */}
-          <div className="absolute inset-0 z-0 p-3 flex flex-col justify-center items-center bg-white">
+          <div className="absolute inset-0 z-0 p-3 flex flex-col justify-center items-center bg-white pointer-events-none">
             {/* Imagem */}
             <div className="relative mb-2">
               {product.imageUrl ? (
@@ -980,17 +980,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             <>
               {console.log('✅ RENDERIZANDO COBERTURA PARA CLONE:', virtualCloneId)}
               <div
-                className="absolute inset-0 cursor-pointer"
+                className="absolute inset-0 z-50 cursor-pointer pointer-events-auto"
                 style={{
-                  zIndex: 9999,
                   backgroundColor: '#ff0000', // VERMELHO para debug
                   border: '5px solid #00ff00', // VERDE para debug
-                  opacity: 0.8,
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%'
+                  opacity: 0.8
                 }}
                 onClick={(e) => {
                   console.log('🎨 CLIQUE NA COBERTURA VERMELHA!', { isVirtualClone, virtualCloneId });
@@ -1012,13 +1006,16 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
                   color: '#ffffff',
                   fontWeight: 'bold',
                   fontSize: '16px',
-                  textShadow: '2px 2px 4px rgba(0,0,0,1)',
+                  textShadow: '2px 2px 4px rgba(0,0,0,1)'
+                }}
+              >
+                <div style={{
                   backgroundColor: 'rgba(0,0,0,0.8)',
                   padding: '5px 10px',
                   borderRadius: '5px'
-                }}
-              >
-                🎲 CLIQUE AQUI DEBUG
+                }}>
+                  🎲 CLIQUE AQUI DEBUG
+                </div>
               </div>
             </>
           )}
