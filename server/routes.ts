@@ -1231,7 +1231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verificar se o clone pertence ao usuário
-      if (clone.userId !== userId) {
+      if (clone.assignedUserId !== userId) {
         return res.status(403).json({ message: "Clone não pertence ao usuário" });
       }
 
