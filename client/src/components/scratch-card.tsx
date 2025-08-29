@@ -33,6 +33,16 @@ interface ScratchArea {
 
 export default function ScratchCard({ product, currency, themeColor, onRevealed, onClick }: ScratchCardProps) {
   
+  // 🔍 DEBUG: Log inicial dos props
+  console.log("🎯 ScratchCard RENDERIZADO:", {
+    productId: product.id,
+    productName: product.name,
+    isScratchCard: product.isScratchCard,
+    scratchMessage: product.scratchMessage,
+    currency,
+    themeColor
+  });
+  
   // SISTEMA SIMPLIFICADO
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScratching, setIsScratching] = useState(false);
@@ -135,14 +145,30 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // FASE 1: Inicializar canvas com DPI correto
   useEffect(() => {
-    // DEBUG: Log condições de inicialização
-    // REMOVIDO: Debug de promoção desnecessário
+    console.log("🎨 CANVAS useEffect chamado:", {
+      productId: product.id,
+      isRevealed,
+      isScratchCard: product.isScratchCard,
+      canvasExists: !!canvasRef.current
+    });
     
     // SISTEMA SIMPLIFICADO: Canvas só para produtos com isScratchCard
-    if (isRevealed) return;
-    if (!product.isScratchCard) return;
+    if (isRevealed) {
+      console.log("❌ Canvas NÃO inicializado: isRevealed=true");
+      return;
+    }
+    if (!product.isScratchCard) {
+      console.log("❌ Canvas NÃO inicializado: !isScratchCard");
+      return;
+    }
     // REMOVIDO: Verificação de loading desnecessária
-    if (!canvasRef.current) return;
+    if (!canvasRef.current) {
+      console.log("❌ Canvas NÃO inicializado: canvasRef.current=null");
+      return;
+    }
+    
+    console.log("✅ Canvas INICIALIZANDO...");
+    
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -267,7 +293,14 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Sistema de bloqueio simplificado
   const blocked = () => {
-    return isRevealed;
+    const isBlocked = isRevealed;
+    console.log("🚫 BLOCKED() chamado:", {
+      productId: product.id,
+      isRevealed,
+      isBlocked,
+      resultado: isBlocked ? "BLOQUEADO" : "LIBERADO"
+    });
+    return isBlocked;
   };
 
   // Função de scratch melhorada
@@ -350,6 +383,12 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Event handlers
   const handleMouseDown = (e: React.MouseEvent) => {
+    console.log("🖱️ MOUSE DOWN chamado:", {
+      productId: product.id,
+      blocked: blocked(),
+      clientX: e.clientX,
+      clientY: e.clientY
+    });
     if (blocked()) return;
     setIsScratching(true);
     lastPoint.current = null;
@@ -369,6 +408,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Touch handlers
   const handleTouchStart = (e: React.TouchEvent) => {
+    console.log("👆 TOUCH START chamado:", {
+      productId: product.id,
+      blocked: blocked(),
+      touchCount: e.touches.length
+    });
     e.preventDefault();
     if (blocked()) return;
     setIsScratching(true);
@@ -858,6 +902,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
               style={{ zIndex: 10 }}
             />
           )}
+          {/* 🔍 DEBUG: Log visual do canvas */}
+          {product.isScratchCard && !isRevealed && console.log("🎨 CANVAS RENDERIZADO na tela para:", product.id)}
 
           {/* Efeito gradual do desconto - aparece conforme raspa */}
           {scratchProgress > 0.3 && !isRevealed && (
