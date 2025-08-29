@@ -242,12 +242,12 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     console.log(`%c🎯 COPIANDO SUA IMAGEM EXATAMENTE! 🎯`, 
       'background: linear-gradient(to bottom, #FFA500, #FF1493, #8B008B); color: white; padding: 8px; font-weight: bold;');
     
-    // 🌈 GRADIENTE SUAVIZADO: Laranja → Rosa suave → Roxo delicado  
+    // 🌈 GRADIENTE LARANJA → VERMELHO: Muito mais vibrante!  
     const gradient = ctx.createLinearGradient(0, 0, 0, cssHeight);
     gradient.addColorStop(0, '#FF8C00');    // Laranja brilhante topo
     gradient.addColorStop(0.4, '#FF6347');  // Laranja-vermelho 
-    gradient.addColorStop(0.7, '#FF69B4');  // Rosa suave (mais claro)
-    gradient.addColorStop(1, '#DA70D6');    // Orquídea (roxo bem suave)
+    gradient.addColorStop(0.7, '#FF4500');  // Laranja-vermelho mais intenso
+    gradient.addColorStop(1, '#DC143C');    // Vermelho puro na base
 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, cssWidth, cssHeight);
