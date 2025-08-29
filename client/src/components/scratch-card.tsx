@@ -975,15 +975,30 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             shouldRenderCover: isVirtualClone && virtualCloneId
           })}
           
+          {/* DEBUG: Verificar condições */}
+          {console.log('🔍 DEBUG COBERTURA:', {
+            isVirtualClone,
+            virtualCloneId,
+            shouldRender: isVirtualClone && virtualCloneId
+          })}
+          
           {/* Cobertura de raspadinha para clones virtuais */}
           {isVirtualClone && virtualCloneId && (
             <>
+              {console.log('✅ RENDERIZANDO COBERTURA PARA CLONE:', virtualCloneId)}
               {/* Cobertura principal clicável */}
               <div
-                className="absolute inset-0 z-50 cursor-pointer pointer-events-auto"
                 style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 99999,
                   background: 'linear-gradient(45deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%)',
-                  opacity: 0.95
+                  opacity: 0.95,
+                  cursor: 'pointer',
+                  pointerEvents: 'auto'
                 }}
                 onClick={(e) => {
                   console.log('🎲 Raspando clone virtual:', virtualCloneId);
