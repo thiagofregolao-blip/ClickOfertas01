@@ -50,7 +50,7 @@ import {
   type PromotionWithDetails,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, count, gte, lte } from "drizzle-orm";
+import { eq, and, desc, count, gte, lte, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -433,20 +433,20 @@ export class DatabaseStorage implements IStorage {
         description: result.productDescription,
         price: result.productPrice,
         imageUrl: result.productImageUrl,
-        imageUrl2: result.productImageUrl2 || null,
-        imageUrl3: result.productImageUrl3 || null,
+        imageUrl2: result.productImageUrl || null,
+        imageUrl3: result.productImageUrl || null,
         category: result.productCategory,
         isFeatured: result.productIsFeatured,
         showInStories: result.productShowInStories,
         isActive: result.productIsActive,
         sortOrder: result.productSortOrder,
-        isScratchCard: result.productIsScratchCard || false,
-        scratchPrice: result.productScratchPrice || null,
-        scratchExpiresAt: result.productScratchExpiresAt || null,
-        scratchTimeLimitMinutes: result.productScratchTimeLimitMinutes || null,
-        maxScratchRedemptions: result.productMaxScratchRedemptions || null,
-        currentScratchRedemptions: result.productCurrentScratchRedemptions || null,
-        scratchMessage: result.productScratchMessage || null,
+        isScratchCard: false,
+        scratchPrice: null,
+        scratchExpiresAt: null,
+        scratchTimeLimitMinutes: null,
+        maxScratchRedemptions: null,
+        currentScratchRedemptions: null,
+        scratchMessage: null,
         storeId: result.productStoreId,
         createdAt: result.productCreatedAt,
         updatedAt: result.productUpdatedAt,
@@ -1258,9 +1258,23 @@ export class DatabaseStorage implements IStorage {
       ...promo,
       store: {
         id: promo.storeId,
-        name: promo.storeName,
+        name: promo.storeName || 'Loja',
         logoUrl: promo.storeLogoUrl,
-        themeColor: promo.storeThemeColor
+        themeColor: promo.storeThemeColor,
+        isActive: true,
+        address: null,
+        createdAt: null,
+        updatedAt: null,
+        userId: '',
+        currency: 'Gs.',
+        displayCurrency: 'local',
+        dollarRate: '7500',
+        customUsdBrlRate: null,
+        whatsapp: null,
+        instagram: null,
+        latitude: null,
+        longitude: null,
+        slug: null
       }
     })) as PromotionWithDetails[];
   }
@@ -1301,9 +1315,23 @@ export class DatabaseStorage implements IStorage {
       ...promotion,
       store: {
         id: promotion.storeId,
-        name: promotion.storeName,
+        name: promotion.storeName || 'Loja',
         logoUrl: promotion.storeLogoUrl,
-        themeColor: promotion.storeThemeColor
+        themeColor: promotion.storeThemeColor,
+        isActive: true,
+        address: null,
+        createdAt: null,
+        updatedAt: null,
+        userId: '',
+        currency: 'Gs.',
+        displayCurrency: 'local',
+        dollarRate: '7500',
+        customUsdBrlRate: null,
+        whatsapp: null,
+        instagram: null,
+        latitude: null,
+        longitude: null,
+        slug: null
       }
     } as PromotionWithDetails;
   }
@@ -1471,9 +1499,23 @@ export class DatabaseStorage implements IStorage {
       ...promo,
       store: {
         id: promo.storeId,
-        name: promo.storeName,
+        name: promo.storeName || 'Loja',
         logoUrl: promo.storeLogoUrl,
-        themeColor: promo.storeThemeColor
+        themeColor: promo.storeThemeColor,
+        isActive: true,
+        address: null,
+        createdAt: null,
+        updatedAt: null,
+        userId: '',
+        currency: 'Gs.',
+        displayCurrency: 'local',
+        dollarRate: '7500',
+        customUsdBrlRate: null,
+        whatsapp: null,
+        instagram: null,
+        latitude: null,
+        longitude: null,
+        slug: null
       }
     })) as PromotionWithDetails[];
   }
@@ -1629,7 +1671,7 @@ export class DatabaseStorage implements IStorage {
       promotion: {
         id: promotion.id,
         name: promotion.name,
-        maxClients: parseInt(promotion.maxClients),
+        maxClients: parseInt(promotion.maxClients || "0"),
         usedCount: parseInt(promotion.usedCount || "0")
       },
       stats: {
