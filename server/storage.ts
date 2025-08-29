@@ -10,6 +10,8 @@ import {
   coupons,
   scratchCampaigns,
   virtualScratchClones,
+  promotions,
+  promotionScratches,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -40,6 +42,12 @@ import {
   type InsertVirtualScratchClone,
   type ScratchCampaignWithDetails,
   type VirtualScratchCloneWithDetails,
+  type Promotion,
+  type InsertPromotion,
+  type UpdatePromotion,
+  type PromotionScratch,
+  type InsertPromotionScratch,
+  type PromotionWithDetails,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, gte, lte } from "drizzle-orm";
@@ -117,6 +125,18 @@ export interface IStorage {
   
   // Delete cupom
   deleteCoupon(couponId: string): Promise<void>;
+
+  // NEW: Promotion operations (Simplified System)
+  getStorePromotions(storeId: string): Promise<PromotionWithDetails[]>;
+  getPromotion(promotionId: string): Promise<PromotionWithDetails | undefined>;
+  createPromotion(storeId: string, promotion: InsertPromotion): Promise<Promotion>;
+  updatePromotion(promotionId: string, updates: UpdatePromotion): Promise<Promotion>;
+  deletePromotion(promotionId: string): Promise<void>;
+  canUserScratchPromotion(promotionId: string, userId?: string, userAgent?: string, ipAddress?: string): Promise<{allowed: boolean, reason: string, promotion?: Promotion}>;
+  createPromotionScratch(scratch: InsertPromotionScratch): Promise<PromotionScratch>;
+  incrementPromotionUsage(promotionId: string): Promise<void>;
+  getActivePromotions(): Promise<PromotionWithDetails[]>;
+  getPromotionStats(promotionId: string): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1197,6 +1217,291 @@ export class DatabaseStorage implements IStorage {
     // Implementação de sorteio aleatório simples
     const shuffled = [...userPool].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, maxSelections);
+  }
+
+  // ================================
+  // PROMOTION OPERATIONS (NEW - SIMPLIFIED SYSTEM)
+  // ================================
+
+  async getStorePromotions(storeId: string): Promise<PromotionWithDetails[]> {
+    const storePromotions = await db
+      .select({
+        id: promotions.id,
+        storeId: promotions.storeId,
+        baseProductId: promotions.baseProductId,
+        name: promotions.name,
+        description: promotions.description,
+        imageUrl: promotions.imageUrl,
+        category: promotions.category,
+        originalPrice: promotions.originalPrice,
+        promotionalPrice: promotions.promotionalPrice,
+        discountPercentage: promotions.discountPercentage,
+        isActive: promotions.isActive,
+        maxClients: promotions.maxClients,
+        usedCount: promotions.usedCount,
+        validFrom: promotions.validFrom,
+        validUntil: promotions.validUntil,
+        scratchMessage: promotions.scratchMessage,
+        createdAt: promotions.createdAt,
+        updatedAt: promotions.updatedAt,
+        // Dados da loja
+        storeName: stores.name,
+        storeLogoUrl: stores.logoUrl,
+        storeThemeColor: stores.themeColor,
+      })
+      .from(promotions)
+      .leftJoin(stores, eq(promotions.storeId, stores.id))
+      .where(eq(promotions.storeId, storeId))
+      .orderBy(desc(promotions.createdAt));
+
+    return storePromotions.map(promo => ({
+      ...promo,
+      store: {
+        id: promo.storeId,
+        name: promo.storeName,
+        logoUrl: promo.storeLogoUrl,
+        themeColor: promo.storeThemeColor
+      }
+    })) as PromotionWithDetails[];
+  }
+
+  async getPromotion(promotionId: string): Promise<PromotionWithDetails | undefined> {
+    const [promotion] = await db
+      .select({
+        id: promotions.id,
+        storeId: promotions.storeId,
+        baseProductId: promotions.baseProductId,
+        name: promotions.name,
+        description: promotions.description,
+        imageUrl: promotions.imageUrl,
+        category: promotions.category,
+        originalPrice: promotions.originalPrice,
+        promotionalPrice: promotions.promotionalPrice,
+        discountPercentage: promotions.discountPercentage,
+        isActive: promotions.isActive,
+        maxClients: promotions.maxClients,
+        usedCount: promotions.usedCount,
+        validFrom: promotions.validFrom,
+        validUntil: promotions.validUntil,
+        scratchMessage: promotions.scratchMessage,
+        createdAt: promotions.createdAt,
+        updatedAt: promotions.updatedAt,
+        // Dados da loja
+        storeName: stores.name,
+        storeLogoUrl: stores.logoUrl,
+        storeThemeColor: stores.themeColor,
+      })
+      .from(promotions)
+      .leftJoin(stores, eq(promotions.storeId, stores.id))
+      .where(eq(promotions.id, promotionId));
+
+    if (!promotion) return undefined;
+
+    return {
+      ...promotion,
+      store: {
+        id: promotion.storeId,
+        name: promotion.storeName,
+        logoUrl: promotion.storeLogoUrl,
+        themeColor: promotion.storeThemeColor
+      }
+    } as PromotionWithDetails;
+  }
+
+  async createPromotion(storeId: string, promotionData: InsertPromotion): Promise<Promotion> {
+    const [promotion] = await db
+      .insert(promotions)
+      .values({
+        ...promotionData,
+        storeId: storeId
+      })
+      .returning();
+    return promotion;
+  }
+
+  async updatePromotion(promotionId: string, updates: UpdatePromotion): Promise<Promotion> {
+    const [promotion] = await db
+      .update(promotions)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(promotions.id, promotionId))
+      .returning();
+    return promotion;
+  }
+
+  async deletePromotion(promotionId: string): Promise<void> {
+    await db
+      .delete(promotions)
+      .where(eq(promotions.id, promotionId));
+  }
+
+  async canUserScratchPromotion(
+    promotionId: string, 
+    userId?: string, 
+    userAgent?: string, 
+    ipAddress?: string
+  ): Promise<{allowed: boolean, reason: string, promotion?: Promotion}> {
+    const promotion = await db
+      .select()
+      .from(promotions)
+      .where(eq(promotions.id, promotionId))
+      .then(result => result[0]);
+
+    if (!promotion) {
+      return { allowed: false, reason: "Promoção não encontrada" };
+    }
+
+    if (!promotion.isActive) {
+      return { allowed: false, reason: "Promoção não está ativa" };
+    }
+
+    const now = new Date();
+    if (promotion.validUntil && now > promotion.validUntil) {
+      return { allowed: false, reason: "Promoção expirou" };
+    }
+
+    if (promotion.validFrom && now < promotion.validFrom) {
+      return { allowed: false, reason: "Promoção ainda não iniciou" };
+    }
+
+    const maxClients = parseInt(promotion.maxClients);
+    const usedCount = parseInt(promotion.usedCount);
+    
+    if (usedCount >= maxClients) {
+      return { allowed: false, reason: "Limite de participantes atingido" };
+    }
+
+    // Verificar se usuário já raspou esta promoção
+    if (userId || userAgent || ipAddress) {
+      const existingScratch = await db
+        .select()
+        .from(promotionScratches)
+        .where(
+          and(
+            eq(promotionScratches.promotionId, promotionId),
+            userId ? eq(promotionScratches.userId, userId) : 
+              and(
+                eq(promotionScratches.userAgent, userAgent || ''),
+                eq(promotionScratches.ipAddress, ipAddress || '')
+              )
+          )
+        )
+        .then(result => result[0]);
+
+      if (existingScratch) {
+        return { allowed: false, reason: "Você já participou desta promoção" };
+      }
+    }
+
+    return { allowed: true, reason: "Pode raspar", promotion };
+  }
+
+  async createPromotionScratch(scratchData: InsertPromotionScratch): Promise<PromotionScratch> {
+    const [scratch] = await db
+      .insert(promotionScratches)
+      .values(scratchData)
+      .returning();
+    return scratch;
+  }
+
+  async incrementPromotionUsage(promotionId: string): Promise<void> {
+    await db
+      .update(promotions)
+      .set({
+        usedCount: (parseInt((await db.select({ usedCount: promotions.usedCount }).from(promotions).where(eq(promotions.id, promotionId)))[0]?.usedCount || "0") + 1).toString()
+      })
+      .where(eq(promotions.id, promotionId));
+  }
+
+  async getActivePromotions(): Promise<PromotionWithDetails[]> {
+    const now = new Date();
+    const activePromotions = await db
+      .select({
+        id: promotions.id,
+        storeId: promotions.storeId,
+        baseProductId: promotions.baseProductId,
+        name: promotions.name,
+        description: promotions.description,
+        imageUrl: promotions.imageUrl,
+        category: promotions.category,
+        originalPrice: promotions.originalPrice,
+        promotionalPrice: promotions.promotionalPrice,
+        discountPercentage: promotions.discountPercentage,
+        isActive: promotions.isActive,
+        maxClients: promotions.maxClients,
+        usedCount: promotions.usedCount,
+        validFrom: promotions.validFrom,
+        validUntil: promotions.validUntil,
+        scratchMessage: promotions.scratchMessage,
+        createdAt: promotions.createdAt,
+        updatedAt: promotions.updatedAt,
+        // Dados da loja
+        storeName: stores.name,
+        storeLogoUrl: stores.logoUrl,
+        storeThemeColor: stores.themeColor,
+      })
+      .from(promotions)
+      .leftJoin(stores, eq(promotions.storeId, stores.id))
+      .where(and(
+        eq(promotions.isActive, true),
+        gte(promotions.validUntil, now),
+        lte(promotions.validFrom, now)
+      ))
+      .orderBy(desc(promotions.createdAt));
+
+    return activePromotions.map(promo => ({
+      ...promo,
+      store: {
+        id: promo.storeId,
+        name: promo.storeName,
+        logoUrl: promo.storeLogoUrl,
+        themeColor: promo.storeThemeColor
+      }
+    })) as PromotionWithDetails[];
+  }
+
+  async getPromotionStats(promotionId: string): Promise<any> {
+    const promotion = await db
+      .select()
+      .from(promotions)
+      .where(eq(promotions.id, promotionId))
+      .then(result => result[0]);
+
+    if (!promotion) {
+      throw new Error("Promoção não encontrada");
+    }
+
+    const scratchCount = await db
+      .select({ count: count() })
+      .from(promotionScratches)
+      .where(eq(promotionScratches.promotionId, promotionId))
+      .then(result => result[0]?.count || 0);
+
+    const usedCoupons = await db
+      .select({ count: count() })
+      .from(promotionScratches)
+      .where(and(
+        eq(promotionScratches.promotionId, promotionId),
+        eq(promotionScratches.isUsed, true)
+      ))
+      .then(result => result[0]?.count || 0);
+
+    return {
+      promotion: {
+        id: promotion.id,
+        name: promotion.name,
+        maxClients: parseInt(promotion.maxClients),
+        usedCount: parseInt(promotion.usedCount)
+      },
+      stats: {
+        totalScratches: scratchCount,
+        usedCoupons: usedCoupons,
+        availableSlots: parseInt(promotion.maxClients) - parseInt(promotion.usedCount),
+        conversionRate: scratchCount > 0 ? ((usedCoupons / scratchCount) * 100).toFixed(2) : 0
+      }
+    };
   }
 }
 

@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, insertScratchCampaignSchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
@@ -1302,6 +1302,273 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error marking expired clones:", error);
       res.status(500).json({ message: "Erro ao marcar clones expirados" });
+    }
+  });
+
+  // ===== NOVO SISTEMA: PROMOÇÕES DIRETAS E SIMPLIFICADAS =====
+
+  // 1. Listar todas as promoções da loja
+  app.get('/api/stores/:storeId/promotions', async (req, res) => {
+    try {
+      const { storeId } = req.params;
+      const promotions = await storage.getStorePromotions(storeId);
+      res.json(promotions);
+    } catch (error) {
+      console.error("Error fetching store promotions:", error);
+      res.status(500).json({ message: "Erro ao buscar promoções da loja" });
+    }
+  });
+
+  // 2. Buscar promoção específica
+  app.get('/api/promotions/:promotionId', async (req, res) => {
+    try {
+      const { promotionId } = req.params;
+      const promotion = await storage.getPromotion(promotionId);
+      
+      if (!promotion) {
+        return res.status(404).json({ message: "Promoção não encontrada" });
+      }
+      
+      res.json(promotion);
+    } catch (error) {
+      console.error("Error fetching promotion:", error);
+      res.status(500).json({ message: "Erro ao buscar promoção" });
+    }
+  });
+
+  // 3. Criar nova promoção (Admin)
+  app.post('/api/stores/:storeId/promotions', isAuthenticated, async (req: any, res) => {
+    try {
+      const { storeId } = req.params;
+      const userId = req.user?.claims?.sub || req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Verificar se a loja pertence ao usuário
+      const userStore = await storage.getUserStore(userId);
+      if (!userStore || userStore.id !== storeId) {
+        return res.status(403).json({ message: "Acesso negado a esta loja" });
+      }
+
+      const promotionData = insertPromotionSchema.parse(req.body);
+      const promotion = await storage.createPromotion(storeId, promotionData);
+      
+      res.status(201).json({
+        success: true,
+        message: "Promoção criada com sucesso!",
+        promotion
+      });
+    } catch (error) {
+      console.error("Error creating promotion:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Erro ao criar promoção" });
+      }
+    }
+  });
+
+  // 4. Atualizar promoção existente (Admin)
+  app.patch('/api/promotions/:promotionId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { promotionId } = req.params;
+      const userId = req.user?.claims?.sub || req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Verificar se a promoção existe e pertence à loja do usuário
+      const promotion = await storage.getPromotion(promotionId);
+      if (!promotion) {
+        return res.status(404).json({ message: "Promoção não encontrada" });
+      }
+
+      const userStore = await storage.getUserStore(userId);
+      if (!userStore || userStore.id !== promotion.storeId) {
+        return res.status(403).json({ message: "Acesso negado a esta promoção" });
+      }
+
+      const updateData = updatePromotionSchema.parse(req.body);
+      const updatedPromotion = await storage.updatePromotion(promotionId, updateData);
+      
+      res.json({
+        success: true,
+        message: "Promoção atualizada com sucesso!",
+        promotion: updatedPromotion
+      });
+    } catch (error) {
+      console.error("Error updating promotion:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Erro ao atualizar promoção" });
+      }
+    }
+  });
+
+  // 5. Deletar promoção (Admin)
+  app.delete('/api/promotions/:promotionId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { promotionId } = req.params;
+      const userId = req.user?.claims?.sub || req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Verificar se a promoção existe e pertence à loja do usuário
+      const promotion = await storage.getPromotion(promotionId);
+      if (!promotion) {
+        return res.status(404).json({ message: "Promoção não encontrada" });
+      }
+
+      const userStore = await storage.getUserStore(userId);
+      if (!userStore || userStore.id !== promotion.storeId) {
+        return res.status(403).json({ message: "Acesso negado a esta promoção" });
+      }
+
+      await storage.deletePromotion(promotionId);
+      
+      res.json({
+        success: true,
+        message: "Promoção deletada com sucesso!"
+      });
+    } catch (error) {
+      console.error("Error deleting promotion:", error);
+      res.status(500).json({ message: "Erro ao deletar promoção" });
+    }
+  });
+
+  // 6. Verificar se usuário pode raspar uma promoção
+  app.get('/api/promotions/:promotionId/can-scratch', async (req: any, res) => {
+    try {
+      const { promotionId } = req.params;
+      const userId = req.user?.claims?.sub || req.user?.id;
+      const userAgent = req.get('User-Agent') || 'unknown';
+      const ipAddress = req.ip || 'unknown';
+      
+      const canScratch = await storage.canUserScratchPromotion(promotionId, userId, userAgent, ipAddress);
+      
+      res.json({
+        canScratch: canScratch.allowed,
+        reason: canScratch.reason,
+        promotion: canScratch.promotion
+      });
+    } catch (error) {
+      console.error("Error checking scratch eligibility:", error);
+      res.status(500).json({ message: "Erro ao verificar elegibilidade" });
+    }
+  });
+
+  // 7. Raspar promoção e gerar cupom
+  app.post('/api/promotions/:promotionId/scratch', async (req: any, res) => {
+    try {
+      const { promotionId } = req.params;
+      const userId = req.user?.claims?.sub || req.user?.id;
+      const userAgent = req.get('User-Agent') || 'unknown';
+      const ipAddress = req.ip || 'unknown';
+      
+      // Verificar se pode raspar
+      const canScratch = await storage.canUserScratchPromotion(promotionId, userId, userAgent, ipAddress);
+      
+      if (!canScratch.allowed) {
+        return res.status(400).json({ 
+          message: canScratch.reason 
+        });
+      }
+
+      // Gerar código único do cupom
+      const couponCode = `PROMO${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24); // Cupom expira em 24 horas
+
+      // Gerar QR Code
+      const qrCodeData = JSON.stringify({
+        code: couponCode,
+        promotionId: promotionId,
+        originalPrice: canScratch.promotion!.originalPrice,
+        promotionalPrice: canScratch.promotion!.promotionalPrice,
+        type: 'promotion'
+      });
+      const qrCodeBase64 = await QRCode.toDataURL(qrCodeData);
+
+      // Registrar que o usuário raspou
+      const scratchData = {
+        promotionId: promotionId,
+        userId: userId,
+        userAgent: userAgent,
+        ipAddress: ipAddress,
+        couponCode: couponCode,
+        expiresAt: expiresAt
+      };
+
+      const scratch = await storage.createPromotionScratch(scratchData);
+      
+      // Atualizar contador de usos da promoção
+      await storage.incrementPromotionUsage(promotionId);
+
+      res.json({
+        success: true,
+        message: "Parabéns! Você ganhou um cupom de desconto!",
+        coupon: {
+          code: couponCode,
+          discountPercentage: canScratch.promotion!.discountPercentage,
+          originalPrice: canScratch.promotion!.originalPrice,
+          promotionalPrice: canScratch.promotion!.promotionalPrice,
+          qrCode: qrCodeBase64,
+          expiresAt: expiresAt,
+          promotion: {
+            name: canScratch.promotion!.name,
+            imageUrl: canScratch.promotion!.imageUrl
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Error scratching promotion:", error);
+      res.status(500).json({ message: "Erro ao raspar promoção" });
+    }
+  });
+
+  // 8. Listar promoções ativas para o público (sem necessidade de login)
+  app.get('/api/public/promotions/active', async (req, res) => {
+    try {
+      const activePromotions = await storage.getActivePromotions();
+      res.json(activePromotions);
+    } catch (error) {
+      console.error("Error fetching active promotions:", error);
+      res.status(500).json({ message: "Erro ao buscar promoções ativas" });
+    }
+  });
+
+  // 9. Analytics: buscar estatísticas da promoção (Admin)
+  app.get('/api/promotions/:promotionId/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const { promotionId } = req.params;
+      const userId = req.user?.claims?.sub || req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      // Verificar se a promoção pertence à loja do usuário
+      const promotion = await storage.getPromotion(promotionId);
+      if (!promotion) {
+        return res.status(404).json({ message: "Promoção não encontrada" });
+      }
+
+      const userStore = await storage.getUserStore(userId);
+      if (!userStore || userStore.id !== promotion.storeId) {
+        return res.status(403).json({ message: "Acesso negado a esta promoção" });
+      }
+
+      const stats = await storage.getPromotionStats(promotionId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching promotion stats:", error);
+      res.status(500).json({ message: "Erro ao buscar estatísticas da promoção" });
     }
   });
 

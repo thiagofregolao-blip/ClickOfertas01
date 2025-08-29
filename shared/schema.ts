@@ -210,6 +210,7 @@ export const scratchedProducts = pgTable("scratched_products", {
 export const coupons = pgTable("coupons", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   cloneId: varchar("clone_id").references(() => virtualScratchClones.id, { onDelete: "cascade" }), // Nova referência
+  promotionId: varchar("promotion_id").references(() => promotions.id, { onDelete: "cascade" }), // Referência para novo sistema
   productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }), // Mantém para compatibilidade
   storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
   userId: varchar("user_id"), // pode ser anônimo
@@ -224,6 +225,53 @@ export const coupons = pgTable("coupons", {
   isRedeemed: boolean("is_redeemed").default(false), // Se já foi utilizado
   redeemedAt: timestamp("redeemed_at"), // Quando foi utilizado
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// NOVO SISTEMA: Promoções diretas e simplificadas
+export const promotions = pgTable("promotions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  
+  // Dados do produto da promoção (pode referenciar produto existente ou ser novo)
+  baseProductId: varchar("base_product_id").references(() => products.id), // Referência opcional para copiar dados
+  name: text("name").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  category: varchar("category").default("Promoção"),
+  
+  // Preços e desconto
+  originalPrice: decimal("original_price", { precision: 12, scale: 2 }).notNull(),
+  promotionalPrice: decimal("promotional_price", { precision: 12, scale: 2 }).notNull(),
+  discountPercentage: varchar("discount_percentage").notNull(),
+  
+  // Controle da campanha
+  isActive: boolean("is_active").default(true),
+  maxClients: varchar("max_clients").notNull(), // Quantos clientes podem raspar
+  usedCount: varchar("used_count").default("0"), // Quantos já rasparam
+  
+  // Validade
+  validFrom: timestamp("valid_from").defaultNow(),
+  validUntil: timestamp("valid_until").notNull(),
+  
+  // Mensagem da raspadinha
+  scratchMessage: text("scratch_message").default("Raspe aqui e ganhe desconto especial!"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Controle de quem já raspou qual promoção
+export const promotionScratches = pgTable("promotion_scratches", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  promotionId: varchar("promotion_id").notNull().references(() => promotions.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  couponCode: varchar("coupon_code").unique().notNull(), // Código do cupom gerado
+  scratchedAt: timestamp("scratched_at").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(), // Quando o cupom expira
+  isUsed: boolean("is_used").default(false), // Se cupom foi utilizado
+  usedAt: timestamp("used_at"), // Quando foi utilizado
 });
 
 // Relations
@@ -242,6 +290,7 @@ export const storesRelations = relations(stores, ({ one, many }) => ({
   flyerViews: many(flyerViews),
   scratchCampaigns: many(scratchCampaigns),
   virtualScratchClones: many(virtualScratchClones),
+  promotions: many(promotions),
 }));
 
 export const productsRelations = relations(products, ({ one, many }) => ({
@@ -350,6 +399,31 @@ export const couponsRelations = relations(coupons, ({ one }) => ({
     fields: [coupons.cloneId],
     references: [virtualScratchClones.id],
   }),
+  promotion: one(promotions, {
+    fields: [coupons.promotionId],
+    references: [promotions.id],
+  }),
+}));
+
+// Novas relations para sistema de promoções
+export const promotionsRelations = relations(promotions, ({ one, many }) => ({
+  store: one(stores, {
+    fields: [promotions.storeId],
+    references: [stores.id],
+  }),
+  baseProduct: one(products, {
+    fields: [promotions.baseProductId],
+    references: [products.id],
+  }),
+  scratches: many(promotionScratches),
+  coupons: many(coupons),
+}));
+
+export const promotionScratchesRelations = relations(promotionScratches, ({ one }) => ({
+  promotion: one(promotions, {
+    fields: [promotionScratches.promotionId],
+    references: [promotions.id],
+  }),
 }));
 
 // Insert schemas
@@ -418,6 +492,28 @@ export const insertVirtualScratchCloneSchema = createInsertSchema(virtualScratch
 }).extend({
   expiresAt: z.union([z.string(), z.date()]).optional(),
   usedAt: z.union([z.string(), z.date()]).optional().nullable(),
+});
+
+// Schemas para novo sistema de promoções
+export const insertPromotionSchema = createInsertSchema(promotions).omit({
+  id: true,
+  storeId: true,
+  usedCount: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  validFrom: z.union([z.string(), z.date()]).optional(),
+  validUntil: z.union([z.string(), z.date()]).optional(),
+});
+
+export const updatePromotionSchema = insertPromotionSchema.partial();
+
+export const insertPromotionScratchSchema = createInsertSchema(promotionScratches).omit({
+  id: true,
+  scratchedAt: true,
+  usedAt: true,
+}).extend({
+  expiresAt: z.union([z.string(), z.date()]).optional(),
 });
 
 // Types
@@ -533,4 +629,21 @@ export type VirtualScratchCloneWithDetails = VirtualScratchClone & {
   product: Product;
   store: Store;
   assignedUser?: User;
+};
+
+// Types para novo sistema de promoções
+export type Promotion = typeof promotions.$inferSelect;
+export type InsertPromotion = z.infer<typeof insertPromotionSchema>;
+export type UpdatePromotion = z.infer<typeof updatePromotionSchema>;
+export type PromotionScratch = typeof promotionScratches.$inferSelect;
+export type InsertPromotionScratch = z.infer<typeof insertPromotionScratchSchema>;
+
+export type PromotionWithDetails = Promotion & {
+  store: Store;
+  baseProduct?: Product;
+  scratches?: PromotionScratch[];
+};
+
+export type PromotionScratchWithDetails = PromotionScratch & {
+  promotion: PromotionWithDetails;
 };

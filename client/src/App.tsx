@@ -8,6 +8,7 @@ import Landing from "@/pages/landing";
 import AdminDashboard from "@/pages/admin-dashboard";
 import AdminStoreConfig from "@/pages/admin-store-config";
 import AdminProducts from "@/pages/admin-products";
+import AdminPromotions from "@/pages/admin-promotions";
 import AdminPreview from "@/pages/admin-preview";
 import Analytics from "@/pages/analytics";
 import PublicFlyer from "@/pages/public-flyer";
@@ -66,6 +67,7 @@ function Router() {
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/config" component={AdminStoreConfig} />
           <Route path="/admin/products" component={AdminProducts} />
+          <Route path="/admin/promotions" component={AdminPromotions} />
           <Route path="/admin/preview" component={AdminPreview} />
           <Route path="/admin/analytics" component={Analytics} />
           <Route path="/cards" component={StoresGallery} />
