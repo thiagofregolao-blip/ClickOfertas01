@@ -349,7 +349,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     ctx.shadowOffsetX = 1;
     ctx.shadowOffsetY = 1;
     ctx.shadowBlur = 3;
-    ctx.fillStyle = 'rgba(40, 40, 40, 0.4)'; // Cinza escuro muito transparente
+    ctx.fillStyle = 'rgba(40, 40, 40, 0.3)'; // Cinza escuro ainda mais transparente
     
     // Retângulo cobrindo todo o canvas
     ctx.fillRect(0, 0, cssWidth, cssHeight);
@@ -1070,7 +1070,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           <div className="absolute top-2 right-2 z-10 pointer-events-none">
             <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white animate-bounce text-xs">
               <Sparkles className="w-3 h-3 mr-1" />
-              RASPE!
+              RASPE AQUI
             </Badge>
           </div>
 
