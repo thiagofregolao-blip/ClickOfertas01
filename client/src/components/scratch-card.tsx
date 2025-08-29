@@ -265,39 +265,6 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
     ctx.shadowBlur = 8;
     ctx.fillText('◆', cssWidth * 0.92, cssHeight * 0.92);
     
-    // 🏢 LOGO DA EMPRESA NO CANVAS
-    if (logoUrl) {
-      console.log("🏢✨ Adicionando logo da empresa:", logoUrl);
-      const logoImg = new Image();
-      logoImg.crossOrigin = 'anonymous';
-      logoImg.onload = () => {
-        // Posicionar logo no canto superior esquerdo
-        const logoSize = 40;
-        const logoX = 15;
-        const logoY = 15;
-        
-        // Círculo de fundo branco semi-transparente
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        ctx.beginPath();
-        ctx.arc(logoX + logoSize/2, logoY + logoSize/2, logoSize/2 + 2, 0, 2 * Math.PI);
-        ctx.fill();
-        
-        // Desenhar logo dentro do círculo
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(logoX + logoSize/2, logoY + logoSize/2, logoSize/2, 0, 2 * Math.PI);
-        ctx.clip();
-        ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
-        ctx.restore();
-        
-        console.log("🏢 Logo da empresa adicionado!");
-      };
-      logoImg.onerror = () => {
-        console.log("❌ Erro ao carregar logo da empresa");
-      };
-      logoImg.src = logoUrl;
-    }
-    
     console.log("✅ Gradiente desenhado!");
 
     // Símbolos $ do canvas removidos - mantidos apenas na chuva
@@ -1048,6 +1015,34 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
             <div className="rain-element w-5 h-5 bg-gradient-to-br from-pink-500 to-red-500 rounded-full flex items-center justify-center text-white text-xs shadow-lg">O</div>
             <div className="rain-element w-6 h-6 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">P</div>
             <div className="rain-element w-5 h-5 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full flex items-center justify-center text-white text-xs shadow-lg">!</div>
+            
+            {/* Logo real da empresa na chuva */}
+            {logoUrl && (
+              <>
+                <div className="rain-element w-8 h-8 rounded-full overflow-hidden shadow-lg bg-white">
+                  <img 
+                    src={logoUrl} 
+                    alt="Logo" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                </div>
+                <div className="rain-element w-7 h-7 rounded-full overflow-hidden shadow-lg bg-white">
+                  <img 
+                    src={logoUrl} 
+                    alt="Logo" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           {/* Badge indicativo - CORREÇÃO: pointer-events-none para não bloquear canvas */}

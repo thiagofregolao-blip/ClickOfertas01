@@ -546,6 +546,7 @@ export default function PublicFlyer() {
                         product={product}
                         currency={store?.currency || "Gs."}
                         themeColor={store?.themeColor || "#E11D48"}
+                        logoUrl={store?.logoUrl}
                         onClick={(product) => {
                           setSelectedProduct(product);
                           setSelectedStore(store || null);
@@ -638,6 +639,7 @@ export default function PublicFlyer() {
                         product={product}
                         currency={store?.currency || "Gs."}
                         themeColor={store?.themeColor || "#E11D48"}
+                        logoUrl={store?.logoUrl}
                         onClick={(product) => {
                           setSelectedProduct(product);
                           setSelectedStore(store || null);
