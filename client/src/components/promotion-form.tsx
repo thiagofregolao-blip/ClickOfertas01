@@ -130,8 +130,21 @@ export default function PromotionForm({ promotion, onClose, onSuccess }: Promoti
   // Mutation para criar/editar promoção
   const mutation = useMutation({
     mutationFn: async (data: PromotionFormData) => {
-      const endpoint = isEditing ? `/api/promotions/${promotion?.id}` : "/api/promotions";
+      // Para criação, precisamos buscar o storeId do usuário
+      let endpoint: string;
       const method = isEditing ? "PUT" : "POST";
+
+      if (isEditing) {
+        endpoint = `/api/promotions/${promotion?.id}`;
+      } else {
+        // Buscar storeId do usuário autenticado
+        const storeResponse = await fetch("/api/stores/me", { credentials: "include" });
+        if (!storeResponse.ok) {
+          throw new Error("Erro ao buscar dados da loja");
+        }
+        const store = await storeResponse.json();
+        endpoint = `/api/stores/${store.id}/promotions`;
+      }
 
       const payload = {
         ...data,
@@ -145,10 +158,12 @@ export default function PromotionForm({ promotion, onClose, onSuccess }: Promoti
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
+        credentials: "include",
       });
 
       if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Erro ${response.status}: ${errorText}`);
       }
 
       return response.json();
