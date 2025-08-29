@@ -1,0 +1,64 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+public-flyer.tsx:55 📱 Executando: Click Ofertas Paraguai Desktop - Modo: Panfleto
+main.tsx:40 SW registration failed:  TypeError: Failed to register a ServiceWorker: The URL protocol of the script ('blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/86039525-2648-4bf0-a03a-a88242d052fa') is not supported.
+    at main.tsx:35:29
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/e2d5871e-a288-4bdc-aef9-0d53a6a567a6:1 Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/e2d5871e-a288-4bdc-aef9-0d53a6a567a6:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+public-flyer.tsx:104 📊 Registrando view da loja: CellShop Importados Paraguay
+br-galaxy-s24-s928-sm-s928bzklbra-thumb-539573233:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:74 🔍 Buscando clone virtual para produto: e20c6d66-d0f1-4802-9455-a31d434fa1ae
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:84 ✅ Clone virtual encontrado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+mbp14-m3-pro-max-spgray-select-202310:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: Object
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: false, virtualCloneId: undefined, …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: 

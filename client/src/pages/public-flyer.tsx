@@ -498,6 +498,8 @@ export default function PublicFlyer() {
                       Clone Virtual
                     </div>
                     <ScratchCard
+                      isVirtualClone={true}
+                      virtualCloneId={clone.id}
                       product={{
                         id: clone.productId,
                         name: clone.productName,
@@ -559,6 +561,8 @@ export default function PublicFlyer() {
                       Clone Virtual
                     </div>
                     <ScratchCard
+                      isVirtualClone={true}
+                      virtualCloneId={clone.id}
                       product={{
                         id: clone.productId,
                         name: clone.productName,
