@@ -515,8 +515,6 @@ export default function PublicFlyer() {
                       🎁 PROMOÇÃO
                     </div>
                     <ScratchCard
-                      isPromotion={true}
-                      promotionId={promotion.id}
                       product={{
                         id: promotion.id,
                         name: promotion.name,
@@ -617,8 +615,6 @@ export default function PublicFlyer() {
                       🎁 PROMOÇÃO
                     </div>
                     <ScratchCard
-                      isPromotion={true}
-                      promotionId={promotion.id}
                       product={{
                         id: promotion.id,
                         name: promotion.name,

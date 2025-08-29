@@ -22,10 +22,7 @@ interface ScratchCardProps {
   themeColor: string;
   onRevealed?: (product: Product) => void;
   onClick?: (product: Product) => void;
-  isVirtualClone?: boolean;
-  virtualCloneId?: string;
-  isPromotion?: boolean;
-  promotionId?: string;
+  // REMOVIDO: Props desnecessários
 }
 
 interface ScratchArea {
@@ -34,7 +31,7 @@ interface ScratchArea {
   radius: number;
 }
 
-export default function ScratchCard({ product, currency, themeColor, onRevealed, onClick, isPromotion = false, promotionId }: ScratchCardProps) {
+export default function ScratchCard({ product, currency, themeColor, onRevealed, onClick }: ScratchCardProps) {
   
   // SISTEMA SIMPLIFICADO
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -63,96 +60,17 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // REMOVIDO: Clone virtual não existe mais
 
-  // Query para verificar se promoção já foi usada pelo usuário
-  const { data: promotionStatus, isLoading: loadingPromotion } = useQuery({
-    queryKey: ['promotion-status', promotionId],
-    queryFn: async () => {
-      if (!promotionId) return { isUsed: false };
-      const response = await fetch(`/api/promotions/${promotionId}/status`, { 
-        credentials: 'include' 
-      });
-      if (!response.ok) {
-        if (response.status === 401) return { isUsed: false };
-        throw new Error('Falha ao verificar status da promoção');
-      }
-      return await response.json();
-    },
-    staleTime: 30_000,
-    enabled: isPromotion && !!promotionId,
-  });
+  // REMOVIDO: Query de promoção não é mais necessária
 
   // REMOVIDO: Debug desnecessário
 
   // SISTEMA UNIFICADO: Apenas clones virtuais
 
-  // Sincronizar status das promoções
-  useEffect(() => {
-    if (isPromotion && promotionStatus) {
-      setIsRevealed(promotionStatus.isUsed);
-      if (product.scratchExpiresAt) {
-        const expirationTime = new Date(product.scratchExpiresAt).getTime();
-        const now = Date.now();
-        setTimeLeft(Math.max(0, Math.floor((expirationTime - now) / 1000)));
-      }
-    }
-  }, [promotionStatus, isPromotion, product.scratchExpiresAt]);
+  // REMOVIDO: UseEffect de promoção não é mais necessário
 
   // REMOVIDO: Clone virtual não existe mais
 
-  // NOVA: Mutation para raspar promoção
-  const scratchPromotionMutation = useMutation({
-    mutationFn: async (promotionId: string) => {
-      const response = await fetch(`/api/promotions/${promotionId}/scratch`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`${response.status}: ${error}`);
-      }
-      
-      return await response.json();
-    },
-    onSuccess: (data: any) => {
-      setIsRevealed(true);
-      
-      // Invalidar caches para refletir mudanças
-      queryClient.invalidateQueries({ queryKey: ['promotion-status', promotionId] });
-      queryClient.invalidateQueries({ queryKey: ['coupons'] });
-      if (onRevealed) onRevealed(product);
-      
-      // Mostrar cupom se gerado
-      if (data?.success && data?.coupon) {
-        setCoupon(data.coupon);
-        setCouponGenerated(true);
-        setShowCouponModal(true);
-        
-        toast({
-          title: "🎉 Promoção raspada!",
-          description: "Seu cupom foi gerado automaticamente!",
-          duration: 3000,
-        });
-      } else {
-        toast({
-          title: "🎉 Promoção ativada!",
-          description: product.scratchMessage || "Parabéns! Você ganhou um desconto especial!",
-          duration: 3000,
-        });
-      }
-    },
-    onError: (error: any) => {
-      setIsFading(false);
-      toast({
-        title: 'Não foi possível raspar a promoção',
-        description: String(error?.message || 'Tente novamente.'),
-        variant: 'destructive',
-      });
-    }
-  });
+  // REMOVIDO: Não precisamos mais de mutation específica para promoção
 
   // REMOVIDO: Mutation tradicional - usamos apenas clones virtuais e promoções
 
@@ -218,19 +136,12 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // FASE 1: Inicializar canvas com DPI correto
   useEffect(() => {
     // DEBUG: Log condições de inicialização
-    if (isPromotion) {
-      console.log('🖼️ Canvas inicialização - condições:', {
-        isRevealed,
-        loadingPromotion,
-        hasCanvas: !!canvasRef.current,
-        shouldInit: !isRevealed && !loadingPromotion && !!canvasRef.current
-      });
-    }
+    // REMOVIDO: Debug de promoção desnecessário
     
     // SISTEMA SIMPLIFICADO: Canvas só para produtos com isScratchCard
     if (isRevealed) return;
     if (!product.isScratchCard) return;
-    if (isPromotion && loadingPromotion) return;
+    // REMOVIDO: Verificação de loading desnecessária
     if (!canvasRef.current) return;
     
     const canvas = canvasRef.current;
@@ -323,11 +234,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           setIsRevealed(true);
           
           // SISTEMA SIMPLIFICADO: Baseado apenas no tipo
-          if (isPromotion && promotionId) {
-            scratchPromotionMutation.mutate(promotionId);
-          } else {
-            generateCouponMutation.mutate(product.id);
-          }
+          // PRODUTO NORMAL: Sempre gera cupom
+          generateCouponMutation.mutate(product.id);
         }, 220);
       }
     } catch (e) {
@@ -359,7 +267,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Sistema de bloqueio simplificado
   const blocked = () => {
-    return isRevealed || loadingPromotion;
+    return isRevealed;
   };
 
   // Função de scratch melhorada
@@ -726,11 +634,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   };
   
   // Loading para promoções
-  if (loadingPromotion) {
-    return (
-      <div className="relative bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 min-h-[200px] sm:min-h-[220px] rounded-md animate-pulse" />
-    );
-  }
+  // REMOVIDO: Loading state desnecessário
   
   // Render do produto revelado
   if (isRevealed) {
