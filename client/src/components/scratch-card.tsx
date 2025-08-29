@@ -238,19 +238,74 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const cssWidth = actualWidth;
     const cssHeight = actualHeight;
 
-    // 🎨 TEXTURA SIMPLES E ELEGANTE
-    console.log(`%c🎨 DESENHANDO TEXTURA LIMPA! 🎨`, 
-      'background: gold; color: black; padding: 5px; font-size: 16px; font-weight: bold;');
-    console.log("🌈 Criando gradiente suave:", { cssWidth, cssHeight });
+    // 🎯 RECREANDO EXATAMENTE COMO SUA IMAGEM DE REFERÊNCIA
+    console.log(`%c🎯 COPIANDO SUA IMAGEM EXATAMENTE! 🎯`, 
+      'background: linear-gradient(to bottom, #FFA500, #FF1493, #8B008B); color: white; padding: 8px; font-weight: bold;');
     
-    // 🌅 GRADIENTE DIAGONAL SUAVE
-    const gradient = ctx.createLinearGradient(0, 0, cssWidth, cssHeight);
-    gradient.addColorStop(0, '#FFD700');    // Dourado
-    gradient.addColorStop(0.5, '#FF6347');  // Coral
-    gradient.addColorStop(1, '#FF1493');    // Rosa
+    // 🌈 GRADIENTE VERTICAL IGUAL A IMAGEM: Laranja → Rosa → Roxo
+    const gradient = ctx.createLinearGradient(0, 0, 0, cssHeight);
+    gradient.addColorStop(0, '#FFA500');    // Laranja topo (igual imagem)
+    gradient.addColorStop(0.5, '#FF4500');  // Laranja-vermelho meio
+    gradient.addColorStop(0.75, '#FF1493'); // Rosa intenso
+    gradient.addColorStop(1, '#8B008B');    // Roxo/magenta base (igual imagem)
 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, cssWidth, cssHeight);
+    
+    // ⚡ LINHAS BRILHANTES DIAGONAIS (copiando posições da imagem)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.lineWidth = 4;
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
+    ctx.shadowBlur = 8;
+    ctx.lineCap = 'round';
+    
+    // Linha diagonal principal (canto superior esquerdo para baixo direita)
+    ctx.beginPath();
+    ctx.moveTo(cssWidth * 0.05, cssHeight * 0.15);
+    ctx.lineTo(cssWidth * 0.85, cssHeight * 0.70);
+    ctx.stroke();
+    
+    // Linha diagonal superior (mais curta)
+    ctx.beginPath();
+    ctx.moveTo(cssWidth * 0.35, cssHeight * 0.05);
+    ctx.lineTo(cssWidth * 0.90, cssHeight * 0.40);
+    ctx.stroke();
+    
+    // Linha diagonal inferior (atravessando embaixo)
+    ctx.beginPath();
+    ctx.moveTo(cssWidth * 0.10, cssHeight * 0.75);
+    ctx.lineTo(cssWidth * 0.65, cssHeight * 0.95);
+    ctx.stroke();
+    
+    // ✨ PARTÍCULAS PEQUENAS COMO NA IMAGEM
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
+    ctx.shadowBlur = 3;
+    
+    // Pontos pequenos espalhados (como na imagem)
+    const particles = [
+      { x: cssWidth * 0.20, y: cssHeight * 0.25 },
+      { x: cssWidth * 0.75, y: cssHeight * 0.20 },
+      { x: cssWidth * 0.15, y: cssHeight * 0.45 },
+      { x: cssWidth * 0.85, y: cssHeight * 0.55 },
+      { x: cssWidth * 0.30, y: cssHeight * 0.70 },
+      { x: cssWidth * 0.70, y: cssHeight * 0.85 },
+      { x: cssWidth * 0.45, y: cssHeight * 0.35 },
+      { x: cssWidth * 0.60, y: cssHeight * 0.15 }
+    ];
+    
+    particles.forEach(pos => {
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 2, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+    
+    // ⭐ ESTRELA GRANDE NO CANTO (exatamente como na imagem)
+    ctx.font = 'bold 20px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.shadowBlur = 6;
+    ctx.fillText('✦', cssWidth * 0.90, cssHeight * 0.90);
     
     console.log("✅ Gradiente desenhado!");
 
@@ -259,16 +314,16 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     ctx.font = 'bold 24px Arial'; // Aumentado de 16px para 24px
     ctx.textAlign = 'center';
     
-    // Posições fixas para símbolos $ (não aleatórias para consistência)
+    // 💰 POSIÇÕES DOS SÍMBOLOS $ COPIADAS DA SUA IMAGEM EXATAMENTE
     const dollarPositions = [
-      { x: cssWidth * 0.15, y: cssHeight * 0.2 },
-      { x: cssWidth * 0.85, y: cssHeight * 0.25 },
-      { x: cssWidth * 0.25, y: cssHeight * 0.75 },
-      { x: cssWidth * 0.75, y: cssHeight * 0.8 },
-      { x: cssWidth * 0.1, y: cssHeight * 0.6 },
-      { x: cssWidth * 0.9, y: cssHeight * 0.55 },
-      { x: cssWidth * 0.35, y: cssHeight * 0.15 },
-      { x: cssWidth * 0.65, y: cssHeight * 0.9 },
+      { x: cssWidth * 0.12, y: cssHeight * 0.18 },  // $ superior esquerdo
+      { x: cssWidth * 0.25, y: cssHeight * 0.35 },  // $ meio esquerdo  
+      { x: cssWidth * 0.88, y: cssHeight * 0.25 },  // $ superior direito
+      { x: cssWidth * 0.78, y: cssHeight * 0.45 },  // $ meio direito
+      { x: cssWidth * 0.05, y: cssHeight * 0.65 },  // $ inferior esquerdo
+      { x: cssWidth * 0.45, y: cssHeight * 0.82 },  // $ inferior centro
+      { x: cssWidth * 0.75, y: cssHeight * 0.75 },  // $ inferior direito
+      { x: cssWidth * 0.68, y: cssHeight * 0.62 },  // $ meio-baixo
     ];
     
     dollarPositions.forEach(pos => {
