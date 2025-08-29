@@ -215,9 +215,9 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       dpr
     });
     
-    // AJUSTAR DIMENSÕES: altura e largura limitadas para igualar outros produtos  
-    const actualHeight = Math.min(rect.height || 200, 200); // Limitar altura para igualar outros produtos
-    const actualWidth = Math.min(rect.width || 200, 200); // Limitar largura para igualar outros produtos
+    // AJUSTAR DIMENSÕES: usar TODA a área disponível do container
+    const actualHeight = rect.height || 200; // Usar altura TOTAL do container
+    const actualWidth = rect.width || 200; // Usar largura TOTAL do container
     
     canvas.width = Math.round(actualWidth * dpr);
     canvas.height = Math.round(actualHeight * dpr);
