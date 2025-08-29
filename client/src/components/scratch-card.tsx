@@ -980,11 +980,17 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             <>
               {console.log('✅ RENDERIZANDO COBERTURA PARA CLONE:', virtualCloneId)}
               <div
-                className="absolute inset-0 z-50 cursor-pointer"
+                className="absolute inset-0 cursor-pointer"
                 style={{
+                  zIndex: 9999,
                   backgroundColor: '#ff0000', // VERMELHO para debug
                   border: '5px solid #00ff00', // VERDE para debug
-                  opacity: 0.8
+                  opacity: 0.8,
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%'
                 }}
                 onClick={(e) => {
                   console.log('🎨 CLIQUE NA COBERTURA VERMELHA!', { isVirtualClone, virtualCloneId });
