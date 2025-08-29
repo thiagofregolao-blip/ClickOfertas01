@@ -264,6 +264,43 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     ctx.shadowBlur = 8;
     ctx.fillText('◆', cssWidth * 0.92, cssHeight * 0.92);
     
+    // 🏢 MINI LOGOS DA EMPRESA NO CANVAS
+    console.log("🏢✨ Adicionando mini logos da empresa no canvas...");
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    
+    // Posições estratégicas para os mini logos
+    const logoPositions = [
+      { x: cssWidth * 0.15, y: cssHeight * 0.20, letter: 'C', color: '#4F46E5' }, // Azul
+      { x: cssWidth * 0.85, y: cssHeight * 0.30, letter: 'O', color: '#EC4899' }, // Rosa
+      { x: cssWidth * 0.25, y: cssHeight * 0.80, letter: 'P', color: '#10B981' }, // Verde
+      { x: cssWidth * 0.75, y: cssHeight * 0.70, letter: '!', color: '#F59E0B' }, // Laranja
+    ];
+    
+    logoPositions.forEach(logo => {
+      // Sombra sutil
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 1;
+      ctx.shadowBlur = 2;
+      
+      // Círculo de fundo
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.beginPath();
+      ctx.arc(logo.x, logo.y, 12, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Letra colorida
+      ctx.fillStyle = logo.color;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+      ctx.shadowOffsetX = 0.5;
+      ctx.shadowOffsetY = 0.5;
+      ctx.shadowBlur = 1;
+      ctx.fillText(logo.letter, logo.x, logo.y + 4);
+    });
+    
+    console.log("🏢 Mini logos da empresa adicionados!");
+    
     console.log("✅ Gradiente desenhado!");
 
     // Símbolos $ do canvas removidos - mantidos apenas na chuva
@@ -279,13 +316,13 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const lineHeight = 24;
     const startY = cssHeight / 2 - (lines.length * lineHeight) / 2;
     
-    // 📦 FUNDO SUTIL E TRANSPARENTE PARA O TEXTO
+    // 📦 FUNDO MAIS TRANSPARENTE PARA O TEXTO
     // Desenhar fundo suave cobrindo toda a área
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
     ctx.shadowOffsetX = 1;
     ctx.shadowOffsetY = 1;
-    ctx.shadowBlur = 3;
-    ctx.fillStyle = 'rgba(40, 40, 40, 0.2)'; // Cinza escuro super transparente
+    ctx.shadowBlur = 2;
+    ctx.fillStyle = 'rgba(40, 40, 40, 0.05)'; // Muito mais transparente
     
     // Retângulo cobrindo todo o canvas
     ctx.fillRect(0, 0, cssWidth, cssHeight);
