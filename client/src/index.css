@@ -346,13 +346,8 @@ html {
 .rain-element:nth-child(9) { animation-duration: 2.9s; animation-delay: 1.8s; left: 90%; transform: translateZ(0); }
 .rain-element:nth-child(10) { animation-duration: 3.3s; animation-delay: 0.1s; left: 15%; transform: translateZ(0); }
 
-/* Pausa animação quando não está visível para performance */
-.scratch-card:not(:hover) .rain-element {
-  animation-play-state: paused;
-}
-
-/* Ativa animação no hover para economizar recursos */
-.scratch-card:hover .rain-element {
+/* Chuva sempre ativa - efeito decorativo constante */
+.rain-element {
   animation-play-state: running;
 }
 
