@@ -850,7 +850,12 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   return (
     <>
       <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
-        <div className="p-0 relative h-full w-full overflow-hidden isolate">
+        <div className="p-0 relative h-full w-full isolate">
+          {/* 🚨 ALERTA VISUAL MEGA ÓBVIO - TEMPORÁRIO PARA DEBUG */}
+          <div className="absolute -top-4 left-0 right-0 bg-red-600 text-white text-center py-2 z-50 pointer-events-none animate-pulse text-sm font-bold">
+            🚨 RASPADINHA AQUI! CLIQUE E ARRASTE! 🚨
+          </div>
+          
           {/* Badge indicativo - CORREÇÃO: pointer-events-none para não bloquear canvas */}
           <div className="absolute top-2 right-2 z-10 pointer-events-none">
             <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white animate-bounce text-xs">
