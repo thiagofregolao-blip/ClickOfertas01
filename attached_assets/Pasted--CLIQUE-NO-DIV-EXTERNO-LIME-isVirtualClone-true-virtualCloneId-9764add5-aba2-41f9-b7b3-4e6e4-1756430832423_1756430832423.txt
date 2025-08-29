@@ -1,0 +1,25 @@
+🟢 CLIQUE NO DIV EXTERNO LIME! {isVirtualClone: true, virtualCloneId: '9764add5-aba2-41f9-b7b3-4e6e45e2e829'}
+scratch-card.tsx:958 🎯 Simulando raspagem do clone virtual: 9764add5-aba2-41f9-b7b3-4e6e45e2e829
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: true, virtualCloneId: '9764add5-aba2-41f9-b7b3-4e6e45e2e829', …}
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: true, virtualCloneId: '9764add5-aba2-41f9-b7b3-4e6e45e2e829', …}
+@radix-ui_react-dialog.js?v=8b1ec45d:337 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ @radix-ui_react-dialog.js?v=8b1ec45d:337
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=8b1ec45d:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=8b1ec45d:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=8b1ec45d:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=8b1ec45d:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=8b1ec45d:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=8b1ec45d:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=8b1ec45d:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=8b1ec45d:19416
+commitRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=8b1ec45d:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=8b1ec45d:19432
+commitRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=8b1ec45d:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=8b1ec45d:18718
+workLoop @ chunk-RPCDYKBN.js?v=8b1ec45d:197
+flushWork @ chunk-RPCDYKBN.js?v=8b1ec45d:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=8b1ec45d:384Understand this warning
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: true, virtualCloneId: '9764add5-aba2-41f9-b7b3-4e6e45e2e829', …}

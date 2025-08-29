@@ -931,38 +931,6 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Render do card para raspar
   return (
     <>
-      {/* TESTE EXTREMO: Div totalmente fora do container */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '50px',
-          left: '50px',
-          width: '200px',
-          height: '100px',
-          backgroundColor: 'lime',
-          border: '5px solid red',
-          zIndex: 99999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'black',
-          fontWeight: 'bold',
-          fontSize: '14px',
-          cursor: 'pointer'
-        }}
-        onClick={() => {
-          console.log('🟢 CLIQUE NO DIV EXTERNO LIME!', { isVirtualClone, virtualCloneId });
-          
-          // SOLUÇÃO TEMPORÁRIA: Simular raspagem sem canvas
-          if (isVirtualClone && virtualCloneId) {
-            console.log('🎯 Simulando raspagem do clone virtual:', virtualCloneId);
-            scratchVirtualCloneMutation.mutate(virtualCloneId);
-          }
-        }}
-      >
-        RASPAR CLONE VIRTUAL
-      </div>
-      
       <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
         <div className="p-0 relative h-full w-full overflow-hidden">
           {/* Badge indicativo */}
@@ -999,8 +967,56 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             </div>
           </div>
 
-          {/* Canvas escondido para manter a referência */}
-          <canvas ref={canvasRef} style={{ display: 'none' }} />
+          {/* Canvas de raspagem */}
+          <canvas
+            ref={canvasRef}
+            width={300}
+            height={200}
+            className="absolute top-0 left-0 w-full h-full z-50 cursor-pointer"
+            onClick={(e) => {
+              console.log('🎨 CLIQUE NO CANVAS DE RASPAGEM!', { isVirtualClone, virtualCloneId });
+              
+              if (blocked()) {
+                console.log('❌ Bloqueado pela função blocked()');
+                return;
+              }
+              
+              // Raspar clone virtual
+              if (isVirtualClone && virtualCloneId) {
+                console.log('🎯 Raspando clone virtual:', virtualCloneId);
+                
+                // Esconder canvas imediatamente para mostrar resultado
+                const canvas = canvasRef.current;
+                if (canvas) {
+                  canvas.style.display = 'none';
+                }
+                
+                // Disparar raspagem
+                scratchVirtualCloneMutation.mutate(virtualCloneId);
+              }
+            }}
+            style={{
+              backgroundColor: '#1a1a1a',
+              backgroundImage: `
+                radial-gradient(circle at 20% 30%, rgba(255,215,0,0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255,140,0,0.3) 0%, transparent 50%),
+                linear-gradient(45deg, rgba(255,215,0,0.1) 25%, transparent 25%),
+                linear-gradient(-45deg, rgba(255,140,0,0.1) 25%, transparent 25%)
+              `,
+              backgroundSize: '20px 20px, 30px 30px, 10px 10px, 10px 10px'
+            }}
+          />
+          
+          {/* Texto "RASPE AQUI" no canvas */}
+          <div 
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[60] pointer-events-none text-yellow-300 font-bold text-lg"
+            style={{ 
+              textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+              display: canvasRef.current?.style.display === 'none' ? 'none' : 'block'
+            }}
+          >
+            🎲 RASPE AQUI
+          </div>
 
           {/* Efeito gradual do desconto - aparece conforme raspa */}
           {scratchProgress > 0.3 && !isRevealed && (
