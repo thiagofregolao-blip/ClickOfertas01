@@ -978,10 +978,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: new Date()
       };
 
-      console.log('💾 Criando cupom (sem base para promoções)...');
-      // Para promoções, não salvar na base (foreign key quebrada)
-      // Retornar dados diretamente
-      const coupon = isPromotion ? couponData : await storage.createCoupon(couponData);
+      console.log('💾 Criando cupom (também para promoções)...');
+      // Salvar sempre na base, mas com productId = null para promoções
+      const coupon = await storage.createCoupon(couponData);
       console.log('✅ Cupom criado com sucesso:', coupon);
 
       res.status(201).json({
