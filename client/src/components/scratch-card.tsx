@@ -343,13 +343,13 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const lineHeight = 24;
     const startY = cssHeight / 2 - (lines.length * lineHeight) / 2;
     
-    // 📦 FUNDO COMPLETO PARA O TEXTO (COBRINDO TODO O CANVAS)
-    // Desenhar fundo cobrindo toda a área
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
-    ctx.shadowBlur = 6;
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; // Preto semi-transparente
+    // 📦 FUNDO SUTIL E TRANSPARENTE PARA O TEXTO
+    // Desenhar fundo suave cobrindo toda a área
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+    ctx.shadowBlur = 3;
+    ctx.fillStyle = 'rgba(40, 40, 40, 0.4)'; // Cinza escuro muito transparente
     
     // Retângulo cobrindo todo o canvas
     ctx.fillRect(0, 0, cssWidth, cssHeight);
