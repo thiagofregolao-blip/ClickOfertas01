@@ -1309,23 +1309,39 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPromotion(storeId: string, promotionData: InsertPromotion): Promise<Promotion> {
+    // Converter strings de data para objetos Date
+    const processedData = {
+      ...promotionData,
+      storeId: storeId,
+      validFrom: promotionData.validFrom ? new Date(promotionData.validFrom) : new Date(),
+      validUntil: promotionData.validUntil ? new Date(promotionData.validUntil) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 dias padrão
+    };
+
     const [promotion] = await db
       .insert(promotions)
-      .values({
-        ...promotionData,
-        storeId: storeId
-      })
+      .values(processedData)
       .returning();
     return promotion;
   }
 
   async updatePromotion(promotionId: string, updates: UpdatePromotion): Promise<Promotion> {
+    // Converter strings de data para objetos Date se necessário
+    const processedUpdates = {
+      ...updates,
+      updatedAt: new Date(),
+    };
+
+    // Converter datas se fornecidas
+    if (updates.validFrom) {
+      processedUpdates.validFrom = new Date(updates.validFrom);
+    }
+    if (updates.validUntil) {
+      processedUpdates.validUntil = new Date(updates.validUntil);
+    }
+
     const [promotion] = await db
       .update(promotions)
-      .set({
-        ...updates,
-        updatedAt: new Date()
-      })
+      .set(processedUpdates)
       .where(eq(promotions.id, promotionId))
       .returning();
     return promotion;
@@ -1366,8 +1382,8 @@ export class DatabaseStorage implements IStorage {
       return { allowed: false, reason: "Promoção ainda não iniciou" };
     }
 
-    const maxClients = parseInt(promotion.maxClients);
-    const usedCount = parseInt(promotion.usedCount);
+    const maxClients = parseInt(promotion.maxClients || "0");
+    const usedCount = parseInt(promotion.usedCount || "0");
     
     if (usedCount >= maxClients) {
       return { allowed: false, reason: "Limite de participantes atingido" };
@@ -1375,19 +1391,19 @@ export class DatabaseStorage implements IStorage {
 
     // Verificar se usuário já raspou esta promoção
     if (userId || userAgent || ipAddress) {
+      const conditions = [eq(promotionScratches.promotionId, promotionId)];
+      
+      if (userId) {
+        conditions.push(eq(promotionScratches.userId, userId));
+      } else {
+        if (userAgent) conditions.push(eq(promotionScratches.userAgent, userAgent));
+        if (ipAddress) conditions.push(eq(promotionScratches.ipAddress, ipAddress));
+      }
+
       const existingScratch = await db
         .select()
         .from(promotionScratches)
-        .where(
-          and(
-            eq(promotionScratches.promotionId, promotionId),
-            userId ? eq(promotionScratches.userId, userId) : 
-              and(
-                eq(promotionScratches.userAgent, userAgent || ''),
-                eq(promotionScratches.ipAddress, ipAddress || '')
-              )
-          )
-        )
+        .where(and(...conditions))
         .then(result => result[0]);
 
       if (existingScratch) {
@@ -1475,8 +1491,11 @@ export class DatabaseStorage implements IStorage {
 
     // Verificar se ainda está no período válido
     const now = new Date();
-    if (now < new Date(promotion.validFrom) || now > new Date(promotion.validUntil)) {
-      return { isUsed: true }; // Fora do período = considera usada
+    if (promotion.validFrom && now < new Date(promotion.validFrom)) {
+      return { isUsed: true }; // Antes do início = considera usada
+    }
+    if (promotion.validUntil && now > new Date(promotion.validUntil)) {
+      return { isUsed: true }; // Depois do fim = considera usada
     }
 
     // Buscar scratch existente do usuário para esta promoção
@@ -1521,7 +1540,7 @@ export class DatabaseStorage implements IStorage {
 
       // Verificar se ainda há vagas disponíveis
       const totalScratches = await db
-        .select({ count: sql<number>`count(*)` })
+        .select({ count: count() })
         .from(promotionScratches)
         .where(and(
           eq(promotionScratches.promotionId, promotionId),
@@ -1529,7 +1548,7 @@ export class DatabaseStorage implements IStorage {
         ));
 
       const currentUsage = totalScratches[0]?.count || 0;
-      const maxClients = parseInt(promotion.maxClients);
+      const maxClients = parseInt(promotion.maxClients || "0");
 
       if (currentUsage >= maxClients) {
         return { success: false, message: "Limite de participantes atingido" };
@@ -1543,7 +1562,8 @@ export class DatabaseStorage implements IStorage {
         ipAddress: ipAddress || null,
         isUsed: true,
         usedAt: new Date(),
-        couponCode: `PROMO-${promotionId}-${Date.now().toString(36)}`
+        expiresAt: promotion.validUntil || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 dias se não especificado
+        couponCode: `PROMO-${promotionId.slice(0, 8)}-${Date.now().toString(36)}`
       };
 
       const [scratch] = await db
@@ -1610,12 +1630,12 @@ export class DatabaseStorage implements IStorage {
         id: promotion.id,
         name: promotion.name,
         maxClients: parseInt(promotion.maxClients),
-        usedCount: parseInt(promotion.usedCount)
+        usedCount: parseInt(promotion.usedCount || "0")
       },
       stats: {
         totalScratches: scratchCount,
         usedCoupons: usedCoupons,
-        availableSlots: parseInt(promotion.maxClients) - parseInt(promotion.usedCount),
+        availableSlots: parseInt(promotion.maxClients || "0") - parseInt(promotion.usedCount || "0"),
         conversionRate: scratchCount > 0 ? ((usedCoupons / scratchCount) * 100).toFixed(2) : 0
       }
     };
