@@ -527,9 +527,12 @@ export default function PublicFlyer() {
               // Layout moderno para páginas de loja individual (/stores/:slug)
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {/* PRODUTOS ORIGINAIS + PROMOÇÕES COM RASPADINHA */}
-                {filteredProducts.map((product) => (
-                  product.isScratchCard ? (
-                    // PROMOÇÃO: Renderizar como ScratchCard
+                {filteredProducts.map((product) => {
+                  // CORREÇÃO: Só renderizar como raspadinha se for promoção real (vem de activePromotions)
+                  const isRealPromotion = activePromotions.some(promo => promo.id === product.id);
+                  
+                  return isRealPromotion ? (
+                    // PROMOÇÃO REAL: Renderizar como ScratchCard
                     <div key={product.id} className="relative">
                       <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                         🎁 PROMOÇÃO
@@ -545,7 +548,7 @@ export default function PublicFlyer() {
                       />
                     </div>
                   ) : (
-                    // PRODUTO NORMAL: Renderizar como ProductCard
+                    // PRODUTO NORMAL: Sempre ProductCard (mesmo com isScratchCard=true)
                     <ProductCard
                       key={product.id}
                       product={product}
@@ -558,8 +561,8 @@ export default function PublicFlyer() {
                         setSelectedStore(store || null);
                       }}
                     />
-                  )
-                ))}
+                  );
+                })}
                 
 
 
@@ -611,9 +614,12 @@ export default function PublicFlyer() {
                   : 'grid-cols-3 md:grid-cols-4 lg:grid-cols-6'
               }`}>
                 {/* PRODUTOS ORIGINAIS + PROMOÇÕES COM RASPADINHA */}
-                {filteredProducts.map((product) => (
-                  product.isScratchCard ? (
-                    // PROMOÇÃO: Renderizar como ScratchCard
+                {filteredProducts.map((product) => {
+                  // CORREÇÃO: Só renderizar como raspadinha se for promoção real (vem de activePromotions)
+                  const isRealPromotion = activePromotions.some(promo => promo.id === product.id);
+                  
+                  return isRealPromotion ? (
+                    // PROMOÇÃO REAL: Renderizar como ScratchCard
                     <div key={product.id} className="relative">
                       <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                         🎁 PROMOÇÃO
@@ -629,7 +635,7 @@ export default function PublicFlyer() {
                       />
                     </div>
                   ) : (
-                    // PRODUTO NORMAL: Renderizar como ProductCard
+                    // PRODUTO NORMAL: Sempre ProductCard (mesmo com isScratchCard=true)
                     <ProductCard
                       key={product.id}
                       product={product}
@@ -643,8 +649,8 @@ export default function PublicFlyer() {
                       }}
                       customUsdBrlRate={store?.customUsdBrlRate ? Number(store.customUsdBrlRate) : undefined}
                     />
-                  )
-                ))}
+                  );
+                })}
                 
 
 
