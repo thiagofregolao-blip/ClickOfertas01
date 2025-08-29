@@ -1,0 +1,1565 @@
+# CLICK OFERTAS PARAGUAI - CÓDIGO COMPLETO
+# Aplicativo PWA para criação de flyers digitais com sistema de raspadinhas
+# Última atualização: Agosto 2025
+
+================================================================================
+= CONFIGURAÇÕES DO PROJETO
+================================================================================
+
+## package.json
+```json
+{
+  "name": "rest-express",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "NODE_ENV=development tsx server/index.ts",
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "start": "NODE_ENV=production node dist/index.js",
+    "check": "tsc",
+    "db:push": "drizzle-kit push"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^7.17.0",
+    "@hookform/resolvers": "^3.10.0",
+    "@jridgewell/trace-mapping": "^0.3.25",
+    "@neondatabase/serverless": "^0.10.4",
+    "@radix-ui/react-accordion": "^1.2.4",
+    "@radix-ui/react-alert-dialog": "^1.1.7",
+    "@radix-ui/react-aspect-ratio": "^1.1.3",
+    "@radix-ui/react-avatar": "^1.1.4",
+    "@radix-ui/react-checkbox": "^1.1.5",
+    "@radix-ui/react-collapsible": "^1.1.4",
+    "@radix-ui/react-context-menu": "^2.2.7",
+    "@radix-ui/react-dialog": "^1.1.7",
+    "@radix-ui/react-dropdown-menu": "^2.1.7",
+    "@radix-ui/react-hover-card": "^1.1.7",
+    "@radix-ui/react-label": "^2.1.3",
+    "@radix-ui/react-menubar": "^1.1.7",
+    "@radix-ui/react-navigation-menu": "^1.2.6",
+    "@radix-ui/react-popover": "^1.1.7",
+    "@radix-ui/react-progress": "^1.1.3",
+    "@radix-ui/react-radio-group": "^1.2.4",
+    "@radix-ui/react-scroll-area": "^1.2.4",
+    "@radix-ui/react-select": "^2.1.7",
+    "@radix-ui/react-separator": "^1.1.3",
+    "@radix-ui/react-slider": "^1.2.4",
+    "@radix-ui/react-slot": "^1.2.0",
+    "@radix-ui/react-switch": "^1.1.4",
+    "@radix-ui/react-tabs": "^1.1.4",
+    "@radix-ui/react-toast": "^1.2.7",
+    "@radix-ui/react-toggle": "^1.1.3",
+    "@radix-ui/react-toggle-group": "^1.1.3",
+    "@radix-ui/react-tooltip": "^1.2.0",
+    "@tanstack/react-query": "^5.60.5",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/file-saver": "^2.0.7",
+    "@types/html2canvas": "^0.5.35",
+    "@types/jspdf": "^1.3.3",
+    "@types/memoizee": "^0.4.12",
+    "@types/passport-apple": "^2.0.3",
+    "@types/passport-google-oauth20": "^2.0.16",
+    "@types/qrcode": "^1.5.5",
+    "@uppy/aws-s3": "^5.0.0",
+    "@uppy/core": "^5.0.0",
+    "@uppy/dashboard": "^5.0.0",
+    "@uppy/react": "^5.0.0",
+    "@uppy/webcam": "^5.0.0",
+    "bcryptjs": "^3.0.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
+    "connect-pg-simple": "^10.0.0",
+    "date-fns": "^3.6.0",
+    "drizzle-orm": "^0.39.1",
+    "drizzle-zod": "^0.7.0",
+    "embla-carousel-react": "^8.6.0",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "file-saver": "^2.0.5",
+    "framer-motion": "^11.13.1",
+    "html2canvas": "^1.4.1",
+    "input-otp": "^1.4.2",
+    "jspdf": "^3.0.2",
+    "lucide-react": "^0.453.0",
+    "memoizee": "^0.4.17",
+    "memorystore": "^1.6.7",
+    "next-themes": "^0.4.6",
+    "openai": "^5.15.0",
+    "openid-client": "^6.7.0",
+    "passport": "^0.7.0",
+    "passport-apple": "^2.0.2",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-local": "^1.0.0",
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-day-picker": "^8.10.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.55.0",
+    "react-icons": "^5.4.0",
+    "react-resizable-panels": "^2.1.7",
+    "recharts": "^2.15.2",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss-animate": "^1.0.7",
+    "tw-animate-css": "^1.2.5",
+    "vaul": "^1.1.2",
+    "wouter": "^3.3.5",
+    "ws": "^8.18.0",
+    "xlsx": "^0.18.5",
+    "zod": "^3.24.2",
+    "zod-validation-error": "^3.4.0"
+  },
+  "devDependencies": {
+    "@replit/vite-plugin-cartographer": "^0.3.0",
+    "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
+    "@tailwindcss/typography": "^0.5.15",
+    "@tailwindcss/vite": "^4.1.3",
+    "@types/connect-pg-simple": "^7.0.3",
+    "@types/express": "4.17.21",
+    "@types/express-session": "^1.18.0",
+    "@types/node": "20.16.11",
+    "@types/passport": "^1.0.16",
+    "@types/passport-local": "^1.0.38",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@types/ws": "^8.5.13",
+    "@vitejs/plugin-react": "^4.3.2",
+    "autoprefixer": "^10.4.20",
+    "drizzle-kit": "^0.30.4",
+    "esbuild": "^0.25.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.1",
+    "typescript": "5.6.3",
+    "vite": "^5.4.19"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.8"
+  }
+}
+```
+
+## vite.config.ts
+```typescript
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+
+export default defineConfig({
+  plugins: [
+    react(),
+    runtimeErrorOverlay(),
+    ...(process.env.NODE_ENV !== "production" &&
+    process.env.REPL_ID !== undefined
+      ? [
+          await import("@replit/vite-plugin-cartographer").then((m) =>
+            m.cartographer(),
+          ),
+        ]
+      : []),
+  ],
+  resolve: {
+    alias: {
+      "@": path.resolve(import.meta.dirname, "client", "src"),
+      "@shared": path.resolve(import.meta.dirname, "shared"),
+      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+    },
+  },
+  root: path.resolve(import.meta.dirname, "client"),
+  build: {
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    emptyOutDir: true,
+  },
+  server: {
+    fs: {
+      strict: true,
+      deny: ["**/.*"],
+    },
+  },
+});
+```
+
+## tailwind.config.ts
+```typescript
+import type { Config } from "tailwindcss";
+
+export default {
+  darkMode: ["class"],
+  content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
+  theme: {
+    extend: {
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      colors: {
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        card: {
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
+        },
+        popover: {
+          DEFAULT: "var(--popover)",
+          foreground: "var(--popover-foreground)",
+        },
+        primary: {
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
+        },
+        secondary: {
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
+        },
+        muted: {
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
+        },
+        destructive: {
+          DEFAULT: "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
+        },
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
+        chart: {
+          "1": "var(--chart-1)",
+          "2": "var(--chart-2)",
+          "3": "var(--chart-3)",
+          "4": "var(--chart-4)",
+          "5": "var(--chart-5)",
+        },
+        sidebar: {
+          DEFAULT: "var(--sidebar)",
+          foreground: "var(--sidebar-foreground)",
+          primary: "var(--sidebar-primary)",
+          "primary-foreground": "var(--sidebar-primary-foreground)",
+          accent: "var(--sidebar-accent)",
+          "accent-foreground": "var(--sidebar-accent-foreground)",
+          border: "var(--sidebar-border)",
+          ring: "var(--sidebar-ring)",
+        },
+      },
+      fontFamily: {
+        sans: ["var(--font-sans)", "Inter", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
+        mono: ["var(--font-mono)", "Menlo", "monospace"],
+      },
+      keyframes: {
+        "accordion-down": {
+          from: {
+            height: "0",
+          },
+          to: {
+            height: "var(--radix-accordion-content-height)",
+          },
+        },
+        "accordion-up": {
+          from: {
+            height: "var(--radix-accordion-content-height)",
+          },
+          to: {
+            height: "0",
+          },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+} satisfies Config;
+```
+
+## tsconfig.json
+```json
+{
+  "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
+  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
+  "compilerOptions": {
+    "incremental": true,
+    "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
+    "noEmit": true,
+    "module": "ESNext",
+    "strict": true,
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "jsx": "preserve",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "types": ["node", "vite/client"],
+    "paths": {
+      "@/*": ["./client/src/*"],
+      "@shared/*": ["./shared/*"]
+    }
+  }
+}
+```
+
+================================================================================
+= SCHEMA COMPARTILHADO (DRIZZLE ORM + ZOD)
+================================================================================
+
+## shared/schema.ts
+```typescript
+import { sql } from 'drizzle-orm';
+import {
+  boolean,
+  index,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  varchar,
+  decimal,
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+// Session storage table for Replit Auth
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// User storage table for Replit Auth
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").unique().notNull(),
+  password: varchar("password"), // Hash da senha
+  storeName: varchar("store_name"), // Nome da loja
+  phone: varchar("phone"),
+  address: text("address"), // Endereço completo
+  city: varchar("city"),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  fullName: varchar("full_name"),
+  state: varchar("state"),
+  country: varchar("country"),
+  profileImageUrl: varchar("profile_image_url"),
+  provider: varchar("provider").default("email"), // 'email', 'google', 'apple', 'replit'
+  providerId: varchar("provider_id"),
+  isEmailVerified: boolean("is_email_verified").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Store configuration table
+export const stores = pgTable("stores", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  logoUrl: text("logo_url"),
+  themeColor: varchar("theme_color", { length: 7 }).default("#E11D48"),
+  currency: varchar("currency", { length: 10 }).default("Gs."),
+  displayCurrency: varchar("display_currency", { length: 10 }).default("local"), // "usd", "local", "both"
+  dollarRate: decimal("dollar_rate", { precision: 10, scale: 2 }).default("7500.00"),
+  customUsdBrlRate: decimal("custom_usd_brl_rate", { precision: 10, scale: 4 }), // Taxa personalizada da loja
+  whatsapp: varchar("whatsapp"),
+  instagram: varchar("instagram"),
+  address: text("address"),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }),
+  slug: varchar("slug").unique(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Products table
+export const products = pgTable("products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  price: decimal("price", { precision: 12, scale: 2 }).notNull(),
+  imageUrl: text("image_url"),
+  imageUrl2: text("image_url2"),
+  imageUrl3: text("image_url3"),
+  category: varchar("category").default("Perfumaria"),
+  isFeatured: boolean("is_featured").default(false),
+  showInStories: boolean("show_in_stories").default(false),
+  isActive: boolean("is_active").default(true),
+  sortOrder: varchar("sort_order").default("0"),
+  // Campos para funcionalidade de Raspadinha
+  isScratchCard: boolean("is_scratch_card").default(false),
+  scratchPrice: decimal("scratch_price", { precision: 12, scale: 2 }), // Preço especial após raspar
+  scratchExpiresAt: timestamp("scratch_expires_at"), // Quando expira a oferta global
+  scratchTimeLimitMinutes: varchar("scratch_time_limit_minutes").default("60"), // Tempo limite após raspar (em minutos)
+  maxScratchRedemptions: varchar("max_scratch_redemptions").default("10"), // Quantas pessoas podem raspar
+  currentScratchRedemptions: varchar("current_scratch_redemptions").default("0"), // Quantas já rasparam
+  scratchMessage: text("scratch_message").default("Raspe aqui e ganhe um super desconto!"), // Mensagem na raspadinha
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Produtos favoritos/salvos pelo usuário
+export const savedProducts = pgTable("saved_products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Visualizações de stories
+export const storyViews = pgTable("story_views", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  productId: varchar("product_id").references(() => products.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  viewedAt: timestamp("viewed_at").defaultNow(),
+});
+
+// Visualizações de panfletos/flyers
+export const flyerViews = pgTable("flyer_views", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  viewedAt: timestamp("viewed_at").defaultNow(),
+});
+
+// Curtidas/likes nos produtos dos stories
+export const productLikes = pgTable("product_likes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  likedAt: timestamp("liked_at").defaultNow(),
+});
+
+// Campanhas de Raspagem - quando lojista ativa raspadinha
+export const scratchCampaigns = pgTable("scratch_campaigns", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  
+  // Configurações da Campanha
+  title: text("title").notNull().default("Raspe e ganhe desconto!"),
+  description: text("description").default("Raspe aqui e ganhe um super desconto!"),
+  discountPrice: decimal("discount_price", { precision: 12, scale: 2 }).notNull(),
+  discountPercentage: varchar("discount_percentage").notNull(),
+  
+  // Controles da Campanha
+  isActive: boolean("is_active").default(true),
+  maxClones: varchar("max_clones").default("10"), // Quantidade de clones a criar
+  clonesCreated: varchar("clones_created").default("0"), // Quantos clones foram criados
+  clonesUsed: varchar("clones_used").default("0"), // Quantos foram raspados
+  
+  // Opções de Distribuição
+  distributeToAll: boolean("distribute_to_all").default(false), // Se true, sorteia entre todos os usuários
+  selectedUserIds: text("selected_user_ids"), // JSON array de IDs específicos (se não for para todos)
+  
+  // Validade
+  expiresAt: timestamp("expires_at"), // Quando a campanha expira
+  cloneExpirationHours: varchar("clone_expiration_hours").default("24"), // Horas para clone expirar se não usado
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Clones Virtuais - produtos temporários para raspagem
+export const virtualScratchClones = pgTable("virtual_scratch_clones", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").notNull().references(() => scratchCampaigns.id, { onDelete: "cascade" }),
+  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  
+  // Usuário sorteado para este clone
+  assignedUserId: varchar("assigned_user_id").references(() => users.id, { onDelete: "cascade" }),
+  
+  // Dados do produto clonado (snapshot para manter consistência)
+  productName: text("product_name").notNull(),
+  productDescription: text("product_description"),
+  originalPrice: decimal("original_price", { precision: 12, scale: 2 }).notNull(),
+  discountPrice: decimal("discount_price", { precision: 12, scale: 2 }).notNull(),
+  productImageUrl: text("product_image_url"),
+  productCategory: varchar("product_category"),
+  
+  // Estado do clone
+  isUsed: boolean("is_used").default(false), // Se já foi raspado
+  isExpired: boolean("is_expired").default(false), // Se expirou sem ser usado
+  notificationSent: boolean("notification_sent").default(false), // Se notificação foi enviada
+  
+  // Timestamps
+  usedAt: timestamp("used_at"), // Quando foi raspado
+  expiresAt: timestamp("expires_at").notNull(), // Quando expira se não for usado
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Raspadinhas que foram "raspadas" pelos usuários (atualizado para referenciar clones)
+export const scratchedProducts = pgTable("scratched_products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  cloneId: varchar("clone_id").references(() => virtualScratchClones.id, { onDelete: "cascade" }), // Nova referência
+  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }), // Mantém para compatibilidade
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  scratchedAt: timestamp("scratched_at").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(), // Quando expira para este usuário específico
+  hasRedeemed: boolean("has_redeemed").default(false), // Se já foi até a loja comprar
+});
+
+// Cupons gerados pelas raspadinhas (agora referencia clone)
+export const coupons = pgTable("coupons", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  cloneId: varchar("clone_id").references(() => virtualScratchClones.id, { onDelete: "cascade" }), // Nova referência
+  promotionId: varchar("promotion_id").references(() => promotions.id, { onDelete: "cascade" }), // Referência para novo sistema
+  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }), // Mantém para compatibilidade
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  couponCode: varchar("coupon_code").unique().notNull(), // Código único do cupom
+  originalPrice: decimal("original_price", { precision: 12, scale: 2 }).notNull(),
+  discountPrice: decimal("discount_price", { precision: 12, scale: 2 }).notNull(),
+  discountPercentage: varchar("discount_percentage").notNull(), // Porcentagem de desconto
+  qrCode: text("qr_code").notNull(), // Base64 do QR Code
+  expiresAt: timestamp("expires_at").notNull(), // Quando expira o cupom
+  isRedeemed: boolean("is_redeemed").default(false), // Se já foi utilizado
+  redeemedAt: timestamp("redeemed_at"), // Quando foi utilizado
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// NOVO SISTEMA: Promoções diretas e simplificadas
+export const promotions = pgTable("promotions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  
+  // Dados do produto da promoção (pode referenciar produto existente ou ser novo)
+  baseProductId: varchar("base_product_id").references(() => products.id), // Referência opcional para copiar dados
+  name: text("name").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  category: varchar("category").default("Promoção"),
+  
+  // Preços e desconto
+  originalPrice: decimal("original_price", { precision: 12, scale: 2 }).notNull(),
+  promotionalPrice: decimal("promotional_price", { precision: 12, scale: 2 }).notNull(),
+  discountPercentage: varchar("discount_percentage").notNull(),
+  
+  // Controle da campanha
+  isActive: boolean("is_active").default(true),
+  maxClients: varchar("max_clients").notNull(), // Quantos clientes podem raspar
+  usedCount: varchar("used_count").default("0"), // Quantos já rasparam
+  
+  // Validade
+  validFrom: timestamp("valid_from").defaultNow(),
+  validUntil: timestamp("valid_until").notNull(),
+  
+  // Mensagem da raspadinha
+  scratchMessage: text("scratch_message").default("Raspe aqui e ganhe desconto especial!"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Controle de quem já raspou qual promoção
+export const promotionScratches = pgTable("promotion_scratches", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  promotionId: varchar("promotion_id").notNull().references(() => promotions.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  couponCode: varchar("coupon_code").unique().notNull(), // Código do cupom gerado
+  scratchedAt: timestamp("scratched_at").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(), // Quando o cupom expira
+  isUsed: boolean("is_used").default(false), // Se cupom foi utilizado
+  usedAt: timestamp("used_at"), // Quando foi utilizado
+});
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  stores: many(stores),
+  savedProducts: many(savedProducts),
+}));
+
+export const storesRelations = relations(stores, ({ one, many }) => ({
+  user: one(users, {
+    fields: [stores.userId],
+    references: [users.id],
+  }),
+  products: many(products),
+  storyViews: many(storyViews),
+  flyerViews: many(flyerViews),
+  scratchCampaigns: many(scratchCampaigns),
+  virtualScratchClones: many(virtualScratchClones),
+  promotions: many(promotions),
+}));
+
+export const productsRelations = relations(products, ({ one, many }) => ({
+  store: one(stores, {
+    fields: [products.storeId],
+    references: [stores.id],
+  }),
+  savedProducts: many(savedProducts),
+  productLikes: many(productLikes),
+  storyViews: many(storyViews),
+  scratchedProducts: many(scratchedProducts),
+  scratchCampaigns: many(scratchCampaigns),
+  virtualScratchClones: many(virtualScratchClones),
+}));
+
+export const savedProductsRelations = relations(savedProducts, ({ one }) => ({
+  user: one(users, {
+    fields: [savedProducts.userId],
+    references: [users.id],
+  }),
+  product: one(products, {
+    fields: [savedProducts.productId],
+    references: [products.id],
+  }),
+}));
+
+// ... [Outras relations]
+
+// Insert schemas para validação Zod
+export const insertStoreSchema = createInsertSchema(stores).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertProductSchema = createInsertSchema(products).omit({
+  id: true,
+  storeId: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  scratchExpiresAt: z.union([z.string(), z.date()]).optional().nullable(),
+});
+
+export const updateStoreSchema = insertStoreSchema.extend({
+  customUsdBrlRate: z.number().optional()
+}).partial();
+export const updateProductSchema = insertProductSchema.partial();
+
+export const insertPromotionSchema = createInsertSchema(promotions).omit({
+  id: true,
+  storeId: true,
+  usedCount: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  validFrom: z.union([z.string(), z.date()]).optional(),
+  validUntil: z.union([z.string(), z.date()]).optional(),
+});
+
+export const updatePromotionSchema = insertPromotionSchema.partial();
+
+// Types
+export type UpsertUser = typeof users.$inferInsert;
+export type User = typeof users.$inferSelect;
+export type Store = typeof stores.$inferSelect;
+export type Product = typeof products.$inferSelect;
+export type Promotion = typeof promotions.$inferSelect;
+export type InsertPromotion = z.infer<typeof insertPromotionSchema>;
+export type UpdatePromotion = z.infer<typeof updatePromotionSchema>;
+
+// Schemas de registro
+export const registerUserSchema = createInsertSchema(users, {
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  storeName: z.string().min(2, "Nome da loja deve ter pelo menos 2 caracteres"),
+}).omit({ 
+  id: true,
+  createdAt: true, 
+  updatedAt: true,
+  provider: true,
+  providerId: true,
+  isEmailVerified: true,
+  firstName: true,
+  lastName: true,
+  fullName: true,
+  state: true,
+  country: true,
+  profileImageUrl: true
+});
+
+export const loginUserSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(1, "Senha é obrigatória"),
+});
+
+export type RegisterUserType = z.infer<typeof registerUserSchema>;
+export type LoginUserType = z.infer<typeof loginUserSchema>;
+```
+
+================================================================================
+= BACKEND (EXPRESS + DRIZZLE)
+================================================================================
+
+## server/index.ts
+```typescript
+import express, { type Request, Response, NextFunction } from "express";
+import { registerRoutes } from "./routes";
+import { setupVite, serveStatic, log } from "./vite";
+import path from "path";
+
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+// Serve attached assets statically
+app.use('/attached_assets', express.static(path.resolve(process.cwd(), 'attached_assets')));
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path = req.path;
+  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+
+  const originalResJson = res.json;
+  res.json = function (bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path.startsWith("/api")) {
+      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      if (capturedJsonResponse) {
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      }
+
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "…";
+      }
+
+      log(logLine);
+    }
+  });
+
+  next();
+});
+
+(async () => {
+  const server = await registerRoutes(app);
+
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+
+    res.status(status).json({ message });
+    throw err;
+  });
+
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
+
+  const port = parseInt(process.env.PORT || '5000', 10);
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, () => {
+    log(`serving on port ${port}`);
+  });
+})();
+```
+
+## server/db.ts
+```typescript
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from "ws";
+import * as schema from "@shared/schema";
+
+neonConfig.webSocketConstructor = ws;
+
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL must be set. Did you forget to provision a database?",
+  );
+}
+
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle({ client: pool, schema });
+```
+
+## server/replitAuth.ts
+```typescript
+import * as client from "openid-client";
+import { Strategy, type VerifyFunction } from "openid-client/passport";
+
+import passport from "passport";
+import session from "express-session";
+import type { Express, RequestHandler } from "express";
+import memoize from "memoizee";
+import connectPg from "connect-pg-simple";
+import { storage } from "./storage";
+
+if (!process.env.REPLIT_DOMAINS) {
+  throw new Error("Environment variable REPLIT_DOMAINS not provided");
+}
+
+const getOidcConfig = memoize(
+  async () => {
+    return await client.discovery(
+      new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
+      process.env.REPL_ID!
+    );
+  },
+  { maxAge: 3600 * 1000 }
+);
+
+export function getSession() {
+  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const pgStore = connectPg(session);
+  const sessionStore = new pgStore({
+    conString: process.env.DATABASE_URL,
+    createTableIfMissing: false,
+    ttl: sessionTtl,
+    tableName: "sessions",
+  });
+  return session({
+    secret: process.env.SESSION_SECRET!,
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: true,
+      maxAge: sessionTtl,
+    },
+  });
+}
+
+function updateUserSession(
+  user: any,
+  tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers
+) {
+  user.claims = tokens.claims();
+  user.access_token = tokens.access_token;
+  user.refresh_token = tokens.refresh_token;
+  user.expires_at = user.claims?.exp;
+}
+
+async function upsertUser(
+  claims: any,
+) {
+  await storage.upsertUser({
+    id: claims["sub"],
+    email: claims["email"],
+    firstName: claims["first_name"],
+    lastName: claims["last_name"],
+    profileImageUrl: claims["profile_image_url"],
+  });
+}
+
+export async function setupAuth(app: Express) {
+  app.set("trust proxy", 1);
+  app.use(getSession());
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  const config = await getOidcConfig();
+
+  const verify: VerifyFunction = async (
+    tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
+    verified: passport.AuthenticateCallback
+  ) => {
+    const user = {};
+    updateUserSession(user, tokens);
+    await upsertUser(tokens.claims());
+    verified(null, user);
+  };
+
+  for (const domain of process.env
+    .REPLIT_DOMAINS!.split(",")) {
+    const strategy = new Strategy(
+      {
+        name: `replitauth:${domain}`,
+        config,
+        scope: "openid email profile offline_access",
+        callbackURL: `https://${domain}/api/callback`,
+      },
+      verify,
+    );
+    passport.use(strategy);
+  }
+
+  passport.serializeUser((user: Express.User, cb) => cb(null, user));
+  passport.deserializeUser((user: Express.User, cb) => cb(null, user));
+
+  app.get("/api/login", (req, res, next) => {
+    passport.authenticate(`replitauth:${req.hostname}`, {
+      prompt: "login consent",
+      scope: ["openid", "email", "profile", "offline_access"],
+    })(req, res, next);
+  });
+
+  app.get("/api/callback", (req, res, next) => {
+    passport.authenticate(`replitauth:${req.hostname}`, {
+      successReturnToOrRedirect: "/",
+      failureRedirect: "/api/login",
+    })(req, res, next);
+  });
+
+  app.get("/api/logout", (req, res) => {
+    req.logout(() => {
+      res.redirect(
+        client.buildEndSessionUrl(config, {
+          client_id: process.env.REPL_ID!,
+          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
+        }).href
+      );
+    });
+  });
+}
+
+export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  const user = req.user as any;
+
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // Handle traditional email login (no expires_at)
+  if (!user.expires_at) {
+    return next();
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  if (now <= user.expires_at) {
+    return next();
+  }
+
+  const refreshToken = user.refresh_token;
+  if (!refreshToken) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+
+  try {
+    const config = await getOidcConfig();
+    const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
+    updateUserSession(user, tokenResponse);
+    return next();
+  } catch (error) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+};
+```
+
+================================================================================
+= FRONTEND (REACT + VITE)
+================================================================================
+
+## client/src/main.tsx
+```typescript
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import "./index.css";
+
+// Service Worker embutido para PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    const swCode = `
+      const CACHE_NAME = 'click-ofertas-v1';
+      const urlsToCache = [
+        '/',
+        '/cards'
+      ];
+      
+      self.addEventListener('install', (event) => {
+        event.waitUntil(
+          caches.open(CACHE_NAME)
+            .then((cache) => cache.addAll(urlsToCache))
+        );
+      });
+      
+      self.addEventListener('fetch', (event) => {
+        event.respondWith(
+          caches.match(event.request)
+            .then((response) => {
+              return response || fetch(event.request);
+            })
+        );
+      });
+    `;
+    
+    const blob = new Blob([swCode], {type: 'application/javascript'});
+    const swURL = URL.createObjectURL(blob);
+    
+    navigator.serviceWorker.register(swURL)
+      .then((registration) => {
+        console.log('SW registered: ', registration);
+      })
+      .catch((registrationError) => {
+        console.log('SW registration failed: ', registrationError);
+      });
+  });
+}
+
+createRoot(document.getElementById("root")!).render(<App />);
+```
+
+## client/src/App.tsx
+```typescript
+import { Switch, Route } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { useAuth } from "@/hooks/useAuth";
+import Landing from "@/pages/landing";
+import AdminDashboard from "@/pages/admin-dashboard";
+import AdminStoreConfig from "@/pages/admin-store-config";
+import AdminProducts from "@/pages/admin-products";
+import AdminPromotions from "@/pages/admin-promotions";
+import AdminPreview from "@/pages/admin-preview";
+import Analytics from "@/pages/analytics";
+import PublicFlyer from "@/pages/public-flyer";
+import StoresGallery from "@/pages/stores-gallery";
+import UserSettingsPage from "@/pages/user-settings";
+import ShoppingList from "@/pages/shopping-list";
+import MyCoupons from "@/pages/my-coupons";
+import CouponDetails from "@/pages/coupon-details";
+import NotFound from "@/pages/not-found";
+
+function Router() {
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    // Durante carregamento, registrar todas as rotas mas mostrar loading
+    const LoadingComponent = () => (
+      <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+
+    return (
+      <Switch>
+        <Route path="/" component={Landing} />
+        <Route path="/cards" component={LoadingComponent} />
+        <Route path="/flyer/:slug" component={LoadingComponent} />
+        <Route path="/stores/:slug" component={LoadingComponent} />
+        <Route path="/admin" component={LoadingComponent} />
+        <Route path="/admin/*" component={LoadingComponent} />
+        <Route path="/settings" component={LoadingComponent} />
+        <Route path="/shopping-list" component={LoadingComponent} />
+        <Route path="/my-coupons" component={LoadingComponent} />
+        <Route path="/coupon" component={LoadingComponent} />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
+
+  return (
+    <Switch>
+      {!isAuthenticated ? (
+        // Usuário não logado - acesso público
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/cards" component={StoresGallery} />
+          <Route path="/flyer/:slug" component={PublicFlyer} />
+          <Route path="/stores/:slug" component={PublicFlyer} />
+        </>
+      ) : user?.hasStore ? (
+        // Lojista logado - painel admin
+        <>
+          <Route path="/" component={AdminDashboard} />
+          <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin/config" component={AdminStoreConfig} />
+          <Route path="/admin/products" component={AdminProducts} />
+          <Route path="/admin/promotions" component={AdminPromotions} />
+          <Route path="/admin/preview" component={AdminPreview} />
+          <Route path="/admin/analytics" component={Analytics} />
+          <Route path="/cards" component={StoresGallery} />
+          <Route path="/settings" component={UserSettingsPage} />
+          <Route path="/shopping-list" component={ShoppingList} />
+          <Route path="/my-coupons" component={MyCoupons} />
+          <Route path="/coupon" component={CouponDetails} />
+          <Route path="/flyer/:slug" component={PublicFlyer} />
+          <Route path="/stores/:slug" component={PublicFlyer} />
+        </>
+      ) : (
+        // Usuário normal logado - galeria de lojas
+        <>
+          <Route path="/" component={StoresGallery} />
+          <Route path="/cards" component={StoresGallery} />
+          <Route path="/settings" component={UserSettingsPage} />
+          <Route path="/shopping-list" component={ShoppingList} />
+          <Route path="/my-coupons" component={MyCoupons} />
+          <Route path="/coupon" component={CouponDetails} />
+          <Route path="/flyer/:slug" component={PublicFlyer} />
+          <Route path="/stores/:slug" component={PublicFlyer} />
+          {/* Bloqueia acesso ao admin para usuários normais */}
+          <Route path="/admin*" component={NotFound} />
+        </>
+      )}
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Router />
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
+```
+
+## client/src/hooks/useAuth.ts
+```typescript
+import { useQuery } from "@tanstack/react-query";
+import type { User } from "@shared/schema";
+
+type UserWithStoreInfo = User & {
+  hasStore?: boolean;
+};
+
+export function useAuth() {
+  const { data: user, isLoading } = useQuery<UserWithStoreInfo>({
+    queryKey: ["/api/auth/user"],
+    staleTime: 2 * 60 * 1000, // 2 minutos para dados do usuário
+    refetchOnWindowFocus: true, // Importante para auth
+    // Usa as configurações globais que retornam null em 401
+  });
+
+  return {
+    user,
+    isLoading,
+    isAuthenticated: !!user,
+  };
+}
+```
+
+## client/src/lib/queryClient.ts
+```typescript
+import { QueryClient, QueryFunction } from "@tanstack/react-query";
+
+async function throwIfResNotOk(res: Response) {
+  if (!res.ok) {
+    const text = (await res.text()) || res.statusText;
+    throw new Error(`${res.status}: ${text}`);
+  }
+}
+
+export async function apiRequest(
+  method: string,
+  url: string,
+  data?: unknown | undefined,
+): Promise<Response> {
+  const res = await fetch(url, {
+    method,
+    headers: data ? { "Content-Type": "application/json" } : {},
+    body: data ? JSON.stringify(data) : undefined,
+    credentials: "include",
+  });
+
+  await throwIfResNotOk(res);
+  return res;
+}
+
+type UnauthorizedBehavior = "returnNull" | "throw";
+export const getQueryFn: <T>(options: {
+  on401: UnauthorizedBehavior;
+}) => QueryFunction<T> =
+  ({ on401: unauthorizedBehavior }) =>
+  async ({ queryKey }) => {
+    const res = await fetch(queryKey.join("/") as string, {
+      credentials: "include",
+    });
+
+    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+      return null;
+    }
+
+    await throwIfResNotOk(res);
+    return await res.json();
+  };
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      queryFn: getQueryFn({ on401: "returnNull" }),
+      refetchInterval: false,
+      refetchOnWindowFocus: false, 
+      refetchOnMount: true, // Permite refetch no mount para dados atualizados
+      refetchOnReconnect: true, // Refetch ao reconectar
+      staleTime: 5 * 60 * 1000, // 5 minutos (equilibrado)
+      gcTime: 30 * 60 * 1000, // 30 minutos
+      retry: (failureCount, error: any) => {
+        // Nunca retry em erro 401 ou 403
+        if (error?.message?.includes('401') || error?.message?.includes('403')) {
+          return false;
+        }
+        return failureCount < 2; // Até 2 tentativas
+      },
+    },
+    mutations: {
+      retry: false,
+    },
+  },
+});
+```
+
+================================================================================
+= FUNCIONALIDADES PRINCIPAIS
+================================================================================
+
+## SISTEMA DE RASPADINHAS (3 TIPOS)
+
+### 1. Produtos Regulares com Raspadinha
+- Produto comum que pode virar raspadinha
+- Lojista ativa funcionalidade no produto
+- Sistema cria campanha automática
+
+### 2. Clones Virtuais (Sistema Legacy)
+- Clones temporários distribuídos para usuários específicos
+- Sistema de loteria para distribuição
+- Expiração automática se não usado
+
+### 3. Promoções Simplificadas (Sistema Novo)
+- Campanhas diretas de promoção
+- Controle de participantes máximos
+- Validade configurável
+- Integração com produtos existentes
+
+## COMPONENTE SCRATCH CARD UNIFICADO
+
+```typescript
+// O componente ScratchCard lida com os 3 tipos:
+interface ScratchCardProps {
+  product: Product;
+  onScratch?: () => void;
+  isPromotion?: boolean;        // Nova prop para promoções
+  promotionId?: string;         // ID da promoção
+  className?: string;
+}
+
+// Lógica unificada:
+const mutation = useMutation({
+  mutationFn: async () => {
+    if (isPromotion && promotionId) {
+      // Sistema novo: promoções
+      return await apiRequest("POST", `/api/promotions/${promotionId}/scratch`);
+    } else {
+      // Sistema legacy: produtos e clones
+      return await apiRequest("POST", `/api/products/${product.id}/scratch`);
+    }
+  }
+});
+```
+
+## SISTEMA PWA (PROGRESSIVE WEB APP)
+
+- Service Worker integrado
+- Instalação nativa iOS/Android
+- Cache inteligente
+- Funcionamento offline básico
+- Ícones e manifest configurados
+
+## AUTENTICAÇÃO HÍBRIDA
+
+- **Replit Auth**: OAuth integrado (automático)
+- **Email/Senha**: Sistema tradicional
+- **Sessões**: PostgreSQL-backed
+- **Múltiplos Providers**: Google, Apple (configurável)
+
+## SISTEMA DE MOEDAS
+
+- **Moeda Local**: Guaranis (Gs.)
+- **Dólar**: USD com conversão automática
+- **Taxa Personalizada**: Cada loja pode configurar
+- **API Externa**: Cotação em tempo real
+- **Display Flexível**: Ambas moedas ou uma só
+
+================================================================================
+= ARQUITETURA TÉCNICA
+================================================================================
+
+## STACK PRINCIPAL
+
+**Frontend:**
+- React 18 + TypeScript
+- Vite (build tool)
+- Wouter (routing)
+- TanStack Query (state management)
+- Tailwind CSS + Shadcn/ui
+- Framer Motion (animations)
+
+**Backend:**
+- Node.js + Express
+- TypeScript com ES modules
+- Drizzle ORM + PostgreSQL
+- Neon Database (serverless)
+- Passport.js (auth)
+
+**Infraestrutura:**
+- Replit (hosting + auth)
+- PostgreSQL (Neon)
+- Object Storage (Google Cloud)
+- PWA (service worker)
+
+## PADRÕES DE DESENVOLVIMENTO
+
+### State Management
+- TanStack Query para server state
+- React hooks para local state
+- Context API para temas/configurações
+
+### Validação
+- Zod schemas compartilhados
+- Drizzle-zod integration
+- Runtime validation
+
+### Styling
+- Tailwind CSS utility-first
+- CSS Variables para temas
+- Dark mode support
+- Mobile-first responsive
+
+### Performance
+- Code splitting por rota
+- Lazy loading de imagens
+- Optimistic updates
+- Cache inteligente (5min stale)
+
+## ESTRUTURA DE DADOS
+
+### Usuários
+- **ID**: UUID único
+- **Auth**: Multiple providers
+- **Roles**: Normal user vs Store owner
+- **Profile**: Nome, foto, contato
+
+### Lojas
+- **Configuração**: Logo, cores, moeda
+- **Localização**: Endereço, coordenadas
+- **SEO**: Slug único, meta tags
+- **Integração**: WhatsApp, Instagram
+
+### Produtos
+- **Básico**: Nome, descrição, preço
+- **Mídia**: Até 3 imagens
+- **Categorias**: Flexível
+- **Status**: Ativo/inativo, featured
+- **Raspadinha**: Preço especial, validade
+
+### Promoções
+- **Campanha**: Nome, descrição, período
+- **Desconto**: Valor e porcentagem
+- **Controle**: Máximo participantes
+- **Referência**: Produto base opcional
+
+================================================================================
+= RECURSOS AVANÇADOS
+================================================================================
+
+## ANALYTICS E MÉTRICAS
+
+- View tracking por flyer
+- Engagement por produto
+- Conversão de raspadinhas
+- Métricas de loja
+- Export de dados
+
+## SISTEMA DE CUPONS
+
+- QR Code automático
+- Códigos únicos
+- Validade configurável
+- Controle de uso
+- Histórico completo
+
+## SEARCH E FILTROS
+
+- Busca por produtos
+- Busca por lojas
+- Filtros por categoria
+- Geolocalização
+- Resultados instantâneos
+
+## SHARING E VIRALITY
+
+- Share nativo (Web Share API)
+- Links únicos por loja
+- Preview social (Open Graph)
+- Download de flyers (PNG)
+- WhatsApp integration
+
+## MOBILE OPTIMIZATION
+
+- PWA completa
+- Install prompts
+- Touch interactions
+- Gestures support
+- Responsive design
+
+================================================================================
+= DEPLOYMENT E PRODUÇÃO
+================================================================================
+
+## BUILD PROCESS
+
+```bash
+# Development
+npm run dev
+
+# Production build
+npm run build
+
+# Database sync
+npm run db:push
+```
+
+## ENVIRONMENT VARIABLES
+
+- `DATABASE_URL`: PostgreSQL connection
+- `SESSION_SECRET`: Session encryption
+- `REPLIT_DOMAINS`: Auth domains
+- `REPL_ID`: Replit app ID
+- `ISSUER_URL`: OAuth issuer
+
+## MONITORING
+
+- Express logging middleware
+- Error tracking
+- Performance metrics
+- Database query optimization
+
+## SECURITY
+
+- HTTPS only
+- Secure sessions
+- SQL injection protection
+- XSS prevention
+- CSRF protection
+
+================================================================================
+= CASOS DE USO PRINCIPAIS
+================================================================================
+
+## 1. LOJISTA CRIANDO FLYER
+
+1. Login no sistema
+2. Configurar loja (logo, cores, contato)
+3. Adicionar produtos com fotos
+4. Ativar raspadinhas (opcional)
+5. Visualizar preview do flyer
+6. Compartilhar link público
+
+## 2. USUÁRIO NAVEGANDO OFERTAS
+
+1. Acessar galeria de lojas
+2. Filtrar por categoria/localização
+3. Ver flyer da loja
+4. Raspar produtos com desconto
+5. Ganhar cupom com QR code
+6. Apresentar na loja física
+
+## 3. SISTEMA DE PROMOÇÕES
+
+1. Lojista cria campanha promocional
+2. Define produto base (opcional)
+3. Configura desconto e validade
+4. Sistema limita participantes
+5. Usuários raspam e ganham cupons
+6. Controle automático de uso
+
+================================================================================
+= ROADMAP FUTURO
+================================================================================
+
+## MELHORIAS PRIORITÁRIAS
+
+### Performance
+- Component lazy loading
+- Image optimization
+- Bundle size reduction
+- Database query optimization
+
+### UX/UI  
+- Advanced filtering
+- Better search
+- Wishlist persistence
+- Push notifications
+
+### Features
+- Bulk operations
+- Advanced analytics
+- Email marketing
+- Inventory management
+
+### Mobile
+- App store distribution
+- Native integrations
+- Offline mode enhancement
+- Performance optimization
+
+## NOVAS FUNCIONALIDADES
+
+### Mídia Dinâmica
+- Vídeos nos produtos
+- Carousels de imagens
+- Stories tipo Instagram
+- Autoplay inteligente
+
+### Social Features
+- Comments em produtos
+- Reviews de loja
+- User profiles
+- Social sharing
+
+### Business Intelligence
+- Sales analytics
+- Customer insights
+- Market trends
+- ROI tracking
+
+================================================================================
+FIM DO CÓDIGO COMPLETO
+================================================================================
+
+RESUMO:
+- Sistema PWA completo para flyers digitais
+- 3 tipos de raspadinhas unificadas
+- Frontend React + Backend Express
+- PostgreSQL + Drizzle ORM
+- Auth híbrida (Replit + Email)
+- Mobile-first responsive
+- Sistema de promoções simplificado
+- Ready para produção
+
+TECNOLOGIAS: React, TypeScript, Express, PostgreSQL, Tailwind, PWA
+DEPLOY: Replit platform
+STATUS: Funcional e pronto para uso
