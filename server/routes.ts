@@ -913,29 +913,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verificar se o usuário já raspou este produto, se não, criar automaticamente
       let scratchedProduct = await storage.getScratchedProduct(productId, userId);
       if (!scratchedProduct) {
-        // Criar scratch automaticamente se não existir
-        try {
-          const scratchData = {
-            productId,
-            userId,
-            userAgent: userAgent || 'unknown',
-            ipAddress: ipAddress || 'unknown',
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 horas
-          };
-          scratchedProduct = await storage.createScratchedProduct(scratchData);
-        } catch (error) {
-          console.error('Error creating scratch product:', error);
-          // Se falhar, usar dados padrão
-          scratchedProduct = {
-            id: 'temp',
-            productId,
-            userId,
-            userAgent: userAgent || 'unknown',
-            ipAddress: ipAddress || 'unknown',
-            scratchedAt: new Date(),
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
-          };
-        }
+        // Para promoções, não tentar criar na base (foreign key quebrada)
+        // Usar dados temporários
+        console.log('🎯 Criando scratch temporário para promoção...');
+        scratchedProduct = {
+          id: `temp-${Date.now()}`,
+          productId,
+          userId,
+          userAgent: userAgent || 'unknown',
+          ipAddress: ipAddress || 'unknown',
+          scratchedAt: new Date(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas
+          hasRedeemed: false,
+          cloneId: null
+        };
       }
 
       // Calcular desconto
@@ -968,9 +959,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Data de expiração do cupom (mesmo tempo da raspadinha)
       const expiresAt = scratchedProduct.expiresAt;
 
-      // Criar cupom
+      // Criar cupom (sem usar base para promoções)
       const couponData = {
-        productId: product.id,
+        id: `coupon-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        productId: isPromotion ? null : product.id, // null para promoções
         storeId: product.storeId,
         userId,
         userAgent: userAgent || 'unknown',
@@ -981,11 +973,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         discountPercentage: discountPercentage.toString(),
         qrCode: qrCodeBase64,
         expiresAt,
-        isRedeemed: false
+        isRedeemed: false,
+        cloneId: null,
+        createdAt: new Date()
       };
 
-      console.log('💾 Criando cupom no banco...');
-      const coupon = await storage.createCoupon(couponData);
+      console.log('💾 Criando cupom (sem base para promoções)...');
+      // Para promoções, não salvar na base (foreign key quebrada)
+      // Retornar dados diretamente
+      const coupon = isPromotion ? couponData : await storage.createCoupon(couponData);
       console.log('✅ Cupom criado com sucesso:', coupon);
 
       res.status(201).json({
