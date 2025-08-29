@@ -1355,6 +1355,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ===== NOVO SISTEMA: PROMOÇÕES DIRETAS E SIMPLIFICADAS =====
 
+  // 0. Listar promoções do usuário logado (para admin)
+  app.get('/api/promotions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.id;
+      
+      // Buscar loja do usuário
+      const userStore = await storage.getUserStore(userId);
+      if (!userStore) {
+        return res.status(404).json({ message: "Loja não encontrada para o usuário" });
+      }
+
+      // Buscar promoções da loja
+      const promotions = await storage.getStorePromotions(userStore.id);
+      res.json(promotions);
+    } catch (error) {
+      console.error("Error fetching user promotions:", error);
+      res.status(500).json({ message: "Erro ao buscar promoções do usuário" });
+    }
+  });
+
   // 1. Listar todas as promoções da loja
   app.get('/api/stores/:storeId/promotions', async (req, res) => {
     try {
