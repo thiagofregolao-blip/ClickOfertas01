@@ -195,13 +195,37 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     
-    canvas.width = Math.round(rect.width * dpr);
-    canvas.height = Math.round(rect.height * dpr);
+    console.log("📐 DIMENSÕES ORIGINAIS DO CANVAS:", {
+      rectWidth: rect.width,
+      rectHeight: rect.height,
+      rectTop: rect.top,
+      rectLeft: rect.left,
+      dpr
+    });
+    
+    // FORÇAR DIMENSÕES MÍNIMAS se altura for muito pequena
+    const minHeight = 200; // Altura mínima
+    const actualHeight = Math.max(rect.height, minHeight);
+    const actualWidth = Math.max(rect.width, 200); // Largura mínima
+    
+    canvas.width = Math.round(actualWidth * dpr);
+    canvas.height = Math.round(actualHeight * dpr);
     ctx.scale(dpr, dpr);
     
-    // Usar dimensões CSS para cálculos
-    const cssWidth = rect.width;
-    const cssHeight = rect.height;
+    // Forçar dimensões CSS também
+    canvas.style.width = actualWidth + 'px';
+    canvas.style.height = actualHeight + 'px';
+    
+    console.log("🔧 DIMENSÕES CORRIGIDAS:", {
+      canvasWidth: canvas.width,
+      canvasHeight: canvas.height,
+      styleWidth: canvas.style.width,
+      styleHeight: canvas.style.height
+    });
+    
+    // Usar dimensões corrigidas para cálculos
+    const cssWidth = actualWidth;
+    const cssHeight = actualHeight;
 
     // Desenhar camada de "scratch"
     console.log(`%c🎨 DESENHANDO TEXTURA INICIAL! 🎨`, 
