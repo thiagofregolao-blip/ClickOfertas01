@@ -226,9 +226,39 @@ export default function PublicFlyer() {
   }
 
   // Filtrar produtos conforme o tipo de visualização
+  // Converter promoções para formato de produto
+  const promotionsAsProducts: Product[] = activePromotions.map((promotion) => ({
+    id: promotion.id,
+    name: promotion.name,
+    description: promotion.description || "",
+    price: promotion.originalPrice,
+    imageUrl: promotion.imageUrl || "",
+    imageUrl2: null,
+    imageUrl3: null,
+    category: promotion.category,
+    storeId: promotion.storeId,
+    isActive: true,
+    isFeatured: true, // Destaque para promoções
+    showInStories: true,
+    sortOrder: 0,
+    isScratchCard: true,
+    scratchMessage: promotion.scratchMessage || "Parabéns! Você ganhou um desconto especial!",
+    scratchPrice: promotion.promotionalPrice,
+    scratchExpiresAt: promotion.validUntil || new Date().toISOString(),
+    scratchTimeLimitMinutes: null,
+    scratchBackgroundColor: null,
+    maxScratchRedemptions: null,
+    currentScratchRedemptions: null,
+    createdAt: new Date(promotion.createdAt),
+    updatedAt: new Date(promotion.updatedAt)
+  }));
+
+  // Mesclar produtos normais com promoções
+  const allProductsWithPromotions = [...(store?.products || []), ...promotionsAsProducts];
+
   const activeProducts = isStoriesView 
-    ? store.products.filter(p => p.isActive && p.showInStories) // Só produtos dos stories
-    : store.products.filter(p => p.isActive); // Todos produtos ativos
+    ? allProductsWithPromotions.filter(p => p.isActive && p.showInStories) // Só produtos dos stories
+    : allProductsWithPromotions.filter(p => p.isActive); // Todos produtos ativos
   
   // Agrupar produtos por categoria
   const productsByCategory = activeProducts.reduce((acc, product) => {
@@ -490,52 +520,6 @@ export default function PublicFlyer() {
             </div>
           )}
 
-          {/* PROMOÇÕES ATIVAS */}
-          {activePromotions.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-xl font-bold mb-4 text-center">🎁 PROMOÇÕES ESPECIAIS</h2>
-              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                {activePromotions.map((promotion) => (
-                  <div key={promotion.id} className="relative">
-                    <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                      🎁 PROMOÇÃO
-                    </div>
-                    <ScratchCard
-                      product={{
-                        id: promotion.id,
-                        name: promotion.name,
-                        description: promotion.description || "",
-                        price: promotion.originalPrice,
-                        imageUrl: promotion.imageUrl || "",
-                        imageUrl2: null,
-                        imageUrl3: null,
-                        category: promotion.category,
-                        storeId: promotion.storeId,
-                        isActive: true,
-                        isFeatured: false,
-                        showInStories: false,
-                        sortOrder: 0,
-                        isScratchCard: true,
-                        scratchMessage: promotion.scratchMessage || "Parabéns! Você ganhou um desconto especial!",
-                        scratchPrice: promotion.promotionalPrice,
-                        scratchExpiresAt: promotion.validUntil || new Date().toISOString(),
-                        scratchTimeLimitMinutes: null,
-                        scratchBackgroundColor: null,
-                        createdAt: new Date(promotion.createdAt),
-                        updatedAt: new Date(promotion.updatedAt)
-                      }}
-                      currency={store?.currency || "Gs."}
-                      themeColor={store?.themeColor || "#E11D48"}
-                      onClick={(product) => {
-                        setSelectedProduct(product);
-                        setSelectedStore(store || null);
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Products Grid */}
           {filteredProducts.length > 0 || virtualClones.length > 0 ? (
