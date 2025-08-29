@@ -1,0 +1,23 @@
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: 
+{productId: 'a89f8d0d-f24f-4019-aff2-402583df4a7e', productName: 'Tratamento para Cabelo Choice Selection Collagen Therapy 500mL', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: 
+{productId: 'bdcf93f2-104c-4898-98ac-5940593bf8e6', productName: 'Perfume Montblanc Starwalker 75mL EDT', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: 
+{productId: 'dbbf64b1-9315-44f3-82ee-9e5b68745795', productName: 'Perfume Givenchy L Interdit EDT 80mL - Feminino', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: 
+{productId: 'bfc297db-475a-4346-94a7-a7c9683b8ab6', productName: 'Tratamento Capilar Revlon Uniq One All in One 150ml', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: 
+{productId: 'b4617eff-8c2e-4b2a-b7e5-69454e975774', productName: 'Perfume Lattafa Asad EDP 100mL - Masculino', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: 
+{productId: 'b2ffadf4-929e-43b1-b864-b54291dfdae6', productName: 'Perfume Versace Blue Jeans 75ml', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: 
+{productId: '82d50470-17cf-4c04-83e6-4fd9ea4b9227', productName: 'Perfume Lalique White 125ml', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: 
+{productId: 'abf35a9b-5658-4426-80e0-db40c3461c5a', productName: 'iPhone 15 Pro Max', isScratchCard: true, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: 
+{productId: '7eecb64b-ff4a-4e31-b78b-231d6875ca2a', productName: 'Samsung Galaxy S24 Ultra', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+scratch-card.tsx:36 🔥🔥🔥 SCRATCHCARD COMPONENTE EXECUTANDO! 🔥🔥🔥
+scratch-card.tsx:40 🎯 ScratchCard RENDERIZADO: 
+{productId: 'b6250631-9694-4a2d-829f-cef3720fc30a', productName: 'teste', isScratchCard: true, scratchMessage: 'Parabéns! Você ganhou um desconto especial!', currency: 'US$', …}
+﻿
+

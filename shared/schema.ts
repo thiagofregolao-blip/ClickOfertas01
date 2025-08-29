@@ -210,8 +210,8 @@ export const scratchedProducts = pgTable("scratched_products", {
 export const coupons = pgTable("coupons", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   cloneId: varchar("clone_id").references(() => virtualScratchClones.id, { onDelete: "cascade" }), // Nova referência
-  promotionId: varchar("promotion_id").references(() => promotions.id, { onDelete: "cascade" }), // Referência para novo sistema
-  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }), // Mantém para compatibilidade
+  // REMOVIDO: promotionId - campo não existe na base real
+  productId: varchar("product_id").references(() => products.id, { onDelete: "cascade" }), // Permite NULL para promoções
   storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
   userId: varchar("user_id"), // pode ser anônimo
   userAgent: text("user_agent"),
@@ -400,10 +400,7 @@ export const couponsRelations = relations(coupons, ({ one }) => ({
     fields: [coupons.cloneId],
     references: [virtualScratchClones.id],
   }),
-  promotion: one(promotions, {
-    fields: [coupons.promotionId],
-    references: [promotions.id],
-  }),
+  // REMOVIDO: promotion relation - campo promotionId não existe
 }));
 
 // Novas relations para sistema de promoções
@@ -417,7 +414,7 @@ export const promotionsRelations = relations(promotions, ({ one, many }) => ({
     references: [products.id],
   }),
   scratches: many(promotionScratches),
-  coupons: many(coupons),
+  // REMOVIDO: coupons relation - sem campo promotionId
 }));
 
 export const promotionScratchesRelations = relations(promotionScratches, ({ one }) => ({
