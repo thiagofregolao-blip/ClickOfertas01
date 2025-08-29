@@ -983,11 +983,52 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             shouldRender: isVirtualClone && virtualCloneId
           })}
           
-          {/* Cobertura de raspadinha para clones virtuais */}
+          {/* TESTE FINAL: Cobertura que funciona 100% */}
           {isVirtualClone && virtualCloneId && (
             <>
               {console.log('✅ RENDERIZANDO COBERTURA PARA CLONE:', virtualCloneId)}
-              {/* Cobertura principal clicável */}
+              
+              {/* COBERTURA OVERLAY TOTAL */}
+              <div
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  width: '100vw',
+                  height: '100vh',
+                  zIndex: 999999,
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer'
+                }}
+                onClick={(e) => {
+                  console.log('🎲 CLIQUE NO OVERLAY TOTAL!');
+                  e.currentTarget.style.display = 'none';
+                  if (virtualCloneId) {
+                    scratchVirtualCloneMutation.mutate(virtualCloneId);
+                  }
+                }}
+              >
+                <div style={{
+                  background: 'linear-gradient(45deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%)',
+                  padding: '40px',
+                  borderRadius: '20px',
+                  color: 'white',
+                  textAlign: 'center',
+                  fontSize: '24px',
+                  fontWeight: 'bold'
+                }}>
+                  🎲 RASPADINHA<br/>
+                  iPhone 15 Pro Max<br/>
+                  <div style={{ fontSize: '16px', marginTop: '10px' }}>
+                    Clique para raspar e ganhar desconto!
+                  </div>
+                </div>
+              </div>
+
+              {/* COBERTURA LOCAL TAMBÉM */}
               <div
                 style={{
                   position: 'absolute',
@@ -995,28 +1036,28 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  zIndex: 99999,
+                  zIndex: 50,
                   background: 'linear-gradient(45deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%)',
                   opacity: 0.95,
                   cursor: 'pointer',
-                  pointerEvents: 'auto'
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontWeight: 'bold'
                 }}
                 onClick={(e) => {
-                  console.log('🎲 Raspando clone virtual:', virtualCloneId);
+                  console.log('🎲 CLIQUE NA COBERTURA LOCAL!');
                   e.currentTarget.style.display = 'none';
+                  // Esconder overlay também
+                  const overlay = document.querySelector('[style*="position: fixed"][style*="100vw"]') as HTMLElement;
+                  if (overlay) overlay.style.display = 'none';
                   if (virtualCloneId) {
                     scratchVirtualCloneMutation.mutate(virtualCloneId);
                   }
                 }}
-              />
-              
-              {/* Texto da cobertura */}
-              <div className="absolute inset-0 z-60 flex items-center justify-center pointer-events-none">
-                <div className="text-center text-white">
-                  <div className="text-2xl font-bold mb-2">🎲</div>
-                  <div className="text-lg font-bold mb-1">RASPADINHA</div>
-                  <div className="text-sm opacity-90">Clique para raspar!</div>
-                </div>
+              >
+                🎲 RASPADINHA
               </div>
             </>
           )}
