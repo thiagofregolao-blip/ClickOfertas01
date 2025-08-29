@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
@@ -14,8 +14,8 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { X, Calendar, DollarSign, Users, Gift } from "lucide-react";
-import type { Promotion } from "@shared/schema";
+import { X, Calendar, DollarSign, Users, Gift, Package } from "lucide-react";
+import type { Promotion, Product } from "@shared/schema";
 
 const promotionSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -29,6 +29,7 @@ const promotionSchema = z.object({
   validFrom: z.string().min(1, "Data de início é obrigatória"),
   validUntil: z.string().min(1, "Data de fim é obrigatória"),
   scratchMessage: z.string().min(5, "Mensagem deve ter pelo menos 5 caracteres"),
+  baseProductId: z.string().optional(), // Produto base para a promoção
   isActive: z.boolean().default(true),
 });
 
@@ -46,6 +47,20 @@ export default function PromotionForm({ promotion, onClose, onSuccess }: Promoti
 
   const isEditing = Boolean(promotion?.id);
 
+  // Buscar produtos da loja para seleção
+  const { data: products = [], isLoading: loadingProducts } = useQuery({
+    queryKey: ["/api/products"],
+    queryFn: async () => {
+      const response = await fetch("/api/stores/me", { credentials: "include" });
+      if (!response.ok) throw new Error("Erro ao buscar loja");
+      const store = await response.json();
+      
+      const productsResponse = await fetch(`/api/stores/${store.id}/products`, { credentials: "include" });
+      if (!productsResponse.ok) throw new Error("Erro ao buscar produtos");
+      return productsResponse.json() as Product[];
+    },
+  });
+
   const form = useForm<PromotionFormData>({
     resolver: zodResolver(promotionSchema),
     defaultValues: {
@@ -62,6 +77,7 @@ export default function PromotionForm({ promotion, onClose, onSuccess }: Promoti
       validUntil: promotion?.validUntil ? 
         new Date(promotion.validUntil).toISOString().slice(0, 16) : "",
       scratchMessage: promotion?.scratchMessage || "Parabéns! Você ganhou um desconto especial!",
+      baseProductId: promotion?.baseProductId || "",
       isActive: promotion?.isActive ?? true,
     },
   });
@@ -69,6 +85,33 @@ export default function PromotionForm({ promotion, onClose, onSuccess }: Promoti
   // Auto-calcular desconto quando preços mudam
   const watchOriginalPrice = form.watch("originalPrice");
   const watchPromotionalPrice = form.watch("promotionalPrice");
+  const watchBaseProductId = form.watch("baseProductId");
+
+  // Auto-preencher campos com dados do produto selecionado
+  useEffect(() => {
+    if (watchBaseProductId && products.length > 0) {
+      const selectedProduct = products.find(p => p.id === watchBaseProductId);
+      if (selectedProduct) {
+        form.setValue("name", `${selectedProduct.name} - PROMOÇÃO ESPECIAL`);
+        if (selectedProduct.description) {
+          form.setValue("description", selectedProduct.description);
+        }
+        if (selectedProduct.imageUrl) {
+          form.setValue("imageUrl", selectedProduct.imageUrl);
+        }
+        if (selectedProduct.category) {
+          form.setValue("category", selectedProduct.category);
+        }
+        if (selectedProduct.price) {
+          form.setValue("originalPrice", selectedProduct.price);
+          // Sugerir 30% de desconto por padrão
+          const original = parseFloat(selectedProduct.price);
+          const promotional = Math.round(original * 0.7 * 100) / 100;
+          form.setValue("promotionalPrice", promotional.toString());
+        }
+      }
+    }
+  }, [watchBaseProductId, products, form]);
 
   useEffect(() => {
     if (watchOriginalPrice && watchPromotionalPrice && !isCalculatingDiscount) {
@@ -145,10 +188,16 @@ export default function PromotionForm({ promotion, onClose, onSuccess }: Promoti
       return;
     }
 
-    if (validFrom < now) {
+    // Ajustar validação para permitir data de hoje
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Início do dia
+    const startDate = new Date(validFrom);
+    startDate.setHours(0, 0, 0, 0); // Início do dia
+
+    if (startDate < today) {
       toast({
         title: "Erro de validação", 
-        description: "A data de início não pode ser no passado.",
+        description: "A data de início não pode ser anterior a hoje.",
         variant: "destructive",
       });
       return;
@@ -280,6 +329,46 @@ export default function PromotionForm({ promotion, onClose, onSuccess }: Promoti
                     )}
                   />
                 </div>
+
+                {/* Produto Base */}
+                <FormField
+                  control={form.control}
+                  name="baseProductId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Package className="w-4 h-4" />
+                        Produto Base (Opcional)
+                      </FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um produto para copiar dados" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="">
+                            <span className="text-gray-500">Sem produto base</span>
+                          </SelectItem>
+                          {products.map((product) => (
+                            <SelectItem key={product.id} value={product.id}>
+                              <div className="flex items-center gap-2">
+                                <span className="truncate">{product.name}</span>
+                                <span className="text-xs text-gray-500">
+                                  - {product.price}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-gray-600">
+                        Selecione um produto para copiar automaticamente: nome, descrição, imagem e preços
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               {/* Preços */}
