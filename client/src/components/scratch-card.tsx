@@ -242,39 +242,39 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     console.log(`%c🎯 COPIANDO SUA IMAGEM EXATAMENTE! 🎯`, 
       'background: linear-gradient(to bottom, #FFA500, #FF1493, #8B008B); color: white; padding: 8px; font-weight: bold;');
     
-    // 🌈 GRADIENTE VERTICAL IGUAL A IMAGEM: Laranja → Rosa → Roxo
+    // 🌈 GRADIENTE EXATO DA SUA IMAGEM: Laranja brilhante → Magenta profundo  
     const gradient = ctx.createLinearGradient(0, 0, 0, cssHeight);
-    gradient.addColorStop(0, '#FFA500');    // Laranja topo (igual imagem)
-    gradient.addColorStop(0.5, '#FF4500');  // Laranja-vermelho meio
-    gradient.addColorStop(0.75, '#FF1493'); // Rosa intenso
-    gradient.addColorStop(1, '#8B008B');    // Roxo/magenta base (igual imagem)
+    gradient.addColorStop(0, '#FF8C00');    // Laranja brilhante topo
+    gradient.addColorStop(0.4, '#FF6347');  // Laranja-vermelho 
+    gradient.addColorStop(0.7, '#DC143C');  // Vermelho-rosa
+    gradient.addColorStop(1, '#8B008B');    // Magenta escuro base
 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, cssWidth, cssHeight);
     
-    // ⚡ LINHAS BRILHANTES DIAGONAIS (copiando posições da imagem)
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.lineWidth = 4;
-    ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
-    ctx.shadowBlur = 8;
+    // ⚡ LINHAS EXATAS DA SUA IMAGEM (observando a referência precisamente)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+    ctx.shadowBlur = 6;
     ctx.lineCap = 'round';
     
-    // Linha diagonal principal (canto superior esquerdo para baixo direita)
+    // Linha diagonal longa principal (da esquerda superior à direita inferior)
     ctx.beginPath();
-    ctx.moveTo(cssWidth * 0.05, cssHeight * 0.15);
-    ctx.lineTo(cssWidth * 0.85, cssHeight * 0.70);
+    ctx.moveTo(cssWidth * 0.00, cssHeight * 0.25);
+    ctx.lineTo(cssWidth * 0.95, cssHeight * 0.75);
     ctx.stroke();
     
-    // Linha diagonal superior (mais curta)
+    // Linha diagonal curta superior
     ctx.beginPath();
-    ctx.moveTo(cssWidth * 0.35, cssHeight * 0.05);
-    ctx.lineTo(cssWidth * 0.90, cssHeight * 0.40);
+    ctx.moveTo(cssWidth * 0.40, cssHeight * 0.00);
+    ctx.lineTo(cssWidth * 1.00, cssHeight * 0.35);
     ctx.stroke();
     
-    // Linha diagonal inferior (atravessando embaixo)
+    // Linha diagonal inferior esquerda
     ctx.beginPath();
-    ctx.moveTo(cssWidth * 0.10, cssHeight * 0.75);
-    ctx.lineTo(cssWidth * 0.65, cssHeight * 0.95);
+    ctx.moveTo(cssWidth * 0.00, cssHeight * 0.70);
+    ctx.lineTo(cssWidth * 0.60, cssHeight * 1.00);
     ctx.stroke();
     
     // ✨ PARTÍCULAS PEQUENAS COMO NA IMAGEM
@@ -300,12 +300,13 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       ctx.fill();
     });
     
-    // ⭐ ESTRELA GRANDE NO CANTO (exatamente como na imagem)
-    ctx.font = 'bold 20px Arial';
+    // ◆ DIAMANTE GRANDE NO CANTO (exatamente como na imagem)
+    ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-    ctx.shadowBlur = 6;
-    ctx.fillText('✦', cssWidth * 0.90, cssHeight * 0.90);
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+    ctx.shadowBlur = 8;
+    ctx.fillText('◆', cssWidth * 0.92, cssHeight * 0.92);
     
     console.log("✅ Gradiente desenhado!");
 
