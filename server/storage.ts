@@ -105,6 +105,7 @@ export interface IStorage {
   
   // Virtual Clone operations (NEW)
   createVirtualClones(campaignId: string, assignedUserIds: string[], productSnapshot: any): Promise<VirtualScratchClone[]>;
+  getVirtualCloneById(cloneId: string): Promise<VirtualScratchCloneWithDetails | undefined>;
   getUserAvailableClone(userId: string, productId: string): Promise<VirtualScratchCloneWithDetails | undefined>;
   markCloneAsUsed(cloneId: string): Promise<VirtualScratchClone>;
   markExpiredClones(): Promise<void>;
@@ -1030,6 +1031,60 @@ export class DatabaseStorage implements IStorage {
       .orderBy(virtualScratchClones.createdAt);
 
     return clones as VirtualScratchCloneWithDetails[];
+  }
+
+  // Buscar clone virtual por ID
+  async getVirtualCloneById(cloneId: string): Promise<VirtualScratchCloneWithDetails | undefined> {
+    const [clone] = await db
+      .select({
+        id: virtualScratchClones.id,
+        campaignId: virtualScratchClones.campaignId,
+        productId: virtualScratchClones.productId,
+        storeId: virtualScratchClones.storeId,
+        assignedUserId: virtualScratchClones.assignedUserId,
+        productName: virtualScratchClones.productName,
+        productDescription: virtualScratchClones.productDescription,
+        originalPrice: virtualScratchClones.originalPrice,
+        discountPrice: virtualScratchClones.discountPrice,
+        productImageUrl: virtualScratchClones.productImageUrl,
+        productCategory: virtualScratchClones.productCategory,
+        isUsed: virtualScratchClones.isUsed,
+        isExpired: virtualScratchClones.isExpired,
+        notificationSent: virtualScratchClones.notificationSent,
+        usedAt: virtualScratchClones.usedAt,
+        expiresAt: virtualScratchClones.expiresAt,
+        createdAt: virtualScratchClones.createdAt,
+        campaign: {
+          id: scratchCampaigns.id,
+          title: scratchCampaigns.title,
+          description: scratchCampaigns.description,
+          discountPercentage: scratchCampaigns.discountPercentage,
+        },
+        product: {
+          id: products.id,
+          name: products.name,
+          description: products.description,
+          price: products.price,
+          imageUrl: products.imageUrl,
+          category: products.category,
+        },
+        store: {
+          id: stores.id,
+          name: stores.name,
+          logoUrl: stores.logoUrl,
+          themeColor: stores.themeColor,
+          currency: stores.currency,
+          whatsapp: stores.whatsapp,
+          slug: stores.slug,
+        },
+      })
+      .from(virtualScratchClones)
+      .leftJoin(scratchCampaigns, eq(virtualScratchClones.campaignId, scratchCampaigns.id))
+      .leftJoin(products, eq(virtualScratchClones.productId, products.id))
+      .leftJoin(stores, eq(virtualScratchClones.storeId, stores.id))
+      .where(eq(virtualScratchClones.id, cloneId));
+
+    return clone as VirtualScratchCloneWithDetails | undefined;
   }
 
   async getUserAvailableClone(userId: string, productId: string): Promise<VirtualScratchCloneWithDetails | undefined> {

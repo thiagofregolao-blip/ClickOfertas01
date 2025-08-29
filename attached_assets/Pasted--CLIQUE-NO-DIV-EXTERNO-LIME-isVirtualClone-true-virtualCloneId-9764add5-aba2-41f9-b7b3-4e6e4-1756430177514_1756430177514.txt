@@ -1,0 +1,29 @@
+🟢 CLIQUE NO DIV EXTERNO LIME! {isVirtualClone: true, virtualCloneId: '9764add5-aba2-41f9-b7b3-4e6e45e2e829'}
+scratch-card.tsx:958 🎯 Simulando raspagem do clone virtual: 9764add5-aba2-41f9-b7b3-4e6e45e2e829
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: true, virtualCloneId: '9764add5-aba2-41f9-b7b3-4e6e45e2e829', …}
+scratch-card.tsx:116  POST https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/api/virtual-clones/9764add5-aba2-41f9-b7b3-4e6e45e2e829/scratch 404 (Not Found)
+mutationFn @ scratch-card.tsx:116
+fn @ @tanstack_react-query.js?v=8b1ec45d:1189
+run @ @tanstack_react-query.js?v=8b1ec45d:494
+start @ @tanstack_react-query.js?v=8b1ec45d:536
+execute @ @tanstack_react-query.js?v=8b1ec45d:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=8b1ec45d:2630
+(anonymous) @ @tanstack_react-query.js?v=8b1ec45d:3295
+onClick @ scratch-card.tsx:959
+callCallback2 @ chunk-RPCDYKBN.js?v=8b1ec45d:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=8b1ec45d:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=8b1ec45d:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=8b1ec45d:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=8b1ec45d:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=8b1ec45d:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=8b1ec45d:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=8b1ec45d:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=8b1ec45d:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=8b1ec45d:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=8b1ec45d:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=8b1ec45d:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=8b1ec45d:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=8b1ec45d:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=8b1ec45d:5449Understand this error
+scratch-card.tsx:38 🎯 ScratchCard renderizado: {productId: 'e20c6d66-d0f1-4802-9455-a31d434fa1ae', productName: 'Carregador Portátil para Notebook Nejifu NJF-7X 64000mAh', isScratchCard: true, isVirtualClone: true, virtualCloneId: '9764add5-aba2-41f9-b7b3-4e6e45e2e829', …}

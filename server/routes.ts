@@ -1224,10 +1224,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Usuário não autenticado" });
       }
 
-      // Buscar clone e validar (busca direta por ID seria melhor)
-      const clone = await storage.getUserAvailableClone(userId, "");
-      if (!clone || clone.id !== cloneId) {
-        return res.status(404).json({ message: "Clone não encontrado ou não disponível" });
+      // Buscar clone pelo ID diretamente
+      const clone = await storage.getVirtualCloneById(cloneId);
+      if (!clone) {
+        return res.status(404).json({ message: "Clone não encontrado" });
+      }
+
+      // Verificar se o clone pertence ao usuário
+      if (clone.userId !== userId) {
+        return res.status(403).json({ message: "Clone não pertence ao usuário" });
       }
 
       if (clone.isUsed || clone.isExpired) {
