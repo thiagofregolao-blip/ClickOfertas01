@@ -526,20 +526,39 @@ export default function PublicFlyer() {
             storeParams ? (
               // Layout moderno para páginas de loja individual (/stores/:slug)
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {/* PRODUTOS ORIGINAIS */}
+                {/* PRODUTOS ORIGINAIS + PROMOÇÕES COM RASPADINHA */}
                 {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    currency={store?.currency || "USD"}
-                    themeColor={store?.themeColor || "#E11D48"}
-                    showFeaturedBadge={true}
-                    enableEngagement={true}
-                    onClick={(product) => {
-                      setSelectedProduct(product);
-                      setSelectedStore(store || null);
-                    }}
-                  />
+                  product.isScratchCard ? (
+                    // PROMOÇÃO: Renderizar como ScratchCard
+                    <div key={product.id} className="relative">
+                      <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                        🎁 PROMOÇÃO
+                      </div>
+                      <ScratchCard
+                        product={product}
+                        currency={store?.currency || "Gs."}
+                        themeColor={store?.themeColor || "#E11D48"}
+                        onClick={(product) => {
+                          setSelectedProduct(product);
+                          setSelectedStore(store || null);
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    // PRODUTO NORMAL: Renderizar como ProductCard
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      currency={store?.currency || "USD"}
+                      themeColor={store?.themeColor || "#E11D48"}
+                      showFeaturedBadge={true}
+                      enableEngagement={true}
+                      onClick={(product) => {
+                        setSelectedProduct(product);
+                        setSelectedStore(store || null);
+                      }}
+                    />
+                  )
                 ))}
                 
 
@@ -591,21 +610,40 @@ export default function PublicFlyer() {
                   ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
                   : 'grid-cols-3 md:grid-cols-4 lg:grid-cols-6'
               }`}>
-                {/* PRODUTOS ORIGINAIS */}
+                {/* PRODUTOS ORIGINAIS + PROMOÇÕES COM RASPADINHA */}
                 {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    currency={store?.currency || "Gs."}
-                    themeColor={store?.themeColor || "#E11D48"}
-                    showFeaturedBadge={product.isFeatured || false}
-                    enableEngagement={true}
-                    onClick={(product) => {
-                      setSelectedProduct(product);
-                      setSelectedStore(store || null);
-                    }}
-                    customUsdBrlRate={store?.customUsdBrlRate ? Number(store.customUsdBrlRate) : undefined}
-                  />
+                  product.isScratchCard ? (
+                    // PROMOÇÃO: Renderizar como ScratchCard
+                    <div key={product.id} className="relative">
+                      <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                        🎁 PROMOÇÃO
+                      </div>
+                      <ScratchCard
+                        product={product}
+                        currency={store?.currency || "Gs."}
+                        themeColor={store?.themeColor || "#E11D48"}
+                        onClick={(product) => {
+                          setSelectedProduct(product);
+                          setSelectedStore(store || null);
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    // PRODUTO NORMAL: Renderizar como ProductCard
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      currency={store?.currency || "Gs."}
+                      themeColor={store?.themeColor || "#E11D48"}
+                      showFeaturedBadge={product.isFeatured || false}
+                      enableEngagement={true}
+                      onClick={(product) => {
+                        setSelectedProduct(product);
+                        setSelectedStore(store || null);
+                      }}
+                      customUsdBrlRate={store?.customUsdBrlRate ? Number(store.customUsdBrlRate) : undefined}
+                    />
+                  )
                 ))}
                 
 
