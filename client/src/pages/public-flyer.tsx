@@ -490,11 +490,6 @@ export default function PublicFlyer() {
             </div>
           )}
 
-          {/* TESTE FINAL - SEMPRE VISÍVEL */}
-          <div className="bg-purple-600 text-white p-4 rounded mb-4">
-            TESTE FINAL: Esta seção deveria sempre aparecer! Promoções: {activePromotions.length}
-          </div>
-          
           {/* PROMOÇÕES ATIVAS */}
           {activePromotions.length > 0 && (
             <div className="mb-6">
@@ -512,15 +507,20 @@ export default function PublicFlyer() {
                         description: promotion.description || "",
                         price: promotion.originalPrice,
                         imageUrl: promotion.imageUrl || "",
+                        imageUrl2: null,
+                        imageUrl3: null,
                         category: promotion.category,
                         storeId: promotion.storeId,
                         isActive: true,
                         isFeatured: false,
                         showInStories: false,
+                        sortOrder: 0,
                         isScratchCard: true,
                         scratchMessage: promotion.scratchMessage || "Parabéns! Você ganhou um desconto especial!",
                         scratchPrice: promotion.promotionalPrice,
                         scratchExpiresAt: promotion.validUntil || new Date().toISOString(),
+                        scratchTimeLimitMinutes: null,
+                        scratchBackgroundColor: null,
                         createdAt: new Date(promotion.createdAt),
                         updatedAt: new Date(promotion.updatedAt)
                       }}
@@ -558,21 +558,7 @@ export default function PublicFlyer() {
                   />
                 ))}
                 
-                {/* TESTE FIXO */}
-                <div className="bg-blue-500 text-white p-4 rounded">
-                  TESTE FIXO: Esta div sempre deveria aparecer
-                </div>
-                
-                {/* TESTE: Promoções simplificadas */}
-                {activePromotions.length > 0 ? (
-                  <div className="bg-red-500 text-white p-4 rounded">
-                    TESTE: {activePromotions.length} promoções encontradas
-                  </div>
-                ) : (
-                  <div className="bg-yellow-500 text-black p-4 rounded">
-                    TESTE: Nenhuma promoção encontrada (array length: {activePromotions.length})
-                  </div>
-                )}
+
 
                 {/* TEMPORARIAMENTE DESABILITADO - CLONES VIRTUAIS - aparecem como raspadinhas com badge */}
                 {/*
@@ -638,21 +624,7 @@ export default function PublicFlyer() {
                   />
                 ))}
                 
-                {/* TESTE FIXO */}
-                <div className="bg-blue-500 text-white p-4 rounded">
-                  TESTE FIXO: Esta div sempre deveria aparecer
-                </div>
-                
-                {/* TESTE: Promoções simplificadas */}
-                {activePromotions.length > 0 ? (
-                  <div className="bg-red-500 text-white p-4 rounded">
-                    TESTE: {activePromotions.length} promoções encontradas
-                  </div>
-                ) : (
-                  <div className="bg-yellow-500 text-black p-4 rounded">
-                    TESTE: Nenhuma promoção encontrada (array length: {activePromotions.length})
-                  </div>
-                )}
+
 
                 {/* TEMPORARIAMENTE DESABILITADO - CLONES VIRTUAIS - aparecem como raspadinhas com badge */}
                 {/*
