@@ -121,21 +121,25 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
         setShowModal(false);
         setShowCouponModal(true);
         
-        // NEW: Invalidar cache das promoções personalizadas para que o cupom usado desapareça
-        queryClient.invalidateQueries({
-          predicate: (query) => {
-            // Invalida todas as queries que contém 'my-available-promotions'
-            return query.queryKey.some(key => 
-              typeof key === 'string' && key.includes('my-available-promotions')
-            );
-          }
-        });
-        console.log('🎯 Cache das promoções personalizadas invalidado após gerar cupom');
-        
         toast({
           title: "🎉 Cupom gerado!",
-          description: "Veja os detalhes do seu cupom!",
-          duration: 6000, // Aumentado de 3s para 6s
+          description: "Veja os detalhes do seu cupom! Clique para fechar.",
+          // SEM DURATION - fica aberto até usuário fechar manualmente
+          action: {
+            label: "Fechar",
+            onClick: () => {
+              // NEW: Invalidar cache APENAS quando usuário fechar o toast
+              queryClient.invalidateQueries({
+                predicate: (query) => {
+                  // Invalida todas as queries que contém 'my-available-promotions'
+                  return query.queryKey.some(key => 
+                    typeof key === 'string' && key.includes('my-available-promotions')
+                  );
+                }
+              });
+              console.log('🎯 Cache das promoções invalidado APÓS usuário fechar');
+            }
+          }
         });
       }
     },
