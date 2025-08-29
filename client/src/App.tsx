@@ -37,8 +37,8 @@ function Router() {
       <Switch>
         <Route path="/" component={Landing} />
         <Route path="/cards" component={LoadingComponent} />
-        <Route path="/flyer/:slug" component={LoadingComponent} />
-        <Route path="/stores/:slug" component={LoadingComponent} />
+        <Route path="/flyer/:slug" component={PublicFlyer} />
+        <Route path="/stores/:slug" component={PublicFlyer} />
         <Route path="/admin" component={LoadingComponent} />
         <Route path="/admin/*" component={LoadingComponent} />
         <Route path="/settings" component={LoadingComponent} />

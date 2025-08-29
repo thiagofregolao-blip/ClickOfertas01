@@ -104,13 +104,15 @@ export default function PublicFlyer() {
   const virtualClones: any[] = []; // Array vazio para desabilitar clones
 
   // NOVO: Buscar promoções ativas para exibir como scratch cards
-  const { data: activePromotions = [] } = useQuery<PromotionWithDetails[]>({
+  const { data: activePromotions = [] } = useQuery<any[]>({
     queryKey: ['/api/public/promotions/active'],
     staleTime: 2 * 60 * 1000, // 2 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos
     refetchOnWindowFocus: false,
     refetchOnMount: true,
   });
+  
+  // REMOVIDO: Debug desnecessário
   
 
   // Registrar visualização do panfleto/loja quando carregado
@@ -197,6 +199,8 @@ export default function PublicFlyer() {
     }
   };
 
+  // Continuar com renderização normal
+  
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -486,6 +490,53 @@ export default function PublicFlyer() {
             </div>
           )}
 
+          {/* TESTE FINAL - SEMPRE VISÍVEL */}
+          <div className="bg-purple-600 text-white p-4 rounded mb-4">
+            TESTE FINAL: Esta seção deveria sempre aparecer! Promoções: {activePromotions.length}
+          </div>
+          
+          {/* PROMOÇÕES ATIVAS */}
+          {activePromotions.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-xl font-bold mb-4 text-center">🎁 PROMOÇÕES ESPECIAIS</h2>
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                {activePromotions.map((promotion) => (
+                  <div key={promotion.id} className="relative">
+                    <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                      🎁 PROMOÇÃO
+                    </div>
+                    <ScratchCard
+                      product={{
+                        id: promotion.id,
+                        name: promotion.name,
+                        description: promotion.description || "",
+                        price: promotion.originalPrice,
+                        imageUrl: promotion.imageUrl || "",
+                        category: promotion.category,
+                        storeId: promotion.storeId,
+                        isActive: true,
+                        isFeatured: false,
+                        showInStories: false,
+                        isScratchCard: true,
+                        scratchMessage: promotion.scratchMessage || "Parabéns! Você ganhou um desconto especial!",
+                        scratchPrice: promotion.promotionalPrice,
+                        scratchExpiresAt: promotion.validUntil || new Date().toISOString(),
+                        createdAt: new Date(promotion.createdAt),
+                        updatedAt: new Date(promotion.updatedAt)
+                      }}
+                      currency={store?.currency || "Gs."}
+                      themeColor={store?.themeColor || "#E11D48"}
+                      onClick={(product) => {
+                        setSelectedProduct(product);
+                        setSelectedStore(store || null);
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Products Grid */}
           {filteredProducts.length > 0 || virtualClones.length > 0 ? (
             storeParams ? (
@@ -507,41 +558,21 @@ export default function PublicFlyer() {
                   />
                 ))}
                 
-                {/* PROMOÇÕES ATIVAS - aparecem como raspadinhas com badge */}
-                {activePromotions.map((promotion) => (
-                  <div key={`promotion-${promotion.id}`} className="relative">
-                    {/* Badge Promoção */}
-                    <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                      🎁 PROMOÇÃO
-                    </div>
-                    <ScratchCard
-                      product={{
-                        id: promotion.id,
-                        name: promotion.name,
-                        description: promotion.description || "",
-                        price: promotion.originalPrice,
-                        imageUrl: promotion.imageUrl || "",
-                        category: promotion.category,
-                        storeId: promotion.storeId,
-                        isActive: true,
-                        isFeatured: false,
-                        showInStories: false,
-                        isScratchCard: true,
-                        scratchMessage: promotion.scratchMessage || "Parabéns! Você ganhou um desconto especial!",
-                        scratchPrice: promotion.promotionalPrice,
-                        scratchExpiresAt: promotion.validUntil ? new Date(promotion.validUntil) : new Date(),
-                        createdAt: promotion.createdAt,
-                        updatedAt: promotion.updatedAt
-                      }}
-                      currency={store?.currency || "USD"}
-                      themeColor={store?.themeColor || "#E11D48"}
-                      onClick={(product) => {
-                        setSelectedProduct(product);
-                        setSelectedStore(store || null);
-                      }}
-                    />
+                {/* TESTE FIXO */}
+                <div className="bg-blue-500 text-white p-4 rounded">
+                  TESTE FIXO: Esta div sempre deveria aparecer
+                </div>
+                
+                {/* TESTE: Promoções simplificadas */}
+                {activePromotions.length > 0 ? (
+                  <div className="bg-red-500 text-white p-4 rounded">
+                    TESTE: {activePromotions.length} promoções encontradas
                   </div>
-                ))}
+                ) : (
+                  <div className="bg-yellow-500 text-black p-4 rounded">
+                    TESTE: Nenhuma promoção encontrada (array length: {activePromotions.length})
+                  </div>
+                )}
 
                 {/* TEMPORARIAMENTE DESABILITADO - CLONES VIRTUAIS - aparecem como raspadinhas com badge */}
                 {/*
@@ -607,41 +638,21 @@ export default function PublicFlyer() {
                   />
                 ))}
                 
-                {/* PROMOÇÕES ATIVAS - aparecem como raspadinhas com badge */}
-                {activePromotions.map((promotion) => (
-                  <div key={`promotion-${promotion.id}`} className="relative">
-                    {/* Badge Promoção */}
-                    <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                      🎁 PROMOÇÃO
-                    </div>
-                    <ScratchCard
-                      product={{
-                        id: promotion.id,
-                        name: promotion.name,
-                        description: promotion.description || "",
-                        price: promotion.originalPrice,
-                        imageUrl: promotion.imageUrl || "",
-                        category: promotion.category,
-                        storeId: promotion.storeId,
-                        isActive: true,
-                        isFeatured: false,
-                        showInStories: false,
-                        isScratchCard: true,
-                        scratchMessage: promotion.scratchMessage || "Parabéns! Você ganhou um desconto especial!",
-                        scratchPrice: promotion.promotionalPrice,
-                        scratchExpiresAt: promotion.validUntil ? new Date(promotion.validUntil) : new Date(),
-                        createdAt: promotion.createdAt,
-                        updatedAt: promotion.updatedAt
-                      }}
-                      currency={store?.currency || "USD"}
-                      themeColor={store?.themeColor || "#E11D48"}
-                      onClick={(product) => {
-                        setSelectedProduct(product);
-                        setSelectedStore(store || null);
-                      }}
-                    />
+                {/* TESTE FIXO */}
+                <div className="bg-blue-500 text-white p-4 rounded">
+                  TESTE FIXO: Esta div sempre deveria aparecer
+                </div>
+                
+                {/* TESTE: Promoções simplificadas */}
+                {activePromotions.length > 0 ? (
+                  <div className="bg-red-500 text-white p-4 rounded">
+                    TESTE: {activePromotions.length} promoções encontradas
                   </div>
-                ))}
+                ) : (
+                  <div className="bg-yellow-500 text-black p-4 rounded">
+                    TESTE: Nenhuma promoção encontrada (array length: {activePromotions.length})
+                  </div>
+                )}
 
                 {/* TEMPORARIAMENTE DESABILITADO - CLONES VIRTUAIS - aparecem como raspadinhas com badge */}
                 {/*
