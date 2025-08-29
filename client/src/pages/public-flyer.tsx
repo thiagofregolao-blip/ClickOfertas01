@@ -543,7 +543,7 @@ export default function PublicFlyer() {
                     // PROMOÇÃO REAL: Renderizar como ScratchCard
                     <div key={product.id} className="relative">
                       <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                        🎁 PROMOÇÃO
+                        RASPE AQUI
                       </div>
                       <ScratchCard
                         product={product}
@@ -638,7 +638,7 @@ export default function PublicFlyer() {
                     // PROMOÇÃO REAL: Renderizar como ScratchCard
                     <div key={product.id} className="relative">
                       <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                        🎁 PROMOÇÃO
+                        RASPE AQUI
                       </div>
                       <ScratchCard
                         product={product}
