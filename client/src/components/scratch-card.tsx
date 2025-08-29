@@ -931,6 +931,33 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Render do card para raspar
   return (
     <>
+      {/* TESTE EXTERNO - Div vermelho fora do container para testar visibilidade */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          width: '100px',
+          height: '50px',
+          backgroundColor: 'red',
+          border: '3px solid black',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontWeight: 'bold',
+          fontSize: '10px',
+          cursor: 'pointer'
+        }}
+        onClick={(e) => {
+          console.log('🔴 CLIQUE NO DIV EXTERNO VERMELHO!', { isVirtualClone, virtualCloneId });
+          e.stopPropagation();
+        }}
+      >
+        TESTE EXTERNO
+      </div>
+      
       <div 
         className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer select-none"
         onClick={(e) => {
