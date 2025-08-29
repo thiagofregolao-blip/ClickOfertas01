@@ -349,7 +349,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     ctx.shadowOffsetX = 1;
     ctx.shadowOffsetY = 1;
     ctx.shadowBlur = 3;
-    ctx.fillStyle = 'rgba(40, 40, 40, 0.3)'; // Cinza escuro ainda mais transparente
+    ctx.fillStyle = 'rgba(40, 40, 40, 0.2)'; // Cinza escuro super transparente
     
     // Retângulo cobrindo todo o canvas
     ctx.fillRect(0, 0, cssWidth, cssHeight);
