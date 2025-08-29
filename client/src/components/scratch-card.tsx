@@ -343,24 +343,16 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const lineHeight = 24;
     const startY = cssHeight / 2 - (lines.length * lineHeight) / 2;
     
-    // 📦 FUNDO SEMI-TRANSPARENTE PARA O TEXTO
-    const textAreaHeight = lines.length * lineHeight + 20; // +20px padding
-    const textAreaWidth = cssWidth * 0.8; // 80% da largura
-    const bgX = cssWidth / 2 - textAreaWidth / 2;
-    const bgY = startY - 10; // -10px padding superior
-    
-    // Desenhar fundo com cantos arredondados
+    // 📦 FUNDO COMPLETO PARA O TEXTO (COBRINDO TODO O CANVAS)
+    // Desenhar fundo cobrindo toda a área
     ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
     ctx.shadowOffsetX = 2;
     ctx.shadowOffsetY = 2;
     ctx.shadowBlur = 6;
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; // Preto semi-transparente
     
-    // Retângulo com cantos arredondados
-    const cornerRadius = 10;
-    ctx.beginPath();
-    ctx.roundRect(bgX, bgY, textAreaWidth, textAreaHeight, cornerRadius);
-    ctx.fill();
+    // Retângulo cobrindo todo o canvas
+    ctx.fillRect(0, 0, cssWidth, cssHeight);
     
     // ✨ TEXTO SOBRE O FUNDO
     ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
