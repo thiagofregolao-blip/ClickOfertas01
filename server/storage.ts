@@ -304,7 +304,11 @@ export class DatabaseStorage implements IStorage {
   async updateProduct(productId: string, storeId: string, productData: UpdateProduct): Promise<Product> {
     const [product] = await db
       .update(products)
-      .set({ ...productData, updatedAt: new Date() })
+      .set({ 
+        ...productData,
+        updatedAt: new Date(),
+        scratchExpiresAt: productData.scratchExpiresAt ? new Date(productData.scratchExpiresAt) : null
+      })
       .where(and(eq(products.id, productId), eq(products.storeId, storeId)))
       .returning();
     return product;
@@ -408,11 +412,20 @@ export class DatabaseStorage implements IStorage {
         description: result.productDescription,
         price: result.productPrice,
         imageUrl: result.productImageUrl,
+        imageUrl2: result.productImageUrl2 || null,
+        imageUrl3: result.productImageUrl3 || null,
         category: result.productCategory,
         isFeatured: result.productIsFeatured,
         showInStories: result.productShowInStories,
         isActive: result.productIsActive,
         sortOrder: result.productSortOrder,
+        isScratchCard: result.productIsScratchCard || false,
+        scratchPrice: result.productScratchPrice || null,
+        scratchExpiresAt: result.productScratchExpiresAt || null,
+        scratchTimeLimitMinutes: result.productScratchTimeLimitMinutes || null,
+        maxScratchRedemptions: result.productMaxScratchRedemptions || null,
+        currentScratchRedemptions: result.productCurrentScratchRedemptions || null,
+        scratchMessage: result.productScratchMessage || null,
         storeId: result.productStoreId,
         createdAt: result.productCreatedAt,
         updatedAt: result.productUpdatedAt,
@@ -1099,7 +1112,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(virtualScratchClones.isUsed, false),
         eq(virtualScratchClones.isExpired, false),
-        gte(new Date(), virtualScratchClones.expiresAt)
+        lte(virtualScratchClones.expiresAt, new Date())
       ));
   }
 
