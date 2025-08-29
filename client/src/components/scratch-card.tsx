@@ -135,7 +135,7 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
         toast({
           title: "🎉 Cupom gerado!",
           description: "Veja os detalhes do seu cupom!",
-          duration: 3000,
+          duration: 6000, // Aumentado de 3s para 6s
         });
       }
     },
