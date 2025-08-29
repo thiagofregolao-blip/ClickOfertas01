@@ -36,18 +36,7 @@ interface ScratchArea {
 
 export default function ScratchCard({ product, currency, themeColor, onRevealed, onClick, isVirtualClone = false, virtualCloneId, isPromotion = false, promotionId }: ScratchCardProps) {
   
-  // 🔍 DEBUG LOGS
-  console.log('🎯 ScratchCard renderizado:', {
-    productId: product.id,
-    productName: product.name,
-    isScratchCard: product.isScratchCard,
-    isVirtualClone,
-    virtualCloneId,
-    isPromotion,
-    promotionId,
-    scratchPrice: product.scratchPrice,
-    props: { isVirtualClone, virtualCloneId, isPromotion, promotionId }
-  });
+  // SISTEMA SIMPLIFICADO
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScratching, setIsScratching] = useState(false);
   const [scratchProgress, setScratchProgress] = useState(0);
@@ -72,33 +61,13 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const needsProgressCalc = useRef<boolean>(false);
   const lastPoint = useRef<{ x: number; y: number } | null>(null);
 
-  // NOVO: Query para verificar clone virtual disponível
-  const { data: virtualClone, isLoading: loadingClone } = useQuery({
-    queryKey: ['virtual-clone', product.id],
-    queryFn: async () => {
-      console.log('🔍 Buscando clone virtual para produto:', product.id);
-      const response = await fetch(`/api/virtual-clones/${product.id}/user`, { 
-        credentials: 'include' 
-      });
-      if (!response.ok) {
-        console.log('❌ Erro ao buscar clone virtual:', response.status);
-        if (response.status === 401) return { hasClone: false, clone: null };
-        throw new Error('Falha ao carregar clone virtual');
-      }
-      const result = await response.json();
-      console.log('✅ Clone virtual encontrado:', result);
-      return result as { hasClone: boolean; clone?: any };
-    },
-    staleTime: 60_000, // Cache por 1 minuto
-    enabled: !isVirtualClone && !isPromotion, // Só busca se NÃO for clone virtual nem promoção
-  });
+  // REMOVIDO: Clone virtual não existe mais
 
-  // NOVO: Query para verificar se promoção já foi usada pelo usuário
+  // Query para verificar se promoção já foi usada pelo usuário
   const { data: promotionStatus, isLoading: loadingPromotion } = useQuery({
     queryKey: ['promotion-status', promotionId],
     queryFn: async () => {
       if (!promotionId) return { isUsed: false };
-      console.log('🔍 Verificando status da promoção:', promotionId);
       const response = await fetch(`/api/promotions/${promotionId}/status`, { 
         credentials: 'include' 
       });
@@ -106,110 +75,29 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
         if (response.status === 401) return { isUsed: false };
         throw new Error('Falha ao verificar status da promoção');
       }
-      const result = await response.json();
-      console.log('✅ Status da promoção:', result);
-      return result as { isUsed: boolean; scratch?: any };
+      return await response.json();
     },
-    staleTime: 30_000, // Cache por 30 segundos
+    staleTime: 30_000,
     enabled: isPromotion && !!promotionId,
   });
 
-  // DEBUG: Log props importantes
-  useEffect(() => {
-    if (isPromotion) {
-      console.log('🎯 ScratchCard PROMOÇÃO renderizado:', {
-        promotionId,
-        isPromotion,
-        productId: product.id,
-        productName: product.name,
-        isRevealed,
-        loadingPromotion,
-        promotionStatus
-      });
-    }
-  }, [isPromotion, promotionId, product.id, product.name, isRevealed, loadingPromotion, promotionStatus]);
+  // REMOVIDO: Debug desnecessário
 
   // SISTEMA UNIFICADO: Apenas clones virtuais
 
-  // SISTEMA UNIFICADO: Sincronizar com clones virtuais e promoções
+  // Sincronizar status das promoções
   useEffect(() => {
     if (isPromotion && promotionStatus) {
-      // Lógica para promoções
       setIsRevealed(promotionStatus.isUsed);
-      
-      // Para promoções, usar o produto.scratchExpiresAt se disponível
       if (product.scratchExpiresAt) {
         const expirationTime = new Date(product.scratchExpiresAt).getTime();
         const now = Date.now();
         setTimeLeft(Math.max(0, Math.floor((expirationTime - now) / 1000)));
       }
-    } else if (virtualClone?.hasClone && virtualClone?.clone) {
-      // Lógica para clones virtuais
-      const clone = virtualClone.clone;
-      setIsRevealed(clone.isUsed);
-      
-      if (clone.expiresAt) {
-        const expirationTime = new Date(clone.expiresAt).getTime();
-        const now = Date.now();
-        setTimeLeft(Math.max(0, Math.floor((expirationTime - now) / 1000)));
-      }
-    } else if (!isPromotion && !isVirtualClone) {
-      // Produto sem clone virtual nem promoção = estado inicial limpo
-      setIsRevealed(false);
-      setTimeLeft(null);
-      setCoupon(null);
-      setCouponGenerated(false);
     }
-  }, [virtualClone, promotionStatus, isPromotion, isVirtualClone, product.scratchExpiresAt]);
+  }, [promotionStatus, isPromotion, product.scratchExpiresAt]);
 
-  // NOVA: Mutation para raspar clone virtual
-  const scratchVirtualCloneMutation = useMutation({
-    mutationFn: async (cloneId: string) => {
-      const response = await fetch(`/api/virtual-clones/${cloneId}/scratch`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`${response.status}: ${error}`);
-      }
-      
-      return await response.json();
-    },
-    onSuccess: (data: any) => {
-      setIsRevealed(true);
-      
-      // Invalidar caches para refletir mudanças
-      queryClient.invalidateQueries({ queryKey: ['virtual-clone', product.id] });
-      queryClient.invalidateQueries({ queryKey: ['coupons'] });
-      if (onRevealed) onRevealed(product);
-      
-      // Mostrar cupom diretamente (clone virtual já gera cupom automaticamente)
-      if (data?.success && data?.coupon) {
-        setCoupon(data.coupon);
-        setCouponGenerated(true);
-        setShowCouponModal(true);
-        
-        toast({
-          title: "🎉 Clone virtual raspado!",
-          description: "Seu cupom foi gerado automaticamente!",
-          duration: 3000,
-        });
-      }
-    },
-    onError: (error: any) => {
-      setIsFading(false);
-      toast({
-        title: 'Não foi possível raspar o clone',
-        description: String(error?.message || 'Tente novamente.'),
-        variant: 'destructive',
-      });
-    }
-  });
+  // REMOVIDO: Clone virtual não existe mais
 
   // NOVA: Mutation para raspar promoção
   const scratchPromotionMutation = useMutation({
@@ -339,11 +227,10 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       });
     }
     
-    // SISTEMA ORIGINAL: Só inicializa canvas para produtos com isScratchCard
+    // SISTEMA SIMPLIFICADO: Canvas só para produtos com isScratchCard
     if (isRevealed) return;
     if (!product.isScratchCard) return;
     if (isPromotion && loadingPromotion) return;
-    if (!isPromotion && !isVirtualClone && loadingClone) return;
     if (!canvasRef.current) return;
     
     const canvas = canvasRef.current;
@@ -435,39 +322,10 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
         setTimeout(() => {
           setIsRevealed(true);
           
-          // 🔍 DEBUG: Sistema de raspagem
-          console.log('🎯 Tentando raspar:', {
-            isVirtualClone,
-            virtualCloneId,
-            hasVirtualClone: virtualClone?.hasClone,
-            cloneData: virtualClone?.clone
-          });
-          
-          // SISTEMA ORIGINAL: Detectar automaticamente baseado no produto
-          console.log('🎯 Produto raspado:', {
-            productId: product.id,
-            isPromotion: isPromotion,
-            promotionId: promotionId,
-            isVirtualClone: isVirtualClone,
-            virtualCloneId: virtualCloneId,
-            hasVirtualClone: virtualClone?.hasClone
-          });
-          
+          // SISTEMA SIMPLIFICADO: Baseado apenas no tipo
           if (isPromotion && promotionId) {
-            // É uma promoção
-            console.log('🎯 Raspando promoção:', promotionId);
             scratchPromotionMutation.mutate(promotionId);
-          } else if (isVirtualClone && virtualCloneId) {
-            // É um clone virtual passado como prop
-            console.log('🎯 Raspando clone virtual via prop:', virtualCloneId);
-            scratchVirtualCloneMutation.mutate(virtualCloneId);
-          } else if (virtualClone?.hasClone && virtualClone?.clone) {
-            // É um clone virtual encontrado via API
-            console.log('🎯 Raspando clone virtual via API:', virtualClone.clone.id);
-            scratchVirtualCloneMutation.mutate(virtualClone.clone.id);
           } else {
-            // SISTEMA ORIGINAL: Produto normal com raspadinha habilitada
-            console.log('🎯 Produto normal com isScratchCard - gerando cupom:', product.id);
             generateCouponMutation.mutate(product.id);
           }
         }, 220);
@@ -499,11 +357,9 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     };
   }, []);
 
-  // SISTEMA UNIFICADO: Verificar bloqueio para clones virtuais e promoções
+  // Sistema de bloqueio simplificado
   const blocked = () => {
-    const isBlocked = isRevealed || loadingClone || loadingPromotion;
-    console.log('🔒 Verificando se está bloqueado:', { isRevealed, loadingClone, loadingPromotion, isBlocked });
-    return isBlocked;
+    return isRevealed || loadingPromotion;
   };
 
   // Função de scratch melhorada
@@ -586,14 +442,9 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Event handlers
   const handleMouseDown = (e: React.MouseEvent) => {
-    console.log('🖱️ Mouse Down detectado!', { isRevealed, isVirtualClone, virtualCloneId });
-    if (blocked()) {
-      console.log('❌ Bloqueado pela função blocked()');
-      return;
-    }
-    console.log('✅ Iniciando raspagem...');
+    if (blocked()) return;
     setIsScratching(true);
-    lastPoint.current = null; // Reset traçado
+    lastPoint.current = null;
     handleScratch(e.clientX, e.clientY);
   };
 
@@ -610,15 +461,10 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Touch handlers
   const handleTouchStart = (e: React.TouchEvent) => {
-    console.log('📱 Touch Start detectado!', { isRevealed, isVirtualClone, virtualCloneId });
     e.preventDefault();
-    if (blocked()) {
-      console.log('❌ Bloqueado pela função blocked()');
-      return;
-    }
-    console.log('✅ Iniciando raspagem touch...');
+    if (blocked()) return;
     setIsScratching(true);
-    lastPoint.current = null; // Reset traçado
+    lastPoint.current = null;
     const touch = e.touches[0];
     handleScratch(touch.clientX, touch.clientY);
   };
@@ -634,7 +480,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault();
     setIsScratching(false);
-    lastPoint.current = null; // Finalizar traçado
+    lastPoint.current = null;
   };
 
   // Formatar tempo restante
