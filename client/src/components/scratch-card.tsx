@@ -254,27 +254,28 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     
     // ✅ LINHAS REMOVIDAS - visual mais limpo!
     
-    // ✨ PARTÍCULAS PEQUENAS COMO NA IMAGEM
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
-    ctx.shadowBlur = 3;
-    
-    // Pontos pequenos espalhados (como na imagem)
-    const particles = [
-      { x: cssWidth * 0.20, y: cssHeight * 0.25 },
-      { x: cssWidth * 0.75, y: cssHeight * 0.20 },
-      { x: cssWidth * 0.15, y: cssHeight * 0.45 },
-      { x: cssWidth * 0.85, y: cssHeight * 0.55 },
-      { x: cssWidth * 0.30, y: cssHeight * 0.70 },
-      { x: cssWidth * 0.70, y: cssHeight * 0.85 },
-      { x: cssWidth * 0.45, y: cssHeight * 0.35 },
-      { x: cssWidth * 0.60, y: cssHeight * 0.15 }
+    // 🎉 CONFETES COLORIDOS ESPALHADOS
+    const confetti = [
+      { x: cssWidth * 0.20, y: cssHeight * 0.25, color: '#FFD700', rotation: 15 },
+      { x: cssWidth * 0.75, y: cssHeight * 0.20, color: '#FF69B4', rotation: -30 },
+      { x: cssWidth * 0.15, y: cssHeight * 0.45, color: '#00CED1', rotation: 45 },
+      { x: cssWidth * 0.85, y: cssHeight * 0.55, color: '#98FB98', rotation: -15 },
+      { x: cssWidth * 0.30, y: cssHeight * 0.70, color: '#FFB347', rotation: 60 },
+      { x: cssWidth * 0.70, y: cssHeight * 0.85, color: '#DDA0DD', rotation: -45 },
+      { x: cssWidth * 0.45, y: cssHeight * 0.35, color: '#F0E68C', rotation: 30 },
+      { x: cssWidth * 0.60, y: cssHeight * 0.15, color: '#FFA07A', rotation: -60 }
     ];
     
-    particles.forEach(pos => {
-      ctx.beginPath();
-      ctx.arc(pos.x, pos.y, 2, 0, 2 * Math.PI);
-      ctx.fill();
+    confetti.forEach(conf => {
+      ctx.save();
+      ctx.translate(conf.x, conf.y);
+      ctx.rotate(conf.rotation * Math.PI / 180);
+      ctx.fillStyle = conf.color;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+      ctx.shadowBlur = 2;
+      // Desenhar confete como retângulo pequeno
+      ctx.fillRect(-2, -4, 4, 8);
+      ctx.restore();
     });
     
     // ◆ DIAMANTE GRANDE NO CANTO (exatamente como na imagem)
@@ -305,46 +306,30 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     ];
     
     dollarPositions.forEach(pos => {
-      // 💰 SÍMBOLO $ PREMIUM 3D - 5 CAMADAS
+      // 💰 SÍMBOLOS $ DOURADOS COM BRILHO NATURAL DE OURO
       
-      // Camada 1: Sombra profunda (efeito 3D)
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-      ctx.shadowOffsetX = 3;
-      ctx.shadowOffsetY = 3;
-      ctx.shadowBlur = 6;
-      ctx.fillStyle = '#B8860B'; // Dourado escuro
-      ctx.fillText('$', pos.x + 1, pos.y + 1);
-      
-      // Camada 2: Brilho externo dourado
-      ctx.shadowColor = 'rgba(255, 215, 0, 0.9)';
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-      ctx.shadowBlur = 12;
-      ctx.fillStyle = '#FFD700'; // Dourado médio
-      ctx.fillText('$', pos.x, pos.y);
-      
-      // Camada 3: Brilho médio
-      ctx.shadowColor = 'rgba(255, 255, 0, 0.7)';
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-      ctx.shadowBlur = 6;
-      ctx.fillStyle = '#FFFF00'; // Amarelo brilhante
-      ctx.fillText('$', pos.x, pos.y);
-      
-      // Camada 4: Highlight superior (efeito metálico)
-      ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
-      ctx.shadowOffsetX = -1;
-      ctx.shadowOffsetY = -1;
+      // Sombra sutil para contraste
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
       ctx.shadowBlur = 3;
-      ctx.fillStyle = '#FFFACD'; // Amarelo clarinho
+      ctx.fillStyle = '#B8860B'; // Sombra dourada escura
       ctx.fillText('$', pos.x, pos.y);
       
-      // Camada 5: Símbolo principal com contorno
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+      // Brilho dourado suave
+      ctx.shadowColor = 'rgba(255, 215, 0, 0.4)';
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.shadowBlur = 4;
+      ctx.fillStyle = '#DAA520'; // Dourado natural
+      ctx.fillText('$', pos.x, pos.y);
+      
+      // Símbolo principal com contraste
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
       ctx.shadowOffsetX = 1;
       ctx.shadowOffsetY = 1;
       ctx.shadowBlur = 1;
-      ctx.fillStyle = '#FFF8DC'; // Dourado claro final
+      ctx.fillStyle = '#FFD700'; // Ouro clássico
       ctx.fillText('$', pos.x, pos.y);
     });
     
