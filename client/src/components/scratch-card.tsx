@@ -967,47 +967,57 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             </div>
           </div>
 
-          {/* Canvas de raspagem - SIMPLES */}
-          <div
-            className="absolute top-0 left-0 w-full h-full cursor-pointer"
-            style={{
-              zIndex: 100,
-              backgroundColor: '#1a1a1a',
-              border: '2px solid #fbbf24'
-            }}
-            onClick={(e) => {
-              console.log('🎨 CLIQUE NA COBERTURA DE RASPAGEM!', { isVirtualClone, virtualCloneId });
-              
-              if (blocked()) {
-                console.log('❌ Bloqueado pela função blocked()');
-                return;
-              }
-              
-              // Raspar clone virtual
-              if (isVirtualClone && virtualCloneId) {
-                console.log('🎯 Raspando clone virtual:', virtualCloneId);
-                
-                // Esconder cobertura imediatamente
-                e.currentTarget.style.display = 'none';
-                
-                // Disparar raspagem
-                scratchVirtualCloneMutation.mutate(virtualCloneId);
-              }
-            }}
-          />
+          {/* DEBUG: Verificar condições */}
+          {console.log('🔍 CONDIÇÕES RASPAGEM:', {
+            isVirtualClone,
+            virtualCloneId,
+            product,
+            shouldRenderCover: isVirtualClone && virtualCloneId
+          })}
           
-          {/* Texto "RASPE AQUI" - sempre visível */}
-          <div 
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none text-yellow-300 font-bold text-xl"
-            style={{ 
-              zIndex: 9999,
-              textShadow: '2px 2px 4px rgba(0,0,0,0.9)',
-              color: '#fbbf24',
-              fontWeight: 'bold'
-            }}
-          >
-            🎲 RASPE AQUI
-          </div>
+          {/* TESTE: Cobertura SEMPRE visível para clones virtuais */}
+          {isVirtualClone && virtualCloneId && (
+            <>
+              {console.log('✅ RENDERIZANDO COBERTURA PARA CLONE:', virtualCloneId)}
+              <div
+                className="absolute top-0 left-0 w-full h-full cursor-pointer"
+                style={{
+                  zIndex: 100,
+                  backgroundColor: '#ff0000', // VERMELHO para debug
+                  border: '5px solid #00ff00', // VERDE para debug
+                  opacity: 0.8
+                }}
+                onClick={(e) => {
+                  console.log('🎨 CLIQUE NA COBERTURA VERMELHA!', { isVirtualClone, virtualCloneId });
+                  
+                  // Esconder cobertura imediatamente
+                  e.currentTarget.style.display = 'none';
+                  
+                  // Disparar raspagem
+                  if (virtualCloneId) {
+                    scratchVirtualCloneMutation.mutate(virtualCloneId);
+                  }
+                }}
+              />
+              
+              {/* Texto DEBUG */}
+              <div 
+                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ 
+                  zIndex: 200,
+                  color: '#ffffff',
+                  fontWeight: 'bold',
+                  fontSize: '16px',
+                  textShadow: '2px 2px 4px rgba(0,0,0,1)',
+                  backgroundColor: 'rgba(0,0,0,0.8)',
+                  padding: '5px 10px',
+                  borderRadius: '5px'
+                }}
+              >
+                🎲 CLIQUE AQUI DEBUG
+              </div>
+            </>
+          )}
 
           {/* Efeito gradual do desconto - aparece conforme raspa */}
           {scratchProgress > 0.3 && !isRevealed && (
