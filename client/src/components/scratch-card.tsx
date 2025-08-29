@@ -364,7 +364,14 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       const x = cssWidth / 2;
       const y = startY + (index * lineHeight);
       
-      // Texto branco brilhante sobre fundo escuro
+      // 🖤 CONTORNO PRETO PRIMEIRO
+      ctx.strokeStyle = '#000000'; // Preto sólido
+      ctx.lineWidth = 3; // Contorno espesso
+      ctx.lineJoin = 'round'; // Cantos arredondados
+      ctx.miterLimit = 2;
+      ctx.strokeText(line, x, y);
+      
+      // ✨ TEXTO BRANCO POR CIMA
       ctx.fillStyle = '#FFFFFF';
       ctx.fillText(line, x, y);
     });
