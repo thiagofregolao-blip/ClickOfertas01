@@ -931,6 +931,38 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Render do card para raspar
   return (
     <>
+      {/* TESTE EXTREMO: Div totalmente fora do container */}
+      <div
+        style={{
+          position: 'fixed',
+          top: '50px',
+          left: '50px',
+          width: '200px',
+          height: '100px',
+          backgroundColor: 'lime',
+          border: '5px solid red',
+          zIndex: 99999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'black',
+          fontWeight: 'bold',
+          fontSize: '14px',
+          cursor: 'pointer'
+        }}
+        onClick={() => {
+          console.log('🟢 CLIQUE NO DIV EXTERNO LIME!', { isVirtualClone, virtualCloneId });
+          
+          // SOLUÇÃO TEMPORÁRIA: Simular raspagem sem canvas
+          if (isVirtualClone && virtualCloneId) {
+            console.log('🎯 Simulando raspagem do clone virtual:', virtualCloneId);
+            scratchVirtualCloneMutation.mutate(virtualCloneId);
+          }
+        }}
+      >
+        RASPAR CLONE VIRTUAL
+      </div>
+      
       <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
         <div className="p-0 relative h-full w-full overflow-hidden">
           {/* Badge indicativo */}
@@ -967,47 +999,6 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             </div>
           </div>
 
-          {/* TESTE: DIV SIMPLES no lugar do canvas */}
-          <div
-            onMouseDown={(e) => {
-              console.log('🎨 MOUSE DOWN NO DIV TESTE!', { isVirtualClone, virtualCloneId });
-              if (blocked()) {
-                console.log('❌ Bloqueado pela função blocked()');
-                return;
-              }
-              console.log('✅ Iniciando raspagem no div...');
-              handleMouseDown(e);
-            }}
-            onTouchStart={(e) => {
-              console.log('📱 TOUCH START NO DIV TESTE!', { isVirtualClone, virtualCloneId });
-              if (blocked()) {
-                console.log('❌ Bloqueado pela função blocked()');
-                return;
-              }
-              console.log('✅ Iniciando raspagem touch no div...');
-              handleTouchStart(e);
-            }}
-            style={{ 
-              position: 'absolute',
-              top: '0',
-              left: '0',
-              width: '100%',
-              height: '100%',
-              zIndex: 50,
-              cursor: 'pointer',
-              backgroundColor: 'rgba(255,0,255,0.8)',
-              border: '4px solid black',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'black',
-              fontWeight: 'bold',
-              fontSize: '16px'
-            }}
-          >
-            CLIQUE AQUI PARA RASPAR
-          </div>
-          
           {/* Canvas escondido para manter a referência */}
           <canvas ref={canvasRef} style={{ display: 'none' }} />
 
