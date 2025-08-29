@@ -132,7 +132,7 @@ export default function PromotionForm({ promotion, onClose, onSuccess }: Promoti
     mutationFn: async (data: PromotionFormData) => {
       // Para criação, precisamos buscar o storeId do usuário
       let endpoint: string;
-      const method = isEditing ? "PUT" : "POST";
+      const method = isEditing ? "PATCH" : "POST";
 
       if (isEditing) {
         endpoint = `/api/promotions/${promotion?.id}`;
