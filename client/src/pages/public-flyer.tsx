@@ -531,6 +531,14 @@ export default function PublicFlyer() {
                   // CORREÇÃO: Só renderizar como raspadinha se for promoção real (vem de activePromotions)
                   const isRealPromotion = activePromotions.some(promo => promo.id === product.id);
                   
+                  console.log("🔍 PRODUTO MAPEADO (STORIES):", {
+                    productId: product.id,
+                    productName: product.name,
+                    isScratchCard: product.isScratchCard,
+                    isRealPromotion,
+                    activePromotionsCount: activePromotions.length
+                  });
+                  
                   return isRealPromotion ? (
                     // PROMOÇÃO REAL: Renderizar como ScratchCard
                     <div key={product.id} className="relative">
@@ -617,6 +625,14 @@ export default function PublicFlyer() {
                 {filteredProducts.map((product) => {
                   // CORREÇÃO: Só renderizar como raspadinha se for promoção real (vem de activePromotions)
                   const isRealPromotion = activePromotions.some(promo => promo.id === product.id);
+                  
+                  console.log("🔍 PRODUTO MAPEADO:", {
+                    productId: product.id,
+                    productName: product.name,
+                    isScratchCard: product.isScratchCard,
+                    isRealPromotion,
+                    activePromotionsCount: activePromotions.length
+                  });
                   
                   return isRealPromotion ? (
                     // PROMOÇÃO REAL: Renderizar como ScratchCard
