@@ -89,7 +89,7 @@ export default function PromotionForm({ promotion, onClose, onSuccess }: Promoti
 
   // Auto-preencher campos com dados do produto selecionado
   useEffect(() => {
-    if (watchBaseProductId && products.length > 0) {
+    if (watchBaseProductId && watchBaseProductId !== "none" && products.length > 0) {
       const selectedProduct = products.find(p => p.id === watchBaseProductId);
       if (selectedProduct) {
         form.setValue("name", `${selectedProduct.name} - PROMOÇÃO ESPECIAL`);
@@ -347,7 +347,7 @@ export default function PromotionForm({ promotion, onClose, onSuccess }: Promoti
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">
+                          <SelectItem value="none">
                             <span className="text-gray-500">Sem produto base</span>
                           </SelectItem>
                           {products.map((product) => (
