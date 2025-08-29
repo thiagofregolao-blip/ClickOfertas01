@@ -962,7 +962,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Render do card para raspar
   return (
     <>
-      <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col h-full min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
+      <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col h-full min-h-[200px] sm:min-h-[220px] cursor-crosshair select-none">
         <div className="h-full flex flex-col relative w-full isolate bg-gradient-to-br from-yellow-100 to-orange-100 p-0 m-0">
           {/* DEBUG REMOVIDO ✅ */}
           
@@ -1013,8 +1013,14 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              className="absolute inset-0 w-full h-full cursor-crosshair"
+              className="absolute inset-0 cursor-crosshair"
               style={{ 
+                width: '100%',
+                height: '100%',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
                 zIndex: 999,  // Z-index MÁXIMO para ficar acima do conteúdo
                 pointerEvents: 'auto',
                 touchAction: 'none' // Previne scroll no mobile
