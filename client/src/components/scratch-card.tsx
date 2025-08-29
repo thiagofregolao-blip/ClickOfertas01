@@ -975,69 +975,33 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             shouldRenderCover: isVirtualClone && virtualCloneId
           })}
           
-          {/* TESTE RADICAL: Botão de teste fixo na tela */}
+          {/* Cobertura de raspadinha para clones virtuais */}
           {isVirtualClone && virtualCloneId && (
             <>
-              {console.log('✅ RENDERIZANDO COBERTURA PARA CLONE:', virtualCloneId)}
-              
-              {/* BOTÃO TESTE FIXO - FORA DE QUALQUER CONTEXTO */}
+              {/* Cobertura principal clicável */}
               <div
+                className="absolute inset-0 z-50 cursor-pointer pointer-events-auto"
                 style={{
-                  position: 'fixed',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  zIndex: 999999,
-                  backgroundColor: '#ff0000',
-                  border: '5px solid #00ff00',
-                  color: '#ffffff',
-                  padding: '20px',
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                  fontSize: '18px',
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                  pointerEvents: 'auto'
+                  background: 'linear-gradient(45deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%)',
+                  opacity: 0.95
                 }}
                 onClick={(e) => {
-                  console.log('🎨 CLIQUE NO BOTÃO TESTE FIXO!', { isVirtualClone, virtualCloneId });
-                  
-                  // Esconder botão
-                  e.currentTarget.style.display = 'none';
-                  
-                  // Disparar raspagem
-                  if (virtualCloneId) {
-                    scratchVirtualCloneMutation.mutate(virtualCloneId);
-                  }
-                }}
-              >
-                🎲 TESTE FIXO<br/>
-                CLIQUE AQUI<br/>
-                CLONE: {virtualCloneId?.slice(-4)}
-              </div>
-              
-              {/* COBERTURA TAMBÉM TENTANDO */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  zIndex: 99999,
-                  backgroundColor: 'rgba(255, 0, 0, 0.5)',
-                  border: '3px solid #00ff00',
-                  cursor: 'pointer',
-                  pointerEvents: 'auto'
-                }}
-                onClick={(e) => {
-                  console.log('🎨 CLIQUE NA COBERTURA NORMAL!', { isVirtualClone, virtualCloneId });
+                  console.log('🎲 Raspando clone virtual:', virtualCloneId);
                   e.currentTarget.style.display = 'none';
                   if (virtualCloneId) {
                     scratchVirtualCloneMutation.mutate(virtualCloneId);
                   }
                 }}
               />
+              
+              {/* Texto da cobertura */}
+              <div className="absolute inset-0 z-60 flex items-center justify-center pointer-events-none">
+                <div className="text-center text-white">
+                  <div className="text-2xl font-bold mb-2">🎲</div>
+                  <div className="text-lg font-bold mb-1">RASPADINHA</div>
+                  <div className="text-sm opacity-90">Clique para raspar!</div>
+                </div>
+              </div>
             </>
           )}
 
