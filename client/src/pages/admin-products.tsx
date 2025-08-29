@@ -660,14 +660,14 @@ export default function AdminProducts() {
                     </div>
                   </div>
 
-                  {/* Configuração de Raspadinha */}
+                  {/* TEMPORARIAMENTE DESABILITADO - Configuração de Raspadinha */}
+                  {/* 
                   <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
                     <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
                       <Gift className="w-5 h-5 mr-2 text-orange-600" />
                       Configuração de Raspadinha
                     </h3>
                     
-                    {/* Switch para ativar raspadinha */}
                     <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg border border-orange-200 mb-4">
                       <Switch
                         id="scratch-card"
@@ -680,10 +680,8 @@ export default function AdminProducts() {
                       </Label>
                     </div>
                     
-                    {/* Campos da raspadinha - só aparecem se ativado */}
                     {form.watch("isScratchCard") && (
                       <div className="space-y-4 p-4 bg-orange-25 rounded-lg">
-                        {/* Preço com desconto */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="scratch-price" className="text-gray-700 font-medium">Preço com Desconto *</Label>
@@ -723,7 +721,6 @@ export default function AdminProducts() {
                           </div>
                         </div>
                         
-                        {/* Data de expiração e limite de raspagens */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="scratch-expires" className="text-gray-700 font-medium">Data de Expiração da Promoção</Label>
@@ -757,7 +754,6 @@ export default function AdminProducts() {
                           </div>
                         </div>
                         
-                        {/* Mensagem personalizada */}
                         <div className="space-y-2">
                           <Label htmlFor="scratch-message" className="text-gray-700 font-medium">Mensagem da Raspadinha</Label>
                           <Textarea
@@ -771,7 +767,6 @@ export default function AdminProducts() {
                           <p className="text-xs text-gray-500">Esta mensagem aparecerá na superfície dourada da raspadinha</p>
                         </div>
                         
-                        {/* Aviso sobre desconto */}
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                           <div className="flex items-start space-x-2">
                             <Clock className="w-4 h-4 text-yellow-600 mt-0.5" />
@@ -788,6 +783,7 @@ export default function AdminProducts() {
                       </div>
                     )}
                   </div>
+                  */}
 
                   {/* Configurações */}
                   <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
