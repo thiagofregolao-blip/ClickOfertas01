@@ -975,7 +975,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           </div>
 
           {/* Produto por trás (parcialmente visível) */}
-          <div className="absolute inset-0 z-0 p-3 flex flex-col justify-center items-center bg-white pointer-events-none">
+          <div className="absolute inset-0 z-0 p-3 flex flex-col justify-center items-center pointer-events-none">
             {/* Imagem */}
             <div className="relative mb-2">
               {product.imageUrl ? (
