@@ -725,8 +725,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     );
   };
   
-  // SISTEMA UNIFICADO: Loading para clones virtuais e promoções
-  if (loadingClone || loadingPromotion) {
+  // Loading para promoções
+  if (loadingPromotion) {
     return (
       <div className="relative bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 min-h-[200px] sm:min-h-[220px] rounded-md animate-pulse" />
     );
@@ -748,12 +748,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
         >
           {/* Badges: Timer e Tipo de Clone */}
           <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
-            {/* Indicador de Clone Virtual */}
-            {virtualClone?.hasClone && (
-              <Badge variant="secondary" className="bg-purple-100 text-purple-800 flex items-center gap-1 text-xs">
-                ✨ Clone Virtual
-              </Badge>
-            )}
+            {/* REMOVIDO: Clone Virtual */}
             
             {/* Timer */}
             {timeLeft !== null && timeLeft > 0 && (
@@ -942,55 +937,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             </div>
           </div>
 
-          {/* DEBUG: Verificar condições */}
-          {console.log('🔍 CONDIÇÕES RASPAGEM:', {
-            isVirtualClone,
-            virtualCloneId,
-            product,
-            shouldRenderCover: isVirtualClone && virtualCloneId
-          })}
-          
-          
-          {/* Cobertura de raspadinha para clones virtuais */}
-          {isVirtualClone && virtualCloneId && (
-            <>
-              {/* Cobertura principal clicável */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  zIndex: 99999,
-                  background: 'linear-gradient(45deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%)',
-                  opacity: 0.95,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  pointerEvents: 'auto'
-                }}
-                onClick={(e) => {
-                  console.log('🎲 Raspando clone virtual:', virtualCloneId);
-                  e.currentTarget.style.display = 'none';
-                  if (virtualCloneId) {
-                    scratchVirtualCloneMutation.mutate(virtualCloneId);
-                  }
-                }}
-              >
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>🎲</div>
-                  <div style={{ fontSize: '16px', fontWeight: 'bold' }}>RASPADINHA</div>
-                  <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '4px' }}>
-                    Clique para raspar!
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
+          {/* REMOVIDO: Clone Virtual */}
 
           {/* Canvas de raspadinha - SISTEMA ORIGINAL: qualquer produto com isScratchCard */}
           {product.isScratchCard && !isRevealed && (
