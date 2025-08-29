@@ -22,6 +22,8 @@ interface ScratchCardProps {
   themeColor: string;
   onRevealed?: (product: Product) => void;
   onClick?: (product: Product) => void;
+  isVirtualClone?: boolean;
+  virtualCloneId?: string;
 }
 
 interface ScratchArea {
@@ -30,7 +32,17 @@ interface ScratchArea {
   radius: number;
 }
 
-export default function ScratchCard({ product, currency, themeColor, onRevealed, onClick }: ScratchCardProps) {
+export default function ScratchCard({ product, currency, themeColor, onRevealed, onClick, isVirtualClone = false, virtualCloneId }: ScratchCardProps) {
+  
+  // 🔍 DEBUG LOGS
+  console.log('🎯 ScratchCard renderizado:', {
+    productId: product.id,
+    productName: product.name,
+    isScratchCard: product.isScratchCard,
+    isVirtualClone,
+    virtualCloneId,
+    scratchPrice: product.scratchPrice
+  });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScratching, setIsScratching] = useState(false);
   const [scratchProgress, setScratchProgress] = useState(0);
@@ -59,16 +71,21 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const { data: virtualClone, isLoading: loadingClone } = useQuery({
     queryKey: ['virtual-clone', product.id],
     queryFn: async () => {
+      console.log('🔍 Buscando clone virtual para produto:', product.id);
       const response = await fetch(`/api/virtual-clones/${product.id}/user`, { 
         credentials: 'include' 
       });
       if (!response.ok) {
+        console.log('❌ Erro ao buscar clone virtual:', response.status);
         if (response.status === 401) return { hasClone: false, clone: null };
         throw new Error('Falha ao carregar clone virtual');
       }
-      return response.json() as Promise<{ hasClone: boolean; clone?: any }>;
+      const result = await response.json();
+      console.log('✅ Clone virtual encontrado:', result);
+      return result as { hasClone: boolean; clone?: any };
     },
     staleTime: 60_000, // Cache por 1 minuto
+    enabled: !isVirtualClone, // Só busca se NÃO for já um clone virtual
   });
 
   // SISTEMA UNIFICADO: Apenas clones virtuais
@@ -298,11 +315,26 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
         setTimeout(() => {
           setIsRevealed(true);
           
-          // SISTEMA UNIFICADO: Apenas clones virtuais
-          if (virtualClone?.hasClone && virtualClone?.clone) {
+          // 🔍 DEBUG: Sistema de raspagem
+          console.log('🎯 Tentando raspar:', {
+            isVirtualClone,
+            virtualCloneId,
+            hasVirtualClone: virtualClone?.hasClone,
+            cloneData: virtualClone?.clone
+          });
+          
+          // SISTEMA UNIFICADO: Clones virtuais
+          if (isVirtualClone && virtualCloneId) {
+            // É um clone virtual passado como prop
+            console.log('🎯 Raspando clone virtual via prop:', virtualCloneId);
+            scratchVirtualCloneMutation.mutate(virtualCloneId);
+          } else if (virtualClone?.hasClone && virtualClone?.clone) {
+            // É um clone virtual encontrado via API
+            console.log('🎯 Raspando clone virtual via API:', virtualClone.clone.id);
             scratchVirtualCloneMutation.mutate(virtualClone.clone.id);
           } else {
             // Produto sem clone = não pode raspar
+            console.log('❌ Produto sem clone virtual disponível');
             toast({
               title: 'Raspadinha indisponível',
               description: 'Este produto não tem clones virtuais disponíveis.',
