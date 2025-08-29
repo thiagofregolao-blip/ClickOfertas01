@@ -254,29 +254,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     
     // ✅ LINHAS REMOVIDAS - visual mais limpo!
     
-    // 🎉 CONFETES COLORIDOS ESPALHADOS
-    const confetti = [
-      { x: cssWidth * 0.20, y: cssHeight * 0.25, color: '#FFD700', rotation: 15 },
-      { x: cssWidth * 0.75, y: cssHeight * 0.20, color: '#FF69B4', rotation: -30 },
-      { x: cssWidth * 0.15, y: cssHeight * 0.45, color: '#00CED1', rotation: 45 },
-      { x: cssWidth * 0.85, y: cssHeight * 0.55, color: '#98FB98', rotation: -15 },
-      { x: cssWidth * 0.30, y: cssHeight * 0.70, color: '#FFB347', rotation: 60 },
-      { x: cssWidth * 0.70, y: cssHeight * 0.85, color: '#DDA0DD', rotation: -45 },
-      { x: cssWidth * 0.45, y: cssHeight * 0.35, color: '#F0E68C', rotation: 30 },
-      { x: cssWidth * 0.60, y: cssHeight * 0.15, color: '#FFA07A', rotation: -60 }
-    ];
-    
-    confetti.forEach(conf => {
-      ctx.save();
-      ctx.translate(conf.x, conf.y);
-      ctx.rotate(conf.rotation * Math.PI / 180);
-      ctx.fillStyle = conf.color;
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-      ctx.shadowBlur = 2;
-      // Desenhar confete como retângulo pequeno
-      ctx.fillRect(-2, -4, 4, 8);
-      ctx.restore();
-    });
+    // Confetes removidos para visual mais limpo
     
     // ◆ DIAMANTE GRANDE NO CANTO (exatamente como na imagem)
     ctx.font = 'bold 24px Arial';
@@ -288,49 +266,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     
     console.log("✅ Gradiente desenhado!");
 
-    // 💰 ADICIONAR SÍMBOLOS $ DECORATIVOS COM BRILHO
-    console.log("💰✨ Adicionando símbolos $ dourados com efeito brilho...");
-    ctx.font = 'bold 24px Arial'; // Aumentado de 16px para 24px
-    ctx.textAlign = 'center';
-    
-    // 🎲 POSIÇÕES ALEATÓRIAS DOS SÍMBOLOS $ (embaralhadas a cada renderização)
-    const dollarPositions = [];
-    for (let i = 0; i < 8; i++) {
-      dollarPositions.push({
-        x: cssWidth * (0.1 + Math.random() * 0.8),  // Entre 10% e 90% da largura
-        y: cssHeight * (0.15 + Math.random() * 0.7) // Entre 15% e 85% da altura
-      });
-    }
-    
-    dollarPositions.forEach(pos => {
-      // 💰 SÍMBOLOS $ DOURADOS COM BRILHO NATURAL DE OURO
-      
-      // Sombra sutil para contraste
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
-      ctx.shadowBlur = 3;
-      ctx.fillStyle = '#B8860B'; // Sombra dourada escura
-      ctx.fillText('$', pos.x, pos.y);
-      
-      // Brilho dourado suave
-      ctx.shadowColor = 'rgba(255, 215, 0, 0.4)';
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-      ctx.shadowBlur = 4;
-      ctx.fillStyle = '#DAA520'; // Dourado natural
-      ctx.fillText('$', pos.x, pos.y);
-      
-      // Símbolo principal com contraste
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-      ctx.shadowOffsetX = 1;
-      ctx.shadowOffsetY = 1;
-      ctx.shadowBlur = 1;
-      ctx.fillStyle = '#FFD700'; // Ouro clássico
-      ctx.fillText('$', pos.x, pos.y);
-    });
-    
-    console.log("💰 Símbolos $ adicionados!");
+    // Símbolos $ do canvas removidos - mantidos apenas na chuva
 
     // ✨ TEXTO PRINCIPAL COM DESTAQUE ESPECIAL
     console.log("📝✨ Adicionando texto destacado na textura...");
@@ -1066,8 +1002,13 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
         <div className="h-full flex flex-col relative w-full isolate bg-gradient-to-br from-yellow-100 to-orange-100 p-0 m-0">
           {/* DEBUG REMOVIDO ✅ */}
           
-          {/* Chuva suave de mini logos da empresa */}
+          {/* Chuva suave de cifrões e logos da empresa */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1000]">
+            {/* Cifrões dourados */}
+            <div className="rain-element text-yellow-400 text-xl font-bold drop-shadow-lg">💰</div>
+            <div className="rain-element text-yellow-500 text-lg drop-shadow-lg">$</div>
+            <div className="rain-element text-amber-400 text-xl drop-shadow-lg">💴</div>
+            
             {/* Mini logos da empresa (redondos) */}
             <div className="rain-element w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">C</div>
             <div className="rain-element w-5 h-5 bg-gradient-to-br from-pink-500 to-red-500 rounded-full flex items-center justify-center text-white text-xs shadow-lg">O</div>
