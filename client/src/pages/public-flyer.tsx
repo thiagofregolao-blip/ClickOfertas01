@@ -88,7 +88,8 @@ export default function PublicFlyer() {
     enabled: isStoriesView, // Só busca quando é stories
   });
 
-  // NOVO: Buscar clones virtuais disponíveis para usuário autenticado
+  // TEMPORARIAMENTE DESABILITADO - Buscar clones virtuais disponíveis para usuário autenticado
+  /*
   const { data: virtualClonesResponse } = useQuery<{ clones: any[] }>({
     queryKey: ['/api/virtual-clones/user'],
     enabled: isAuthenticated, // Só busca se autenticado
@@ -99,6 +100,8 @@ export default function PublicFlyer() {
     retry: false, // Não retry se não autenticado
   });
   const virtualClones = virtualClonesResponse?.clones || [];
+  */
+  const virtualClones: any[] = []; // Array vazio para desabilitar clones
 
   // NOVO: Buscar promoções ativas para exibir como scratch cards
   const { data: activePromotions = [] } = useQuery<PromotionWithDetails[]>({
@@ -542,10 +545,10 @@ export default function PublicFlyer() {
                   </div>
                 ))}
 
-                {/* CLONES VIRTUAIS - aparecem como raspadinhas com badge */}
+                {/* TEMPORARIAMENTE DESABILITADO - CLONES VIRTUAIS - aparecem como raspadinhas com badge */}
+                {/*
                 {virtualClones.map((clone) => (
                   <div key={`clone-${clone.id}`} className="relative">
-                    {/* Badge Clone Virtual */}
                     <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                       Clone Virtual
                     </div>
@@ -563,7 +566,7 @@ export default function PublicFlyer() {
                         isActive: true,
                         isFeatured: false,
                         showInStories: false,
-                        isScratchCard: true, // IMPORTANTE: clone DEVE ser scratch card para poder raspar
+                        isScratchCard: true,
                         scratchMessage: "Você ganhou um desconto especial!",
                         scratchPrice: clone.discountPrice,
                         scratchExpiresAt: clone.expiresAt,
@@ -580,6 +583,7 @@ export default function PublicFlyer() {
                     />
                   </div>
                 ))}
+                */}
               </div>
             ) : (
               // Layout compacto para tela cheia (/flyer/:slug)
@@ -643,10 +647,10 @@ export default function PublicFlyer() {
                   </div>
                 ))}
 
-                {/* CLONES VIRTUAIS - aparecem como raspadinhas com badge */}
+                {/* TEMPORARIAMENTE DESABILITADO - CLONES VIRTUAIS - aparecem como raspadinhas com badge */}
+                {/*
                 {virtualClones.map((clone) => (
                   <div key={`clone-${clone.id}`} className="relative">
-                    {/* Badge Clone Virtual */}
                     <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                       Clone Virtual
                     </div>
@@ -664,7 +668,7 @@ export default function PublicFlyer() {
                         isActive: true,
                         isFeatured: false,
                         showInStories: false,
-                        isScratchCard: true, // IMPORTANTE: clone DEVE ser scratch card para poder raspar
+                        isScratchCard: true,
                         scratchMessage: "Você ganhou um desconto especial!",
                         scratchPrice: clone.discountPrice,
                         scratchExpiresAt: clone.expiresAt,
@@ -681,6 +685,7 @@ export default function PublicFlyer() {
                     />
                   </div>
                 ))}
+                */}
               </div>
             )
             
