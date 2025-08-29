@@ -866,8 +866,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Buscar o produto e a loja
       console.log('🔍 Buscando produto...');
+      console.log('📋 ProductId recebido:', { productId, tipo: typeof productId, length: productId.length });
+      
       const product = await storage.getProductById(productId);
       console.log('📦 Produto encontrado:', product);
+      console.log('📦 Produto completo:', JSON.stringify(product, null, 2));
       
       if (!product || !product.isScratchCard) {
         console.log('❌ Produto não é raspadinha válida');
