@@ -305,20 +305,35 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Função de scratch melhorada
   const handleScratch = (clientX: number, clientY: number) => {
-    if (!canvasRef.current || blocked()) return;
+    console.log(`%c🎨 HANDLE SCRATCH CHAMADO! 🎨`, 
+      'background: purple; color: white; padding: 5px; font-size: 16px; font-weight: bold;');
+    console.log("🎨 handleScratch dados:", { clientX, clientY, productId: product.id });
+    
+    if (!canvasRef.current || blocked()) {
+      console.log("❌ handleScratch PAROU: canvas ou blocked");
+      return;
+    }
 
     // Throttle scratches
     const now = Date.now();
-    if (now - lastScratchTime.current < SCRATCH_THROTTLE) return;
+    if (now - lastScratchTime.current < SCRATCH_THROTTLE) {
+      console.log("⏳ handleScratch THROTTLED");
+      return;
+    }
     lastScratchTime.current = now;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      console.log("❌ handleScratch: Sem contexto 2D!");
+      return;
+    }
 
     const rect = canvas.getBoundingClientRect();
     const x = clientX - rect.left;
     const y = clientY - rect.top;
+    
+    console.log("✏️ handleScratch posições:", { x, y, rectLeft: rect.left, rectTop: rect.top });
 
     // Raio maior para raspagem mais natural
     const scratchRadius = 25;
@@ -354,24 +369,35 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     }
 
     // FASE 2: Traçado contínuo com lineTo
+    console.log("🖌️ Iniciando desenho no canvas!");
     ctx.globalCompositeOperation = 'destination-out';
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.lineWidth = scratchRadius * 2;
     
+    console.log("🎯 Configurações de desenho:", {
+      operation: ctx.globalCompositeOperation,
+      lineWidth: ctx.lineWidth,
+      lastPoint: lastPoint.current
+    });
+    
     if (lastPoint.current) {
       // Desenhar linha contínua do ponto anterior
+      console.log("📏 Desenhando LINHA de", lastPoint.current, "até", {x, y});
       ctx.beginPath();
       ctx.moveTo(lastPoint.current.x, lastPoint.current.y);
       ctx.lineTo(x, y);
       ctx.stroke();
     } else {
       // Primeiro ponto - desenhar círculo
+      console.log("⭕ Desenhando CÍRCULO em", {x, y}, "raio:", scratchRadius);
       ctx.fillStyle = 'rgba(0,0,0,1)';
       ctx.beginPath();
       ctx.arc(x, y, scratchRadius, 0, Math.PI * 2);
       ctx.fill();
     }
+    
+    console.log("✅ Desenho concluído!");
     
     // Atualizar último ponto
     lastPoint.current = { x, y };

@@ -1,0 +1,15 @@
+Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+27e25dd9-7241-428f-bbfa-ec2a0d693a44:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+scratch-card.tsx:386 🔥 MOUSE DOWN FUNCIONOU! EVENTOS CHEGARAM AO CANVAS! 🔥
+scratch-card.tsx:297 🚫 BLOCKED() chamado: {productId: 'b6250631-9694-4a2d-829f-cef3720fc30a', isRevealed: false, isBlocked: false, resultado: 'LIBERADO'}
+scratch-card.tsx:388 🖱️ MOUSE DOWN chamado: {productId: 'b6250631-9694-4a2d-829f-cef3720fc30a', blocked: false, clientX: 509, clientY: 435}
+scratch-card.tsx:297 🚫 BLOCKED() chamado: {productId: 'b6250631-9694-4a2d-829f-cef3720fc30a', isRevealed: false, isBlocked: false, resultado: 'LIBERADO'}
+scratch-card.tsx:297 🚫 BLOCKED() chamado: {productId: 'b6250631-9694-4a2d-829f-cef3720fc30a', isRevealed: false, isBlocked: false, resultado: 'LIBERADO'}
+scratch-card.tsx:37 🎯 ScratchCard RENDERIZADO: {productId: 'b6250631-9694-4a2d-829f-cef3720fc30a', productName: 'teste', isScratchCard: true, scratchMessage: 'Parabéns! Você ganhou um desconto especial!', currency: 'US$', …}
+scratch-card.tsx:925 🎨 CANVAS RENDERIZADO na tela para: b6250631-9694-4a2d-829f-cef3720fc30a
+scratch-card.tsx:37 🎯 ScratchCard RENDERIZADO: {productId: 'b6250631-9694-4a2d-829f-cef3720fc30a', productName: 'teste', isScratchCard: true, scratchMessage: 'Parabéns! Você ganhou um desconto especial!', currency: 'US$', …}
+scratch-card.tsx:925 🎨 CANVAS RENDERIZADO na tela para: b6250631-9694-4a2d-829f-cef3720fc30a
+scratch-card.tsx:37 🎯 ScratchCard RENDERIZADO: {productId: 'b6250631-9694-4a2d-829f-cef3720fc30a', productName: 'teste', isScratchCard: true, scratchMessage: 'Parabéns! Você ganhou um desconto especial!', currency: 'US$', …}
+scratch-card.tsx:925 🎨 CANVAS RENDERIZADO na tela para: b6250631-9694-4a2d-829f-cef3720fc30a
+scratch-card.tsx:37 🎯 ScratchCard RENDERIZADO: {productId: 'b6250631-9694-4a2d-829f-cef3720fc30a', productName: 'teste', isScratchCard: true, scratchMessage: 'Parabéns! Você ganhou um desconto especial!', currency: 'US$', …}
+scratch-card.tsx:925 🎨 CANVAS RENDERIZADO na tela para: b6250631-9694-4a2d-829f-cef3720fc30a
