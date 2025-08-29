@@ -281,7 +281,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     lines.forEach((line, index) => {
       ctx.fillText(line, cssWidth / 2, startY + (index * lineHeight));
     });
-  }, [product.id, product.scratchMessage, isRevealed, loadingClone]);
+  }, [product.id, product.scratchMessage, isRevealed]);
 
   // Throttle reduzido para mais fluidez
   const lastScratchTime = useRef<number>(0);
