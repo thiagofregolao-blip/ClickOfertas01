@@ -849,7 +849,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Render do card para raspar
   return (
     <>
-      <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
+      <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
         <div className="p-0 relative h-full w-full overflow-hidden isolate">
           {/* Badge indicativo - CORREÇÃO: pointer-events-none para não bloquear canvas */}
           <div className="absolute top-2 right-2 z-10 pointer-events-none">
@@ -887,28 +887,53 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
           {/* REMOVIDO: Clone Virtual */}
 
-          {/* Canvas de raspadinha - SISTEMA ORIGINAL: qualquer produto com isScratchCard */}
+          {/* 🔥 TESTE RADICAL: Canvas + Div de teste */}
           {product.isScratchCard && !isRevealed && (
-            <canvas
-              ref={canvasRef}
-              className="absolute inset-0 w-full h-full cursor-pointer select-none touch-none"
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              style={{ 
-                zIndex: 100,  // ⬆️⬆️ Z-index muito alto para ficar acima de tudo
-                pointerEvents: 'auto',  // ✅ Garantir eventos
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%'
-              }}
-            />
+            <>
+              {/* DIV DE TESTE - deve aparecer clicável ACIMA de tudo */}
+              <div
+                onClick={() => console.log("🚀 DIV DE TESTE CLICADO!")}
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  left: '10px',
+                  width: '80px',
+                  height: '30px',
+                  backgroundColor: 'red',
+                  color: 'white',
+                  zIndex: 999,
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  textAlign: 'center',
+                  lineHeight: '30px'
+                }}
+              >
+                TESTE
+              </div>
+              
+              {/* Canvas original */}
+              <canvas
+                ref={canvasRef}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                style={{ 
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  zIndex: 500,
+                  pointerEvents: 'auto',
+                  cursor: 'crosshair',  // Mudança visual para debug
+                  backgroundColor: 'rgba(255,0,0,0.1)'  // Fundo vermelho translúcido para ver se está lá
+                }}
+              />
+            </>
           )}
           {/* 🔍 DEBUG: Log visual do canvas */}
           {product.isScratchCard && !isRevealed && console.log("🎨 CANVAS RENDERIZADO na tela para:", product.id)}
