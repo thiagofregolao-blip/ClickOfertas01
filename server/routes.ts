@@ -868,13 +868,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🔍 Buscando produto...');
       console.log('📋 ProductId recebido:', { productId, tipo: typeof productId, length: productId.length });
       
-      const product = await storage.getProductById(productId);
-      console.log('📦 Produto encontrado:', product);
-      console.log('📦 Produto completo:', JSON.stringify(product, null, 2));
+      // Primeiro tenta buscar na tabela products
+      let product = await storage.getProductById(productId);
+      console.log('📦 Produto encontrado em products:', product);
       
-      if (!product || !product.isScratchCard) {
-        console.log('❌ Produto não é raspadinha válida');
-        return res.status(400).json({ message: "Produto não é uma raspadinha válida" });
+      // Se não encontrou, busca na tabela promotions
+      let isPromotion = false;
+      if (!product) {
+        console.log('🔍 Não encontrado em products, buscando em promotions...');
+        const promotion = await storage.getPromotion(productId);
+        console.log('📦 Promoção encontrada:', promotion);
+        
+        if (promotion) {
+          // Converter promoção para formato de produto
+          product = {
+            id: promotion.id,
+            name: promotion.name,
+            description: promotion.description,
+            price: promotion.promotionalPrice || promotion.originalPrice,
+            isScratchCard: true, // Promoções podem ser scratch cards
+            scratchMessage: promotion.scratchMessage || 'Parabéns! Você ganhou!',
+            imageUrl: promotion.imageUrl,
+            category: promotion.category,
+            storeId: promotion.storeId,
+            // Campos opcionais
+            sortOrder: 0,
+            isActive: true,
+            isFeatured: false,
+            createdAt: promotion.createdAt,
+            updatedAt: promotion.updatedAt
+          };
+          isPromotion = true;
+        }
+      }
+      
+      console.log('📦 Produto final (pode ser promoção):', product);
+      console.log('📦 É promoção?', isPromotion);
+      
+      if (!product || (!product.isScratchCard && !isPromotion)) {
+        console.log('❌ Item não é raspadinha válida');
+        return res.status(400).json({ message: "Item não é uma raspadinha válida" });
       }
 
       // Verificar se o usuário já raspou este produto, se não, criar automaticamente

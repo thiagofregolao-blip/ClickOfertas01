@@ -1,0 +1,41 @@
+🔍 PRODUTO MAPEADO: {productId: '0b9055e5-168a-4026-af2e-9fb2436a94ae', productName: 'Cadeado Para Notebook HLD', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'f1d2aa91-68d2-4645-b044-72a4604b6810', productName: 'MacBook Pro M3', isScratchCard: true, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: '6cee668e-eebe-4029-9678-04801582ba3a', productName: 'Mochila Resena B2 RB3077 com sistema AIRBACK', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: '744caf59-0ccc-45a6-bfe8-8017e86b29f0', productName: 'Jaqueta Hydrant 25AW178M Preta Masculina', isScratchCard: true, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'ac7b6d70-9214-4596-a976-aed5b9239704', productName: 'Tênis Hydrant HD002 Tan - Masculino', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'f727e4aa-95c7-4a6b-8199-6d4e9010f1b3', productName: 'Copo Térmico Owala Tumbler 710mL Smell the Roses', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'd32fe20d-4c3d-4f8b-895c-70653ed263f5', productName: 'Guantes Caterpillar String Knit CAT017418L', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: '9e72081f-dbf0-4a57-9d2a-c5769ed770a6', productName: 'Camisa Polo Hydrant HD001 - Preta', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: '5473d69d-7d3f-42fc-bc4a-1fa92c4dafb8', productName: 'Massageador Muscular Joog Massage Gun MG-JG2', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'c41bf9f1-38e1-4681-a178-baa5901850ed', productName: 'Bola de Padel Babolat Court (3 unidades)', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: '5bca1d4f-3737-4e92-8ee2-dd1b3d6e639e', productName: 'Linha Multifilamento Snake Wild 0.26mm 16kgs 150m', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'd9c157b7-592c-4dd8-bb48-77b803492c90', productName: 'Camiseta Joog Basica Small Logo Coral Feminina', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'e31d9957-f22a-4895-82a2-ae30a6b71656', productName: 'Perfume Lancôme La Vie est Belle EDP 100mL', isScratchCard: true, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: '7ce0e789-7ddc-4d67-b8aa-f376fe9e6664', productName: 'Máscara para Cílios Maybelline Sky High 6mL', isScratchCard: true, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'f40b8eca-eb85-4e16-bf83-207cf02a12b6', productName: 'Iphone 16 pro max', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'b3492e87-7009-4188-87e4-e25edae50777', productName: 'Perfume Boucheron Homme 100ml', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'a89f8d0d-f24f-4019-aff2-402583df4a7e', productName: 'Tratamento para Cabelo Choice Selection Collagen Therapy 500mL', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'bdcf93f2-104c-4898-98ac-5940593bf8e6', productName: 'Perfume Montblanc Starwalker 75mL EDT', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'dbbf64b1-9315-44f3-82ee-9e5b68745795', productName: 'Perfume Givenchy L Interdit EDT 80mL - Feminino', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'bfc297db-475a-4346-94a7-a7c9683b8ab6', productName: 'Tratamento Capilar Revlon Uniq One All in One 150ml', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'b4617eff-8c2e-4b2a-b7e5-69454e975774', productName: 'Perfume Lattafa Asad EDP 100mL - Masculino', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'b2ffadf4-929e-43b1-b864-b54291dfdae6', productName: 'Perfume Versace Blue Jeans 75ml', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: '82d50470-17cf-4c04-83e6-4fd9ea4b9227', productName: 'Perfume Lalique White 125ml', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: 'abf35a9b-5658-4426-80e0-db40c3461c5a', productName: 'iPhone 15 Pro Max', isScratchCard: true, isRealPromotion: false, activePromotionsCount: 1}
+public-flyer.tsx:629 🔍 PRODUTO MAPEADO: {productId: '7eecb64b-ff4a-4e31-b78b-231d6875ca2a', productName: 'Samsung Galaxy S24 Ultra', isScratchCard: false, isRealPromotion: false, activePromotionsCount: 1}
+scratch-card.tsx:36 🔥🔥🔥 SCRATCHCARD COMPONENTE EXECUTANDO! 🔥🔥🔥
+scratch-card.tsx:40 🎯 ScratchCard RENDERIZADO: {productId: 'b6250631-9694-4a2d-829f-cef3720fc30a', productName: 'teste', isScratchCard: true, scratchMessage: 'Parabéns! Você ganhou um desconto especial!', currency: 'US$', …}
+cellshop-importados-paraguay:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.Understand this error
+cellshop-importados-paraguay:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.Understand this error
+bundle.js:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'translations')
+    at t (bundle.js:1:263220)
+    at bundle.js:1:264780
+t @ bundle.js:1
+(anonymous) @ bundle.js:1
+Promise.then
+(anonymous) @ bundle.js:1
+(anonymous) @ bundle.js:1
+(anonymous) @ bundle.js:1Understand this error
+bundle.js:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'translations')
+    at e.value (bundle.js:1:622681)
+    at bundle.js:1:622606
