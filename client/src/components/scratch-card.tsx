@@ -34,7 +34,7 @@ interface ScratchArea {
   radius: number;
 }
 
-export default function ScratchCard({ product, currency, themeColor, onRevealed, onClick, isVirtualClone = false, virtualCloneId, isPromotion = false, promotionId }: ScratchCardProps) {
+export default function ScratchCard({ product, currency, themeColor, onRevealed, onClick, isPromotion = false, promotionId }: ScratchCardProps) {
   
   // SISTEMA SIMPLIFICADO
   const canvasRef = useRef<HTMLCanvasElement>(null);
