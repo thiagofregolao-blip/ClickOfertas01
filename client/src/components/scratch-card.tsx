@@ -194,6 +194,10 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const cssHeight = rect.height;
 
     // Desenhar camada de "scratch"
+    console.log(`%c🎨 DESENHANDO TEXTURA INICIAL! 🎨`, 
+      'background: gold; color: black; padding: 5px; font-size: 16px; font-weight: bold;');
+    console.log("🌈 Criando gradiente:", { cssWidth, cssHeight });
+    
     const gradient = ctx.createLinearGradient(0, 0, cssWidth, cssHeight);
     gradient.addColorStop(0, '#FFD700');
     gradient.addColorStop(0.5, '#FFA500');
@@ -201,8 +205,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, cssWidth, cssHeight);
+    
+    console.log("✅ Gradiente desenhado!");
 
     // Adicionar texto
+    console.log("📝 Adicionando texto na textura...");
     ctx.fillStyle = 'white';
     ctx.font = 'bold 14px Arial';
     ctx.textAlign = 'center';
@@ -218,6 +225,9 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     lines.forEach((line, index) => {
       ctx.fillText(line, cssWidth / 2, startY + (index * lineHeight));
     });
+    
+    console.log(`%c🏁 TEXTURA COMPLETA! Canvas pronto para ser riscado! 🏁`, 
+      'background: green; color: white; padding: 5px; font-size: 16px; font-weight: bold;');
   }, [product.id, product.scratchMessage, isRevealed]);
 
   // Throttle reduzido para mais fluidez
