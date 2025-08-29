@@ -103,14 +103,33 @@ export default function PublicFlyer() {
   */
   const virtualClones: any[] = []; // Array vazio para desabilitar clones
 
-  // NOVO: Buscar promoções ativas para exibir como scratch cards
-  const { data: activePromotions = [] } = useQuery<any[]>({
-    queryKey: ['/api/public/promotions/active'],
-    staleTime: 2 * 60 * 1000, // 2 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos
+  // NEW: Buscar promoções personalizadas para o usuário (ou todas se não autenticado)
+  const { data: promotionsResponse, refetch: refetchPromotions } = useQuery<{promotions: any[], storeId?: string, userId?: string}>({
+    queryKey: ['/api/stores', params?.slug, 'my-available-promotions'],
+    queryFn: async () => {
+      if (!params?.slug) return { promotions: [] };
+      
+      const response = await fetch(`/api/stores/${params.slug}/my-available-promotions`, {
+        credentials: 'include' // Para enviar cookies de autenticação
+      });
+      
+      if (!response.ok) {
+        console.log('📝 Erro na busca de promoções personalizadas, usando fallback');
+        return { promotions: [] };
+      }
+      
+      const data = await response.json();
+      console.log(`🎯 Promoções personalizadas recebidas:`, data);
+      return data;
+    },
+    enabled: !!params?.slug,
+    staleTime: 1 * 60 * 1000, // 1 minuto (mais fresco para mudanças de status)
+    gcTime: 5 * 60 * 1000, // 5 minutos
     refetchOnWindowFocus: false,
     refetchOnMount: true,
   });
+  
+  const activePromotions = promotionsResponse?.promotions || [];
   
   // REMOVIDO: Debug desnecessário
   

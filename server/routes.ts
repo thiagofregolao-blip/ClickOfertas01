@@ -423,6 +423,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // NEW: Buscar promoções disponíveis para o usuário específico (sistema personalizado)
+  app.get('/api/stores/:slug/my-available-promotions', async (req: any, res) => {
+    try {
+      const { slug } = req.params;
+      const userId = req.user?.claims?.sub || req.user?.id;
+
+      // Buscar loja pelo slug
+      const store = await storage.getStoreBySlug(slug);
+      if (!store) {
+        return res.status(404).json({ message: 'Loja não encontrada' });
+      }
+
+      // Se não há usuário logado, retornar lista vazia (sistema requer login)
+      if (!userId) {
+        console.log('🚫 Usuário não logado - retornando lista vazia');
+        return res.json({ promotions: [] });
+      }
+
+      // Buscar promoções personalizadas para este usuário
+      const userPromotions = await storage.getMyAvailablePromotions(userId, store.id);
+      
+      console.log(`🎯 Promoções para usuário ${userId}:`, userPromotions.length);
+      
+      res.json({ 
+        promotions: userPromotions,
+        storeId: store.id,
+        userId: userId 
+      });
+    } catch (error) {
+      console.error("Error fetching user-specific promotions:", error);
+      res.status(500).json({ message: "Failed to fetch promotions" });
+    }
+  });
+
   // Verificar status de uma promoção específica para o usuário
   app.get('/api/promotions/:promotionId/status', async (req: any, res) => {
     try {
@@ -988,6 +1022,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Salvar sempre na base, mas com productId = null para promoções
       const coupon = await storage.createCoupon(couponData);
       console.log('✅ Cupom criado com sucesso:', coupon);
+
+      // NEW: Se é promoção, atualizar status da assignment para 'generated'
+      if (isPromotion) {
+        try {
+          console.log('🎯 Atualizando status da promotion_assignment para "generated"...');
+          await storage.updatePromotionAssignmentStatus(productId, userId, 'generated');
+          console.log('✅ Status da assignment atualizado para "generated"');
+        } catch (assignmentError) {
+          console.error('⚠️ Erro ao atualizar status da assignment (não bloqueante):', assignmentError);
+          // Não falha o processo de geração do cupom por causa disto
+        }
+      }
 
       res.status(201).json({
         success: true,

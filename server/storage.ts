@@ -12,6 +12,7 @@ import {
   virtualScratchClones,
   promotions,
   promotionScratches,
+  promotionAssignments,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -47,6 +48,9 @@ import {
   type UpdatePromotion,
   type PromotionScratch,
   type InsertPromotionScratch,
+  type PromotionAssignment,
+  type InsertPromotionAssignment,
+  type UpdatePromotionAssignment,
   type PromotionWithDetails,
 } from "@shared/schema";
 import { db } from "./db";
@@ -140,6 +144,14 @@ export interface IStorage {
   incrementPromotionUsage(promotionId: string): Promise<void>;
   getActivePromotions(): Promise<PromotionWithDetails[]>;
   getPromotionStats(promotionId: string): Promise<any>;
+
+  // NEW: Promotion Assignment operations (User-specific promotions)
+  createPromotionAssignment(assignment: InsertPromotionAssignment): Promise<PromotionAssignment>;
+  createPromotionAssignments(assignments: InsertPromotionAssignment[]): Promise<PromotionAssignment[]>;
+  getUserPromotionAssignments(userId: string, storeId: string): Promise<PromotionAssignment[]>;
+  updatePromotionAssignmentStatus(promotionId: string, userId: string, status: 'assigned' | 'generated' | 'redeemed'): Promise<PromotionAssignment>;
+  getMyAvailablePromotions(userId: string, storeId: string): Promise<PromotionWithDetails[]>;
+  hasUserGeneratedCoupon(promotionId: string, userId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1695,6 +1707,85 @@ export class DatabaseStorage implements IStorage {
         conversionRate: scratchCount > 0 ? ((usedCoupons / scratchCount) * 100).toFixed(2) : 0
       }
     };
+  }
+
+  // NEW: Promotion Assignment operations (User-specific promotions)
+  async createPromotionAssignment(assignment: InsertPromotionAssignment): Promise<PromotionAssignment> {
+    const [result] = await db
+      .insert(promotionAssignments)
+      .values(assignment)
+      .returning();
+    return result;
+  }
+
+  async createPromotionAssignments(assignments: InsertPromotionAssignment[]): Promise<PromotionAssignment[]> {
+    if (assignments.length === 0) return [];
+    
+    const results = await db
+      .insert(promotionAssignments)
+      .values(assignments)
+      .returning();
+    return results;
+  }
+
+  async getUserPromotionAssignments(userId: string, storeId: string): Promise<PromotionAssignment[]> {
+    const results = await db
+      .select()
+      .from(promotionAssignments)
+      .innerJoin(promotions, eq(promotionAssignments.promotionId, promotions.id))
+      .where(and(
+        eq(promotionAssignments.userId, userId),
+        eq(promotions.storeId, storeId)
+      ));
+    
+    return results.map(r => r.promotion_assignments);
+  }
+
+  async updatePromotionAssignmentStatus(promotionId: string, userId: string, status: 'assigned' | 'generated' | 'redeemed'): Promise<PromotionAssignment> {
+    const [result] = await db
+      .update(promotionAssignments)
+      .set({ status })
+      .where(and(
+        eq(promotionAssignments.promotionId, promotionId),
+        eq(promotionAssignments.userId, userId)
+      ))
+      .returning();
+    return result;
+  }
+
+  async getMyAvailablePromotions(userId: string, storeId: string): Promise<PromotionWithDetails[]> {
+    const results = await db
+      .select({
+        promotion: promotions,
+        store: stores,
+      })
+      .from(promotions)
+      .innerJoin(stores, eq(promotions.storeId, stores.id))
+      .innerJoin(promotionAssignments, eq(promotions.id, promotionAssignments.promotionId))
+      .where(and(
+        eq(promotions.storeId, storeId),
+        eq(promotions.isActive, true),
+        eq(promotionAssignments.userId, userId),
+        eq(promotionAssignments.status, 'assigned') // Apenas promoções ainda não raspadas
+      ));
+
+    return results.map(r => ({
+      ...r.promotion,
+      store: r.store
+    }));
+  }
+
+  async hasUserGeneratedCoupon(promotionId: string, userId: string): Promise<boolean> {
+    const [result] = await db
+      .select({ count: count() })
+      .from(promotionAssignments)
+      .where(and(
+        eq(promotionAssignments.promotionId, promotionId),
+        eq(promotionAssignments.userId, userId),
+        sql`${promotionAssignments.status} IN ('generated', 'redeemed')`
+      ));
+    
+    return (result?.count || 0) > 0;
   }
 }
 

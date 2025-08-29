@@ -33,6 +33,7 @@ interface ScratchArea {
 }
 
 export default function ScratchCard({ product, currency, themeColor, logoUrl, onRevealed, onClick }: ScratchCardProps) {
+  const queryClient = useQueryClient(); // NEW: Para invalidação de cache
   
   console.log(`%c🔥🔥🔥 SCRATCHCARD COMPONENTE EXECUTANDO! 🔥🔥🔥`, 
     'background: red; color: white; padding: 15px; font-size: 30px; font-weight: bold;');
@@ -62,7 +63,6 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
   const [showCouponModal, setShowCouponModal] = useState(false);
   const scratchedAreas = useRef<ScratchArea[]>([]);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   
   // FASE 1: AudioContext otimizado
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -120,6 +120,17 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
         setCouponGenerated(true);
         setShowModal(false);
         setShowCouponModal(true);
+        
+        // NEW: Invalidar cache das promoções personalizadas para que o cupom usado desapareça
+        queryClient.invalidateQueries({
+          predicate: (query) => {
+            // Invalida todas as queries que contém 'my-available-promotions'
+            return query.queryKey.some(key => 
+              typeof key === 'string' && key.includes('my-available-promotions')
+            );
+          }
+        });
+        console.log('🎯 Cache das promoções personalizadas invalidado após gerar cupom');
         
         toast({
           title: "🎉 Cupom gerado!",

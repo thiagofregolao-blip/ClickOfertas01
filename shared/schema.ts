@@ -266,6 +266,16 @@ export const promotions = pgTable("promotions", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// NOVA TABELA: Controle de distribuição de promoções para usuários
+export const promotionAssignments = pgTable("promotion_assignments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  promotionId: varchar("promotion_id").notNull().references(() => promotions.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+  status: varchar("status").notNull().default("assigned"), // 'assigned', 'generated', 'redeemed'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Controle de quem já raspou qual promoção
 export const promotionScratches = pgTable("promotion_scratches", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -285,6 +295,7 @@ export const promotionScratches = pgTable("promotion_scratches", {
 export const usersRelations = relations(users, ({ many }) => ({
   stores: many(stores),
   savedProducts: many(savedProducts),
+  promotionAssignments: many(promotionAssignments),
 }));
 
 export const storesRelations = relations(stores, ({ one, many }) => ({
@@ -410,6 +421,18 @@ export const couponsRelations = relations(coupons, ({ one }) => ({
 }));
 
 // Novas relations para sistema de promoções
+// Novas relations para promotion_assignments
+export const promotionAssignmentsRelations = relations(promotionAssignments, ({ one }) => ({
+  promotion: one(promotions, {
+    fields: [promotionAssignments.promotionId],
+    references: [promotions.id],
+  }),
+  user: one(users, {
+    fields: [promotionAssignments.userId],
+    references: [users.id],
+  }),
+}));
+
 export const promotionsRelations = relations(promotions, ({ one, many }) => ({
   store: one(stores, {
     fields: [promotions.storeId],
@@ -420,6 +443,7 @@ export const promotionsRelations = relations(promotions, ({ one, many }) => ({
     references: [products.id],
   }),
   scratches: many(promotionScratches),
+  assignments: many(promotionAssignments),
   // REMOVIDO: coupons relation - sem campo promotionId
 }));
 
@@ -519,6 +543,15 @@ export const insertPromotionScratchSchema = createInsertSchema(promotionScratche
 }).extend({
   expiresAt: z.union([z.string(), z.date()]).optional(),
 });
+
+// Schema para promotion_assignments
+export const insertPromotionAssignmentSchema = createInsertSchema(promotionAssignments).omit({
+  id: true,
+  assignedAt: true,
+  createdAt: true,
+});
+
+export const updatePromotionAssignmentSchema = insertPromotionAssignmentSchema.partial();
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -641,6 +674,9 @@ export type InsertPromotion = z.infer<typeof insertPromotionSchema>;
 export type UpdatePromotion = z.infer<typeof updatePromotionSchema>;
 export type PromotionScratch = typeof promotionScratches.$inferSelect;
 export type InsertPromotionScratch = z.infer<typeof insertPromotionScratchSchema>;
+export type PromotionAssignment = typeof promotionAssignments.$inferSelect;
+export type InsertPromotionAssignment = z.infer<typeof insertPromotionAssignmentSchema>;
+export type UpdatePromotionAssignment = z.infer<typeof updatePromotionAssignmentSchema>;
 
 export type PromotionWithDetails = Promotion & {
   store: Store;
