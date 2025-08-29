@@ -253,15 +253,10 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     
     console.log("✅ Gradiente desenhado!");
 
-    // 💰 ADICIONAR SÍMBOLOS $ DECORATIVOS
-    console.log("💰 Adicionando símbolos $ dourados...");
-    ctx.fillStyle = '#FFD700'; // Dourado mais forte
-    ctx.font = 'bold 16px Arial';
+    // 💰 ADICIONAR SÍMBOLOS $ DECORATIVOS COM BRILHO
+    console.log("💰✨ Adicionando símbolos $ dourados com efeito brilho...");
+    ctx.font = 'bold 24px Arial'; // Aumentado de 16px para 24px
     ctx.textAlign = 'center';
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowOffsetX = 1;
-    ctx.shadowOffsetY = 1;
-    ctx.shadowBlur = 3;
     
     // Posições fixas para símbolos $ (não aleatórias para consistência)
     const dollarPositions = [
@@ -276,6 +271,29 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     ];
     
     dollarPositions.forEach(pos => {
+      // ✨ EFEITO DE BRILHO: Múltiplas camadas de sombra
+      // Camada 1: Brilho externo branco
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.shadowBlur = 8;
+      ctx.fillStyle = '#FFFF00'; // Amarelo brilhante
+      ctx.fillText('$', pos.x, pos.y);
+      
+      // Camada 2: Brilho dourado
+      ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.shadowBlur = 4;
+      ctx.fillStyle = '#FFD700'; // Dourado
+      ctx.fillText('$', pos.x, pos.y);
+      
+      // Camada 3: Símbolo principal
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 1;
+      ctx.shadowBlur = 2;
+      ctx.fillStyle = '#FFF8DC'; // Dourado claro
       ctx.fillText('$', pos.x, pos.y);
     });
     
