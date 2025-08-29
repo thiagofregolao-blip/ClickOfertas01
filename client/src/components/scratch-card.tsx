@@ -1066,18 +1066,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
         <div className="h-full flex flex-col relative w-full isolate bg-gradient-to-br from-yellow-100 to-orange-100 p-0 m-0">
           {/* DEBUG REMOVIDO ✅ */}
           
-          {/* Chuva mágica SEMPRE VISÍVEL - por cima de tudo */}
+          {/* Chuva suave de mini logos da empresa */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1000]">
-            {/* Confetes coloridos */}
-            <div className="rain-element text-red-500 text-lg drop-shadow-lg">🎊</div>
-            <div className="rain-element text-blue-500 text-sm drop-shadow-lg">💎</div>
-            <div className="rain-element text-green-500 text-lg drop-shadow-lg">🎉</div>
-            
-            {/* Cifrões dourados */}
-            <div className="rain-element text-yellow-400 text-xl font-bold drop-shadow-lg">💰</div>
-            <div className="rain-element text-yellow-500 text-lg drop-shadow-lg">$</div>
-            <div className="rain-element text-amber-400 text-xl drop-shadow-lg">💴</div>
-            
             {/* Mini logos da empresa (redondos) */}
             <div className="rain-element w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">C</div>
             <div className="rain-element w-5 h-5 bg-gradient-to-br from-pink-500 to-red-500 rounded-full flex items-center justify-center text-white text-xs shadow-lg">O</div>
