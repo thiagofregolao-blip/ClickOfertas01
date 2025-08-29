@@ -967,12 +967,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             </div>
           </div>
 
-          {/* Canvas simplificado - sem absolute positioning complexo */}
+          {/* Canvas de cobertura - posição absoluta simples */}
           <canvas
             ref={canvasRef}
             width={300}
             height={200}
-            className="w-full h-full cursor-pointer"
             onMouseDown={(e) => {
               console.log('🎨 MOUSE DOWN NO CANVAS!', { isVirtualClone, virtualCloneId });
               if (blocked()) {
@@ -992,9 +991,15 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
               handleTouchStart(e);
             }}
             style={{ 
-              display: 'block',
-              backgroundColor: 'rgba(200,200,200,0.8)',
-              border: '1px solid blue'
+              position: 'absolute',
+              top: '0',
+              left: '0',
+              width: '100%',
+              height: '100%',
+              zIndex: 50,
+              cursor: 'pointer',
+              backgroundColor: 'rgba(255,255,0,0.8)',
+              border: '3px solid red'
             }}
           />
 
