@@ -478,11 +478,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`🎯 Criando campanha automática de clones virtuais para produto: ${product.name}`);
             
             // Criar campanha automática
+            const discountPrice = product.scratchDiscountPrice || (Number(product.price) * 0.9).toString(); // 10% desconto padrão
             const campaign = await storage.createScratchCampaign({
               productId: product.id,
               storeId: product.storeId,
               title: `Raspadinha: ${product.name}`,
               description: `Clone virtual automático para ${product.name}`,
+              discountPrice: discountPrice, // CAMPO OBRIGATÓRIO
               discountPercentage: product.scratchDiscountPrice ? 
                 Math.round(((Number(product.price) - Number(product.scratchDiscountPrice)) / Number(product.price)) * 100) : 
                 10, // 10% padrão se não tiver desconto específico
