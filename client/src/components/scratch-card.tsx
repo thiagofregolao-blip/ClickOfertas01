@@ -1068,8 +1068,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           
           {/* Badge indicativo - CORREÇÃO: pointer-events-none para não bloquear canvas */}
           <div className="absolute top-2 right-2 z-10 pointer-events-none">
-            <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white animate-bounce text-xs">
-              <Sparkles className="w-3 h-3 mr-1" />
+            <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white animate-heartbeat text-xs shadow-lg">
+              <Gift className="w-3 h-3 mr-1" />
               RASPE AQUI
             </Badge>
           </div>

@@ -3,7 +3,7 @@ import { useRoute } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Share, Download, Printer, MoreVertical, Filter } from "lucide-react";
+import { Share, Download, Printer, MoreVertical, Filter, Gift } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import ProductCard from "@/components/product-card";
@@ -542,7 +542,8 @@ export default function PublicFlyer() {
                   return isRealPromotion ? (
                     // PROMOÇÃO REAL: Renderizar como ScratchCard
                     <div key={product.id} className="relative">
-                      <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                      <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-heartbeat flex items-center gap-1">
+                        <Gift className="w-3 h-3" />
                         RASPE AQUI
                       </div>
                       <ScratchCard
@@ -637,7 +638,8 @@ export default function PublicFlyer() {
                   return isRealPromotion ? (
                     // PROMOÇÃO REAL: Renderizar como ScratchCard
                     <div key={product.id} className="relative">
-                      <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                      <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-heartbeat flex items-center gap-1">
+                        <Gift className="w-3 h-3" />
                         RASPE AQUI
                       </div>
                       <ScratchCard
