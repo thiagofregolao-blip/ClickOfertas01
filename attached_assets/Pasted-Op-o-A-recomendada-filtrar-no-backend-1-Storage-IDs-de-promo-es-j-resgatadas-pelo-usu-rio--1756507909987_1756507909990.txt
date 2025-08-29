@@ -1,0 +1,117 @@
+Opção A (recomendada): filtrar no backend
+1) Storage: IDs de promoções já resgatadas pelo usuário
+// server/storage.ts
+async function getUserRedeemedPromotionIds(userId: string, storeId?: string): Promise<string[]> {
+  const rows = await db
+    .select({ promotionId: coupons.promotionId })
+    .from(coupons)
+    .where(and(
+      eq(coupons.userId, userId),
+      eq(coupons.isRedeemed, true),
+      storeId ? eq(coupons.storeId, storeId) : sql`TRUE`
+    ));
+  return rows.map(r => r.promotionId);
+}
+
+
+Premissa: sua tabela coupons tem userId, promotionId, storeId, isRedeemed.
+
+2) Endpoint do flyer já filtrando por usuário
+// server/routes.ts
+app.get('/api/stores/:slug/flyer', /* isAuthenticated opcional */, async (req: any, res) => {
+  try {
+    const { slug } = req.params;
+    const store = await storage.getStoreBySlug(slug);
+    if (!store) return res.status(404).json({ message: 'Loja não encontrada' });
+
+    const promotions = await storage.getActivePromotions(store.id);
+
+    const userId = req.user?.claims?.sub || req.user?.id; // se tiver login
+    if (!userId) {
+      // visitante: mostra tudo
+      return res.json({ promotions });
+    }
+
+    const redeemedIds = await storage.getUserRedeemedPromotionIds(userId, store.id);
+    const redeemedSet = new Set(redeemedIds);
+
+    // **Filtro**: não exibir promoções já resgatadas por este usuário
+    const filtered = promotions.filter(p => !redeemedSet.has(p.id));
+
+    res.json({ promotions: filtered });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: 'Erro ao montar flyer' });
+  }
+});
+
+3) Frontend: consumir o flyer filtrado
+// client/.../FlyerPage.tsx (exemplo)
+const { data, isLoading } = useQuery({
+  queryKey: ['flyer', storeSlug],
+  queryFn: async () => {
+    const r = await fetch(`/api/stores/${storeSlug}/flyer`, { credentials: 'include' });
+    if (!r.ok) throw new Error('Erro ao carregar flyer');
+    return r.json() as Promise<{ promotions: Promotion[] }>;
+  }
+});
+
+const promotions = data?.promotions ?? [];
+// renderize normalmente: só virão promoções “não resgatadas”
+
+4) Ao resgatar um cupom, invalidar o flyer
+// onde você confirma o resgate (ex.: Modal / botão "Resgatar")
+const queryClient = useQueryClient();
+
+const redeemMutation = useMutation({
+  mutationFn: (couponId: string) => apiRequest('POST', `/api/coupons/${couponId}/redeem`),
+  onSuccess: () => {
+    // Atualiza imediatamente a tela do flyer
+    queryClient.invalidateQueries({ queryKey: ['flyer', storeSlug] });
+    // Se você lista cupons do usuário em outro lugar:
+    queryClient.invalidateQueries({ queryKey: ['my-coupons'] });
+  }
+});
+
+
+Resultado: assim que o usuário resgata, o flyer recarrega e a promoção some para aquele usuário.
+
+Opção B (rápida): filtro só no frontend
+
+Se não puder tocar no backend agora:
+
+// 1) Buscar promoções ativas
+const { data: promoData } = useQuery({
+  queryKey: ['active-promos', storeSlug],
+  queryFn: () => apiRequest('GET', `/api/stores/${storeSlug}/promotions/active`)
+});
+
+// 2) Buscar cupons resgatados do usuário
+const { data: redeemed } = useQuery({
+  queryKey: ['redeemed-promos'],
+  queryFn: () => apiRequest('GET', '/api/coupons/me?status=redeemed'), // retorne [{ promotionId: '...' }, ...]
+  enabled: isLoggedIn
+});
+
+// 3) Filtrar antes de renderizar
+const filteredPromos = useMemo(() => {
+  if (!promoData?.promotions) return [];
+  if (!redeemed?.length) return promoData.promotions;
+
+  const set = new Set(redeemed.map((c: any) => c.promotionId));
+  return promoData.promotions.filter((p: any) => !set.has(p.id));
+}, [promoData, redeemed]);
+
+// 4) Invalide após resgatar
+onRedeemSuccess: () => {
+  queryClient.invalidateQueries({ queryKey: ['redeemed-promos'] });
+}
+
+Extras importantes
+
+Regra de negócio clara: esconder após resgate (não apenas após “raspar”).
+Garanta que a API de gerar cupom (generate-coupon) não esconda nada; só o endpoint de redeem muda o estado que filtra.
+
+Proteção de backend: mesmo que o front esconda, a API deve bloquear nova geração/resgate para promo já resgatada por aquele usuário.
+
+UX: se quiser, mostre um card “Já resgatado” desabilitado (em vez de sumir), mas isso é opcional.
