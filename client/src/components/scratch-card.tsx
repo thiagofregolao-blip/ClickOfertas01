@@ -963,7 +963,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   return (
     <>
       <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col h-full min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
-        <div className="h-full flex flex-col relative w-full isolate">
+        <div className="h-full flex flex-col relative w-full isolate bg-gradient-to-br from-yellow-100 to-orange-100 p-0 m-0">
           {/* DEBUG REMOVIDO ✅ */}
           
           {/* Badge indicativo - CORREÇÃO: pointer-events-none para não bloquear canvas */}
