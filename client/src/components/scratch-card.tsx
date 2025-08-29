@@ -339,9 +339,9 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       });
     }
     
-    // SISTEMA UNIFICADO: Não inicializar canvas se já revelado
-    // Para promoções, ignore loadingClone - só check loadingPromotion
+    // SISTEMA ORIGINAL: Só inicializa canvas para produtos com isScratchCard
     if (isRevealed) return;
+    if (!product.isScratchCard) return;
     if (isPromotion && loadingPromotion) return;
     if (!isPromotion && !isVirtualClone && loadingClone) return;
     if (!canvasRef.current) return;
@@ -443,7 +443,16 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             cloneData: virtualClone?.clone
           });
           
-          // SISTEMA UNIFICADO: Clones virtuais e promoções
+          // SISTEMA ORIGINAL: Detectar automaticamente baseado no produto
+          console.log('🎯 Produto raspado:', {
+            productId: product.id,
+            isPromotion: isPromotion,
+            promotionId: promotionId,
+            isVirtualClone: isVirtualClone,
+            virtualCloneId: virtualCloneId,
+            hasVirtualClone: virtualClone?.hasClone
+          });
+          
           if (isPromotion && promotionId) {
             // É uma promoção
             console.log('🎯 Raspando promoção:', promotionId);
@@ -457,13 +466,9 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             console.log('🎯 Raspando clone virtual via API:', virtualClone.clone.id);
             scratchVirtualCloneMutation.mutate(virtualClone.clone.id);
           } else {
-            // Produto sem clone nem promoção = não pode raspar
-            console.log('❌ Produto sem clone virtual ou promoção disponível');
-            toast({
-              title: 'Raspadinha indisponível',
-              description: 'Este produto não tem clones virtuais ou promoções disponíveis.',
-              variant: 'destructive',
-            });
+            // SISTEMA ORIGINAL: Produto normal com raspadinha habilitada
+            console.log('🎯 Produto normal com isScratchCard - gerando cupom:', product.id);
+            generateCouponMutation.mutate(product.id);
           }
         }, 220);
       }
@@ -1141,8 +1146,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             </>
           )}
 
-          {/* Canvas de raspadinha para PROMOÇÕES */}
-          {isPromotion && promotionId && !isRevealed && (
+          {/* Canvas de raspadinha - SISTEMA ORIGINAL: qualquer produto com isScratchCard */}
+          {product.isScratchCard && !isRevealed && (
             <canvas
               ref={canvasRef}
               className="absolute inset-0 w-full h-full cursor-pointer select-none touch-none"
