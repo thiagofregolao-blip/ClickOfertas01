@@ -158,15 +158,51 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  // 🚀 FORÇAR INICIALIZAÇÃO DIRETA DO CANVAS
+  // 🎨 INICIALIZAÇÃO VISUAL DO CANVAS COM GRADIENTE E TEXTO
   useEffect(() => {
-    console.log(`%c🚀 USEEFFECT EXECUTADO! 🚀`, 
-      'background: red; color: white; padding: 10px; font-size: 20px; font-weight: bold;');
-    console.log("🎨 CANVAS useEffect chamado:", {
-      productId: product.id,
-      isRevealed,
-      isScratchCard: product.isScratchCard,
-      canvasExists: !!canvasRef.current
+    if (!canvasRef.current || !product.isScratchCard || isRevealed) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // ✅ CONFIGURAR DIMENSÕES CORRETAS DO CANVAS
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    // 🎨 DESENHAR CAMADA DE SCRATCH COM GRADIENTE DOURADO
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, '#FFD700');  // Dourado
+    gradient.addColorStop(0.5, '#FFA500'); // Laranja
+    gradient.addColorStop(1, '#FF6347');   // Vermelho-laranja
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // ✨ ADICIONAR TEXTO "RASPE AQUI!" CENTRALIZADO
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+    ctx.shadowBlur = 2;
+    
+    // Texto dinâmico baseado no produto ou padrão
+    const message = product.scratchMessage || 'Raspe aqui!';
+    const lines = message.split(' ');
+    const lineHeight = 20;
+    const startY = canvas.height / 2 - (lines.length * lineHeight) / 2;
+    
+    lines.forEach((line, index) => {
+      ctx.fillText(line, canvas.width / 2, startY + (index * lineHeight));
+    });
+    
+    console.log("🎨 Canvas inicializado com sucesso:", {
+      width: canvas.width,
+      height: canvas.height,
+      message: message
     });
     
     // FORÇA INICIALIZAÇÃO MESMO SE CONDIÇÕES NÃO ESTIVEREM PERFEITAS
