@@ -162,8 +162,20 @@ export default function PromotionForm({ promotion, onClose, onSuccess }: Promoti
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Erro ${response.status}: ${errorText}`);
+        let errorMsg = `Erro ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.message || errorMsg;
+        } catch {
+          // Se não conseguir ler JSON, tentar como texto
+          try {
+            const errorText = await response.text();
+            errorMsg = errorText || errorMsg;
+          } catch {
+            // Usar mensagem padrão se tudo falhar
+          }
+        }
+        throw new Error(errorMsg);
       }
 
       return response.json();

@@ -36,10 +36,18 @@ export default function AdminPromotions() {
     mutationFn: async (promotionId: string) => {
       const response = await fetch(`/api/promotions/${promotionId}`, {
         method: "DELETE",
+        credentials: "include",
       });
 
       if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        let errorMsg = `Erro ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.message || errorMsg;
+        } catch {
+          // Se não conseguir ler JSON, usar mensagem padrão
+        }
+        throw new Error(errorMsg);
       }
 
       return response.json();
