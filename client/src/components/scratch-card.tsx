@@ -252,30 +252,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, cssWidth, cssHeight);
     
-    // ⚡ LINHAS EXATAS DA SUA IMAGEM (observando a referência precisamente)
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.lineWidth = 3;
-    ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-    ctx.shadowBlur = 6;
-    ctx.lineCap = 'round';
-    
-    // Linha diagonal longa principal (da esquerda superior à direita inferior)
-    ctx.beginPath();
-    ctx.moveTo(cssWidth * 0.00, cssHeight * 0.25);
-    ctx.lineTo(cssWidth * 0.95, cssHeight * 0.75);
-    ctx.stroke();
-    
-    // Linha diagonal curta superior
-    ctx.beginPath();
-    ctx.moveTo(cssWidth * 0.40, cssHeight * 0.00);
-    ctx.lineTo(cssWidth * 1.00, cssHeight * 0.35);
-    ctx.stroke();
-    
-    // Linha diagonal inferior esquerda
-    ctx.beginPath();
-    ctx.moveTo(cssWidth * 0.00, cssHeight * 0.70);
-    ctx.lineTo(cssWidth * 0.60, cssHeight * 1.00);
-    ctx.stroke();
+    // ✅ LINHAS REMOVIDAS - visual mais limpo!
     
     // ✨ PARTÍCULAS PEQUENAS COMO NA IMAGEM
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
