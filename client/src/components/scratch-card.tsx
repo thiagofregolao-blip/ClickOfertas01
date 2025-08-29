@@ -57,6 +57,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   const [coupon, setCoupon] = useState<any>(null);
   const [couponGenerated, setCouponGenerated] = useState(false);
   const [generatingCoupon, setGeneratingCoupon] = useState(false); // 🚫 FLAG ANTI-DUPLICAÇÃO
+  const [revelationStarted, setRevelationStarted] = useState(false); // 🚫 FLAG REVELAÇÃO ÚNICA
   const [showCouponModal, setShowCouponModal] = useState(false);
   const scratchedAreas = useRef<ScratchArea[]>([]);
   const { toast } = useToast();
@@ -301,9 +302,18 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       const progress = total > 0 ? transparent / total : 0;
       setScratchProgress(progress);
       
-      // Revelar com threshold - usar mutation apropriada
-      if (progress >= 0.7 && !isRevealed && !isFading) {
+      // Revelar com threshold - PROTEÇÃO MÁXIMA ANTI-DUPLICAÇÃO  
+      if (progress >= 0.7 && !isRevealed && !isFading && !revelationStarted) {
+        console.log("🎯 INICIANDO REVELAÇÃO ÚNICA!");
+        setRevelationStarted(true); // 🚫 BLOQUEAR IMEDIATAMENTE
         setIsFading(true);
+        
+        // 🛑 PARAR RAF LOOP IMEDIATAMENTE
+        if (rafId.current) {
+          cancelAnimationFrame(rafId.current);
+          rafId.current = null;
+        }
+        
         setTimeout(() => {
           setIsRevealed(true);
           
@@ -730,13 +740,14 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             <div className="flex gap-3">
               <button 
                 onClick={() => {
-                  if (!generatingCoupon && !couponGenerated) {
+                  if (!generatingCoupon && !couponGenerated && !revelationStarted) {
                     setGeneratingCoupon(true);
+                    setRevelationStarted(true); // 🚫 BLOQUEAR MÚLTIPLOS CLIQUES
                     generateCouponMutation.mutate(product.id);
                   }
                 }}
                 className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 px-4 rounded-lg transition-all"
-                disabled={generateCouponMutation.isPending || generatingCoupon}
+                disabled={generateCouponMutation.isPending || generatingCoupon || revelationStarted}
               >
                 {generateCouponMutation.isPending ? (
                   "Gerando cupom..."
