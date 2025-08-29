@@ -215,10 +215,9 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       dpr
     });
     
-    // FORÇAR DIMENSÕES MÍNIMAS se altura for muito pequena
-    const minHeight = 200; // Altura mínima
-    const actualHeight = Math.max(rect.height, minHeight);
-    const actualWidth = Math.max(rect.width, 200); // Largura mínima
+    // USAR DIMENSÕES REAIS DO CARD - sem forçar tamanho mínimo
+    const actualHeight = rect.height || 200; // Usar altura real do card
+    const actualWidth = rect.width || 200; // Usar largura real do card
     
     canvas.width = Math.round(actualWidth * dpr);
     canvas.height = Math.round(actualHeight * dpr);
