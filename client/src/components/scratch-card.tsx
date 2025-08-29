@@ -293,17 +293,14 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     ctx.font = 'bold 24px Arial'; // Aumentado de 16px para 24px
     ctx.textAlign = 'center';
     
-    // 💰 POSIÇÕES DOS SÍMBOLOS $ COPIADAS DA SUA IMAGEM EXATAMENTE
-    const dollarPositions = [
-      { x: cssWidth * 0.12, y: cssHeight * 0.18 },  // $ superior esquerdo
-      { x: cssWidth * 0.25, y: cssHeight * 0.35 },  // $ meio esquerdo  
-      { x: cssWidth * 0.88, y: cssHeight * 0.25 },  // $ superior direito
-      { x: cssWidth * 0.78, y: cssHeight * 0.45 },  // $ meio direito
-      { x: cssWidth * 0.05, y: cssHeight * 0.65 },  // $ inferior esquerdo
-      { x: cssWidth * 0.45, y: cssHeight * 0.82 },  // $ inferior centro
-      { x: cssWidth * 0.75, y: cssHeight * 0.75 },  // $ inferior direito
-      { x: cssWidth * 0.68, y: cssHeight * 0.62 },  // $ meio-baixo
-    ];
+    // 🎲 POSIÇÕES ALEATÓRIAS DOS SÍMBOLOS $ (embaralhadas a cada renderização)
+    const dollarPositions = [];
+    for (let i = 0; i < 8; i++) {
+      dollarPositions.push({
+        x: cssWidth * (0.1 + Math.random() * 0.8),  // Entre 10% e 90% da largura
+        y: cssHeight * (0.15 + Math.random() * 0.7) // Entre 15% e 85% da altura
+      });
+    }
     
     dollarPositions.forEach(pos => {
       // 💰 SÍMBOLOS $ DOURADOS COM BRILHO NATURAL DE OURO
