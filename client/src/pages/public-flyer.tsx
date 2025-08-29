@@ -531,7 +531,7 @@ export default function PublicFlyer() {
                         isScratchCard: true,
                         scratchMessage: promotion.scratchMessage || "Parabéns! Você ganhou um desconto especial!",
                         scratchPrice: promotion.promotionalPrice,
-                        scratchExpiresAt: promotion.validUntil ? promotion.validUntil : new Date().toISOString(),
+                        scratchExpiresAt: promotion.validUntil ? new Date(promotion.validUntil) : new Date(),
                         createdAt: promotion.createdAt,
                         updatedAt: promotion.updatedAt
                       }}
@@ -633,7 +633,7 @@ export default function PublicFlyer() {
                         isScratchCard: true,
                         scratchMessage: promotion.scratchMessage || "Parabéns! Você ganhou um desconto especial!",
                         scratchPrice: promotion.promotionalPrice,
-                        scratchExpiresAt: promotion.validUntil ? promotion.validUntil : new Date().toISOString(),
+                        scratchExpiresAt: promotion.validUntil ? new Date(promotion.validUntil) : new Date(),
                         createdAt: promotion.createdAt,
                         updatedAt: promotion.updatedAt
                       }}

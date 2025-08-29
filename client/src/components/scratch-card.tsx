@@ -114,6 +114,21 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     enabled: isPromotion && !!promotionId,
   });
 
+  // DEBUG: Log props importantes
+  useEffect(() => {
+    if (isPromotion) {
+      console.log('🎯 ScratchCard PROMOÇÃO renderizado:', {
+        promotionId,
+        isPromotion,
+        productId: product.id,
+        productName: product.name,
+        isRevealed,
+        loadingPromotion,
+        promotionStatus
+      });
+    }
+  }, [isPromotion, promotionId, product.id, product.name, isRevealed, loadingPromotion, promotionStatus]);
+
   // SISTEMA UNIFICADO: Apenas clones virtuais
 
   // SISTEMA UNIFICADO: Sincronizar com clones virtuais e promoções
@@ -314,6 +329,16 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // FASE 1: Inicializar canvas com DPI correto
   useEffect(() => {
+    // DEBUG: Log condições de inicialização
+    if (isPromotion) {
+      console.log('🖼️ Canvas inicialização - condições:', {
+        isRevealed,
+        loadingPromotion,
+        hasCanvas: !!canvasRef.current,
+        shouldInit: !isRevealed && !loadingPromotion && !!canvasRef.current
+      });
+    }
+    
     // SISTEMA UNIFICADO: Não inicializar canvas se já revelado
     // Para promoções, ignore loadingClone - só check loadingPromotion
     if (isRevealed) return;
@@ -1114,6 +1139,22 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
                 </div>
               </div>
             </>
+          )}
+
+          {/* Canvas de raspadinha para PROMOÇÕES */}
+          {isPromotion && promotionId && !isRevealed && (
+            <canvas
+              ref={canvasRef}
+              className="absolute inset-0 w-full h-full cursor-pointer select-none touch-none"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              style={{ zIndex: 10 }}
+            />
           )}
 
           {/* Efeito gradual do desconto - aparece conforme raspa */}
