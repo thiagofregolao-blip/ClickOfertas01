@@ -1,0 +1,80 @@
+Vou apontar exatamente onde o layering quebra e sugerir um ajuste mínimo (sem “refatorona”) pra gente confirmar o diagnóstico antes de programar qualquer efeito de raspagem real.
+
+Onde está o conflito
+
+No seu ScratchCard você tem esta estrutura (simplificando):
+
+<div className="relative isolate z-10 ... overflow-hidden">
+  <div className="relative h-full w-full overflow-hidden">
+    {/* conteúdo branco */}
+    <div className="absolute inset-0 ... bg-white"> ... </div>
+
+    {/* cobertura (debug vermelho) */}
+    <div className="absolute top-0 left-0 w-full h-full" style={{ zIndex: 100, ... }} />
+    <div className="absolute top-1/2 left-1/2 ..." style={{ zIndex: 200, ... }}>...</div>
+  </div>
+</div>
+
+
+Pelo seu relato, a cobertura existe no DOM, mas fica atrás do bloco branco com imagem/nome/preço. Em teoria, com z-index:100 a cobertura deveria aparecer por cima. Se não aparece, quase sempre é por conta de contexto de empilhamento (stacking context) criado em algum ancestral/irmão do conteúdo branco, que faz o conteúdo ser pintado “em outra camada” acima dos irmãos — e aí z-index:100 da cobertura não compete com o z-index do conteúdo.
+
+“Pistolas fumegantes” (o que cria stacking context sem você querer)
+
+Algum ancestral do conteúdo branco (ou ele próprio) com transform (inclui translate/scale/rotate, inclusive utilitários como transform do Tailwind), filter, opacity < 1, mix-blend-mode, perspective, will-change, contain, ou até position: sticky em certos casos.
+
+Um z-index alto vindo de estilo global/utilitário (ex.: alguma classe que dá z-50 para o card do produto).
+
+O wrapper externo com z-10 isolate vs. filhos com z-50/z-100 em outro contexto.
+
+Observação: seu elemento de texto “DEBUG” usa transform (Tailwind aplica transform:). Isso cria stacking context nele, mas não explica sumir atrás do card inteiro — só mostra como é fácil criar contextos por acidente.
+
+Como validar em 30s no DevTools
+
+Com o inspetor sobre a área do card, rode no console:
+
+document.elementFromPoint(200, 200)
+
+
+(ajuste x,y para o centro do card). Se voltar o conteúdo branco, significa que ele realmente está por cima.
+
+Olhe o computed style do contêiner branco e dos pais até o .relative h-full w-full:
+
+Se aparecer qualquer transform, filter, opacity < 1, contain, mix-blend-mode, etc., achamos o culpado.
+
+Aba Layers do Chrome: dá pra visualizar quem está em qual camada.
+
+Ajuste mínimo e determinístico (prova de vida)
+
+A gente força um contexto local isolado e declara ordem explícita entre conteúdo e cobertura no mesmo contexto. Troca de 3–4 classes resolve:
+
+Garanta que o wrapper interno seja o “mundo” isolado onde o z-index vale:
+
+- <div className="p-0 relative h-full w-full overflow-hidden">
++ <div className="p-0 relative h-full w-full overflow-hidden isolate">
+
+
+Baixe o conteúdo branco para z-0 e mantenha positioned:
+
+- <div className="absolute inset-0 p-3 flex ... bg-white">
++ <div className="absolute inset-0 z-0 p-3 flex ... bg-white">
+
+
+Suba a cobertura, usando inset-0 (melhor que w-full h-full) e um z-index maior:
+
+- <div className="absolute top-0 left-0 w-full h-full cursor-pointer"
+-      style={{ zIndex: 100, backgroundColor:'#ff0000', border:'5px solid #00ff00', opacity:0.8 }}>
++ <div className="absolute inset-0 z-50 cursor-pointer"
++      style={{ backgroundColor:'#ff0000', border:'5px solid #00ff00', opacity:0.8 }}>
+
+
+O texto de debug também acima do conteúdo:
+
+- <div className="absolute top-1/2 left-1/2 transform ... pointer-events-none"
+-      style={{ zIndex: 200, ... }}>
++ <div className="absolute inset-0 z-60 flex items-center justify-center pointer-events-none"
++      style={{ ... }}>
+
+
+(Usei inset-0 + flex center para evitar transform, que cria outro stacking context.)
+
+Por que funciona? isolate cria um contexto de empilhamento local no wrapper; dentro dele, o conteúdo fica fixado em z-0 e a cobertura em z-50/60. Mesmo que algum ancestral tenha transform/z-index, dentro desse wrapper a ordem fica previsível.

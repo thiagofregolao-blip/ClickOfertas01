@@ -932,7 +932,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   return (
     <>
       <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
-        <div className="p-0 relative h-full w-full overflow-hidden">
+        <div className="p-0 relative h-full w-full overflow-hidden isolate">
           {/* Badge indicativo */}
           <div className="absolute top-2 right-2 z-20">
             <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white animate-bounce text-xs">
@@ -942,7 +942,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
           </div>
 
           {/* Produto por trás (parcialmente visível) */}
-          <div className="absolute inset-0 p-3 flex flex-col justify-center items-center bg-white">
+          <div className="absolute inset-0 z-0 p-3 flex flex-col justify-center items-center bg-white">
             {/* Imagem */}
             <div className="relative mb-2">
               {product.imageUrl ? (
@@ -980,9 +980,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             <>
               {console.log('✅ RENDERIZANDO COBERTURA PARA CLONE:', virtualCloneId)}
               <div
-                className="absolute top-0 left-0 w-full h-full cursor-pointer"
+                className="absolute inset-0 z-50 cursor-pointer"
                 style={{
-                  zIndex: 100,
                   backgroundColor: '#ff0000', // VERMELHO para debug
                   border: '5px solid #00ff00', // VERDE para debug
                   opacity: 0.8
@@ -1002,9 +1001,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
               
               {/* Texto DEBUG */}
               <div 
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                className="absolute inset-0 z-60 flex items-center justify-center pointer-events-none"
                 style={{ 
-                  zIndex: 200,
                   color: '#ffffff',
                   fontWeight: 'bold',
                   fontSize: '16px',
