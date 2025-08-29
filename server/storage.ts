@@ -54,7 +54,7 @@ import {
   type PromotionWithDetails,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, count, gte, lte, sql } from "drizzle-orm";
+import { eq, and, desc, count, gte, lte, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -1754,7 +1754,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMyAvailablePromotions(userId: string, storeId: string): Promise<PromotionWithDetails[]> {
-    const results = await db
+    // FASE 1: Buscar promoções já atribuídas ao usuário (comportamento original)
+    const existingResults = await db
       .select({
         promotion: promotions,
         store: stores,
@@ -1769,7 +1770,63 @@ export class DatabaseStorage implements IStorage {
         eq(promotionAssignments.status, 'assigned') // Apenas promoções ainda não raspadas
       ));
 
-    return results.map(r => ({
+    console.log(`🎯 Promoções já atribuídas ao usuário ${userId}:`, existingResults.length);
+
+    // FASE 2: Se não há promoções atribuídas, tentar distribuir automaticamente
+    if (existingResults.length === 0) {
+      console.log('🎲 Não há promoções atribuídas, iniciando distribuição automática...');
+      
+      // Buscar promoções ativas da loja que ainda têm vagas disponíveis
+      const availablePromotions = await db
+        .select({
+          promotion: promotions,
+          store: stores,
+        })
+        .from(promotions)
+        .innerJoin(stores, eq(promotions.storeId, stores.id))
+        .where(and(
+          eq(promotions.storeId, storeId),
+          eq(promotions.isActive, true),
+          sql`CAST(${promotions.usedCount} AS INTEGER) < CAST(${promotions.maxClients} AS INTEGER)` // Ainda tem vagas
+        ));
+
+      console.log(`🏪 Promoções disponíveis na loja:`, availablePromotions.length);
+
+      // Filtrar promoções que o usuário ainda não tem assignments
+      const userAssignments = await db
+        .select()
+        .from(promotionAssignments)
+        .where(and(
+          eq(promotionAssignments.userId, userId),
+          inArray(promotionAssignments.promotionId, availablePromotions.map(p => p.promotion.id))
+        ));
+
+      const assignedPromotionIds = new Set(userAssignments.map(a => a.promotionId));
+      const newPromotions = availablePromotions.filter(p => !assignedPromotionIds.has(p.promotion.id));
+
+      console.log(`✨ Novas promoções para atribuir:`, newPromotions.length);
+
+      // Criar assignments automáticos para promoções disponíveis
+      if (newPromotions.length > 0) {
+        const newAssignments = newPromotions.map(p => ({
+          promotionId: p.promotion.id,
+          userId: userId,
+          status: 'assigned' as const,
+        }));
+
+        await db.insert(promotionAssignments).values(newAssignments);
+        console.log(`🎉 Criados ${newAssignments.length} assignments automáticos para usuário ${userId}`);
+
+        // Retornar as novas promoções atribuídas
+        return newPromotions.map(r => ({
+          ...r.promotion,
+          store: r.store
+        }));
+      }
+    }
+
+    // Retornar promoções existentes
+    return existingResults.map(r => ({
       ...r.promotion,
       store: r.store
     }));
