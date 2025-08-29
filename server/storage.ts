@@ -42,7 +42,7 @@ import {
   type VirtualScratchCloneWithDetails,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, count, gte } from "drizzle-orm";
+import { eq, and, desc, count, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)

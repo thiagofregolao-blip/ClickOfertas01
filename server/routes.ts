@@ -1215,7 +1215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 5. Raspar clone virtual (substitui a raspagem tradicional)
-  app.post('/api/virtual-clones/:cloneId/scratch', async (req: any, res) => {
+  app.post('/api/virtual-clones/:cloneId/scratch', isAuthenticated, async (req: any, res) => {
     try {
       const { cloneId } = req.params;
       const userId = req.user?.claims?.sub || req.user?.id;
