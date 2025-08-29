@@ -253,7 +253,35 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     
     console.log("✅ Gradiente desenhado!");
 
-    // Adicionar texto
+    // 💰 ADICIONAR SÍMBOLOS $ DECORATIVOS
+    console.log("💰 Adicionando símbolos $ dourados...");
+    ctx.fillStyle = '#FFD700'; // Dourado mais forte
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+    ctx.shadowBlur = 3;
+    
+    // Posições fixas para símbolos $ (não aleatórias para consistência)
+    const dollarPositions = [
+      { x: cssWidth * 0.15, y: cssHeight * 0.2 },
+      { x: cssWidth * 0.85, y: cssHeight * 0.25 },
+      { x: cssWidth * 0.25, y: cssHeight * 0.75 },
+      { x: cssWidth * 0.75, y: cssHeight * 0.8 },
+      { x: cssWidth * 0.1, y: cssHeight * 0.6 },
+      { x: cssWidth * 0.9, y: cssHeight * 0.55 },
+      { x: cssWidth * 0.35, y: cssHeight * 0.15 },
+      { x: cssWidth * 0.65, y: cssHeight * 0.9 },
+    ];
+    
+    dollarPositions.forEach(pos => {
+      ctx.fillText('$', pos.x, pos.y);
+    });
+    
+    console.log("💰 Símbolos $ adicionados!");
+
+    // Adicionar texto principal
     console.log("📝 Adicionando texto na textura...");
     ctx.fillStyle = 'white';
     ctx.font = 'bold 14px Arial';
