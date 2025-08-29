@@ -238,102 +238,19 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     const cssWidth = actualWidth;
     const cssHeight = actualHeight;
 
-    // 🎨 RECREANDO EXATAMENTE COMO NA IMAGEM REFERÊNCIA
-    console.log(`%c🎯 ANALISANDO E RECRIANDO TEXTURA PRECISA! 🎯`, 
-      'background: linear-gradient(135deg, #FF8C00, #FF1493); color: white; padding: 10px; font-size: 16px; font-weight: bold;');
+    // 🎨 TEXTURA SIMPLES E ELEGANTE
+    console.log(`%c🎨 DESENHANDO TEXTURA LIMPA! 🎨`, 
+      'background: gold; color: black; padding: 5px; font-size: 16px; font-weight: bold;');
+    console.log("🌈 Criando gradiente suave:", { cssWidth, cssHeight });
     
-    // 🌈 GRADIENTE DIAGONAL PRECISO (como na imagem)
-    const gradient = ctx.createRadialGradient(
-      cssWidth * 0.3, cssHeight * 0.3, 0,  // Centro superior esquerdo
-      cssWidth * 0.7, cssHeight * 0.7, cssWidth * 0.8  // Raio até inferior direito
-    );
-    gradient.addColorStop(0, '#FFA500');    // Laranja suave (topo)
-    gradient.addColorStop(0.3, '#FF6B47');  // Laranja-coral
-    gradient.addColorStop(0.6, '#FF1493');  // Rosa intenso
-    gradient.addColorStop(0.85, '#C71585'); // Rosa-roxo
-    gradient.addColorStop(1, '#8B0B85');    // Roxo profundo (base)
+    // 🌅 GRADIENTE DIAGONAL SUAVE
+    const gradient = ctx.createLinearGradient(0, 0, cssWidth, cssHeight);
+    gradient.addColorStop(0, '#FFD700');    // Dourado
+    gradient.addColorStop(0.5, '#FF6347');  // Coral
+    gradient.addColorStop(1, '#FF1493');    // Rosa
 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, cssWidth, cssHeight);
-    
-    // 🔥 TEXTURA GRANULADA (efeito rugoso da raspadinha real)
-    console.log("🪨 Adicionando textura granulada...");
-    ctx.globalAlpha = 0.15;
-    ctx.fillStyle = '#FFF';
-    
-    // Criar textura com pontos pequenos aleatórios
-    for (let i = 0; i < cssWidth * cssHeight * 0.001; i++) {
-      const x = Math.random() * cssWidth;
-      const y = Math.random() * cssHeight;
-      ctx.fillRect(x, y, 1, 1);
-    }
-    ctx.globalAlpha = 1.0;
-    
-    // ⚡ LINHAS BRILHANTES ESPECÍFICAS (baseado na imagem)
-    console.log("⚡ Desenhando linhas exatas da referência...");
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.lineWidth = 3;
-    ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
-    ctx.shadowBlur = 6;
-    ctx.lineCap = 'round';
-    
-    // Linha diagonal principal (atravessa da esquerda superior à direita inferior)
-    ctx.beginPath();
-    ctx.moveTo(cssWidth * 0.1, cssHeight * 0.1);
-    ctx.lineTo(cssWidth * 0.9, cssHeight * 0.7);
-    ctx.stroke();
-    
-    // Linha diagonal secundária (paralela mais curta)
-    ctx.beginPath();
-    ctx.moveTo(cssWidth * 0.4, cssHeight * 0.05);
-    ctx.lineTo(cssWidth * 0.95, cssHeight * 0.45);
-    ctx.stroke();
-    
-    // Linha diagonal inferior (menor)
-    ctx.beginPath();
-    ctx.moveTo(cssWidth * 0.05, cssHeight * 0.6);
-    ctx.lineTo(cssWidth * 0.5, cssHeight * 0.95);
-    ctx.stroke();
-    
-    // ✨ PARTÍCULAS VARIADAS (pontos + estrelas como na imagem)
-    console.log("⭐ Espalhando partículas precisas...");
-    
-    // Pontos pequenos brilhantes
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-    ctx.shadowBlur = 2;
-    
-    const smallDots = [
-      { x: cssWidth * 0.15, y: cssHeight * 0.25 }, { x: cssWidth * 0.75, y: cssHeight * 0.15 },
-      { x: cssWidth * 0.25, y: cssHeight * 0.55 }, { x: cssWidth * 0.85, y: cssHeight * 0.45 },
-      { x: cssWidth * 0.35, y: cssHeight * 0.75 }, { x: cssWidth * 0.65, y: cssHeight * 0.85 },
-      { x: cssWidth * 0.05, y: cssHeight * 0.35 }, { x: cssWidth * 0.95, y: cssHeight * 0.25 }
-    ];
-    
-    smallDots.forEach(pos => {
-      ctx.beginPath();
-      ctx.arc(pos.x, pos.y, 1.5, 0, 2 * Math.PI);
-      ctx.fill();
-    });
-    
-    // Estrelas médias brilhantes
-    ctx.font = 'bold 10px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    const mediumStars = [
-      { x: cssWidth * 0.2, y: cssHeight * 0.15 }, { x: cssWidth * 0.8, y: cssHeight * 0.35 },
-      { x: cssWidth * 0.45, y: cssHeight * 0.8 }, { x: cssWidth * 0.9, y: cssHeight * 0.6 }
-    ];
-    
-    mediumStars.forEach(pos => {
-      ctx.fillText('✦', pos.x, pos.y);
-    });
-    
-    // Estrela grande no canto (como na imagem)
-    ctx.font = 'bold 16px Arial';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.shadowBlur = 4;
-    ctx.fillText('✦', cssWidth * 0.9, cssHeight * 0.9);
     
     console.log("✅ Gradiente desenhado!");
 
