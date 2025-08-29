@@ -89,12 +89,13 @@ export default function PublicFlyer() {
   });
 
   // NOVO: Buscar clones virtuais disponíveis para usuário autenticado
-  const { data: virtualClones = [] } = useQuery<any[]>({
+  const { data: virtualClonesResponse } = useQuery<{ clones: any[] }>({
     queryKey: ['/api/virtual-clones/user'],
     enabled: isAuthenticated, // Só busca se autenticado
     staleTime: 60_000, // Cache por 1 minuto
     retry: false, // Não retry se não autenticado
   });
+  const virtualClones = virtualClonesResponse?.clones || [];
 
   // Registrar visualização do panfleto/loja quando carregado
   // CORREÇÃO: Removido recordFlyerView das dependências para evitar loop infinito
