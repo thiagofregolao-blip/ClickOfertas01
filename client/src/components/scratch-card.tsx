@@ -986,7 +986,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            style={{ touchAction: 'none', display: 'block' }}
+            onClick={(e) => {
+              console.log('🎨 CLIQUE DIRETO NO CANVAS!', { isVirtualClone, virtualCloneId });
+              e.stopPropagation();
+            }}
+            style={{ touchAction: 'none', display: 'block', backgroundColor: 'rgba(255,0,0,0.1)' }}
           />
 
           {/* Efeito gradual do desconto - aparece conforme raspa */}
