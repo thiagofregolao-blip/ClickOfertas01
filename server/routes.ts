@@ -979,11 +979,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       console.log('💾 Criando cupom (também para promoções)...');
-      console.log('🔍 DADOS DO CUPOM ANTES DE SALVAR:', JSON.stringify(couponData, null, 2));
-      
       // Salvar sempre na base, mas com productId = null para promoções
       const coupon = await storage.createCoupon(couponData);
-      console.log('🔍 CUPOM SALVO NA BASE:', JSON.stringify(coupon, null, 2));
       console.log('✅ Cupom criado com sucesso:', coupon);
 
       res.status(201).json({
@@ -1015,10 +1012,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/coupons/user', async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.user?.id;
-      console.log('🎫 BUSCANDO CUPONS DO USUÁRIO:', userId);
       const coupons = await storage.getUserCoupons(userId);
-      console.log('🎫 CUPONS ENCONTRADOS:', coupons.length, 'cupons');
-      console.log('🎫 CUPONS DETALHES:', coupons.map(c => ({ id: c.id, code: c.couponCode, productId: c.productId })));
       res.json(coupons);
     } catch (error) {
       console.error("Error fetching user coupons:", error);

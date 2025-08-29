@@ -416,7 +416,7 @@ export default function MyCoupons() {
               {/* Info do cupom */}
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-bold">{selectedCoupon.product.name}</h3>
+                  <h3 className="font-bold">{selectedCoupon.product?.name || 'Promoção Especial'}</h3>
                   <p className="text-gray-600">{selectedCoupon.store.name}</p>
                 </div>
 
