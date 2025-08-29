@@ -503,16 +503,15 @@ export default function PublicFlyer() {
                         name: clone.productName,
                         description: clone.productDescription,
                         price: clone.originalPrice,
-                        discountPrice: clone.discountPrice,
                         imageUrl: clone.productImageUrl,
                         category: clone.productCategory,
                         storeId: clone.storeId,
                         isActive: true,
                         isFeatured: false,
                         showInStories: false,
-                        isScratchCard: false, // IMPORTANTE: produto do clone não é scratch card
+                        isScratchCard: true, // IMPORTANTE: clone DEVE ser scratch card para poder raspar
                         scratchMessage: "Você ganhou um desconto especial!",
-                        scratchDiscountPrice: clone.discountPrice,
+                        scratchPrice: clone.discountPrice,
                         scratchExpiresAt: clone.expiresAt,
                         scratchCouponCode: `CLONE-${clone.id}`,
                         createdAt: clone.createdAt,
@@ -571,9 +570,9 @@ export default function PublicFlyer() {
                         isActive: true,
                         isFeatured: false,
                         showInStories: false,
-                        isScratchCard: false, // IMPORTANTE: produto do clone não é scratch card
+                        isScratchCard: true, // IMPORTANTE: clone DEVE ser scratch card para poder raspar
                         scratchMessage: "Você ganhou um desconto especial!",
-                        scratchDiscountPrice: clone.discountPrice,
+                        scratchPrice: clone.discountPrice,
                         scratchExpiresAt: clone.expiresAt,
                         scratchCouponCode: `CLONE-${clone.id}`,
                         createdAt: clone.createdAt,
