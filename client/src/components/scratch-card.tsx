@@ -371,7 +371,11 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   }, []);
 
   // SISTEMA UNIFICADO: Verificar bloqueio apenas para clones virtuais
-  const blocked = () => isRevealed || loadingClone;
+  const blocked = () => {
+    const isBlocked = isRevealed || loadingClone;
+    console.log('🔒 Verificando se está bloqueado:', { isRevealed, loadingClone, isBlocked });
+    return isBlocked;
+  };
 
   // Função de scratch melhorada
   const handleScratch = (clientX: number, clientY: number) => {
@@ -453,7 +457,12 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Event handlers
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (blocked()) return;
+    console.log('🖱️ Mouse Down detectado!', { isRevealed, isVirtualClone, virtualCloneId });
+    if (blocked()) {
+      console.log('❌ Bloqueado pela função blocked()');
+      return;
+    }
+    console.log('✅ Iniciando raspagem...');
     setIsScratching(true);
     lastPoint.current = null; // Reset traçado
     handleScratch(e.clientX, e.clientY);
@@ -472,8 +481,13 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
 
   // Touch handlers
   const handleTouchStart = (e: React.TouchEvent) => {
+    console.log('📱 Touch Start detectado!', { isRevealed, isVirtualClone, virtualCloneId });
     e.preventDefault();
-    if (blocked()) return;
+    if (blocked()) {
+      console.log('❌ Bloqueado pela função blocked()');
+      return;
+    }
+    console.log('✅ Iniciando raspagem touch...');
     setIsScratching(true);
     lastPoint.current = null; // Reset traçado
     const touch = e.touches[0];
