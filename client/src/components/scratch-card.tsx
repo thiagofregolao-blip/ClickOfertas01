@@ -931,40 +931,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Render do card para raspar
   return (
     <>
-      {/* TESTE EXTERNO - Div vermelho fora do container para testar visibilidade */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '10px',
-          right: '10px',
-          width: '100px',
-          height: '50px',
-          backgroundColor: 'red',
-          border: '3px solid black',
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontWeight: 'bold',
-          fontSize: '10px',
-          cursor: 'pointer'
-        }}
-        onClick={(e) => {
-          console.log('🔴 CLIQUE NO DIV EXTERNO VERMELHO!', { isVirtualClone, virtualCloneId });
-          e.stopPropagation();
-        }}
-      >
-        TESTE EXTERNO
-      </div>
-      
-      <div 
-        className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer select-none"
-        onClick={(e) => {
-          console.log('🎯 CLIQUE NO CONTAINER PRINCIPAL!', { isVirtualClone, virtualCloneId });
-          e.stopPropagation();
-        }}
-      >
+      <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
         <div className="p-0 relative h-full w-full overflow-hidden">
           {/* Badge indicativo */}
           <div className="absolute top-2 right-2 z-20">
@@ -1000,42 +967,35 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             </div>
           </div>
 
-          {/* TESTE: Div no lugar do canvas para testar cliques */}
-          <div
-            className={`absolute inset-0 w-full h-full cursor-pointer transition-all duration-200 ease-out ${
-              isFading ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
-            }`}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onClick={(e) => {
-              console.log('🎨 CLIQUE NO DIV DE TESTE!', { isVirtualClone, virtualCloneId });
-              e.stopPropagation();
-            }}
-            style={{ 
-              touchAction: 'none', 
-              backgroundColor: 'rgba(255,0,0,0.3)',
-              border: '2px solid red',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'red',
-              fontWeight: 'bold',
-              fontSize: '12px'
-            }}
-          >
-            TESTE CLIQUE
-          </div>
-          
-          {/* Canvas original (temporariamente escondido) */}
+          {/* Canvas simplificado - sem absolute positioning complexo */}
           <canvas
             ref={canvasRef}
-            className="hidden"
-            style={{ display: 'none' }}
+            width={300}
+            height={200}
+            className="w-full h-full cursor-pointer"
+            onMouseDown={(e) => {
+              console.log('🎨 MOUSE DOWN NO CANVAS!', { isVirtualClone, virtualCloneId });
+              if (blocked()) {
+                console.log('❌ Bloqueado pela função blocked()');
+                return;
+              }
+              console.log('✅ Iniciando raspagem no canvas...');
+              handleMouseDown(e);
+            }}
+            onTouchStart={(e) => {
+              console.log('📱 TOUCH START NO CANVAS!', { isVirtualClone, virtualCloneId });
+              if (blocked()) {
+                console.log('❌ Bloqueado pela função blocked()');
+                return;
+              }
+              console.log('✅ Iniciando raspagem touch no canvas...');
+              handleTouchStart(e);
+            }}
+            style={{ 
+              display: 'block',
+              backgroundColor: 'rgba(200,200,200,0.8)',
+              border: '1px solid blue'
+            }}
           />
 
           {/* Efeito gradual do desconto - aparece conforme raspa */}
