@@ -863,11 +863,6 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
               </div>
             </div>
           </div>
-          
-          {/* Badge horizontal no final do card */}
-          <div className="w-full bg-blue-500 text-white py-2 px-3 text-xs font-medium">
-            👆 Toque para mais detalhes
-          </div>
         </div>
         <ProductModal />
         {showCouponModal && coupon && (
@@ -962,7 +957,7 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Render do card para raspar
   return (
     <>
-      <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col h-full min-h-[200px] sm:min-h-[220px] cursor-crosshair select-none">
+      <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col h-full min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
         <div className="h-full flex flex-col relative w-full isolate bg-gradient-to-br from-yellow-100 to-orange-100 p-0 m-0">
           {/* DEBUG REMOVIDO ✅ */}
           
