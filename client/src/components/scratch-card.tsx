@@ -851,8 +851,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     <>
       <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
         <div className="p-0 relative h-full w-full overflow-hidden isolate">
-          {/* Badge indicativo */}
-          <div className="absolute top-2 right-2 z-20">
+          {/* Badge indicativo - CORREÇÃO: pointer-events-none para não bloquear canvas */}
+          <div className="absolute top-2 right-2 z-10 pointer-events-none">
             <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white animate-bounce text-xs">
               <Sparkles className="w-3 h-3 mr-1" />
               RASPE!
@@ -899,7 +899,15 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              style={{ zIndex: 10 }}
+              style={{ 
+                zIndex: 100,  // ⬆️⬆️ Z-index muito alto para ficar acima de tudo
+                pointerEvents: 'auto',  // ✅ Garantir eventos
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%'
+              }}
             />
           )}
           {/* 🔍 DEBUG: Log visual do canvas */}
