@@ -1226,11 +1226,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Buscar clone pelo ID diretamente
       const clone = await storage.getVirtualCloneById(cloneId);
+      console.log('🔍 DEBUG CLONE:', {
+        cloneId,
+        userId,
+        cloneFound: !!clone,
+        clone: clone ? {
+          id: clone.id,
+          assignedUserId: clone.assignedUserId,
+          productId: clone.productId
+        } : null
+      });
+      
       if (!clone) {
         return res.status(404).json({ message: "Clone não encontrado" });
       }
 
       // Verificar se o clone pertence ao usuário
+      console.log('🔍 COMPARANDO IDs:', {
+        cloneAssignedUserId: clone.assignedUserId,
+        userId: userId,
+        igual: clone.assignedUserId === userId,
+        tipoClone: typeof clone.assignedUserId,
+        tipoUser: typeof userId
+      });
+      
       if (clone.assignedUserId !== userId) {
         return res.status(403).json({ message: "Clone não pertence ao usuário" });
       }
