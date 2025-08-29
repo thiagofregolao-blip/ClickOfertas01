@@ -20,6 +20,7 @@ interface ScratchCardProps {
   product: Product;
   currency: string;
   themeColor: string;
+  logoUrl?: string;
   onRevealed?: (product: Product) => void;
   onClick?: (product: Product) => void;
   // REMOVIDO: Props desnecessários
@@ -31,7 +32,7 @@ interface ScratchArea {
   radius: number;
 }
 
-export default function ScratchCard({ product, currency, themeColor, onRevealed, onClick }: ScratchCardProps) {
+export default function ScratchCard({ product, currency, themeColor, logoUrl, onRevealed, onClick }: ScratchCardProps) {
   
   console.log(`%c🔥🔥🔥 SCRATCHCARD COMPONENTE EXECUTANDO! 🔥🔥🔥`, 
     'background: red; color: white; padding: 15px; font-size: 30px; font-weight: bold;');
@@ -263,6 +264,39 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
     ctx.shadowBlur = 8;
     ctx.fillText('◆', cssWidth * 0.92, cssHeight * 0.92);
+    
+    // 🏢 LOGO DA EMPRESA NO CANVAS
+    if (logoUrl) {
+      console.log("🏢✨ Adicionando logo da empresa:", logoUrl);
+      const logoImg = new Image();
+      logoImg.crossOrigin = 'anonymous';
+      logoImg.onload = () => {
+        // Posicionar logo no canto superior esquerdo
+        const logoSize = 40;
+        const logoX = 15;
+        const logoY = 15;
+        
+        // Círculo de fundo branco semi-transparente
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.beginPath();
+        ctx.arc(logoX + logoSize/2, logoY + logoSize/2, logoSize/2 + 2, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Desenhar logo dentro do círculo
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(logoX + logoSize/2, logoY + logoSize/2, logoSize/2, 0, 2 * Math.PI);
+        ctx.clip();
+        ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+        ctx.restore();
+        
+        console.log("🏢 Logo da empresa adicionado!");
+      };
+      logoImg.onerror = () => {
+        console.log("❌ Erro ao carregar logo da empresa");
+      };
+      logoImg.src = logoUrl;
+    }
     
     console.log("✅ Gradiente desenhado!");
 
