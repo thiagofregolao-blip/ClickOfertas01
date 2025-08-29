@@ -973,9 +973,8 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             </div>
           </div>
 
-          {/* Canvas de scratch com transição suave - cobertura total */}
-          <canvas
-            ref={canvasRef}
+          {/* TESTE: Div no lugar do canvas para testar cliques */}
+          <div
             className={`absolute inset-0 w-full h-full cursor-pointer transition-all duration-200 ease-out ${
               isFading ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
             }`}
@@ -987,10 +986,29 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             onClick={(e) => {
-              console.log('🎨 CLIQUE DIRETO NO CANVAS!', { isVirtualClone, virtualCloneId });
+              console.log('🎨 CLIQUE NO DIV DE TESTE!', { isVirtualClone, virtualCloneId });
               e.stopPropagation();
             }}
-            style={{ touchAction: 'none', display: 'block', backgroundColor: 'rgba(255,0,0,0.1)' }}
+            style={{ 
+              touchAction: 'none', 
+              backgroundColor: 'rgba(255,0,0,0.3)',
+              border: '2px solid red',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'red',
+              fontWeight: 'bold',
+              fontSize: '12px'
+            }}
+          >
+            TESTE CLIQUE
+          </div>
+          
+          {/* Canvas original (temporariamente escondido) */}
+          <canvas
+            ref={canvasRef}
+            className="hidden"
+            style={{ display: 'none' }}
           />
 
           {/* Efeito gradual do desconto - aparece conforme raspa */}
