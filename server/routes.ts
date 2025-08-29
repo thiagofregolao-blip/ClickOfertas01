@@ -1128,6 +1128,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 🧹 BOTÃO TEMPORÁRIO: Excluir todos os cupons do usuário (para testes)
+  app.delete('/api/coupons/user/all', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.id;
+      await storage.deleteAllUserCoupons(userId);
+      res.json({ success: true, message: "Todos os cupons excluídos" });
+    } catch (error) {
+      console.error("Error deleting all user coupons:", error);
+      res.status(500).json({ message: "Erro ao excluir todos os cupons" });
+    }
+  });
+
   // ====================================================
   // VIRTUAL SCRATCH CARD CAMPAIGN ROUTES (NEW SYSTEM)
   // ====================================================

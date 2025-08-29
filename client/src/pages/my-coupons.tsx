@@ -202,17 +202,42 @@ export default function MyCoupons() {
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLocation('/')}
+                className="text-white hover:bg-white/10"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar
+              </Button>
+              <h1 className="text-2xl font-bold">🎫 Meus Cupons</h1>
+            </div>
             <Button
-              variant="ghost"
+              variant="destructive"
               size="sm"
-              onClick={() => setLocation('/')}
-              className="text-white hover:bg-white/10"
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/coupons/user/all', { 
+                    method: 'DELETE',
+                    credentials: 'include'
+                  });
+                  if (response.ok) {
+                    toast({ title: "✅ Todos os cupons excluídos", description: "Limpeza realizada com sucesso" });
+                    queryClient.invalidateQueries({ queryKey: ["/api/coupons/user"] });
+                  } else {
+                    throw new Error('Erro ao excluir cupons');
+                  }
+                } catch (error) {
+                  toast({ title: "❌ Erro", description: "Falha ao excluir cupons", variant: "destructive" });
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
+              🧹 Excluir Todos (TESTE)
             </Button>
-            <h1 className="text-2xl font-bold">🎫 Meus Cupons</h1>
           </div>
           <p className="text-blue-100 mt-2">
             {coupons.length === 0 ? 'Nenhum cupom encontrado' : `${coupons.length} cupom${coupons.length > 1 ? 's' : ''} disponível${coupons.length > 1 ? 'eis' : ''}`}

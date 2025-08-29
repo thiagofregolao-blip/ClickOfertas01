@@ -108,6 +108,10 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       return await response.json();
     },
     onSuccess: (data: any) => {
+      // 🧹 LIMPAR FLAG GLOBAL NO SUCESSO
+      const globalKey = `coupon-generated-${product.id}`;
+      sessionStorage.removeItem(globalKey);
+      
       setGeneratingCoupon(false); // ✅ Resetar flag
       if (data?.success && data?.coupon) {
         // Salvar dados do cupom e abrir modal
@@ -124,6 +128,10 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       }
     },
     onError: (error: any) => {
+      // 🧹 LIMPAR FLAG GLOBAL NO ERRO
+      const globalKey = `coupon-generated-${product.id}`;
+      sessionStorage.removeItem(globalKey);
+      
       setGeneratingCoupon(false); // ✅ Resetar flag
       toast({
         title: "Erro ao gerar cupom",
@@ -302,10 +310,16 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
       const progress = total > 0 ? transparent / total : 0;
       setScratchProgress(progress);
       
-      // Revelar com threshold - PROTEÇÃO MÁXIMA ANTI-DUPLICAÇÃO  
-      if (progress >= 0.7 && !isRevealed && !isFading && !revelationStarted) {
+      // Revelar com threshold - PROTEÇÃO MÁXIMA ANTI-DUPLICAÇÃO GLOBAL
+      const globalKey = `coupon-generated-${product.id}`;
+      const alreadyProcessing = sessionStorage.getItem(globalKey);
+      
+      if (progress >= 0.7 && !isRevealed && !isFading && !revelationStarted && !alreadyProcessing) {
         console.log("🎯 INICIANDO REVELAÇÃO ÚNICA!");
-        setRevelationStarted(true); // 🚫 BLOQUEAR IMEDIATAMENTE
+        
+        // 🛑 BLOQUEAR GLOBALMENTE IMEDIATAMENTE
+        sessionStorage.setItem(globalKey, Date.now().toString());
+        setRevelationStarted(true); 
         setIsFading(true);
         
         // 🛑 PARAR RAF LOOP IMEDIATAMENTE
@@ -740,9 +754,14 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             <div className="flex gap-3">
               <button 
                 onClick={() => {
-                  if (!generatingCoupon && !couponGenerated && !revelationStarted) {
+                  const globalKey = `coupon-generated-${product.id}`;
+                  const alreadyProcessing = sessionStorage.getItem(globalKey);
+                  
+                  if (!generatingCoupon && !couponGenerated && !revelationStarted && !alreadyProcessing) {
+                    // 🛑 BLOQUEAR GLOBALMENTE IMEDIATAMENTE
+                    sessionStorage.setItem(globalKey, Date.now().toString());
                     setGeneratingCoupon(true);
-                    setRevelationStarted(true); // 🚫 BLOQUEAR MÚLTIPLOS CLIQUES
+                    setRevelationStarted(true); 
                     generateCouponMutation.mutate(product.id);
                   }
                 }}

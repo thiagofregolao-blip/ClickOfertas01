@@ -125,6 +125,9 @@ export interface IStorage {
   
   // Delete cupom
   deleteCoupon(couponId: string): Promise<void>;
+  
+  // 🧹 MÉTODO TEMPORÁRIO: Excluir todos os cupons do usuário (para testes)
+  deleteAllUserCoupons(userId: string): Promise<void>;
 
   // NEW: Promotion operations (Simplified System)
   getStorePromotions(storeId: string): Promise<PromotionWithDetails[]>;
@@ -858,6 +861,11 @@ export class DatabaseStorage implements IStorage {
   // Excluir cupom
   async deleteCoupon(couponId: string): Promise<void> {
     await db.delete(coupons).where(eq(coupons.id, couponId));
+  }
+
+  // 🧹 MÉTODO TEMPORÁRIO: Excluir todos os cupons do usuário (para testes)
+  async deleteAllUserCoupons(userId: string): Promise<void> {
+    await db.delete(coupons).where(eq(coupons.userId, userId));
   }
 
   // ================================
