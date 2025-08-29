@@ -967,14 +967,16 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
             </div>
           </div>
 
-          {/* Canvas de raspagem */}
-          <canvas
-            ref={canvasRef}
-            width={300}
-            height={200}
-            className="absolute top-0 left-0 w-full h-full z-50 cursor-pointer"
+          {/* Canvas de raspagem - SIMPLES */}
+          <div
+            className="absolute top-0 left-0 w-full h-full cursor-pointer"
+            style={{
+              zIndex: 100,
+              backgroundColor: '#1a1a1a',
+              border: '2px solid #fbbf24'
+            }}
             onClick={(e) => {
-              console.log('🎨 CLIQUE NO CANVAS DE RASPAGEM!', { isVirtualClone, virtualCloneId });
+              console.log('🎨 CLIQUE NA COBERTURA DE RASPAGEM!', { isVirtualClone, virtualCloneId });
               
               if (blocked()) {
                 console.log('❌ Bloqueado pela função blocked()');
@@ -985,34 +987,23 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
               if (isVirtualClone && virtualCloneId) {
                 console.log('🎯 Raspando clone virtual:', virtualCloneId);
                 
-                // Esconder canvas imediatamente para mostrar resultado
-                const canvas = canvasRef.current;
-                if (canvas) {
-                  canvas.style.display = 'none';
-                }
+                // Esconder cobertura imediatamente
+                e.currentTarget.style.display = 'none';
                 
                 // Disparar raspagem
                 scratchVirtualCloneMutation.mutate(virtualCloneId);
               }
             }}
-            style={{
-              backgroundColor: '#1a1a1a',
-              backgroundImage: `
-                radial-gradient(circle at 20% 30%, rgba(255,215,0,0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(255,140,0,0.3) 0%, transparent 50%),
-                linear-gradient(45deg, rgba(255,215,0,0.1) 25%, transparent 25%),
-                linear-gradient(-45deg, rgba(255,140,0,0.1) 25%, transparent 25%)
-              `,
-              backgroundSize: '20px 20px, 30px 30px, 10px 10px, 10px 10px'
-            }}
           />
           
-          {/* Texto "RASPE AQUI" no canvas */}
+          {/* Texto "RASPE AQUI" - sempre visível */}
           <div 
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[60] pointer-events-none text-yellow-300 font-bold text-lg"
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none text-yellow-300 font-bold text-xl"
             style={{ 
-              textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-              display: canvasRef.current?.style.display === 'none' ? 'none' : 'block'
+              zIndex: 9999,
+              textShadow: '2px 2px 4px rgba(0,0,0,0.9)',
+              color: '#fbbf24',
+              fontWeight: 'bold'
             }}
           >
             🎲 RASPE AQUI
