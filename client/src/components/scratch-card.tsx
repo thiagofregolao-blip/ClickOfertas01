@@ -340,21 +340,39 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     // Preparar para texto com múltiplas camadas de destaque
     
     const lines = product.scratchMessage?.split(' ') || ['Você', 'ganhou', 'um', 'super', 'desconto!', 'Raspe', 'aqui', 'e', 'confira'];
-    const lineHeight = 24; // Aumentado para maior espaçamento
+    const lineHeight = 24;
     const startY = cssHeight / 2 - (lines.length * lineHeight) / 2;
+    
+    // 📦 FUNDO SEMI-TRANSPARENTE PARA O TEXTO
+    const textAreaHeight = lines.length * lineHeight + 20; // +20px padding
+    const textAreaWidth = cssWidth * 0.8; // 80% da largura
+    const bgX = cssWidth / 2 - textAreaWidth / 2;
+    const bgY = startY - 10; // -10px padding superior
+    
+    // Desenhar fundo com cantos arredondados
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+    ctx.shadowBlur = 6;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; // Preto semi-transparente
+    
+    // Retângulo com cantos arredondados
+    const cornerRadius = 10;
+    ctx.beginPath();
+    ctx.roundRect(bgX, bgY, textAreaWidth, textAreaHeight, cornerRadius);
+    ctx.fill();
+    
+    // ✨ TEXTO SOBRE O FUNDO
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+    ctx.shadowBlur = 2;
     
     lines.forEach((line, index) => {
       const x = cssWidth / 2;
       const y = startY + (index * lineHeight);
       
-      // ✨ TEXTO SIMPLES E LEGÍVEL
-      // Sombra escura para contraste
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
-      ctx.shadowBlur = 4;
-      
-      // Texto branco limpo
+      // Texto branco brilhante sobre fundo escuro
       ctx.fillStyle = '#FFFFFF';
       ctx.fillText(line, x, y);
     });
