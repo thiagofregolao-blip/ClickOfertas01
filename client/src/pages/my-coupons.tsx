@@ -100,7 +100,7 @@ export default function MyCoupons() {
     
     // Produto
     doc.setFontSize(12);
-    doc.text(`Produto: ${coupon.product.name}`, 20, 70);
+    doc.text(`Produto: ${coupon.product?.name || 'Promoção Especial'}`, 20, 70);
     
     // Desconto
     doc.setFontSize(16);
@@ -146,7 +146,7 @@ export default function MyCoupons() {
   const shareOnWhatsApp = (coupon: CouponWithDetails) => {
     const currency = coupon.store.currency || 'Gs.';
     const message = `🎉 *CUPOM DE DESCONTO*\n\n` +
-      `📱 *${coupon.product.name}*\n` +
+      `📱 *${coupon.product?.name || 'Promoção Especial'}*\n` +
       `🏪 *${coupon.store.name}*\n\n` +
       `🔥 *${coupon.discountPercentage}% DE DESCONTO!*\n\n` +
       `💰 De: ${formatPriceWithCurrency(coupon.originalPrice, currency)}\n` +
@@ -299,17 +299,17 @@ export default function MyCoupons() {
                     </div>
 
                     {/* Imagem do produto */}
-                    {coupon.product.imageUrl && (
+                    {coupon.product?.imageUrl && (
                       <img
                         src={coupon.product.imageUrl}
-                        alt={coupon.product.name}
+                        alt={coupon.product.name || 'Promoção'}
                         className="w-full h-32 object-cover rounded-lg mb-3"
                       />
                     )}
 
                     {/* Info do produto */}
                     <h3 className="font-bold text-sm mb-1 line-clamp-2">
-                      {coupon.product.name}
+                      {coupon.product?.name || 'Promoção Especial'}
                     </h3>
                     <p className="text-xs text-gray-600 mb-2">
                       {coupon.store.name}
