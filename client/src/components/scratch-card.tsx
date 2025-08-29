@@ -1062,10 +1062,29 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
   // Render do card para raspar
   return (
     <>
-      <div className="relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col h-full min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
+      <div className="scratch-card relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col h-full min-h-[200px] sm:min-h-[220px] cursor-pointer select-none">
         <div className="h-full flex flex-col relative w-full isolate bg-gradient-to-br from-yellow-100 to-orange-100 p-0 m-0">
           {/* DEBUG REMOVIDO ✅ */}
           
+          {/* Chuva mágica de confetes, cifrões e logos da empresa */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none z-5">
+            {/* Confetes coloridos */}
+            <div className="rain-element text-red-500 text-lg">🎊</div>
+            <div className="rain-element text-blue-500 text-sm">💎</div>
+            <div className="rain-element text-green-500 text-lg">🎉</div>
+            
+            {/* Cifrões dourados */}
+            <div className="rain-element text-yellow-400 text-xl font-bold">💰</div>
+            <div className="rain-element text-yellow-500 text-lg">$</div>
+            <div className="rain-element text-amber-400 text-xl">💴</div>
+            
+            {/* Mini logos da empresa (redondos) */}
+            <div className="rain-element w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold">C</div>
+            <div className="rain-element w-5 h-5 bg-gradient-to-br from-pink-500 to-red-500 rounded-full flex items-center justify-center text-white text-xs">O</div>
+            <div className="rain-element w-6 h-6 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white text-xs font-bold">P</div>
+            <div className="rain-element w-5 h-5 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full flex items-center justify-center text-white text-xs">!</div>
+          </div>
+
           {/* Badge indicativo - CORREÇÃO: pointer-events-none para não bloquear canvas */}
           <div className="absolute top-2 right-2 z-10 pointer-events-none">
             <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white animate-heartbeat text-xs shadow-lg">

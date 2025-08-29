@@ -315,3 +315,44 @@ html {
   animation: heartbeat 2s infinite ease-in-out;
 }
 
+/* Animação de chuva de confetes e cifrões */
+@keyframes rainDrop {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0.3;
+  }
+}
+
+.rain-element {
+  position: absolute;
+  animation: rainDrop linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Diferentes velocidades e delays para variedade - otimizado para performance */
+.rain-element:nth-child(1) { animation-duration: 3s; animation-delay: 0s; left: 10%; transform: translateZ(0); }
+.rain-element:nth-child(2) { animation-duration: 2.5s; animation-delay: 0.5s; left: 20%; transform: translateZ(0); }
+.rain-element:nth-child(3) { animation-duration: 4s; animation-delay: 1s; left: 30%; transform: translateZ(0); }
+.rain-element:nth-child(4) { animation-duration: 3.5s; animation-delay: 1.5s; left: 40%; transform: translateZ(0); }
+.rain-element:nth-child(5) { animation-duration: 2.8s; animation-delay: 2s; left: 50%; transform: translateZ(0); }
+.rain-element:nth-child(6) { animation-duration: 3.2s; animation-delay: 0.3s; left: 60%; transform: translateZ(0); }
+.rain-element:nth-child(7) { animation-duration: 2.7s; animation-delay: 0.8s; left: 70%; transform: translateZ(0); }
+.rain-element:nth-child(8) { animation-duration: 3.8s; animation-delay: 1.3s; left: 80%; transform: translateZ(0); }
+.rain-element:nth-child(9) { animation-duration: 2.9s; animation-delay: 1.8s; left: 90%; transform: translateZ(0); }
+.rain-element:nth-child(10) { animation-duration: 3.3s; animation-delay: 0.1s; left: 15%; transform: translateZ(0); }
+
+/* Pausa animação quando não está visível para performance */
+.scratch-card:not(:hover) .rain-element {
+  animation-play-state: paused;
+}
+
+/* Ativa animação no hover para economizar recursos */
+.scratch-card:hover .rain-element {
+  animation-play-state: running;
+}
+
