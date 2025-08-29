@@ -158,50 +158,104 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  // 🎨 INICIALIZAÇÃO VISUAL DO CANVAS COM GRADIENTE E TEXTO
+  // 🚀 FORÇAR INICIALIZAÇÃO DIRETA DO CANVAS
   useEffect(() => {
-    if (!canvasRef.current || !product.isScratchCard || isRevealed) return;
+    console.log(`%c🚀 USEEFFECT EXECUTADO! 🚀`, 
+      'background: red; color: white; padding: 10px; font-size: 20px; font-weight: bold;');
+    console.log("🎨 CANVAS useEffect chamado:", {
+      productId: product.id,
+      isRevealed,
+      isScratchCard: product.isScratchCard,
+      canvasExists: !!canvasRef.current
+    });
     
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // ✅ CONFIGURAR DIMENSÕES CORRETAS DO CANVAS COM VERIFICAÇÃO
-    const rect = canvas.getBoundingClientRect();
-    
-    // 🛡️ VALIDAR DIMENSÕES ANTES DE INICIALIZAR
-    if (rect.width === 0 || rect.height === 0) {
-      console.log("❌ Canvas sem dimensões ainda, aguardando...", { width: rect.width, height: rect.height });
-      // Tentar novamente em 100ms
-      setTimeout(() => {
-        const newRect = canvas.getBoundingClientRect();
-        if (newRect.width > 0 && newRect.height > 0) {
-          initializeCanvas(canvas, ctx, newRect);
-        }
-      }, 100);
+    // FORÇA INICIALIZAÇÃO MESMO SE CONDIÇÕES NÃO ESTIVEREM PERFEITAS
+    if (isRevealed) {
+      console.log("❌ Canvas NÃO inicializado: isRevealed=true");
+      return;
+    }
+    if (!product.isScratchCard) {
+      console.log("❌ Canvas NÃO inicializado: !isScratchCard");
       return;
     }
     
-    initializeCanvas(canvas, ctx, rect);
+    // TIMEOUT PARA GARANTIR QUE O CANVAS EXISTE
+    setTimeout(() => {
+      if (!canvasRef.current) {
+        console.log("❌ Canvas NÃO inicializado: canvasRef.current=null APÓS timeout");
+        return;
+      }
+      
+      console.log(`%c✅ Canvas INICIALIZANDO COM TIMEOUT! ✅`, 
+        'background: green; color: white; padding: 5px; font-size: 16px; font-weight: bold;');
+      
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        console.log("❌ Sem contexto 2D!");
+        return;
+      }
+
+    // Reset estado ao mudar produto (sem setIsRevealed(false) - controlado pelo servidor)
+    scratchedAreas.current = [];
+    setScratchProgress(0);
+    setIsFading(false);
+    lastPoint.current = null;
+    needsProgressCalc.current = false;
+
+    // FASE 1: Configurar DPI correto para telas retina
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
     
-  }, [product.id, product.isScratchCard, isRevealed, product.scratchMessage]);
+    console.log("📐 DIMENSÕES ORIGINAIS DO CANVAS:", {
+      rectWidth: rect.width,
+      rectHeight: rect.height,
+      rectTop: rect.top,
+      rectLeft: rect.left,
+      dpr
+    });
+    
+    // FORÇAR DIMENSÕES MÍNIMAS se altura for muito pequena
+    const minHeight = 200; // Altura mínima
+    const actualHeight = Math.max(rect.height, minHeight);
+    const actualWidth = Math.max(rect.width, 200); // Largura mínima
+    
+    canvas.width = Math.round(actualWidth * dpr);
+    canvas.height = Math.round(actualHeight * dpr);
+    ctx.scale(dpr, dpr);
+    
+    // Forçar dimensões CSS também
+    canvas.style.width = actualWidth + 'px';
+    canvas.style.height = actualHeight + 'px';
+    
+    console.log("🔧 DIMENSÕES CORRIGIDAS:", {
+      canvasWidth: canvas.width,
+      canvasHeight: canvas.height,
+      styleWidth: canvas.style.width,
+      styleHeight: canvas.style.height
+    });
+    
+    // Usar dimensões corrigidas para cálculos
+    const cssWidth = actualWidth;
+    const cssHeight = actualHeight;
 
-  // 🎨 FUNÇÃO PARA INICIALIZAR CANVAS COM VALIDAÇÃO
-  const initializeCanvas = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, rect: DOMRect) => {
-    // Definir dimensões físicas do canvas
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-
-    // 🎨 DESENHAR CAMADA DE SCRATCH COM GRADIENTE DOURADO
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, '#FFD700');  // Dourado
-    gradient.addColorStop(0.5, '#FFA500'); // Laranja
-    gradient.addColorStop(1, '#FF6347');   // Vermelho-laranja
+    // Desenhar camada de "scratch"
+    console.log(`%c🎨 DESENHANDO TEXTURA INICIAL! 🎨`, 
+      'background: gold; color: black; padding: 5px; font-size: 16px; font-weight: bold;');
+    console.log("🌈 Criando gradiente:", { cssWidth, cssHeight });
+    
+    const gradient = ctx.createLinearGradient(0, 0, cssWidth, cssHeight);
+    gradient.addColorStop(0, '#FFD700');
+    gradient.addColorStop(0.5, '#FFA500');
+    gradient.addColorStop(1, '#FF6347');
 
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, cssWidth, cssHeight);
+    
+    console.log("✅ Gradiente desenhado!");
 
-    // ✨ ADICIONAR TEXTO "RASPE AQUI!" CENTRALIZADO
+    // Adicionar texto
+    console.log("📝 Adicionando texto na textura...");
     ctx.fillStyle = 'white';
     ctx.font = 'bold 14px Arial';
     ctx.textAlign = 'center';
@@ -210,22 +264,20 @@ export default function ScratchCard({ product, currency, themeColor, onRevealed,
     ctx.shadowOffsetY = 1;
     ctx.shadowBlur = 2;
     
-    // Texto dinâmico baseado no produto ou padrão
-    const message = product.scratchMessage || 'Raspe aqui!';
-    const lines = message.split(' ');
+    const lines = product.scratchMessage?.split(' ') || ['Você', 'ganhou', 'um', 'super', 'desconto!', 'Raspe', 'aqui', 'e', 'confira'];
     const lineHeight = 20;
-    const startY = canvas.height / 2 - (lines.length * lineHeight) / 2;
+    const startY = cssHeight / 2 - (lines.length * lineHeight) / 2;
     
     lines.forEach((line, index) => {
-      ctx.fillText(line, canvas.width / 2, startY + (index * lineHeight));
+      ctx.fillText(line, cssWidth / 2, startY + (index * lineHeight));
     });
     
-    console.log("🎨 Canvas inicializado com sucesso:", {
-      width: canvas.width,
-      height: canvas.height,
-      message: message
-    });
-  };
+      console.log(`%c🏁 TEXTURA COMPLETA! Canvas pronto para ser riscado! 🏁`, 
+        'background: green; color: white; padding: 5px; font-size: 16px; font-weight: bold;');
+    }, 100); // 100ms timeout
+    
+    startProgressLoop();
+  }, [product.id, isRevealed]);
 
   // Throttle reduzido para mais fluidez
   const lastScratchTime = useRef<number>(0);
