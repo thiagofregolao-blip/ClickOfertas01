@@ -564,6 +564,46 @@ export default function PublicFlyer() {
           <>
             <FlyerHeader store={store} />
             
+            {/* Contact Bar */}
+            <div className="bg-white border-b">
+              <div className="px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4 text-sm">
+                    {store.whatsapp && (
+                      <a 
+                        href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Olá! Vi suas ofertas no Click Ofertas Paraguai e gostaria de mais informações.`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-600 hover:text-green-700 transition-colors relative z-10 cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                        data-testid={`whatsapp-link-${store.slug}`}
+                      >
+                        📱 WhatsApp
+                      </a>
+                    )}
+                    {store.instagram && (
+                      <a 
+                        href={`https://instagram.com/${store.instagram.replace('@', '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-pink-600 hover:text-pink-700 transition-colors relative z-10 cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                        data-testid={`instagram-link-${store.slug}`}
+                      >
+                        📸 Instagram
+                      </a>
+                    )}
+                  </div>
+                  
+                  {filteredProducts.length > 0 && (
+                    <Badge className="text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none shadow-lg animate-pulse ring-1 ring-white/30">
+                      🔥 {filteredProducts.length} oferta{filteredProducts.length > 1 ? 's' : ''} imperdível{filteredProducts.length > 1 ? 'eis' : ''}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+            
             {/* Promotional Banner */}
             <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 p-4 text-center">
               <div className="flex items-center justify-center gap-4">

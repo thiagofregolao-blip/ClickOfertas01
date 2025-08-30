@@ -1112,43 +1112,6 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
         </div>
       )}
 
-      {/* View All Products Footer */}
-      <div className="px-4 pb-3 border-t border-gray-100 pt-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4 text-sm">
-            {store.whatsapp && (
-              <a 
-                href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Olá! Vi suas ofertas no Click Ofertas Paraguai e gostaria de mais informações.`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-green-600 hover:text-green-700 transition-colors relative z-10 cursor-pointer"
-                onClick={(e) => e.stopPropagation()}
-                data-testid={`whatsapp-link-${store.slug}`}
-              >
-                📱 WhatsApp
-              </a>
-            )}
-            {store.instagram && (
-              <a 
-                href={`https://instagram.com/${store.instagram.replace('@', '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-pink-600 hover:text-pink-700 transition-colors relative z-10 cursor-pointer"
-                onClick={(e) => e.stopPropagation()}
-                data-testid={`instagram-link-${store.slug}`}
-              >
-                📸 Instagram
-              </a>
-            )}
-          </div>
-          
-          {featuredProducts.length > 0 && (
-            <Badge className="text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none shadow-lg animate-pulse ring-1 ring-white/30">
-              🔥 {featuredProducts.length} oferta{featuredProducts.length > 1 ? 's' : ''} imperdível{featuredProducts.length > 1 ? 'eis' : ''}
-            </Badge>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
