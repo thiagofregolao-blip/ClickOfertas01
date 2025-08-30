@@ -443,11 +443,6 @@ export default function StoresGallery() {
         <div className={`mx-auto py-4 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
           <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
             
-            {/* Debug Info */}
-            <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs flex-shrink-0">
-              {storiesLoading ? 'Carregando...' : `${instagramStories.length} stories`}
-            </div>
-            
             {/* Stories das Lojas */}
             {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
               <div 
