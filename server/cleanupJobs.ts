@@ -15,6 +15,20 @@ export async function cleanupExpiredStories() {
 }
 
 /**
+ * Job que verifica alertas de preço automaticamente
+ */
+export async function checkPriceAlertsJob() {
+  try {
+    console.log('🔔 Verificando alertas de preço...');
+    const { checkPriceAlerts } = await import('./price-scraper');
+    await checkPriceAlerts();
+    console.log('✅ Verificação de alertas concluída');
+  } catch (error) {
+    console.error('❌ Erro na verificação de alertas:', error);
+  }
+}
+
+/**
  * Inicia o job de limpeza que roda a cada hora
  */
 export function startCleanupJobs() {
@@ -22,11 +36,15 @@ export function startCleanupJobs() {
   
   // Executar imediatamente na inicialização
   cleanupExpiredStories();
+  checkPriceAlertsJob();
   
   // Agendar para rodar a cada 1 hora (3600000ms)
-  setInterval(cleanupExpiredStories, 60 * 60 * 1000);
+  setInterval(() => {
+    cleanupExpiredStories();
+    checkPriceAlertsJob();
+  }, 60 * 60 * 1000);
   
-  console.log('⏰ Jobs agendados: limpeza de stories a cada 1 hora');
+  console.log('⏰ Jobs agendados: limpeza de stories e verificação de alertas a cada 1 hora');
 }
 
 /**

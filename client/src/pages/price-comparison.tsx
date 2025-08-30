@@ -1,13 +1,14 @@
 import { useState, useMemo } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, TrendingDown, TrendingUp, ExternalLink, RefreshCw, AlertCircle, Zap, DollarSign, ChevronDown, ArrowRightLeft } from "lucide-react";
+import { Search, TrendingDown, TrendingUp, ExternalLink, RefreshCw, AlertCircle, Zap, DollarSign, ChevronDown, ArrowRightLeft, Bell, BellOff, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatPriceWithCurrency } from "@/lib/priceUtils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface BrazilianPrice {
   store: string;
@@ -39,10 +40,13 @@ interface ProductComparison {
 
 export default function PriceComparison() {
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [selectedProductForSearch, setSelectedProductForSearch] = useState<any | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [alertPrice, setAlertPrice] = useState("");
 
   // Buscar produtos disponíveis no Paraguay para comparação
   const { data: paraguayProducts = [], isLoading: loadingProducts } = useQuery<any[]>({
@@ -76,6 +80,63 @@ export default function PriceComparison() {
     queryKey: ['/api/price-history', comparePricesMutation.data?.productName],
     enabled: !!comparePricesMutation.data?.productName,
     staleTime: 2 * 60 * 1000, // 2 minutos
+  });
+
+  // Buscar alertas do usuário
+  const { data: userAlerts = [] } = useQuery<any[]>({
+    queryKey: ['/api/price-alerts'],
+    enabled: isAuthenticated,
+    staleTime: 1 * 60 * 1000, // 1 minuto
+  });
+
+  // Criar alerta de preço
+  const createAlertMutation = useMutation({
+    mutationFn: async ({ productName, targetPrice }: { productName: string; targetPrice: number }) => {
+      const response = await apiRequest("POST", `/api/price-alerts`, {
+        productName,
+        targetPrice,
+        currency: 'BRL',
+        emailNotification: true
+      });
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Alerta criado!",
+        description: "Você será notificado quando o preço baixar.",
+      });
+      setAlertPrice("");
+      queryClient.invalidateQueries({ queryKey: ['/api/price-alerts'] });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao criar alerta",
+        description: "Não foi possível criar o alerta de preço.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Deletar alerta
+  const deleteAlertMutation = useMutation({
+    mutationFn: async (alertId: string) => {
+      const response = await apiRequest("DELETE", `/api/price-alerts/${alertId}`);
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Alerta removido",
+        description: "O alerta de preço foi removido com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/price-alerts'] });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao remover alerta",
+        description: "Não foi possível remover o alerta.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Filtro inteligente de produtos para autocomplete
@@ -360,8 +421,8 @@ export default function PriceComparison() {
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Menor Preço no Brasil</h4>
                     {(() => {
-                      const minPrice = Math.min(...comparisonData.brazilianPrices.map(p => parseFloat(p.price)));
-                      const bestBrazilianOffer = comparisonData.brazilianPrices.find(p => parseFloat(p.price) === minPrice);
+                      const minPrice = Math.min(...comparisonData.brazilianPrices.map(p => parseFloat(p.price.toString())));
+                      const bestBrazilianOffer = comparisonData.brazilianPrices.find(p => parseFloat(p.price.toString()) === minPrice);
                       
                       return (
                         <div className="space-y-1">
@@ -384,16 +445,7 @@ export default function PriceComparison() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Economia Máxima</h4>
-                    {comparisonData.savings.cheaperInBrazil ? (
-                      <div>
-                        <p className="text-lg font-bold text-blue-600">
-                          Mais barato no Brasil
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          Item custa menos em {comparisonData.savings.bestStore}
-                        </p>
-                      </div>
-                    ) : comparisonData.savings.amount > 0 ? (
+                    {comparisonData.savings.amount > 0 ? (
                       <div>
                         <p className="text-lg font-bold text-green-600">
                           🎉 Economia: {formatPriceWithCurrency(comparisonData.savings.amount, 'R$')}
@@ -457,6 +509,87 @@ export default function PriceComparison() {
                       <p className="text-xs text-gray-500 text-center">
                         Mostrando os 10 registros mais recentes de {priceHistory.length} total
                       </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Alertas de Preço */}
+            {isAuthenticated && comparisonData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="w-5 h-5" />
+                    Alertas de Preço
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {/* Criar novo alerta */}
+                  <div className="space-y-4">
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <h4 className="font-medium text-sm mb-3">Criar Alerta para "{comparisonData.productName}"</h4>
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          placeholder="Preço desejado em R$"
+                          value={alertPrice}
+                          onChange={(e) => setAlertPrice(e.target.value)}
+                          className="flex-1"
+                          data-testid="input-alert-price"
+                        />
+                        <Button
+                          onClick={() => {
+                            const price = parseFloat(alertPrice);
+                            if (price > 0) {
+                              createAlertMutation.mutate({
+                                productName: comparisonData.productName,
+                                targetPrice: price
+                              });
+                            }
+                          }}
+                          disabled={!alertPrice || createAlertMutation.isPending}
+                          data-testid="button-create-alert"
+                        >
+                          {createAlertMutation.isPending ? (
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Bell className="w-4 h-4" />
+                          )}
+                          Criar Alerta
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-2">
+                        Você será notificado quando o preço baixar para este valor ou menos
+                      </p>
+                    </div>
+
+                    {/* Lista de alertas existentes */}
+                    {userAlerts.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-sm mb-3">Seus Alertas Ativos</h4>
+                        <div className="space-y-2">
+                          {userAlerts.map((alert) => (
+                            <div key={alert.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                              <div>
+                                <p className="font-medium text-sm">{alert.productName}</p>
+                                <p className="text-xs text-gray-500">
+                                  Notificar quando ≤ {formatPriceWithCurrency(alert.targetPrice, 'R$')}
+                                </p>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteAlertMutation.mutate(alert.id)}
+                                disabled={deleteAlertMutation.isPending}
+                                data-testid={`button-delete-alert-${alert.id}`}
+                              >
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </CardContent>
