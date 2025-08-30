@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, TrendingDown, TrendingUp, ExternalLink, RefreshCw, AlertCircle, Zap, DollarSign, ChevronDown } from "lucide-react";
+import { Search, TrendingDown, TrendingUp, ExternalLink, RefreshCw, AlertCircle, Zap, DollarSign, ChevronDown, ArrowRightLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatPriceWithCurrency } from "@/lib/priceUtils";
@@ -84,6 +84,13 @@ export default function PriceComparison() {
       .slice(0, 10); // Limitar a 10 sugestões
   }, [paraguayProducts, searchQuery]);
 
+  // Hook para buscar cotação USD → BRL
+  const { data: exchangeRateData } = useQuery({
+    queryKey: ['/api/exchange-rate/usd-brl'],
+    refetchInterval: 30 * 60 * 1000, // Atualizar a cada 30 minutos
+    staleTime: 15 * 60 * 1000, // Considerar stale após 15 minutos
+  });
+
   const comparisonData = comparePricesMutation.data as ProductComparison | undefined;
 
   const handleCompareProduct = (product: any) => {
@@ -131,9 +138,20 @@ export default function PriceComparison() {
         {/* Search Section */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Search className="w-5 h-5" />
-              Buscar Produto para Comparar
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Search className="w-5 h-5" />
+                Buscar Produto para Comparar
+              </div>
+              {/* Cotação em tempo real */}
+              {exchangeRateData && (
+                <div className="flex items-center gap-2 text-sm bg-blue-50 px-3 py-1 rounded-full">
+                  <ArrowRightLeft className="w-4 h-4 text-blue-600" />
+                  <span className="text-blue-800 font-medium">
+                    1 USD = {exchangeRateData.rate?.toFixed(2)} BRL
+                  </span>
+                </div>
+              )}
             </CardTitle>
             <p className="text-sm text-gray-600 mt-2">
               Escolha um produto disponível no Paraguay para comparar preços com o Brasil
@@ -215,9 +233,20 @@ export default function PriceComparison() {
                     <h3 className="font-semibold text-blue-900">{selectedProductForSearch.name}</h3>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-sm text-blue-700">{selectedProductForSearch.store?.name}</span>
-                      <span className="text-lg font-bold text-blue-800">
-                        {formatPriceWithCurrency(selectedProductForSearch.price, 'US$')}
-                      </span>
+                      <div className="flex flex-col">
+                        <span className="text-lg font-bold text-blue-800">
+                          {formatPriceWithCurrency(selectedProductForSearch.price, 'US$')}
+                        </span>
+                        {/* Conversão USD → BRL */}
+                        {exchangeRateData && (
+                          <span className="text-sm text-blue-600">
+                            ≈ {formatPriceWithCurrency(
+                              (parseFloat(selectedProductForSearch.price) * exchangeRateData.rate).toFixed(2), 
+                              'R$'
+                            )}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <Button

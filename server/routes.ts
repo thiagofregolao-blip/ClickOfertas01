@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { getCurrentExchangeRate, convertUsdToBrl, formatBRL, formatUSD } from "./exchange-rate";
 import { setupOAuthProviders } from "./authProviders";
 import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema } from "@shared/schema";
 import { z } from "zod";
@@ -2041,9 +2042,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Calcular economia
+      // Calcular economia com cotação real
       const paraguayPriceUSD = parseFloat(paraguayProduct.price || "0");
-      const paraguayPriceBRL = paraguayPriceUSD * 5.5; // Taxa aproximada USD->BRL
+      const paraguayPriceBRL = await convertUsdToBrl(paraguayPriceUSD);
       
       let bestPrice = Infinity;
       let bestStore = "";
@@ -2111,6 +2112,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in price comparison:", error);
       res.status(500).json({ message: "Erro ao comparar preços" });
+    }
+  });
+
+  // Endpoint para obter cotação atual USD → BRL
+  app.get('/api/exchange-rate/usd-brl', async (req, res) => {
+    try {
+      const rate = await getCurrentExchangeRate();
+      res.json({ 
+        rate, 
+        lastUpdated: new Date().toISOString(),
+        source: 'exchangerate.host',
+        formatted: {
+          usd: formatUSD(1),
+          brl: formatBRL(rate)
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao obter cotação:', error);
+      res.status(500).json({ 
+        error: 'Falha ao obter cotação', 
+        fallbackRate: 5.50
+      });
+    }
+  });
+
+  // Endpoint para converter valores USD → BRL
+  app.post('/api/exchange-rate/convert', async (req, res) => {
+    try {
+      const { amount, from, to } = req.body;
+      
+      if (!amount || typeof amount !== 'number') {
+        return res.status(400).json({ error: 'Amount é obrigatório e deve ser um número' });
+      }
+      
+      if (from === 'USD' && to === 'BRL') {
+        const convertedAmount = await convertUsdToBrl(amount);
+        const rate = await getCurrentExchangeRate();
+        
+        res.json({
+          originalAmount: amount,
+          convertedAmount,
+          rate,
+          from,
+          to,
+          formatted: {
+            original: formatUSD(amount),
+            converted: formatBRL(convertedAmount)
+          }
+        });
+      } else {
+        res.status(400).json({ error: 'Conversão suportada apenas de USD para BRL' });
+      }
+    } catch (error) {
+      console.error('Erro na conversão:', error);
+      res.status(500).json({ error: 'Falha na conversão de moeda' });
     }
   });
 
