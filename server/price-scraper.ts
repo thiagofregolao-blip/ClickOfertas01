@@ -464,14 +464,25 @@ export async function savePriceHistory(brazilianPrices: InsertBrazilianPrice[]):
 // Função para buscar histórico de um produto específico
 export async function getPriceHistory(productName: string, days: number = 30): Promise<any[]> {
   try {
-    const history = await db.select()
+    const { ilike, and, gte, desc } = await import('drizzle-orm');
+    
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    // Buscar todos os registros primeiro e filtrar em memória se necessário
+    const allHistory = await db.select()
       .from(priceHistory)
-      .where(sql`${priceHistory.productName} ILIKE ${`%${productName}%`}`)
-      .where(sql`${priceHistory.recordedAt} >= NOW() - INTERVAL '${days} days'`)
-      .orderBy(sql`${priceHistory.recordedAt} DESC`);
+      .orderBy(desc(priceHistory.recordedAt))
+      .limit(1000); // Limitar a 1000 registros para performance
+    
+    // Filtrar por nome do produto em memória
+    const filteredHistory = allHistory.filter(record => 
+      record.productName.toLowerCase().includes(productName.toLowerCase()) &&
+      record.recordedAt >= cutoffDate
+    );
 
-    console.log(`📈 Histórico encontrado: ${history.length} registros para "${productName}"`);
-    return history;
+    console.log(`📈 Histórico encontrado: ${filteredHistory.length} registros para "${productName}"`);
+    return filteredHistory;
   } catch (error) {
     console.error('❌ Erro ao buscar histórico:', error);
     return [];
