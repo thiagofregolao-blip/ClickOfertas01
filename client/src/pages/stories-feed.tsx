@@ -53,9 +53,17 @@ export default function StoriesFeed() {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   // Buscar todos os stories ativos
-  const { data: stories = [], isLoading } = useQuery<InstagramStory[]>({
+  const { data: stories = [], isLoading, error } = useQuery<InstagramStory[]>({
     queryKey: ['/api/instagram-stories'],
     refetchInterval: 30000, // Atualizar a cada 30 segundos
+  });
+
+  // Debug: Log para ver os dados recebidos
+  console.log('🔍 Stories Feed Debug:', { 
+    stories, 
+    isLoading, 
+    error, 
+    storiesLength: stories?.length 
   });
 
   // Agrupar stories por loja
