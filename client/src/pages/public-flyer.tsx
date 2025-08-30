@@ -937,7 +937,7 @@ export default function PublicFlyer() {
                     </div>
                     <div className="flex items-center gap-3 ml-4">
                       <button 
-                        className="text-white/80 hover:text-red-400 transition-colors"
+                        className="text-white/80 hover:text-red-400 transition-colors focus:outline-none focus:ring-0 active:outline-none"
                         onClick={() => {
                           const storyId = viewingStory.id;
                           setLikedStories(prev => {
@@ -960,7 +960,7 @@ export default function PublicFlyer() {
                         />
                       </button>
                       <button 
-                        className="text-white/80 hover:text-white transition-colors"
+                        className="text-white/80 hover:text-white transition-colors focus:outline-none focus:ring-0 active:outline-none"
                         onClick={() => {
                           if (navigator.share) {
                             navigator.share({
