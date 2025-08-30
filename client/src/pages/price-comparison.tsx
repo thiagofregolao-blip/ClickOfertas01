@@ -326,18 +326,19 @@ export default function PriceComparison() {
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Preço no Paraguay</h4>
                     <div className="space-y-1">
-                      <p className="text-lg font-bold text-green-600">
-                        {formatPriceWithCurrency(comparisonData.paraguayPrice, comparisonData.paraguayCurrency)}
-                      </p>
-                      {/* Conversão para BRL */}
+                      {/* Preço em BRL em cima */}
                       {exchangeRateData && (
-                        <p className="text-sm font-semibold text-green-500">
-                          ≈ {formatPriceWithCurrency(
+                        <p className="text-lg font-bold text-green-600">
+                          {formatPriceWithCurrency(
                             (parseFloat(comparisonData.paraguayPrice.toString()) * exchangeRateData.rate).toFixed(2), 
                             'R$'
                           )}
                         </p>
                       )}
+                      {/* Preço original USD embaixo */}
+                      <p className="text-sm font-semibold text-green-500">
+                        ≈ {formatPriceWithCurrency(comparisonData.paraguayPrice, comparisonData.paraguayCurrency)}
+                      </p>
                     </div>
                     <p className="text-xs text-gray-600">{comparisonData.paraguayStore}</p>
                   </div>
