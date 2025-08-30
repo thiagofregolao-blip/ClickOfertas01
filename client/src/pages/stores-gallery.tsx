@@ -31,6 +31,7 @@ function limitStoreName(name: string, isMobile: boolean): string {
 
 export default function StoresGallery() {
   const [searchInput, setSearchInput] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchQuery = useDebounce(searchInput, 500); // Debounce de 500ms
   
   // Frases para efeito de digitação automática
@@ -46,7 +47,7 @@ export default function StoresGallery() {
   ];
   
   const { currentText } = useTypewriter({ 
-    phrases: typewriterPhrases,
+    phrases: isSearchFocused || searchInput ? [] : typewriterPhrases,
     speed: 80,
     pauseTime: 2500,
     backspaceSpeed: 40
@@ -591,9 +592,11 @@ export default function StoresGallery() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              placeholder={searchInput ? "Buscar produtos ou lojas..." : currentText}
+              placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
               className="pl-10 pr-10 py-2 w-full border-gray-200 focus:border-red-300 focus:ring-red-200"
             />
             {searchInput && (
