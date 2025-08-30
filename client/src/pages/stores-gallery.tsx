@@ -684,8 +684,8 @@ export default function StoresGallery() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p style={{color: '#ffffff', fontWeight: '500', fontSize: '14px', WebkitTextFillColor: '#ffffff', WebkitTextStroke: '0.5px #000000'}}>{currentStoreStories[currentStoryIndex].store?.name}</p>
-                  <p style={{color: '#ffffff', fontWeight: '400', fontSize: '12px', WebkitTextFillColor: '#ffffff', WebkitTextStroke: '0.5px #000000'}}>há {Math.round((Date.now() - new Date(currentStoreStories[currentStoryIndex].createdAt || Date.now()).getTime()) / 3600000)}h</p>
+                  <p style={{color: '#ffffff', fontWeight: '500', fontSize: '14px', textShadow: '1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'}}>{currentStoreStories[currentStoryIndex].store?.name}</p>
+                  <p style={{color: '#ffffff', fontWeight: '400', fontSize: '12px', textShadow: '1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'}}>há {Math.round((Date.now() - new Date(currentStoreStories[currentStoryIndex].createdAt || Date.now()).getTime()) / 3600000)}h</p>
                 </div>
                 <button
                   onClick={closeStoryModal}
