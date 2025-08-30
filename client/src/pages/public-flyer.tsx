@@ -905,8 +905,8 @@ export default function PublicFlyer() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="text-white font-semibold text-sm" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7), -1px -1px 2px rgba(0,0,0,0.6), 1px -1px 2px rgba(0,0,0,0.6), -1px 1px 2px rgba(0,0,0,0.6)'}}>{viewingStory.store.name}</p>
-                  <p className="text-white font-medium text-xs" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7), -1px -1px 2px rgba(0,0,0,0.6), 1px -1px 2px rgba(0,0,0,0.6), -1px 1px 2px rgba(0,0,0,0.6)'}}>há {Math.round((Date.now() - new Date(viewingStory.createdAt).getTime()) / 3600000)}h</p>
+                  <p className="text-white font-semibold text-sm" style={{textShadow: '0.5px 0.5px 1px rgba(0,0,0,0.8), -0.5px -0.5px 1px rgba(0,0,0,0.8), 0.5px -0.5px 1px rgba(0,0,0,0.8), -0.5px 0.5px 1px rgba(0,0,0,0.8)'}}>{viewingStory.store.name}</p>
+                  <p className="text-white font-medium text-xs" style={{textShadow: '0.5px 0.5px 1px rgba(0,0,0,0.8), -0.5px -0.5px 1px rgba(0,0,0,0.8), 0.5px -0.5px 1px rgba(0,0,0,0.8), -0.5px 0.5px 1px rgba(0,0,0,0.8)'}}>há {Math.round((Date.now() - new Date(viewingStory.createdAt).getTime()) / 3600000)}h</p>
                 </div>
               </div>
               
