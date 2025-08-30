@@ -443,44 +443,7 @@ export default function StoresGallery() {
         <div className={`mx-auto py-6 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
           <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
             
-            {/* Stories das Lojas */}
-            {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
-              <div 
-                key={storyStore.id} 
-                className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
-                onClick={() => openStoryModal(stories[0], 0)} // Abrir primeiro story da loja
-                data-testid={`story-circle-${storyStore.slug}`}
-              >
-                {/* Círculo da loja */}
-                <div className="relative">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-1 hover:scale-105 transition-transform">
-                    <div className="w-full h-full rounded-full bg-white p-1">
-                      <Avatar className="w-full h-full">
-                        <AvatarImage src={storyStore.logoUrl} alt={storyStore.name} />
-                        <AvatarFallback className="text-sm font-bold">
-                          {storyStore.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                  </div>
-                  
-                  {/* Contador de stories */}
-                  <Badge 
-                    variant="secondary" 
-                    className="absolute -top-1 -right-1 bg-green-500 text-white border-2 border-white text-xs px-1"
-                  >
-                    {stories.length}
-                  </Badge>
-                </div>
-                
-                {/* Nome da loja */}
-                <div className="text-xs text-gray-600 max-w-[96px] text-center leading-tight">
-                  {storyStore.name}
-                </div>
-              </div>
-            ))}
-            
-            {/* Botão criar story (se autenticado) */}
+            {/* Botão criar story (se autenticado) - PRIMEIRO */}
             {isAuthenticated && (
               <div 
                 className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
@@ -519,6 +482,43 @@ export default function StoresGallery() {
                 <span className="text-xs text-gray-600 font-medium">Criar</span>
               </div>
             )}
+            
+            {/* Stories das Lojas - DEPOIS */}
+            {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
+              <div 
+                key={storyStore.id} 
+                className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
+                onClick={() => openStoryModal(stories[0], 0)} // Abrir primeiro story da loja
+                data-testid={`story-circle-${storyStore.slug}`}
+              >
+                {/* Círculo da loja */}
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-1 hover:scale-105 transition-transform">
+                    <div className="w-full h-full rounded-full bg-white p-1">
+                      <Avatar className="w-full h-full">
+                        <AvatarImage src={storyStore.logoUrl} alt={storyStore.name} />
+                        <AvatarFallback className="text-sm font-bold">
+                          {storyStore.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  </div>
+                  
+                  {/* Contador de stories */}
+                  <Badge 
+                    variant="secondary" 
+                    className="absolute -top-1 -right-1 bg-green-500 text-white border-2 border-white text-xs px-1"
+                  >
+                    {stories.length}
+                  </Badge>
+                </div>
+                
+                {/* Nome da loja */}
+                <div className="text-xs text-gray-600 max-w-[96px] text-center leading-tight">
+                  {storyStore.name}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
