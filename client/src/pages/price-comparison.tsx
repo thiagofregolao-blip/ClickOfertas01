@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, TrendingDown, TrendingUp, ExternalLink, RefreshCw, AlertCircle, Zap, DollarSign, ChevronDown, ArrowRightLeft, Bell, BellOff, Trash2 } from "lucide-react";
+import { Search, TrendingDown, TrendingUp, ExternalLink, RefreshCw, AlertCircle, Zap, DollarSign, ChevronDown, ArrowRightLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatPriceWithCurrency } from "@/lib/priceUtils";
@@ -46,7 +46,6 @@ export default function PriceComparison() {
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [selectedProductForSearch, setSelectedProductForSearch] = useState<any | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [alertPrice, setAlertPrice] = useState("");
 
   // Buscar produtos disponíveis no Paraguay para comparação
   const { data: paraguayProducts = [], isLoading: loadingProducts } = useQuery<any[]>({
@@ -75,54 +74,9 @@ export default function PriceComparison() {
     },
   });
 
-  // Buscar histórico de preços
-  const { data: priceHistory = [], isLoading: loadingHistory } = useQuery<any[]>({
-    queryKey: ['/api/price-history', comparePricesMutation.data?.productName],
-    enabled: !!comparePricesMutation.data?.productName,
-    staleTime: 2 * 60 * 1000, // 2 minutos
-  });
 
-  // Buscar alertas do usuário
-  const { data: userAlerts = [] } = useQuery<any[]>({
-    queryKey: ['/api/price-alerts'],
-    enabled: isAuthenticated,
-    staleTime: 1 * 60 * 1000, // 1 minuto
-  });
 
-  // Criar alerta de preço
-  const createAlertMutation = useMutation({
-    mutationFn: async ({ productName, targetPrice }: { productName: string; targetPrice: number }) => {
-      const response = await apiRequest("POST", `/api/price-alerts`, {
-        productName,
-        targetPrice,
-        currency: 'BRL',
-        emailNotification: true
-      });
-      return await response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Alerta criado!",
-        description: "Você será notificado quando o preço baixar.",
-      });
-      setAlertPrice("");
-      queryClient.invalidateQueries({ queryKey: ['/api/price-alerts'] });
-    },
-    onError: () => {
-      toast({
-        title: "Erro ao criar alerta",
-        description: "Não foi possível criar o alerta de preço.",
-        variant: "destructive",
-      });
-    },
-  });
 
-  // Deletar alerta
-  const deleteAlertMutation = useMutation({
-    mutationFn: async (alertId: string) => {
-      const response = await apiRequest("DELETE", `/api/price-alerts/${alertId}`);
-      return await response.json();
-    },
     onSuccess: () => {
       toast({
         title: "Alerta removido",
