@@ -215,6 +215,7 @@ const BLOCKED_STORES = [
   'ebay',
   'techinn.com',
   'techinn',
+  'itsworthmore', // Para capturar "eBay - itsworthmore"
 ];
 
 // Função para verificar se uma loja está bloqueada
