@@ -905,8 +905,8 @@ export default function PublicFlyer() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="text-white font-medium text-sm" style={{textShadow: '1px 1px 2px rgba(0,0,0,0.5)', WebkitTextStroke: '0.5px rgba(0,0,0,0.3)'}}>{viewingStory.store.name}</p>
-                  <p className="text-white font-normal text-xs" style={{textShadow: '1px 1px 2px rgba(0,0,0,0.5)', WebkitTextStroke: '0.5px rgba(0,0,0,0.3)'}}>há {Math.round((Date.now() - new Date(viewingStory.createdAt).getTime()) / 3600000)}h</p>
+                  <p style={{color: '#ffffff', fontWeight: '500', fontSize: '14px', textShadow: '1px 1px 2px rgba(0,0,0,0.5)', WebkitTextStroke: '0.5px rgba(0,0,0,0.3)'}}>{viewingStory.store.name}</p>
+                  <p style={{color: '#ffffff', fontWeight: '400', fontSize: '12px', textShadow: '1px 1px 2px rgba(0,0,0,0.5)', WebkitTextStroke: '0.5px rgba(0,0,0,0.3)'}}>há {Math.round((Date.now() - new Date(viewingStory.createdAt).getTime()) / 3600000)}h</p>
                 </div>
               </div>
               
