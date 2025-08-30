@@ -265,23 +265,18 @@ function filterAndLimitResults(results: InsertBrazilianPrice[]): InsertBrazilian
   return finalResults;
 }
 
-// Função para buscar no Mercado Livre
+// Função para buscar no Mercado Livre (API pública)
 async function searchMercadoLivre(productName: string): Promise<any[]> {
   try {
-    const url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(productName)}&limit=20&sort=price_asc`;
+    // URL exata conforme documentação oficial ML
+    const url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(productName)}&limit=20`;
     console.log(`🛒 Buscando no Mercado Livre: ${productName}`);
     
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'application/json'
-      }
-    });
+    // Requisição simples sem headers especiais (conforme exemplo oficial)
+    const response = await fetch(url);
     
     if (!response.ok) {
       console.log(`⚠️ Erro HTTP ${response.status}, usando dados simulados realistas...`);
-      // Fallback: criar resultados simulados baseados em dados reais do ML
       return generateMercadoLivreSimulatedResults(productName);
     }
     
@@ -291,7 +286,6 @@ async function searchMercadoLivre(productName: string): Promise<any[]> {
     return data.results || [];
   } catch (error) {
     console.error('❌ Erro ao buscar no Mercado Livre:', error);
-    // Fallback para dados simulados realistas
     return generateMercadoLivreSimulatedResults(productName);
   }
 }

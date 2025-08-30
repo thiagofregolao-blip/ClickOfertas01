@@ -1,0 +1,71 @@
+Aqui vai o caminho mais simples para usar a API do Mercado Livre Brasil (site_id = MLB):
+
+Buscar produtos sem precisar de token (público)
+Use o endpoint público de busca:
+
+curl "https://api.mercadolibre.com/sites/MLB/search?q=iphone&limit=5"
+
+
+Esse recurso não requer autenticação e serve para resultados de anúncios ativos. 
+developers.mercadolibre.com.ar
+
+Criar seu app (para endpoints privados)
+
+Acesse Developers > Register your application, crie o app e anote App ID (client_id) e Secret (client_secret). Defina a Redirect URI (HTTPS). 
+Mercado Livre Developers
+
+O site_id do Brasil é MLB (você usará em buscas e listagens). 
+developers.mercadolibre.com.ar
+
+Autenticar com OAuth 2.0 (Authorization Code)
+
+Autorizar o usuário (Brasil): abra no navegador
+
+https://auth.mercadolivre.com.br/authorization?response_type=code&client_id=SEU_APP_ID&redirect_uri=SUA_REDIRECT_URI
+
+
+(Você receberá ?code=... na redirect URI.) 
+GitHub
+Bubble
+
+Trocar o code por access token:
+
+curl -X POST "https://api.mercadolibre.com/oauth/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=authorization_code&client_id=SEU_APP_ID&client_secret=SEU_SECRET&code=O_CODE&redirect_uri=SUA_REDIRECT_URI"
+
+
+Guarde também o refresh_token para renovar o acesso:
+
+curl -X POST "https://api.mercadolibre.com/oauth/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=refresh_token&client_id=SEU_APP_ID&client_secret=SEU_SECRET&refresh_token=SEU_REFRESH"
+``` :contentReference[oaicite:4]{index=4}
+
+
+
+Chamar endpoints privados com o token
+Ex.: pegar dados do usuário autenticado:
+
+curl "https://api.mercadolibre.com/users/me" \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN"
+
+
+Sempre envie o token no header Authorization: Bearer. 
+Mercado Livre Developers
+
+Ambiente de testes (recomendado)
+Crie test users para publicar/consultar sem afetar contas reais e simular compras/vendas. 
+Mercado Livre Global Selling
+Mercado Livre Developers
+
+Exemplo rápido em Node.js (busca pública)
+
+const fetch = require("node-fetch");
+
+async function buscar() {
+  const r = await fetch("https://api.mercadolibre.com/sites/MLB/search?q=soja&limit=3");
+  const j = await r.json();
+  console.log(j.results.map(i => ({ id: i.id, titulo: i.title, preco: i.price, link: i.permalink })));
+}
+buscar();
