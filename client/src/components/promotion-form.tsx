@@ -411,11 +411,12 @@ export default function PromotionForm({ promotion, onClose, onSuccess }: Promoti
                     name="originalPrice"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Preço Original (PYG) *</FormLabel>
+                        <FormLabel>Preço Original (US$) *</FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 
-                            placeholder="100000"
+                            step="0.01"
+                            placeholder="29.99"
                             {...field}
                           />
                         </FormControl>
@@ -429,11 +430,12 @@ export default function PromotionForm({ promotion, onClose, onSuccess }: Promoti
                     name="promotionalPrice"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Preço Promocional (PYG) *</FormLabel>
+                        <FormLabel>Preço Promocional (US$) *</FormLabel>
                         <FormControl>
                           <Input 
                             type="number"
-                            placeholder="50000"
+                            step="0.01"
+                            placeholder="19.99"
                             {...field}
                           />
                         </FormControl>
