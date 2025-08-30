@@ -899,7 +899,7 @@ export default function PublicFlyer() {
               
               {/* Overlay superior com info da loja */}
               <div className="absolute top-0 left-0 right-0">
-                <div className="bg-black/60 backdrop-blur-sm p-3 flex items-center gap-3">
+                <div className="bg-black/30 backdrop-blur-md pt-8 pb-3 px-3 flex items-center gap-3">
                   <Avatar className="w-8 h-8 border-2 border-white" style={{filter: 'drop-shadow(1px 1px 3px rgba(0,0,0,0.7)) drop-shadow(-1px -1px 2px rgba(0,0,0,0.7))'}}>
                     <AvatarImage src={viewingStory.store.logoUrl} alt={viewingStory.store.name} />
                     <AvatarFallback className="text-xs">
