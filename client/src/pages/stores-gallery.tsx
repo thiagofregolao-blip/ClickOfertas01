@@ -637,7 +637,7 @@ export default function StoresGallery() {
 
       {/* Instagram Story Viewer Modal */}
       <Dialog open={!!viewingStory} onOpenChange={(open) => !open && closeStoryModal()}>
-        <DialogContent className="p-0 max-w-sm mx-auto bg-black border-0 rounded-3xl overflow-hidden">
+        <DialogContent className="p-0 max-w-sm mx-auto bg-black border-0 rounded-3xl overflow-hidden [&>button]:absolute [&>button]:right-4 [&>button]:top-4 [&>button]:z-50 [&>button]:text-white [&>button]:bg-black/30 [&>button]:backdrop-blur-sm [&>button]:rounded-full [&>button]:w-8 [&>button]:h-8 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:hover:bg-black/50 [&>button]:transition-all [&>button]:shadow-lg">
           {viewingStory && currentStoreStories[currentStoryIndex] && (
             <div className="relative aspect-[9/16] bg-black">
               {/* Barra de Progresso */}
@@ -687,12 +687,6 @@ export default function StoresGallery() {
                   <p style={{color: '#ffffff', fontWeight: '500', fontSize: '13px', textShadow: '1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'}}>{currentStoreStories[currentStoryIndex].store?.name}</p>
                   <p style={{color: '#ffffff', fontWeight: '400', fontSize: '11px', textShadow: '1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'}}>há {Math.round((Date.now() - new Date(currentStoreStories[currentStoryIndex].createdAt || Date.now()).getTime()) / 3600000)}h</p>
                 </div>
-                <button
-                  onClick={closeStoryModal}
-                  className="text-white/70 hover:text-white p-1"
-                >
-                  <X className="w-5 h-5" />
-                </button>
               </div>
               
               {/* Info do produto no centro */}

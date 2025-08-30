@@ -872,7 +872,7 @@ export default function PublicFlyer() {
 
       {/* Instagram Story Viewer Modal */}
       <Dialog open={!!viewingStory} onOpenChange={(open) => !open && setViewingStory(null)}>
-        <DialogContent className="p-0 max-w-sm mx-auto bg-black/90 border-0 rounded-3xl overflow-hidden">
+        <DialogContent className="p-0 max-w-sm mx-auto bg-black/90 border-0 rounded-3xl overflow-hidden [&>button]:absolute [&>button]:right-4 [&>button]:top-4 [&>button]:z-50 [&>button]:text-white [&>button]:bg-black/30 [&>button]:backdrop-blur-sm [&>button]:rounded-full [&>button]:w-8 [&>button]:h-8 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:hover:bg-black/50 [&>button]:transition-all [&>button]:shadow-lg">
           {viewingStory && (
             <div className="relative aspect-[9/16] bg-black">
               {/* Mídia do Story */}
