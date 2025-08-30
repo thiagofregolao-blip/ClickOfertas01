@@ -15,6 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { formatBrazilianPrice, formatPriceWithCurrency } from "@/lib/priceUtils";
 import jsPDF from "jspdf";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 
 interface ScratchCardProps {
   product: Product;
@@ -125,21 +126,25 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
           title: "🎉 Cupom gerado!",
           description: "Veja os detalhes do seu cupom! Clique para fechar.",
           // SEM DURATION - fica aberto até usuário fechar manualmente
-          action: {
-            label: "Fechar",
-            onClick: () => {
-              // NEW: Invalidar cache APENAS quando usuário fechar o toast
-              queryClient.invalidateQueries({
-                predicate: (query) => {
-                  // Invalida todas as queries que contém 'my-available-promotions'
-                  return query.queryKey.some(key => 
-                    typeof key === 'string' && key.includes('my-available-promotions')
-                  );
-                }
-              });
-              console.log('🎯 Cache das promoções invalidado APÓS usuário fechar');
-            }
-          }
+          action: (
+            <ToastAction 
+              altText="Fechar" 
+              onClick={() => {
+                // NEW: Invalidar cache APENAS quando usuário fechar o toast
+                queryClient.invalidateQueries({
+                  predicate: (query) => {
+                    // Invalida todas as queries que contém 'my-available-promotions'
+                    return query.queryKey.some(key => 
+                      typeof key === 'string' && key.includes('my-available-promotions')
+                    );
+                  }
+                });
+                console.log('🎯 Cache das promoções invalidado APÓS usuário fechar');
+              }}
+            >
+              Fechar
+            </ToastAction>
+          )
         });
       }
     },
