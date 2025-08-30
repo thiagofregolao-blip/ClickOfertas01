@@ -812,11 +812,11 @@ export const priceComparisons = pgTable("price_comparisons", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id), // Usuário que fez a comparação (opcional)
   productId: varchar("product_id").notNull().references(() => products.id), // Produto do Paraguay
-  paraguayPrice: decimal("paraguay_price", { precision: 10, scale: 2 }).notNull(),
-  paraguayCurrency: varchar("paraguay_currency", { length: 10 }).default("USD"),
-  bestBrazilianPrice: decimal("best_brazilian_price", { precision: 10, scale: 2 }),
-  savings: decimal("savings", { precision: 10, scale: 2 }), // Economia em reais
-  savingsPercentage: decimal("savings_percentage", { precision: 5, scale: 2 }), // % de economia
+  paraguayPrice: varchar("paraguay_price").notNull(),
+  paraguayCurrency: varchar("paraguay_currency").default("USD"),
+  bestBrazilianPrice: varchar("best_brazilian_price"),
+  savings: varchar("savings"), // Economia em reais
+  savingsPercentage: varchar("savings_percentage"), // % de economia
   brazilianStoresFound: varchar("brazilian_stores_found").default("0"), // Quantas lojas encontraram
   comparedAt: timestamp("compared_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),

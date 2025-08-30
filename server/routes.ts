@@ -2099,7 +2099,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           amount: savings,
           percentage: Math.round(savingsPercentage),
           bestStore: bestStore || "N/A",
-        }
+        },
+        message: brazilianPrices.length === 0 
+          ? "No momento não conseguimos acessar as lojas brasileiras devido às proteções anti-bot. Esta funcionalidade está em desenvolvimento e será melhorada em breve."
+          : `Encontrados preços em ${brazilianPrices.length} lojas brasileiras`
       };
 
       console.log(`✅ Comparação concluída: ${brazilianPrices.length} preços encontrados`);

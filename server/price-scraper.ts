@@ -141,9 +141,16 @@ async function scrapeStore(store: StoreConfig, searchTerm: string): Promise<Inse
         'Accept-Encoding': 'gzip, deflate, br',
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Referer': 'https://www.google.com/',
       },
       timeout: SCRAPING_CONFIG.timeout,
       validateStatus: (status) => status < 500, // Aceitar redirects
+      maxRedirects: 5,
     });
     
     if (response.status !== 200) {
