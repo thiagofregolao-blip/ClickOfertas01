@@ -5,8 +5,9 @@ import { startCleanupJobs } from "./cleanupJobs";
 import path from "path";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Aumentar limite de payload para suportar upload de imagens/vídeos maiores
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
 // Serve attached assets statically
 app.use('/attached_assets', express.static(path.resolve(process.cwd(), 'attached_assets')));
