@@ -145,9 +145,9 @@ export default function PriceComparison() {
               </div>
               {/* Cotação do dia */}
               {exchangeRateData && (
-                <div className="flex items-center gap-2 text-sm bg-blue-50 px-3 py-1 rounded-full">
-                  <ArrowRightLeft className="w-4 h-4 text-blue-600" />
-                  <span className="text-blue-800 font-medium">
+                <div className="flex items-center gap-2 text-sm bg-gray-50 px-3 py-1 rounded-full">
+                  <ArrowRightLeft className="w-4 h-4 text-gray-600" />
+                  <span className="text-gray-800 font-medium">
                     Cotação do dia: US$ 1,00 = R$ {exchangeRateData.rate?.toFixed(2)}
                   </span>
                 </div>
