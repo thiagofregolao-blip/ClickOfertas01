@@ -124,6 +124,60 @@ export const flyerViews = pgTable("flyer_views", {
   viewedAt: timestamp("viewed_at").defaultNow(),
 });
 
+// Instagram Stories - Nova funcionalidade
+export const instagramStories = pgTable("instagram_stories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Conteúdo do story
+  mediaType: varchar("media_type").notNull(), // 'photo', 'video'
+  mediaUrl: text("media_url").notNull(),
+  caption: text("caption"), // Legenda para vídeos ou texto adicional
+  
+  // Dados do produto (se for promoção)
+  productName: text("product_name"),
+  productPrice: varchar("product_price"),
+  productDiscountPrice: varchar("product_discount_price"),
+  productCategory: varchar("product_category"),
+  isProductPromo: boolean("is_product_promo").default(false),
+  
+  // Configurações do story
+  backgroundColor: varchar("background_color").default("#ffffff"),
+  textColor: varchar("text_color").default("#000000"),
+  
+  // Status e controle
+  isActive: boolean("is_active").default(true),
+  viewsCount: varchar("views_count").default("0"),
+  likesCount: varchar("likes_count").default("0"),
+  
+  // Expiração automática (24h)
+  expiresAt: timestamp("expires_at").notNull(),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Views dos Instagram Stories
+export const instagramStoryViews = pgTable("instagram_story_views", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storyId: varchar("story_id").notNull().references(() => instagramStories.id, { onDelete: "cascade" }),
+  viewerId: varchar("viewer_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  viewedAt: timestamp("viewed_at").defaultNow(),
+});
+
+// Likes dos Instagram Stories  
+export const instagramStoryLikes = pgTable("instagram_story_likes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storyId: varchar("story_id").notNull().references(() => instagramStories.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  likedAt: timestamp("liked_at").defaultNow(),
+});
+
 // Curtidas/likes nos produtos dos stories
 export const productLikes = pgTable("product_likes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -553,6 +607,29 @@ export const insertPromotionAssignmentSchema = createInsertSchema(promotionAssig
 
 export const updatePromotionAssignmentSchema = insertPromotionAssignmentSchema.partial();
 
+// Schemas para Instagram Stories
+export const insertInstagramStorySchema = createInsertSchema(instagramStories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  viewsCount: true,
+  likesCount: true,
+}).extend({
+  expiresAt: z.union([z.string(), z.date()]).optional(),
+});
+
+export const updateInstagramStorySchema = insertInstagramStorySchema.partial();
+
+export const insertInstagramStoryViewSchema = createInsertSchema(instagramStoryViews).omit({
+  id: true,
+  viewedAt: true,
+});
+
+export const insertInstagramStoryLikeSchema = createInsertSchema(instagramStoryLikes).omit({
+  id: true,
+  likedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -638,6 +715,15 @@ export type InsertScratchCampaign = z.infer<typeof insertScratchCampaignSchema>;
 export type VirtualScratchClone = typeof virtualScratchClones.$inferSelect;
 export type InsertVirtualScratchClone = z.infer<typeof insertVirtualScratchCloneSchema>;
 
+// Instagram Stories types
+export type InstagramStory = typeof instagramStories.$inferSelect;
+export type InsertInstagramStory = z.infer<typeof insertInstagramStorySchema>;
+export type UpdateInstagramStory = z.infer<typeof updateInstagramStorySchema>;
+export type InstagramStoryView = typeof instagramStoryViews.$inferSelect;
+export type InsertInstagramStoryView = z.infer<typeof insertInstagramStoryViewSchema>;
+export type InstagramStoryLike = typeof instagramStoryLikes.$inferSelect;
+export type InsertInstagramStoryLike = z.infer<typeof insertInstagramStoryLikeSchema>;
+
 export type StoreWithProducts = Store & {
   products: Product[];
 };
@@ -666,6 +752,18 @@ export type VirtualScratchCloneWithDetails = VirtualScratchClone & {
   product: Product;
   store: Store;
   assignedUser?: User;
+};
+
+// Instagram Stories com detalhes
+export type InstagramStoryWithDetails = InstagramStory & {
+  store: Store;
+  user: User;
+  views?: InstagramStoryView[];
+  likes?: InstagramStoryLike[];
+};
+
+export type StoreWithInstagramStories = Store & {
+  instagramStories: InstagramStory[];
 };
 
 // Types para novo sistema de promoções
