@@ -686,8 +686,8 @@ export default function StoresGallery() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <p className="text-white font-light text-sm" style={{textShadow: '0 0 8px rgba(255,255,255,0.8), 0 0 16px rgba(255,255,255,0.4)'}}>{currentStoreStories[currentStoryIndex].store?.name}</p>
-                    <p className="text-white/90 font-light text-xs" style={{textShadow: '0 0 6px rgba(255,255,255,0.6)'}}>há {Math.round((Date.now() - new Date(currentStoreStories[currentStoryIndex].createdAt || Date.now()).getTime()) / 3600000)}h</p>
+                    <p className="text-white font-light text-sm" style={{textShadow: '0 0 8px rgba(255,255,255,0.8), 0 0 16px rgba(255,255,255,0.4), 0.5px 0.5px 0 rgba(0,0,0,0.8), -0.5px -0.5px 0 rgba(0,0,0,0.8), 0.5px -0.5px 0 rgba(0,0,0,0.8), -0.5px 0.5px 0 rgba(0,0,0,0.8)'}}>{currentStoreStories[currentStoryIndex].store?.name}</p>
+                    <p className="text-white/90 font-light text-xs" style={{textShadow: '0 0 6px rgba(255,255,255,0.6), 0.5px 0.5px 0 rgba(0,0,0,0.8), -0.5px -0.5px 0 rgba(0,0,0,0.8), 0.5px -0.5px 0 rgba(0,0,0,0.8), -0.5px 0.5px 0 rgba(0,0,0,0.8)'}}>há {Math.round((Date.now() - new Date(currentStoreStories[currentStoryIndex].createdAt || Date.now()).getTime()) / 3600000)}h</p>
                   </div>
                 </div>
               </div>
