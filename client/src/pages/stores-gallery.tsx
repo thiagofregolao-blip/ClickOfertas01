@@ -20,7 +20,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { LazyImage } from "@/components/lazy-image";
 import { SearchResultItem } from "@/components/search-result-item";
 import { StoreResultItem } from "@/components/store-result-item";
-import type { StoreWithProducts, Product } from "@shared/schema";
+import type { StoreWithProducts, Product, InstagramStoryWithDetails } from "@shared/schema";
 
 // Função para limitar nome a duas palavras no mobile
 function limitStoreName(name: string, isMobile: boolean): string {
@@ -42,7 +42,7 @@ export default function StoresGallery() {
   const [, setLocation] = useLocation();
   
   // Instagram Stories state
-  const [viewingStory, setViewingStory] = useState<any>(null);
+  const [viewingStory, setViewingStory] = useState<InstagramStoryWithDetails | null>(null);
   
   // Fecha o menu do usuário quando clica fora
   useEffect(() => {
@@ -93,16 +93,16 @@ export default function StoresGallery() {
   });
 
   // Instagram Stories data
-  const { data: instagramStories = [], isLoading: storiesLoading } = useQuery({
+  const { data: instagramStories = [], isLoading: storiesLoading } = useQuery<InstagramStoryWithDetails[]>({
     queryKey: ['/api/instagram-stories'],
     staleTime: 2 * 60 * 1000, // 2 minutos
   });
 
   // Agrupar stories por loja
   const instagramStoriesGrouped = useMemo(() => {
-    const grouped: Record<string, { store: any; stories: any[] }> = {};
+    const grouped: Record<string, { store: any; stories: InstagramStoryWithDetails[] }> = {};
     
-    instagramStories.forEach((story: any) => {
+    instagramStories.forEach((story) => {
       if (!grouped[story.storeId]) {
         grouped[story.storeId] = {
           store: story.store,
@@ -418,8 +418,12 @@ export default function StoresGallery() {
             
             {/* Botão criar story (se autenticado) */}
             {isAuthenticated && (
-              <div className="flex flex-col items-center gap-2 flex-shrink-0">
-                <div className="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+              <div 
+                className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
+                onClick={() => setLocation('/create-story')}
+                data-testid="button-create-story"
+              >
+                <div className="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-gray-400 transition-colors">
                   <Camera className="w-6 h-6 text-gray-400" />
                 </div>
                 <span className="text-xs text-gray-600">Criar</span>
