@@ -389,7 +389,7 @@ export default function StoresGallery() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header Responsivo */}
-      <div className="border-b sticky top-0 z-50" style={{ backgroundColor: '#FDE800' }}>
+      <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95" style={{ backgroundColor: '#FDE800' }}>
         <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
