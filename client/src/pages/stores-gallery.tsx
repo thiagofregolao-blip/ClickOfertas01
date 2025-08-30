@@ -487,10 +487,36 @@ export default function StoresGallery() {
                 onClick={() => setLocation('/create-story')}
                 data-testid="button-create-story"
               >
-                <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-gray-400 transition-colors">
-                  <Camera className="w-6 h-6 text-gray-400" />
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full border-2 border-dashed border-blue-500 p-1 hover:border-blue-600 transition-colors">
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
+                      {user?.profileImageUrl ? (
+                        <img 
+                          src={user.profileImageUrl} 
+                          alt="Meu Perfil"
+                          className="w-full h-full rounded-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement as HTMLElement;
+                            if (parent) {
+                              parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-white"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>`;
+                            }
+                          }}
+                        />
+                      ) : (
+                        <User className="w-8 h-8 text-white" />
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Ícone de câmera sobreposto */}
+                  <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1.5 border-2 border-white">
+                    <Camera className="w-3 h-3 text-white" />
+                  </div>
                 </div>
-                <span className="text-xs text-gray-600">Criar</span>
+                
+                <span className="text-xs text-gray-600 font-medium">Criar</span>
               </div>
             )}
           </div>
