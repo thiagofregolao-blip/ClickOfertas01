@@ -237,20 +237,8 @@ function isStoreBlocked(storeName: string): boolean {
 function filterAndLimitResults(results: InsertBrazilianPrice[]): InsertBrazilianPrice[] {
   console.log(`📊 Filtrando ${results.length} resultados...`);
   
-  // Primeiro filtrar sites bloqueados
-  const filteredResults = results.filter(item => {
-    const blocked = isStoreBlocked(item.storeName);
-    if (blocked) {
-      console.log(`🚫 Bloqueado: ${item.storeName}`);
-      return false; // Bloquear este item
-    }
-    return true; // Manter este item
-  });
-  
-  console.log(`✅ Após filtrar sites bloqueados: ${filteredResults.length} resultados`);
-  
-  // Primeiro agrupar por loja e calcular preço médio
-  const groupedResults = groupByStoreAndCalculateAverage(filteredResults);
+  // Agrupar por loja e calcular preço médio
+  const groupedResults = groupByStoreAndCalculateAverage(results);
   
   // Separar lojas relevantes das irrelevantes
   const relevantStores = groupedResults.filter(item => {
@@ -328,8 +316,20 @@ export async function scrapeBrazilianPrices(productName: string): Promise<Insert
     
     console.log(`🎯 Total encontrado: ${convertedResults.length} produtos no Google Shopping Brasil`);
     
+    // Primeiro filtrar sites bloqueados
+    console.log(`📊 Aplicando filtro de sites bloqueados...`);
+    const blockedFilteredResults = convertedResults.filter(item => {
+      const blocked = isStoreBlocked(item.storeName);
+      if (blocked) {
+        console.log(`🚫 Bloqueado: ${item.storeName}`);
+      }
+      return !blocked;
+    });
+    
+    console.log(`✅ Após filtrar sites bloqueados: ${blockedFilteredResults.length} resultados`);
+    
     // Filtrar e limitar resultados
-    return filterAndLimitResults(convertedResults);
+    return filterAndLimitResults(blockedFilteredResults);
     
   } catch (error) {
     console.error('❌ Erro na busca do Google Shopping:', error);
