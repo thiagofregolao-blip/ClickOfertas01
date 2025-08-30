@@ -489,6 +489,70 @@ export default function PublicFlyer() {
         </div>
       </div>
 
+      {/* NOVA BARRA DE INSTAGRAM STORIES - GLOBAL */}
+      <div className="max-w-4xl mx-auto bg-white shadow-lg mb-4">
+        <div className="bg-white border-b p-4">
+          <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 text-gray-600 flex-shrink-0">
+              <Camera className="w-5 h-5" />
+              <span className="font-medium">Stories</span>
+            </div>
+            
+            {/* Debug Info */}
+            <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs flex-shrink-0">
+              {storiesLoading ? 'Carregando...' : `${instagramStories.length} stories`}
+            </div>
+            
+            {/* Stories das Lojas */}
+            {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
+              <div 
+                key={storyStore.id} 
+                className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
+                onClick={() => setViewingStory(stories[0])} // Abrir primeiro story da loja
+                data-testid={`story-circle-${storyStore.slug}`}
+              >
+                {/* Círculo da loja */}
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-1 hover:scale-105 transition-transform">
+                    <div className="w-full h-full rounded-full bg-white p-1">
+                      <Avatar className="w-full h-full">
+                        <AvatarImage src={storyStore.logoUrl} alt={storyStore.name} />
+                        <AvatarFallback className="text-sm font-bold">
+                          {storyStore.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  </div>
+                  
+                  {/* Contador de stories */}
+                  <Badge 
+                    variant="secondary" 
+                    className="absolute -top-1 -right-1 bg-green-500 text-white border-2 border-white text-xs px-1"
+                  >
+                    {stories.length}
+                  </Badge>
+                </div>
+                
+                {/* Nome da loja */}
+                <span className="text-xs text-gray-600 max-w-[60px] truncate text-center">
+                  {storyStore.name}
+                </span>
+              </div>
+            ))}
+            
+            {/* Botão criar story (se autenticado) */}
+            {isAuthenticated && (
+              <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                <div className="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                  <Camera className="w-6 h-6 text-gray-400" />
+                </div>
+                <span className="text-xs text-gray-600">Criar</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Content */}
       <div id="flyer-content" className="max-w-4xl mx-auto bg-white shadow-lg">
         {isStoriesView ? (
@@ -542,67 +606,7 @@ export default function PublicFlyer() {
               </div>
             </div>
             
-            {/* BARRA HORIZONTAL DE INSTAGRAM STORIES - NOVO SISTEMA */}
-            <div className="bg-white border-b p-4">
-              <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
-                <div className="flex items-center gap-2 text-gray-600 flex-shrink-0">
-                  <Camera className="w-5 h-5" />
-                  <span className="font-medium">Stories</span>
-                </div>
-                
-                {/* Debug Info */}
-                <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs flex-shrink-0">
-                  {storiesLoading ? 'Carregando...' : `${instagramStories.length} stories`}
-                </div>
-                
-                {/* Stories das Lojas */}
-                {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
-                  <div 
-                    key={storyStore.id} 
-                    className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
-                    onClick={() => setViewingStory(stories[0])} // Abrir primeiro story da loja
-                    data-testid={`story-circle-${storyStore.slug}`}
-                  >
-                    {/* Círculo da loja */}
-                    <div className="relative">
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-1 hover:scale-105 transition-transform">
-                        <div className="w-full h-full rounded-full bg-white p-1">
-                          <Avatar className="w-full h-full">
-                            <AvatarImage src={storyStore.logoUrl} alt={storyStore.name} />
-                            <AvatarFallback className="text-sm font-bold">
-                              {storyStore.name.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                        </div>
-                      </div>
-                      
-                      {/* Contador de stories */}
-                      <Badge 
-                        variant="secondary" 
-                        className="absolute -top-1 -right-1 bg-green-500 text-white border-2 border-white text-xs px-1"
-                      >
-                        {stories.length}
-                      </Badge>
-                    </div>
-                    
-                    {/* Nome da loja */}
-                    <span className="text-xs text-gray-600 max-w-[60px] truncate text-center">
-                      {storyStore.name}
-                    </span>
-                  </div>
-                ))}
-                
-                {/* Botão criar story (se autenticado) */}
-                {isAuthenticated && (
-                  <div className="flex flex-col items-center gap-2 flex-shrink-0">
-                    <div className="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
-                      <Camera className="w-6 h-6 text-gray-400" />
-                    </div>
-                    <span className="text-xs text-gray-600">Criar</span>
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* TEMPORARIAMENTE REMOVIDO - Barra horizontal será movida para o topo geral */}
 
             {/* Stories Badge - Atualizado */}
             <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 text-center">
