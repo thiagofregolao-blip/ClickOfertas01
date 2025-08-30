@@ -49,12 +49,6 @@ export default function StoresGallery() {
   const progressRef = useRef(0);
   
   const STORY_DURATION = 5000; // 5 segundos
-  
-  // Get all stories for current store
-  const currentStoreStories = useMemo(() => {
-    if (!viewingStory || !instagramStoriesGrouped) return [];
-    return instagramStoriesGrouped[viewingStory.storeId]?.stories || [];
-  }, [viewingStory, instagramStoriesGrouped]);
 
   // Timer para progresso do story
   useEffect(() => {
@@ -191,6 +185,12 @@ export default function StoresGallery() {
     
     return grouped;
   }, [instagramStories]);
+
+  // Get all stories for current store
+  const currentStoreStories = useMemo(() => {
+    if (!viewingStory || !instagramStoriesGrouped) return [];
+    return instagramStoriesGrouped[viewingStory.storeId]?.stories || [];
+  }, [viewingStory, instagramStoriesGrouped]);
 
   // Função otimizada para verificar se a loja postou produtos hoje
   const hasProductsToday = useCallback((store: StoreWithProducts): boolean => {
