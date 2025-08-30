@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { startCleanupJobs } from "./cleanupJobs";
 import path from "path";
 
 const app = express();
@@ -71,5 +72,8 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    
+    // Iniciar jobs de limpeza automática após o servidor estar rodando
+    startCleanupJobs();
   });
 })();

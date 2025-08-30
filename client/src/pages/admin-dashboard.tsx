@@ -6,7 +6,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import AdminLayout from "@/components/admin-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Box, Star, Eye, Clock, Plus, Link, ExternalLink, DollarSign } from "lucide-react";
+import { Box, Star, Eye, Clock, Plus, Link, ExternalLink, DollarSign, Camera } from "lucide-react";
 import { Link as RouterLink } from "wouter";
 import type { Store, Product } from "@shared/schema";
 
@@ -238,6 +238,23 @@ export default function AdminDashboard() {
                     <div className="flex items-center space-x-3">
                       <Eye className="text-accent" />
                       <span className="font-medium">Visualizar Panfleto</span>
+                    </div>
+                    <ExternalLink className="w-4 h-4 text-gray-400" />
+                  </Button>
+                </RouterLink>
+
+                <RouterLink href="/create-story">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-between p-4 h-auto hover:bg-gray-100 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50"
+                    data-testid="button-create-story"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Camera className="text-purple-600" />
+                      <div>
+                        <span className="font-medium">Criar Story</span>
+                        <p className="text-xs text-gray-500">Stories duram 24h</p>
+                      </div>
                     </div>
                     <ExternalLink className="w-4 h-4 text-gray-400" />
                   </Button>
