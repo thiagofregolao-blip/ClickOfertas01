@@ -17,6 +17,8 @@ import UserSettingsPage from "@/pages/user-settings";
 import ShoppingList from "@/pages/shopping-list";
 import MyCoupons from "@/pages/my-coupons";
 import CouponDetails from "@/pages/coupon-details";
+import StoriesFeed from "@/pages/stories-feed";
+import CreateStory from "@/pages/create-story";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -37,6 +39,8 @@ function Router() {
       <Switch>
         <Route path="/" component={Landing} />
         <Route path="/cards" component={LoadingComponent} />
+        <Route path="/stories-feed" component={LoadingComponent} />
+        <Route path="/create-story" component={LoadingComponent} />
         <Route path="/flyer/:slug" component={PublicFlyer} />
         <Route path="/stores/:slug" component={PublicFlyer} />
         <Route path="/admin" component={LoadingComponent} />
@@ -57,11 +61,12 @@ function Router() {
         <>
           <Route path="/" component={Landing} />
           <Route path="/cards" component={StoresGallery} />
+          <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
         </>
       ) : user?.hasStore ? (
-        // Lojista logado - painel admin
+        // Lojista logado - painel admin + stories
         <>
           <Route path="/" component={AdminDashboard} />
           <Route path="/admin" component={AdminDashboard} />
@@ -71,6 +76,8 @@ function Router() {
           <Route path="/admin/preview" component={AdminPreview} />
           <Route path="/admin/analytics" component={Analytics} />
           <Route path="/cards" component={StoresGallery} />
+          <Route path="/stories-feed" component={StoriesFeed} />
+          <Route path="/create-story" component={CreateStory} />
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/my-coupons" component={MyCoupons} />
@@ -79,18 +86,20 @@ function Router() {
           <Route path="/stores/:slug" component={PublicFlyer} />
         </>
       ) : (
-        // Usuário normal logado - galeria de lojas
+        // Usuário normal logado - galeria de lojas + stories
         <>
           <Route path="/" component={StoresGallery} />
           <Route path="/cards" component={StoresGallery} />
+          <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/my-coupons" component={MyCoupons} />
           <Route path="/coupon" component={CouponDetails} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
-          {/* Bloqueia acesso ao admin para usuários normais */}
+          {/* Bloqueia acesso ao admin e criação de stories para usuários normais */}
           <Route path="/admin*" component={NotFound} />
+          <Route path="/create-story" component={NotFound} />
         </>
       )}
       <Route component={NotFound} />
