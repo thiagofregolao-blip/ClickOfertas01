@@ -691,7 +691,7 @@ export default function StoresGallery() {
               
               {/* Info do produto no centro */}
               {currentStoreStories[currentStoryIndex].isProductPromo && (
-                <div className="absolute bottom-20 left-4 right-4 z-20">
+                <div className="absolute bottom-6 left-4 right-4 z-20">
                   <div className="bg-black/50 backdrop-blur-sm rounded-2xl p-4">
                     <h3 className="text-white font-bold text-lg mb-1">
                       {currentStoreStories[currentStoryIndex].productName}

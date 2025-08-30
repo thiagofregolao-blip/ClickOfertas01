@@ -912,7 +912,7 @@ export default function PublicFlyer() {
               
               {/* Info do produto no centro */}
               {viewingStory.isProductPromo && (
-                <div className="absolute bottom-20 left-4 right-4">
+                <div className="absolute bottom-6 left-4 right-4">
                   <div className="bg-black/50 backdrop-blur-sm rounded-2xl p-4">
                     <h3 className="text-white font-bold text-lg mb-1">
                       {viewingStory.productName}
