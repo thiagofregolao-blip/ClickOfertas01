@@ -21,6 +21,7 @@ import { LazyImage } from "@/components/lazy-image";
 import { SearchResultItem } from "@/components/search-result-item";
 import { StoreResultItem } from "@/components/store-result-item";
 import type { StoreWithProducts, Product, InstagramStoryWithDetails } from "@shared/schema";
+import logoUrl from '../assets/logo.jpg';
 
 // Função para limitar nome a duas palavras no mobile
 function limitStoreName(name: string, isMobile: boolean): string {
@@ -391,7 +392,13 @@ export default function StoresGallery() {
       <div className="border-b sticky top-0 z-50" style={{ backgroundColor: '#FDE800' }}>
         <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-black">🛍️ Click Ofertas Paraguai</h1>
+            <div className="flex items-center gap-3">
+              <img 
+                src={logoUrl} 
+                alt="Click Ofertas Paraguai" 
+                className="h-12 w-auto object-contain"
+              />
+            </div>
             <div className="flex items-center gap-3">
               {/* Botão de Comparação de Preços */}
               <Link href="/price-comparison">
