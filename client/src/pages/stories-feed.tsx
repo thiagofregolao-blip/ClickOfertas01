@@ -279,12 +279,22 @@ export default function StoriesFeed() {
                       src={story.mediaUrl}
                       alt={story.productName || 'Story'}
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        console.log('❌ Erro ao carregar imagem do story:', story.id);
+                        // Fallback para imagem padrão se der erro
+                        e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23f3f4f6"/><text x="100" y="100" text-anchor="middle" fill="%23666">📷</text></svg>';
+                      }}
                     />
                   ) : (
                     <video
                       src={story.mediaUrl}
                       className="w-full h-full object-cover"
                       muted
+                      preload="metadata"
+                      onError={(e) => {
+                        console.log('❌ Erro ao carregar vídeo do story:', story.id);
+                      }}
                     />
                   )}
                   
@@ -349,7 +359,7 @@ export default function StoriesFeed() {
         </div>
 
         {/* Mensagem quando não há stories */}
-        {stories.length === 0 && (
+        {stories.length === 0 && !isLoading && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📱</div>
             <h3 className="text-xl font-semibold mb-2">Nenhum story ativo</h3>
@@ -361,6 +371,13 @@ export default function StoriesFeed() {
                 <Link href="/create-story">Criar Meu Primeiro Story</Link>
               </Button>
             )}
+          </div>
+        )}
+
+        {/* Debug info - temporário */}
+        {!isLoading && (
+          <div className="fixed bottom-4 right-4 bg-black/80 text-white p-2 rounded text-xs">
+            📊 Stories: {stories.length} | Loading: {isLoading ? 'Sim' : 'Não'}
           </div>
         )}
       </div>
