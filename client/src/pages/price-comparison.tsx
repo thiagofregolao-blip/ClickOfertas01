@@ -35,6 +35,7 @@ interface ProductComparison {
     percentage: number;
     bestStore: string;
   };
+  message?: string;
 }
 
 export default function PriceComparison() {
@@ -51,12 +52,13 @@ export default function PriceComparison() {
   // Realizar comparação de preços
   const comparePricesMutation = useMutation({
     mutationFn: async (productId: string) => {
-      return apiRequest("POST", `/api/price-comparison/compare`, { productId });
+      const response = await apiRequest("POST", `/api/price-comparison/compare`, { productId });
+      return await response.json();
     },
     onSuccess: (data: ProductComparison) => {
       toast({
         title: "Comparação realizada!",
-        description: `Encontrados preços em ${data.brazilianPrices.length} lojas brasileiras.`,
+        description: data.message || `Encontrados preços em ${data.brazilianPrices.length} lojas brasileiras.`,
       });
     },
     onError: () => {
