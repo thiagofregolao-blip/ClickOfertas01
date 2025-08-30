@@ -2057,8 +2057,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      const savings = bestPrice < paraguayPriceBRL ? paraguayPriceBRL - bestPrice : 0;
-      const savingsPercentage = paraguayPriceBRL > 0 ? (savings / paraguayPriceBRL) * 100 : 0;
+      // Corrigir cálculo: economia é quando Paraguay é mais barato que Brasil
+      const savings = bestPrice > paraguayPriceBRL ? bestPrice - paraguayPriceBRL : 0;
+      const savingsPercentage = bestPrice > 0 ? (savings / bestPrice) * 100 : 0;
 
       // Gerar sugestões de produtos similares
       const allProducts = await storage.getAllProducts();
