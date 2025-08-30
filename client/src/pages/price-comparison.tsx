@@ -71,6 +71,13 @@ export default function PriceComparison() {
     },
   });
 
+  // Buscar histórico de preços
+  const { data: priceHistory = [], isLoading: loadingHistory } = useQuery<any[]>({
+    queryKey: ['/api/price-history', comparePricesMutation.data?.productName],
+    enabled: !!comparePricesMutation.data?.productName,
+    staleTime: 2 * 60 * 1000, // 2 minutos
+  });
+
   // Filtro inteligente de produtos para autocomplete
   const filteredProducts = useMemo(() => {
     if (!searchQuery.trim()) return [];
@@ -410,6 +417,51 @@ export default function PriceComparison() {
               </CardContent>
             </Card>
 
+            {/* Histórico de Preços */}
+            {priceHistory.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    Histórico de Preços (últimos 30 dias)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {priceHistory.slice(0, 10).map((record, index) => (
+                      <div key={record.id || index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <p className="font-medium text-sm">{record.storeName}</p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(record.recordedAt).toLocaleDateString('pt-BR', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-blue-600">
+                            {formatPriceWithCurrency(record.price, record.currency === 'BRL' ? 'R$' : 'US$')}
+                          </p>
+                          <Badge variant={record.availability === 'in_stock' ? 'default' : 'destructive'} className="text-xs">
+                            {record.availability === 'in_stock' ? 'Disponível' : 'Indisponível'}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {priceHistory.length > 10 && (
+                      <p className="text-xs text-gray-500 text-center">
+                        Mostrando os 10 registros mais recentes de {priceHistory.length} total
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
           </div>
         )}

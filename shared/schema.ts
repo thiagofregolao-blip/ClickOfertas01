@@ -508,6 +508,52 @@ export const promotionScratchesRelations = relations(promotionScratches, ({ one 
   }),
 }));
 
+
+
+// Histórico de preços para monitoramento
+export const priceHistory = pgTable("price_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productName: text("product_name").notNull(),
+  mlItemId: varchar("ml_item_id"), // ID do produto no Mercado Livre
+  storeName: varchar("store_name").notNull().default("Mercado Livre"),
+  price: decimal("price", { precision: 12, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).notNull().default("BRL"),
+  availability: varchar("availability").notNull().default("in_stock"),
+  productUrl: text("product_url"),
+  
+  // Informações extras do ML
+  freeShipping: boolean("free_shipping").default(false),
+  condition: varchar("condition").default("new"), // new, used
+  soldQuantity: varchar("sold_quantity").default("0"),
+  
+  // Timestamp para rastreamento
+  recordedAt: timestamp("recorded_at").defaultNow(),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Alertas de preço para usuários
+export const priceAlerts = pgTable("price_alerts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  productName: text("product_name").notNull(),
+  targetPrice: decimal("target_price", { precision: 12, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).notNull().default("BRL"),
+  
+  // Configurações do alerta
+  isActive: boolean("is_active").default(true),
+  emailNotification: boolean("email_notification").default(true),
+  
+  // Estado do alerta
+  lastCheckedAt: timestamp("last_checked_at"),
+  lastNotifiedAt: timestamp("last_notified_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+
+
 // Insert schemas
 export const insertStoreSchema = createInsertSchema(stores).omit({
   id: true,
@@ -892,3 +938,22 @@ export type PriceComparisonWithDetails = PriceComparison & {
   user?: User;
   product: Product & { store: Store };
 };
+
+// Schemas para histórico de preços e alertas
+export const insertPriceHistorySchema = createInsertSchema(priceHistory).omit({
+  id: true,
+  recordedAt: true,
+  createdAt: true,
+});
+
+export const insertPriceAlertSchema = createInsertSchema(priceAlerts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Types para histórico de preços
+export type PriceHistory = typeof priceHistory.$inferSelect;
+export type InsertPriceHistory = z.infer<typeof insertPriceHistorySchema>;
+export type PriceAlert = typeof priceAlerts.$inferSelect;
+export type InsertPriceAlert = z.infer<typeof insertPriceAlertSchema>;

@@ -1,6 +1,9 @@
 import axios from 'axios';
-import type { InsertBrazilianPrice } from '@shared/schema';
+import type { InsertBrazilianPrice, InsertPriceHistory } from '@shared/schema';
 import { nanoid } from 'nanoid';
+import { db } from './db';
+import { priceHistory } from '@shared/schema';
+import { sql } from 'drizzle-orm';
 
 // Função para gerar ID único
 function generateId(): string {
@@ -375,6 +378,9 @@ export async function scrapeBrazilianPrices(productName: string): Promise<Insert
     
     console.log(`🎯 Total encontrado: ${convertedResults.length} produtos no Mercado Livre Brasil`);
     
+    // Salvar histórico de preços automaticamente
+    await savePriceHistory(convertedResults);
+    
     // Filtrar e limitar resultados (apenas 5 melhores ofertas do Mercado Livre)
     return filterAndLimitResults(convertedResults);
     
@@ -383,6 +389,10 @@ export async function scrapeBrazilianPrices(productName: string): Promise<Insert
     // Garantir que sempre temos resultados
     const simulatedResults = generateMercadoLivreSimulatedResults(productName);
     const convertedResults = convertMercadoLivreResults(simulatedResults, productName);
+    
+    // Salvar histórico mesmo com dados simulados
+    await savePriceHistory(convertedResults);
+    
     return filterAndLimitResults(convertedResults);
   }
 }
@@ -424,4 +434,46 @@ export function generateProductSuggestions(originalProduct: any, allProducts: an
   });
   
   return suggestions;
+}
+
+// Função para salvar histórico de preços automaticamente
+export async function savePriceHistory(brazilianPrices: InsertBrazilianPrice[]): Promise<void> {
+  try {
+    const historyRecords: InsertPriceHistory[] = brazilianPrices.map(price => ({
+      productName: price.productName,
+      mlItemId: null, // Seria ideal ter o ID do ML, mas vamos usar nome por enquanto
+      storeName: price.storeName,
+      price: price.price,
+      currency: price.currency,
+      availability: price.availability,
+      productUrl: price.productUrl,
+      freeShipping: false, // Seria extraído do resultado do ML
+      condition: 'new', // Assumir novo por padrão
+      soldQuantity: '0'
+    }));
+
+    if (historyRecords.length > 0) {
+      await db.insert(priceHistory).values(historyRecords);
+      console.log(`📊 Histórico salvo: ${historyRecords.length} preços registrados`);
+    }
+  } catch (error) {
+    console.error('❌ Erro ao salvar histórico de preços:', error);
+  }
+}
+
+// Função para buscar histórico de um produto específico
+export async function getPriceHistory(productName: string, days: number = 30): Promise<any[]> {
+  try {
+    const history = await db.select()
+      .from(priceHistory)
+      .where(sql`${priceHistory.productName} ILIKE ${`%${productName}%`}`)
+      .where(sql`${priceHistory.recordedAt} >= NOW() - INTERVAL '${days} days'`)
+      .orderBy(sql`${priceHistory.recordedAt} DESC`);
+
+    console.log(`📈 Histórico encontrado: ${history.length} registros para "${productName}"`);
+    return history;
+  } catch (error) {
+    console.error('❌ Erro ao buscar histórico:', error);
+    return [];
+  }
 }

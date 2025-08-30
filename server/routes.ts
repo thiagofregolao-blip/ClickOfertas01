@@ -2207,6 +2207,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para buscar histórico de preços de um produto
+  app.get('/api/price-history/:productName', async (req, res) => {
+    try {
+      const { productName } = req.params;
+      const days = parseInt(req.query.days as string) || 30;
+      
+      const { getPriceHistory } = await import('./price-scraper');
+      const history = await getPriceHistory(productName, days);
+      
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching price history:", error);
+      res.status(500).json({ message: "Erro ao buscar histórico de preços" });
+    }
+  });
+
+  // Endpoint para criar alerta de preço
+  app.post('/api/price-alerts', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.id;
+      const alertSchema = z.object({
+        productName: z.string().min(1, "Nome do produto é obrigatório"),
+        targetPrice: z.number().positive("Preço deve ser positivo"),
+        currency: z.string().default('BRL'),
+        emailNotification: z.boolean().default(true)
+      });
+      
+      const alertData = alertSchema.parse(req.body);
+      const alert = await storage.createPriceAlert({
+        ...alertData,
+        userId
+      });
+      
+      res.json(alert);
+    } catch (error) {
+      console.error("Error creating price alert:", error);
+      res.status(500).json({ message: "Erro ao criar alerta de preço" });
+    }
+  });
+
+  // Endpoint para listar alertas do usuário
+  app.get('/api/price-alerts', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.id;
+      const alerts = await storage.getUserPriceAlerts(userId);
+      res.json(alerts);
+    } catch (error) {
+      console.error("Error fetching price alerts:", error);
+      res.status(500).json({ message: "Erro ao buscar alertas de preço" });
+    }
+  });
+
+  // Endpoint para deletar alerta
+  app.delete('/api/price-alerts/:alertId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.id;
+      const { alertId } = req.params;
+      
+      // Verificar se o alerta pertence ao usuário
+      const alert = await storage.getPriceAlert(alertId);
+      if (!alert || alert.userId !== userId) {
+        return res.status(404).json({ message: "Alerta não encontrado" });
+      }
+      
+      await storage.deletePriceAlert(alertId);
+      res.json({ message: "Alerta deletado com sucesso" });
+    } catch (error) {
+      console.error("Error deleting price alert:", error);
+      res.status(500).json({ message: "Erro ao deletar alerta" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
