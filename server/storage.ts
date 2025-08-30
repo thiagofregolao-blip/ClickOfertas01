@@ -13,6 +13,9 @@ import {
   promotions,
   promotionScratches,
   promotionAssignments,
+  instagramStories,
+  instagramStoryViews,
+  instagramStoryLikes,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -52,6 +55,14 @@ import {
   type InsertPromotionAssignment,
   type UpdatePromotionAssignment,
   type PromotionWithDetails,
+  type InstagramStory,
+  type InsertInstagramStory,
+  type UpdateInstagramStory,
+  type InstagramStoryView,
+  type InsertInstagramStoryView,
+  type InstagramStoryLike,
+  type InsertInstagramStoryLike,
+  type InstagramStoryWithDetails,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, gte, lte, sql, inArray } from "drizzle-orm";
@@ -152,6 +163,26 @@ export interface IStorage {
   updatePromotionAssignmentStatus(promotionId: string, userId: string, status: 'assigned' | 'generated' | 'redeemed'): Promise<PromotionAssignment>;
   getMyAvailablePromotions(userId: string, storeId: string): Promise<PromotionWithDetails[]>;
   hasUserGeneratedCoupon(promotionId: string, userId: string): Promise<boolean>;
+
+  // NEW: Instagram Stories operations 
+  createInstagramStory(story: InsertInstagramStory): Promise<InstagramStory>;
+  getStoreInstagramStories(storeId: string): Promise<InstagramStoryWithDetails[]>;
+  getAllActiveInstagramStories(): Promise<InstagramStoryWithDetails[]>;
+  getInstagramStory(storyId: string): Promise<InstagramStoryWithDetails | undefined>;
+  updateInstagramStory(storyId: string, updates: UpdateInstagramStory): Promise<InstagramStory>;
+  deleteInstagramStory(storyId: string): Promise<void>;
+  createInstagramStoryView(view: InsertInstagramStoryView): Promise<InstagramStoryView>;
+  createInstagramStoryLike(like: InsertInstagramStoryLike): Promise<InstagramStoryLike>;
+  removeInstagramStoryLike(storyId: string, userId: string): Promise<void>;
+  incrementStoryViewsCount(storyId: string): Promise<void>;
+  incrementStoryLikesCount(storyId: string): Promise<void>;
+  decrementStoryLikesCount(storyId: string): Promise<void>;
+  getUserInstagramStories(userId: string): Promise<InstagramStoryWithDetails[]>;
+  expireOldStories(): Promise<void>;
+
+  // NEW: Store user management (for dual authentication)
+  createStoreUser(storeId: string, storeData: any): Promise<User>;
+  getStoreUser(storeId: string): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1856,6 +1887,239 @@ export class DatabaseStorage implements IStorage {
       ));
     
     return (result?.count || 0) > 0;
+  }
+
+  // NEW: Instagram Stories operations implementation
+  async createInstagramStory(storyData: InsertInstagramStory): Promise<InstagramStory> {
+    const [story] = await db
+      .insert(instagramStories)
+      .values({
+        ...storyData,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas
+      })
+      .returning();
+    return story;
+  }
+
+  async getStoreInstagramStories(storeId: string): Promise<InstagramStoryWithDetails[]> {
+    // Expire old stories first
+    await this.expireOldStories();
+
+    const results = await db
+      .select({
+        story: instagramStories,
+        store: stores,
+        user: users,
+      })
+      .from(instagramStories)
+      .innerJoin(stores, eq(instagramStories.storeId, stores.id))
+      .innerJoin(users, eq(instagramStories.userId, users.id))
+      .where(and(
+        eq(instagramStories.storeId, storeId),
+        eq(instagramStories.isActive, true),
+        gte(instagramStories.expiresAt, new Date())
+      ))
+      .orderBy(desc(instagramStories.createdAt));
+
+    return results.map(r => ({
+      ...r.story,
+      store: r.store,
+      user: r.user,
+    }));
+  }
+
+  async getAllActiveInstagramStories(): Promise<InstagramStoryWithDetails[]> {
+    // Expire old stories first
+    await this.expireOldStories();
+
+    const results = await db
+      .select({
+        story: instagramStories,
+        store: stores,
+        user: users,
+      })
+      .from(instagramStories)
+      .innerJoin(stores, eq(instagramStories.storeId, stores.id))
+      .innerJoin(users, eq(instagramStories.userId, users.id))
+      .where(and(
+        eq(instagramStories.isActive, true),
+        gte(instagramStories.expiresAt, new Date())
+      ))
+      .orderBy(desc(instagramStories.createdAt));
+
+    return results.map(r => ({
+      ...r.story,
+      store: r.store,
+      user: r.user,
+    }));
+  }
+
+  async getInstagramStory(storyId: string): Promise<InstagramStoryWithDetails | undefined> {
+    const [result] = await db
+      .select({
+        story: instagramStories,
+        store: stores,
+        user: users,
+      })
+      .from(instagramStories)
+      .innerJoin(stores, eq(instagramStories.storeId, stores.id))
+      .innerJoin(users, eq(instagramStories.userId, users.id))
+      .where(eq(instagramStories.id, storyId));
+
+    if (!result) return undefined;
+
+    return {
+      ...result.story,
+      store: result.store,
+      user: result.user,
+    };
+  }
+
+  async updateInstagramStory(storyId: string, updates: UpdateInstagramStory): Promise<InstagramStory> {
+    const [story] = await db
+      .update(instagramStories)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(instagramStories.id, storyId))
+      .returning();
+    return story;
+  }
+
+  async deleteInstagramStory(storyId: string): Promise<void> {
+    await db
+      .delete(instagramStories)
+      .where(eq(instagramStories.id, storyId));
+  }
+
+  async createInstagramStoryView(view: InsertInstagramStoryView): Promise<InstagramStoryView> {
+    const [storyView] = await db
+      .insert(instagramStoryViews)
+      .values(view)
+      .returning();
+    return storyView;
+  }
+
+  async createInstagramStoryLike(like: InsertInstagramStoryLike): Promise<InstagramStoryLike> {
+    const [storyLike] = await db
+      .insert(instagramStoryLikes)
+      .values(like)
+      .returning();
+    return storyLike;
+  }
+
+  async removeInstagramStoryLike(storyId: string, userId: string): Promise<void> {
+    await db
+      .delete(instagramStoryLikes)
+      .where(and(
+        eq(instagramStoryLikes.storyId, storyId),
+        eq(instagramStoryLikes.userId, userId)
+      ));
+  }
+
+  async incrementStoryViewsCount(storyId: string): Promise<void> {
+    await db
+      .update(instagramStories)
+      .set({
+        viewsCount: sql`CAST(${instagramStories.viewsCount} AS INTEGER) + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(instagramStories.id, storyId));
+  }
+
+  async incrementStoryLikesCount(storyId: string): Promise<void> {
+    await db
+      .update(instagramStories)
+      .set({
+        likesCount: sql`CAST(${instagramStories.likesCount} AS INTEGER) + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(instagramStories.id, storyId));
+  }
+
+  async decrementStoryLikesCount(storyId: string): Promise<void> {
+    await db
+      .update(instagramStories)
+      .set({
+        likesCount: sql`CAST(${instagramStories.likesCount} AS INTEGER) - 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(instagramStories.id, storyId));
+  }
+
+  async getUserInstagramStories(userId: string): Promise<InstagramStoryWithDetails[]> {
+    const results = await db
+      .select({
+        story: instagramStories,
+        store: stores,
+        user: users,
+      })
+      .from(instagramStories)
+      .innerJoin(stores, eq(instagramStories.storeId, stores.id))
+      .innerJoin(users, eq(instagramStories.userId, users.id))
+      .where(eq(instagramStories.userId, userId))
+      .orderBy(desc(instagramStories.createdAt));
+
+    return results.map(r => ({
+      ...r.story,
+      store: r.store,
+      user: r.user,
+    }));
+  }
+
+  async expireOldStories(): Promise<void> {
+    await db
+      .update(instagramStories)
+      .set({ 
+        isActive: false,
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(instagramStories.isActive, true),
+        lte(instagramStories.expiresAt, new Date())
+      ));
+  }
+
+  // NEW: Store user management (for dual authentication)
+  async createStoreUser(storeId: string, storeData: any): Promise<User> {
+    const store = await db.select().from(stores).where(eq(stores.id, storeId));
+    if (!store.length) throw new Error('Store not found');
+
+    const storeInfo = store[0];
+    
+    // Create a user account for the store with store's email pattern
+    const storeEmail = `${storeInfo.slug}@click-ofertas.local`;
+    
+    const [user] = await db
+      .insert(users)
+      .values({
+        email: storeEmail,
+        firstName: storeInfo.name,
+        lastName: "Store",
+        provider: 'store',
+        isEmailVerified: true, // Store users are pre-verified
+        profileImageUrl: storeInfo.logoUrl,
+        // Store-specific metadata could go here
+      })
+      .returning();
+    
+    return user;
+  }
+
+  async getStoreUser(storeId: string): Promise<User | undefined> {
+    const store = await db.select().from(stores).where(eq(stores.id, storeId));
+    if (!store.length) return undefined;
+
+    const storeInfo = store[0];
+    const storeEmail = `${storeInfo.slug}@click-ofertas.local`;
+    
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, storeEmail));
+    
+    return user;
   }
 }
 

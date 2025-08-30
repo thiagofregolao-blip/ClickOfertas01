@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
@@ -882,6 +882,197 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching USD/BRL rate:", error);
       res.status(500).json({ message: "Failed to fetch exchange rate" });
+    }
+  });
+
+  // INSTAGRAM STORIES ROUTES
+  
+  // Criar um novo Instagram Story
+  app.post('/api/instagram-stories', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims?.sub || req.user.id;
+      const storyData = insertInstagramStorySchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const story = await storage.createInstagramStory(storyData);
+      res.status(201).json(story);
+    } catch (error) {
+      console.error("Error creating Instagram story:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to create story" });
+      }
+    }
+  });
+
+  // Buscar todos os Stories ativos (feed público)
+  app.get('/api/instagram-stories', async (req: any, res) => {
+    try {
+      const stories = await storage.getAllActiveInstagramStories();
+      res.json(stories);
+    } catch (error) {
+      console.error("Error fetching Instagram stories:", error);
+      res.status(500).json({ message: "Failed to fetch stories" });
+    }
+  });
+
+  // Buscar Stories de uma loja específica
+  app.get('/api/instagram-stories/store/:storeId', async (req: any, res) => {
+    try {
+      const { storeId } = req.params;
+      const stories = await storage.getStoreInstagramStories(storeId);
+      res.json(stories);
+    } catch (error) {
+      console.error("Error fetching store stories:", error);
+      res.status(500).json({ message: "Failed to fetch store stories" });
+    }
+  });
+
+  // Buscar um Story específico
+  app.get('/api/instagram-stories/:storyId', async (req: any, res) => {
+    try {
+      const { storyId } = req.params;
+      const story = await storage.getInstagramStory(storyId);
+      if (!story) {
+        return res.status(404).json({ message: "Story not found" });
+      }
+      res.json(story);
+    } catch (error) {
+      console.error("Error fetching Instagram story:", error);
+      res.status(500).json({ message: "Failed to fetch story" });
+    }
+  });
+
+  // Atualizar um Story (apenas pelo dono)
+  app.put('/api/instagram-stories/:storyId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { storyId } = req.params;
+      const userId = req.user.claims?.sub || req.user.id;
+      
+      // Verificar se o usuário é dono do story
+      const existingStory = await storage.getInstagramStory(storyId);
+      if (!existingStory) {
+        return res.status(404).json({ message: "Story not found" });
+      }
+      if (existingStory.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const updateData = updateInstagramStorySchema.parse(req.body);
+      const story = await storage.updateInstagramStory(storyId, updateData);
+      res.json(story);
+    } catch (error) {
+      console.error("Error updating Instagram story:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to update story" });
+      }
+    }
+  });
+
+  // Deletar um Story (apenas pelo dono)
+  app.delete('/api/instagram-stories/:storyId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { storyId } = req.params;
+      const userId = req.user.claims?.sub || req.user.id;
+      
+      // Verificar se o usuário é dono do story
+      const existingStory = await storage.getInstagramStory(storyId);
+      if (!existingStory) {
+        return res.status(404).json({ message: "Story not found" });
+      }
+      if (existingStory.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      await storage.deleteInstagramStory(storyId);
+      res.json({ message: "Story deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting Instagram story:", error);
+      res.status(500).json({ message: "Failed to delete story" });
+    }
+  });
+
+  // Registrar visualização de Story
+  app.post('/api/instagram-stories/:storyId/view', async (req: any, res) => {
+    try {
+      const { storyId } = req.params;
+      const userId = req.user?.claims?.sub; // pode ser anônimo
+      const userAgent = req.get('User-Agent');
+      const ipAddress = req.ip;
+      
+      const viewData = insertInstagramStoryViewSchema.parse({
+        storyId,
+        viewerId: userId,
+        userAgent,
+        ipAddress
+      });
+      
+      await storage.createInstagramStoryView(viewData);
+      await storage.incrementStoryViewsCount(storyId);
+      res.status(201).json({ success: true });
+    } catch (error) {
+      console.error("Error registering story view:", error);
+      res.status(500).json({ message: "Failed to register view" });
+    }
+  });
+
+  // Curtir/Descurtir Story
+  app.post('/api/instagram-stories/:storyId/like', async (req: any, res) => {
+    try {
+      const { storyId } = req.params;
+      const userId = req.user?.claims?.sub;
+      const userAgent = req.get('User-Agent');
+      const ipAddress = req.ip;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required to like stories" });
+      }
+      
+      const likeData = insertInstagramStoryLikeSchema.parse({
+        storyId,
+        userId,
+        userAgent,
+        ipAddress
+      });
+      
+      await storage.createInstagramStoryLike(likeData);
+      await storage.incrementStoryLikesCount(storyId);
+      res.status(201).json({ success: true, liked: true });
+    } catch (error) {
+      console.error("Error liking story:", error);
+      res.status(500).json({ message: "Failed to like story" });
+    }
+  });
+
+  // Remover like de Story
+  app.delete('/api/instagram-stories/:storyId/like', isAuthenticated, async (req: any, res) => {
+    try {
+      const { storyId } = req.params;
+      const userId = req.user.claims?.sub || req.user.id;
+      
+      await storage.removeInstagramStoryLike(storyId, userId);
+      await storage.decrementStoryLikesCount(storyId);
+      res.json({ success: true, liked: false });
+    } catch (error) {
+      console.error("Error unliking story:", error);
+      res.status(500).json({ message: "Failed to unlike story" });
+    }
+  });
+
+  // Buscar Stories do usuário logado
+  app.get('/api/my-instagram-stories', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims?.sub || req.user.id;
+      const stories = await storage.getUserInstagramStories(userId);
+      res.json(stories);
+    } catch (error) {
+      console.error("Error fetching user stories:", error);
+      res.status(500).json({ message: "Failed to fetch user stories" });
     }
   });
 
