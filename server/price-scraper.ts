@@ -221,9 +221,16 @@ const BLOCKED_STORES = [
 // Função para verificar se uma loja está bloqueada
 function isStoreBlocked(storeName: string): boolean {
   const storeNameLower = storeName.toLowerCase();
-  return BLOCKED_STORES.some(blockedStore => 
+  const isBlocked = BLOCKED_STORES.some(blockedStore => 
     storeNameLower.includes(blockedStore.toLowerCase())
   );
+  
+  // Debug log para verificar se está funcionando
+  if (isBlocked) {
+    console.log(`🔍 DEBUG: ${storeName} → bloqueado por conter uma das palavras: ${BLOCKED_STORES.join(', ')}`);
+  }
+  
+  return isBlocked;
 }
 
 // Função para filtrar e limitar resultados às 5 melhores ofertas
@@ -235,8 +242,9 @@ function filterAndLimitResults(results: InsertBrazilianPrice[]): InsertBrazilian
     const blocked = isStoreBlocked(item.storeName);
     if (blocked) {
       console.log(`🚫 Bloqueado: ${item.storeName}`);
+      return false; // Bloquear este item
     }
-    return !blocked;
+    return true; // Manter este item
   });
   
   console.log(`✅ Após filtrar sites bloqueados: ${filteredResults.length} resultados`);
