@@ -210,12 +210,38 @@ function groupByStoreAndCalculateAverage(results: InsertBrazilianPrice[]): Inser
   return averagedResults;
 }
 
+// Lista de sites bloqueados
+const BLOCKED_STORES = [
+  'ebay',
+  'techinn.com',
+  'techinn',
+];
+
+// Função para verificar se uma loja está bloqueada
+function isStoreBlocked(storeName: string): boolean {
+  const storeNameLower = storeName.toLowerCase();
+  return BLOCKED_STORES.some(blockedStore => 
+    storeNameLower.includes(blockedStore.toLowerCase())
+  );
+}
+
 // Função para filtrar e limitar resultados às 5 melhores ofertas
 function filterAndLimitResults(results: InsertBrazilianPrice[]): InsertBrazilianPrice[] {
   console.log(`📊 Filtrando ${results.length} resultados...`);
   
+  // Primeiro filtrar sites bloqueados
+  const filteredResults = results.filter(item => {
+    const blocked = isStoreBlocked(item.storeName);
+    if (blocked) {
+      console.log(`🚫 Bloqueado: ${item.storeName}`);
+    }
+    return !blocked;
+  });
+  
+  console.log(`✅ Após filtrar sites bloqueados: ${filteredResults.length} resultados`);
+  
   // Primeiro agrupar por loja e calcular preço médio
-  const groupedResults = groupByStoreAndCalculateAverage(results);
+  const groupedResults = groupByStoreAndCalculateAverage(filteredResults);
   
   // Separar lojas relevantes das irrelevantes
   const relevantStores = groupedResults.filter(item => {
