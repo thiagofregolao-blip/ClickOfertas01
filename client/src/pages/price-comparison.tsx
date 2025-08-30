@@ -318,7 +318,7 @@ export default function PriceComparison() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-4 gap-4">
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Produto</h4>
                     <p className="text-sm">{comparisonData.productName}</p>
@@ -340,6 +340,32 @@ export default function PriceComparison() {
                       )}
                     </div>
                     <p className="text-xs text-gray-600">{comparisonData.paraguayStore}</p>
+                  </div>
+                  {/* Menor Preço no Brasil */}
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">Menor Preço no Brasil</h4>
+                    {(() => {
+                      const minPrice = Math.min(...comparisonData.brazilianPrices.map(p => parseFloat(p.price)));
+                      const bestBrazilianOffer = comparisonData.brazilianPrices.find(p => parseFloat(p.price) === minPrice);
+                      
+                      return (
+                        <div className="space-y-1">
+                          <p className="text-lg font-bold text-blue-600">
+                            {formatPriceWithCurrency(minPrice.toFixed(2), 'R$')}
+                          </p>
+                          {/* Conversão para USD */}
+                          {exchangeRateData && (
+                            <p className="text-sm text-blue-500">
+                              ≈ {formatPriceWithCurrency(
+                                (minPrice / exchangeRateData.rate).toFixed(2), 
+                                'US$'
+                              )}
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-600">{bestBrazilianOffer?.store}</p>
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Economia Máxima</h4>
