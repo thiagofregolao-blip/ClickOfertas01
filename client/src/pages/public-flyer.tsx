@@ -3,8 +3,11 @@ import { useRoute } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Share, Download, Printer, MoreVertical, Filter, Gift } from "lucide-react";
+import { Share, Download, Printer, MoreVertical, Filter, Gift, Camera, Heart, Eye } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import ProductCard from "@/components/product-card";
 import ScratchCard from "@/components/scratch-card";
@@ -17,6 +20,40 @@ import { InstagramStories } from "@/components/instagram-stories";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAppVersion } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
+
+// Tipo para os novos Instagram Stories
+interface InstagramStory {
+  id: string;
+  storeId: string;
+  userId: string;
+  mediaType: 'image' | 'video';
+  mediaUrl: string;
+  caption?: string;
+  productName?: string;
+  productPrice?: string;
+  productDiscountPrice?: string;
+  productCategory?: string;
+  isProductPromo: boolean;
+  backgroundColor: string;
+  textColor: string;
+  isActive: boolean;
+  viewsCount: string;
+  likesCount: string;
+  expiresAt: string;
+  createdAt: string;
+  store: {
+    id: string;
+    name: string;
+    logoUrl?: string;
+    slug: string;
+  };
+  user: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    profileImageUrl?: string;
+  };
+}
 
 /**
  * Página Pública dos Panfletos - Suporta duas versões:
@@ -47,6 +84,7 @@ export default function PublicFlyer() {
   const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set());
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedStore, setSelectedStore] = useState<StoreWithProducts | null>(null);
+  const [viewingStory, setViewingStory] = useState<InstagramStory | null>(null);
   const { isAuthenticated } = useAuth();
 
   // Log da versão e modo de acesso (para desenvolvimento)
@@ -86,6 +124,33 @@ export default function PublicFlyer() {
     refetchOnMount: false,
     refetchOnReconnect: false, // Evita refetch desnecessário
     enabled: isStoriesView, // Só busca quando é stories
+  });
+
+  // Buscar os novos Instagram Stories
+  const { data: instagramStories = [], isLoading: storiesLoading } = useQuery<InstagramStory[]>({
+    queryKey: ['/api/instagram-stories'],
+    refetchInterval: 30000, // Atualizar a cada 30 segundos
+    staleTime: 30 * 1000,
+  });
+
+  // Agrupar Instagram Stories por loja
+  const instagramStoriesGrouped = instagramStories.reduce((acc, story) => {
+    const storeId = story.store.id;
+    if (!acc[storeId]) {
+      acc[storeId] = {
+        store: story.store,
+        stories: [],
+      };
+    }
+    acc[storeId].stories.push(story);
+    return acc;
+  }, {} as Record<string, { store: InstagramStory['store']; stories: InstagramStory[] }>);
+
+  console.log('🔍 Instagram Stories Debug:', { 
+    instagramStories, 
+    storiesLoading, 
+    storiesLength: instagramStories?.length,
+    grouped: Object.keys(instagramStoriesGrouped)
   });
 
   // TEMPORARIAMENTE DESABILITADO - Buscar clones virtuais disponíveis para usuário autenticado
@@ -305,7 +370,9 @@ export default function PublicFlyer() {
     ? sortedCategories.flatMap(category => productsByCategory[category]) // Ordenar por categoria quando "all"
     : activeProducts.filter(product => (product.category || 'Geral') === selectedCategory);
 
-  // Show Instagram Stories if accessed via stories and has stories products
+  // DESABILITADO TEMPORARIAMENTE - Sistema antigo de stories baseado em produtos
+  // Agora usando o novo sistema de Instagram Stories abaixo
+  /*
   if (showInstagramStories && store?.products.some(p => p.isActive && p.showInStories)) {
     return (
       <InstagramStories 
@@ -315,6 +382,7 @@ export default function PublicFlyer() {
       />
     );
   }
+  */
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -474,7 +542,69 @@ export default function PublicFlyer() {
               </div>
             </div>
             
-            {/* Stories Badge */}
+            {/* BARRA HORIZONTAL DE INSTAGRAM STORIES - NOVO SISTEMA */}
+            <div className="bg-white border-b p-4">
+              <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
+                <div className="flex items-center gap-2 text-gray-600 flex-shrink-0">
+                  <Camera className="w-5 h-5" />
+                  <span className="font-medium">Stories</span>
+                </div>
+                
+                {/* Debug Info */}
+                <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs flex-shrink-0">
+                  {storiesLoading ? 'Carregando...' : `${instagramStories.length} stories`}
+                </div>
+                
+                {/* Stories das Lojas */}
+                {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
+                  <div 
+                    key={storyStore.id} 
+                    className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
+                    onClick={() => setViewingStory(stories[0])} // Abrir primeiro story da loja
+                    data-testid={`story-circle-${storyStore.slug}`}
+                  >
+                    {/* Círculo da loja */}
+                    <div className="relative">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-1 hover:scale-105 transition-transform">
+                        <div className="w-full h-full rounded-full bg-white p-1">
+                          <Avatar className="w-full h-full">
+                            <AvatarImage src={storyStore.logoUrl} alt={storyStore.name} />
+                            <AvatarFallback className="text-sm font-bold">
+                              {storyStore.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                      </div>
+                      
+                      {/* Contador de stories */}
+                      <Badge 
+                        variant="secondary" 
+                        className="absolute -top-1 -right-1 bg-green-500 text-white border-2 border-white text-xs px-1"
+                      >
+                        {stories.length}
+                      </Badge>
+                    </div>
+                    
+                    {/* Nome da loja */}
+                    <span className="text-xs text-gray-600 max-w-[60px] truncate text-center">
+                      {storyStore.name}
+                    </span>
+                  </div>
+                ))}
+                
+                {/* Botão criar story (se autenticado) */}
+                {isAuthenticated && (
+                  <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                      <Camera className="w-6 h-6 text-gray-400" />
+                    </div>
+                    <span className="text-xs text-gray-600">Criar</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Stories Badge - Atualizado */}
             <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 text-center">
               <div className="flex items-center justify-center gap-3">
                 <div className="bg-white/20 rounded-full p-2">
@@ -798,6 +928,99 @@ export default function PublicFlyer() {
         isOpen={!!selectedProduct}
         onClose={() => setSelectedProduct(null)}
       />
+
+      {/* Instagram Story Viewer Modal */}
+      <Dialog open={!!viewingStory} onOpenChange={(open) => !open && setViewingStory(null)}>
+        <DialogContent className="p-0 max-w-sm mx-auto bg-black/90 border-0 rounded-3xl overflow-hidden">
+          {viewingStory && (
+            <div className="relative aspect-[9/16] bg-black">
+              {/* Mídia do Story */}
+              {viewingStory.mediaType === 'image' ? (
+                <img
+                  src={viewingStory.mediaUrl}
+                  alt={viewingStory.productName || 'Story'}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback em caso de erro na imagem
+                    e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600"><rect width="400" height="600" fill="%23666"/><text x="200" y="300" text-anchor="middle" fill="white" font-size="30">📷 Story</text></svg>';
+                  }}
+                />
+              ) : (
+                <video
+                  src={viewingStory.mediaUrl}
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                />
+              )}
+              
+              {/* Overlay superior com info da loja */}
+              <div className="absolute top-4 left-4 right-4 flex items-center gap-3">
+                <Avatar className="w-8 h-8 border-2 border-white">
+                  <AvatarImage src={viewingStory.store.logoUrl} alt={viewingStory.store.name} />
+                  <AvatarFallback className="text-xs">
+                    {viewingStory.store.name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="text-white font-medium text-sm">{viewingStory.store.name}</p>
+                  <p className="text-white/70 text-xs">há {Math.round((Date.now() - new Date(viewingStory.createdAt).getTime()) / 3600000)}h</p>
+                </div>
+              </div>
+              
+              {/* Info do produto no centro */}
+              {viewingStory.isProductPromo && (
+                <div className="absolute bottom-20 left-4 right-4">
+                  <div className="bg-black/50 backdrop-blur-sm rounded-2xl p-4">
+                    <h3 className="text-white font-bold text-lg mb-1">
+                      {viewingStory.productName}
+                    </h3>
+                    {viewingStory.productPrice && (
+                      <div className="flex items-center gap-2">
+                        {viewingStory.productDiscountPrice && (
+                          <span className="text-gray-300 line-through text-sm">
+                            {viewingStory.productPrice}
+                          </span>
+                        )}
+                        <span className="text-yellow-400 font-bold text-xl">
+                          {viewingStory.productDiscountPrice || viewingStory.productPrice}
+                        </span>
+                      </div>
+                    )}
+                    {viewingStory.caption && (
+                      <p className="text-white/90 text-sm mt-2">{viewingStory.caption}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Stats e ações no bottom */}
+              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                <div className="flex items-center gap-4 text-white">
+                  <div className="flex items-center gap-1">
+                    <Heart className="w-4 h-4" />
+                    <span className="text-sm">{viewingStory.likesCount}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Eye className="w-4 h-4" />
+                    <span className="text-sm">{viewingStory.viewsCount}</span>
+                  </div>
+                </div>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setViewingStory(null)}
+                  className="text-white hover:bg-white/10"
+                >
+                  ✕
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
