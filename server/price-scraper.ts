@@ -210,27 +210,55 @@ function groupByStoreAndCalculateAverage(results: InsertBrazilianPrice[]): Inser
   return averagedResults;
 }
 
-// Lista de sites bloqueados
-const BLOCKED_STORES = [
-  'ebay',
-  'techinn.com',
-  'techinn',
-  'itsworthmore', // Para capturar "eBay - itsworthmore"
+// Sites brasileiros permitidos (.com.br)
+const ALLOWED_BRAZILIAN_STORES = [
+  'mercadolivre.com.br',
+  'amazon.com.br', 
+  'americanas.com.br',
+  'submarino.com.br',
+  'magazine.com.br',
+  'casasbahia.com.br',
+  'pontofrio.com.br',
+  'extra.com.br',
+  'carrefour.com.br',
+  'kabum.com.br',
+  'zoom.com.br',
+  'buscape.com.br',
+  'shopee.com.br',
+  'olx.com.br',
+  'enjoei.com.br',
+  'claro.com.br'
 ];
 
-// Função para verificar se uma loja está bloqueada
+// Função para verificar se uma loja deve ser bloqueada
 function isStoreBlocked(storeName: string): boolean {
   const storeNameLower = storeName.toLowerCase();
-  const isBlocked = BLOCKED_STORES.some(blockedStore => 
-    storeNameLower.includes(blockedStore.toLowerCase())
-  );
   
-  // Debug log para verificar se está funcionando
-  if (isBlocked) {
-    console.log(`🔍 DEBUG: ${storeName} → bloqueado por conter uma das palavras: ${BLOCKED_STORES.join(', ')}`);
+  // Se contém .com.br, é brasileiro e permitido
+  if (storeNameLower.includes('.com.br')) {
+    console.log(`✅ PERMITIDO (brasileiro): ${storeName}`);
+    return false;
   }
   
-  return isBlocked;
+  // Se contém apenas .com (internacional), bloquear
+  if (storeNameLower.includes('.com') && !storeNameLower.includes('.com.br')) {
+    console.log(`🚫 BLOQUEADO (internacional .com): ${storeName}`);
+    return true;
+  }
+  
+  // Para lojas sem domínio explícito, verificar se está na lista de brasileiras conhecidas
+  const isBrazilianKnown = ALLOWED_BRAZILIAN_STORES.some(allowedStore => 
+    storeNameLower.includes(allowedStore.replace('.com.br', ''))
+  );
+  
+  if (isBrazilianKnown) {
+    console.log(`✅ PERMITIDO (brasileiro conhecido): ${storeName}`);
+    return false;
+  }
+  
+  // Se não é brasileiro conhecido e não tem .com.br, considerar suspeito
+  console.log(`⚠️ SUSPEITO (origem incerta): ${storeName}`);
+  return false; // Manter por enquanto, mas marcar como suspeito
 }
 
 // Função para filtrar e limitar resultados às 5 melhores ofertas
