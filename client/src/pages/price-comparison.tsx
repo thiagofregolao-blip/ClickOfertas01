@@ -85,7 +85,7 @@ export default function PriceComparison() {
   }, [paraguayProducts, searchQuery]);
 
   // Hook para buscar cotação USD → BRL
-  const { data: exchangeRateData } = useQuery({
+  const { data: exchangeRateData } = useQuery<{ rate: number }>({
     queryKey: ['/api/exchange-rate/usd-brl'],
     refetchInterval: 30 * 60 * 1000, // Atualizar a cada 30 minutos
     staleTime: 15 * 60 * 1000, // Considerar stale após 15 minutos
@@ -325,9 +325,20 @@ export default function PriceComparison() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Preço no Paraguay</h4>
-                    <p className="text-lg font-bold text-green-600">
-                      {formatPriceWithCurrency(comparisonData.paraguayPrice, comparisonData.paraguayCurrency)}
-                    </p>
+                    <div className="space-y-1">
+                      <p className="text-lg font-bold text-green-600">
+                        {formatPriceWithCurrency(comparisonData.paraguayPrice, comparisonData.paraguayCurrency)}
+                      </p>
+                      {/* Conversão para BRL */}
+                      {exchangeRateData && (
+                        <p className="text-sm font-semibold text-green-500">
+                          ≈ {formatPriceWithCurrency(
+                            (parseFloat(comparisonData.paraguayPrice.toString()) * exchangeRateData.rate).toFixed(2), 
+                            'R$'
+                          )}
+                        </p>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-600">{comparisonData.paraguayStore}</p>
                   </div>
                   <div>
@@ -347,15 +358,35 @@ export default function PriceComparison() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  🇧🇷 Preços no Brasil
+                  🇧🇷 Preços no Brasil ({comparisonData.brazilianPrices.length} lojas)
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {comparisonData.brazilianPrices.map((price, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                  {(() => {
+                    // Encontrar o menor preço
+                    const minPrice = Math.min(...comparisonData.brazilianPrices.map(p => parseFloat(p.price)));
+                    
+                    return comparisonData.brazilianPrices.map((price, index) => {
+                      const currentPrice = parseFloat(price.price);
+                      const isLowestPrice = currentPrice === minPrice;
+                      
+                      return (
+                        <div 
+                          key={index} 
+                          className={`flex items-center justify-between p-4 border rounded-lg ${
+                            isLowestPrice ? 'border-green-300 bg-green-50' : 'border-gray-200'
+                          }`}
+                        >
                       <div className="flex-1">
-                        <h4 className="font-semibold">{price.store}</h4>
+                        <h4 className={`font-semibold ${isLowestPrice ? 'text-green-800' : ''}`}>
+                          {price.store}
+                          {isLowestPrice && (
+                            <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                              🏆 MENOR PREÇO
+                            </span>
+                          )}
+                        </h4>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge 
                             variant={price.availability === 'in_stock' ? 'default' : 'secondary'}
@@ -370,18 +401,36 @@ export default function PriceComparison() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-lg font-bold">
-                          {formatPriceWithCurrency(price.price, price.currency)}
+                        <div className="space-y-1">
+                          <div className={`text-lg font-bold ${isLowestPrice ? 'text-green-700' : 'text-blue-600'}`}>
+                            {formatPriceWithCurrency(price.price, price.currency)}
+                          </div>
+                          {/* Mostrar conversão USD se for necessário */}
+                          {exchangeRateData && price.currency === 'BRL' && (
+                            <div className="text-sm text-gray-600">
+                              ≈ {formatPriceWithCurrency(
+                                (currentPrice / exchangeRateData.rate).toFixed(2), 
+                                'US$'
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <Button variant="outline" size="sm" asChild className="mt-2">
+                        <Button
+                          variant={isLowestPrice ? "default" : "outline"}
+                          size="sm"
+                          asChild
+                          className={`mt-2 ${isLowestPrice ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                        >
                           <a href={price.url} target="_blank" rel="noopener noreferrer">
                             <ExternalLink className="w-3 h-3 mr-1" />
-                            Ver loja
+                            {isLowestPrice ? 'Melhor Oferta' : 'Ver loja'}
                           </a>
                         </Button>
                       </div>
-                    </div>
-                  ))}
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               </CardContent>
             </Card>
