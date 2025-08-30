@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera } from "lucide-react";
-import { StoreStoriesSection } from "@/components/store-stories";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import LoginPage from "@/components/login-page";
@@ -360,10 +359,6 @@ export default function StoresGallery() {
         </div>
       </div>
 
-      {/* Stories das Lojas */}
-      {!searchQuery.trim() && (
-        <StoreStoriesSection stores={filteredStores} isMobile={isMobile} />
-      )}
 
       {/* NOVA BARRA DE INSTAGRAM STORIES - GLOBAL */}
       <div className="bg-white border-b">
