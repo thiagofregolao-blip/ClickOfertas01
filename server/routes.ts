@@ -2057,9 +2057,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      // Corrigir cálculo: economia é quando Paraguay é mais barato que Brasil
-      const savings = bestPrice > paraguayPriceBRL ? bestPrice - paraguayPriceBRL : 0;
-      const savingsPercentage = bestPrice > 0 ? (savings / bestPrice) * 100 : 0;
+      // Lógica correta: diferença = preço Paraguay - preço Brasil
+      const difference = paraguayPriceBRL - bestPrice;
+      
+      // Se diferença negativa = Paraguay mais barato = há economia
+      const savings = difference < 0 ? Math.abs(difference) : 0;
+      const savingsPercentage = difference < 0 && bestPrice > 0 ? (savings / bestPrice) * 100 : 0;
+      
+      // Indicar se item está mais barato no Brasil
+      const cheaperInBrazil = difference > 0;
 
       // Gerar sugestões de produtos similares
       const allProducts = await storage.getAllProducts();
@@ -2101,6 +2107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           amount: savings,
           percentage: Math.round(savingsPercentage),
           bestStore: bestStore || "N/A",
+          cheaperInBrazil: cheaperInBrazil,
         },
         message: brazilianPrices.length === 0 
           ? "No momento não conseguimos acessar as lojas brasileiras devido às proteções anti-bot. Esta funcionalidade está em desenvolvimento e será melhorada em breve."

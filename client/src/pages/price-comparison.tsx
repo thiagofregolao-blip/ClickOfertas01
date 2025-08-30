@@ -370,12 +370,34 @@ export default function PriceComparison() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Economia Máxima</h4>
-                    <p className="text-lg font-bold text-red-600">
-                      -{formatPriceWithCurrency(comparisonData.savings.amount, 'R$')}
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      {comparisonData.savings.percentage}% mais barato que {comparisonData.savings.bestStore}
-                    </p>
+                    {comparisonData.savings.cheaperInBrazil ? (
+                      <div>
+                        <p className="text-lg font-bold text-blue-600">
+                          Mais barato no Brasil
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          Item custa menos em {comparisonData.savings.bestStore}
+                        </p>
+                      </div>
+                    ) : comparisonData.savings.amount > 0 ? (
+                      <div>
+                        <p className="text-lg font-bold text-red-600">
+                          -{formatPriceWithCurrency(comparisonData.savings.amount, 'R$')}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          {comparisonData.savings.percentage}% mais barato que {comparisonData.savings.bestStore}
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-lg font-bold text-gray-500">
+                          Preços similares
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          Não há diferença significativa
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
