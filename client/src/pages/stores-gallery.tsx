@@ -388,17 +388,17 @@ export default function StoresGallery() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header Responsivo */}
-      <div className="border-b sticky top-0 z-50" style={{ backgroundColor: '#21409A' }}>
+      <div className="border-b sticky top-0 z-50" style={{ backgroundColor: '#FDE800' }}>
         <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-white">🛍️ Click Ofertas Paraguai</h1>
+            <h1 className="text-2xl font-bold text-black">🛍️ Click Ofertas Paraguai</h1>
             <div className="flex items-center gap-3">
               {/* Botão de Comparação de Preços */}
               <Link href="/price-comparison">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
+                  className="bg-black/10 border-black/20 text-black hover:bg-black/20 backdrop-blur-sm"
                   data-testid="button-price-comparison"
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
@@ -410,7 +410,7 @@ export default function StoresGallery() {
                 <div className="relative">
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="text-white hover:text-gray-200 font-medium flex items-center gap-2"
+                    className="text-black hover:text-gray-700 font-medium flex items-center gap-2"
                     data-testid="button-user-menu"
                   >
                     <User className="w-5 h-5" />
@@ -482,7 +482,7 @@ export default function StoresGallery() {
                 // Usuário não logado - mostrar botão entrar
                 <button
                   onClick={() => setIsLoginModalOpen(true)}
-                  className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
+                  className="text-black hover:text-gray-700 font-medium flex items-center gap-1"
                   data-testid="button-user-login"
                 >
                   <User className="w-4 h-4" />
@@ -492,7 +492,7 @@ export default function StoresGallery() {
               
               <button
                 onClick={() => window.location.href = '/'}
-                className="text-white hover:text-gray-200 font-medium"
+                className="text-black hover:text-gray-700 font-medium"
               >
                 Início
               </button>
