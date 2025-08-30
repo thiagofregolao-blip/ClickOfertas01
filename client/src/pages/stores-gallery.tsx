@@ -509,7 +509,6 @@ export default function StoresGallery() {
         </div>
       </div>
 
-
       {/* NOVA BARRA DE INSTAGRAM STORIES - GLOBAL */}
       <div className="bg-white border-b">
         <div className={`mx-auto py-6 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
