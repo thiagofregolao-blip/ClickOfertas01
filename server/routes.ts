@@ -9,6 +9,27 @@ import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
 import QRCode from "qrcode";
 
+// Helper function to verify store ownership
+async function verifyStoreOwnership(storeId: string, userId: string): Promise<boolean> {
+  try {
+    const store = await storage.getStore(storeId);
+    return store?.userId === userId;
+  } catch (error) {
+    return false;
+  }
+}
+
+// Helper function to verify store ownership by product
+async function verifyStoreOwnershipByProduct(productId: string, userId: string): Promise<boolean> {
+  try {
+    const product = await storage.getProductById(productId);
+    if (!product) return false;
+    return await verifyStoreOwnership(product.storeId, userId);
+  } catch (error) {
+    return false;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
@@ -361,6 +382,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/stores/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
+      const userId = req.user.claims?.sub || req.user.id;
+      
+      // Verify store ownership
+      const isOwner = await verifyStoreOwnership(id, userId);
+      if (!isOwner) {
+        return res.status(403).json({ message: "Unauthorized: You can only modify your own store" });
+      }
+      
       const storeData = updateStoreSchema.parse(req.body);
       const store = await storage.updateStore(id, storeData);
       res.json(store);
@@ -498,6 +527,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/stores/:storeId/products', isAuthenticated, async (req: any, res) => {
     try {
       const { storeId } = req.params;
+      const userId = req.user.claims?.sub || req.user.id;
+      
+      // Verify store ownership
+      const isOwner = await verifyStoreOwnership(storeId, userId);
+      if (!isOwner) {
+        return res.status(403).json({ message: "Unauthorized: You can only access your own store's products" });
+      }
+      
       const products = await storage.getStoreProducts(storeId);
       res.json(products);
     } catch (error) {
@@ -509,6 +546,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/stores/:storeId/products', isAuthenticated, async (req: any, res) => {
     try {
       const { storeId } = req.params;
+      const userId = req.user.claims?.sub || req.user.id;
+      
+      // Verify store ownership
+      const isOwner = await verifyStoreOwnership(storeId, userId);
+      if (!isOwner) {
+        return res.status(403).json({ message: "Unauthorized: You can only add products to your own store" });
+      }
       
       // Converter scratchExpiresAt de string para Date se fornecido
       if (req.body.scratchExpiresAt && req.body.scratchExpiresAt !== "") {
@@ -534,6 +578,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { storeId, productId } = req.params;
       const userId = req.user?.claims?.sub || req.user?.id;
+      
+      // Verify store ownership
+      const isOwner = await verifyStoreOwnership(storeId, userId);
+      if (!isOwner) {
+        return res.status(403).json({ message: "Unauthorized: You can only modify products in your own store" });
+      }
       
       // Converter scratchExpiresAt de string para Date se fornecido
       if (req.body.scratchExpiresAt && req.body.scratchExpiresAt !== "") {
@@ -618,6 +668,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/stores/:storeId/products/:productId', isAuthenticated, async (req: any, res) => {
     try {
       const { storeId, productId } = req.params;
+      const userId = req.user.claims?.sub || req.user.id;
+      
+      // Verify store ownership
+      const isOwner = await verifyStoreOwnership(storeId, userId);
+      if (!isOwner) {
+        return res.status(403).json({ message: "Unauthorized: You can only delete products from your own store" });
+      }
+      
       await storage.deleteProduct(productId, storeId);
       res.status(204).send();
     } catch (error) {
@@ -895,6 +953,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         userId
       });
+      
+      // Verify store ownership if storeId is provided
+      if (storyData.storeId) {
+        const isOwner = await verifyStoreOwnership(storyData.storeId, userId);
+        if (!isOwner) {
+          return res.status(403).json({ message: "Unauthorized: You can only create stories for your own store" });
+        }
+      }
       
       const story = await storage.createInstagramStory(storyData);
       res.status(201).json(story);

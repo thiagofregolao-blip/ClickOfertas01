@@ -249,6 +249,14 @@ export class DatabaseStorage implements IStorage {
     return store;
   }
 
+  async getStore(storeId: string): Promise<Store | undefined> {
+    const [store] = await db
+      .select()
+      .from(stores)
+      .where(eq(stores.id, storeId));
+    return store;
+  }
+
   async createStore(userId: string, storeData: InsertStore): Promise<Store> {
     const slug = this.generateSlug(storeData.name);
     const [store] = await db
