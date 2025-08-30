@@ -474,9 +474,9 @@ export default function StoresGallery() {
                 </div>
                 
                 {/* Nome da loja */}
-                <span className="text-xs text-gray-600 max-w-[96px] truncate text-center">
+                <div className="text-xs text-gray-600 max-w-[96px] text-center leading-tight">
                   {storyStore.name}
-                </span>
+                </div>
               </div>
             ))}
             
