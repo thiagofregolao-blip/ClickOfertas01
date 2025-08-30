@@ -453,7 +453,7 @@ export default function StoresGallery() {
               >
                 {/* Círculo da loja */}
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-1 hover:scale-105 transition-transform">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-1 hover:scale-105 transition-transform">
                     <div className="w-full h-full rounded-full bg-white p-1">
                       <Avatar className="w-full h-full">
                         <AvatarImage src={storyStore.logoUrl} alt={storyStore.name} />
@@ -474,7 +474,7 @@ export default function StoresGallery() {
                 </div>
                 
                 {/* Nome da loja */}
-                <span className="text-xs text-gray-600 max-w-[60px] truncate text-center">
+                <span className="text-xs text-gray-600 max-w-[80px] truncate text-center">
                   {storyStore.name}
                 </span>
               </div>
@@ -487,7 +487,7 @@ export default function StoresGallery() {
                 onClick={() => setLocation('/create-story')}
                 data-testid="button-create-story"
               >
-                <div className="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-gray-400 transition-colors">
+                <div className="w-20 h-20 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-gray-400 transition-colors">
                   <Camera className="w-6 h-6 text-gray-400" />
                 </div>
                 <span className="text-xs text-gray-600">Criar</span>
