@@ -16,6 +16,7 @@ import PWAInstallButton from "@/components/pwa-install-button";
 import { useAppVersion, type AppVersionType } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useTypewriter } from "@/hooks/use-typewriter";
 import { LazyImage } from "@/components/lazy-image";
 import { SearchResultItem } from "@/components/search-result-item";
 import { StoreResultItem } from "@/components/store-result-item";
@@ -31,6 +32,25 @@ function limitStoreName(name: string, isMobile: boolean): string {
 export default function StoresGallery() {
   const [searchInput, setSearchInput] = useState('');
   const searchQuery = useDebounce(searchInput, 500); // Debounce de 500ms
+  
+  // Frases para efeito de digitação automática
+  const typewriterPhrases = [
+    "Encontre as melhores lojas...",
+    "Produtos em promoção...", 
+    "Eletrônicos importados...",
+    "Perfumes originais...",
+    "Ofertas imperdíveis...",
+    "Lojas do Paraguay...",
+    "Produtos de qualidade...",
+    "Preços especiais..."
+  ];
+  
+  const { currentText } = useTypewriter({ 
+    phrases: typewriterPhrases,
+    speed: 80,
+    pauseTime: 2500,
+    backspaceSpeed: 40
+  });
   const { isMobile, isDesktop, version, versionName } = useAppVersion();
   const [viewMode, setViewMode] = useState<AppVersionType>('mobile');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -571,7 +591,7 @@ export default function StoresGallery() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              placeholder="Buscar produtos ou lojas..."
+              placeholder={searchInput ? "Buscar produtos ou lojas..." : currentText}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               className="pl-10 pr-10 py-2 w-full border-gray-200 focus:border-red-300 focus:ring-red-200"
