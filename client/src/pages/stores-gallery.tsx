@@ -689,22 +689,22 @@ export default function StoresGallery() {
                 </div>
               </div>
               
-              {/* Info do produto no centro */}
+              {/* Info do produto no rodapé */}
               {currentStoreStories[currentStoryIndex].isProductPromo && (
-                <div className="absolute bottom-6 left-4 right-4 z-20">
-                  <div className="bg-black/50 backdrop-blur-sm rounded-2xl p-4">
-                    <h3 className="text-white font-bold text-lg mb-1">
+                <div className="absolute bottom-0 left-0 right-0 z-20">
+                  <div className="bg-black/60 backdrop-blur-sm p-3">
+                    <h3 className="text-white font-semibold text-sm mb-1">
                       {currentStoreStories[currentStoryIndex].productName}
                     </h3>
                     {currentStoreStories[currentStoryIndex].productPrice && (
                       <div className="flex items-center gap-2">
                         {currentStoreStories[currentStoryIndex].productDiscountPrice && (
-                          <span className="text-gray-300 line-through text-sm">
-                            {currentStoreStories[currentStoryIndex].productPrice}
+                          <span className="text-gray-300 line-through text-xs">
+                            ${currentStoreStories[currentStoryIndex].productPrice?.replace('Gs.', '').replace('.', ',')}
                           </span>
                         )}
-                        <span className="text-white font-bold text-xl">
-                          {currentStoreStories[currentStoryIndex].productDiscountPrice || currentStoreStories[currentStoryIndex].productPrice}
+                        <span className="text-white font-bold text-base">
+                          ${(currentStoreStories[currentStoryIndex].productDiscountPrice || currentStoreStories[currentStoryIndex].productPrice)?.replace('Gs.', '').replace('.', ',')}
                         </span>
                       </div>
                     )}

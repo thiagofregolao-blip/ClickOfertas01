@@ -910,27 +910,27 @@ export default function PublicFlyer() {
                 </div>
               </div>
               
-              {/* Info do produto no centro */}
+              {/* Info do produto no rodapé */}
               {viewingStory.isProductPromo && (
-                <div className="absolute bottom-6 left-4 right-4">
-                  <div className="bg-black/50 backdrop-blur-sm rounded-2xl p-4">
-                    <h3 className="text-white font-bold text-lg mb-1">
+                <div className="absolute bottom-0 left-0 right-0">
+                  <div className="bg-black/60 backdrop-blur-sm p-3">
+                    <h3 className="text-white font-semibold text-sm mb-1">
                       {viewingStory.productName}
                     </h3>
                     {viewingStory.productPrice && (
                       <div className="flex items-center gap-2">
                         {viewingStory.productDiscountPrice && (
-                          <span className="text-gray-300 line-through text-sm">
-                            {viewingStory.productPrice}
+                          <span className="text-gray-300 line-through text-xs">
+                            ${viewingStory.productPrice?.replace('Gs.', '').replace('.', ',')}
                           </span>
                         )}
-                        <span className="text-yellow-400 font-bold text-xl">
-                          {viewingStory.productDiscountPrice || viewingStory.productPrice}
+                        <span className="text-white font-bold text-base">
+                          ${(viewingStory.productDiscountPrice || viewingStory.productPrice)?.replace('Gs.', '').replace('.', ',')}
                         </span>
                       </div>
                     )}
                     {viewingStory.caption && (
-                      <p className="text-white/90 text-sm mt-2">{viewingStory.caption}</p>
+                      <p className="text-white/90 text-xs mt-1">{viewingStory.caption}</p>
                     )}
                   </div>
                 </div>
