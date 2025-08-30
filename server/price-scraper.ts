@@ -7,11 +7,10 @@ function generateId(): string {
   return nanoid();
 }
 
-// Configuração para Google Shopping API
-const GOOGLE_SHOPPING_CONFIG = {
-  baseUrl: 'https://serpapi.com/search.json',
+// Configuração para APIs de comparação
+const API_CONFIG = {
   timeout: 10000,
-  maxResults: 40 // Buscar mais para filtrar os melhores
+  maxResults: 20 // Buscar até 20 produtos do Mercado Livre
 };
 
 // Lojas brasileiras relevantes por prioridade
@@ -26,87 +25,21 @@ const RELEVANT_STORES = [
   { names: ['submarino'], priority: 8, display: 'Submarino' }
 ];
 
-// Interface para resultado do Google Shopping
-interface GoogleShoppingResult {
+// Interface para resultado do Mercado Livre
+interface MercadoLivreResult {
+  id: string;
   title: string;
-  price: string;
-  extracted_price: number;
-  link: string;
-  source: string;
-  rating?: number;
-  reviews?: number;
-  delivery?: string;
-  thumbnail?: string;
-  position: number;
+  price: number;
+  permalink: string;
+  thumbnail: string;
+  available_quantity: number;
+  condition: string;
+  shipping?: {
+    free_shipping: boolean;
+  };
 }
 
-// Função para fazer busca no Google Shopping brasileiro
-async function searchGoogleShoppingBrazil(productName: string): Promise<GoogleShoppingResult[]> {
-  try {
-    const params = {
-      engine: 'google_shopping',
-      q: productName,
-      google_domain: 'google.com.br',
-      gl: 'br', // País: Brasil
-      hl: 'pt', // Idioma: Português
-      api_key: process.env.SERPAPI_KEY,
-      num: GOOGLE_SHOPPING_CONFIG.maxResults
-    };
-    
-    console.log(`🛍️ Buscando no Google Shopping Brasil: ${productName}`);
-    
-    const response = await axios.get(GOOGLE_SHOPPING_CONFIG.baseUrl, {
-      params,
-      timeout: GOOGLE_SHOPPING_CONFIG.timeout
-    });
-    
-    if (response.data.shopping_results) {
-      console.log(`✅ Encontrados ${response.data.shopping_results.length} produtos no Google Shopping`);
-      return response.data.shopping_results;
-    }
-    
-    console.log('⚠️ Nenhum resultado encontrado no Google Shopping');
-    return [];
-    
-  } catch (error: any) {
-    console.error('❌ Erro ao buscar no Google Shopping:', error.message);
-    return [];
-  }
-}
 
-// Função para converter resultados do Google Shopping para nosso formato
-function convertGoogleShoppingResults(results: GoogleShoppingResult[], productName: string): InsertBrazilianPrice[] {
-  const converted: InsertBrazilianPrice[] = [];
-  
-  results.forEach((item, index) => {
-    try {
-      if (!item.extracted_price || item.extracted_price <= 0) return;
-      
-      const { brand, model, variant } = extractProductInfo(item.title);
-      
-      // Extrair informações da loja
-      const storeInfo = extractStoreInfo(item.source || item.link);
-      
-      converted.push({
-        productName: item.title,
-        productBrand: brand || null,
-        productModel: model || null,
-        productVariant: variant || null,
-        storeName: storeInfo.name,
-        storeUrl: extractDomainFromUrl(item.link),
-        productUrl: item.link,
-        price: item.extracted_price.toString(),
-        currency: 'BRL',
-        availability: 'in_stock',
-        isActive: true,
-      });
-    } catch (error) {
-      console.error(`❌ Erro ao converter produto ${index + 1}:`, error);
-    }
-  });
-  
-  return converted;
-}
 
 // Função para extrair nome da loja e sua prioridade
 function extractStoreInfo(source: string): { name: string; priority: number; isRelevant: boolean } {
@@ -353,25 +286,26 @@ async function searchMercadoLivre(productName: string): Promise<any[]> {
   }
 }
 
+// Função para extrair variante do produto
+function extractVariant(title: string): string {
+  const variants = title.match(/(\d+\s?(gb|tb|inch|"|polegadas?))/gi);
+  return variants ? variants[0] : '';
+}
+
 // Função para converter resultados do Mercado Livre
 function convertMercadoLivreResults(results: any[], productName: string): InsertBrazilianPrice[] {
   return results.map(item => ({
-    id: generateId(),
     productName: item.title || productName,
-    searchTerm: productName.toLowerCase(),
-    cleanName: item.title?.toLowerCase() || productName.toLowerCase(),
-    variant: extractVariant(item.title || ''),
+    productBrand: null,
+    productModel: null,
+    productVariant: extractVariant(item.title || ''),
     storeName: 'Mercado Livre',
     storeUrl: 'https://mercadolivre.com.br',
     productUrl: item.permalink || '',
     price: (item.price || 0).toFixed(2),
     currency: 'BRL',
     availability: item.available_quantity > 0 ? 'in_stock' : 'out_of_stock',
-    isRelevantStore: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    storePriority: 1, // Mercado Livre é prioridade alta
-    relevantStore: true
+    isActive: true
   }));
 }
 
