@@ -484,30 +484,6 @@ export default function PriceComparison() {
               </CardContent>
             </Card>
 
-            {/* Suggestions */}
-            {comparisonData.suggestions.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5" />
-                    Produtos Similares Sugeridos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {comparisonData.suggestions.map((suggestion, index) => (
-                      <div key={index} className="p-4 border rounded-lg">
-                        <h4 className="font-semibold">{suggestion.name}</h4>
-                        <p className="text-sm text-gray-600 mt-1">{suggestion.reason}</p>
-                        <Badge variant="outline" className="mt-2">
-                          {suggestion.difference}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </div>
         )}
       </div>
