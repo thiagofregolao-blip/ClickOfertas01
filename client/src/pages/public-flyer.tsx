@@ -899,16 +899,16 @@ export default function PublicFlyer() {
               
               {/* Overlay superior com info da loja */}
               <div className="absolute top-0 left-0 right-0">
-                <div className="bg-black/30 backdrop-blur-md pt-8 pb-3 px-3 flex items-center gap-3">
-                  <Avatar className="w-8 h-8 border-2 border-white" style={{filter: 'drop-shadow(1px 1px 3px rgba(0,0,0,0.7)) drop-shadow(-1px -1px 2px rgba(0,0,0,0.7))'}}>
+                <div className="bg-black/15 backdrop-blur-sm pt-8 pb-3 px-3 flex items-center gap-3">
+                  <Avatar className="w-8 h-8 border-2 border-white">
                     <AvatarImage src={viewingStory.store.logoUrl} alt={viewingStory.store.name} />
                     <AvatarFallback className="text-xs">
                       {viewingStory.store.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <p style={{color: '#ffffff', fontWeight: '500', fontSize: '13px', textShadow: '1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'}}>{viewingStory.store.name}</p>
-                    <p style={{color: '#ffffff', fontWeight: '400', fontSize: '11px', textShadow: '1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'}}>há {Math.round((Date.now() - new Date(viewingStory.createdAt).getTime()) / 3600000)}h</p>
+                    <p className="text-white font-medium text-sm">{viewingStory.store.name}</p>
+                    <p className="text-white/90 text-xs">há {Math.round((Date.now() - new Date(viewingStory.createdAt).getTime()) / 3600000)}h</p>
                   </div>
                 </div>
               </div>
