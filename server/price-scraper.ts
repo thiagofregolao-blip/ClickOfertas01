@@ -1,5 +1,11 @@
 import axios from 'axios';
 import type { InsertBrazilianPrice } from '@shared/schema';
+import { nanoid } from 'nanoid';
+
+// Função para gerar ID único
+function generateId(): string {
+  return nanoid();
+}
 
 // Configuração para Google Shopping API
 const GOOGLE_SHOPPING_CONFIG = {
@@ -326,41 +332,72 @@ function filterAndLimitResults(results: InsertBrazilianPrice[]): InsertBrazilian
   return finalResults;
 }
 
-// Função principal para buscar preços usando Google Shopping
+// Função para buscar no Mercado Livre
+async function searchMercadoLivre(productName: string): Promise<any[]> {
+  try {
+    const url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(productName)}&limit=20`;
+    console.log(`🛒 Buscando no Mercado Livre: ${productName}`);
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log(`✅ Encontrados ${data.results?.length || 0} produtos no Mercado Livre`);
+    
+    return data.results || [];
+  } catch (error) {
+    console.error('❌ Erro ao buscar no Mercado Livre:', error);
+    return [];
+  }
+}
+
+// Função para converter resultados do Mercado Livre
+function convertMercadoLivreResults(results: any[], productName: string): InsertBrazilianPrice[] {
+  return results.map(item => ({
+    id: generateId(),
+    productName: item.title || productName,
+    searchTerm: productName.toLowerCase(),
+    cleanName: item.title?.toLowerCase() || productName.toLowerCase(),
+    variant: extractVariant(item.title || ''),
+    storeName: 'Mercado Livre',
+    storeUrl: 'https://mercadolivre.com.br',
+    productUrl: item.permalink || '',
+    price: (item.price || 0).toFixed(2),
+    currency: 'BRL',
+    availability: item.available_quantity > 0 ? 'in_stock' : 'out_of_stock',
+    isRelevantStore: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    storePriority: 1, // Mercado Livre é prioridade alta
+    relevantStore: true
+  }));
+}
+
+// Função principal para buscar preços usando Mercado Livre
 export async function scrapeBrazilianPrices(productName: string): Promise<InsertBrazilianPrice[]> {
   console.log(`🌎 Iniciando busca por: ${productName}`);
   
   try {
-    // Buscar no Google Shopping brasileiro
-    const googleResults = await searchGoogleShoppingBrazil(productName);
+    // Buscar no Mercado Livre
+    const mercadoLivreResults = await searchMercadoLivre(productName);
     
-    if (googleResults.length === 0) {
-      console.log('⚠️ Nenhum resultado encontrado no Google Shopping');
+    if (mercadoLivreResults.length === 0) {
+      console.log('⚠️ Nenhum resultado encontrado no Mercado Livre');
       return [];
     }
     
     // Converter resultados para nosso formato
-    const convertedResults = convertGoogleShoppingResults(googleResults, productName);
+    const convertedResults = convertMercadoLivreResults(mercadoLivreResults, productName);
     
-    console.log(`🎯 Total encontrado: ${convertedResults.length} produtos no Google Shopping Brasil`);
+    console.log(`🎯 Total encontrado: ${convertedResults.length} produtos no Mercado Livre Brasil`);
     
-    // Primeiro filtrar sites bloqueados
-    console.log(`📊 Aplicando filtro de sites bloqueados...`);
-    const blockedFilteredResults = convertedResults.filter(item => {
-      const blocked = isStoreBlocked(item.storeName);
-      if (blocked) {
-        console.log(`🚫 Bloqueado: ${item.storeName}`);
-      }
-      return !blocked;
-    });
-    
-    console.log(`✅ Após filtrar sites bloqueados: ${blockedFilteredResults.length} resultados`);
-    
-    // Filtrar e limitar resultados
-    return filterAndLimitResults(blockedFilteredResults);
+    // Filtrar e limitar resultados (apenas 5 melhores ofertas do Mercado Livre)
+    return filterAndLimitResults(convertedResults);
     
   } catch (error) {
-    console.error('❌ Erro na busca do Google Shopping:', error);
+    console.error('❌ Erro na busca do Mercado Livre:', error);
     return [];
   }
 }
