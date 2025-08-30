@@ -64,6 +64,7 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route path="/cards" component={StoresGallery} />
           <Route path="/stories-feed" component={StoriesFeed} />
+          <Route path="/price-comparison" component={PriceComparison} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
         </>
@@ -94,6 +95,7 @@ function Router() {
           <Route path="/" component={StoresGallery} />
           <Route path="/cards" component={StoresGallery} />
           <Route path="/stories-feed" component={StoriesFeed} />
+          <Route path="/price-comparison" component={PriceComparison} />
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/my-coupons" component={MyCoupons} />
