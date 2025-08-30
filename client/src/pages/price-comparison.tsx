@@ -381,8 +381,8 @@ export default function PriceComparison() {
                       </div>
                     ) : comparisonData.savings.amount > 0 ? (
                       <div>
-                        <p className="text-lg font-bold text-red-600">
-                          -{formatPriceWithCurrency(comparisonData.savings.amount, 'R$')}
+                        <p className="text-lg font-bold text-green-600">
+                          🎉 Economia: {formatPriceWithCurrency(comparisonData.savings.amount, 'R$')}
                         </p>
                         <p className="text-xs text-gray-600">
                           {comparisonData.savings.percentage}% mais barato que {comparisonData.savings.bestStore}
