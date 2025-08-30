@@ -1477,12 +1477,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async incrementPromotionUsage(promotionId: string): Promise<void> {
+    console.log('📊 incrementPromotionUsage - iniciando para promotionId:', promotionId);
+    
+    // Buscar valor atual
+    const currentPromo = await db.select({ usedCount: promotions.usedCount }).from(promotions).where(eq(promotions.id, promotionId));
+    const currentUsedCount = parseInt(currentPromo[0]?.usedCount || "0");
+    const newUsedCount = currentUsedCount + 1;
+    
+    console.log('📊 Contador atual:', currentUsedCount, '-> novo:', newUsedCount);
+    
+    // Atualizar com novo valor
     await db
       .update(promotions)
       .set({
-        usedCount: (parseInt((await db.select({ usedCount: promotions.usedCount }).from(promotions).where(eq(promotions.id, promotionId)))[0]?.usedCount || "0") + 1).toString()
+        usedCount: newUsedCount.toString(),
+        updatedAt: new Date()
       })
       .where(eq(promotions.id, promotionId));
+      
+    console.log('✅ Contador usedCount atualizado:', currentUsedCount, '->', newUsedCount);
   }
 
   async getActivePromotions(): Promise<PromotionWithDetails[]> {

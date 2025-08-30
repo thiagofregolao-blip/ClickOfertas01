@@ -213,10 +213,24 @@ export default function AdminPromotions() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {promotions.length > 0 ? 
-                  Math.round((promotions.reduce((total: number, p: PromotionWithDetails) => total + parseInt(p.usedCount || "0"), 0) / 
-                            promotions.reduce((total: number, p: PromotionWithDetails) => total + parseInt(p.maxClients || "0"), 0)) * 100) || 0
-                  : 0}%
+                {(() => {
+                  const totalUsed = promotions.reduce((total: number, p: PromotionWithDetails) => total + parseInt(p.usedCount || "0"), 0);
+                  const totalMax = promotions.reduce((total: number, p: PromotionWithDetails) => total + parseInt(p.maxClients || "0"), 0);
+                  
+                  // Debug: log valores para verificar
+                  console.log('📊 Analytics Debug:', { 
+                    totalUsed, 
+                    totalMax, 
+                    promotions: promotions.map(p => ({ 
+                      name: p.name, 
+                      usedCount: p.usedCount, 
+                      maxClients: p.maxClients 
+                    }))
+                  });
+                  
+                  if (totalMax === 0) return '0';
+                  return Math.round((totalUsed / totalMax) * 100) || 0;
+                })()}%
               </div>
             </CardContent>
           </Card>
@@ -279,7 +293,7 @@ export default function AdminPromotions() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Participações:</span>
-                      <span>{promotion.usedCount} / {promotion.maxClients}</span>
+                      <span>{promotion.usedCount || "0"} / {promotion.maxClients || "0"}</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
@@ -289,6 +303,12 @@ export default function AdminPromotions() {
                         }}
                       ></div>
                     </div>
+                    {/* Debug info para desenvolvedores */}
+                    {process.env.NODE_ENV === 'development' && (
+                      <div className="text-xs text-gray-500">
+                        Debug: usedCount="{promotion.usedCount}", maxClients="{promotion.maxClients}"
+                      </div>
+                    )}
                   </div>
 
                   <div className="text-sm text-muted-foreground">

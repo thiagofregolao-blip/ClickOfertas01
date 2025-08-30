@@ -1023,12 +1023,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const coupon = await storage.createCoupon(couponData);
       console.log('✅ Cupom criado com sucesso:', coupon);
 
-      // NEW: Se é promoção, atualizar status da assignment para 'generated'
+      // NEW: Se é promoção, atualizar status da assignment para 'generated' E incrementar contador
       if (isPromotion) {
         try {
           console.log('🎯 Atualizando status da promotion_assignment para "generated"...');
           await storage.updatePromotionAssignmentStatus(productId, userId, 'generated');
           console.log('✅ Status da assignment atualizado para "generated"');
+          
+          // 📊 IMPORTANTE: Incrementar contador de uso da promoção para analytics
+          console.log('📈 Incrementando contador usedCount da promoção...');
+          await storage.incrementPromotionUsage(productId);
+          console.log('✅ Contador usedCount incrementado com sucesso');
         } catch (assignmentError) {
           console.error('⚠️ Erro ao atualizar status da assignment (não bloqueante):', assignmentError);
           // Não falha o processo de geração do cupom por causa disto
