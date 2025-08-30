@@ -502,13 +502,6 @@ export default function StoresGallery() {
         </div>
       </div>
 
-      {/* Botão de Instalação PWA */}
-      <div className="bg-white border-b">
-        <div className={`mx-auto py-2 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
-          <PWAInstallButton variant="card" className="mb-2" />
-        </div>
-      </div>
-
       {/* NOVA BARRA DE INSTAGRAM STORIES - GLOBAL */}
       <div className="bg-white border-b">
         <div className={`mx-auto py-6 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
