@@ -6,7 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera } from "lucide-react";
 import { StoreStoriesSection } from "@/components/store-stories";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
@@ -38,6 +40,9 @@ export default function StoresGallery() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
+  
+  // Instagram Stories state
+  const [viewingStory, setViewingStory] = useState<any>(null);
   
   // Fecha o menu do usuário quando clica fora
   useEffect(() => {
@@ -86,6 +91,29 @@ export default function StoresGallery() {
     refetchOnMount: true, // Sempre buscar dados atualizados
     refetchOnReconnect: true, // Refetch ao reconectar
   });
+
+  // Instagram Stories data
+  const { data: instagramStories = [], isLoading: storiesLoading } = useQuery({
+    queryKey: ['/api/instagram-stories'],
+    staleTime: 2 * 60 * 1000, // 2 minutos
+  });
+
+  // Agrupar stories por loja
+  const instagramStoriesGrouped = useMemo(() => {
+    const grouped: Record<string, { store: any; stories: any[] }> = {};
+    
+    instagramStories.forEach((story: any) => {
+      if (!grouped[story.storeId]) {
+        grouped[story.storeId] = {
+          store: story.store,
+          stories: []
+        };
+      }
+      grouped[story.storeId].stories.push(story);
+    });
+    
+    return grouped;
+  }, [instagramStories]);
 
   // Função otimizada para verificar se a loja postou produtos hoje
   const hasProductsToday = useCallback((store: StoreWithProducts): boolean => {
@@ -337,6 +365,70 @@ export default function StoresGallery() {
         <StoreStoriesSection stores={filteredStores} isMobile={isMobile} />
       )}
 
+      {/* NOVA BARRA DE INSTAGRAM STORIES - GLOBAL */}
+      <div className="bg-white border-b">
+        <div className={`mx-auto py-4 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
+          <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 text-gray-600 flex-shrink-0">
+              <Camera className="w-5 h-5" />
+              <span className="font-medium">Stories</span>
+            </div>
+            
+            {/* Debug Info */}
+            <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs flex-shrink-0">
+              {storiesLoading ? 'Carregando...' : `${instagramStories.length} stories`}
+            </div>
+            
+            {/* Stories das Lojas */}
+            {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
+              <div 
+                key={storyStore.id} 
+                className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
+                onClick={() => setViewingStory(stories[0])} // Abrir primeiro story da loja
+                data-testid={`story-circle-${storyStore.slug}`}
+              >
+                {/* Círculo da loja */}
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-1 hover:scale-105 transition-transform">
+                    <div className="w-full h-full rounded-full bg-white p-1">
+                      <Avatar className="w-full h-full">
+                        <AvatarImage src={storyStore.logoUrl} alt={storyStore.name} />
+                        <AvatarFallback className="text-sm font-bold">
+                          {storyStore.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  </div>
+                  
+                  {/* Contador de stories */}
+                  <Badge 
+                    variant="secondary" 
+                    className="absolute -top-1 -right-1 bg-green-500 text-white border-2 border-white text-xs px-1"
+                  >
+                    {stories.length}
+                  </Badge>
+                </div>
+                
+                {/* Nome da loja */}
+                <span className="text-xs text-gray-600 max-w-[60px] truncate text-center">
+                  {storyStore.name}
+                </span>
+              </div>
+            ))}
+            
+            {/* Botão criar story (se autenticado) */}
+            {isAuthenticated && (
+              <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                <div className="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                  <Camera className="w-6 h-6 text-gray-400" />
+                </div>
+                <span className="text-xs text-gray-600">Criar</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Barra de Busca */}
       <div className="bg-white border-b">
         <div className={`mx-auto py-3 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
@@ -383,6 +475,73 @@ export default function StoresGallery() {
           setSelectedStore(null);
         }}
       />
+
+      {/* Instagram Story Viewer Modal */}
+      <Dialog open={!!viewingStory} onOpenChange={(open) => !open && setViewingStory(null)}>
+        <DialogContent className="p-0 max-w-sm mx-auto bg-black/90 border-0 rounded-3xl overflow-hidden">
+          {viewingStory && (
+            <div className="relative aspect-[9/16] bg-black">
+              {/* Mídia do Story */}
+              {viewingStory.mediaType === 'image' ? (
+                <img
+                  src={viewingStory.mediaUrl}
+                  alt={viewingStory.productName || 'Story'}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback em caso de erro na imagem
+                    e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600"><rect width="400" height="600" fill="%23666"/><text x="200" y="300" text-anchor="middle" fill="white" font-size="30">📷 Story</text></svg>';
+                  }}
+                />
+              ) : (
+                <video
+                  src={viewingStory.mediaUrl}
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                />
+              )}
+              
+              {/* Overlay superior com info da loja */}
+              <div className="absolute top-4 left-4 right-4 flex items-center gap-3">
+                <Avatar className="w-8 h-8 border-2 border-white">
+                  <AvatarImage src={viewingStory.store.logoUrl} alt={viewingStory.store.name} />
+                  <AvatarFallback className="text-xs">
+                    {viewingStory.store.name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="text-white font-medium text-sm">{viewingStory.store.name}</p>
+                  <p className="text-white/70 text-xs">há {Math.round((Date.now() - new Date(viewingStory.createdAt).getTime()) / 3600000)}h</p>
+                </div>
+              </div>
+              
+              {/* Info do produto no centro */}
+              {viewingStory.isProductPromo && (
+                <div className="absolute bottom-20 left-4 right-4">
+                  <div className="bg-black/50 backdrop-blur-sm rounded-2xl p-4">
+                    <h3 className="text-white font-bold text-lg mb-1">
+                      {viewingStory.productName}
+                    </h3>
+                    {viewingStory.productPrice && (
+                      <div className="flex items-center gap-2">
+                        {viewingStory.productDiscountPrice && (
+                          <span className="text-gray-300 line-through text-sm">
+                            {viewingStory.productPrice}
+                          </span>
+                        )}
+                        <span className="text-white font-bold text-xl">
+                          {viewingStory.productDiscountPrice || viewingStory.productPrice}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Login Modal - Para Usuários */}
       <LoginPage 
