@@ -268,12 +268,22 @@ function filterAndLimitResults(results: InsertBrazilianPrice[]): InsertBrazilian
 // Função para buscar no Mercado Livre (API pública)
 async function searchMercadoLivre(productName: string): Promise<any[]> {
   try {
-    // URL exata conforme documentação oficial ML
-    const url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(productName)}&limit=20`;
-    console.log(`🛒 Buscando no Mercado Livre: ${productName}`);
+    const clientId = process.env.MERCADOLIVRE_CLIENT_ID;
     
-    // Requisição simples sem headers especiais (conforme exemplo oficial)
-    const response = await fetch(url);
+    // URL com Client ID para melhor acesso à API
+    let url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(productName)}&limit=20`;
+    if (clientId) {
+      url += `&client_id=${clientId}`;
+    }
+    
+    console.log(`🛒 Buscando no Mercado Livre: ${productName} ${clientId ? '(com Client ID)' : '(sem Client ID)'}`);
+    
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'ClickOfertasParaguai/1.0'
+      }
+    });
     
     if (!response.ok) {
       console.log(`⚠️ Erro HTTP ${response.status}, usando dados simulados realistas...`);
