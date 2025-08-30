@@ -16,6 +16,9 @@ import {
   instagramStories,
   instagramStoryViews,
   instagramStoryLikes,
+  brazilianPrices,
+  priceComparisons,
+  productSuggestions,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -63,6 +66,13 @@ import {
   type InstagramStoryLike,
   type InsertInstagramStoryLike,
   type InstagramStoryWithDetails,
+  type BrazilianPrice,
+  type InsertBrazilianPrice,
+  type PriceComparison,
+  type InsertPriceComparison,
+  type ProductSuggestion,
+  type InsertProductSuggestion,
+  type PriceComparisonWithDetails,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, gte, lte, sql, inArray } from "drizzle-orm";
@@ -183,6 +193,16 @@ export interface IStorage {
   // NEW: Store user management (for dual authentication)
   createStoreUser(storeId: string, storeData: any): Promise<User>;
   getStoreUser(storeId: string): Promise<User | undefined>;
+
+  // Price comparison operations
+  getProductsForComparison(): Promise<Product[]>;
+  getProductWithStore(productId: string): Promise<(Product & { store?: Store }) | undefined>;
+  getAllProducts(): Promise<Product[]>;
+  saveBrazilianPrice(priceData: InsertBrazilianPrice): Promise<BrazilianPrice>;
+  getBrazilianPricesByProduct(productName: string): Promise<BrazilianPrice[]>;
+  savePriceComparison(comparison: InsertPriceComparison): Promise<PriceComparison>;
+  getUserPriceComparisons(userId: string): Promise<PriceComparisonWithDetails[]>;
+  saveProductSuggestion(suggestion: InsertProductSuggestion): Promise<ProductSuggestion>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2128,6 +2148,111 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.email, storeEmail));
     
     return user;
+  }
+
+  // Price comparison operations
+  async getProductsForComparison(): Promise<Product[]> {
+    return await db
+      .select()
+      .from(products)
+      .where(eq(products.isActive, true))
+      .orderBy(desc(products.createdAt))
+      .limit(100);
+  }
+
+  async getProductWithStore(productId: string): Promise<(Product & { store?: Store }) | undefined> {
+    const result = await db
+      .select({
+        product: products,
+        store: stores,
+      })
+      .from(products)
+      .leftJoin(stores, eq(products.storeId, stores.id))
+      .where(eq(products.id, productId))
+      .limit(1);
+
+    if (!result.length) return undefined;
+
+    return {
+      ...result[0].product,
+      store: result[0].store || undefined,
+    };
+  }
+
+  async getAllProducts(): Promise<Product[]> {
+    return await db
+      .select()
+      .from(products)
+      .where(eq(products.isActive, true));
+  }
+
+  async saveBrazilianPrice(priceData: InsertBrazilianPrice): Promise<BrazilianPrice> {
+    const [price] = await db
+      .insert(brazilianPrices)
+      .values(priceData)
+      .onConflictDoUpdate({
+        target: [brazilianPrices.productUrl],
+        set: {
+          price: priceData.price,
+          availability: priceData.availability,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    
+    return price;
+  }
+
+  async getBrazilianPricesByProduct(productName: string): Promise<BrazilianPrice[]> {
+    return await db
+      .select()
+      .from(brazilianPrices)
+      .where(
+        and(
+          eq(brazilianPrices.isActive, true),
+          sql`LOWER(${brazilianPrices.productName}) LIKE LOWER(${`%${productName}%`})`
+        )
+      )
+      .orderBy(desc(brazilianPrices.updatedAt));
+  }
+
+  async savePriceComparison(comparison: InsertPriceComparison): Promise<PriceComparison> {
+    const [result] = await db
+      .insert(priceComparisons)
+      .values(comparison)
+      .returning();
+    
+    return result;
+  }
+
+  async getUserPriceComparisons(userId: string): Promise<PriceComparisonWithDetails[]> {
+    const results = await db
+      .select({
+        comparison: priceComparisons,
+        product: products,
+        store: stores,
+      })
+      .from(priceComparisons)
+      .leftJoin(products, eq(priceComparisons.productId, products.id))
+      .leftJoin(stores, eq(products.storeId, stores.id))
+      .where(eq(priceComparisons.userId, userId))
+      .orderBy(desc(priceComparisons.createdAt))
+      .limit(50);
+
+    return results.map(r => ({
+      ...r.comparison,
+      product: r.product || undefined,
+      store: r.store || undefined,
+    }));
+  }
+
+  async saveProductSuggestion(suggestion: InsertProductSuggestion): Promise<ProductSuggestion> {
+    const [result] = await db
+      .insert(productSuggestions)
+      .values(suggestion)
+      .returning();
+    
+    return result;
   }
 }
 

@@ -785,3 +785,110 @@ export type PromotionWithDetails = Promotion & {
 export type PromotionScratchWithDetails = PromotionScratch & {
   promotion: PromotionWithDetails;
 };
+
+// === COMPARAÇÃO DE PREÇOS INTERNACIONAL ===
+
+// Tabela para armazenar preços brasileiros encontrados via scraping
+export const brazilianPrices = pgTable("brazilian_prices", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productName: text("product_name").notNull(), // Nome do produto normalizado
+  productBrand: varchar("product_brand"), // Marca (Apple, Samsung, etc)
+  productModel: varchar("product_model"), // Modelo específico
+  productVariant: varchar("product_variant"), // Variação (128GB, 256GB, etc)
+  storeName: varchar("store_name").notNull(), // Nome da loja brasileira
+  storeUrl: text("store_url"), // URL base da loja
+  productUrl: text("product_url").notNull(), // URL específica do produto
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(), // Preço em reais
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  availability: varchar("availability").default("in_stock"), // in_stock, out_of_stock, limited
+  scrapedAt: timestamp("scraped_at").defaultNow(), // Quando foi coletado
+  isActive: boolean("is_active").default(true), // Se o preço ainda é válido
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela para histórico de comparações realizadas
+export const priceComparisons = pgTable("price_comparisons", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id), // Usuário que fez a comparação (opcional)
+  productId: varchar("product_id").notNull().references(() => products.id), // Produto do Paraguay
+  paraguayPrice: decimal("paraguay_price", { precision: 10, scale: 2 }).notNull(),
+  paraguayCurrency: varchar("paraguay_currency", { length: 10 }).default("USD"),
+  bestBrazilianPrice: decimal("best_brazilian_price", { precision: 10, scale: 2 }),
+  savings: decimal("savings", { precision: 10, scale: 2 }), // Economia em reais
+  savingsPercentage: decimal("savings_percentage", { precision: 5, scale: 2 }), // % de economia
+  brazilianStoresFound: varchar("brazilian_stores_found").default("0"), // Quantas lojas encontraram
+  comparedAt: timestamp("compared_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Tabela para sugestões de produtos similares
+export const productSuggestions = pgTable("product_suggestions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  originalProductId: varchar("original_product_id").notNull().references(() => products.id),
+  suggestedProductId: varchar("suggested_product_id").notNull().references(() => products.id),
+  similarityType: varchar("similarity_type").notNull(), // "same_brand", "same_category", "storage_variant"
+  similarityScore: decimal("similarity_score", { precision: 3, scale: 2 }), // 0-1 score
+  reason: text("reason"), // Explicação da similaridade
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Relações para comparação de preços
+export const brazilianPricesRelations = relations(brazilianPrices, ({ one }) => ({
+  // Não precisa de relação direta com products, pois é baseado em nome/modelo
+}));
+
+export const priceComparisonsRelations = relations(priceComparisons, ({ one }) => ({
+  user: one(users, {
+    fields: [priceComparisons.userId],
+    references: [users.id],
+  }),
+  product: one(products, {
+    fields: [priceComparisons.productId],
+    references: [products.id],
+  }),
+}));
+
+export const productSuggestionsRelations = relations(productSuggestions, ({ one }) => ({
+  originalProduct: one(products, {
+    fields: [productSuggestions.originalProductId],
+    references: [products.id],
+  }),
+  suggestedProduct: one(products, {
+    fields: [productSuggestions.suggestedProductId],
+    references: [products.id],
+  }),
+}));
+
+// Schemas Zod para validação
+export const insertBrazilianPriceSchema = createInsertSchema(brazilianPrices).omit({
+  id: true,
+  scrapedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPriceComparisonSchema = createInsertSchema(priceComparisons).omit({
+  id: true,
+  comparedAt: true,
+  createdAt: true,
+});
+
+export const insertProductSuggestionSchema = createInsertSchema(productSuggestions).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types para comparação de preços
+export type BrazilianPrice = typeof brazilianPrices.$inferSelect;
+export type InsertBrazilianPrice = z.infer<typeof insertBrazilianPriceSchema>;
+export type PriceComparison = typeof priceComparisons.$inferSelect;
+export type InsertPriceComparison = z.infer<typeof insertPriceComparisonSchema>;
+export type ProductSuggestion = typeof productSuggestions.$inferSelect;
+export type InsertProductSuggestion = z.infer<typeof insertProductSuggestionSchema>;
+
+export type PriceComparisonWithDetails = PriceComparison & {
+  user?: User;
+  product: Product & { store: Store };
+};

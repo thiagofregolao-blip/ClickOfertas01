@@ -1997,6 +1997,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // === COMPARAÇÃO DE PREÇOS INTERNACIONAL ===
+
+  // Endpoint para buscar produtos disponíveis para comparação
+  app.get('/api/public/products-for-comparison', async (req, res) => {
+    try {
+      const products = await storage.getProductsForComparison();
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching products for comparison:", error);
+      res.status(500).json({ message: "Erro ao buscar produtos para comparação" });
+    }
+  });
+
+  // Endpoint principal para comparar preços
+  app.post('/api/price-comparison/compare', async (req: any, res) => {
+    try {
+      const { productId } = req.body;
+      
+      if (!productId) {
+        return res.status(400).json({ message: "Product ID é obrigatório" });
+      }
+
+      // Buscar produto no Paraguay
+      const paraguayProduct = await storage.getProductWithStore(productId);
+      if (!paraguayProduct) {
+        return res.status(404).json({ message: "Produto não encontrado" });
+      }
+
+      // Importar o serviço de scraping
+      const { scrapeBrazilianPrices, generateProductSuggestions } = await import('./price-scraper');
+      
+      // Fazer scraping dos preços brasileiros
+      console.log(`🔍 Iniciando comparação para: ${paraguayProduct.name}`);
+      const brazilianPrices = await scrapeBrazilianPrices(paraguayProduct.name);
+      
+      // Salvar preços encontrados no banco
+      for (const priceData of brazilianPrices) {
+        try {
+          await storage.saveBrazilianPrice(priceData);
+        } catch (error) {
+          console.error("Erro ao salvar preço brasileiro:", error);
+        }
+      }
+
+      // Calcular economia
+      const paraguayPriceUSD = parseFloat(paraguayProduct.price || "0");
+      const paraguayPriceBRL = paraguayPriceUSD * 5.5; // Taxa aproximada USD->BRL
+      
+      let bestPrice = Infinity;
+      let bestStore = "";
+      
+      brazilianPrices.forEach(price => {
+        const priceBRL = parseFloat(price.price);
+        if (priceBRL < bestPrice) {
+          bestPrice = priceBRL;
+          bestStore = price.storeName;
+        }
+      });
+
+      const savings = bestPrice < paraguayPriceBRL ? paraguayPriceBRL - bestPrice : 0;
+      const savingsPercentage = paraguayPriceBRL > 0 ? (savings / paraguayPriceBRL) * 100 : 0;
+
+      // Gerar sugestões de produtos similares
+      const allProducts = await storage.getAllProducts();
+      const suggestions = generateProductSuggestions(paraguayProduct, allProducts);
+
+      // Salvar comparação no histórico
+      const userId = req.user?.claims?.sub || req.user?.id;
+      try {
+        await storage.savePriceComparison({
+          userId: userId || null,
+          productId,
+          paraguayPrice: paraguayPriceUSD.toString(),
+          paraguayCurrency: "USD",
+          bestBrazilianPrice: bestPrice !== Infinity ? bestPrice.toString() : null,
+          savings: savings.toString(),
+          savingsPercentage: savingsPercentage.toString(),
+          brazilianStoresFound: brazilianPrices.length.toString(),
+        });
+      } catch (error) {
+        console.error("Erro ao salvar comparação:", error);
+      }
+
+      // Resposta da comparação
+      const response = {
+        productName: paraguayProduct.name,
+        paraguayPrice: paraguayPriceUSD,
+        paraguayCurrency: "US$",
+        paraguayStore: paraguayProduct.store?.name || "Loja no Paraguay",
+        brazilianPrices: brazilianPrices.map(price => ({
+          store: price.storeName,
+          price: parseFloat(price.price),
+          currency: "R$",
+          url: price.productUrl,
+          availability: price.availability || 'in_stock',
+          lastUpdated: new Date().toISOString(),
+        })),
+        suggestions: suggestions.slice(0, 5), // Limitar a 5 sugestões
+        savings: {
+          amount: savings,
+          percentage: Math.round(savingsPercentage),
+          bestStore: bestStore || "N/A",
+        }
+      };
+
+      console.log(`✅ Comparação concluída: ${brazilianPrices.length} preços encontrados`);
+      res.json(response);
+      
+    } catch (error) {
+      console.error("Error in price comparison:", error);
+      res.status(500).json({ message: "Erro ao comparar preços" });
+    }
+  });
+
+  // Endpoint para buscar histórico de comparações do usuário
+  app.get('/api/price-comparison/history', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.id;
+      const history = await storage.getUserPriceComparisons(userId);
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching comparison history:", error);
+      res.status(500).json({ message: "Erro ao buscar histórico de comparações" });
+    }
+  });
+
+  // Endpoint para buscar preços brasileiros salvos de um produto
+  app.get('/api/price-comparison/brazilian-prices/:productName', async (req, res) => {
+    try {
+      const { productName } = req.params;
+      const prices = await storage.getBrazilianPricesByProduct(productName);
+      res.json(prices);
+    } catch (error) {
+      console.error("Error fetching Brazilian prices:", error);
+      res.status(500).json({ message: "Erro ao buscar preços brasileiros" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

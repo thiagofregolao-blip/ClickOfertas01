@@ -19,6 +19,7 @@ import MyCoupons from "@/pages/my-coupons";
 import CouponDetails from "@/pages/coupon-details";
 import StoriesFeed from "@/pages/stories-feed";
 import CreateStory from "@/pages/create-story";
+import PriceComparison from "@/pages/price-comparison";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -41,6 +42,7 @@ function Router() {
         <Route path="/cards" component={LoadingComponent} />
         <Route path="/stories-feed" component={LoadingComponent} />
         <Route path="/create-story" component={LoadingComponent} />
+        <Route path="/price-comparison" component={LoadingComponent} />
         <Route path="/flyer/:slug" component={PublicFlyer} />
         <Route path="/stores/:slug" component={PublicFlyer} />
         <Route path="/admin" component={LoadingComponent} />
@@ -78,6 +80,7 @@ function Router() {
           <Route path="/cards" component={StoresGallery} />
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
+          <Route path="/price-comparison" component={PriceComparison} />
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/my-coupons" component={MyCoupons} />

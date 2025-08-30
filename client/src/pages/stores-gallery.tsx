@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share } from "lucide-react";
+import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share, BarChart3 } from "lucide-react";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import LoginPage from "@/components/login-page";
@@ -393,6 +393,18 @@ export default function StoresGallery() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-white">🛍️ Click Ofertas Paraguai</h1>
             <div className="flex items-center gap-3">
+              {/* Botão de Comparação de Preços */}
+              <Link href="/price-comparison">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
+                  data-testid="button-price-comparison"
+                >
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  {isMobile ? "Comparar" : "Comparar Preços"}
+                </Button>
+              </Link>
               {isAuthenticated ? (
                 // Usuário logado - mostrar informações e menu
                 <div className="relative">
