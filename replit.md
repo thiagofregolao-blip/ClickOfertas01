@@ -137,6 +137,55 @@ Preferred communication style: Simple, everyday language.
 - Otimização de carregamento para não travar a página
 - Gestão do consumo de bateria com autoplay
 
+### **9. Sistema de Comparação de Preços (Prioridade: Alta)**
+**Descrição**: Funcionalidade para comparar preços de produtos similares entre diferentes lojas do Paraguay
+**Benefícios**:
+- Usuários encontram melhores ofertas automaticamente
+- Transparência nos preços do mercado paraguaio
+- Decisões de compra mais informadas
+- Diferencial competitivo forte
+- Aumenta engajamento e retenção de usuários
+
+**Funcionalidades Propostas**:
+
+**9.1. Comparador Automático**
+- Detectar produtos similares entre lojas automaticamente
+- Destacar visualmente o melhor preço
+- Histórico de preços para mostrar tendências
+- Algoritmo de matching por nome, categoria e características
+
+**9.2. Alertas de Preço**
+- Notificações quando produto baixa de preço
+- Definir preço alvo desejado pelo usuário
+- Comparação com preços anteriores
+- Sistema de notificações push/email
+
+**9.3. Filtros Inteligentes**
+- Filtro por faixa de preço
+- Filtro por percentual de desconto
+- Filtro por proximidade/localização
+- Ordenação por melhor custo-benefício
+
+**9.4. Visualização Comparativa**
+- Cards de produtos lado a lado
+- Tabela de comparação detalhada
+- Gráficos de diferença de preços
+- Indicadores visuais de economia
+
+**Implementação Técnica Sugerida**:
+- Nova tabela `price_comparisons` no schema
+- Campos adicionais em produtos: `originalPrice`, `discount`
+- Algoritmo de matching usando similaridade de strings
+- Cache de comparações para performance
+- API endpoints para busca de produtos similares
+- Sistema de alertas usando jobs automatizados
+
+**Considerações Especiais para Paraguay**:
+- Múltiplas moedas (Guaraní, Dólar, Real)
+- Produtos importados vs. nacionais
+- Variação de preços por região
+- Integração com principais marketplaces paraguaios
+
 ## External Dependencies
 
 ### Database & Infrastructure
