@@ -1,21 +1,18 @@
-import puppeteer from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import * as cheerio from 'cheerio';
 import axios from 'axios';
 import type { InsertBrazilianPrice } from '@shared/schema';
 
-// Adicionar plugin stealth para evitar detecção
-puppeteer.use(StealthPlugin());
-
 // Configuração para scraping robusto
 const SCRAPING_CONFIG = {
-  timeout: 10000,
-  maxRetries: 3,
-  delay: { min: 1000, max: 3000 },
+  timeout: 15000,
+  maxRetries: 2,
+  delay: { min: 500, max: 1500 },
   userAgents: [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/121.0'
   ]
 };
 
@@ -98,72 +95,139 @@ const getRandomUserAgent = () => {
   return SCRAPING_CONFIG.userAgents[Math.floor(Math.random() * SCRAPING_CONFIG.userAgents.length)];
 };
 
-// Fallback usando axios para lojas que permitem acesso direto
+// Função avançada para scraping com multiple tentativas e headers rotativos
 async function fallbackScrape(store: StoreConfig, searchTerm: string): Promise<InsertBrazilianPrice[]> {
   const results: InsertBrazilianPrice[] = [];
   
-  try {
-    const searchUrl = store.urlBuilder(searchTerm);
-    
-    const response = await axios.get(searchUrl, {
-      headers: {
+  for (let attempt = 0; attempt < SCRAPING_CONFIG.maxRetries; attempt++) {
+    try {
+      await randomDelay();
+      
+      const searchUrl = store.urlBuilder(searchTerm);
+      console.log(`🔍 Tentativa ${attempt + 1} - Buscando em ${store.name}: ${searchUrl}`);
+      
+      // Headers mais completos e diversos
+      const headers = {
         'User-Agent': getRandomUserAgent(),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
         'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1',
-        'Referer': 'https://www.google.com/',
-      },
-      timeout: 15000,
-      validateStatus: (status) => status < 500,
-      maxRedirects: 5,
-    });
-    
-    if (response.status === 200) {
-      const $ = cheerio.load(response.data);
-      const products = $(store.selectors.productContainer).slice(0, 10);
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+        'Cache-Control': 'max-age=0',
+        'Referer': 'https://www.google.com.br/',
+        'Origin': 'https://www.google.com.br'
+      };
       
-      products.each((index, element) => {
-        try {
-          const $product = $(element);
-          
-          const name = $product.find(store.selectors.productName).text().trim();
-          const priceText = $product.find(store.selectors.productPrice).text().trim();
-          const relativeUrl = $product.find(store.selectors.productUrl).attr('href');
-          
-          if (!name || !priceText || !relativeUrl) return;
-          
-          const price = store.priceParser(priceText);
-          if (price <= 0) return;
-          
-          const productUrl = relativeUrl.startsWith('http') 
-            ? relativeUrl 
-            : `${store.baseUrl}${relativeUrl}`;
-          
-          const { brand, model, variant } = extractProductInfo(name);
-          
-          results.push({
-            productName: name,
-            productBrand: brand || null,
-            productModel: model || null,
-            productVariant: variant || null,
-            storeName: store.name,
-            storeUrl: store.baseUrl,
-            productUrl,
-            price: price.toString(),
-            currency: 'BRL',
-            availability: 'in_stock',
-            isActive: true,
-          });
-          
-        } catch (error) {
-          console.error(`❌ Erro ao processar produto ${index + 1} em ${store.name}:`, error);
-        }
+      const response = await axios.get(searchUrl, {
+        headers,
+        timeout: SCRAPING_CONFIG.timeout,
+        validateStatus: (status) => status < 500,
+        maxRedirects: 10,
+        decompress: true,
+        // Adicionar cookies de sessão
+        withCredentials: false,
       });
+      
+      if (response.status === 200) {
+        console.log(`✅ Sucesso na tentativa ${attempt + 1} para ${store.name}`);
+        const $ = cheerio.load(response.data);
+        
+        // Tentar diferentes seletores
+        let products = $(store.selectors.productContainer);
+        
+        // Se não encontrou, tentar seletores alternativos
+        if (products.length === 0) {
+          const altSelectors = [
+            '.product-item', '.item', '.card', '.listing', 
+            '[data-item]', '[data-product]', '.result'
+          ];
+          
+          for (const selector of altSelectors) {
+            products = $(selector);
+            if (products.length > 0) break;
+          }
+        }
+        
+        console.log(`📦 Encontrados ${products.length} elementos em ${store.name}`);
+        products.slice(0, 10).each((index, element) => {
+          try {
+            const $product = $(element);
+            
+            // Tentar múltiplos seletores para nome
+            let name = '';
+            const nameSelectors = store.selectors.productName.split(', ');
+            for (const selector of nameSelectors) {
+              name = $product.find(selector).text().trim();
+              if (name) break;
+            }
+            
+            // Tentar múltiplos seletores para preço
+            let priceText = '';
+            const priceSelectors = store.selectors.productPrice.split(', ');
+            for (const selector of priceSelectors) {
+              priceText = $product.find(selector).text().trim();
+              if (priceText) break;
+            }
+            
+            // Tentar múltiplos seletores para URL
+            let relativeUrl = '';
+            const urlSelectors = store.selectors.productUrl.split(', ');
+            for (const selector of urlSelectors) {
+              relativeUrl = $product.find(selector).attr('href') || '';
+              if (relativeUrl) break;
+            }
+            
+            if (!name || !priceText) return;
+            
+            const price = store.priceParser(priceText);
+            if (price <= 0) return;
+            
+            const productUrl = relativeUrl && relativeUrl.startsWith('http') 
+              ? relativeUrl 
+              : relativeUrl ? `${store.baseUrl}${relativeUrl}` : `${store.baseUrl}/produto`;
+            
+            const { brand, model, variant } = extractProductInfo(name);
+            
+            results.push({
+              productName: name,
+              productBrand: brand || null,
+              productModel: model || null,
+              productVariant: variant || null,
+              storeName: store.name,
+              storeUrl: store.baseUrl,
+              productUrl,
+              price: price.toString(),
+              currency: 'BRL',
+              availability: 'in_stock',
+              isActive: true,
+            });
+            
+          } catch (error) {
+            // Não logar erros menores para não poluir
+          }
+        });
+        
+        if (results.length > 0) {
+          console.log(`✅ ${store.name}: Encontrados ${results.length} produtos válidos`);
+          break; // Sucesso, sair do loop
+        }
+      } else {
+        console.log(`⚠️ Status ${response.status} para ${store.name} na tentativa ${attempt + 1}`);
+      }
+      
+    } catch (error: any) {
+      console.log(`⚠️ Tentativa ${attempt + 1} falhou para ${store.name}: ${error.message?.substring(0, 100) || 'Erro desconhecido'}`);
+      
+      if (attempt === SCRAPING_CONFIG.maxRetries - 1) {
+        console.error(`❌ Todas as tentativas falharam para ${store.name}`);
+      }
     }
-  } catch (error) {
-    console.error(`❌ Fallback falhou para ${store.name}:`, error);
   }
   
   return results;
@@ -197,119 +261,9 @@ export function extractProductInfo(productName: string) {
   return { brand, model, variant };
 }
 
-// Função principal para fazer scraping de uma loja usando Puppeteer
+// Função principal para fazer scraping de uma loja
 async function scrapeStore(store: StoreConfig, searchTerm: string): Promise<InsertBrazilianPrice[]> {
-  const results: InsertBrazilianPrice[] = [];
-  let browser;
-  
-  try {
-    await randomDelay();
-    
-    const searchUrl = store.urlBuilder(searchTerm);
-    console.log(`🔍 Buscando em ${store.name}: ${searchUrl}`);
-    
-    // Lançar navegador com configurações anti-detecção
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--disable-gpu',
-        '--disable-extensions',
-        '--disable-default-apps',
-        '--disable-translate',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding',
-        '--disable-features=TranslateUI',
-        '--disable-ipc-flooding-protection'
-      ]
-    });
-    
-    const page = await browser.newPage();
-    
-    // Configurar viewport e user agent
-    await page.setViewport({ width: 1366, height: 768 });
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-    
-    // Bloquear recursos desnecessários para acelerar
-    await page.setRequestInterception(true);
-    page.on('request', (req) => {
-      if (req.resourceType() === 'stylesheet' || req.resourceType() === 'font' || req.resourceType() === 'image') {
-        req.abort();
-      } else {
-        req.continue();
-      }
-    });
-    
-    // Navegar para a página
-    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    
-    // Esperar um pouco para a página carregar
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Obter HTML da página
-    const html = await page.content();
-    const $ = cheerio.load(html);
-    const products = $(store.selectors.productContainer).slice(0, 10); // Limitar a 10 produtos
-    
-    console.log(`📦 Encontrados ${products.length} produtos em ${store.name}`);
-    
-    products.each((index, element) => {
-      try {
-        const $product = $(element);
-        
-        const name = $product.find(store.selectors.productName).text().trim();
-        const priceText = $product.find(store.selectors.productPrice).text().trim();
-        const relativeUrl = $product.find(store.selectors.productUrl).attr('href');
-        
-        if (!name || !priceText || !relativeUrl) return;
-        
-        const price = store.priceParser(priceText);
-        if (price <= 0) return;
-        
-        const productUrl = relativeUrl.startsWith('http') 
-          ? relativeUrl 
-          : `${store.baseUrl}${relativeUrl}`;
-        
-        const availability = store.selectors.availability 
-          ? $product.find(store.selectors.availability).text().trim() 
-          : 'in_stock';
-        
-        const { brand, model, variant } = extractProductInfo(name);
-        
-        results.push({
-          productName: name,
-          productBrand: brand || null,
-          productModel: model || null,
-          productVariant: variant || null,
-          storeName: store.name,
-          storeUrl: store.baseUrl,
-          productUrl,
-          price: price.toString(),
-          currency: 'BRL',
-          availability: availability.toLowerCase().includes('estoque') ? 'in_stock' : 'in_stock',
-          isActive: true,
-        });
-        
-      } catch (error) {
-        console.error(`❌ Erro ao processar produto ${index + 1} em ${store.name}:`, error);
-      }
-    });
-    
-  } catch (error) {
-    console.error(`❌ Erro ao fazer scraping em ${store.name}:`, error);
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
-  }
-  
-  return results;
+  return await fallbackScrape(store, searchTerm);
 }
 
 // Função principal para buscar preços em todas as lojas
@@ -319,29 +273,14 @@ export async function scrapeBrazilianPrices(productName: string): Promise<Insert
   const searchTerm = normalizeProductName(productName);
   const allResults: InsertBrazilianPrice[] = [];
   
-  // Fazer scraping em paralelo com limite
+  // Fazer scraping em paralelo com retry automático
   const scrapePromises = BRAZILIAN_STORES.map(async (store) => {
     try {
-      // Tentar primeiro com Puppeteer
-      let storeResults = await scrapeStore(store, searchTerm);
-      
-      // Se não encontrou resultados, tentar fallback com axios
-      if (storeResults.length === 0) {
-        console.log(`🔄 Tentando fallback para ${store.name}...`);
-        storeResults = await fallbackScrape(store, searchTerm);
-      }
-      
+      const storeResults = await scrapeStore(store, searchTerm);
       return storeResults;
     } catch (error) {
       console.error(`❌ Falha total em ${store.name}:`, error);
-      // Tentar fallback em caso de erro
-      try {
-        console.log(`🔄 Tentando fallback para ${store.name}...`);
-        return await fallbackScrape(store, searchTerm);
-      } catch (fallbackError) {
-        console.error(`❌ Fallback também falhou para ${store.name}:`, fallbackError);
-        return [];
-      }
+      return [];
     }
   });
   
