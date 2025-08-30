@@ -684,8 +684,8 @@ export default function StoresGallery() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p style={{color: '#ffffff', fontWeight: '500', fontSize: '14px', textShadow: '1px 1px 2px rgba(0,0,0,0.5)', WebkitTextStroke: '0.5px rgba(0,0,0,0.3)'}}>{currentStoreStories[currentStoryIndex].store?.name}</p>
-                  <p style={{color: '#ffffff', fontWeight: '400', fontSize: '12px', textShadow: '1px 1px 2px rgba(0,0,0,0.5)', WebkitTextStroke: '0.5px rgba(0,0,0,0.3)'}}>há {Math.round((Date.now() - new Date(currentStoreStories[currentStoryIndex].createdAt || Date.now()).getTime()) / 3600000)}h</p>
+                  <p style={{color: '#ffffff', fontWeight: '500', fontSize: '14px', WebkitTextStroke: '0.5px rgba(0,0,0,0.5)'}}>{currentStoreStories[currentStoryIndex].store?.name}</p>
+                  <p style={{color: '#ffffff', fontWeight: '400', fontSize: '12px', WebkitTextStroke: '0.5px rgba(0,0,0,0.5)'}}>há {Math.round((Date.now() - new Date(currentStoreStories[currentStoryIndex].createdAt || Date.now()).getTime()) / 3600000)}h</p>
                 </div>
                 <button
                   onClick={closeStoryModal}
