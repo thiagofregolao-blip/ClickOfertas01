@@ -442,10 +442,6 @@ export default function StoresGallery() {
       <div className="bg-white border-b">
         <div className={`mx-auto py-4 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
           <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
-            <div className="flex items-center gap-2 text-gray-600 flex-shrink-0">
-              <Camera className="w-5 h-5" />
-              <span className="font-medium">Stories</span>
-            </div>
             
             {/* Debug Info */}
             <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs flex-shrink-0">
