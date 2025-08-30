@@ -124,8 +124,15 @@ export default function PriceComparison() {
       <div className="border-b shadow-sm" style={{ backgroundColor: '#21409A' }}>
         <div className="mx-auto max-w-6xl px-4 py-6">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">
-              🌎 Comparação de Preços Internacional
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <img 
+                src="/attached_assets/ChatGPT Image 30 de ago. de 2025, 17_53_24_1756587354486.png" 
+                alt="Click Ofertas Paraguai" 
+                className="h-16 w-auto"
+              />
+            </div>
+            <h1 className="text-xl font-bold text-white mb-2">
+              Comparação de Preços Internacional
             </h1>
             <p className="text-white max-w-2xl mx-auto">
               Compare preços entre Paraguay e Brasil. Encontre as melhores ofertas e economize em suas compras internacionais.
