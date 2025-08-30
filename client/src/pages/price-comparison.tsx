@@ -4,9 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Search, TrendingDown, TrendingUp, ExternalLink, RefreshCw, AlertCircle, Zap, Check, ChevronsUpDown, DollarSign } from "lucide-react";
+import { Search, TrendingDown, TrendingUp, ExternalLink, RefreshCw, AlertCircle, Zap, DollarSign, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatPriceWithCurrency } from "@/lib/priceUtils";
@@ -43,8 +41,8 @@ export default function PriceComparison() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
   const [selectedProductForSearch, setSelectedProductForSearch] = useState<any | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Buscar produtos disponíveis no Paraguay para comparação
   const { data: paraguayProducts = [], isLoading: loadingProducts } = useQuery<any[]>({
@@ -99,7 +97,18 @@ export default function PriceComparison() {
   const handleSelectProduct = (product: any) => {
     setSelectedProductForSearch(product);
     setSearchQuery(product.name);
-    setOpen(false);
+    setShowSuggestions(false);
+  };
+
+  const handleInputFocus = () => {
+    if (filteredProducts.length > 0) {
+      setShowSuggestions(true);
+    }
+  };
+
+  const handleInputBlur = () => {
+    // Delay para permitir click na sugestão
+    setTimeout(() => setShowSuggestions(false), 150);
   };
 
   return (
@@ -132,72 +141,73 @@ export default function PriceComparison() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={open}
-                    className="w-full justify-between h-12"
-                    data-testid="button-search-product"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Search className="w-4 h-4 text-gray-400" />
-                      <span className={selectedProductForSearch ? "text-gray-900" : "text-gray-500"}>
-                        {selectedProductForSearch 
-                          ? `${selectedProductForSearch.name} - ${selectedProductForSearch.store?.name}`
-                          : "Selecione um produto para comparar preços..."}
-                      </span>
-                    </div>
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
-                  <Command>
-                    <CommandInput 
-                      placeholder="Buscar produto..." 
-                      value={searchQuery}
-                      onValueChange={setSearchQuery}
-                      data-testid="input-search-autocomplete"
-                    />
-                    <CommandList>
-                      <CommandEmpty>Nenhum produto encontrado.</CommandEmpty>
-                      <CommandGroup>
-                        {filteredProducts.map((product) => (
-                          <CommandItem
-                            key={product.id}
-                            onSelect={() => handleSelectProduct(product)}
-                            className="flex items-start gap-3 p-3"
-                            data-testid={`item-product-${product.id}`}
-                          >
-                            <Check
-                              className={`mt-1 h-4 w-4 ${
-                                selectedProductForSearch?.id === product.id ? "opacity-100" : "opacity-0"
-                              }`}
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-sm truncate">
-                                {product.name}
-                              </div>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs text-gray-600">{product.store?.name}</span>
-                                {product.category && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {product.category}
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="text-sm font-semibold text-green-600 mt-1">
-                                {formatPriceWithCurrency(product.price, 'US$')}
-                              </div>
-                            </div>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <div className="relative">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Input
+                    type="text"
+                    placeholder="Digite o nome do produto para comparar preços..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      if (e.target.value.trim()) {
+                        setShowSuggestions(true);
+                      } else {
+                        setShowSuggestions(false);
+                        setSelectedProductForSearch(null);
+                      }
+                    }}
+                    onFocus={handleInputFocus}
+                    onBlur={handleInputBlur}
+                    className="pl-12 pr-4 h-12 text-base"
+                    data-testid="input-product-search"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSelectedProductForSearch(null);
+                        setShowSuggestions(false);
+                      }}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                
+                {/* Sugestões */}
+                {showSuggestions && filteredProducts.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                    {filteredProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        onClick={() => handleSelectProduct(product)}
+                        className="flex items-start gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                        data-testid={`item-product-${product.id}`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm truncate">
+                            {product.name}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-gray-600">{product.store?.name}</span>
+                            {product.category && (
+                              <Badge variant="outline" className="text-xs">
+                                {product.category}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-sm font-semibold text-green-600 mt-1">
+                            {formatPriceWithCurrency(product.price, 'US$')}
+                          </div>
+                        </div>
+                        <ChevronDown className="w-4 h-4 text-gray-400 mt-1" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               
               {selectedProductForSearch && (
                 <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">

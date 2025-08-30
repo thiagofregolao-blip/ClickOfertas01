@@ -93,8 +93,6 @@ function convertGoogleShoppingResults(results: GoogleShoppingResult[], productNa
         currency: 'BRL',
         availability: 'in_stock',
         isActive: true,
-        storePriority: storeInfo.priority,
-        isRelevantStore: storeInfo.isRelevant,
       });
     } catch (error) {
       console.error(`❌ Erro ao converter produto ${index + 1}:`, error);
@@ -175,27 +173,73 @@ export function extractProductInfo(productName: string) {
   return { brand, model, variant };
 }
 
+// Função para agrupar por loja e calcular preço médio
+function groupByStoreAndCalculateAverage(results: InsertBrazilianPrice[]): InsertBrazilianPrice[] {
+  console.log(`📊 Agrupando ${results.length} resultados por loja...`);
+  
+  // Agrupar produtos por nome da loja
+  const groupedByStore: { [storeName: string]: InsertBrazilianPrice[] } = {};
+  
+  results.forEach(item => {
+    if (!groupedByStore[item.storeName]) {
+      groupedByStore[item.storeName] = [];
+    }
+    groupedByStore[item.storeName].push(item);
+  });
+  
+  // Calcular preço médio para cada loja
+  const averagedResults: InsertBrazilianPrice[] = [];
+  
+  Object.entries(groupedByStore).forEach(([storeName, storeItems]) => {
+    const prices = storeItems.map(item => parseFloat(item.price)).filter(price => !isNaN(price));
+    
+    if (prices.length === 0) return;
+    
+    // Calcular preço médio
+    const averagePrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+    
+    // Pegar o primeiro item como base e atualizar com preço médio
+    const representative = { ...storeItems[0] };
+    representative.price = averagePrice.toFixed(2);
+    
+    console.log(`🏪 ${storeName}: ${storeItems.length} produtos → Preço médio: R$ ${averagePrice.toFixed(2)}`);
+    
+    averagedResults.push(representative);
+  });
+  
+  return averagedResults;
+}
+
 // Função para filtrar e limitar resultados às 5 melhores ofertas
 function filterAndLimitResults(results: InsertBrazilianPrice[]): InsertBrazilianPrice[] {
   console.log(`📊 Filtrando ${results.length} resultados...`);
   
-  // Separar lojas relevantes das irrelevantes
-  const relevantStores = results.filter(item => item.isRelevantStore);
-  const otherStores = results.filter(item => !item.isRelevantStore);
+  // Primeiro agrupar por loja e calcular preço médio
+  const groupedResults = groupByStoreAndCalculateAverage(results);
   
-  console.log(`✅ Lojas relevantes encontradas: ${relevantStores.length}`);
+  // Separar lojas relevantes das irrelevantes
+  const relevantStores = groupedResults.filter(item => {
+    const storeInfo = extractStoreInfo(item.storeName);
+    return storeInfo.isRelevant;
+  });
+  const otherStores = groupedResults.filter(item => {
+    const storeInfo = extractStoreInfo(item.storeName);
+    return !storeInfo.isRelevant;
+  });
+  
+  console.log(`✅ Lojas relevantes: ${relevantStores.length}`);
   console.log(`⚪ Outras lojas: ${otherStores.length}`);
   
-  // Priorizar lojas relevantes: ordenar por prioridade (menor = melhor) e depois por preço
+  // Ordenar lojas relevantes por prioridade e depois por preço
   const sortedRelevant = relevantStores.sort((a, b) => {
-    const priorityA = parseInt(a.storePriority?.toString() || '99');
-    const priorityB = parseInt(b.storePriority?.toString() || '99');
+    const storeInfoA = extractStoreInfo(a.storeName);
+    const storeInfoB = extractStoreInfo(b.storeName);
     const priceA = parseFloat(a.price);
     const priceB = parseFloat(b.price);
     
     // Primeiro critério: prioridade da loja
-    if (priorityA !== priorityB) {
-      return priorityA - priorityB;
+    if (storeInfoA.priority !== storeInfoB.priority) {
+      return storeInfoA.priority - storeInfoB.priority;
     }
     // Segundo critério: menor preço
     return priceA - priceB;
@@ -212,7 +256,7 @@ function filterAndLimitResults(results: InsertBrazilianPrice[]): InsertBrazilian
   const maxResults = 5;
   let finalResults: InsertBrazilianPrice[] = [];
   
-  // Primeiro, adicionar lojas relevantes (máximo 4 para deixar espaço para outras)
+  // Primeiro, adicionar lojas relevantes (máximo 4 para deixar espaço)
   const relevantToAdd = Math.min(sortedRelevant.length, 4);
   finalResults = [...sortedRelevant.slice(0, relevantToAdd)];
   
@@ -222,9 +266,10 @@ function filterAndLimitResults(results: InsertBrazilianPrice[]): InsertBrazilian
     finalResults = [...finalResults, ...sortedOthers.slice(0, remainingSlots)];
   }
   
-  console.log(`🎯 Selecionados ${finalResults.length} melhores resultados`);
+  console.log(`🎯 Resultado final: ${finalResults.length} lojas únicas`);
   finalResults.forEach((result, index) => {
-    console.log(`${index + 1}. ${result.storeName} - R$ ${parseFloat(result.price).toFixed(2)} ${result.isRelevantStore ? '⭐' : ''}`);
+    const storeInfo = extractStoreInfo(result.storeName);
+    console.log(`${index + 1}. ${result.storeName} - R$ ${parseFloat(result.price).toFixed(2)} ${storeInfo.isRelevant ? '⭐' : ''}`);
   });
   
   return finalResults;
