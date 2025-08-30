@@ -913,51 +913,49 @@ export default function PublicFlyer() {
               {/* Info do produto no rodapé */}
               {viewingStory.isProductPromo && (
                 <div className="absolute bottom-0 left-0 right-0">
-                  <div className="bg-black/60 backdrop-blur-sm p-3">
-                    <h3 className="text-white font-semibold text-sm mb-1">
-                      {viewingStory.productName}
-                    </h3>
-                    {viewingStory.productPrice && (
-                      <div className="flex items-center gap-2">
-                        {viewingStory.productDiscountPrice && (
-                          <span className="text-gray-300 line-through text-xs">
-                            ${viewingStory.productPrice?.replace('Gs.', '').replace('.', ',')}
+                  <div className="bg-black/60 backdrop-blur-sm p-3 flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-white font-semibold text-sm mb-1">
+                        {viewingStory.productName}
+                      </h3>
+                      {viewingStory.productPrice && (
+                        <div className="flex items-center gap-2">
+                          {viewingStory.productDiscountPrice && (
+                            <span className="text-gray-300 line-through text-xs">
+                              ${viewingStory.productPrice?.replace('Gs.', '').replace('.', ',')}
+                            </span>
+                          )}
+                          <span className="text-white font-bold text-base">
+                            ${(viewingStory.productDiscountPrice || viewingStory.productPrice)?.replace('Gs.', '').replace('.', ',')}
                           </span>
-                        )}
-                        <span className="text-white font-bold text-base">
-                          ${(viewingStory.productDiscountPrice || viewingStory.productPrice)?.replace('Gs.', '').replace('.', ',')}
-                        </span>
-                      </div>
-                    )}
-                    {viewingStory.caption && (
-                      <p className="text-white/90 text-xs mt-1">{viewingStory.caption}</p>
-                    )}
+                        </div>
+                      )}
+                      {viewingStory.caption && (
+                        <p className="text-white/90 text-xs mt-1">{viewingStory.caption}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 ml-4">
+                      <button className="text-white/80 hover:text-red-400 transition-colors">
+                        <Heart className="w-5 h-5" />
+                      </button>
+                      <button 
+                        className="text-white/80 hover:text-white transition-colors"
+                        onClick={() => {
+                          if (navigator.share) {
+                            navigator.share({
+                              title: viewingStory.productName || 'Produto em oferta',
+                              text: `Confira esta oferta: ${viewingStory.productName}`,
+                              url: window.location.href
+                            });
+                          }
+                        }}
+                      >
+                        <Share className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
-              
-              {/* Stats e ações no bottom */}
-              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                <div className="flex items-center gap-4 text-white">
-                  <div className="flex items-center gap-1">
-                    <Heart className="w-4 h-4" />
-                    <span className="text-sm">{viewingStory.likesCount}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Eye className="w-4 h-4" />
-                    <span className="text-sm">{viewingStory.viewsCount}</span>
-                  </div>
-                </div>
-                
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setViewingStory(null)}
-                  className="text-white hover:bg-white/10"
-                >
-                  ✕
-                </Button>
-              </div>
             </div>
           )}
         </DialogContent>

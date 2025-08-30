@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera } from "lucide-react";
+import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share } from "lucide-react";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import LoginPage from "@/components/login-page";
@@ -692,22 +692,43 @@ export default function StoresGallery() {
               {/* Info do produto no rodapé */}
               {currentStoreStories[currentStoryIndex].isProductPromo && (
                 <div className="absolute bottom-0 left-0 right-0 z-20">
-                  <div className="bg-black/60 backdrop-blur-sm p-3">
-                    <h3 className="text-white font-semibold text-sm mb-1">
-                      {currentStoreStories[currentStoryIndex].productName}
-                    </h3>
-                    {currentStoreStories[currentStoryIndex].productPrice && (
-                      <div className="flex items-center gap-2">
-                        {currentStoreStories[currentStoryIndex].productDiscountPrice && (
-                          <span className="text-gray-300 line-through text-xs">
-                            ${currentStoreStories[currentStoryIndex].productPrice?.replace('Gs.', '').replace('.', ',')}
+                  <div className="bg-black/60 backdrop-blur-sm p-3 flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-white font-semibold text-sm mb-1">
+                        {currentStoreStories[currentStoryIndex].productName}
+                      </h3>
+                      {currentStoreStories[currentStoryIndex].productPrice && (
+                        <div className="flex items-center gap-2">
+                          {currentStoreStories[currentStoryIndex].productDiscountPrice && (
+                            <span className="text-gray-300 line-through text-xs">
+                              ${currentStoreStories[currentStoryIndex].productPrice?.replace('Gs.', '').replace('.', ',')}
+                            </span>
+                          )}
+                          <span className="text-white font-bold text-base">
+                            ${(currentStoreStories[currentStoryIndex].productDiscountPrice || currentStoreStories[currentStoryIndex].productPrice)?.replace('Gs.', '').replace('.', ',')}
                           </span>
-                        )}
-                        <span className="text-white font-bold text-base">
-                          ${(currentStoreStories[currentStoryIndex].productDiscountPrice || currentStoreStories[currentStoryIndex].productPrice)?.replace('Gs.', '').replace('.', ',')}
-                        </span>
-                      </div>
-                    )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 ml-4">
+                      <button className="text-white/80 hover:text-red-400 transition-colors">
+                        <Heart className="w-5 h-5" />
+                      </button>
+                      <button 
+                        className="text-white/80 hover:text-white transition-colors"
+                        onClick={() => {
+                          if (navigator.share) {
+                            navigator.share({
+                              title: currentStoreStories[currentStoryIndex].productName || 'Produto em oferta',
+                              text: `Confira esta oferta: ${currentStoreStories[currentStoryIndex].productName}`,
+                              url: window.location.href
+                            });
+                          }
+                        }}
+                      >
+                        <Share className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
