@@ -1,0 +1,94 @@
+CREATE TABLE "promotion_assignments" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"promotion_id" varchar NOT NULL,
+	"user_id" varchar NOT NULL,
+	"assigned_at" timestamp DEFAULT now(),
+	"status" varchar DEFAULT 'assigned' NOT NULL,
+	"created_at" timestamp DEFAULT now()
+);
+CREATE TABLE "promotion_scratches" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"promotion_id" varchar NOT NULL,
+	"user_id" varchar,
+	"user_agent" varchar,
+	"ip_address" varchar,
+	"is_used" boolean DEFAULT false,
+	"used_at" timestamp,
+	"coupon_code" varchar,
+	"created_at" timestamp DEFAULT now(),
+	"scratched_at" timestamp DEFAULT now()
+);
+CREATE TABLE "virtual_scratch_clones" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"campaign_id" varchar NOT NULL,
+	"product_id" varchar NOT NULL,
+	"store_id" varchar NOT NULL,
+	"assigned_user_id" varchar,
+	"product_name" text NOT NULL,
+	"product_description" text,
+	"original_price" numeric(12, 2) NOT NULL,
+	"discount_price" numeric(12, 2) NOT NULL,
+	"product_image_url" text,
+	"product_category" varchar,
+	"is_used" boolean DEFAULT false,
+	"is_expired" boolean DEFAULT false,
+	"notification_sent" boolean DEFAULT false,
+	"used_at" timestamp,
+	"expires_at" timestamp NOT NULL,
+	"created_at" timestamp DEFAULT now()
+);
+CREATE TABLE "scratch_campaigns" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"product_id" varchar NOT NULL,
+	"store_id" varchar NOT NULL,
+	"title" text DEFAULT 'Raspe e ganhe desconto!' NOT NULL,
+	"description" text DEFAULT 'Raspe aqui e ganhe um super desconto!',
+	"discount_price" numeric(12, 2) NOT NULL,
+	"discount_percentage" varchar NOT NULL,
+	"is_active" boolean DEFAULT true,
+	"max_clones" varchar DEFAULT '10',
+	"clones_created" varchar DEFAULT '0',
+	"clones_used" varchar DEFAULT '0',
+	"distribute_to_all" boolean DEFAULT false,
+	"selected_user_ids" text,
+	"expires_at" timestamp,
+	"clone_expiration_hours" varchar DEFAULT '24',
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now()
+);
+CREATE TABLE "promotions" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"store_id" varchar NOT NULL,
+	"base_product_id" varchar,
+	"name" varchar NOT NULL,
+	"description" text,
+	"image_url" varchar,
+	"category" varchar NOT NULL,
+	"original_price" varchar NOT NULL,
+	"promotional_price" varchar NOT NULL,
+	"discount_percentage" varchar NOT NULL,
+	"is_active" boolean DEFAULT true,
+	"max_clients" varchar NOT NULL,
+	"used_count" varchar DEFAULT '0',
+	"valid_from" timestamp NOT NULL,
+	"valid_until" timestamp NOT NULL,
+	"scratch_message" text,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now()
+);
+ALTER TABLE "coupons" ALTER COLUMN "product_id" DROP NOT NULL;
+ALTER TABLE "scratched_products" ADD COLUMN "clone_id" varchar;
+ALTER TABLE "coupons" ADD COLUMN "clone_id" varchar;
+ALTER TABLE "coupons" ADD COLUMN "promotion_name" text;
+ALTER TABLE "coupons" ADD COLUMN "promotion_image_url" text;
+ALTER TABLE "coupons" ADD COLUMN "promotion_description" text;
+ALTER TABLE "promotion_assignments" ADD CONSTRAINT "promotion_assignments_promotion_id_fkey" FOREIGN KEY ("promotion_id") REFERENCES "public"."promotions"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "promotion_assignments" ADD CONSTRAINT "promotion_assignments_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "virtual_scratch_clones" ADD CONSTRAINT "virtual_scratch_clones_campaign_id_fkey" FOREIGN KEY ("campaign_id") REFERENCES "public"."scratch_campaigns"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "virtual_scratch_clones" ADD CONSTRAINT "virtual_scratch_clones_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "virtual_scratch_clones" ADD CONSTRAINT "virtual_scratch_clones_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "public"."stores"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "virtual_scratch_clones" ADD CONSTRAINT "virtual_scratch_clones_assigned_user_id_fkey" FOREIGN KEY ("assigned_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "scratch_campaigns" ADD CONSTRAINT "scratch_campaigns_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "scratch_campaigns" ADD CONSTRAINT "scratch_campaigns_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "public"."stores"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "scratched_products" ADD CONSTRAINT "scratched_products_clone_id_fkey" FOREIGN KEY ("clone_id") REFERENCES "public"."virtual_scratch_clones"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "coupons" ADD CONSTRAINT "coupons_clone_id_fkey" FOREIGN KEY ("clone_id") REFERENCES "public"."virtual_scratch_clones"("id") ON DELETE cascade ON UPDATE no action;
