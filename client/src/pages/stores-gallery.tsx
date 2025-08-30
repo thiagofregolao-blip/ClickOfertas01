@@ -66,6 +66,7 @@ export default function StoresGallery() {
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [likedStories, setLikedStories] = useState<Set<string>>(new Set());
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const progressRef = useRef(0);
   
@@ -711,8 +712,28 @@ export default function StoresGallery() {
                       )}
                     </div>
                     <div className="flex items-center gap-3 ml-4">
-                      <button className="text-white/80 hover:text-red-400 transition-colors">
-                        <Heart className="w-5 h-5" />
+                      <button 
+                        className="text-white/80 hover:text-red-400 transition-colors"
+                        onClick={() => {
+                          const storyId = currentStoreStories[currentStoryIndex].id;
+                          setLikedStories(prev => {
+                            const newSet = new Set(prev);
+                            if (newSet.has(storyId)) {
+                              newSet.delete(storyId);
+                            } else {
+                              newSet.add(storyId);
+                            }
+                            return newSet;
+                          });
+                        }}
+                      >
+                        <Heart 
+                          className={`w-5 h-5 transition-colors ${
+                            likedStories.has(currentStoreStories[currentStoryIndex]?.id) 
+                              ? 'fill-red-500 text-red-500' 
+                              : ''
+                          }`} 
+                        />
                       </button>
                       <button 
                         className="text-white/80 hover:text-white transition-colors"

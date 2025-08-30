@@ -85,6 +85,7 @@ export default function PublicFlyer() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedStore, setSelectedStore] = useState<StoreWithProducts | null>(null);
   const [viewingStory, setViewingStory] = useState<InstagramStory | null>(null);
+  const [likedStories, setLikedStories] = useState<Set<string>>(new Set());
   const { isAuthenticated } = useAuth();
 
   // Log da versão e modo de acesso (para desenvolvimento)
@@ -935,8 +936,28 @@ export default function PublicFlyer() {
                       )}
                     </div>
                     <div className="flex items-center gap-3 ml-4">
-                      <button className="text-white/80 hover:text-red-400 transition-colors">
-                        <Heart className="w-5 h-5" />
+                      <button 
+                        className="text-white/80 hover:text-red-400 transition-colors"
+                        onClick={() => {
+                          const storyId = viewingStory.id;
+                          setLikedStories(prev => {
+                            const newSet = new Set(prev);
+                            if (newSet.has(storyId)) {
+                              newSet.delete(storyId);
+                            } else {
+                              newSet.add(storyId);
+                            }
+                            return newSet;
+                          });
+                        }}
+                      >
+                        <Heart 
+                          className={`w-5 h-5 transition-colors ${
+                            likedStories.has(viewingStory?.id) 
+                              ? 'fill-red-500 text-red-500' 
+                              : ''
+                          }`} 
+                        />
                       </button>
                       <button 
                         className="text-white/80 hover:text-white transition-colors"
