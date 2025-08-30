@@ -2057,15 +2057,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      // Lógica correta: diferença = preço Paraguay - preço Brasil
-      const difference = paraguayPriceBRL - bestPrice;
-      
-      // Se diferença negativa = Paraguay mais barato = há economia
-      const savings = difference < 0 ? Math.abs(difference) : 0;
-      const savingsPercentage = difference < 0 && bestPrice > 0 ? (savings / bestPrice) * 100 : 0;
-      
-      // Indicar se item está mais barato no Brasil
-      const cheaperInBrazil = difference > 0;
+      // Lógica simples e clara conforme especificação
+      if (paraguayPriceBRL < bestPrice) {
+        // Paraguay é mais barato - calcular economia
+        const savings = bestPrice - paraguayPriceBRL;
+        const savingsPercentage = (savings / bestPrice) * 100;
+        var finalSavings = savings;
+        var finalPercentage = savingsPercentage;
+        var cheaperInBrazil = false;
+      } else {
+        // Brasil é mais barato ou igual
+        var finalSavings = 0;
+        var finalPercentage = 0;
+        var cheaperInBrazil = true;
+      }
 
       // Gerar sugestões de produtos similares
       const allProducts = await storage.getAllProducts();
@@ -2080,8 +2085,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paraguayPrice: paraguayPriceUSD.toString(),
           paraguayCurrency: "USD",
           bestBrazilianPrice: bestPrice !== Infinity ? bestPrice.toString() : null,
-          savings: savings.toString(),
-          savingsPercentage: savingsPercentage.toString(),
+          savings: finalSavings.toString(),
+          savingsPercentage: finalPercentage.toString(),
           brazilianStoresFound: brazilianPrices.length.toString(),
         });
       } catch (error) {
@@ -2104,8 +2109,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })),
         suggestions: suggestions.slice(0, 5), // Limitar a 5 sugestões
         savings: {
-          amount: savings,
-          percentage: Math.round(savingsPercentage),
+          amount: finalSavings,
+          percentage: Math.round(finalPercentage),
           bestStore: bestStore || "N/A",
           cheaperInBrazil: cheaperInBrazil,
         },
