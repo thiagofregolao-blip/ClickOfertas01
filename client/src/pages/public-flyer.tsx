@@ -492,15 +492,14 @@ export default function PublicFlyer() {
       {/* NOVA BARRA DE INSTAGRAM STORIES - GLOBAL */}
       <div className="max-w-4xl mx-auto bg-white shadow-lg mb-4">
         <div className="bg-white border-b p-4">
-          <div className="flex items-center gap-6 overflow-x-auto scrollbar-hide pb-2">
-            {/* Título da seção */}
-            <div className="flex items-center gap-2 text-gray-700 flex-shrink-0 mr-2">
+          <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 text-gray-600 flex-shrink-0">
               <Camera className="w-5 h-5" />
-              <span className="font-semibold text-lg">Stories</span>
+              <span className="font-medium">Stories</span>
             </div>
             
             {/* Debug Info */}
-            <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium flex-shrink-0">
+            <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs flex-shrink-0">
               {storiesLoading ? 'Carregando...' : `${instagramStories.length} stories`}
             </div>
             
