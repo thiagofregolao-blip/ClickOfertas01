@@ -143,12 +143,12 @@ export default function PriceComparison() {
                 <Search className="w-5 h-5" />
                 Buscar Produto para Comparar
               </div>
-              {/* Cotação em tempo real */}
+              {/* Cotação do dia */}
               {exchangeRateData && (
                 <div className="flex items-center gap-2 text-sm bg-blue-50 px-3 py-1 rounded-full">
                   <ArrowRightLeft className="w-4 h-4 text-blue-600" />
                   <span className="text-blue-800 font-medium">
-                    1 USD = {exchangeRateData.rate?.toFixed(2)} BRL
+                    Cotação do dia: US$ 1,00 = R$ {exchangeRateData.rate?.toFixed(2)}
                   </span>
                 </div>
               )}
