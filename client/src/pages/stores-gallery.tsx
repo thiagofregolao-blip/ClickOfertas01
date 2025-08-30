@@ -87,14 +87,52 @@ export default function StoresGallery() {
     if (currentStoryIndex < currentStoreStories.length - 1) {
       setCurrentStoryIndex(prev => prev + 1);
     } else {
-      // Acabaram os stories da loja, fecha o modal
-      closeStoryModal();
+      // Acabaram os stories da loja atual, vamos para a próxima loja
+      const storeIds = Object.keys(instagramStoriesGrouped);
+      const currentStoreId = viewingStory?.storeId;
+      const currentStoreIndex = storeIds.findIndex(id => id === currentStoreId);
+      
+      if (currentStoreIndex !== -1 && currentStoreIndex < storeIds.length - 1) {
+        // Há próxima loja, ir para o primeiro story dela
+        const nextStoreId = storeIds[currentStoreIndex + 1];
+        const nextStoreFirstStory = instagramStoriesGrouped[nextStoreId]?.stories[0];
+        
+        if (nextStoreFirstStory) {
+          setViewingStory(nextStoreFirstStory);
+          setCurrentStoryIndex(0);
+          setProgress(0);
+        } else {
+          closeStoryModal();
+        }
+      } else {
+        // Não há mais lojas, fecha o modal
+        closeStoryModal();
+      }
     }
   };
 
   const prevStory = () => {
     if (currentStoryIndex > 0) {
       setCurrentStoryIndex(prev => prev - 1);
+    } else {
+      // Estamos no primeiro story da loja atual, vamos para a loja anterior
+      const storeIds = Object.keys(instagramStoriesGrouped);
+      const currentStoreId = viewingStory?.storeId;
+      const currentStoreIndex = storeIds.findIndex(id => id === currentStoreId);
+      
+      if (currentStoreIndex > 0) {
+        // Há loja anterior, ir para o último story dela
+        const prevStoreId = storeIds[currentStoreIndex - 1];
+        const prevStoreStories = instagramStoriesGrouped[prevStoreId]?.stories;
+        
+        if (prevStoreStories && prevStoreStories.length > 0) {
+          const lastStoryOfPrevStore = prevStoreStories[prevStoreStories.length - 1];
+          setViewingStory(lastStoryOfPrevStore);
+          setCurrentStoryIndex(prevStoreStories.length - 1);
+          setProgress(0);
+        }
+      }
+      // Se não há loja anterior, fica no story atual (não faz nada)
     }
   };
 
@@ -493,11 +531,15 @@ export default function StoresGallery() {
               >
                 {/* Círculo da loja */}
                 <div className="relative">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-1 hover:scale-105 transition-transform">
-                    <div className="w-full h-full rounded-full bg-white p-1">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
+                    <div className="w-full h-full rounded-full overflow-hidden">
                       <Avatar className="w-full h-full">
-                        <AvatarImage src={storyStore.logoUrl} alt={storyStore.name} />
-                        <AvatarFallback className="text-sm font-bold">
+                        <AvatarImage 
+                          src={storyStore.logoUrl} 
+                          alt={storyStore.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <AvatarFallback className="text-sm font-bold bg-white">
                           {storyStore.name.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
