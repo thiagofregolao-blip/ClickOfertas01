@@ -5,8 +5,20 @@ import type { InsertBrazilianPrice } from '@shared/schema';
 const GOOGLE_SHOPPING_CONFIG = {
   baseUrl: 'https://serpapi.com/search.json',
   timeout: 10000,
-  maxResults: 10
+  maxResults: 40 // Buscar mais para filtrar os melhores
 };
+
+// Lojas brasileiras relevantes por prioridade
+const RELEVANT_STORES = [
+  { names: ['mercadolivre', 'mercadolibre', 'mercado livre'], priority: 1, display: 'Mercado Livre' },
+  { names: ['amazon'], priority: 2, display: 'Amazon Brasil' },
+  { names: ['magazineluiza', 'magazine luiza', 'magazine'], priority: 3, display: 'Magazine Luiza' },
+  { names: ['americanas'], priority: 4, display: 'Americanas' },
+  { names: ['casasbahia', 'casas bahia'], priority: 5, display: 'Casas Bahia' },
+  { names: ['extra'], priority: 6, display: 'Extra' },
+  { names: ['shopee'], priority: 7, display: 'Shopee' },
+  { names: ['submarino'], priority: 8, display: 'Submarino' }
+];
 
 // Interface para resultado do Google Shopping
 interface GoogleShoppingResult {
@@ -66,21 +78,23 @@ function convertGoogleShoppingResults(results: GoogleShoppingResult[], productNa
       
       const { brand, model, variant } = extractProductInfo(item.title);
       
-      // Extrair nome da loja a partir da fonte
-      const storeName = extractStoreName(item.source || item.link);
+      // Extrair informações da loja
+      const storeInfo = extractStoreInfo(item.source || item.link);
       
       converted.push({
         productName: item.title,
         productBrand: brand || null,
         productModel: model || null,
         productVariant: variant || null,
-        storeName: storeName,
+        storeName: storeInfo.name,
         storeUrl: extractDomainFromUrl(item.link),
         productUrl: item.link,
         price: item.extracted_price.toString(),
         currency: 'BRL',
         availability: 'in_stock',
         isActive: true,
+        storePriority: storeInfo.priority,
+        isRelevantStore: storeInfo.isRelevant,
       });
     } catch (error) {
       console.error(`❌ Erro ao converter produto ${index + 1}:`, error);
@@ -90,36 +104,35 @@ function convertGoogleShoppingResults(results: GoogleShoppingResult[], productNa
   return converted;
 }
 
-// Função para extrair nome da loja a partir da URL ou fonte
-function extractStoreName(source: string): string {
-  if (source.toLowerCase().includes('mercadolivre') || source.toLowerCase().includes('mercadolibre')) {
-    return 'Mercado Livre';
-  }
-  if (source.toLowerCase().includes('americanas')) {
-    return 'Americanas';
-  }
-  if (source.toLowerCase().includes('magazineluiza') || source.toLowerCase().includes('magazine')) {
-    return 'Magazine Luiza';
-  }
-  if (source.toLowerCase().includes('amazon')) {
-    return 'Amazon Brasil';
-  }
-  if (source.toLowerCase().includes('shopee')) {
-    return 'Shopee';
-  }
-  if (source.toLowerCase().includes('casasbahia')) {
-    return 'Casas Bahia';
-  }
-  if (source.toLowerCase().includes('extra')) {
-    return 'Extra';
+// Função para extrair nome da loja e sua prioridade
+function extractStoreInfo(source: string): { name: string; priority: number; isRelevant: boolean } {
+  const sourceLower = source.toLowerCase();
+  
+  for (const store of RELEVANT_STORES) {
+    if (store.names.some(name => sourceLower.includes(name))) {
+      return { 
+        name: store.display, 
+        priority: store.priority, 
+        isRelevant: true 
+      };
+    }
   }
   
   // Se não reconhecer, tentar extrair do domínio
   try {
     const domain = new URL(source).hostname.replace('www.', '');
-    return domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
+    const name = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
+    return { 
+      name, 
+      priority: 99, // Baixa prioridade para lojas não reconhecidas
+      isRelevant: false 
+    };
   } catch {
-    return source;
+    return { 
+      name: source, 
+      priority: 99, 
+      isRelevant: false 
+    };
   }
 }
 
@@ -162,6 +175,60 @@ export function extractProductInfo(productName: string) {
   return { brand, model, variant };
 }
 
+// Função para filtrar e limitar resultados às 5 melhores ofertas
+function filterAndLimitResults(results: InsertBrazilianPrice[]): InsertBrazilianPrice[] {
+  console.log(`📊 Filtrando ${results.length} resultados...`);
+  
+  // Separar lojas relevantes das irrelevantes
+  const relevantStores = results.filter(item => item.isRelevantStore);
+  const otherStores = results.filter(item => !item.isRelevantStore);
+  
+  console.log(`✅ Lojas relevantes encontradas: ${relevantStores.length}`);
+  console.log(`⚪ Outras lojas: ${otherStores.length}`);
+  
+  // Priorizar lojas relevantes: ordenar por prioridade (menor = melhor) e depois por preço
+  const sortedRelevant = relevantStores.sort((a, b) => {
+    const priorityA = parseInt(a.storePriority?.toString() || '99');
+    const priorityB = parseInt(b.storePriority?.toString() || '99');
+    const priceA = parseFloat(a.price);
+    const priceB = parseFloat(b.price);
+    
+    // Primeiro critério: prioridade da loja
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB;
+    }
+    // Segundo critério: menor preço
+    return priceA - priceB;
+  });
+  
+  // Ordenar outras lojas apenas por preço
+  const sortedOthers = otherStores.sort((a, b) => {
+    const priceA = parseFloat(a.price);
+    const priceB = parseFloat(b.price);
+    return priceA - priceB;
+  });
+  
+  // Pegar até 5 resultados, priorizando lojas relevantes
+  const maxResults = 5;
+  let finalResults: InsertBrazilianPrice[] = [];
+  
+  // Primeiro, adicionar lojas relevantes (máximo 4 para deixar espaço para outras)
+  const relevantToAdd = Math.min(sortedRelevant.length, 4);
+  finalResults = [...sortedRelevant.slice(0, relevantToAdd)];
+  
+  // Completar com outras lojas se necessário
+  const remainingSlots = maxResults - finalResults.length;
+  if (remainingSlots > 0 && sortedOthers.length > 0) {
+    finalResults = [...finalResults, ...sortedOthers.slice(0, remainingSlots)];
+  }
+  
+  console.log(`🎯 Selecionados ${finalResults.length} melhores resultados`);
+  finalResults.forEach((result, index) => {
+    console.log(`${index + 1}. ${result.storeName} - R$ ${parseFloat(result.price).toFixed(2)} ${result.isRelevantStore ? '⭐' : ''}`);
+  });
+  
+  return finalResults;
+}
 
 // Função principal para buscar preços usando Google Shopping
 export async function scrapeBrazilianPrices(productName: string): Promise<InsertBrazilianPrice[]> {
@@ -181,8 +248,8 @@ export async function scrapeBrazilianPrices(productName: string): Promise<Insert
     
     console.log(`🎯 Total encontrado: ${convertedResults.length} produtos no Google Shopping Brasil`);
     
-    // Ordenar por preço (menor primeiro)
-    return convertedResults.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+    // Filtrar e limitar resultados
+    return filterAndLimitResults(convertedResults);
     
   } catch (error) {
     console.error('❌ Erro na busca do Google Shopping:', error);

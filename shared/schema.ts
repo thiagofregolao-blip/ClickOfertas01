@@ -798,10 +798,11 @@ export const brazilianPrices = pgTable("brazilian_prices", {
   storeName: varchar("store_name").notNull(), // Nome da loja brasileira
   storeUrl: text("store_url"), // URL base da loja
   productUrl: text("product_url").notNull(), // URL específica do produto
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(), // Preço em reais
+  price: text("price").notNull(), // Preço como string para compatibilidade
   currency: varchar("currency", { length: 3 }).default("BRL"),
   availability: varchar("availability").default("in_stock"), // in_stock, out_of_stock, limited
-  scrapedAt: timestamp("scraped_at").defaultNow(), // Quando foi coletado
+  storePriority: decimal("store_priority", { precision: 3, scale: 0 }).default("99"), // Prioridade da loja (1-99)
+  isRelevantStore: boolean("is_relevant_store").default(false), // Se é uma loja relevante
   isActive: boolean("is_active").default(true), // Se o preço ainda é válido
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -864,7 +865,6 @@ export const productSuggestionsRelations = relations(productSuggestions, ({ one 
 // Schemas Zod para validação
 export const insertBrazilianPriceSchema = createInsertSchema(brazilianPrices).omit({
   id: true,
-  scrapedAt: true,
   createdAt: true,
   updatedAt: true,
 });
