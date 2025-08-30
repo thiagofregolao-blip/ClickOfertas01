@@ -90,7 +90,7 @@ export default function PriceComparison() {
     setSelectedProduct(product.id);
     setSelectedProductForSearch(product);
     setSearchQuery(product.name);
-    setOpen(false);
+    setShowSuggestions(false);
     comparePricesMutation.mutate(product.id);
   };
 
