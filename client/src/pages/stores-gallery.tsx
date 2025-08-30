@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,7 +42,85 @@ export default function StoresGallery() {
   
   // Instagram Stories state
   const [viewingStory, setViewingStory] = useState<InstagramStoryWithDetails | null>(null);
+  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const progressRef = useRef(0);
   
+  const STORY_DURATION = 5000; // 5 segundos
+  
+  // Get all stories for current store
+  const currentStoreStories = useMemo(() => {
+    if (!viewingStory || !instagramStoriesGrouped) return [];
+    return instagramStoriesGrouped[viewingStory.storeId]?.stories || [];
+  }, [viewingStory, instagramStoriesGrouped]);
+
+  // Timer para progresso do story
+  useEffect(() => {
+    if (!viewingStory || isPaused) return;
+
+    // Reset progress
+    setProgress(0);
+    progressRef.current = 0;
+
+    // Clear previous timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+
+    // Start new timer
+    timerRef.current = setInterval(() => {
+      progressRef.current += (100 / (STORY_DURATION / 50));
+      setProgress(progressRef.current);
+      
+      if (progressRef.current >= 100) {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+        nextStory();
+      }
+    }, 50);
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [currentStoryIndex, viewingStory, isPaused]);
+
+  const nextStory = () => {
+    if (currentStoryIndex < currentStoreStories.length - 1) {
+      setCurrentStoryIndex(prev => prev + 1);
+    } else {
+      // Acabaram os stories da loja, fecha o modal
+      closeStoryModal();
+    }
+  };
+
+  const prevStory = () => {
+    if (currentStoryIndex > 0) {
+      setCurrentStoryIndex(prev => prev - 1);
+    }
+  };
+
+  const closeStoryModal = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    setViewingStory(null);
+    setCurrentStoryIndex(0);
+    setProgress(0);
+    setIsPaused(false);
+  };
+
+  const openStoryModal = (story: InstagramStoryWithDetails, index: number = 0) => {
+    setViewingStory(story);
+    setCurrentStoryIndex(index);
+    setProgress(0);
+    setIsPaused(false);
+  };
+
   // Fecha o menu do usuário quando clica fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -379,7 +457,7 @@ export default function StoresGallery() {
               <div 
                 key={storyStore.id} 
                 className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
-                onClick={() => setViewingStory(stories[0])} // Abrir primeiro story da loja
+                onClick={() => openStoryModal(stories[0], 0)} // Abrir primeiro story da loja
                 data-testid={`story-circle-${storyStore.slug}`}
               >
                 {/* Círculo da loja */}
@@ -476,24 +554,38 @@ export default function StoresGallery() {
       />
 
       {/* Instagram Story Viewer Modal */}
-      <Dialog open={!!viewingStory} onOpenChange={(open) => !open && setViewingStory(null)}>
-        <DialogContent className="p-0 max-w-sm mx-auto bg-black/90 border-0 rounded-3xl overflow-hidden">
-          {viewingStory && (
+      <Dialog open={!!viewingStory} onOpenChange={(open) => !open && closeStoryModal()}>
+        <DialogContent className="p-0 max-w-sm mx-auto bg-black border-0 rounded-3xl overflow-hidden">
+          {viewingStory && currentStoreStories[currentStoryIndex] && (
             <div className="relative aspect-[9/16] bg-black">
+              {/* Barra de Progresso */}
+              <div className="absolute top-2 left-2 right-2 z-30 flex gap-1">
+                {currentStoreStories.map((_, index) => (
+                  <div key={index} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-white transition-all duration-100 ease-linear rounded-full"
+                      style={{
+                        width: index < currentStoryIndex ? '100%' : 
+                               index === currentStoryIndex ? `${progress}%` : '0%'
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+
               {/* Mídia do Story */}
-              {viewingStory.mediaType === 'image' ? (
+              {currentStoreStories[currentStoryIndex].mediaType === 'image' ? (
                 <img
-                  src={viewingStory.mediaUrl}
-                  alt={viewingStory.productName || 'Story'}
+                  src={currentStoreStories[currentStoryIndex].mediaUrl}
+                  alt={currentStoreStories[currentStoryIndex].productName || 'Story'}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    // Fallback em caso de erro na imagem
                     e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600"><rect width="400" height="600" fill="%23666"/><text x="200" y="300" text-anchor="middle" fill="white" font-size="30">📷 Story</text></svg>';
                   }}
                 />
               ) : (
                 <video
-                  src={viewingStory.mediaUrl}
+                  src={currentStoreStories[currentStoryIndex].mediaUrl}
                   className="w-full h-full object-cover"
                   autoPlay
                   muted
@@ -502,38 +594,66 @@ export default function StoresGallery() {
               )}
               
               {/* Overlay superior com info da loja */}
-              <div className="absolute top-4 left-4 right-4 flex items-center gap-3">
+              <div className="absolute top-8 left-4 right-4 flex items-center gap-3 z-20">
                 <Avatar className="w-8 h-8 border-2 border-white">
-                  <AvatarImage src={viewingStory.store.logoUrl} alt={viewingStory.store.name} />
+                  <AvatarImage src={currentStoreStories[currentStoryIndex].store?.logoUrl || ''} alt={currentStoreStories[currentStoryIndex].store?.name || ''} />
                   <AvatarFallback className="text-xs">
-                    {viewingStory.store.name.charAt(0)}
+                    {currentStoreStories[currentStoryIndex].store?.name?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="text-white font-medium text-sm">{viewingStory.store.name}</p>
-                  <p className="text-white/70 text-xs">há {Math.round((Date.now() - new Date(viewingStory.createdAt).getTime()) / 3600000)}h</p>
+                  <p className="text-white font-medium text-sm">{currentStoreStories[currentStoryIndex].store?.name}</p>
+                  <p className="text-white/70 text-xs">há {Math.round((Date.now() - new Date(currentStoreStories[currentStoryIndex].createdAt || Date.now()).getTime()) / 3600000)}h</p>
                 </div>
+                <button
+                  onClick={closeStoryModal}
+                  className="text-white/70 hover:text-white p-1"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
               
               {/* Info do produto no centro */}
-              {viewingStory.isProductPromo && (
-                <div className="absolute bottom-20 left-4 right-4">
+              {currentStoreStories[currentStoryIndex].isProductPromo && (
+                <div className="absolute bottom-20 left-4 right-4 z-20">
                   <div className="bg-black/50 backdrop-blur-sm rounded-2xl p-4">
                     <h3 className="text-white font-bold text-lg mb-1">
-                      {viewingStory.productName}
+                      {currentStoreStories[currentStoryIndex].productName}
                     </h3>
-                    {viewingStory.productPrice && (
+                    {currentStoreStories[currentStoryIndex].productPrice && (
                       <div className="flex items-center gap-2">
-                        {viewingStory.productDiscountPrice && (
+                        {currentStoreStories[currentStoryIndex].productDiscountPrice && (
                           <span className="text-gray-300 line-through text-sm">
-                            {viewingStory.productPrice}
+                            {currentStoreStories[currentStoryIndex].productPrice}
                           </span>
                         )}
                         <span className="text-white font-bold text-xl">
-                          {viewingStory.productDiscountPrice || viewingStory.productPrice}
+                          {currentStoreStories[currentStoryIndex].productDiscountPrice || currentStoreStories[currentStoryIndex].productPrice}
                         </span>
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* Botões de navegação invisíveis */}
+              <button 
+                className="absolute top-0 left-0 w-1/2 h-full opacity-0 z-10"
+                onClick={prevStory}
+                disabled={currentStoryIndex === 0}
+                aria-label="Story anterior"
+              />
+              <button 
+                className="absolute top-0 right-0 w-1/2 h-full opacity-0 z-10"
+                onClick={nextStory}
+                aria-label="Próximo story"
+              />
+
+              {/* Pause overlay */}
+              {isPaused && (
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-30">
+                  <div className="text-white text-sm bg-black/50 px-3 py-1 rounded">
+                    Pausado
                   </div>
                 </div>
               )}
