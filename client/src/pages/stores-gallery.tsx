@@ -677,15 +677,15 @@ export default function StoresGallery() {
               
               {/* Overlay superior com info da loja */}
               <div className="absolute top-8 left-4 right-4 flex items-center gap-3 z-20">
-                <Avatar className="w-8 h-8 border-2 border-white">
+                <Avatar className="w-8 h-8 border-2 border-white" style={{filter: 'drop-shadow(1px 1px 3px rgba(0,0,0,0.7)) drop-shadow(-1px -1px 2px rgba(0,0,0,0.7))'}}>
                   <AvatarImage src={currentStoreStories[currentStoryIndex].store?.logoUrl || ''} alt={currentStoreStories[currentStoryIndex].store?.name || ''} />
                   <AvatarFallback className="text-xs">
                     {currentStoreStories[currentStoryIndex].store?.name?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="text-white font-bold text-sm" style={{textShadow: '2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.8), 1px -1px 2px rgba(0,0,0,0.8), -1px 1px 2px rgba(0,0,0,0.8)'}}>{currentStoreStories[currentStoryIndex].store?.name}</p>
-                  <p className="text-white font-bold text-xs" style={{textShadow: '2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.8), 1px -1px 2px rgba(0,0,0,0.8), -1px 1px 2px rgba(0,0,0,0.8)'}}>há {Math.round((Date.now() - new Date(currentStoreStories[currentStoryIndex].createdAt || Date.now()).getTime()) / 3600000)}h</p>
+                  <p className="text-white font-semibold text-sm" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7), -1px -1px 2px rgba(0,0,0,0.6), 1px -1px 2px rgba(0,0,0,0.6), -1px 1px 2px rgba(0,0,0,0.6)'}}>{currentStoreStories[currentStoryIndex].store?.name}</p>
+                  <p className="text-white font-medium text-xs" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7), -1px -1px 2px rgba(0,0,0,0.6), 1px -1px 2px rgba(0,0,0,0.6), -1px 1px 2px rgba(0,0,0,0.6)'}}>há {Math.round((Date.now() - new Date(currentStoreStories[currentStoryIndex].createdAt || Date.now()).getTime()) / 3600000)}h</p>
                 </div>
                 <button
                   onClick={closeStoryModal}
