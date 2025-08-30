@@ -2237,7 +2237,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const alertData = alertSchema.parse(req.body);
       const alert = await storage.createPriceAlert({
         ...alertData,
-        targetPrice: alertData.targetPrice.toString(),
         userId
       });
       
@@ -2277,18 +2276,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting price alert:", error);
       res.status(500).json({ message: "Erro ao deletar alerta" });
-    }
-  });
-
-  // Endpoint para verificar alertas manualmente (admin)
-  app.post('/api/price-alerts/check', async (req, res) => {
-    try {
-      const { checkPriceAlerts } = await import('./price-scraper');
-      await checkPriceAlerts();
-      res.json({ message: "Verificação de alertas concluída" });
-    } catch (error) {
-      console.error("Error checking price alerts:", error);
-      res.status(500).json({ message: "Erro na verificação de alertas" });
     }
   });
 

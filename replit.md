@@ -39,10 +39,7 @@ Click Ofertas Paraguai is built as a full-stack TypeScript application using Rea
 - **Flyer Generation**: Automatic layout generation and PNG download (html2canvas).
 - **Social Sharing**: Native sharing API.
 - **User Experience**: Instagram-style feed, intelligent search, category filtering, and real-time updates.
-- **Price Comparison System**: International price comparison between Paraguay and Brazil with Mercado Livre API integration.
-- **Price History Tracking**: Automatic historical price data collection and storage with visual timeline display.
-- **Price Alerts System**: User-configurable price alerts with automated monitoring and notifications.
-- **Advanced Features (Planned)**: Dynamic media (video) for products, automated price comparison within Paraguay, and enhanced travel cost calculator.
+- **Advanced Features (Planned)**: Dynamic media (video) for products, automated price comparison within Paraguay, and a revolutionary international price comparison system (Brazil vs. Paraguay) with a personalized travel cost calculator leveraging web scraping.
 
 ## External Dependencies
 

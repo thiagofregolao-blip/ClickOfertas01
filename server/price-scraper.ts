@@ -464,80 +464,16 @@ export async function savePriceHistory(brazilianPrices: InsertBrazilianPrice[]):
 // Função para buscar histórico de um produto específico
 export async function getPriceHistory(productName: string, days: number = 30): Promise<any[]> {
   try {
-    const { ilike, and, gte, desc } = await import('drizzle-orm');
-    
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - days);
-    
-    // Buscar todos os registros primeiro e filtrar em memória se necessário
-    const allHistory = await db.select()
+    const history = await db.select()
       .from(priceHistory)
-      .orderBy(desc(priceHistory.recordedAt))
-      .limit(1000); // Limitar a 1000 registros para performance
-    
-    // Filtrar por nome do produto em memória
-    const filteredHistory = allHistory.filter(record => 
-      record.productName.toLowerCase().includes(productName.toLowerCase()) &&
-      record.recordedAt >= cutoffDate
-    );
+      .where(sql`${priceHistory.productName} ILIKE ${`%${productName}%`}`)
+      .where(sql`${priceHistory.recordedAt} >= NOW() - INTERVAL '${days} days'`)
+      .orderBy(sql`${priceHistory.recordedAt} DESC`);
 
-    console.log(`📈 Histórico encontrado: ${filteredHistory.length} registros para "${productName}"`);
-    return filteredHistory;
+    console.log(`📈 Histórico encontrado: ${history.length} registros para "${productName}"`);
+    return history;
   } catch (error) {
     console.error('❌ Erro ao buscar histórico:', error);
     return [];
-  }
-}
-
-// Função para verificar alertas de preço e notificar usuários
-export async function checkPriceAlerts(): Promise<void> {
-  try {
-    const { priceAlerts } = await import('@shared/schema');
-    const { eq, and, lte } = await import('drizzle-orm');
-    
-    // Buscar alertas ativos
-    const activeAlerts = await db.select()
-      .from(priceAlerts)
-      .where(
-        and(
-          eq(priceAlerts.isActive, true),
-          sql`${priceAlerts.lastCheckedAt} IS NULL OR ${priceAlerts.lastCheckedAt} < NOW() - INTERVAL '1 hour'`
-        )
-      );
-
-    console.log(`🔔 Verificando ${activeAlerts.length} alertas de preço...`);
-
-    for (const alert of activeAlerts) {
-      try {
-        // Buscar preços atuais do produto
-        const currentPrices = await scrapeBrazilianPrices(alert.productName);
-        
-        // Verificar se algum preço atingiu o alerta
-        const triggeredPrices = currentPrices.filter(price => 
-          parseFloat(price.price) <= parseFloat(alert.targetPrice)
-        );
-
-        if (triggeredPrices.length > 0) {
-          console.log(`🎯 Alerta disparado para ${alert.productName} - preço encontrado: R$ ${triggeredPrices[0].price}`);
-          
-          // Atualizar último disparo do alerta
-          await db.update(priceAlerts)
-            .set({ 
-              lastNotifiedAt: new Date(),
-              lastCheckedAt: new Date()
-            })
-            .where(eq(priceAlerts.id, alert.id));
-        } else {
-          // Apenas atualizar última verificação
-          await db.update(priceAlerts)
-            .set({ lastCheckedAt: new Date() })
-            .where(eq(priceAlerts.id, alert.id));
-        }
-      } catch (error) {
-        console.error(`❌ Erro ao verificar alerta ${alert.id}:`, error);
-      }
-    }
-  } catch (error) {
-    console.error('❌ Erro na verificação de alertas:', error);
   }
 }
