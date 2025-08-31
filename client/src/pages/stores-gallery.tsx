@@ -388,9 +388,16 @@ export default function StoresGallery() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header Responsivo */}
-      <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95 bg-primary">
-        <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
+      {/* Header Responsivo - Estilo Bandeira do Paraguai */}
+      <div className="border-b sticky top-0 z-50 backdrop-blur-md">
+        {/* Três faixas da bandeira do Paraguai */}
+        <div className="relative">
+          <div className="h-2 bg-red-600"></div>
+          <div className="h-2 bg-white"></div>
+          <div className="h-2 bg-blue-600"></div>
+        </div>
+        <div className="bg-primary bg-opacity-95 backdrop-blur-md">
+          <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <img 
@@ -506,6 +513,7 @@ export default function StoresGallery() {
             </div>
           </div>
           
+          </div>
         </div>
       </div>
 
