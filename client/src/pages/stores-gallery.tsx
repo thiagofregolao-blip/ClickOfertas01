@@ -390,37 +390,43 @@ export default function StoresGallery() {
     <div className="min-h-screen bg-gray-100">
       {/* Header Responsivo - Estilo Bandeira do Paraguai */}
       <div className="border-b sticky top-0 z-50 backdrop-blur-md">
-        {/* Três faixas da bandeira do Paraguai */}
-        <div className="relative">
-          <div className="h-2 bg-red-600"></div>
-          <div className="h-2 bg-white"></div>
-          <div className="h-2 bg-blue-600"></div>
-        </div>
-        <div className="bg-primary bg-opacity-95 backdrop-blur-md">
-          <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
+        {/* Faixa Vermelha */}
+        <div className="bg-red-600 py-4">
+          <div className={`mx-auto px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
+            <div className="flex items-center justify-center">
               <img 
                 src={logoUrl} 
                 alt="Click Ofertas Paraguai" 
-                className="h-20 w-auto object-contain"
+                className="h-16 w-auto object-contain"
               />
             </div>
-            <div className="flex items-center gap-3">
-              {/* Botão de Comparação de Preços */}
+          </div>
+        </div>
+        
+        {/* Faixa Branca */}
+        <div className="bg-white py-3">
+          <div className={`mx-auto px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
+            <div className="flex items-center justify-center">
               <Link href="/price-comparison">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
+                  className="bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
                   data-testid="button-price-comparison"
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
                   {isMobile ? "Comparar" : "Comparar Preços"}
                 </Button>
               </Link>
+            </div>
+          </div>
+        </div>
+        
+        {/* Faixa Azul */}
+        <div className="bg-blue-600 py-3">
+          <div className={`mx-auto px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
+            <div className="flex items-center justify-center gap-3">
               {isAuthenticated ? (
-                // Usuário logado - mostrar informações e menu
                 <div className="relative">
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -434,7 +440,6 @@ export default function StoresGallery() {
                     <Settings className="w-4 h-4" />
                   </button>
                   
-                  {/* Menu dropdown do usuário */}
                   {isUserMenuOpen && (
                     <div className="user-dropdown-menu absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border py-2 z-50">
                       <button
@@ -493,7 +498,6 @@ export default function StoresGallery() {
                   )}
                 </div>
               ) : (
-                // Usuário não logado - mostrar botão entrar
                 <button
                   onClick={() => setIsLoginModalOpen(true)}
                   className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
@@ -511,8 +515,6 @@ export default function StoresGallery() {
                 Início
               </button>
             </div>
-          </div>
-          
           </div>
         </div>
       </div>
