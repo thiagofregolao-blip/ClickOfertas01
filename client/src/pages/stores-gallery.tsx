@@ -389,7 +389,7 @@ export default function StoresGallery() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header Responsivo */}
-      <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95 bg-blue-600">
+      <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95 bg-primary">
         <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -405,7 +405,7 @@ export default function StoresGallery() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="bg-white/20 border-white/30 text-white hover:bg-white/30 backdrop-blur-sm"
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
                   data-testid="button-price-comparison"
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
