@@ -955,14 +955,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId
       });
       
-      // Verify store ownership if storeId is provided
-      if (storyData.storeId) {
-        const isOwner = await verifyStoreOwnership(storyData.storeId, userId);
-        if (!isOwner) {
-          return res.status(403).json({ message: "Unauthorized: You can only create stories for your own store" });
-        }
-      }
-      
       const story = await storage.createInstagramStory(storyData);
       res.status(201).json(story);
     } catch (error) {
