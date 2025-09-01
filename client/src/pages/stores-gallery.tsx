@@ -399,6 +399,21 @@ export default function StoresGallery() {
               <span className="text-white font-bold text-xl">Ofertas.PY</span>
             </div>
             
+            {/* Botão de Comparação de Preços */}
+            <div className="flex items-center gap-3">
+              <Link href="/price-comparison">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
+                  data-testid="button-price-comparison"
+                >
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  {isMobile ? "Comparar" : "Comparar Preços"}
+                </Button>
+              </Link>
+            </div>
+            
             {/* Barra de Busca */}
             <div className="flex-1">
               <div className="relative">
@@ -426,18 +441,6 @@ export default function StoresGallery() {
           
           {/* Menu de Navegação */}
           <div className="flex items-center gap-3">
-            {/* Botão de Comparação de Preços */}
-            <Link href="/price-comparison">
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
-                data-testid="button-price-comparison"
-              >
-                <BarChart3 className="w-4 h-4 mr-2" />
-                {isMobile ? "Comparar" : "Comparar Preços"}
-              </Button>
-            </Link>
             
             {isAuthenticated ? (
               // Usuário logado - mostrar informações e menu
