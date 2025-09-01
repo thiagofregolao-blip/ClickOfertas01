@@ -389,7 +389,7 @@ export default function StoresGallery() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header Responsivo */}
-      <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95 bg-primary">
+      <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
         <div className={`mx-auto py-4 ${isMobile ? 'px-4 max-w-2xl' : 'px-12 max-w-6xl'}`}>
           {/* Logo e Barra de Busca na mesma linha */}
           <div className="flex items-center gap-4 mb-4">
