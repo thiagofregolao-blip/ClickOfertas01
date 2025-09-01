@@ -57,6 +57,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Smart redirect after login based on user type
+  app.get('/api/auth/redirect', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims?.sub || req.user.id;
+      const userStore = await storage.getUserStore(userId);
+      
+      if (userStore) {
+        // Usuário tem loja - redireciona para admin
+        res.redirect('/admin');
+      } else {
+        // Usuário normal - redireciona para cards
+        res.redirect('/cards');
+      }
+    } catch (error) {
+      console.error("Error in smart redirect:", error);
+      // Em caso de erro, redireciona para cards como fallback
+      res.redirect('/cards');
+    }
+  });
+
   // Update user profile route
   app.put('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
