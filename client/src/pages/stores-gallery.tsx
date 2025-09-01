@@ -20,6 +20,7 @@ import { useTypewriter } from "@/hooks/use-typewriter";
 import { LazyImage } from "@/components/lazy-image";
 import { SearchResultItem } from "@/components/search-result-item";
 import { StoreResultItem } from "@/components/store-result-item";
+import { BannerSection } from "@/components/BannerSection";
 import type { StoreWithProducts, Product, InstagramStoryWithDetails } from "@shared/schema";
 import logoUrl from '../assets/logo.jpg';
 
@@ -609,6 +610,9 @@ export default function StoresGallery() {
           
         </div>
       </div>
+
+      {/* SEÇÃO DE BANNERS - Apenas quando não há busca ativa */}
+      {!searchQuery.trim() && <BannerSection />}
 
       {/* NOVA BARRA DE INSTAGRAM STORIES - GLOBAL */}
       {!searchQuery.trim() && (

@@ -2297,6 +2297,190 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ========================
+  // ROTAS DOS BANNERS
+  // ========================
+
+  // Buscar banners ativos (público)
+  app.get('/api/banners/active', async (req, res) => {
+    try {
+      const banners = await storage.getAllActiveBanners();
+      res.json(banners);
+    } catch (error) {
+      console.error("Error fetching active banners:", error);
+      res.status(500).json({ message: "Erro ao buscar banners" });
+    }
+  });
+
+  // Registrar visualização de banner
+  app.post('/api/banners/view', async (req, res) => {
+    try {
+      const { bannerId } = req.body;
+      const userId = req.isAuthenticated() ? (req as any).user?.claims?.sub || (req as any).user?.id : undefined;
+      const userAgent = req.headers['user-agent'];
+      const ipAddress = req.ip || req.connection.remoteAddress;
+
+      await storage.recordBannerView(bannerId, userId, userAgent, ipAddress);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error recording banner view:", error);
+      res.status(500).json({ message: "Erro ao registrar visualização" });
+    }
+  });
+
+  // Registrar clique em banner
+  app.post('/api/banners/click', async (req, res) => {
+    try {
+      const { bannerId } = req.body;
+      const userId = req.isAuthenticated() ? (req as any).user?.claims?.sub || (req as any).user?.id : undefined;
+      const userAgent = req.headers['user-agent'];
+      const ipAddress = req.ip || req.connection.remoteAddress;
+
+      await storage.recordBannerClick(bannerId, userId, userAgent, ipAddress);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error recording banner click:", error);
+      res.status(500).json({ message: "Erro ao registrar clique" });
+    }
+  });
+
+  // ROTAS ADMINISTRATIVAS DE BANNERS (Super Admin apenas)
+  
+  // Middleware para verificar super admin
+  const isSuperAdmin = async (req: any, res: any, next: any) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const userId = req.user?.claims?.sub || req.user?.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ message: "Access denied - Super Admin required" });
+      }
+
+      next();
+    } catch (error) {
+      console.error("Error checking super admin:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  };
+
+  // Listar todos os banners (Super Admin)
+  app.get('/api/admin/banners', isAuthenticated, isSuperAdmin, async (req, res) => {
+    try {
+      const banners = await storage.getAllBanners();
+      res.json(banners);
+    } catch (error) {
+      console.error("Error fetching all banners:", error);
+      res.status(500).json({ message: "Erro ao buscar banners" });
+    }
+  });
+
+  // Buscar banner específico (Super Admin)
+  app.get('/api/admin/banners/:bannerId', isAuthenticated, isSuperAdmin, async (req, res) => {
+    try {
+      const { bannerId } = req.params;
+      const banner = await storage.getBanner(bannerId);
+      
+      if (!banner) {
+        return res.status(404).json({ message: "Banner não encontrado" });
+      }
+      
+      res.json(banner);
+    } catch (error) {
+      console.error("Error fetching banner:", error);
+      res.status(500).json({ message: "Erro ao buscar banner" });
+    }
+  });
+
+  // Criar banner (Super Admin)
+  app.post('/api/admin/banners', isAuthenticated, isSuperAdmin, async (req, res) => {
+    try {
+      const bannerSchema = z.object({
+        title: z.string().min(1, "Título é obrigatório"),
+        description: z.string().optional(),
+        imageUrl: z.string().url("URL da imagem inválida"),
+        linkUrl: z.string().url("URL do link inválida").optional(),
+        bannerType: z.enum(['rotating', 'static_left', 'static_right'], {
+          errorMap: () => ({ message: "Tipo de banner deve ser: rotating, static_left ou static_right" })
+        }),
+        priority: z.string().default("0"),
+        backgroundColor: z.string().default("#ffffff"),
+        textColor: z.string().default("#000000"),
+        startsAt: z.string().datetime().optional(),
+        endsAt: z.string().datetime().optional().nullable(),
+      });
+
+      const bannerData = bannerSchema.parse(req.body);
+      const banner = await storage.createBanner(bannerData);
+      
+      res.status(201).json(banner);
+    } catch (error) {
+      console.error("Error creating banner:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Erro ao criar banner" });
+    }
+  });
+
+  // Atualizar banner (Super Admin)
+  app.put('/api/admin/banners/:bannerId', isAuthenticated, isSuperAdmin, async (req, res) => {
+    try {
+      const { bannerId } = req.params;
+      
+      const bannerSchema = z.object({
+        title: z.string().min(1, "Título é obrigatório").optional(),
+        description: z.string().optional(),
+        imageUrl: z.string().url("URL da imagem inválida").optional(),
+        linkUrl: z.string().url("URL do link inválida").optional().nullable(),
+        bannerType: z.enum(['rotating', 'static_left', 'static_right']).optional(),
+        isActive: z.boolean().optional(),
+        priority: z.string().optional(),
+        backgroundColor: z.string().optional(),
+        textColor: z.string().optional(),
+        startsAt: z.string().datetime().optional(),
+        endsAt: z.string().datetime().optional().nullable(),
+      });
+
+      const updates = bannerSchema.parse(req.body);
+      const banner = await storage.updateBanner(bannerId, updates);
+      
+      if (!banner) {
+        return res.status(404).json({ message: "Banner não encontrado" });
+      }
+      
+      res.json(banner);
+    } catch (error) {
+      console.error("Error updating banner:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Erro ao atualizar banner" });
+    }
+  });
+
+  // Deletar banner (Super Admin)
+  app.delete('/api/admin/banners/:bannerId', isAuthenticated, isSuperAdmin, async (req, res) => {
+    try {
+      const { bannerId } = req.params;
+      
+      // Verificar se banner existe
+      const banner = await storage.getBanner(bannerId);
+      if (!banner) {
+        return res.status(404).json({ message: "Banner não encontrado" });
+      }
+      
+      await storage.deleteBanner(bannerId);
+      res.json({ message: "Banner deletado com sucesso" });
+    } catch (error) {
+      console.error("Error deleting banner:", error);
+      res.status(500).json({ message: "Erro ao deletar banner" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

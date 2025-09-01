@@ -43,6 +43,7 @@ export const users = pgTable("users", {
   providerId: varchar("provider_id"),
   isEmailVerified: boolean("is_email_verified").default(false),
   storeOwnerToken: varchar("store_owner_token"),
+  isSuperAdmin: boolean("is_super_admin").default(false), // Super admin do sistema
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -553,6 +554,57 @@ export const priceAlerts = pgTable("price_alerts", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Sistema de Banners
+export const banners = pgTable("banners", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url").notNull(),
+  linkUrl: text("link_url"), // URL para onde o banner leva quando clicado
+  
+  // Tipo do banner
+  bannerType: varchar("banner_type").notNull(), // 'rotating', 'static_left', 'static_right'
+  
+  // Controles de exibição
+  isActive: boolean("is_active").default(true),
+  priority: varchar("priority").default("0"), // Ordem de exibição (menor número = maior prioridade)
+  
+  // Configurações visuais
+  backgroundColor: varchar("background_color").default("#ffffff"),
+  textColor: varchar("text_color").default("#000000"),
+  
+  // Período de exibição
+  startsAt: timestamp("starts_at").defaultNow(),
+  endsAt: timestamp("ends_at"), // null = sem data de término
+  
+  // Estatísticas
+  viewsCount: varchar("views_count").default("0"),
+  clicksCount: varchar("clicks_count").default("0"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Visualizações dos banners
+export const bannerViews = pgTable("banner_views", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  bannerId: varchar("banner_id").notNull().references(() => banners.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  viewedAt: timestamp("viewed_at").defaultNow(),
+});
+
+// Cliques nos banners
+export const bannerClicks = pgTable("banner_clicks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  bannerId: varchar("banner_id").notNull().references(() => banners.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  clickedAt: timestamp("clicked_at").defaultNow(),
+});
+
 
 
 // Insert schemas
@@ -958,3 +1010,35 @@ export type PriceHistory = typeof priceHistory.$inferSelect;
 export type InsertPriceHistory = z.infer<typeof insertPriceHistorySchema>;
 export type PriceAlert = typeof priceAlerts.$inferSelect;
 export type InsertPriceAlert = z.infer<typeof insertPriceAlertSchema>;
+
+// Relations dos banners
+export const bannersRelations = relations(banners, ({ many }) => ({
+  views: many(bannerViews),
+  clicks: many(bannerClicks),
+}));
+
+export const bannerViewsRelations = relations(bannerViews, ({ one }) => ({
+  banner: one(banners, {
+    fields: [bannerViews.bannerId],
+    references: [banners.id],
+  }),
+}));
+
+export const bannerClicksRelations = relations(bannerClicks, ({ one }) => ({
+  banner: one(banners, {
+    fields: [bannerClicks.bannerId],
+    references: [banners.id],
+  }),
+}));
+
+// Banner schemas
+export const insertBannerSchema = createInsertSchema(banners).omit({
+  id: true,
+  viewsCount: true,
+  clicksCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertBanner = z.infer<typeof insertBannerSchema>;
+export type Banner = typeof banners.$inferSelect;

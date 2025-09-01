@@ -21,6 +21,7 @@ import StoriesFeed from "@/pages/stories-feed";
 import CreateStory from "@/pages/create-story";
 import PriceComparison from "@/pages/price-comparison";
 import SignupPage from "@/pages/signup";
+import SuperAdmin from "@/pages/super-admin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -46,6 +47,7 @@ function Router() {
         <Route path="/price-comparison" component={LoadingComponent} />
         <Route path="/flyer/:slug" component={PublicFlyer} />
         <Route path="/stores/:slug" component={PublicFlyer} />
+        <Route path="/super-admin" component={LoadingComponent} />
         <Route path="/admin" component={LoadingComponent} />
         <Route path="/admin/*" component={LoadingComponent} />
         <Route path="/settings" component={LoadingComponent} />
@@ -81,6 +83,7 @@ function Router() {
           <Route path="/admin/promotions" component={AdminPromotions} />
           <Route path="/admin/preview" component={AdminPreview} />
           <Route path="/admin/analytics" component={Analytics} />
+          <Route path="/super-admin" component={SuperAdmin} />
           <Route path="/cards" component={StoresGallery} />
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
@@ -104,6 +107,7 @@ function Router() {
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/my-coupons" component={MyCoupons} />
           <Route path="/coupon" component={CouponDetails} />
+          <Route path="/super-admin" component={SuperAdmin} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
           {/* Redireciona qualquer rota de admin para /cards */}

@@ -21,6 +21,9 @@ import {
   productSuggestions,
   priceHistory,
   priceAlerts,
+  banners,
+  bannerViews,
+  bannerClicks,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -79,6 +82,8 @@ import {
   type InsertPriceHistory,
   type PriceAlert,
   type InsertPriceAlert,
+  type Banner,
+  type InsertBanner,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, gte, lte, sql, inArray } from "drizzle-orm";
@@ -2312,6 +2317,103 @@ export class DatabaseStorage implements IStorage {
       .update(priceAlerts)
       .set({ isActive: false })
       .where(eq(priceAlerts.id, alertId));
+  }
+
+  // Banner operations
+  async getAllActiveBanners(): Promise<Banner[]> {
+    return await db
+      .select()
+      .from(banners)
+      .where(
+        and(
+          eq(banners.isActive, true),
+          sql`(${banners.endsAt} IS NULL OR ${banners.endsAt} > NOW())`
+        )
+      )
+      .orderBy(banners.priority, desc(banners.createdAt));
+  }
+
+  async getAllBanners(): Promise<Banner[]> {
+    return await db
+      .select()
+      .from(banners)
+      .orderBy(banners.priority, desc(banners.createdAt));
+  }
+
+  async getBanner(bannerId: string): Promise<Banner | undefined> {
+    const [banner] = await db
+      .select()
+      .from(banners)
+      .where(eq(banners.id, bannerId));
+    
+    return banner;
+  }
+
+  async createBanner(bannerData: InsertBanner): Promise<Banner> {
+    const [banner] = await db
+      .insert(banners)
+      .values(bannerData)
+      .returning();
+    
+    return banner;
+  }
+
+  async updateBanner(bannerId: string, updates: Partial<InsertBanner>): Promise<Banner | undefined> {
+    const [banner] = await db
+      .update(banners)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(banners.id, bannerId))
+      .returning();
+    
+    return banner;
+  }
+
+  async deleteBanner(bannerId: string): Promise<void> {
+    await db
+      .delete(banners)
+      .where(eq(banners.id, bannerId));
+  }
+
+  async recordBannerView(bannerId: string, userId?: string, userAgent?: string, ipAddress?: string): Promise<void> {
+    // Inserir view
+    await db
+      .insert(bannerViews)
+      .values({
+        bannerId,
+        userId,
+        userAgent,
+        ipAddress,
+      });
+
+    // Incrementar contador
+    await db
+      .update(banners)
+      .set({
+        viewsCount: sql`CAST(${banners.viewsCount} AS INTEGER) + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(banners.id, bannerId));
+  }
+
+  async recordBannerClick(bannerId: string, userId?: string, userAgent?: string, ipAddress?: string): Promise<void> {
+    // Inserir click
+    await db
+      .insert(bannerClicks)
+      .values({
+        bannerId,
+        userId,
+        userAgent,
+        ipAddress,
+      });
+
+    // Incrementar contador
+    await db
+      .update(banners)
+      .set({
+        clicksCount: sql`CAST(${banners.clicksCount} AS INTEGER) + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(banners.id, bannerId));
   }
 }
 
