@@ -93,7 +93,7 @@ export function BannerSection() {
             {staticLeftBanners[0] && (
               <StaticBanner 
                 banner={staticLeftBanners[0]} 
-                className="h-[calc(50%-0.25rem)] md:h-[calc(24rem/2-0.25rem)]" 
+                className="h-[calc(50%-0.25rem)]" 
               />
             )}
             
@@ -101,7 +101,7 @@ export function BannerSection() {
             {staticRightBanners[0] && (
               <StaticBanner 
                 banner={staticRightBanners[0]} 
-                className="h-[calc(50%-0.25rem)] md:h-[calc(24rem/2-0.25rem)]" 
+                className="h-[calc(50%-0.25rem)]" 
               />
             )}
           </div>
