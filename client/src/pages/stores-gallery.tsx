@@ -538,7 +538,7 @@ export default function StoresGallery() {
       {/* NOVA BARRA DE INSTAGRAM STORIES - GLOBAL */}
       {!searchQuery.trim() && (
         <div className="bg-white border-b">
-          <div className={`mx-auto py-6 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
+          <div className={`mx-auto py-6 px-4 ${isMobile ? 'max-w-full' : 'max-w-4xl'}`}>
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
               
               {/* Botão criar story (se autenticado) - PRIMEIRO */}
