@@ -122,6 +122,7 @@ export default function Landing() {
 
               {/* Botão de entrar */}
               <Button 
+                onClick={() => window.location.href = '/api/login'}
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base"
                 data-testid="button-login"
               >
