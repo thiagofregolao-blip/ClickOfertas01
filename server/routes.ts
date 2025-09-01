@@ -64,8 +64,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userStore = await storage.getUserStore(userId);
       
       if (userStore) {
-        // Usuário tem loja - redireciona para admin
-        res.redirect('/admin');
+        // Usuário tem loja - redireciona para cards (galeria)
+        res.redirect('/cards');
       } else {
         // Usuário normal - redireciona para cards
         res.redirect('/cards');
