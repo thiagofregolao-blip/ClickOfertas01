@@ -102,21 +102,36 @@ function createSmartSearchTerms(productName: string): string[] {
   const normalized = normalizeProductName(productName);
   const words = normalized.split(' ').filter(word => word.length > 2);
   
-  // Criar diferentes combinações de busca
-  const searchTerms = [
-    normalized, // Nome completo
-    words.slice(0, 3).join(' '), // Primeiras 3 palavras
-    words.slice(0, 2).join(' '), // Primeiras 2 palavras
-  ];
+  // Remover palavras muito genéricas
+  const stopWords = ['com', 'para', 'uso', 'geração', 'original', 'novo', 'usado'];
+  const filteredWords = words.filter(word => !stopWords.includes(word));
   
-  // Adicionar marca se detectada
-  const brands = ['apple', 'samsung', 'xiaomi', 'motorola', 'lg', 'sony', 'dell', 'hp', 'asus'];
-  const detectedBrand = words.find(word => brands.includes(word));
+  // Criar diferentes combinações de busca
+  const searchTerms = [];
+  
+  // Se tem marca conhecida, priorizar busca por marca + modelo
+  const brands = ['apple', 'samsung', 'xiaomi', 'motorola', 'lg', 'sony', 'dell', 'hp', 'asus', 'amazon', 'echo'];
+  const detectedBrand = filteredWords.find(word => brands.includes(word));
+  
   if (detectedBrand) {
-    searchTerms.push(detectedBrand);
+    // Buscar primeiro por marca + próximas palavras
+    const brandIndex = filteredWords.indexOf(detectedBrand);
+    const nextWords = filteredWords.slice(brandIndex, brandIndex + 3);
+    searchTerms.push(nextWords.join(' '));
+    searchTerms.push(detectedBrand); // Só a marca como fallback
   }
   
-  return Array.from(new Set(searchTerms)); // Remover duplicatas
+  // Buscar pelas primeiras palavras importantes
+  if (filteredWords.length >= 2) {
+    searchTerms.push(filteredWords.slice(0, 2).join(' '));
+  }
+  
+  // Se não encontrou nada útil, usar as primeiras palavras do original
+  if (searchTerms.length === 0) {
+    searchTerms.push(words.slice(0, 2).join(' '));
+  }
+  
+  return Array.from(new Set(searchTerms.filter(term => term.length > 0))); // Remover duplicatas e vazios
 }
 
 // Função para extrair marca e modelo do nome do produto
@@ -294,37 +309,25 @@ function filterAndLimitResults(results: InsertBrazilianPrice[]): InsertBrazilian
 // Função para buscar no Mercado Livre (API pública)
 async function searchMercadoLivre(productName: string): Promise<any[]> {
   try {
-    const clientId = process.env.MERCADOLIVRE_CLIENT_ID;
-    
     // Melhorar termos de busca para melhor precisão
     const searchTerms = createSmartSearchTerms(productName);
-    console.log(`🛒 Buscando no Mercado Livre: ${productName} ${clientId ? '(com Client ID)' : '(sem Client ID)'}`);
+    console.log(`🛒 Buscando no Mercado Livre: ${productName} (API pública)`);
     console.log(`🔍 Termos de busca: ${searchTerms.join(', ')}`);
     
     // Tentar diferentes termos de busca
     for (const searchTerm of searchTerms) {
-      // Usar API pública sem Client ID primeiro, depois tentar com Client ID se falhar
-      let url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(searchTerm)}&limit=20&condition=new`;
+      // Usar apenas API pública - mais confiável
+      const url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(searchTerm)}&limit=20`;
       
-      // Primeiro tentar sem Client ID (API pública)
-      let response = await fetch(url, {
+      console.log(`🔍 Testando: ${searchTerm}`);
+      
+      const response = await fetch(url, {
         headers: {
           'Accept': 'application/json',
-          'User-Agent': 'ClickOfertasParaguai/1.0'
-        }
+          'User-Agent': 'Mozilla/5.0 (compatible; ClickOfertasBot/1.0)'
+        },
+        timeout: 10000
       });
-      
-      // Se falhar e temos Client ID, tentar com Client ID
-      if (!response.ok && clientId) {
-        console.log(`🔄 Tentando com Client ID após erro ${response.status}...`);
-        url += `&client_id=${clientId}`;
-        response = await fetch(url, {
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'ClickOfertasParaguai/1.0'
-          }
-        });
-      }
       
       if (response.ok) {
         const data = await response.json();
@@ -345,12 +348,43 @@ async function searchMercadoLivre(productName: string): Promise<any[]> {
           }
         }
       } else {
-        console.log(`⚠️ Erro HTTP ${response.status} para termo: "${searchTerm}"`);
+        const errorText = await response.text();
+        console.log(`⚠️ Erro HTTP ${response.status} para termo: "${searchTerm}" - ${errorText.substring(0, 100)}`);
+      }
+    }
+    
+    // Se nenhum termo funcionou, tentar busca super simples como último recurso
+    console.log(`🔄 Tentando busca simples como último recurso...`);
+    const simpleSearch = productName.split(' ')[0]; // Primeira palavra apenas
+    const simpleUrl = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(simpleSearch)}&limit=10`;
+    
+    const simpleResponse = await fetch(simpleUrl, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; ClickOfertasBot/1.0)'
+      }
+    });
+    
+    if (simpleResponse.ok) {
+      const data = await simpleResponse.json();
+      const results = data.results || [];
+      console.log(`✅ Busca simples encontrou ${results.length} produtos`);
+      
+      if (results.length > 0) {
+        const filteredResults = results.filter((item: any) => {
+          const price = parseFloat(item.price || 0);
+          return price >= 50 && price <= 15000;
+        });
+        
+        if (filteredResults.length > 0) {
+          console.log(`✅ Produtos filtrados da busca simples: ${filteredResults.length}`);
+          return filteredResults;
+        }
       }
     }
     
     // Se nenhum termo funcionou, usar dados simulados mais realistas
-    console.log(`⚠️ Nenhum termo encontrou resultados válidos, usando dados simulados...`);
+    console.log(`⚠️ Todas as tentativas falharam, usando dados simulados mais realistas...`);
     return generateMercadoLivreSimulatedResults(productName);
   } catch (error) {
     console.error('❌ Erro ao buscar no Mercado Livre:', error);
