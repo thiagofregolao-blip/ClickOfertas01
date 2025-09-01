@@ -644,7 +644,7 @@ export default function StoresGallery() {
               
               {/* Stories à direita */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+                <div className="flex items-start gap-2 overflow-x-auto scrollbar-hide pt-4">
               
               {/* Botão criar story (se autenticado) - PRIMEIRO */}
               {isAuthenticated && (
@@ -654,7 +654,7 @@ export default function StoresGallery() {
                   data-testid="button-create-story"
                 >
                   <div className="relative">
-                    <div className="w-24 h-24 rounded-full border-2 border-dashed border-blue-500 p-1 hover:border-blue-600 transition-colors">
+                    <div className="w-16 h-16 rounded-full border-2 border-dashed border-blue-500 p-1 hover:border-blue-600 transition-colors">
                       <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
                         {user?.profileImageUrl ? (
                           <img 
@@ -696,7 +696,7 @@ export default function StoresGallery() {
                 >
                   {/* Círculo da loja */}
                   <div className="relative">
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
                       <div className="w-full h-full rounded-full overflow-hidden">
                         <Avatar className="w-full h-full">
                           <AvatarImage 
@@ -721,7 +721,7 @@ export default function StoresGallery() {
                   </div>
                   
                   {/* Nome da loja */}
-                  <div className="text-xs text-gray-600 max-w-[96px] text-center leading-tight truncate">
+                  <div className="text-xs text-gray-600 max-w-[64px] text-center leading-tight truncate">
                     {storyStore.name}
                   </div>
                 </div>
