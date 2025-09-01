@@ -423,22 +423,42 @@ export default function StoresGallery() {
               </div>
             </div>
 
-            {/* Botão de Comparação de Preços */}
-            <div className="flex items-center gap-3">
+            {/* Botão de Comparação de Preços - Desktop apenas */}
+            {!isMobile && (
+              <div className="flex items-center gap-3">
+                <Link href="/price-comparison">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-2 text-black font-semibold hover:opacity-90 backdrop-blur-sm"
+                    style={{ backgroundColor: '#FFE600', borderColor: '#FFE600' }}
+                    data-testid="button-price-comparison"
+                  >
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Comparar Preços
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+          
+          {/* Botão de Comparação de Preços - Mobile abaixo da barra de pesquisa */}
+          {isMobile && (
+            <div className="mb-4">
               <Link href="/price-comparison">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-2 text-black font-semibold hover:opacity-90 backdrop-blur-sm"
+                  className="w-full border-2 text-black font-semibold hover:opacity-90 backdrop-blur-sm"
                   style={{ backgroundColor: '#FFE600', borderColor: '#FFE600' }}
-                  data-testid="button-price-comparison"
+                  data-testid="button-price-comparison-mobile"
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
-                  {isMobile ? "Comparar" : "Comparar Preços"}
+                  Comparar Preços
                 </Button>
               </Link>
             </div>
-          </div>
+          )}
           
           {/* Menu de Navegação */}
           <div className="flex items-center gap-3">
