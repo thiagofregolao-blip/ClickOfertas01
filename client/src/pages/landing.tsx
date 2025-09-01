@@ -36,48 +36,48 @@ export default function Landing() {
       <div className="h-[70vh] sm:h-[80vh] lg:h-[85vh] relative overflow-hidden" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
 
         {/* Conteúdo promocional central */}
-        <div className="flex items-end justify-start h-full p-4 sm:p-8 lg:p-16 lg:pl-64 pb-16 sm:pb-24 lg:pb-32">
-          <div className="text-center text-white max-w-xs sm:max-w-lg">
+        <div className="flex items-center justify-start h-full p-4 sm:p-8 lg:p-16 lg:pl-16 pb-16 sm:pb-24 lg:pb-32">
+          <div className="text-left text-white max-w-sm sm:max-w-md lg:max-w-lg ml-4 sm:ml-8 lg:ml-16">
             {/* Título principal - Click Ofertas */}
-            <div className="mb-4 sm:mb-8">
-              <div className="text-3xl sm:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6">
+            <div className="mb-4 sm:mb-6">
+              <div className="text-2xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
                 <span className="block text-white drop-shadow-lg">Click Ofertas</span>
-                <span className="block text-yellow-300 text-xl sm:text-2xl lg:text-3xl font-semibold">Paraguai</span>
+                <span className="block text-yellow-300 text-lg sm:text-xl lg:text-2xl font-semibold">Paraguai</span>
               </div>
-              <div className="text-sm sm:text-lg lg:text-xl font-medium text-white/90 mb-4">
+              <div className="text-sm sm:text-base lg:text-lg font-medium text-white/90 mb-3">
                 Sua ponte para as melhores ofertas do Paraguai
               </div>
             </div>
 
             {/* Descrição do que somos */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8 border border-white/20">
-              <h3 className="text-lg sm:text-xl font-bold mb-3 text-yellow-300">Quem Somos</h3>
-              <p className="text-sm sm:text-base text-white/95 leading-relaxed mb-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6 border border-white/20">
+              <h3 className="text-base sm:text-lg font-bold mb-2 text-yellow-300">Quem Somos</h3>
+              <p className="text-xs sm:text-sm text-white/95 leading-relaxed mb-3">
                 Conectamos você às <strong>melhores lojas do Paraguai</strong> com ofertas exclusivas, 
                 cupons digitais e comparação de preços inteligente.
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-yellow-300 rounded-full"></div>
                   <span>Ofertas verificadas</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                <div className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-yellow-300 rounded-full"></div>
                   <span>Cupons exclusivos</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                <div className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-yellow-300 rounded-full"></div>
                   <span>Comparação BR vs PY</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                <div className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-yellow-300 rounded-full"></div>
                   <span>Lojas confiáveis</span>
                 </div>
               </div>
             </div>
 
             {/* Call to action */}
-            <div className="bg-yellow-400 text-gray-900 inline-block px-4 sm:px-8 py-2 sm:py-3 rounded-full font-bold text-sm sm:text-base shadow-lg">
+            <div className="bg-yellow-400 text-gray-900 inline-block px-3 sm:px-6 py-2 rounded-full font-bold text-xs sm:text-sm shadow-lg">
               ✨ Descubra ofertas incríveis agora!
             </div>
 
