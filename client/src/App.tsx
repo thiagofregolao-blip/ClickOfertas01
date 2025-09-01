@@ -90,7 +90,7 @@ function Router() {
           <Route path="/stores/:slug" component={PublicFlyer} />
         </>
       ) : (
-        // Usuário normal logado - galeria de lojas + stories
+        // Usuário normal logado - galeria de lojas + stories + criação de loja
         <>
           <Route path="/" component={StoresGallery} />
           <Route path="/cards" component={StoresGallery} />
@@ -102,6 +102,7 @@ function Router() {
           <Route path="/coupon" component={CouponDetails} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
+          <Route path="/create-store" component={AdminStoreConfig} />
           {/* Bloqueia acesso ao admin e criação de stories para usuários normais */}
           <Route path="/admin*" component={NotFound} />
           <Route path="/create-story" component={NotFound} />
