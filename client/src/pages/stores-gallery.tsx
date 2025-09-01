@@ -442,26 +442,8 @@ export default function StoresGallery() {
             )}
           </div>
           
-          {/* Botão de Comparação de Preços - Mobile abaixo da barra de pesquisa */}
-          {isMobile && (
-            <div className="mb-4">
-              <Link href="/price-comparison">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full border-2 text-black font-semibold hover:opacity-90 backdrop-blur-sm"
-                  style={{ backgroundColor: '#FFE600', borderColor: '#FFE600' }}
-                  data-testid="button-price-comparison-mobile"
-                >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Comparar Preços
-                </Button>
-              </Link>
-            </div>
-          )}
-          
           {/* Menu de Navegação */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-3">
             
             {isAuthenticated ? (
               // Usuário logado - diferentes layouts para mobile e desktop
@@ -604,13 +586,22 @@ export default function StoresGallery() {
                 Entrar
               </button>
             )}
-            
-            <button
-              onClick={() => window.location.href = '/'}
-              className="text-white hover:text-gray-200 font-medium"
-            >
-              Início
-            </button>
+
+            {/* Botão de Comparação de Preços - Mobile na mesma linha da saudação */}
+            {isMobile && (
+              <Link href="/price-comparison">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-2 text-black font-semibold hover:opacity-90 backdrop-blur-sm"
+                  style={{ backgroundColor: '#FFE600', borderColor: '#FFE600' }}
+                  data-testid="button-price-comparison-mobile"
+                >
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Comparar
+                </Button>
+              </Link>
+            )}
           </div>
           
         </div>
