@@ -33,162 +33,269 @@ export default function Landing() {
       </div>
 
       {/* Área Promocional de fundo (estilo Shopee) */}
-      <div className="h-[70vh] sm:h-[80vh] lg:h-[85vh] relative overflow-hidden" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
-
-        {/* Conteúdo promocional central */}
-        <div className="flex items-center justify-start h-full p-4 sm:p-8 lg:p-16 lg:pl-16 pb-16 sm:pb-24 lg:pb-32">
-          <div className="text-left text-white max-w-sm sm:max-w-md lg:max-w-lg ml-4 sm:ml-8 lg:ml-16">
-            {/* Título principal - Click Ofertas */}
-            <div className="mb-4 sm:mb-6">
-              <div className="text-2xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
-                <span className="block text-white drop-shadow-lg">Click Ofertas</span>
-                <span className="block text-yellow-300 text-lg sm:text-xl lg:text-2xl font-semibold">Paraguai</span>
-              </div>
-              <div className="text-sm sm:text-base lg:text-lg font-medium text-white/90 mb-3">
-                Sua ponte para as melhores ofertas do Paraguai
-              </div>
-            </div>
-
-            {/* Descrição do que somos */}
-            <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 border border-white/20">
-              <h3 className="text-lg sm:text-xl font-bold mb-3 text-yellow-300">Quem Somos</h3>
-              <p className="text-sm sm:text-base text-white/95 leading-relaxed mb-4">
-                Conectamos você às <strong>melhores lojas do Paraguai</strong> com ofertas exclusivas, 
-                cupons digitais e comparação de preços inteligente.
-              </p>
-              <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
-                  <span>Ofertas verificadas</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
-                  <span>Cupons exclusivos</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
-                  <span>Comparação BR vs PY</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
-                  <span>Lojas confiáveis</span>
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#F04940] to-[#FA7D22] min-h-screen">
+        <div className="absolute inset-0 bg-black/20"></div>
+        
+        {/* Layout Mobile vs Desktop */}
+        <div className="relative z-10 w-full h-full">
+          {/* Mobile Layout */}
+          <div className="block lg:hidden">
+            <div className="flex flex-col min-h-screen">
+              {/* Header com logo */}
+              <div className="p-6 pt-12">
+                <div className="text-center text-white">
+                  <h1 className="text-3xl font-bold mb-2">Click Ofertas</h1>
+                  <p className="text-white/90 text-sm">Paraguai</p>
                 </div>
               </div>
+
+              {/* Conteúdo principal mobile */}
+              <div className="flex-1 flex flex-col justify-center px-6">
+                <div className="text-center text-white mb-8">
+                  <h2 className="text-2xl font-bold mb-4 leading-tight">
+                    Descubra as melhores{" "}
+                    <span className="text-yellow-300">ofertas</span>{" "}
+                    do Paraguai
+                  </h2>
+                  <p className="text-white/90 text-sm mb-6">
+                    Conectamos você às melhores lojas com ofertas exclusivas e cupons digitais
+                  </p>
+                </div>
+
+                {/* Cards de benefícios */}
+                <div className="grid grid-cols-2 gap-3 mb-8">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                    <div className="w-8 h-8 bg-yellow-300 rounded-full mb-2 flex items-center justify-center">
+                      <ShoppingBag className="w-4 h-4 text-gray-900" />
+                    </div>
+                    <p className="text-white text-xs font-medium">Ofertas verificadas</p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                    <div className="w-8 h-8 bg-yellow-300 rounded-full mb-2 flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4 text-gray-900" />
+                    </div>
+                    <p className="text-white text-xs font-medium">Cupons exclusivos</p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                    <div className="w-8 h-8 bg-yellow-300 rounded-full mb-2 flex items-center justify-center">
+                      <Globe className="w-4 h-4 text-gray-900" />
+                    </div>
+                    <p className="text-white text-xs font-medium">BR vs PY</p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                    <div className="w-8 h-8 bg-yellow-300 rounded-full mb-2 flex items-center justify-center">
+                      <Users className="w-4 h-4 text-gray-900" />
+                    </div>
+                    <p className="text-white text-xs font-medium">Lojas confiáveis</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Formulário de login mobile */}
+              <div className="px-6 pb-8">
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl">
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">Entre agora</h3>
+                    <p className="text-gray-600 text-sm">Acesse as melhores ofertas</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Botão principal de login */}
+                    <Button 
+                      onClick={() => window.location.href = '/api/login'}
+                      className="w-full bg-gradient-to-r from-[#F04940] to-[#FA7D22] hover:from-[#E03A32] hover:to-[#E96D1D] text-white py-4 rounded-xl font-semibold text-base shadow-lg"
+                      data-testid="button-login"
+                    >
+                      <Globe className="w-5 h-5 mr-2" />
+                      Entrar com Google
+                    </Button>
+
+                    {/* Divisor */}
+                    <div className="relative my-4">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-300"></div>
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-3 bg-white text-gray-500">ou</span>
+                      </div>
+                    </div>
+
+                    {/* Botão Facebook */}
+                    <Button 
+                      variant="outline"
+                      className="w-full border-2 border-blue-100 py-4 rounded-xl font-semibold flex items-center justify-center space-x-3 text-base bg-blue-50 hover:bg-blue-100"
+                      data-testid="button-facebook"
+                    >
+                      <div className="w-5 h-5 bg-blue-600 rounded-full"></div>
+                      <span className="text-blue-700">Entrar com Facebook</span>
+                    </Button>
+
+                    {/* Link para cadastro */}
+                    <div className="text-center mt-6 pt-4 border-t border-gray-200">
+                      <span className="text-gray-600 text-sm">Novo por aqui? </span>
+                      <Button 
+                        variant="link" 
+                        onClick={() => window.location.href = '/signup'}
+                        className="p-0 h-auto text-[#F04940] font-semibold text-sm"
+                        data-testid="button-signup"
+                      >
+                        Criar conta grátis
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden lg:flex items-center justify-start h-full p-16 lg:pl-16 pb-32">
+            {/* Conteúdo do lado esquerdo */}
+            <div className="text-left text-white max-w-lg ml-16">
+              <div className="mb-12">
+                <h1 className="text-6xl font-bold mb-6 leading-tight">
+                  Descubra as melhores{" "}
+                  <span className="text-yellow-300">ofertas</span>{" "}
+                  do Paraguai
+                </h1>
+                <div className="text-xl text-white/90 font-medium">
+                  Sua ponte para as melhores ofertas do Paraguai
+                </div>
+              </div>
+
+              {/* Descrição do que somos */}
+              <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-white/20">
+                <h3 className="text-xl font-bold mb-3 text-yellow-300">Quem Somos</h3>
+                <p className="text-base text-white/95 leading-relaxed mb-4">
+                  Conectamos você às <strong>melhores lojas do Paraguai</strong> com ofertas exclusivas, 
+                  cupons digitais e comparação de preços inteligente.
+                </p>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                    <span>Ofertas verificadas</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                    <span>Cupons exclusivos</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                    <span>Comparação BR vs PY</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                    <span>Lojas confiáveis</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Call to action */}
+              <div className="bg-yellow-400 text-gray-900 inline-block px-6 py-2 rounded-full font-bold text-sm shadow-lg">
+                ✨ Descubra ofertas incríveis agora!
+              </div>
+
+              {/* Elementos decorativos */}
+              <div className="absolute top-20 left-10 opacity-20">
+                <ShoppingBag className="w-16 h-16" />
+              </div>
+              <div className="absolute bottom-20 right-10 opacity-20">
+                <TrendingUp className="w-20 h-20" />
+              </div>
+              <div className="absolute top-1/3 right-20 opacity-20">
+                <Users className="w-12 h-12" />
+              </div>
             </div>
 
-            {/* Call to action */}
-            <div className="bg-yellow-400 text-gray-900 inline-block px-3 sm:px-6 py-2 rounded-full font-bold text-xs sm:text-sm shadow-lg">
-              ✨ Descubra ofertas incríveis agora!
-            </div>
+            {/* Formulário de Login Desktop */}
+            <div className="absolute top-1/2 right-48 transform -translate-y-1/2 w-96 bg-white rounded-xl shadow-2xl p-8">
+              <div className="w-full">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Entre</h2>
+                </div>
 
-            {/* Elementos decorativos */}
-            <div className="absolute top-10 sm:top-20 left-5 sm:left-10 opacity-20 hidden sm:block">
-              <ShoppingBag className="w-12 sm:w-16 h-12 sm:h-16" />
-            </div>
-            <div className="absolute bottom-10 sm:bottom-20 right-5 sm:right-10 opacity-20 hidden sm:block">
-              <TrendingUp className="w-16 sm:w-20 h-16 sm:h-20" />
-            </div>
-            <div className="absolute top-1/3 right-10 sm:right-20 opacity-20 hidden lg:block">
-              <Users className="w-10 sm:w-12 h-10 sm:h-12" />
+                <div className="space-y-4">
+                  <div>
+                    <Input 
+                      placeholder="Email/Telefone/Usuário"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
+                      data-testid="input-login-desktop"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Input 
+                      type="password"
+                      placeholder="Senha"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
+                      data-testid="input-password-desktop"
+                    />
+                  </div>
+
+                  <Button 
+                    onClick={() => window.location.href = '/api/login'}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium text-base"
+                    data-testid="button-login-desktop"
+                  >
+                    ENTRE
+                  </Button>
+
+                  <div className="flex flex-row justify-between text-sm">
+                    <Button variant="link" className="p-0 h-auto text-orange-500 text-left">
+                      Esqueci minha senha
+                    </Button>
+                    <Button variant="link" className="p-0 h-auto text-orange-500 text-right">
+                      Login com SMS
+                    </Button>
+                  </div>
+
+                  <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white text-gray-500">OU</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Button 
+                      variant="outline"
+                      className="w-full border-gray-300 py-3 rounded-lg font-medium flex items-center justify-center space-x-2 text-base"
+                      data-testid="button-facebook-desktop"
+                    >
+                      <div className="w-5 h-5 bg-blue-600 rounded"></div>
+                      <span>Facebook</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="outline"
+                      onClick={() => window.location.href = '/api/login'}
+                      className="w-full border-gray-300 py-3 rounded-lg font-medium flex items-center justify-center space-x-2 text-base"
+                      data-testid="button-google-desktop"
+                    >
+                      <Globe className="w-5 h-5 text-red-500" />
+                      <span>Google</span>
+                    </Button>
+                  </div>
+
+                  <div className="text-center mt-6">
+                    <span className="text-gray-600 text-sm">Novo na Click Ofertas? </span>
+                    <Button 
+                      variant="link" 
+                      onClick={() => window.location.href = '/signup'}
+                      className="p-0 h-auto text-orange-500 font-medium text-sm"
+                      data-testid="button-signup-desktop"
+                    >
+                      Cadastrar
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Formulário de Login Sobreposto */}
-        <div className="absolute top-1/2 right-2 sm:right-4 lg:right-48 transform -translate-y-1/2 w-64 sm:w-80 lg:w-96 bg-white rounded-xl shadow-2xl p-3 sm:p-6 lg:p-8">
-          <div className="w-full">
-            {/* Título do formulário */}
-            <div className="mb-3 sm:mb-6">
-              <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2">Entre</h2>
-            </div>
-
-            {/* Formulário */}
-            <div className="space-y-3 sm:space-y-4">
-              {/* Campo de usuário/email */}
-              <div>
-                <Input 
-                  placeholder="Email/Telefone/Usuário"
-                  className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-xs sm:text-base"
-                  data-testid="input-login"
-                />
-              </div>
-
-              {/* Campo de senha */}
-              <div className="relative">
-                <Input 
-                  type="password"
-                  placeholder="Senha"
-                  className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-xs sm:text-base"
-                  data-testid="input-password"
-                />
-              </div>
-
-              {/* Botão de entrar */}
-              <Button 
-                onClick={() => window.location.href = '/api/login'}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 sm:py-3 rounded-lg font-medium text-xs sm:text-base"
-                data-testid="button-login"
-              >
-                ENTRE
-              </Button>
-
-              {/* Links auxiliares */}
-              <div className="flex flex-col sm:flex-row justify-between text-xs sm:text-sm space-y-1 sm:space-y-0">
-                <Button variant="link" className="p-0 h-auto text-orange-500 text-left">
-                  Esqueci minha senha
-                </Button>
-                <Button variant="link" className="p-0 h-auto text-orange-500 text-left sm:text-right">
-                  Login com SMS
-                </Button>
-              </div>
-
-              {/* Divisor */}
-              <div className="relative my-3 sm:my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
-                </div>
-                <div className="relative flex justify-center text-xs sm:text-sm">
-                  <span className="px-2 bg-white text-gray-500">OU</span>
-                </div>
-              </div>
-
-              {/* Botões de login social */}
-              <div className="space-y-2">
-                <Button 
-                  variant="outline"
-                  className="w-full border-gray-300 py-2 sm:py-3 rounded-lg font-medium flex items-center justify-center space-x-2 text-xs sm:text-base"
-                  data-testid="button-facebook"
-                >
-                  <div className="w-3 sm:w-5 h-3 sm:h-5 bg-blue-600 rounded"></div>
-                  <span>Facebook</span>
-                </Button>
-                
-                <Button 
-                  variant="outline"
-                  onClick={() => window.location.href = '/api/login'}
-                  className="w-full border-gray-300 py-2 sm:py-3 rounded-lg font-medium flex items-center justify-center space-x-2 text-xs sm:text-base"
-                  data-testid="button-google"
-                >
-                  <Globe className="w-3 sm:w-5 h-3 sm:h-5 text-red-500" />
-                  <span>Google</span>
-                </Button>
-              </div>
-
-              {/* Link para cadastro */}
-              <div className="text-center mt-3 sm:mt-6">
-                <span className="text-gray-600 text-xs sm:text-sm">Novo na Click Ofertas? </span>
-                <Button 
-                  variant="link" 
-                  onClick={() => window.location.href = '/signup'}
-                  className="p-0 h-auto text-orange-500 font-medium text-xs sm:text-sm"
-                  data-testid="button-signup"
-                >
-                  Cadastrar
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Rodapé estilo Shopee */}
