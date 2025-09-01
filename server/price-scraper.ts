@@ -110,7 +110,7 @@ function createSmartSearchTerms(productName: string): string[] {
   const searchTerms = [];
   
   // Se tem marca conhecida, priorizar busca por marca + modelo
-  const brands = ['apple', 'samsung', 'xiaomi', 'motorola', 'lg', 'sony', 'dell', 'hp', 'asus', 'amazon', 'echo'];
+  const brands = ['apple', 'samsung', 'xiaomi', 'motorola', 'lg', 'sony', 'dell', 'hp', 'asus', 'amazon', 'echo', 'iphone'];
   const detectedBrand = filteredWords.find(word => brands.includes(word));
   
   if (detectedBrand) {
@@ -341,26 +341,30 @@ async function searchGoogleShopping(productName: string): Promise<any[]> {
           const results = data.shopping_results || [];
           
           if (results.length > 0) {
-            // Filtrar e processar resultados
+            // Filtrar e processar resultados com base na estrutura real do SerpAPI
             const validResults = results
               .filter((item: any) => {
-                const price = parseFloat(item.price?.replace(/[^\d.,]/g, '').replace(',', '.') || '0');
-                const isValidPrice = price >= 50 && price <= 15000;
+                // Usar extracted_price se disponível, senão extrair do campo price
+                const price = item.extracted_price || parseFloat(item.price?.replace(/[^\d.,]/g, '').replace(',', '.') || '0');
+                const isValidPrice = price >= 50 && price <= 25000; // Aumentar limite para produtos caros como iPhone
                 const hasValidTitle = item.title && item.title.length > 5;
-                const hasValidSource = item.source && item.link;
+                const hasValidSource = item.source;
+                
+                // Log para debug
+                console.log(`🔍 Produto: ${item.title?.substring(0, 30)}... - R$ ${price} - Válido: ${isValidPrice && hasValidTitle && hasValidSource}`);
                 
                 return isValidPrice && hasValidTitle && hasValidSource;
               })
               .map((item: any) => {
-                // Normalizar dados para o formato esperado
-                const price = parseFloat(item.price?.replace(/[^\d.,]/g, '').replace(',', '.') || '0');
+                // Usar extracted_price se disponível, senão extrair do campo price
+                const price = item.extracted_price || parseFloat(item.price?.replace(/[^\d.,]/g, '').replace(',', '.') || '0');
                 return {
                   id: item.product_id || `gs_${Date.now()}_${Math.random()}`,
                   title: item.title,
                   price: price,
                   currency: 'BRL',
                   source: item.source,
-                  link: item.link,
+                  link: item.product_link || '#', // Usar product_link para melhor experiência
                   thumbnail: item.thumbnail,
                   rating: item.rating,
                   reviews: item.reviews,

@@ -1,0 +1,2852 @@
+
+Google Shopping API
+API uptime
+99.446%
+The Google Shopping Results API allows a user to scrape the results of a Google Shopping search.
+
+The API is accessed through the following endpoint: /search?engine=google_shopping.
+
+You can query: https://serpapi.com/search?engine=google_shopping&q=coffee utilizing a GET request. Head to the playground for a live and interactive demo.
+
+Iphone 16 pro max
+
+Brazil
+Search
+
+
+Tools
+Find...
+HTML size:
+
+JSON size:
+
+Show X-Ray borders:
+
+Show JSON path:
+
+Show raw JSON:
+
+Collapse JSON tree:
+Reset settings
+Collapse / Expand
+JSON
+CTRL + 
+Copy JSON path:
+ALT + 
+{
+"search_metadata":
+{
+"id":
+"68b5a91e4fa3ba035612eeeb",
+"status":
+"Success",
+"json_endpoint":
+"https://serpapi.com/searches/d72ee79d8c00fe8b/68b5a91e4fa3ba035612eeeb.json",
+"created_at":
+"2025-09-01 14:09:34 UTC",
+"processed_at":
+"2025-09-01 14:09:34 UTC",
+"google_shopping_url":
+"https://www.google.com.br/search?udm=28&q=Iphone+16+pro+max&uule=w+CAIQICIGQnJhemls&hl=pt&gl=br",
+"raw_html_file":
+"https://serpapi.com/searches/d72ee79d8c00fe8b/68b5a91e4fa3ba035612eeeb.html",
+"total_time_taken":
+0.85
+},
+"search_parameters":
+{
+"engine":
+"google_shopping",
+"q":
+"Iphone 16 pro max",
+"location_requested":
+"Brazil",
+"location_used":
+"Brazil",
+"google_domain":
+"google.com.br",
+"hl":
+"pt",
+"gl":
+"br",
+"device":
+"desktop"
+},
+"search_information":
+{
+"query_displayed":
+"Iphone 16 pro max",
+"total_results":
+271,
+"time_taken_displayed":
+0.26,
+"shopping_results_state":
+"Results for exact spelling"
+},
+"shopping_results":
+[
+{
+"position":
+1,
+"title":
+"Apple iPhone 16 Pro Max",
+"product_link":
+"https://www.google.com.br/shopping/product/6438889202121218959?gl=br",
+"product_id":
+"6438889202121218959",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=6438889202121218959",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiIiwiY2F0YWxvZ2lkIjoiNjQzODg4OTIwMjEyMTIxODk1OSIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjEyNjU2MDg5NjcxNTU5OTAyOTgwIiwiaW1hZ2VEb2NpZCI6IjEwMTg3MTAwODMwMjUyMTE5MDMwIiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiI1OTQ3NjY3OTU5Njc0NDI3OTkwIiwibWlkIjoiNTc2NDYyNDkyODQ5NjkyODY4IiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ==",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiIiwiY2F0YWxvZ2lkIjoiNjQzODg4OTIwMjEyMTIxODk1OSIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjEyNjU2MDg5NjcxNTU5OTAyOTgwIiwiaW1hZ2VEb2NpZCI6IjEwMTg3MTAwODMwMjUyMTE5MDMwIiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiI1OTQ3NjY3OTU5Njc0NDI3OTkwIiwibWlkIjoiNTc2NDYyNDkyODQ5NjkyODY4IiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ%3D%3D",
+"source":
+"Amazon.com.br - Retail",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a37653ccf194207de21ced5a34663d845debaa.png",
+"multiple_sources":
+true,
+"price":
+"R$ 8.908,20 agora",
+"extracted_price":
+8908.2,
+"installment":
+{
+"price":
+"R$ 804,74/mês",
+"extracted_price":
+804.74,
+"period":
+12
+},
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRwKOvg5ankEfB5W7mFPN_UWruSoZXYRUKEOKf5-XDGQPbxpgQSx7qQjW0dEhbhqwZc6SBmt-rTSkLamNxft8ValJOy_wmYEi8Jb6dmbNRXmaiAMYh655Py",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/OcoLy3icDclJDoIwAADAFwHGpIAkxmBEElBWkeVC2rIUsVCgCnzK__gbnet8P4RzNmmSVHZ4XBkvC4GjbivWE4e8wSLuqTSRnrGmqw_D_n-a7hQ7Ewez7b5rALvWqI4gVujZc_IoHl9hnyVpENmGa1dASE6m76GF1X64KIP_iDeFQRAZ5gzL4ZFyYbyF7QVSZ6m4eodPy13zmaZGo1pILihygoTCRr-mRAbAW39ZmT7r",
+"thumbnails":
+[
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRwKOvg5ankEfB5W7mFPN_UWruSoZXYRUKEOKf5-XDGQPbxpgQSx7qQjW0dEhbhqwZc6SBmt-rTSkLamNxft8ValJOy_wmYEi8Jb6dmbNRXmaiAMYh655Py",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRIdIdv6nhlpOP2au9uz-soGw0KE1K7qO8wYM8IGhlQKdMF7AnuxOJPajmON3krqoEGa2u5mmJ36Tm7zJRVJueVr8--3KWMVXRM7Fe8zo0",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRBM-Sqq4WLbjMU1x-MnTcsRTdweNJMRquscOeOSWbOuffmVj6yUUJUTm18nc4z0n8D3of9ieX5mJ1m8n12z2cCWd0azQZg3quVx7dX715moGKUCMv9UsR4",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTwnv7TcB7XeeYLY0jKO_o-1BIFY7V9iz6V22skamKgVexV42Tj_8J3h8o3kQrYVxXyl8vppQlFnRsPRI67Mw27FTUqe754UW0gHFQHFbs",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcTaX9-iVzKE49iI0ENqpN_suvX_OCAuU761NsbsQ9f2niq20eSHhzyuvJiUqaOrDDhw2xH7BMjkH7gTxBwOO-HKWjL6WKQ_tktsAZWZ5uK3"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/OcoLy3icDclJDoIwAADAFwHGpIAkxmBEElBWkeVC2rIUsVCgCnzK__gbnet8P4RzNmmSVHZ4XBkvC4GjbivWE4e8wSLuqTSRnrGmqw_D_n-a7hQ7Ewez7b5rALvWqI4gVujZc_IoHl9hnyVpENmGa1dASE6m76GF1X64KIP_iDeFQRAZ5gzL4ZFyYbyF7QVSZ6m4eodPy13zmaZGo1pILihygoTCRr-mRAbAW39ZmT7r",
+"https://serpapi.com/images/url/ADKL7XicDclJDoIwAADAF7EIkS0xhgM00LBIDOqxtoSidAFaF37js_yNznW-H6qUXCLL6jie31J1xFBX7pj9opAasIkFsxYqpBx4v592_4vikoQANxnJyMPjdJRV7SAd6tVYBHjaMNlAf6qC56UIMkDHAyRF6sdcv6q8RjdWle59nkQCkKO3jOWud2T-mjdtrrt2DgzDhaeiPTeFn3bBKuwfD7040Q",
+"https://serpapi.com/images/url/zvjpI3icDcnbCoIwAADQL1KbWl4gogsI1pTMqfSW27zBpmuz1I_qf_qbOq_n-2mUGqRvGJTj5zwoSjRVckuvpXqoFuu4Z4Zs-mFoeb0T2__5-4h4AU4OULsJYeeXsoMITBrkKZZJSt40CmEiRoljGt_yMh6rimXdZkYoRCkDLsf2suLuyeorr6XFmoWAuRyYi4mPOVk9luu9tsSYTQ4pHLBmfXBGR_jykEzsHzXHPbU",
+"https://serpapi.com/images/url/hYAzmHicDclJDoIwAADAFwlYkYKJMXKoIG4YqHAiUBr2UmiD6G98lr_Ruc73U0rJxUZVKSPji0uaL2TGgFIImcqKKKTvVFH2nFes2A3b_232l9w6kODJJhgQG0aUxqdYq71r0i-WtotiiK3qbWAARJN2XoHpjHUQ1Il5XJVmv2r8McZz9GrNiXO_RewubnfXgOcngCgIBwrXevjQCgf5DsrED-07OJg",
+"https://serpapi.com/images/url/m1EBa3icDclJDoIwAADAF7GqkJIYA0JEqzREEMKFsAmFCIWWzef4K3-jc53vp2KMUE0QijYbVsKKnGNpK_ElZQnDGZ91L4FWHSG4LQ_9_n-a7uTglHlJCDj8eENrC_BZtJyeODEdpzBGR330VUVyaEpd8JRb3Mticber9zpOF-z3CRpMs5rlxVaNW93YauktxowQZ8OgvioBdGPWMKpHQbQb4eYHRWE55A"
+]
+},
+{
+"position":
+2,
+"title":
+"Iphone 16 Pro Max 256gb Novo Lacrado (White Titanium)",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:5733115968296106025",
+"product_id":
+"5733115968296106025",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=5733115968296106025",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNTczMzExNTk2ODI5NjEwNjAyNSIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjU3MzMxMTU5NjgyOTYxMDYwMjUiLCJpbWFnZURvY2lkIjoiNDg5MDMwMDU4NzgyNzExMjI3MCIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ==",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNTczMzExNTk2ODI5NjEwNjAyNSIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjU3MzMxMTU5NjgyOTYxMDYwMjUiLCJpbWFnZURvY2lkIjoiNDg5MDMwMDU4NzgyNzExMjI3MCIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ%3D%3D",
+"source":
+"infoCELL",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a3765326a1d0a453adcc2e15980e8c39364e53.png",
+"price":
+"R$ 7.099,00",
+"extracted_price":
+7099,
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRPKHllX_yJhPHECWuzTgROuPmE1uUAk1s-LZ4W62GQKMJUC0UrRw7UuSifWT00Pul2enqApKHBwzNrr5jx9UezIL8RpRATEIFuNJm0nQrkVcmuvEaUGvZo",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/OITRsHicDclJDoIwAADAFyFL3CAxBgmyilipGC5GKwICpZQWlEf5H3-jc53vJ2eMdJoophjRN2HpXWA3rEyyjl1ZgSaoqcUubwgpcLZuV__T9OCuWgiEnl1V58vbzUPbNGI-RhnY87A2ZQ71Uu4EP5nGc8U6eDsXGhKkYFhAfiwecSRJIa-UFLc68ezNMAaUzp4vFaaj4y8BAXpkOlseuLWED7Q8oZr35hVafdL8ABX0PlU",
+"thumbnails":
+[
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRPKHllX_yJhPHECWuzTgROuPmE1uUAk1s-LZ4W62GQKMJUC0UrRw7UuSifWT00Pul2enqApKHBwzNrr5jx9UezIL8RpRATEIFuNJm0nQrkVcmuvEaUGvZo",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRHME9_O5iXpA3xyWR2bj9qHUv4lXulzIhXo7C-H_lIZC1Z9wsGGcb_aGM6nUyeRpqA2ajBYt8WVUWzRhRw7ihB58F_TP_m9OBnpe2x1jwiI4MW5dIyDtdwvw",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSo9Bm_5wLuv3J8okQ1GqEMioaNTgopr-7Uoh2K0e1R5r2jqCr0hWS9v9Rio092x1_Yx5jXlf1vA35FhYanCJsMDQ91NiYTw5pTFjXQmaySYBMHhOXn4cldeA",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcQhTu27-mNMkT1aB2pvscbO97lvig7G14zrgGUNb2vztDysyxLgPQx6LKaF-K3JmltU1mWJWqcWrXhQhvNjb-X0471RY6nR69pT4aRylVHgXUk0_TY2qJOyIw",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcTxAdhNT08nputpUMhJB24bbNEwctsZ2tSNNpF4civ8Rh0LXTemBruLFy9FmQaJnqSV23pGjh6sRDJPvclxBqpQU7TYulBFz4GG0J7UiX6xqGwko7AbetjORQ"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/OITRsHicDclJDoIwAADAFyFL3CAxBgmyilipGC5GKwICpZQWlEf5H3-jc53vJ2eMdJoophjRN2HpXWA3rEyyjl1ZgSaoqcUubwgpcLZuV__T9OCuWgiEnl1V58vbzUPbNGI-RhnY87A2ZQ71Uu4EP5nGc8U6eDsXGhKkYFhAfiwecSRJIa-UFLc68ezNMAaUzp4vFaaj4y8BAXpkOlseuLWED7Q8oZr35hVafdL8ABX0PlU",
+"https://serpapi.com/images/url/YJICaXicDcnhDkJAAADgJ4pR4mytocIP1W6J_LlxzJ1xTq4OT9Xr9Db1_f2-HyIEH21VrRh-zlxU5UoUTFfqUeSCYgX3nTqSnnPK6v2w-5_tnEvgYxhER4AuBk25s57mBOpFA4Ygfm_a9NUuIUl701sFqA0zT8uAHH0fFyj3oy2L5wrywdHzxn0IK7nHyQIJlCYlrmGd0O2KOnBxGa_0SWskDTdRYpThfBClfMsfmNo_CQ",
+"https://serpapi.com/images/url/5GdJ-3icDcltDoIgAADQE6VisaKtNfvQVmkzbekvZ2iCJSCQ2q26Trep9_d9P0RroeamWTIs30KXxUjfmG1USueaYgPzxlSEC0FZtWwX_5s7QYE8HHG0ajLYH1_deD_jjxB47danPA_iigs5ml44sQ9WCc5Q2nW7lha5RqhDZ8otZA8gSwdYJ8876JwxdEmas_Ve-ZsQgYCmcQ9F7NZJ2OTvKF35O3JK2AQ_i9L5AXuBPhQ",
+"https://serpapi.com/images/url/SYKlF3icDcltD0JAAADgX-TlZIyttVpLIWKET41jd_J23CXnV_V3-jf1fH2-H8wYoaYkVT2cOGFVKbCiByKiLGc1FOHQSRQPhNQ92o3b_5l7rzQsGODopehC512bCOQHhcwUFr6ht3ONdAuo64Ss2CuUeWVHTvnioluwaK6TnwRnY3cti0GX2MkIkynFAZ69ZyGksqqDMNP6UDNIpOYhb-9nlMaN_IgyZbR9fnn_AKjYPqY",
+"https://serpapi.com/images/url/WNuoO3icDclbCoJAFADQFaVi4gsilHJAbErTsP5ylEbT8epcy1pV22k3dX7P98MRQbqqWgk2vgCrcoGF0JSbxCvWTGF9p0reA9Tith5W_3M9WjqEpbNXcppqtoAJIdvx0NeNoqDbJ0N50fFIKQQGqx92wrUoT6vOH6coeDlBF19DMRxP-hJIw02ZbMLDg7WzP0CcWel5av3gbRCihVZW5-Y8kOe9t7yiwmafxD_Unj9i"
+]
+},
+{
+"position":
+3,
+"title":
+"iPhone 16 Pro Max Apple (Outlet Grade A - 6.9'' - 1 Tb - Titânio Preto)",
+"product_link":
+"https://www.google.com.br/shopping/product/1798726668208585361?gl=br",
+"product_id":
+"1798726668208585361",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=1798726668208585361",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiIiwiY2F0YWxvZ2lkIjoiMTc5ODcyNjY2ODIwODU4NTM2MSIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjU2MjA2MzgyMjk5MDc5MDI3ODkiLCJpbWFnZURvY2lkIjoiMTI5OTUwOTY4NTQ0MDEzMTM4ODQiLCJyZHMiOiJQQ18xNjc3MzUzOTA5NjI4MTM5MzU2MHxQUk9EX1BDXzE2NzczNTM5MDk2MjgxMzkzNTYwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiMTY3NzM1MzkwOTYyODEzOTM1NjAiLCJtaWQiOiI1NzY0NjI4MzYxNjAwMDA5MDUiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiIiwiY2F0YWxvZ2lkIjoiMTc5ODcyNjY2ODIwODU4NTM2MSIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjU2MjA2MzgyMjk5MDc5MDI3ODkiLCJpbWFnZURvY2lkIjoiMTI5OTUwOTY4NTQ0MDEzMTM4ODQiLCJyZHMiOiJQQ18xNjc3MzUzOTA5NjI4MTM5MzU2MHxQUk9EX1BDXzE2NzczNTM5MDk2MjgxMzkzNTYwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiMTY3NzM1MzkwOTYyODEzOTM1NjAiLCJtaWQiOiI1NzY0NjI4MzYxNjAwMDA5MDUiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"source":
+"Mercado Livre",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a376535bb13e371d7435825ab8f359ecbfd879.png",
+"price":
+"R$ 15.499,00 agora",
+"extracted_price":
+15499,
+"installment":
+{
+"price":
+"R$ 738,05/mês",
+"extracted_price":
+738.05,
+"period":
+21
+},
+"rating":
+5,
+"reviews":
+148,
+"thumbnail":
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcTopz1oEuxKOpHdf2JLBm4iFFX_CVXy4gjgTO5NbkzqR2U2MchGC4dGEgXldwldg7Br7l1i_1dAf5OStEu5_eleVKjZat0x2YkdZTP3bxU0KrSPSU8efcxMOA",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/W6RlsHicDclJDoIwFADQE8kkxCExBg1iRKyRIeiGSFsKiLTANxZO5XW8jb7t-34KANEvVZU2uBsEUDKBrNEU1sMdSqxg_lT7ggtRNmzdrv63tE9k4eKQi1Hnzkt6SOxJbhyOm6dZ7nZJuo2TwWQVC5F1yh5jezEiw8eFuzWJ67CkJu-asNmmm9V6merEzi0UgPOyUlrT2Ktud9CkcX2QW3ieZjLSvC44B9Gc5lj6yP4BwmU--w"
+},
+{
+"position":
+4,
+"title":
+"Apple iPhone 16 Pro Max 256GB",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:5060933712279714587",
+"product_id":
+"5060933712279714587",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=5060933712279714587",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNTA2MDkzMzcxMjI3OTcxNDU4NyIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjUwNjA5MzM3MTIyNzk3MTQ1ODciLCJpbWFnZURvY2lkIjoiMTE2ODcyMzgwMzY3MjI4MDM5MDUiLCJyZHMiOiJQQ181OTQ3NjY3OTU5Njc0NDI3OTkwfFBST0RfUENfNTk0NzY2Nzk1OTY3NDQyNzk5MCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNTA2MDkzMzcxMjI3OTcxNDU4NyIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjUwNjA5MzM3MTIyNzk3MTQ1ODciLCJpbWFnZURvY2lkIjoiMTE2ODcyMzgwMzY3MjI4MDM5MDUiLCJyZHMiOiJQQ181OTQ3NjY3OTU5Njc0NDI3OTkwfFBST0RfUENfNTk0NzY2Nzk1OTY3NDQyNzk5MCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+"source":
+"claro.com.br",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a376530bd85d23e1d4961c725b33198e0aaf65.png",
+"price":
+"R$ 10.399,00",
+"extracted_price":
+10399,
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcRByIwCutixzY_qb6hEkP7rh8XHMkleJsWopvn4sNBxSive8UKjXcp4gb4EMMezBUQRh2rSiZwpDIDtHblWELk9QC0sa8WNdVjT9Bg4jUM84yXpToEOKVnm3g",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/P1MFnnicDclJDoIwAADAFwkujYKJMbJEFEFl14uB0rQFLZVWFF_ld_yNznW-HyIlF3NVRQy2PZeoHMiCjRQsZC4pVGBzUwVpOKcML--L_81XfqmvYWD0m6f5kPT1Pl3uxZTY9WHWEi1zvPqKtiJteMeA8I1XSDukxW6VQQ5wAWzPQ28jPgZk3Ib0_OTWxpJOcU3tXa0fzaHItdQvkyrSDQyq2NNAn_Gosfduwm4T_AMtgz_i"
+},
+{
+"position":
+5,
+"title":
+"Apple Iphone 16 Pro Max ou 16 Pro 128 ou 256 GB - Original Novo - Garantia Apple de 1 Ano Memoria",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:10769814876680083699",
+"product_id":
+"10769814876680083699",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=10769814876680083699",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTA3Njk4MTQ4NzY2ODAwODM2OTkiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxMDc2OTgxNDg3NjY4MDA4MzY5OSIsImltYWdlRG9jaWQiOiI5OTA2MzU2NzgxMjAzNzQzMzQwIiwicmRzIjoiUENfMTY2NzEwMjY1MDEzNTEzNDY5NjR8UFJPRF9QQ18xNjY3MTAyNjUwMTM1MTM0Njk2NCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTA3Njk4MTQ4NzY2ODAwODM2OTkiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxMDc2OTgxNDg3NjY4MDA4MzY5OSIsImltYWdlRG9jaWQiOiI5OTA2MzU2NzgxMjAzNzQzMzQwIiwicmRzIjoiUENfMTY2NzEwMjY1MDEzNTEzNDY5NjR8UFJPRF9QQ18xNjY3MTAyNjUwMTM1MTM0Njk2NCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+"source":
+"Shopee",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a376538925c3dfeb08138defc02cc6d170514b.png",
+"price":
+"R$ 6.299,00",
+"extracted_price":
+6299,
+"rating":
+5,
+"reviews":
+1,
+"thumbnail":
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcQsgWbVDN0F2ZKAouBtiNSW1c5evKNrWyLQYEPV-gkRWZv-6X7bQP9qrCZDL6FG_kITyWucHb5cWQNqTmGe8u83ASg7BISO7gTH7lg6k0TlMLUnSakDw6GxBA",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/-QobSHicDclJDoIwAADAF7GoYU2MAZElYAWpVLkYKKQQdigov_I7_kbnOt9PQWk_qRyXt3hce5pnDE1bniUTTWiJWdw13FR0fV-25DDs_6dqIFMsHEwEpZEBeHMbu1o367QEIdpgIV9cMKLVCx4nP2JIdUXxwoh3KQ18ZRiPseGJpvWsHLiiGdupgFEABthYuTzLOy0kku6EF4lAW6qJWPGwPnu3Nkwq4yVab137AWl-PXM"
+},
+{
+"position":
+6,
+"title":
+"Iphone 16 Pro Max Apple (256Gb), Tela De 6,9 Pol, 5G E Câmera De 48Mp (Esim)",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:14612982138281796881",
+"product_id":
+"14612982138281796881",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=14612982138281796881",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTQ2MTI5ODIxMzgyODE3OTY4ODEiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNDYxMjk4MjEzODI4MTc5Njg4MSIsImltYWdlRG9jaWQiOiI0MzM0NDU4ODEyMDczMTM5OTM2IiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTQ2MTI5ODIxMzgyODE3OTY4ODEiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNDYxMjk4MjEzODI4MTc5Njg4MSIsImltYWdlRG9jaWQiOiI0MzM0NDU4ODEyMDczMTM5OTM2IiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"source":
+"Carrefour",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a37653a8559ac08cbba619a22f681f36f1443a.png",
+"price":
+"R$ 7.884,05 agora",
+"extracted_price":
+7884.05,
+"installment":
+{
+"price":
+"R$ 1.037,37/mês",
+"extracted_price":
+1037.37,
+"period":
+8
+},
+"rating":
+4.7,
+"reviews":
+28000,
+"thumbnail":
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcS9LmkQUdqAZlRlSVSqb33LBFsDKQYLUz9OGiS6Y6it0L5N8ySqMf0i50hin4odZesDEa0SWWgmKedqumyAOmeuDx5DMrnPQTyKzP8oCkfO",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/Jw1pNXicDcldDkMwAADgE40mRpAsi83mwf86E97QoqGlWsk4zm6122zf6_f99FLOwlZVzJplmyVGB1kzoHRCVpI0SjNRVfTTPBPWnfnpf7YTIctroBXQIc0Qd8rxMcIX5LWmBZe7cP20CLLdij0CjcIgEgR6ZG6Qhy0gOugJO06oxMK9VQDmeUd9jPhKNyemeHXfuhsuLEmfm78n5nQd2vgHOpg6Nw"
+},
+{
+"position":
+7,
+"title":
+"Iphone 16 Pro Max Apple, 256Gb, E-sim 5G, Chip A18 Pro, Câmera Wide de 48MP f/1.78, Tela 6.9 Titanium Deserto - A3084",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:703149320401587843",
+"product_id":
+"703149320401587843",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=703149320401587843",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNzAzMTQ5MzIwNDAxNTg3ODQzIiwiY2F0YWxvZ2lkIjoiIiwiaGVhZGxpbmVPZmZlckRvY2lkIjoiNzAzMTQ5MzIwNDAxNTg3ODQzIiwiaW1hZ2VEb2NpZCI6Ijk5NjIxNjMyMzcyMTgyMDU3MTYiLCJyZHMiOiIiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNzAzMTQ5MzIwNDAxNTg3ODQzIiwiY2F0YWxvZ2lkIjoiIiwiaGVhZGxpbmVPZmZlckRvY2lkIjoiNzAzMTQ5MzIwNDAxNTg3ODQzIiwiaW1hZ2VEb2NpZCI6Ijk5NjIxNjMyMzcyMTgyMDU3MTYiLCJyZHMiOiIiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"source":
+"KaBuM!",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a376534b644e0422861988364f21eecc57c98d.png",
+"price":
+"R$ 10.366,70 agora",
+"extracted_price":
+10366.7,
+"installment":
+{
+"price":
+"R$ 1.079,86/mês",
+"extracted_price":
+1079.86,
+"period":
+10
+},
+"rating":
+,
+"thumbnail":
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRq_z2OqzpvBckoEMv778Mam_gPFjz0nc5DHFQmhzIKv1z9kemH1VVSChn-9V2mx6oK4ayxx8IyXS5wEZK64_RLoP1T9oSpoCZDX9Ro5g8",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/pW4rh3icDclZCoJAAADQE7niNkJEuaSYZRoi_oiNoiazmIPp3KZjdZt6v-_76Rmjsy1JLYavjbK2EdgDy2I3s5oNUIQESXNPKB1wt592_7MPlwacYDpVXL1OnC5HOBIvXkzTimtUdYn_5DKGuhv4N9TzMFoUDsYWBUqeZ06PBZCraDVIpNXbulrhVmT62ysjQ6vSM0mUOyAZJU7pFiAlemf9ADy-OXk"
+},
+{
+"position":
+8,
+"title":
+"iPhone 16 Pro Max (256 GB) - Titânio natural - Excelente (Recondicionado)",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:11673826881402731912",
+"product_id":
+"11673826881402731912",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=11673826881402731912",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTE2NzM4MjY4ODE0MDI3MzE5MTIiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxMTY3MzgyNjg4MTQwMjczMTkxMiIsImltYWdlRG9jaWQiOiI4OTMxODUwNDMwNzkxODk4MzU3IiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTE2NzM4MjY4ODE0MDI3MzE5MTIiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxMTY3MzgyNjg4MTQwMjczMTkxMiIsImltYWdlRG9jaWQiOiI4OTMxODUwNDMwNzkxODk4MzU3IiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"source":
+"Mercado Livre",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a37653984df11de566d60590ccf0e6129eb4b1.png",
+"price":
+"R$ 8.299,00 agora",
+"extracted_price":
+8299,
+"installment":
+{
+"price":
+"R$ 410,71/mês",
+"extracted_price":
+410.71,
+"period":
+21
+},
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcT5sQA-4T190C49jyQEAsR6xBt0R_72-v8h8px6EK5RgrOQ1LSlcJQWEJy6FmcC5k66sZGLMkE9goL4PyIZqJo0DkPTZ_4ulVQmEiCJGqi1YhjuejFutqrhHA",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/F-5-NHicDclJDoIwAADAF7EZqEBiDGJBEZci0ciFaCG0rIUWA7_yO_5G5zrfDxGCcVtR8hYPMxN5JolXq8kFF09BsYy7RuGkY4y2xbpf_c92Tpnl49jgyJH0WLNUV7fKGUGHR2DaCDVKlwvpbRKTTQAejKgYzkgLrzUO0B0GM_Aa7BoVADzxw2MFraIL9cu8T_qgU7fVJU5SfaxvqIHUDfyeag9SjnnpjaIfyM75Ad3yPSQ",
+"thumbnails":
+[
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcT5sQA-4T190C49jyQEAsR6xBt0R_72-v8h8px6EK5RgrOQ1LSlcJQWEJy6FmcC5k66sZGLMkE9goL4PyIZqJo0DkPTZ_4ulVQmEiCJGqi1YhjuejFutqrhHA",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcTtIyVdmClZCWbxHfUM49SbOIeCDgv1CoadzTJ7-3M0NvwpxqPrLvd0wkqGxlKKUSxgNW0EeHTC__9JhUcrma1i9NP3TUVKHEfhmn9n8yElWpXOkbxJtNNT",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcThRACqHKMMXb0cA6kfp-MCu-1WCONuVIHFrVWyKKii1FwhGx8e8qIJQ9fAHP53Ibmoq9kiXjT80a_3CuHmuoKqKyM9p_k77E9WVdbe5TnUGiVntgmK1bL3",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcQqirD2h0ddCESCKPztRlKoY3B8SrmVOo9YAbCNx0Cu8yXlcP0qi1jjSwcx0J3ljTyduMWgus4-mQQDsK3a76xm4VxMn3cM8d0TsXP7cQ2oHu81UN69nMEo",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcT8fa6mZxrcOWTGoLKMZ1kYT3RZTwdZROa_kBSsICxHGW4WhV_U9OHLlTv-2qkX4znLIH3EO4lVq8Uml2HtucOq5zLweuhAptRKEFYtU-Js"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/F-5-NHicDclJDoIwAADAF7EZqEBiDGJBEZci0ciFaCG0rIUWA7_yO_5G5zrfDxGCcVtR8hYPMxN5JolXq8kFF09BsYy7RuGkY4y2xbpf_c92Tpnl49jgyJH0WLNUV7fKGUGHR2DaCDVKlwvpbRKTTQAejKgYzkgLrzUO0B0GM_Aa7BoVADzxw2MFraIL9cu8T_qgU7fVJU5SfaxvqIHUDfyeag9SjnnpjaIfyM75Ad3yPSQ",
+"https://serpapi.com/images/url/iFFJInicDcltCoIwAADQE_mFQS2IiCWa5hScGf0Rt5lKOqcOnR2q-3Sben_f91NLKaa9YZScjquQJdMk4bZeTbKQDdVp3xlT3QvR8Oo4HP63PyEGXIrlZb2xDrYPmBHlPdNwAxISXUp4rmYL9gV7Y3-r2aGJ5kWoIR6vMzOX1-CqNgjSRFUoM53SwzDPgV-ndOwKqwEotnF6CzznWXcc8N3qtJm4Ry-ifIkQ_gFVsz7Q",
+"https://serpapi.com/images/url/oMHyvXicDclJDoIwAADAF7GFIJTEGNLIYgWXIHAjtGyVUFooUT7lf_yNznW-n15Kvria1jAyb1w2tSIxM9VukZWkRCXTqC39xDll3UHs_-d6SQ0CkvZ3D4oQxXGBdeLthpYrMVwVI4eXZM2i0J-zfEOIUsN_9cHbaRwRnW6g9cKrZUZ4nAQYaPFMHb0qTbiG4zohgbYY8HKw7SPIsxo3VsoeAc2Y7EZk4LP5A9TOPRQ",
+"https://serpapi.com/images/url/rpX4GnicDcnbDkMwAADQL0Jd4pYsiyFbJkzHjEdacQktWhn7qP3P_mY7r-f7aTmfmC1JNUHLPvEaC7wiQGwYL3mHRERHibV0mjrSHOfD_2wnwtYZwblbPKUFGLt-4gbxm9-HgBbqyUyWMbtRq3AqN9qAu5p7PqAYzJ3c98kLbeCqDn264zV8NivThBFCjwVqaejbqGVbSFQUmhikLI8NBBV6WU35EekWCX36AyxqPYY",
+"https://serpapi.com/images/url/vD28fXicDcndEoFAGADQJ0okppoxJiZFy85kK3XTZIs1_W3tl-hxvJW34dye74cBcGHIcl7T7s0hzyS41tPJXUAKDzqhTSUL1nD-qO_rdvU_wzxluk2JdkuXVfzqKA6J3SD3GM-KiMy9mAxZ7OE0KTZnsd--HDtUQxYkvo4dVJKnpLTFRR1rtHfmFlbLoNX8qlQc6CluFyMa8p6ZHDzX2kXgSwfxA02IOhQ"
+]
+},
+{
+"position":
+9,
+"title":
+"iPhone 16 Pro MAX Apple 256GB Black Titanium (eSIM)",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:6784591615613740693",
+"product_id":
+"6784591615613740693",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=6784591615613740693",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNjc4NDU5MTYxNTYxMzc0MDY5MyIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjY3ODQ1OTE2MTU2MTM3NDA2OTMiLCJpbWFnZURvY2lkIjoiMTAwNjc2Njg2NDA1ODA3MjAzMzQiLCJyZHMiOiJQQ181OTQ3NjY3OTU5Njc0NDI3OTkwfFBST0RfUENfNTk0NzY2Nzk1OTY3NDQyNzk5MCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNjc4NDU5MTYxNTYxMzc0MDY5MyIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjY3ODQ1OTE2MTU2MTM3NDA2OTMiLCJpbWFnZURvY2lkIjoiMTAwNjc2Njg2NDA1ODA3MjAzMzQiLCJyZHMiOiJQQ181OTQ3NjY3OTU5Njc0NDI3OTkwfFBST0RfUENfNTk0NzY2Nzk1OTY3NDQyNzk5MCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+"source":
+"Zoom",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a376534c4ea6a35cac761e2520e2491f25271b.png",
+"price":
+"R$ 8.550,00 agora",
+"extracted_price":
+8550,
+"installment":
+{
+"price":
+"R$ 1.500/mês",
+"extracted_price":
+1500,
+"period":
+6
+},
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcS6lULbop5GSDdX4SDsHhx25DcTEfGm1Qar6GoVJLbNPRIXmlXnOLi8ZpOBuPQ27Nl-uKw_Tcx_EAkHU76-fYcq-gFQBDH37HjJAMPv-M-wryS51IPueWDj",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/Uyj6yHicDcnbEoFAAADQL9qaosKMMZllK8kml3hpartSu6s28VP-x99wXs_3UwrBu5ksZ5S0by6yFIiEqlLRiVhURCKskbuScV7RYvGY_29meukUkUCvj27CuIYCmIbjAHZW-VI1SA6rHDWKH7c6YifHTTy8t8OmDunOrSZXvlv22FcNrwb9ZogO5BWtzLt1NHSQX8gDFGt_Ca2RYd0cc4ufYAuG9h1oio377AxvP9zOPHs"
+},
+{
+"position":
+10,
+"title":
+"Apple Iphone 16 Pro Max 256gb Desbloqueado Bom Estado - Todas As Cores",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:405197044168562901",
+"product_id":
+"405197044168562901",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=405197044168562901",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNDA1MTk3MDQ0MTY4NTYyOTAxIiwiY2F0YWxvZ2lkIjoiIiwiaGVhZGxpbmVPZmZlckRvY2lkIjoiNDA1MTk3MDQ0MTY4NTYyOTAxIiwiaW1hZ2VEb2NpZCI6Ijg1NTA5OTYxODQyNDE5NDI3MzUiLCJyZHMiOiJQQ181OTQ3NjY3OTU5Njc0NDI3OTkwfFBST0RfUENfNTk0NzY2Nzk1OTY3NDQyNzk5MCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNDA1MTk3MDQ0MTY4NTYyOTAxIiwiY2F0YWxvZ2lkIjoiIiwiaGVhZGxpbmVPZmZlckRvY2lkIjoiNDA1MTk3MDQ0MTY4NTYyOTAxIiwiaW1hZ2VEb2NpZCI6Ijg1NTA5OTYxODQyNDE5NDI3MzUiLCJyZHMiOiJQQ181OTQ3NjY3OTU5Njc0NDI3OTkwfFBST0RfUENfNTk0NzY2Nzk1OTY3NDQyNzk5MCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+"source":
+"eBay - itsworthmore",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a3765331f4cdbf61709a46a551cdedbf4fadeb.png",
+"price":
+"R$ 4.903,15",
+"extracted_price":
+4903.15,
+"second_hand_condition":
+"recondicionado",
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcSYHzli1GyTmA4LzTNbUZvr51R3MQrezTzSTJSXJQbqvK3NHdaH3aDGMO9_7fo_DRpU_wAugilfkKK0DL16JcHyQX0Zz6zUcVNevHAuGEocU4oCoDkLJ8GwWA",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/ablxn3icDcnbCoIwAADQL8oLmpUQMTI21AxTu72IzmkjdVOX4r6q3-lv6rye7-cpBB9sVSUt7mcuSLEQeWso1SAyQbGCWaMOT8Y5batdt_2fDYJiA3F0R7KmOpzjBpi-jIM8eYz9Uj8bx7AnMpZR7EY3N8y70TMCVGTIyBx4PG3SVclS58yTdALvitbly_M0x9ctF6M5vGkPackEXwIyIvCGB4YTk-2Z8_LdNZyu4Aetnj6H",
+"thumbnails":
+[
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcSYHzli1GyTmA4LzTNbUZvr51R3MQrezTzSTJSXJQbqvK3NHdaH3aDGMO9_7fo_DRpU_wAugilfkKK0DL16JcHyQX0Zz6zUcVNevHAuGEocU4oCoDkLJ8GwWA",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcSEfHthG0FR1-KmyjJHrUO3TOlPZp5JK5J8GEoBgUF7YnNn1ec_byb0pXGO4p5Qz04tzza7hhrFtMbCS7sVFB3OhKS-UujTs9kf1pTk3iGVR4Wm8tS44VfN"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/ablxn3icDcnbCoIwAADQL8oLmpUQMTI21AxTu72IzmkjdVOX4r6q3-lv6rye7-cpBB9sVSUt7mcuSLEQeWso1SAyQbGCWaMOT8Y5batdt_2fDYJiA3F0R7KmOpzjBpi-jIM8eYz9Uj8bx7AnMpZR7EY3N8y70TMCVGTIyBx4PG3SVclS58yTdALvitbly_M0x9ctF6M5vGkPackEXwIyIvCGB4YTk-2Z8_LdNZyu4Aetnj6H",
+"https://serpapi.com/images/url/ZgcfgHicDclJDoIwFADQEzGFEtTEGDVQApGqBRw2BspQVEql3wUcyvt4G33b9_1wAKkWhlEJNowSqlKDQth6oyCHlums7wzFeylb0axey_8t1nE5x4x6dQAcm_7R0qJuvIfBkBI7Ic_9VTph5IQz7PWbJvXdi4iFVbFbMRamPGOCpHOYTATTlLucDz7sii11VeZvbMIjqqXve6Lmj9qSycNucXZEp24GFKGsjn_XJDzR"
+]
+},
+{
+"position":
+11,
+"title":
+"iPhone 16 Pro Max 256GB 5G eSIM XDR OLED 6,9 Polegadas Câmera 48MP HDR Inteligente 5 Titânio",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:11774975094752624038",
+"product_id":
+"11774975094752624038",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=11774975094752624038",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTE3NzQ5NzUwOTQ3NTI2MjQwMzgiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxMTc3NDk3NTA5NDc1MjYyNDAzOCIsImltYWdlRG9jaWQiOiI4ODkzODc5NjI4MTE4NTczNjIxIiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTE3NzQ5NzUwOTQ3NTI2MjQwMzgiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxMTc3NDk3NTA5NDc1MjYyNDAzOCIsImltYWdlRG9jaWQiOiI4ODkzODc5NjI4MTE4NTczNjIxIiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"source":
+"Shopee",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a376533dbb10294b101a4be26161632090c856.png",
+"price":
+"R$ 8.299,00",
+"extracted_price":
+8299,
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcQLrnJV2-XWzNKsn0xYm3if_vkeUM2G5Rf419Fx169yXei7aKcNxNRXkEkmmAhjQ_-di9xOdOrEfvwOumkntKx1agGlNv7iVBulB6THR26_",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/POfYA3icDcltCoIwAADQE6nNSlGIUDAja6KU2S-x-bV0c7lps-N0q25T7-_7fhohGLc1raRomJkoC0XcKVBrLnKBkYp6ovGmZwzTevvc_M92YGH5KDoO9JDoSnp9w4DThbyRJa6yqS0vJ91fx9UKWDsJDGtOS2zmAYISxmnrtYQ4zSPKlAJbMizCwaumVziSlopAgrz2OziZOHHHzjXO-1g3sh9bkTpa",
+"thumbnails":
+[
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcQLrnJV2-XWzNKsn0xYm3if_vkeUM2G5Rf419Fx169yXei7aKcNxNRXkEkmmAhjQ_-di9xOdOrEfvwOumkntKx1agGlNv7iVBulB6THR26_",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTXKg0i5z3KRXMpT_WEzCEXwr7QUSAT7eo9O07RCQ5tgM6pM1k7tLjhrAhyKXyaatQhiox03FkepE285rQBREi5XoEX_QlmJws2NmXeyyg",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcSpe9GBxkT68yxhNWlx5KE1Hm78C9JSyRw1NmLp1Spk3yLDi30apcl-1KjUcTIzgvUcjKdNb1y7DVGzCiIGW-DODIXTd5uq5M0riO-fPxQ",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQH5TzyhlCjydVzia7LCEW6lXR86A0DAkg72VJTc6AsNRQJ6-DxY7yokJ_y0HCYEXD_JQzu0jH7s7jWHFnnkCr8bqfiyG_vbSUWZJRjEjU",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRyhbFxQUAMDt7hVYhXk8ISp_izJ_AsUELh9k1gFe3B8n_gwwmzBjQKJrD3cPP4bBmY3_Vh7owxVpGNSR7c0PVIGliBljwgmf1bA6IZzz-v"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/POfYA3icDcltCoIwAADQE6nNSlGIUDAja6KU2S-x-bV0c7lps-N0q25T7-_7fhohGLc1raRomJkoC0XcKVBrLnKBkYp6ovGmZwzTevvc_M92YGH5KDoO9JDoSnp9w4DThbyRJa6yqS0vJ91fx9UKWDsJDGtOS2zmAYISxmnrtYQ4zSPKlAJbMizCwaumVziSlopAgrz2OziZOHHHzjXO-1g3sh9bkTpa",
+"https://serpapi.com/images/url/adFxaHicDclhCoIwGADQE6WmmClEmKwg05gZ7Z-Yjm2ZbrkPbN6mY3Wben_f98MBlI5smw7NaBTQdgH3wbWYhhpEYzWytzWXSomBbV-b_0Vx3oaHpiQpc4Q_e2lBMlVWNzQniExjgK-XuAyoDM9OUCTYB5atVLbsAjg9-BhzkxJT14C5kG_H23dUIXftj3hXIOETiUiFn_1x0m7eE2oM-wHuNzmq",
+"https://serpapi.com/images/url/-0xkuXicDclJDoIwAADAF7E0BFkSYxQMIggqIF6hRShrgaotv_FZ_kbnOt9PRSmZTUkqejhxQgsk0LyXxXKmGcVQhEMnzdVACO7Lzbj-n7kNkOHAiBSGs2NNvNI5q4K0Zaq3B4dO0y3jGPHrGwSdT0BEGoX7NlbkjMBWAF6dwNhdylcCaw8FOeCafXMWC7tOKtih7d5jpD5H9SRPOBQeZ3b5Ae7EOLs",
+"https://serpapi.com/images/url/hczkqXicDcnbCoIwAADQL0qlyJkQIWqOEYLmtRfRabpp87IVzb_ps_qbOq_n--mEmLipqg3Di5xEU29ExXZKy0UpCFbw-FB5N04TYe1pPv7PtPz64OEA7qNVdoNNZZ2spAQX2031IQsN3dIcq2_BNkER1i3uhwHSN847B3LsUSE1aOdu5hQoWJ8ahYADmsIzY729GNV8J9IrXtU1Tm8opC6Nf-WdOTQ",
+"https://serpapi.com/images/url/Z3Y9Q3icDcnbCoIwAADQL0oTIy8Q4TBFK_GCkr1ITtu8bC4dTf2c_qq_qfN6vh_MOZtMWa4pHBfG62rDS6pKaOIP3kAJDkSe8MBYQ9HxdfifaQWV4cJ4waUzR6l1tbmGsxzfOt1LWNGsfmFN6emCjU5BTq0CnRZICLKCNjr7o63CMNyVgORqkWFtEHPG3CCJNbgNM8_tG9C3ApGnUlp7776um_cPdQU6hA"
+]
+},
+{
+"position":
+12,
+"title":
+"Iphone 16 Pro Max Apple (256Gb), Tela De 6,9 Pol, 5G E Câmera De 48Mp (Esim) + Carregador Usb-C Original Incluso",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:9599799397121711665",
+"product_id":
+"9599799397121711665",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=9599799397121711665",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiOTU5OTc5OTM5NzEyMTcxMTY2NSIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6Ijk1OTk3OTkzOTcxMjE3MTE2NjUiLCJpbWFnZURvY2lkIjoiMTAyMDEwNzQ2MjMzMDE3ODQ5MjkiLCJyZHMiOiJQQ181OTQ3NjY3OTU5Njc0NDI3OTkwfFBST0RfUENfNTk0NzY2Nzk1OTY3NDQyNzk5MCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiOTU5OTc5OTM5NzEyMTcxMTY2NSIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6Ijk1OTk3OTkzOTcxMjE3MTE2NjUiLCJpbWFnZURvY2lkIjoiMTAyMDEwNzQ2MjMzMDE3ODQ5MjkiLCJyZHMiOiJQQ181OTQ3NjY3OTU5Njc0NDI3OTkwfFBST0RfUENfNTk0NzY2Nzk1OTY3NDQyNzk5MCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+"source":
+"Carrefour",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a376537b794bb96d87735cdd868fc609c29e0c.png",
+"price":
+"R$ 8.499,00 agora",
+"extracted_price":
+8499,
+"installment":
+{
+"price":
+"R$ 1.062,37/mês",
+"extracted_price":
+1062.37,
+"period":
+8
+},
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcQB-UsR0dmn74QlKFTYsDOA16fN-d0S6QaLt1OsRnaQO0OP323NQrXDf4HmHA50CQTJ72yYMBQQrAAN_Fd0-rNzXN9vvtJJwZrRWUvU5k0",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/Ah9RBXicDcnbCoIwAADQL1LnHYWImZhYzWZK2kuY80Y5bRuG_U2f1d_UeT3fTyfExF1FqWnFlknURBI3qsotF6XoK7kaB4V34zT1tF0_V_9zISLOtsKelPEEkIHaBn7sgrTgfgxVq0ESAScLl3uhxjyhJY5BfNQ1HWGW-40RDiE0wQanka0txcHDmEGIrgEBEkPvHDnzLKLodWHJOZsz8w5-bwE3GQ"
+},
+{
+"position":
+13,
+"title":
+"Iphone 16 pro max 256gb",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:15181784909477643084",
+"product_id":
+"15181784909477643084",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=15181784909477643084",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTUxODE3ODQ5MDk0Nzc2NDMwODQiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNTE4MTc4NDkwOTQ3NzY0MzA4NCIsImltYWdlRG9jaWQiOiI3NzA0Njc3NjMzMjUwMDczODYxIiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTUxODE3ODQ5MDk0Nzc2NDMwODQiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNTE4MTc4NDkwOTQ3NzY0MzA4NCIsImltYWdlRG9jaWQiOiI3NzA0Njc3NjMzMjUwMDczODYxIiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"source":
+"OLX",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a3765340218558b3458873596af447f6e208b4.png",
+"price":
+"R$ 7.500,00",
+"extracted_price":
+7500,
+"second_hand_condition":
+"usado",
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcTcOoPyhubxNOPZrLyMJLDIj1JI4J6iTYZrzD1sxD7aJV1eo4uXFoiBi_pJOoja0wHoU1tZV0ReZhwfUy5TH7acBhnkq89SUnBnF7lCXARlUnoHbpKbceJPOg",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/rm1UH3icDcnhDkJAAADgJwq3VdLWWjJxCRMmfxrncifdHa5FT9Xr9Db1_f2-HyKlGNaqihnqJyFxNZMlA0o9yEJSpCD-UAfChaCs3nab_613fmUcUIwCHk7kWY5-EOa9N52gZ7kNgO4cLml8yfu3BYbR0guYAsznz8zm1KRXAQPeFNrL4QmQeapFOCevWzItYkcvkEnYvVsZ54SZzNbbfbaL2oRxpxTHEmEYBvUP2NI_fA",
+"thumbnails":
+[
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcTcOoPyhubxNOPZrLyMJLDIj1JI4J6iTYZrzD1sxD7aJV1eo4uXFoiBi_pJOoja0wHoU1tZV0ReZhwfUy5TH7acBhnkq89SUnBnF7lCXARlUnoHbpKbceJPOg",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcQG6tOtgxadcwCgpkMOQtDXFF_x0jm_TbPhmsrh0eRGvEesZeO0fTJ8LhJFWw2z8H2_YcpU6KXsC2NcToca1_44c5cCKvJ-KFnIgcxN_-c",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQg7o7-ZhfThw8X918TbdWZqa0_V-75ve_-LHqkaAm_VD_eKIYDbYvFczTxvPLq3ycQuLxd_-Co1U95bt1c_Z2nGsExKg9p-sI4wtAvsxis"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/rm1UH3icDcnhDkJAAADgJwq3VdLWWjJxCRMmfxrncifdHa5FT9Xr9Db1_f2-HyKlGNaqihnqJyFxNZMlA0o9yEJSpCD-UAfChaCs3nab_613fmUcUIwCHk7kWY5-EOa9N52gZ7kNgO4cLml8yfu3BYbR0guYAsznz8zm1KRXAQPeFNrL4QmQeapFOCevWzItYkcvkEnYvVsZ54SZzNbbfbaL2oRxpxTHEmEYBvUP2NI_fA",
+"https://serpapi.com/images/url/BRbYWnicDclbCoJAFADQFflITEyICEtLSzOMrJ9Br9OMhTo5F7V207LaTZ3f8_1wRCEdTaMNdC-BtFSwaHSVScyxAhXaWpO8FaJq2OI5_5-zjMqZD4lvYYxszEsYXCYe-zjBVeZ5ZNTvNUmLA69lx3V69Ps1lVca67c0sHc88M6D8bY3BrmAOFlhJl0jgrSFfEJME6bghn2ghF6zZTBGRIEfVDE5xg",
+"https://serpapi.com/images/url/T3t_k3icDcltCoIwAADQE00zE50QIVkmSiTYh_4Zui0noW5t6ew43arb1Pv7vh-mFJe-adIeP2euKAGq7m2jkapSLTbw0JmSDZy3fbMR6__5wZHACGeNO7igZPecTd4NWl5ek2spqgW6ANcZKQLpQTyqoEOXENEkLsK6GPf4nevxlAp7xtkr1QSB7WCdoVMrC6Ny2Udyp5MGciDj1aSCUepW_gA2JDpG"
+]
+},
+{
+"position":
+14,
+"title":
+"Apple iPhone 16 Pro Max eSIM - 256GB",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:15402457565824599297",
+"product_id":
+"15402457565824599297",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=15402457565824599297",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTU0MDI0NTc1NjU4MjQ1OTkyOTciLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNTQwMjQ1NzU2NTgyNDU5OTI5NyIsImltYWdlRG9jaWQiOiIxMDcwMjA4NTA4NDUyNTA1NzIwNCIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ==",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTU0MDI0NTc1NjU4MjQ1OTkyOTciLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNTQwMjQ1NzU2NTgyNDU5OTI5NyIsImltYWdlRG9jaWQiOiIxMDcwMjA4NTA4NDUyNTA1NzIwNCIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ%3D%3D",
+"source":
+"E-Deal Store",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a3765365f5f164f500d74e12fbf086f06e7b88.png",
+"price":
+"R$ 7.682,88",
+"extracted_price":
+7682.88,
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcSi1XBMX9FcGqCI2oqUVFUEvWdzq_LYOpBDhUN3UQT0SmrmTXFXC6WZ1U6zULxtRlMK4l1uKpu9W4lpQ8fZhtIXyoFql-WzeOtMrnXMAQK1z8Q7UE_HhQ5a",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/ohoJUXicDcndEkJAGADQJxJKopmmQZSRmk2brRujJWvGzy5fTTxU79Pb1Lk93w8D4P1SlvOGdgOHPJPg3iiToocUSjqhbS33rOW8bIq1WP1vaR0yc0ujUiV2SEyPboXjT1uBLx52X3E2imR_PXJ7w_BhhtFZiequPhOPOHp8U7E-4v0bTlUYaJX6DPjTjLWKI-NxY-CTofVEJcVjfoSwa0hooUAdDbTAbrJjaJ7-AA0cPcM",
+"thumbnails":
+[
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcSi1XBMX9FcGqCI2oqUVFUEvWdzq_LYOpBDhUN3UQT0SmrmTXFXC6WZ1U6zULxtRlMK4l1uKpu9W4lpQ8fZhtIXyoFql-WzeOtMrnXMAQK1z8Q7UE_HhQ5a",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQKnh81oMDKCNQwLXet451coX-gOmPQNnfmaw6_ArukYfW8BjZGr9tMcWS0__2rsPbcq8rwoIYTXyLFEotUiRptYmInZQ_2b8LX5ISH3V3bqgtk0-uTNlLc"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/ohoJUXicDcndEkJAGADQJxJKopmmQZSRmk2brRujJWvGzy5fTTxU79Pb1Lk93w8D4P1SlvOGdgOHPJPg3iiToocUSjqhbS33rOW8bIq1WP1vaR0yc0ujUiV2SEyPboXjT1uBLx52X3E2imR_PXJ7w_BhhtFZiequPhOPOHp8U7E-4v0bTlUYaJX6DPjTjLWKI-NxY-CTofVEJcVjfoSwa0hooUAdDbTAbrJjaJ7-AA0cPcM",
+"https://serpapi.com/images/url/r5H3r3icDclJDoIwFADQEwEqYoDEGJwJWMUR2BBasSB2oHxDuJT38Tb6tu_7KQFk6xpGwYnqJRR3DTA3ddpCDhXRiWBGWwopK05nzfR_rofuzoZEAS_todgtgwWKujAuYGwNiYg1umeHCPEHy7tJ5ql3nTxu9vyZbpQDO3I7DbJspNoDJo2tOuEn57gP1ysBl-ooIWE-T6NshO0wtvzT1ryauKFQD7T3Gb1C8gM9uj5_"
+]
+},
+{
+"position":
+15,
+"title":
+"iPhone 16 Pro Max Apple 256gb - Natural Titanium Natural",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:4646141225439940088",
+"product_id":
+"4646141225439940088",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=4646141225439940088",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNDY0NjE0MTIyNTQzOTk0MDA4OCIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjQ2NDYxNDEyMjU0Mzk5NDAwODgiLCJpbWFnZURvY2lkIjoiMTAyNzQ2NjE3ODIxNDEyOTUzMzMiLCJyZHMiOiIiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNDY0NjE0MTIyNTQzOTk0MDA4OCIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjQ2NDYxNDEyMjU0Mzk5NDAwODgiLCJpbWFnZURvY2lkIjoiMTAyNzQ2NjE3ODIxNDEyOTUzMzMiLCJyZHMiOiIiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"source":
+"Mercado Livre",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a3765349feb32c043a9be2fe9642796d65a28f.png",
+"price":
+"R$ 9.500,00 agora",
+"extracted_price":
+9500,
+"installment":
+{
+"price":
+"R$ 452,38/mês",
+"extracted_price":
+452.38,
+"period":
+21
+},
+"rating":
+,
+"thumbnail":
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcRv70MP9FgDdYoJzi2VDbIMQSbRTZ_CIsofYz3NrJmH1kVguExf7NO24M_p4cdJabq88BgShvTQCRiC586yKIolZmWis-xZU9VVqn4ScBwxIedjm3th47Elbg",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/EkplWHicDcn_EoEwAADgJ0pUVO6cI7-WKxRz-sfZljVqWzbEU3kdb8P37_f9FFpL1TfNnOPbS-qcGBrxTosqfdIMt7CoTFUIKRmnw3rwv_4oJv4cJw-3Ha39GZ2QgwjfzIITBKJNipJtdgyAEufD245vYbXoXCG9T5uzG68sJzpKB5PwhGrPG9O0eGw3QcKCrtd7LYEos2rPlNFkOx_CmjspHj8bkJNLZevCcacloj-J7z69",
+"thumbnails":
+[
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcRv70MP9FgDdYoJzi2VDbIMQSbRTZ_CIsofYz3NrJmH1kVguExf7NO24M_p4cdJabq88BgShvTQCRiC586yKIolZmWis-xZU9VVqn4ScBwxIedjm3th47Elbg",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTIFuQxzi63neRB7_d12wajXWYjTqaCseYLUfRQx5UMbghkgbIrOpDn7SHFabkGZz6wJGkbhGbAaDyqNBCMRSHv4VR_QQP08SiT5sdrGf41x1HRy0L_IehTwA",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcQb14AOqt8mD6RglIdWNGPQLGBqWBa_bxqBRP7jp4PD36T__G6Xu7dfI3bOl17hCjhWb2tR1yyExCgX94Fcn_p5d9viLo4ugScL6Ojqn7OL4Kn8GEJ-Mq5dpA",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcRVHZZ9x3shInabdTw3JgKn2jeVXw0qnzfeoW_grHyeQT39Xp6DABexy7CEnU3UHOhgEcsjUofWC3Hsvln3cRIaCIXtboBY8M9yxCBSyBt9M3O-ZrLoBLZ4MQ",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcShyonGWUl-CfpCUd9cMV_wdiGK2tH0_FhAbZv98q7oxID9Cici1ippXhT4PUxAkb74QVPac2c0hTzhCJo7F_i67suFqyQf7DNQDlcveOA"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/EkplWHicDcn_EoEwAADgJ0pUVO6cI7-WKxRz-sfZljVqWzbEU3kdb8P37_f9FFpL1TfNnOPbS-qcGBrxTosqfdIMt7CoTFUIKRmnw3rwv_4oJv4cJw-3Ha39GZ2QgwjfzIITBKJNipJtdgyAEufD245vYbXoXCG9T5uzG68sJzpKB5PwhGrPG9O0eGw3QcKCrtd7LYEos2rPlNFkOx_CmjspHj8bkJNLZevCcacloj-J7z69",
+"https://serpapi.com/images/url/g3tfDnicDclJDoIwAADAFymCCmpiDGooGEQp4HYhLRSKxFpoleVVfsff6Fzn-6FScrFQFMKSuuOSpAOJmTbMhUSySIbJ86EI-uS8YPmqWv5vYXrpHCShY738ti_0MSNwbcSpqjXofjlf72GFNoJc3SiDfjuN9jinZY6d-sC3zAhsC-ES3Hq92YESU4BNtO0qb73Zw8B-T04w9v3jaBYU4VSkNcgmaqvasBu5sUNo2Jg_2dQ-7w",
+"https://serpapi.com/images/url/6z6B9HicDcltDoIgAADQE6VZ-Lm1plasMlFr039MoFBnCEktb9V1uk29v-_7abSWY2CaV0Efk9RXNtNEzA0-6lq31KDD3RybQcpW8LVa_S8IU-ZDmhMLhEhp775xCt7vWZnCLE9gpMqoxuStoiJzOwmyzdK5YAyd6umy235JUG-5Tdw1JVnowpqm7TvmlQ92VGBpM__VJgN48jNNHNQp4aIEHIUHt4fZSdlMhj9PLT1Q",
+"https://serpapi.com/images/url/Uw9od3icDcnhEoEwAADgJ6owh7lzrqVTiJMi_XG11qpjm7ZT81Rex9vw_f2-n0opIeeWRRhutVCkMFTOhiaVKlM1NjF_WLLiQtSMLp-L_83tfQHXODx7aQp7ICufZXkRdWBDt2zUkHPSDZ7sXRJ-udHW0-QYAZiIycpGpNdTx2UxiL1DRV0sm5iXFwd48nVnAId-5viJyjm6zgKoewedNFIwAAcjbXcc7dJxcPwB72w_Ew",
+"https://serpapi.com/images/url/Ce_KRXicDcndCoIwGADQJ0pNpDUhYky0HzIltehG9PNnI3Mzl2lv02P1NnVuz_fDlJK9retlC49JqrKYqbw1tbpXmeKggbjrPRNS8rZed6v_2cQvsAcnNonWO8fNjFaSxgWGQ5K-Cu7tTbUxUpeR_DrgZYfEuHUw5cDnXMoLi6wgHsktR1aYBBmYYLDozehOIDflC9Q_3W4KK-T4odPAUB7JDyM8OaY"
+]
+},
+{
+"position":
+16,
+"title":
+"iPhone 16 Pro Max 256gb lacrado original 1 ano de garantia Apple",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:13825935621770334138",
+"product_id":
+"13825935621770334138",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=13825935621770334138",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTM4MjU5MzU2MjE3NzAzMzQxMzgiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxMzgyNTkzNTYyMTc3MDMzNDEzOCIsImltYWdlRG9jaWQiOiIxMjQ5NjUzMTI5NDU5Mjk4NTkzMCIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ==",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTM4MjU5MzU2MjE3NzAzMzQxMzgiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxMzgyNTkzNTYyMTc3MDMzNDEzOCIsImltYWdlRG9jaWQiOiIxMjQ5NjUzMTI5NDU5Mjk4NTkzMCIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ%3D%3D",
+"source":
+"Shopee",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a3765360138f31e64dca42c2d2c1cf9f1a898c.png",
+"price":
+"R$ 6.093,00",
+"extracted_price":
+6093,
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcS5_82uwBrk1FypOmt_7ltEFiaSLGOl7FZ_qQn2QL_koloEKuKJsc0nSZmhCREGgn9YOxGX7FibBe6JUT9PokIQYKOAYT5W8XFreNgEgVf-2chQ-qNmAROOJA",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/fIkyUHicDcnbDkMwAADQL8ImMZdkWVhUhuhctuFFKCtBW1Q2f7Xf2d9s5_V8Py3nbDEkqSFo3hhvaoFXRBbxwkveIRHRUVpaylhH8Gk6_s8wg1p3UKwUmry-rLnfg43BkRfqwG3QlbHvwEEFeTGFRA79oqcDtb3Vcxe0I3E-tufIdjDRM_h2UhV0ldUc3FuiX2l_CTMPmlmiPLQUzE2AbXx_CjJqQ2EKRjOC0DV_sz4-Iw"
+},
+{
+"position":
+17,
+"title":
+"Apple Iphone 16 Pro Max 256Gb Com Apple Inteligência Ia Novo",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:14155417476469818855",
+"product_id":
+"14155417476469818855",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=14155417476469818855",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTQxNTU0MTc0NzY0Njk4MTg4NTUiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNDE1NTQxNzQ3NjQ2OTgxODg1NSIsImltYWdlRG9jaWQiOiIxNTc4Njg4ODE1MDA0MDc0OTIwMCIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ==",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTQxNTU0MTc0NzY0Njk4MTg4NTUiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNDE1NTQxNzQ3NjQ2OTgxODg1NSIsImltYWdlRG9jaWQiOiIxNTc4Njg4ODE1MDA0MDc0OTIwMCIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ%3D%3D",
+"source":
+"Carrefour",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a37653b63c8179cb6d8482bde0b14fcfb6433b.png",
+"price":
+"R$ 7.789,05 agora",
+"extracted_price":
+7789.05,
+"installment":
+{
+"price":
+"R$ 1.024,87/mês",
+"extracted_price":
+1024.87,
+"period":
+8
+},
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcS4Jj9AnjwCtf1525kaNcWiYuFeKU0K0Vy9xjUj7a1vIMnGt0FkcxJZmrX62mokLoBk4cJClUfLBZ9-vk_FBkBa9VO00h6qNuua2Utk203N",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/xS_minicDclLDoIwFADAEwkFAVMSY4AEIiAuDKhsTC3fVsrvgXAdb-VtdLbz_VQA3WjKci7osHaQZxt4CiSVIxCoqUTbRh6rtutqUR76_f9MK8qwRy-az7Al2NuBQtFVnZOIXuv75OZBjAKUrHhhMdsRZT6ehAfI5XTx02a4GWrT8rC1uUZ95xUXoZ3izcwfrs1tgpMzQpXRR9NE1Bi4irbRDytyOPo"
+},
+{
+"position":
+18,
+"title":
+"Apple Iphone 16 Pro Max 256gb 6.9 Recondicionado Prateado",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:15538629714254626941",
+"product_id":
+"15538629714254626941",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=15538629714254626941",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTU1Mzg2Mjk3MTQyNTQ2MjY5NDEiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNTUzODYyOTcxNDI1NDYyNjk0MSIsImltYWdlRG9jaWQiOiIxNTkwMzYxMzU2MjU0MTE1NzQ4IiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTU1Mzg2Mjk3MTQyNTQ2MjY5NDEiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNTUzODYyOTcxNDI1NDYyNjk0MSIsImltYWdlRG9jaWQiOiIxNTkwMzYxMzU2MjU0MTE1NzQ4IiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"source":
+"Techinn.com",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a376531c68fa500807257f9910aaaa6a8d8605.png",
+"price":
+"R$ 6.446,99",
+"extracted_price":
+6446.99,
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcSAdnHb2X7k6ioOHpohot-uXmOclSIYArIHIAK9LDGU5CytvV98-tYgUVU1NZ5kVN2JbQ_oZNSbG8JYvYfwM0lB6SiBzuR3OifVnbw5m7Wglnz-ioWOQG3tmw",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/33pEsHicDcntDkJQGADgKxJliK01avNRMRnFn9Y5vs7inBMvxlV1O91NPX-f76cG4L0higXF3cyhyAVAVFpVPTyB4BVmrdjXjHNCq_179z_D9HPdxpGZUwdt7tpLJSxwOKsZCMO9DXATuanZuY5rnvTz0Y6Vwwxjom8FSKs4idd-prwSf-Oh8MEyP0L21kvHtJwuUmOpEbGW4SoHpEwompRWu1UNXQTCbkFoy9BOP4sePrg",
+"thumbnails":
+[
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcSAdnHb2X7k6ioOHpohot-uXmOclSIYArIHIAK9LDGU5CytvV98-tYgUVU1NZ5kVN2JbQ_oZNSbG8JYvYfwM0lB6SiBzuR3OifVnbw5m7Wglnz-ioWOQG3tmw",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRKLt_CR-AmhQ8mbBcvJLBm8TDju5aG_T5_j9vflc7t-PufL-Nda2GTl1cgnohfLub70YQzfmUeHqeRkfyP0Sup1e94p33Sh0WkLeT8VeM6GIr7aZVfrS2jEQ",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQNP_xasAE7Ij8wGgJyFnFYg_r1WQBEOfK4VMf4mNJCfVi00lZqj-9VyovoWFuQCPpr7Hp-1xmXBebQWKB1Svr07zCV66q_bN-jSAa_7tddY34zXnjTGeaGXg",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcR9vSypmFAq5t9FZOL7qDMPGOA1zO8vWAuEnlu_8N92myE2VP_sUUWdiUeJQRtHr5bYjWppcgzkwhauq4z6yDMhJuEEsLW8LTNHTAI9815CUoz2RBXCezOYPg"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/33pEsHicDcntDkJQGADgKxJliK01avNRMRnFn9Y5vs7inBMvxlV1O91NPX-f76cG4L0higXF3cyhyAVAVFpVPTyB4BVmrdjXjHNCq_179z_D9HPdxpGZUwdt7tpLJSxwOKsZCMO9DXATuanZuY5rnvTz0Y6Vwwxjom8FSKs4idd-prwSf-Oh8MEyP0L21kvHtJwuUmOpEbGW4SoHpEwompRWu1UNXQTCbkFoy9BOP4sePrg",
+"https://serpapi.com/images/url/asciLXicDclJDoIwAADAF7EqAibGgBpcqmEToxcCpaUshQotib7K7_gbnet8P4RzNi4VBXVweDGOConnnSqXI894BWXYU2UkPWNVV66fq_8tnUthezA8AZ5uQsmhJLBo7sLpCFxqxdtaGJmXxkZa2xNuocklX2AgXYpM9-JWg2XXEwxEbqr34I3pFe2fKGzwy1cjwTRkz9lsFhH11gAUWwk6L7zDYGaPBA-RXu-CH5duPlY",
+"https://serpapi.com/images/url/uthFd3icDcntDkJQAADQJ_JV5sbWGoZiiWk--mNcXCzXxU14ql6nt6nz93w_NaVkUjiuxHBcCS0LhuZ4x6KJZrSBLOw7bqp7QhqMTsPxf4rqFrIFfddLl2xSDXBpD28L2auJzQSloxD5mnGrHDG8VmLn2noVNjz_fAwtI4drP_eR-fJ1j4zgTBhh6WKtzP3I0YRgHnmw6aEkDWnuMm2gZimgRZHsxS3G7d0qMytGP4oIPkY",
+"https://serpapi.com/images/url/MqT-kHicDcnbEkJAAADQL4phUtZM02yuGbdE0othGVRYdtXYr-p3-ps6r-f7aSjFROH5qkfTgmlVrmjRC1xNaE5bxKGh40kzYNz29X7c_U-BXglMFILXecGdAUeJAuPmO9tRcwPThwLz5VcCZ71_zpnsAbFbdPESZCSOk7KNK_sUUmuSivSeYIxq9ng3-Tyu2WbR3MaedZ04iexEnhXBI5AFSY0HJoaHq1oxPw3qH7GFPrU"
+]
+},
+{
+"position":
+19,
+"title":
+"Apple Iphone 16 Pro Max 256gb アンロック 良好な状態 - 全色",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:13775334962659088789",
+"product_id":
+"13775334962659088789",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=13775334962659088789",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTM3NzUzMzQ5NjI2NTkwODg3ODkiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxMzc3NTMzNDk2MjY1OTA4ODc4OSIsImltYWdlRG9jaWQiOiI3NDkxNDU5NzIxNjM2MzI2MDQ3IiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTM3NzUzMzQ5NjI2NTkwODg3ODkiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxMzc3NTMzNDk2MjY1OTA4ODc4OSIsImltYWdlRG9jaWQiOiI3NDkxNDU5NzIxNjM2MzI2MDQ3IiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"source":
+"eBay - itsworthmore",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a376531510f8c519942ea7ba0db36f9ead1e03.png",
+"price":
+"R$ 5.284,51",
+"extracted_price":
+5284.51,
+"second_hand_condition":
+"recondicionado",
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRNEQb2H13A6E9g8YOdratmo0vocNdCCGk2ucHpF2FTfZqA_PWZtcJqFMbJxjZJYoGQhiNBouDVhJrDAigrfK02wtxS7MqXCmO8W4hTmQFN56bBxaigv04G",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/ZUxz6XicDcndEoFAGADQJ1KpUGaM6cfWZCxhpG5MbewuU7vVJ3kp7-NtOLfn-2EAspur6rUm7VvCtRxBURsK7SAHThQiKrVjQkpe02Wz-N_cwaUdkD1exYUejg1nurKplW7LNodKaL0guPS84KE_SSiRjo63rHEuuyQDEjVoU0TDPYtSEcSMY1c8_ROLWt_htL2tNf0Fw2G2ac5etbUSkx2rGOHJtHCHnNNeM4MfAFM9qA",
+"thumbnails":
+[
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRNEQb2H13A6E9g8YOdratmo0vocNdCCGk2ucHpF2FTfZqA_PWZtcJqFMbJxjZJYoGQhiNBouDVhJrDAigrfK02wtxS7MqXCmO8W4hTmQFN56bBxaigv04G",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcSEfHthG0FR1-KmyjJHrUO3TOlPZp5JK5J8GEoBgUF7YnNn1ec_byb0pXGO4p5Qz04tzza7hhrFtMbCS7sVFB3OhKS-UujTs9kf1pTk3iGVR4Wm8tS44VfN"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/ZUxz6XicDcndEoFAGADQJ1KpUGaM6cfWZCxhpG5MbewuU7vVJ3kp7-NtOLfn-2EAspur6rUm7VvCtRxBURsK7SAHThQiKrVjQkpe02Wz-N_cwaUdkD1exYUejg1nurKplW7LNodKaL0guPS84KE_SSiRjo63rHEuuyQDEjVoU0TDPYtSEcSMY1c8_ROLWt_htL2tNf0Fw2G2ac5etbUSkx2rGOHJtHCHnNNeM4MfAFM9qA",
+"https://serpapi.com/images/url/ZgcfgHicDclJDoIwFADQEzGFEtTEGDVQApGqBRw2BspQVEql3wUcyvt4G33b9_1wAKkWhlEJNowSqlKDQth6oyCHlums7wzFeylb0axey_8t1nE5x4x6dQAcm_7R0qJuvIfBkBI7Ic_9VTph5IQz7PWbJvXdi4iFVbFbMRamPGOCpHOYTATTlLucDz7sii11VeZvbMIjqqXve6Lmj9qSycNucXZEp24GFKGsjn_XJDzR"
+]
+},
+{
+"position":
+20,
+"title":
+"iPhone 16 Pro Max Apple (256GB) Titânio DESERT, Tela de 6,9", 5G e Câmera de 48MP - Lançamento",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:14999752027892396606",
+"product_id":
+"14999752027892396606",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=14999752027892396606",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTQ5OTk3NTIwMjc4OTIzOTY2MDYiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNDk5OTc1MjAyNzg5MjM5NjYwNiIsImltYWdlRG9jaWQiOiIxNzg3NzQ5OTM0OTE4MzUzMDI2MyIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ==",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTQ5OTk3NTIwMjc4OTIzOTY2MDYiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNDk5OTc1MjAyNzg5MjM5NjYwNiIsImltYWdlRG9jaWQiOiIxNzg3NzQ5OTM0OTE4MzUzMDI2MyIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ%3D%3D",
+"source":
+"O Mago do Macbook",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a37653975bb38318dc78dad364d2dd1ceb3868.png",
+"price":
+"R$ 8.798,33",
+"extracted_price":
+8798.33,
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcSjzQP2CiW97VtOM3uUjao4eWkSKYNKVrWIq5DqpyUevvIs4ZSh61f2oLLnkX2kr--OTcpJYzWOx9PJZG6H8n6mEeO-HQeINBZliYWJgpw_hcA2xTo7ykuv",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/dW7pZnicDcnbEkJAAADQL8K0iZhpGl1GLrmM2HhpatuQ2l1swkf1P_1Nndfz_RScs1aXJExQMzCOrwK_kKmYt_zMSyQi-pTagjJWknxZL_6nG95VM1F0H8MArEuoqQn399NXfD9TGcMqclLPSRpo1bNNzYYYd53VyllUKJMboK5LqiOoGkHwD4jZ6Qj9XgvszFR2c6I8t9gXdiG2vFX2KFNo5-x9KpAB-gNVh-rV_QAqnz5h"
+},
+{
+"position":
+21,
+"title":
+"Iphone 16 pro max 5g 256gb lacrado 12 meses de garantia apple 12x no cartão vendo/troco",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:3394931432136638419",
+"product_id":
+"3394931432136638419",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=3394931432136638419",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMzM5NDkzMTQzMjEzNjYzODQxOSIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjMzOTQ5MzE0MzIxMzY2Mzg0MTkiLCJpbWFnZURvY2lkIjoiMjY5MjE3Mjg5Mjc5MTkyMTgzNCIsInJkcyI6IiIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMzM5NDkzMTQzMjEzNjYzODQxOSIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjMzOTQ5MzE0MzIxMzY2Mzg0MTkiLCJpbWFnZURvY2lkIjoiMjY5MjE3Mjg5Mjc5MTkyMTgzNCIsInJkcyI6IiIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+"source":
+"OLX",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a37653004f03948758b8d40c637a3e5bb2cc86.png",
+"price":
+"R$ 7.500,00",
+"extracted_price":
+7500,
+"second_hand_condition":
+"usado",
+"rating":
+,
+"thumbnail":
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQeBarJ8BoZRizPOz5z6qjcn7AjnFZYrdtxy8boiWChCjHAjhE6mEM1CLH01vnLQ4Zn-qPMx73IV6_rSihauvULMP-1be5y4gVdjhvmSOxq",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/3ea9VXicDcltCoIwAADQE6lZfiVEqFgWmpZk5J_QbbgN3JwuUY_TrbpNvb_v-8FSdoOraYiBfu4kgoqs2VptBllJAlTAW23AvOsIa_Zi9z_Xu8DtEVyRX_Vnx-fljSxZupiLJShgtkfZoXz2UE6zU3PyCHBAI4_i0GrDRA_iaKWPLL4aJVNElkz25lRYrz4nuHqP9zjJFL1G5mw0BaR4bPN0Ej90azqK",
+"thumbnails":
+[
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQeBarJ8BoZRizPOz5z6qjcn7AjnFZYrdtxy8boiWChCjHAjhE6mEM1CLH01vnLQ4Zn-qPMx73IV6_rSihauvULMP-1be5y4gVdjhvmSOxq",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQqgotpJ1gmyEv1yZslFnwg6StsH8D_-dne8s_CmUnjpMFvkCT-Z1mlcjWgf2lAKZ4ZoObeKiwDcHahP4kdfMhmLKeC8fNllwqFhajwxdLD",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRvP1jbORsHIBRUA0X-HMXYfemVCFFCcXWwVqz_KyoiGJMCAAIIB7BQDS8ua8R7d8ePUVAkahDyumy_a2sZ5B-Fv80YYNR2NxsKuqCvafYc9Z_Pigg958ho",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQWiV9gUVpDRlIWmkCkWNKrw2wYJdGuXipkc8Eodz6kK4jd7ks5dIiZ14vLt6_Ow1q_8E6g5j_iN3EgsgGulCKysBey4CwaK08SF8C4jXb3"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/3ea9VXicDcltCoIwAADQE6lZfiVEqFgWmpZk5J_QbbgN3JwuUY_TrbpNvb_v-8FSdoOraYiBfu4kgoqs2VptBllJAlTAW23AvOsIa_Zi9z_Xu8DtEVyRX_Vnx-fljSxZupiLJShgtkfZoXz2UE6zU3PyCHBAI4_i0GrDRA_iaKWPLL4aJVNElkz25lRYrz4nuHqP9zjJFL1G5mw0BaR4bPN0Ej90azqK",
+"https://serpapi.com/images/url/EKg88nicDcltCoIwAADQE6koEiZEiGaSHxUVwf6IbnNTtznbcHmdbtVt6v193w_VWqrQcbCAr1VqjCzdCs8mSje6hzacuKPoJGUvyH7e_S-MKrQ9wutMJi1PLuHrYXFXoFgqDNnctMqCpLaQwIGqY_4QgyzTZYzvFnA5g8OTdB6LcuCD6dzivDcJzBp68UfUlZQXOY6DrmLMzCltBvNGRfIDyGw8BQ",
+"https://serpapi.com/images/url/qD22vnicDclZCoJAAADQE7kkiKMQMSouiWYTmvoj47gWbs1o2aG6T7ep9_u-n5axiWqCUA3ksU2sKjlWDBLfUIZZR3gy9gJtx2nqhuYw7_-nwaBUbYLWcHcrTog6ro4iKCac4ydpXfWxYVkGSa7PeH7n3jZ29tE3IHRdXdHP5gUsGCClBFUYxfCOW3Nb-i3HEs1knbNWIKZpgKTgRb1lNlZcp0TN8rBrGlUG7fgD41c9QQ",
+"https://serpapi.com/images/url/vX9KGXicDcn_DkJAAADgJ4pwhK21kkyaVi3UP8adnXN-HHcyPU5v1dvU9-_3_ZRCMG7LctHCYWaiQAuRt6qEucgEgRLsGpmXHWOkxZt-_T97GyLLg5eYRBa-R2x_rf24oQ6Nw2CY1OlxRN6YEEah6XbobdAAVGhFuY588lTA6ySM9DwpfWq6BtarlISaizn2xtoJZr4rZuBMWbA0bwfTAVWSaz9-nzn8"
+]
+},
+{
+"position":
+22,
+"title":
+"IPhone 16 Pro Max 512GB 5G DUAL E-SIM, LACRADO, ORIGINAL, 1 ANO DE GARANTIA PELA APPLE",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:12127207439047597603",
+"product_id":
+"12127207439047597603",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=12127207439047597603",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTIxMjcyMDc0MzkwNDc1OTc2MDMiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxMjEyNzIwNzQzOTA0NzU5NzYwMyIsImltYWdlRG9jaWQiOiIyMzI2NTMyNDE4NzMyMjUzMTcwIiwicmRzIjoiIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ==",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTIxMjcyMDc0MzkwNDc1OTc2MDMiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxMjEyNzIwNzQzOTA0NzU5NzYwMyIsImltYWdlRG9jaWQiOiIyMzI2NTMyNDE4NzMyMjUzMTcwIiwicmRzIjoiIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ%3D%3D",
+"source":
+"Shopee",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a376539d2c4fd863900997618b56d19fa13353.png",
+"price":
+"R$ 5.865,09",
+"extracted_price":
+5865.09,
+"rating":
+,
+"thumbnail":
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRL7IRmcPqJkuSgnf8RBIEStQdb5kgmBcs__HkN0ytbf0jh82GIb4fiSisRknxMJ1RU48R8z7AnTgSjgzK5XI2fx0OczTqiEokY9sEeZ-8",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/8Cy-5XicDcltCoIwAADQE_mRKE4hQkFsVlZbQfVHcuqcwznbAvU2Havb1Pv7vp9Wa6lCy6oFec1S15WhS-GYVOmnZsQkQ2-pdpCSCboZ1_8Lo7wKUoL2PkQ9OY0Zf2MqGoBimGB9rkqP0z4mqii2PLdnXTZ21wInhaXbMMwU4mI6ZCt0dQECix-JC8UdXXbeDTrNZB_JchlZMvB7oJL6YYAfMDU50w",
+"thumbnails":
+[
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRL7IRmcPqJkuSgnf8RBIEStQdb5kgmBcs__HkN0ytbf0jh82GIb4fiSisRknxMJ1RU48R8z7AnTgSjgzK5XI2fx0OczTqiEokY9sEeZ-8",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQLuCMpAflgkOmqHYxb-dEnneNx3DsbA8fbtZibA0zWQ2Qmyy20zmS-JQFh1B_FCBFve_oRMJrgND9LOtPlXMnjs04Wd9FoxI6w7uSpMMexB9awQdjpOR3m",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRg7xy7LcGwCQ9BpKhgh7iQC62MB-NVGjEM0kVKuk23iWc1yVHx8im0ubktZT3AJnlSKbgLf3jvx8JCwjwMpOTBWCr8cjp7Ez77U_TN1qljvETAs4gp9MU5"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/8Cy-5XicDcltCoIwAADQE_mRKE4hQkFsVlZbQfVHcuqcwznbAvU2Havb1Pv7vp9Wa6lCy6oFec1S15WhS-GYVOmnZsQkQ2-pdpCSCboZ1_8Lo7wKUoL2PkQ9OY0Zf2MqGoBimGB9rkqP0z4mqii2PLdnXTZ21wInhaXbMMwU4mI6ZCt0dQECix-JC8UdXXbeDTrNZB_JchlZMvB7oJL6YYAfMDU50w",
+"https://serpapi.com/images/url/8VELlHicDclJDoIwAADAF7EoRsXEGBZxCQWLB9QLobRs2lJsUeBR_sff6Fzn-yml5GKlaYRlz4FLghWJmKEWQqayytSsoZooG84rVmza9f9WVoDNXQb9zgHcyh_FPaTt_tojBW8ZI0FvuAJZyxzJW4UsfYzhFNJhmOojPStH6JUTO_Ec23uRpInA8VkErumH8vS4AFYLfRZj02v6w_y96M4cANLbZvqGuOZhZNAfXS0-qA",
+"https://serpapi.com/images/url/LvtVd3icDcndCoIwGADQJypLq2kQoSJGNsNaCt1Erpqbuj51-dND9T69TZ3b8_1kSkGz1LS7pPUA6n4bqVTqY9aoq-J0TJ-l1mRPAC7Zulr9b2mHN8unB4b6Ae2o37mR5UCQsQzxyF3o2BmFsS88PMnj4JXrBk_odIg3vcnLySvN1ZkY9lYWxyBlu4ch2t7cup3oMOyJk7i1SQUg743Q6ULCaVWI1iN2M2Ng4dP8B_nSPX0"
+]
+},
+{
+"position":
+23,
+"title":
+"iPhone 16 Pro Max 256GB - Titânio Natural - Como Novo - Grade A",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:4899187487533457622",
+"product_id":
+"4899187487533457622",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=4899187487533457622",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNDg5OTE4NzQ4NzUzMzQ1NzYyMiIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjQ4OTkxODc0ODc1MzM0NTc2MjIiLCJpbWFnZURvY2lkIjoiMTI5NjAxOTU5MzcxODQzODgzMzkiLCJyZHMiOiIiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNDg5OTE4NzQ4NzUzMzQ1NzYyMiIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjQ4OTkxODc0ODc1MzM0NTc2MjIiLCJpbWFnZURvY2lkIjoiMTI5NjAxOTU5MzcxODQzODgzMzkiLCJyZHMiOiIiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"source":
+"Outlet do Celular",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a37653233b4053c81e9e794490ae5de8ab0638.png",
+"price":
+"R$ 7.667,10",
+"extracted_price":
+7667.1,
+"second_hand_condition":
+"recondicionado",
+"rating":
+,
+"thumbnail":
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQxFu5yvzP1ce5d0UdRuOIqkaYh6fklzUArQeERExJYxf21WnLN5YQb9bJJ8aJTLdMFfjp9LriDvKFy5RYU_223oFMBdGyCkzMMGi0YNQ07H4jkzKEhCe66dA",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/XPQFtnicDclJDoIwAADAF8mmoJAYgwgom0IkpicDbVkVChQCfZXf8Tc61_l-CkrJoPE8bmC_EIrRiqbNmssHmtAScrB980PRElI2-aHb_0_TA6TaMJytUV4mdhMhlpEQo2i8Xro6AYWS1S8W632IzcicHTBnkvhovEAGYaqmjrNLnLuHfCuriOr15WlyrUWOQPyUpHVr-UdkL0bNfN8uBRCEwva8qWrmmoWBFQXpP8WMPhM",
+"thumbnails":
+[
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQxFu5yvzP1ce5d0UdRuOIqkaYh6fklzUArQeERExJYxf21WnLN5YQb9bJJ8aJTLdMFfjp9LriDvKFy5RYU_223oFMBdGyCkzMMGi0YNQ07H4jkzKEhCe66dA",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcT9mHM5JIdJcdnLOg5peMFJp1xqiFi7lZzofeiyl-Za2Gnb9M2bF0t8xODDd6N9VzbA9DjFdSQyYKgwF6JzbEiM8nuZcZfkhZgVM3-_U1aktVtbKpt3y8-PdQ",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcQlxRwvMAlBI2DNnVbn6tGqGQLIiEekVTjzdFp9u1YG7uo0OK8HtWNaej7UqGebvKnJ4x1TNc5QKAkekLeRsXa3mRgyeHe0hiJr9_z-Uay7rBKKJjp0ga9J",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRRW3gjEgZd9Y1MuJ6FREzF0dEpId7n121CXtXExCQUViHG1YahMp0pU9aC6Z6LfEgEWNT6j7jT5SRfGyNLp2YO87dj0VbjcNBNFNCmPJ900jqWX_lqGiVi"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/XPQFtnicDclJDoIwAADAF8mmoJAYgwgom0IkpicDbVkVChQCfZXf8Tc61_l-CkrJoPE8bmC_EIrRiqbNmssHmtAScrB980PRElI2-aHb_0_TA6TaMJytUV4mdhMhlpEQo2i8Xro6AYWS1S8W632IzcicHTBnkvhovEAGYaqmjrNLnLuHfCuriOr15WlyrUWOQPyUpHVr-UdkL0bNfN8uBRCEwva8qWrmmoWBFQXpP8WMPhM",
+"https://serpapi.com/images/url/oJHSTnicDcndCoIwGADQJzJLqVwQEdgsa5lUQrsJ9-NcP3PlF6lP1ev0NnVuz_dTAth64rrS8GdrQQoHmPF7qoYcNO_x6u7WZWWtNmr2mP5vMt8KFPEDui_JMF6JmAuzSdTQSoJjO2geGuvxjXZVIXV7c2juRYYh4jHch6BJwlCMtijr2ByFFyz2aXtaqzcexR1baBKYF-W0uJZUZcR3zsdBfoUM2NqC3wbOTqQ_pV0-zw",
+"https://serpapi.com/images/url/e_0mI3icDclJDoIwFADQE8nghJAYA1ELVDEQQV2ZUn4YLQWKCofyPt5G3_Z9P5kQvDNkGRhtBy4gmYiYqVLaCSJyKtH6IXdZzXnO0k2z_p9heomOqF-9g9fzaFaWM916LIrZUqAG-Qcn30EZnYsx2XO9V29I62vlhFe2uHgECi1sEMRPzNz5Wz17dOFjs4TyAEF3JbNHkA5gg5Llbqvfx0lIBq21MHYLrqREd39OCT5p",
+"https://serpapi.com/images/url/fp0jzXicDcltCoIwAADQE6WzSFOIKJmW5Crz-0_opnMjdeaC7FDdp9vU-_u-n0ZKMVqqWnX4MQlZkZksO6DQURaSYQX3rTo2vRCso5th_T9ri4jp4iBIFpRDmhMz0_ynpzsBfDuAQHEgRqfNNTuVKXzZlyhme1fLisYXQERmYeu5fqwhhQkKdW7wcHkNandCRzHPTiuDcBCXHKMdcpDdnj0TAD4k6e0-uCxmP5erO_I"
+]
+},
+{
+"position":
+24,
+"title":
+"Apple iPhone 16 Pro Titânio",
+"product_link":
+"https://www.google.com.br/shopping/product/9683565231537650143?gl=br",
+"product_id":
+"9683565231537650143",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=9683565231537650143",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiIiwiY2F0YWxvZ2lkIjoiOTY4MzU2NTIzMTUzNzY1MDE0MyIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6Ijk1MTkwNzQ1MTI2NzAzODM2MDkiLCJpbWFnZURvY2lkIjoiMjk2NjQ5ODM2NjgxNDE0OTI0MCIsInJkcyI6IlBDXzEwOTQzMzUwODQzNjU4NDIxMjI5fFBST0RfUENfMTA5NDMzNTA4NDM2NTg0MjEyMjkiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIxMDk0MzM1MDg0MzY1ODQyMTIyOSIsIm1pZCI6IjU3NjQ2Mjc5NjExNTU0Mzg2NSIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiIiwiY2F0YWxvZ2lkIjoiOTY4MzU2NTIzMTUzNzY1MDE0MyIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6Ijk1MTkwNzQ1MTI2NzAzODM2MDkiLCJpbWFnZURvY2lkIjoiMjk2NjQ5ODM2NjgxNDE0OTI0MCIsInJkcyI6IlBDXzEwOTQzMzUwODQzNjU4NDIxMjI5fFBST0RfUENfMTA5NDMzNTA4NDM2NTg0MjEyMjkiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIxMDk0MzM1MDg0MzY1ODQyMTIyOSIsIm1pZCI6IjU3NjQ2Mjc5NjExNTU0Mzg2NSIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+"source":
+"KaBuM!",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a376538db5d21a3a07b0d7fc5f13dce43d19f1.png",
+"multiple_sources":
+true,
+"price":
+"R$ 11.999,00 agora",
+"extracted_price":
+11999,
+"installment":
+{
+"price":
+"R$ 1.333,22/mês",
+"extracted_price":
+1333.22,
+"period":
+10
+},
+"rating":
+4.6,
+"reviews":
+14000,
+"thumbnail":
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRCE0AE_5Gfl3VhgmafaB6HfjdAnfRunRGIsrmjZ8rncgook1PUbANvl0jiA7EupL5fb2rwBYBdTcC5X9BAGMPJ0JiSDd3ceewKa8XhO05A3-RNEq_lfYfSxg",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/5fZ4ZXicDcnhDkJAAADgJ4orU9haOzKlklGN_hh37hDncFJv1ev0NvX9_b6fQgg-GLKcM9S_ucjxTGQMSHQQqSiRhNpGHoqW85LRTbf-nwE9rDsosGwA7UR1SK3cCtqkJDWXO1JhyEgwssDZD31T3bWeIdq2j7l_zaD3rEFVwpU98qNKskU_mbGJL8hSI92Ezsl3gVuGW6ygPJ8OqRYVZ6BCZRZ4dpfUJCbhi_4Ando-Ow",
+"thumbnails":
+[
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRCE0AE_5Gfl3VhgmafaB6HfjdAnfRunRGIsrmjZ8rncgook1PUbANvl0jiA7EupL5fb2rwBYBdTcC5X9BAGMPJ0JiSDd3ceewKa8XhO05A3-RNEq_lfYfSxg",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRJKSKrphpEHEUQf8clJaOisOFQWnDdlPuKRfcWe1E9cmBtD_QmOrLPMV7BzbglBwW1xsQJ6dhhs0LAX_UosUrulMABdf76iuMrgtea4kCDCr2GkkIDkwqI",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRuYBZfu-hs3doRUSVPPv9mLQqYI74SDWPEN8jTWg2EFKd6tLV6RSINdsYia09Cx3PX3xkFarxkpoAn-90L_6zC2RP3tKEYFaksp4qKfGdxC9sqQ7Gt6peK6w",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcS8edM1bKYTQ-3lkzv6MoRitDm8su_YRw0dNLfvnl0p17_dVWFreKskCQpe8q8dUzIE5WPWOYoyxMDZBVbGqtOXj1-pvVdGd6YDqGuG2itohtAUT_izFeC2",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcQTjqJ7ReHnUuOPI1pynI-eD7j3r1gIo9Hwh1fxMvAIAQKhKtdHBJ4f4nhoqE1Vbos_AcP9uEPxYaEKxGIriiRsBa6VCo-wjQo0i2Hcf1XY52QDggaRJtD-"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/5fZ4ZXicDcnhDkJAAADgJ4orU9haOzKlklGN_hh37hDncFJv1ev0NvX9_b6fQgg-GLKcM9S_ucjxTGQMSHQQqSiRhNpGHoqW85LRTbf-nwE9rDsosGwA7UR1SK3cCtqkJDWXO1JhyEgwssDZD31T3bWeIdq2j7l_zaD3rEFVwpU98qNKskU_mbGJL8hSI92Ezsl3gVuGW6ygPJ8OqRYVZ6BCZRZ4dpfUJCbhi_4Ando-Ow",
+"https://serpapi.com/images/url/M4fIZ3icDclJDoIwAADAF8liDAiJMRQQ2QQ0iDcCLVDCVtoS1Ef5H3-jc53vB3NOmC6K1Qjpi_AKbXg5SkLDeMFbKMBpEBmeCGnH5jgf_qcbF6Q58Or5N58STOyznSb1HvZeEbUsOiXZaKE-XvxrDbNKtjU4AG7lyRDRIA7vKniXTQ_WTH6yxFMQxkwKjEeeTiylSx8aANWq0i4hbXhV7DrTMunW6TrX6tbZ_QFcPD8R",
+"https://serpapi.com/images/url/_3mIt3icDclvD0JAHADgTySGnc7WmoQ1ZhdF15sm51-G436V-lR9nb5NPW-f76cG4MKU5aLPpxeHgklw7ZVFJSCDJl_kQyeLeuC86av1uPqfaYUMe3l0p5tzeZdqobEhOsYJIQ_cBfuR7gw93qbECZe3Q1qpjuszBEGCongXMkGbTMH2rJGTNrduNs0tH6xewkpwQW9bjYgGvkPdrBVcH_3SY7ONxbg3PEC88NHzB28sPeY",
+"https://serpapi.com/images/url/Ef76S3icDcndEoFAGADQJ-rXSMwYg7RjEgolN43aVauf3ewn6qG8j7fh3J7vJwfgYqIopE4fHQeCJUhqVc4EXIGmcsoqReSMc1pns2b6v8l8i8coPZgEu1riREdPGpRF3xou8ylYlSmeceS_VLzd3Nq6VLk2inEQ2g_iiGLpcWI2Jj7169Uw3Ie7iHVv17osggQ1sDvfNYm3AUbYiKwGPZFOgeUwPx1j2ttkqf8AUZA-2w",
+"https://serpapi.com/images/url/UXIKMXicDcltDoIgAADQE5HR53RrjdIFukpdufzVFBVwC1Cw7FLdp9vU-_u-H26tNp7j1JL2b23rCthSwgkztrCCTqh6OIYrrYVk227zPw-dKvdAk0vbheu0xvI6nGMC9VsSUPvrdt5DRpSLXxw24_GJCEoiHtkK78JFs5BcdQHMSmXuiMbuEMRjXgTReCC9EKnZFatsr8CrTdRUzDBt4C1fzhKfsSINrQ9-ILY9kA"
+]
+},
+{
+"position":
+25,
+"title":
+"Iphone 16 Pro Max Apple (512Gb), Tela De 6,9 Pol, 5G E Câmera De 48Mp (Esim) + Carregador Usb-C Original Incluso",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:16562187933014245588",
+"product_id":
+"16562187933014245588",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=16562187933014245588",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTY1NjIxODc5MzMwMTQyNDU1ODgiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNjU2MjE4NzkzMzAxNDI0NTU4OCIsImltYWdlRG9jaWQiOiIxNzc5MjgzOTkwNzAxMzUxMDcxMSIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ==",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTY1NjIxODc5MzMwMTQyNDU1ODgiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNjU2MjE4NzkzMzAxNDI0NTU4OCIsImltYWdlRG9jaWQiOiIxNzc5MjgzOTkwNzAxMzUxMDcxMSIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ%3D%3D",
+"source":
+"Carrefour",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a376537140b01a871438c825f201d2c403c79b.png",
+"price":
+"R$ 10.590,00 agora",
+"extracted_price":
+10590,
+"installment":
+{
+"price":
+"R$ 1.323,75/mês",
+"extracted_price":
+1323.75,
+"period":
+8
+},
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRns16bajvC0o6SQa5fNJ5xCRIlOmTrMml10x1kZqUnXFWvQXUz9WECnbwI0UcbdamBGHNyxF5MmghtG1BcfcHGosGs5WkCk7fD34YXsv4",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/mDzsGXicDcnbCoIwAADQL0odOkMhIi2ngYaWaL25eU03Lxum_U2f1d_UeT3fTy3EwE1ZLhiZ1kEU-UZgpkoVF5loiER6KvO6H4aGVftx9z_zEOQGIhHjQMfZc7aVXr-GGSyDM1zsyOsu9Db5tAPKAtrHGLPUSeYwjd9GcrIZfnlKTHCeUQu5wbo40KdVLRCwSElc1HPEYdLa7bY8qto95bP2AxrbOaQ"
+},
+{
+"position":
+26,
+"title":
+"Iphone 16 pro max",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:1558479832295292623",
+"product_id":
+"1558479832295292623",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=1558479832295292623",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTU1ODQ3OTgzMjI5NTI5MjYyMyIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjE1NTg0Nzk4MzIyOTUyOTI2MjMiLCJpbWFnZURvY2lkIjoiMTMyNjY4NjQ1ODY2MzQwNTE0NDQiLCJyZHMiOiIiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTU1ODQ3OTgzMjI5NTI5MjYyMyIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjE1NTg0Nzk4MzIyOTUyOTI2MjMiLCJpbWFnZURvY2lkIjoiMTMyNjY4NjQ1ODY2MzQwNTE0NDQiLCJyZHMiOiIiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"source":
+"OLX",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a3765357b851013844a33cad4cb069d0cf9578.png",
+"price":
+"R$ 6.500,00",
+"extracted_price":
+6500,
+"second_hand_condition":
+"usado",
+"rating":
+,
+"thumbnail":
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcSadBSL5mceFsMdrUEMGWGlWRnttkXksgxFbg3j_CAV08npEN6as9ClN7zVPWYQkuYye3EOspIgkJxy5l4b4iIojfLsZqVD1vVXS_XVHHI5",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/fB-SNHicDcnbEkJAAADQLwoNKmaaRnJr0MW06MWwtK5r2a2hz-mv-ps6r-f7KRkjVOX5AsNxJqzIFyzDAocoS1kFOdh3PC17QiqMdsP2f6rm54oFgzTfB67cwcKkXj7eDM8KrTa8YsaaqKFoMjMk1omuAWGDieGvUqrorb9-g3MYX5pnPBeicaLEQc1xmuVWyqTK6euHS-8DOCxfIAqSCNi2I_8Aii86vg",
+"thumbnails":
+[
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcSadBSL5mceFsMdrUEMGWGlWRnttkXksgxFbg3j_CAV08npEN6as9ClN7zVPWYQkuYye3EOspIgkJxy5l4b4iIojfLsZqVD1vVXS_XVHHI5",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcTPUaIO4ufhBu3o8gzkk0nPKQdbDVoNoQxvF1KKO9zoWiAXa7838CISvmv_gNDr_5Y25juRx4s9QkaP71mu1ym9Fv4__0_hPLgr26SkMQ-iMcDjpjRS_1lP4Q",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcTTEiIxQ_CZbfEbVWP4yC747RJvL29MBTPUiPb9JhhC_breoOPg-4VovxiMJjnxjN9VJJVpc0DK9jgQNacfGEdKiItvUOzGwFDTP4Vv5ihUGd-oZ12_w_q3",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS23kYDiwxd22p0wPnH0IRsjahTzr8Bfle-KccyTFuJUNY5rw5J-x7iGEY-l3-kykLQk0HdDid0x7SjE9AoYYiciRJ-sQnSBGGljBQNPs"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/fB-SNHicDcnbEkJAAADQLwoNKmaaRnJr0MW06MWwtK5r2a2hz-mv-ps6r-f7KRkjVOX5AsNxJqzIFyzDAocoS1kFOdh3PC17QiqMdsP2f6rm54oFgzTfB67cwcKkXj7eDM8KrTa8YsaaqKFoMjMk1omuAWGDieGvUqrorb9-g3MYX5pnPBeicaLEQc1xmuVWyqTK6euHS-8DOCxfIAqSCNi2I_8Aii86vg",
+"https://serpapi.com/images/url/eAZtwXicDclJDoIwAADAF7GDgokxKsEQBFtwPTWlaCkIrVCI-iq_4290rvP9lFKKfqZp15Z0LyGvhSLz1lJpL7FkRCW80fqSC8FaunjM_zdbJoW3IXtwwOHOHm7larC4S991rbcggkXuH3nC4XMMjCjaeW9-YssznrqWuw6zsRkRTfwOORfTqYb0afcerDGYGs1gvBovGG2EdFSCLe3MSVbHUGEx8StRpRky7sCGP6fRPkk",
+"https://serpapi.com/images/url/RLXpX3icDcltCoIwAADQE6lZhkyIKDVxlq7QBf4RNz82ITdzmHao7tNt6v193w9TSo6OYdQ9fS5S1ZWmSG_q7ahKxalOxcMYmZCS9-1-2P3POcQVCGia-jycr4Wbk8Yn-I6sxbUt-wan8xpcjinKOCIAMuYW5FmLBLWahcU08wvs-rmLAYYQS7ryItC117ikTeBXEQ_VlCXv4HXyUmThactZFlSayM118SqGzQ8D_D2p",
+"https://serpapi.com/images/url/yhihPXicDcldDoIgAADgE6EM50y31nSaZs351wOPBqaIIQlN7TYdq9vU9_p9P73WUnmm2Qoyb1K3FOibQEandKMZMcj0MFU_SclEd3ju_-f5GXVjUlfI4jhky0oRknDJRQJPpRqavn7Pu-A-tuBMyFYfX-k1w_a82ClYHRZHGIwW4Bu_FBwmNGQUrk41RK4_YcwIK1OgClEFcTwOQZHl6gcEpjkl"
+]
+},
+{
+"position":
+27,
+"title":
+"Apple Iphone 16 Pro Max 256gb Desbloqueado Muito Bom Estado - Todas As",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:6731735857891331976",
+"product_id":
+"6731735857891331976",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=6731735857891331976",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNjczMTczNTg1Nzg5MTMzMTk3NiIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjY3MzE3MzU4NTc4OTEzMzE5NzYiLCJpbWFnZURvY2lkIjoiNTUxNTQwMjE5MzczNDYwNjAwMCIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ==",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNjczMTczNTg1Nzg5MTMzMTk3NiIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjY3MzE3MzU4NTc4OTEzMzE5NzYiLCJpbWFnZURvY2lkIjoiNTUxNTQwMjE5MzczNDYwNjAwMCIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ%3D%3D",
+"source":
+"eBay - itsworthmore",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a376531e5458e19bf020518176c35d7da23966.png",
+"price":
+"R$ 5.175,55",
+"extracted_price":
+5175.55,
+"second_hand_condition":
+"recondicionado",
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcQPjRAgA1fkj1lVi2Sj3HERt5QIalT_nc7noEonaJjXOqLQ69RJdDyIXvJYSX6f3-_izcKMQZRfkNloPA53PVTbmOU8KFb_UzMitLDL6ecVaJX6Lvdzt0Zi",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/hIKcK3icDclJDoIwFADQEwkioQ6JMSROQFGoStANKS1DEdoqPyZyKO_jbfRt3_dTA-h-YZqFZM-3hoKPIJdjo-qBgmAGU53Z10prIavVY_m_hXvg8x2Lo4a4lWuV98ZqEzE5NfZ-Q8CJPdqeM8mmUm2UpH6THh84RnPi8_XbS1_-9ZSi0h5lYmBBGN9IeT-0KnIdO0rOeXe8zIJtnl2GUABeY1SwhPopwi8-wPgmfhFNPeE",
+"thumbnails":
+[
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcQPjRAgA1fkj1lVi2Sj3HERt5QIalT_nc7noEonaJjXOqLQ69RJdDyIXvJYSX6f3-_izcKMQZRfkNloPA53PVTbmOU8KFb_UzMitLDL6ecVaJX6Lvdzt0Zi",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcSEfHthG0FR1-KmyjJHrUO3TOlPZp5JK5J8GEoBgUF7YnNn1ec_byb0pXGO4p5Qz04tzza7hhrFtMbCS7sVFB3OhKS-UujTs9kf1pTk3iGVR4Wm8tS44VfN"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/hIKcK3icDclJDoIwFADQEwkioQ6JMSROQFGoStANKS1DEdoqPyZyKO_jbfRt3_dTA-h-YZqFZM-3hoKPIJdjo-qBgmAGU53Z10prIavVY_m_hXvg8x2Lo4a4lWuV98ZqEzE5NfZ-Q8CJPdqeM8mmUm2UpH6THh84RnPi8_XbS1_-9ZSi0h5lYmBBGN9IeT-0KnIdO0rOeXe8zIJtnl2GUABeY1SwhPopwi8-wPgmfhFNPeE",
+"https://serpapi.com/images/url/ZgcfgHicDclJDoIwFADQEzGFEtTEGDVQApGqBRw2BspQVEql3wUcyvt4G33b9_1wAKkWhlEJNowSqlKDQth6oyCHlums7wzFeylb0axey_8t1nE5x4x6dQAcm_7R0qJuvIfBkBI7Ic_9VTph5IQz7PWbJvXdi4iFVbFbMRamPGOCpHOYTATTlLucDz7sii11VeZvbMIjqqXve6Lmj9qSycNucXZEp24GFKGsjn_XJDzR"
+]
+},
+{
+"position":
+28,
+"title":
+"iPhone 16 Pro e Pro Max 256gb 5g Dual E-sim Lacrado Original 1 Ano de Garantia Apple, Nfe.",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:18154926701924193724",
+"product_id":
+"18154926701924193724",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=18154926701924193724",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTgxNTQ5MjY3MDE5MjQxOTM3MjQiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxODE1NDkyNjcwMTkyNDE5MzcyNCIsImltYWdlRG9jaWQiOiIzNzY0MDQ5MzExMDIxMjEyNDg5IiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTgxNTQ5MjY3MDE5MjQxOTM3MjQiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxODE1NDkyNjcwMTkyNDE5MzcyNCIsImltYWdlRG9jaWQiOiIzNzY0MDQ5MzExMDIxMjEyNDg5IiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"source":
+"Shopee",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a376532c98631e58703b2a70b6108f2826a23d.png",
+"price":
+"R$ 7.899,99",
+"extracted_price":
+7899.99,
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcQ89T5t37GBtE2BSeTzSLtDgokRHzLEUB-z-ws_zTFfZ6GhQLrdc2lbXKsBhkYUsmIsZYcaIsYQ_6Bxfe4pCAC0M8su0OO_IkBdq9KjfQusn1E6YZY2N0CY",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/Koexn3icDcntDkJQGADgKxKpFFtrHUlGmmjr-GMcXyUc3tcqF9X9dDf1_H2-nxKRgyaKWcP6N8csFTBpppMCMMYbm7C2FqFsOb81xaZb_0_buqlqMm-lBgucLU2Chkz8LBh9B3dFW50Po2NciDAKT4jGYJ-Hill6Tp8y-ZFcbSBlRS9QWxBSFltAvUghrzybc32rS8cVDNLpFFkVSTvVvufeAM3UUGhIZVfS6Q8HPz11",
+"thumbnails":
+[
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcQ89T5t37GBtE2BSeTzSLtDgokRHzLEUB-z-ws_zTFfZ6GhQLrdc2lbXKsBhkYUsmIsZYcaIsYQ_6Bxfe4pCAC0M8su0OO_IkBdq9KjfQusn1E6YZY2N0CY",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcSaRJQD4VJXokjX8uHldgIV2Iul4GWN3eBSOWVpnQPoX7NpMjG9oX76x44O4UVycpgCQdroxEsYYmmW2RU44Qf_bCQAoPk4xzM2S4KErXNHLnMqYrMQDkAahg",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSN6bKytlPkS9_4qbuV4Yzoreo-Q52FUYeph_MvWDrCJTX59Y2mzRp-nLjX9yO1jwZpqGWdwMhpaxUtozC4p5zReN9Uw6dznT2K6ftABtFo",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcSF_fVHGG9RfaLMz1gdz6R6NBsq1WROxdc4jSxRLkB7BXyQ70t7IlrWr7G6Nmd7VR7mg6VDXirvfBBDAIkJchAlPn6nEPbnVtbHDb1VY0s",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQgoeYalotBxY38n4xOtNeDgdVGAviVEoyWK-2o2BVC8SH6Js7bJL9xcOJ7Awmt0XJzYKAckgA41_ySsPC_s4Aj9TBoyNWzLTcHfF9tqPEEAh4QqPRajCfYNw"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/Koexn3icDcntDkJQGADgKxKpFFtrHUlGmmjr-GMcXyUc3tcqF9X9dDf1_H2-nxKRgyaKWcP6N8csFTBpppMCMMYbm7C2FqFsOb81xaZb_0_buqlqMm-lBgucLU2Chkz8LBh9B3dFW50Po2NciDAKT4jGYJ-Hill6Tp8y-ZFcbSBlRS9QWxBSFltAvUghrzybc32rS8cVDNLpFFkVSTvVvufeAM3UUGhIZVfS6Q8HPz11",
+"https://serpapi.com/images/url/fwEh6HicDcndCoIwGADQJyrDPiqDCFMxK60lTr0KnTbzZ1s6QXuqXqe3ybsD5_ctpBTdVlFyRtpRyDybyZQt5rSTiXyROeGN0hVciBej-_duuq3uZZpN_OR-QibgU8SrMtr0xzqjDladvgY79Jb5wb-GWDB049HaE25paxNWA8AVAjwSQQ2UtXywujhumlC9BwDo-UgNpPNbBcPHVX04W23kHS_Mfceti8xKTwr6B4WzPms",
+"https://serpapi.com/images/url/4mffWnicDclbCoJAFADQFZkoKowQYYVClpWP1H7Ex6T2mLnqLXOW067aTZ3f8_00iDCYskxZ2U-AtJKwYMqsHjDHtpyV_CEPDQdoWb3o5v8zLa8iThl4RuFOeD_cApJpXfE8aangPeXSUVftKKXQZLtXvO5XmzDRSao-hA8S214TMu2V63iGzomrcddA_o6Qi5UGuvCpR6LRqAQLVde4oLVEm_8Ahv47GQ",
+"https://serpapi.com/images/url/ejq4_XicDcnbCoIwAADQL8oLxYZChMNSw8wWTHsKt3lLnZeNUP-mz-pv6rye76dSapC2rueCTcugcr5RVGy1UqpM1UxjfafLqh-GWpSHcf8_24m45bH76VkQ3_MsXGThZTVLvgIMIiRHM8HXmbPd6z7jsEEQpcsNGgoG7ZRM0ANRxyHBsCsBcdN6ehcIuU7QnFnltLEA4hhTQRT1XWqShyF_6n046Q",
+"https://serpapi.com/images/url/hbSHb3icDcnxEoEwHADgJ1Kkk7lzbiXcuIpc7C-XNavQlv2O5qm8jrfh-_f7fkoApSe2zRv2MAp40YNzM7SEhhwqZjF5t3UplaoaMWun_5vgqEBLthWS0_wmwe_ocNy4XQwRn4siW-JnlYXSHNY9Rzp-FozT1Yho70w2qGMx8fDrDv0jedM1ZleB3cHJpDoJTtrFNdr70kSH92bPVpcFgjYJQ1y62zbZ5XVwodHrB6xiPpA"
+]
+},
+{
+"position":
+29,
+"title":
+"Apple iPhone 16 Plus",
+"product_link":
+"https://www.google.com.br/shopping/product/934202701805138645?gl=br",
+"product_id":
+"934202701805138645",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=934202701805138645",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiIiwiY2F0YWxvZ2lkIjoiOTM0MjAyNzAxODA1MTM4NjQ1IiwiaGVhZGxpbmVPZmZlckRvY2lkIjoiMTg2ODUyODk2MTMwNjE1MzE3NyIsImltYWdlRG9jaWQiOiIxNzk2NTEzNjQwMTA0MzQwMzIyOSIsInJkcyI6IlBDXzg4OTcxNzkxMjgyMTYwNDkyOTV8UFJPRF9QQ184ODk3MTc5MTI4MjE2MDQ5Mjk1IiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiODg5NzE3OTEyODIxNjA0OTI5NSIsIm1pZCI6IjU3NjQ2MjgxOTc5MTA1ODAxNyIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiIiwiY2F0YWxvZ2lkIjoiOTM0MjAyNzAxODA1MTM4NjQ1IiwiaGVhZGxpbmVPZmZlckRvY2lkIjoiMTg2ODUyODk2MTMwNjE1MzE3NyIsImltYWdlRG9jaWQiOiIxNzk2NTEzNjQwMTA0MzQwMzIyOSIsInJkcyI6IlBDXzg4OTcxNzkxMjgyMTYwNDkyOTV8UFJPRF9QQ184ODk3MTc5MTI4MjE2MDQ5Mjk1IiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiODg5NzE3OTEyODIxNjA0OTI5NSIsIm1pZCI6IjU3NjQ2MjgxOTc5MTA1ODAxNyIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+"source":
+"Amazon.com.br - Retail",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a376531e0d5634beddaccc0078ed678e602ba0.png",
+"multiple_sources":
+true,
+"price":
+"R$ 8.499,01 agora",
+"extracted_price":
+8499.01,
+"installment":
+{
+"price":
+"R$ 796,20/mês",
+"extracted_price":
+796.2,
+"period":
+12
+},
+"rating":
+4.6,
+"reviews":
+5300,
+"thumbnail":
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcR5cs5940i8x9V4pq6VBVViwhalVFVonaSQDRziV-Mw_VhSgKKMHoqtlfwE0M89bKFZ7GelLfgmJod93FILAcj3YoapRxCGRt16MC_FDqkcPHncewq8AezZPw",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/7pLGSXicDcltCoIwAADQE5mFWk6IMEstNUxhUH9kzakr20cOZp6q63Sben_f99MpJQbPNAnDr7dQpDbUjS1m7aCQoniG-dMcOi4EZe1Grv_n-acaRLhw8OAAe07dEUBbyCXcQkh1h3oYQs5Qed4VE4VGpivYlW2SZDGXqm_0fp654JaE11VE-rRpn0deAys8pD6-WxeORDEGUaEWyyyowp184DxmmGjp-mS65voHjq8-0A",
+"thumbnails":
+[
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcR5cs5940i8x9V4pq6VBVViwhalVFVonaSQDRziV-Mw_VhSgKKMHoqtlfwE0M89bKFZ7GelLfgmJod93FILAcj3YoapRxCGRt16MC_FDqkcPHncewq8AezZPw",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcSMXO6rBR1IOGjUQrZQgZ_6dbrZeLBjZSJUmxtvkNU8fY577AUGZSeOL697IdDHjA1zmAky5_4OzZXX8ALsRM9-V6Df6I-R7os6HdoN9LbedFYYWbQePink",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcShPf-9bY5QryO_G-1GA9qwth5h_kT0ePDtF5Jpxjpq3w4qBK8ZMoSghmYSygz3YEqi6u1O33C9bupV9zz-7bAQOguGOiyT_Lb2xPza_sRchOYB2oi-8JMnYA",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSQxqdR4WUb5AMWlADPRbOzQnJwQDVmbYzpzk5hEiN-0EpNP1m1WhZn6SDj15sWlvnCq2lOklqONHWi_KPejmPDBGxlacdS1KXoOSpOzzASSpk2S1rcPCTnZw",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcS21xG2BrTekthR4yy92tm6SfL5pWGTCNSSD0mSyK9ADoKD5a-7LRmt7gFoo_OT3hXZx9YMf_W4WHm7tqwj0uPUIJZnWidfJXRhQ6NlgX8KhOcSPwD45li9"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/7pLGSXicDcltCoIwAADQE5mFWk6IMEstNUxhUH9kzakr20cOZp6q63Sben_f99MpJQbPNAnDr7dQpDbUjS1m7aCQoniG-dMcOi4EZe1Grv_n-acaRLhw8OAAe07dEUBbyCXcQkh1h3oYQs5Qed4VE4VGpivYlW2SZDGXqm_0fp654JaE11VE-rRpn0deAys8pD6-WxeORDEGUaEWyyyowp184DxmmGjp-mS65voHjq8-0A",
+"https://serpapi.com/images/url/VwJbDXicDclZCoJAAADQE6lINS4QMSKp4ZKKpfMjzeKKS84Q6aG6T7ep9_u-n0aImZuKwkayrLNgVBJ43Mk1Fw_REplMg8KbaZ7bsT49j_8zYUgNh6RBHoHFSlQvcrosXlBcoxJQvCDmWx1KL9nwFq8-zPSqOGgazByUssgHhuZR2-2gug2wXw_lPtpQnuvQ50lgSDdgV8CTEm3iwKVTaPiY0XNR3HHMru3Y_wDbTDyt",
+"https://serpapi.com/images/url/vQxc6XicDcltDoIgAADQE6GpWeHWGn25VYZla6M_TtCAWgqBKz1V1-k29f6-70dYq0zkulXNnp2yVQksrX2HG1tYyRzWPFwjGqVkzWd6-r8I7UsYs0ykVwApCQ_PDucx8GIE9cuKUOT306BKl3YdbtT7pnTwGur5dnJJmoyLB8k63gdkpeWo9XAQLCBt1Rn2PRhTdMC8jbHsTvmO-u-0L3JzZAKTud9IMNkkNUE_nM8-rA",
+"https://serpapi.com/images/url/KKYQKXicDcnbCoIwAADQL1KbZJAQsVSMJDdbtfIldIq3OWeOLvuqfqe_qfN6vp9aKTm5llUKdn9LVRaGyoVtVpPKVMNMNvTWVA9SNqJaj6v_uTAuliEjyWssDnN6yh24pxz6-JAjnYjdM_HPfX7VUndOHTSxMQtkjEEPaJ2KBfFb4EyUP4Q32hx1fETxlja3CJdtj_1N-OIZKwiILgMiEmkNCZGdTcCdYe8o0ucPxio_iA",
+"https://serpapi.com/images/url/p6Dm1nicDcndEoFAGADQJ1JJyZoxJhpRVNpM6aZh-9lo26XPqJfyPt6Gc3u-HwogurksFy15DgKKfATXVpWqDi5QE4lwJneUC1G31fKx-N_c9HJkE6yOe1tdPaPiDjTUhgGpwKa43OsitqO1h7GlMDy4yLS4a-mXkbEPGRjVhvPMjyY0SXt0PpRZrMVbZsDjfVNewWnnpG1c56WThPQ49ZoqmbnUJzh4W5re1OgH5rA9OQ"
+]
+},
+{
+"position":
+30,
+"title":
+"Apple Iphone 16 Pro Max 256GB iOS18 5G - Tela 6.9", Super Retina XDR, HDR, Câmera Tripla Traseira",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:8968790147432302492",
+"product_id":
+"8968790147432302492",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=8968790147432302492",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiODk2ODc5MDE0NzQzMjMwMjQ5MiIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6Ijg5Njg3OTAxNDc0MzIzMDI0OTIiLCJpbWFnZURvY2lkIjoiMTM3NzUwMjA0MDI3NTY4NDQ0NTkiLCJyZHMiOiJQQ181OTQ3NjY3OTU5Njc0NDI3OTkwfFBST0RfUENfNTk0NzY2Nzk1OTY3NDQyNzk5MCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiODk2ODc5MDE0NzQzMjMwMjQ5MiIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6Ijg5Njg3OTAxNDc0MzIzMDI0OTIiLCJpbWFnZURvY2lkIjoiMTM3NzUwMjA0MDI3NTY4NDQ0NTkiLCJyZHMiOiJQQ181OTQ3NjY3OTU5Njc0NDI3OTkwfFBST0RfUENfNTk0NzY2Nzk1OTY3NDQyNzk5MCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+"source":
+"Móveis Simonetti",
+"source_icon":
+"https://serpapi.com/searches/68b5a91e4fa3ba035612eeeb/images/eebbcfe8a712c64be4bbf480c1a37653cb6df55dffd20fd9316d4585d2e0622d.png",
+"price":
+"R$ 9.999,00",
+"extracted_price":
+9999,
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcTrFjsuySGx7h75KbDqSds2BrTyZhntYgKCns8kErutz2iefNnM7d6XuDKu6vV0HLp6Fj5zfRCDb6ln_g_jweNTOaCj8Q41QCfE34thPzNSX1-H7ihZGKLxqQ",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/yVJ73XicDclhEoFAGADQExFJpRljKGqmLKkx8ceord0N29Z-oU7lOm7D-_u-HwogpKUoOc-aTkCOB5DyyZBIuALLhln1UCSthGCcLOr5_6wlwjM3i5tNKdsuct8GNaZ-6tQRluqqibsz5XAivs2leVs3LfQqywvEtwbWk9bxW_15HHmB0DfltC8OtpPqd34hl_KVo3h3tUsz1MahXawnGtB9j6JkPPAMRs-uH7zr8AcFzT82"
+},
+{
+"position":
+31,
+"title":
+"iPhone 16 Pro Max Apple (1TB) Titânio Preto + Fonte Turbo 20W Original",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:4778466751380180475",
+"product_id":
+"4778466751380180475",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=4778466751380180475",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNDc3ODQ2Njc1MTM4MDE4MDQ3NSIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjQ3Nzg0NjY3NTEzODAxODA0NzUiLCJpbWFnZURvY2lkIjoiMzYyMDA2NzA2MTE4OTU2NDk0MyIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ==",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNDc3ODQ2Njc1MTM4MDE4MDQ3NSIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjQ3Nzg0NjY3NTEzODAxODA0NzUiLCJpbWFnZURvY2lkIjoiMzYyMDA2NzA2MTE4OTU2NDk0MyIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ%3D%3D",
+"source":
+"Ri Happy Brinquedos",
+"source_icon":
+"https://encrypted-tbn1.gstatic.com/favicon-tbn?q=tbn%3AANd9GcSjIXUjScfJHoNkS8PWM0BwEOEuTz_DWp2mWbuXODg8GRKhYyVwLkhWeFdZqiYely7D6-EXN2fyZHl9DaKDjYRsyDB5HXc5HlXYH0A",
+"price":
+"R$ 15.000,00 agora",
+"extracted_price":
+15000,
+"installment":
+{
+"price":
+"R$ 2.500/mês",
+"extracted_price":
+2500,
+"period":
+6
+},
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcSfU57TbgJaltrH5M52AatXkfygrX7_JgsplNkL5HRG1vep3Lkji8y50xOn4q42rMN7lzAXGT8Z5mCLlKU3QA8v9iv4sNfHieu0J8zGJoQLsrjl5Q8cZJODcg",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/oxrtw3icDclRCoIwAADQE6WlDmcQIQXKUsNSEH9Cp67p1LktSU_VdbpNvd_3_TyV4nKv6_WAxcJVXW1UOZgakapQFGt47HX5HDmnAzlOh__t3ahyPHxvUmAnJUEFU8IHITDcQmVdsxCR2Q9EJGdRFwD_5u3mmptB11K4gO37OliTZYgwstnqZl4Cc9CfAnZJzdiFs0NnS0aNT-vXFsHVQ2McSNEyEEOco-sZkx-dlj5b",
+"thumbnails":
+[
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcSfU57TbgJaltrH5M52AatXkfygrX7_JgsplNkL5HRG1vep3Lkji8y50xOn4q42rMN7lzAXGT8Z5mCLlKU3QA8v9iv4sNfHieu0J8zGJoQLsrjl5Q8cZJODcg",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSPx_An6-DkASuf1T98vdUfUD8AGvaqBOl40QHhVbjucWaDkl5LTDzZVhshqkVkcVCdOQF5aWGXyTBL3x8DhaRGW9F-OuNzShfiuHJRm7fNsVrILQNfInxf",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcSWr6d9wrzv9mc3hJ5LU9dcI7KHRZhl9zW-evrei48cpJwgC4MhMI1VhldBuD3vdBRduzyGe7VS7V6d5fKUDRZubjM6GS-3ZnOPTSi8pm2En_NmqnD41BX0k5U",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSJegtTFGgPRDkcz1kl4IuR7jA0eEbZ948SkhW7zICZw-S1pPRl-Zro6M8gmaps3xVyZ5r-ccwH9os2NfeozwhRdPmnDJSP_4wPfPOVOBWxvaBbWWstiznWGQ",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcTfJHQYRTlMCHHN6klgO29jditno49bql_pgJQ54BEAzc8o_jMefK12nYjT-uZ7vWAxKeqlrXKMTpgrgAzCQvuXewwUz_IBUkf9K5cN9hc2vScwRWUAaUO2Ig"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/oxrtw3icDclRCoIwAADQE6WlDmcQIQXKUsNSEH9Cp67p1LktSU_VdbpNvd_3_TyV4nKv6_WAxcJVXW1UOZgakapQFGt47HX5HDmnAzlOh__t3ahyPHxvUmAnJUEFU8IHITDcQmVdsxCR2Q9EJGdRFwD_5u3mmptB11K4gO37OliTZYgwstnqZl4Cc9CfAnZJzdiFs0NnS0aNT-vXFsHVQ2McSNEyEEOco-sZkx-dlj5b",
+"https://serpapi.com/images/url/0yE_-XicDclJDoIwAADAFyESNyAxBm0EDQHZivFiaqEUq2VpIcCj_I-_0bnO90OlrIWpqjnH7VjLPFPkg2uzQkgkSzzD1VsVtKrrkhe7Zvs_0_Iyw8bRZbhbfK0AZkUd0WJD77OEJEC37B41e_-1nAcOhY9nh1ME2GvlxmC6QSpowyDD8JD5wXGFUvs6xnt3MeiAotBOjaPid94UUVJ2zjl8b4gnYHtyA4-c-EB-FHI-Nw",
+"https://serpapi.com/images/url/MQ58FHicDcltEkJAAADQE4nyuWaaJmkUUUNo_Glqd7OKtVgabtVxuk29v-_7IZyzzhRFTGE7Mo6RwO9UmuUdv_ECzmBdiR2pGStovmqW_zPXAQIOjNJWQ-DdTgOooExc9RADBPe6twszUoIpFfDQ4kIxIHPf-Ubxib-fJ6REVm_LA7JC1E-jg_Uk0hMNqQ8vtsOsvz99zYkEOaPH0zkqDFYttvQaVA21lbl1kV5q_APkXz5W",
+"https://serpapi.com/images/url/DmdjbnicDcnbDoIgAADQLzKz7KJba9rFaksJm2y-NEUCM4GE0vyqfqe_qfN6vh-mtVSuaRKOm7fUpDB0zq0BVTrTJR5gUZuKCSlLTpePxf9cLyycAMcHQvV5G1AA1xXurepu759wdvOGZJOnjj2PK4Zm_X6VtkZsSQDvRtqI6XFO60yqcZe800ljYNzuHKFG4ZWIvmWwADVfH2JwsVtwBVES-ah7ZX6OkNJlz1Fw-gGr_z-q",
+"https://serpapi.com/images/url/cnzW9nicDcn_DkJAAADgJ8Iy_Thba8dayjB1Jv1jnHNId4eL8lS9Tm9T37_f91NJKQZT0wjD_VtIUigyZwuVDjKTNVYxf2hDxYWoGd112_-Z0C_AAaPy5ITJGbWe7Tj-6t7SQAdNUUvGDZB3bSroKVwa1h7OeMPTxiOlu9BZ0iDleVuPMXy5pGv7q-shQXsKZzscn1cyTdGcHq3oXgJ3iX1QYX284OkcRzCLAv1If8J9P3I"
+]
+},
+{
+"position":
+32,
+"title":
+"Iphone 16 pro max - 256 gb - black titanium",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:16943287329746592872",
+"product_id":
+"16943287329746592872",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=16943287329746592872",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTY5NDMyODczMjk3NDY1OTI4NzIiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNjk0MzI4NzMyOTc0NjU5Mjg3MiIsImltYWdlRG9jaWQiOiIxNjgxNDc0MTU0NzI4ODIyMTY2OSIsInJkcyI6IiIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTY5NDMyODczMjk3NDY1OTI4NzIiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNjk0MzI4NzMyOTc0NjU5Mjg3MiIsImltYWdlRG9jaWQiOiIxNjgxNDc0MTU0NzI4ODIyMTY2OSIsInJkcyI6IiIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+"source":
+"OLX",
+"source_icon":
+"https://encrypted-tbn1.gstatic.com/favicon-tbn?q=tbn%3AANd9GcR5ye8cvNEdMsVAschq94XOYfzHdsHsF_9gO6oPD45lqHDdJAShrBEpTpYRTZOB1XOitbJ3jEyEyTWBINeDcQJi0QoBU7xrgw",
+"price":
+"R$ 7.000,00",
+"extracted_price":
+7000,
+"second_hand_condition":
+"usado",
+"rating":
+,
+"thumbnail":
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcS1Rqv9m_xzyTPuw_1vj5rmWIoLjUTzywn7cX-qOts5wG2rqbuOEmzVW6ISkdXjBT5ufBtHL8UrqO45NeYDynvUzTUw_-mGYhyXL954rdVEXJfGMnY-ByHImw",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/XfJrAHicDcltCoIwAADQE6kYrlKISBI1TCM19Zfk_I5NN6drnqrrdJt6f9_30zI2ToaiVBhSMbKqlFiBVbmZ2JN1UIYDUqZ2GMcON0dy-J9x8kvdhqF6J4uO8vcqotvMc3XpAUWJO3h9HK2C4x1MJRKwCXB7Q0kxBxZaH8nWDV9l2psRmGuTOd4-piTQgF9lZ4GXeI1inkvIzlqRejrQaPmw0kttX3EmmcJxEf8BSz5Agw",
+"thumbnails":
+[
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcS1Rqv9m_xzyTPuw_1vj5rmWIoLjUTzywn7cX-qOts5wG2rqbuOEmzVW6ISkdXjBT5ufBtHL8UrqO45NeYDynvUzTUw_-mGYhyXL954rdVEXJfGMnY-ByHImw",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRqIwS-xPGFlYvpt3yx6Bc-my_QpkIcoAvgennXszydQy1qzDdaHqwhed7kc_XjceAC8qYOPBsr_Ve1NOYD9nE_1d2XRja5T8Mu69vqXbGhA07yc-cCb-3_eYo",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcS9fqaI7haCXuKZr59_ceVEMh7VvdC7B4IGZWJzCaDa-ILZakN2sBsUWQywHd4Ke_Eyf3tIyozXHrP4CyoY0qP9gZFBAo30GVGqvvqCtLCYoXlRpAZm5b8y2g",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcTBjWc8Q-gzPKdsbgmZ2HaKJT4-IB0SYiKwCnnIp82brdIVA_0zl2_50yeFWXF86C4GkvBc9GnA4WCegkEUx6MH7lsxLqRiNRZoXpygIbQ",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcQ0tZzUEimJhyhQ-kyl1HeUWLrrCP43eyCd65MExT2XZ9UkVJix4z4MrXi9-bneA9eEKo6OzIAMBBbENUnzlCE5_RuvCxqcKhX6KKIL3dsITLm-rgzbFC4f"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/XfJrAHicDcltCoIwAADQE6kYrlKISBI1TCM19Zfk_I5NN6drnqrrdJt6f9_30zI2ToaiVBhSMbKqlFiBVbmZ2JN1UIYDUqZ2GMcON0dy-J9x8kvdhqF6J4uO8vcqotvMc3XpAUWJO3h9HK2C4x1MJRKwCXB7Q0kxBxZaH8nWDV9l2psRmGuTOd4-piTQgF9lZ4GXeI1inkvIzlqRejrQaPmw0kttX3EmmcJxEf8BSz5Agw",
+"https://serpapi.com/images/url/ZXFmI3icDclJDoIwFADQExVEI4OJMQyKLJyNgVUDvw2TlNZWsN7K43gbfdv3_VRKcbkwTcrgobmiBKmCTYxSqlzVYEDfmbLqOa9ZuRLL_y38PfFiOItkvKDXMd7cs4GrmX7ZAaBO4xNvE-j9oaSMpfKtyUlb4h2RfCvGihKnBZw2QP3QFdnhGMgHvlFrf8gij62xRabpucnnV3f3tL1BpEVc-RNHA4KwQDNMs_4HiXxAVA",
+"https://serpapi.com/images/url/qhSCGXicDclJDoIwAADAF7EIGMTEGKiICBqXCNgLKQWBKLSlFVNf5Xf8jc51vp9GCMrnmlb1eJBUVKUiin6i1lwg0WIVk07jDaG07eslW_xv7u5LJ8Bn58ZQaDcIZM8IDlMnx1Xi7xo7GUtge1YYwHT7BmiFlDCG6L43uMcv6VG-NqUVVbkvb6YIJXlnm-FgAUmuOjs4NVx7LjH1IAnYODIgYnAl2eNEXdhNi5k06h-KRz6W",
+"https://serpapi.com/images/url/8aSRAXicDcn_DkJAAADgJ8LNJGytYfmRskiRf4xjRzjH3Qpv02P1NvX9-30_NWOEaoJQYTgthFUlxwoMeERZzhrIw6EXaD0Q0mC0H3f_03S_VG0YGc8YKgGH1otX0gL1qejk3jGSONcA10fjvU2MXaKIxVS6dz0DaydmG7BUVpxYimxKdvsyoGpjXYrNCrWH2yyfnW1H59MYNn6YDglZkFsEP9CCONU",
+"https://serpapi.com/images/url/8zu1VHicDcnbCoIwAADQL_JSqWAQoWOV1zK0xJfIudwwp84Vuo_qf_qbOq_n-yFC9ONa0zBDfO4FrhRRMl2tR3EXFKmoa7WRdH1PWb0dNv9bO3Fl71Gii0JmkLY-mUmiNPNzccDZNeQcnIwVnkFlmRGc0mVe2Flz8elkSCPiObWVkmHHxjDorKP0nMh1SxhnTD4BNG_n1xtMAwpIbgWBF66q0UvDVuG1LHfAePwAIMY9qg"
+]
+},
+{
+"position":
+33,
+"title":
+"iPhone 16 Pro Max",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:11572112286155369196",
+"product_id":
+"11572112286155369196",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=11572112286155369196",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTE1NzIxMTIyODYxNTUzNjkxOTYiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxMTU3MjExMjI4NjE1NTM2OTE5NiIsImltYWdlRG9jaWQiOiIxNDgzNDA0NTM4Nzc0MjI2MDU5OCIsInJkcyI6IiIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTE1NzIxMTIyODYxNTUzNjkxOTYiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxMTU3MjExMjI4NjE1NTM2OTE5NiIsImltYWdlRG9jaWQiOiIxNDgzNDA0NTM4Nzc0MjI2MDU5OCIsInJkcyI6IiIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+"source":
+"Want Import",
+"source_icon":
+"https://encrypted-tbn0.gstatic.com/favicon-tbn?q=tbn%3AANd9GcSuWvo-2a3IzrAHhGV541a2Qp2zDNGf6cfhBO5wLRQuA417Z-oUvfYVNQqS14ZMKqfw7IWC1IgplTNzq6E1Hbz9AcEfRe1fEw",
+"price":
+"R$ 9.699,00",
+"extracted_price":
+9699,
+"rating":
+,
+"thumbnail":
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSFqvZSKBYHEeYJNNkzMcpKQ_svQWx-iEByWTaRORC1EvDNw5wdKUx8LyYI4Wwiz5dLnqxoKLCLsDb5p-JJVtEfLEjbD3xYd51wDFJfcCqrILOh8byOYJ3pFw",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/i8OFXHicDcnbCoIwAADQLzKxEkqIKJ3lthTtIusldPNWpLMN5_qqfqe_qfN6vp9aSi4c0yxa-tJcFsyQeTudVEJmsqET2j1NUXecN2217lf_czYhW-7o0e-H6xFtyR4UBIbh432gHMU3McTpaDRgq9NTlkSJa4HBC5WtGDqPC6xJME9V87YZbvuxQ9jFwsttbkB4kaDE4J57s5Ew21KeD0vq9q8AR_Ui1xGBM-6rH8xkPw0",
+"thumbnails":
+[
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSFqvZSKBYHEeYJNNkzMcpKQ_svQWx-iEByWTaRORC1EvDNw5wdKUx8LyYI4Wwiz5dLnqxoKLCLsDb5p-JJVtEfLEjbD3xYd51wDFJfcCqrILOh8byOYJ3pFw",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQoGxtekzejoPlAxrMvTVoo777dgJ8Sg1OOgSXZHtXJSfd-LQUWeOSZfP4_KkPbdhzvEj3b9-t-FnNmpH8_b2wwbppcSlQMUJkfTPmskneGxgwFl0UmmODE",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcRKIVd8JySd6KU4JTo16c-EpJVTyWIe_OSbkFR2Fj46ZfOnBcTrTbYjHdM3oj5KMi3RmsJSK-ARxmCTGkO2AXOMMOQY0cWa5dLhTluBHK2LTJSIlI3GM5oY",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcStb9CbKLCODB_6brPGBG5FOu6snO6pP6OXotCi8mjcT5BP7XlKiqejmV0aftf8S45dn3PlklHMAcNJYydP7l5zaXzDDgp2ypN1vBc8zLO4KQ9TkgXky_7IvQ",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcS9RmilXn06LvM1xj-cFHe1sx6X4XkRiB7NUrpvEKSPkqy1Cd_wLEd_sxy-mI3TWDLYb5Z84NO1z5_MNbdb9K3zSy7ZJmRqMq6q5De3aE3tMda0gqCcZj3f"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/i8OFXHicDcnbCoIwAADQLzKxEkqIKJ3lthTtIusldPNWpLMN5_qqfqe_qfN6vp9aSi4c0yxa-tJcFsyQeTudVEJmsqET2j1NUXecN2217lf_czYhW-7o0e-H6xFtyR4UBIbh432gHMU3McTpaDRgq9NTlkSJa4HBC5WtGDqPC6xJME9V87YZbvuxQ9jFwsttbkB4kaDE4J57s5Ew21KeD0vq9q8AR_Ui1xGBM-6rH8xkPw0",
+"https://serpapi.com/images/url/CsoUYHicDclZCoJAGADgE6llgRZEBKVii8poRS_RLI7bLOmPWofqPt2mvtfv-ykAdLe0LCZJ-9LAqAFY2ibv4AElMYkSVlcorUvJ18_V_5abE134JFH-CKx-s0rFzWZsj316VspxHMpDF_FpFHF0vQVwDVFOjUOSXViEbnk8v-_rGNPi3e-qGV4YYHjyJHTg3rE9DFhrgprkmIV1nsaiqyXzRz54zSQTItrufpYRP74",
+"https://serpapi.com/images/url/E5x3-nicDcltDoIgAADQE5nl18qtNWtpgsRCyuxPU7DUUihoy0t1n25T7-_7fmqtpfJNs-rZc5C64oYu-8noqnShGzZiojNVLaRs-uviMf-fH2z5LGIExgc-BUPKPbh3ABUTjxlrCQ50yOLqjNPyFhIrbB3vdMH9ktEnLfN2w5EtWheixiadAik0AvLuVjS6YSs4YoTwLh-zrHB5UtP7a7mBVkJBGt9jO0KuyH-7QjwE",
+"https://serpapi.com/images/url/NwXOsHicDclLDoIwFADAEwmifE2MEYioIK3RGFwRKFC-pdCnCZzK63gbne18PyUAFxtZzhkZJw55toCUKRIVkEBFJNJ3sih7zitGd8P2f5t9mFkeuUFqOakfOMi1Yz0dsWd72gG9dMGQzrGOoh6cyuxqctdsbEStXw153T2WSQGFeVO1jK1x27THy56E5-eUYaPV5iSaXZfy1cRD5W0Tcw6Q6l-te0OjZoqN0_v6A28ePlc",
+"https://serpapi.com/images/url/z7NrKnicDclJDoIwAADAF7FZFjExxgU3oBrQiFwItIiIhZY2CjzK__gbnet8P3chKJ8oSl6jtqcix5LI6pFccJGKEsmoIQq_N5SWdTFj0_9N5hDbGxTaASmfUa2a3svXuoeE1ttc450Z6VEVlAsLnlv6ctzwWLFeW-Lk7Tk44V0vkR04XVbeNTPisQ4P2mAkPsxwZrtgCHsr3pOA-cxkxioHqQOEj1O1YEsUP8DtBwyTPWM"
+]
+},
+{
+"position":
+34,
+"title":
+"Iphone 16 Pro Max 1TB Branco",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:4116539020314433868",
+"product_id":
+"4116539020314433868",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=4116539020314433868",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNDExNjUzOTAyMDMxNDQzMzg2OCIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjQxMTY1MzkwMjAzMTQ0MzM4NjgiLCJpbWFnZURvY2lkIjoiMTYwODcxNTY2ODU2NDkwMjgyNDkiLCJyZHMiOiJQQ181OTQ3NjY3OTU5Njc0NDI3OTkwfFBST0RfUENfNTk0NzY2Nzk1OTY3NDQyNzk5MCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNDExNjUzOTAyMDMxNDQzMzg2OCIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjQxMTY1MzkwMjAzMTQ0MzM4NjgiLCJpbWFnZURvY2lkIjoiMTYwODcxNTY2ODU2NDkwMjgyNDkiLCJyZHMiOiJQQ181OTQ3NjY3OTU5Njc0NDI3OTkwfFBST0RfUENfNTk0NzY2Nzk1OTY3NDQyNzk5MCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+"source":
+"Rei do Celular",
+"source_icon":
+"https://encrypted-tbn3.gstatic.com/favicon-tbn?q=tbn%3AANd9GcSsrb3NfBUxEdb3xLfXw09JTu8BfMHSu9FqWkeZ84AuRwN-ZdzC7QJJ_mm0Y97kIetL6g0ul7ywQNXeBohgpyIF7RJ4Xh-5jXsQuUSb",
+"price":
+"R$ 9.630,00",
+"extracted_price":
+9630,
+"old_price":
+"R$ 9.680",
+"extracted_old_price":
+9680,
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcTe_gjB0g4sc8AgVlAIma5zXeqUreaXSdB8dGlP-Dyd46HxXhOS7OrQOffQqm1UEznDtG2uRU1KfCANVTRbJ-_WKQnIX2iXYlHonHd7Ias_QhQa1tnynBbNyg",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/QokT7nicDcltCoIwAADQE6kplSZEaIaaoK3S1i-Z25yGzo8taJ2q63Sben_f99NIOQrXMCjHsxolJZqsuKkzIZFssY6H3hDNMI4tZ7tp-z_XS8kmxFdasoe_YEuBHY8VnRf3aPWGdMpniuCF-A4Ju5MWKLJcRy_YZBc7m0FW12Dqzfzw5oEMrec5N5N676XF9VwdtfKWAB5Dq4X3Lhp4ROwYiRI0AJmSK-5XqWI_q3E_EQ",
+"thumbnails":
+[
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcTe_gjB0g4sc8AgVlAIma5zXeqUreaXSdB8dGlP-Dyd46HxXhOS7OrQOffQqm1UEznDtG2uRU1KfCANVTRbJ-_WKQnIX2iXYlHonHd7Ias_QhQa1tnynBbNyg",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcScCi23iMiAWOt_NDtqkE-ifl_hwoqgt-_CNLd9PCKBc-93SSqrIZ1EbTip-jBqXRnPGbdF4SJJloNFmluM83kzxEzW9055y8UvlQdeWoMeGm6ljRgsdYo6"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/QokT7nicDcltCoIwAADQE6kplSZEaIaaoK3S1i-Z25yGzo8taJ2q63Sben_f99NIOQrXMCjHsxolJZqsuKkzIZFssY6H3hDNMI4tZ7tp-z_XS8kmxFdasoe_YEuBHY8VnRf3aPWGdMpniuCF-A4Ju5MWKLJcRy_YZBc7m0FW12Dqzfzw5oEMrec5N5N676XF9VwdtfKWAB5Dq4X3Lhp4ROwYiRI0AJmSK-5XqWI_q3E_EQ",
+"https://serpapi.com/images/url/CsPieXicDcndEoFAGADQJ1ohNTJjTFKNn0Ix4abRbmq1tbv289dDeR9vw7k9308JINRI0_IG394CcoIga_ROoeAMFHcwrzVVciFoU0zk-H8jOySWj2Ps0L5OA2ona0jDGcjKRfTC0vLJZQEodcIVsTbOcoqRpcexvM1PPTfbUYGuU3mImo2fEW8QLxaMh17N7sFQr9qX2yZW1zDew_2DbUme8CD3a5Ndo0KRIzd_JWU-RQ"
+],
+"tag":
+"PROMOÇÃO",
+"extensions":
+[
+"PROMOÇÃO"
+]
+},
+{
+"position":
+35,
+"title":
+"iPhone 16 Pro Max Apple, 6,9", 48MP, 5G, 256GB, Titânio-deserto",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:18372416122041208688",
+"product_id":
+"18372416122041208688",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=18372416122041208688",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTgzNzI0MTYxMjIwNDEyMDg2ODgiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxODM3MjQxNjEyMjA0MTIwODY4OCIsImltYWdlRG9jaWQiOiI5NjYyOTI5Mzg0NjgzOTA2NDk5IiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTgzNzI0MTYxMjIwNDEyMDg2ODgiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxODM3MjQxNjEyMjA0MTIwODY4OCIsImltYWdlRG9jaWQiOiI5NjYyOTI5Mzg0NjgzOTA2NDk5IiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"source":
+"Gringolândia",
+"source_icon":
+"https://encrypted-tbn2.gstatic.com/favicon-tbn?q=tbn%3AANd9GcRLQ9PfufVQXr_cca2sAzxOYEj0O3_7eoSQcParsRFNgeCPsydjcz9n4M7Ri-JHYIYx95hSkYH3y7Wc7g6pS2hdE049QRjlfioKdPBubXPconyek-UhEaA",
+"price":
+"R$ 10.699,00 agora",
+"extracted_price":
+10699,
+"installment":
+{
+"price":
+"R$ 1.291,32/mês",
+"extracted_price":
+1291.32,
+"period":
+10
+},
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcTPXoH7OPWZOQa4tFzM0H_-XEFxhzfdAX-FvbWwfpBZlcCL-jBQhgpSeK0z222Lic3A5_b3TD4UbMT52gFMgXTl9pLFju8mnKiW4LPVVUMCZnkFixxRRkmI-A",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/kbDUz3icDcnhDkJAAADgJzoMrbS1JnVpCEXMH-NwjpwrV8lT9Tq9TX1_v--n5pwNS1EsKbq_GS8LwHOqCHjgGSdIQH0nDnXPGKF4fVv9b6kfC22PAi_uzbnrRYnrZyqHkyOZKYh3cKynqtBjAJ959KrYJrkiwwbNxq8xO5eWNMmybBOk6LM0V4KtGuZOMJMxdHAcXDVmw-ax6KhFItX2LpfQMRLaQjKOp1PbHYD-A2D2Pak"
+},
+{
+"position":
+36,
+"title":
+"Apple Iphone 16 Pro Max A3084 T-mobile Apenas 256gb Preto Titânio Bom",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:5199169331353908742",
+"product_id":
+"5199169331353908742",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=5199169331353908742",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNTE5OTE2OTMzMTM1MzkwODc0MiIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjUxOTkxNjkzMzEzNTM5MDg3NDIiLCJpbWFnZURvY2lkIjoiMTM4OTc5NzQwMTQ5NjA1MzYyNTAiLCJyZHMiOiJQQ181OTQ3NjY3OTU5Njc0NDI3OTkwfFBST0RfUENfNTk0NzY2Nzk1OTY3NDQyNzk5MCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNTE5OTE2OTMzMTM1MzkwODc0MiIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjUxOTkxNjkzMzEzNTM5MDg3NDIiLCJpbWFnZURvY2lkIjoiMTM4OTc5NzQwMTQ5NjA1MzYyNTAiLCJyZHMiOiJQQ181OTQ3NjY3OTU5Njc0NDI3OTkwfFBST0RfUENfNTk0NzY2Nzk1OTY3NDQyNzk5MCIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+"source":
+"eBay - yywirelesss",
+"source_icon":
+"https://encrypted-tbn1.gstatic.com/favicon-tbn?q=tbn%3AANd9GcRR0_zHnaJ3qErUF0QmVnyDMkZsagL2saaoEuixfD9kcC3BfifYr-i6Mb1745RdfmGPuusArl4AC2obvdP1BwJRoInAlVM",
+"price":
+"R$ 4.412,83",
+"extracted_price":
+4412.83,
+"second_hand_condition":
+"recondicionado",
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQT2OrUYiJkcH1mfhfGP-W0jX9A_Fjfn-gaKyrZT_BqWaGPg3C9ilbCT7DDYCjqcJQIje7PVs652n_-vLUxCUcBsGLFNj4kpKxjNPOLY_lTeiDMw61lTZ_tcns",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/5ZLLNnicDcltDoIgAADQE6lppdOttdJlmSltWOkfpuQHaIjCyo7VcbpNvb_v-2mk5MLRtJLh8c1leVdkwQy1FjKXBKu4f2ii6TknrF4Pq_85m-hu-_gMjXhMUhK0eK8_qqbygXKd0Zu9QTtaMaXOj-8xg2g7XHMf1HPXJl3hQsvzUpcOODgfaGmBizCXBkPKM0wmN8Fb4Ye7iC5afpxoBOIwRR0siXd6mXoHMyQxEz_Bkj7w"
+},
+{
+"position":
+37,
+"title":
+"Iphone 16 pro max - 256gb - impecavel - garantia limitada",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:2883037743035663214",
+"product_id":
+"2883037743035663214",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=2883037743035663214",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMjg4MzAzNzc0MzAzNTY2MzIxNCIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjI4ODMwMzc3NDMwMzU2NjMyMTQiLCJpbWFnZURvY2lkIjoiODg3MzMwMjg4MzU4NTM5ODcyMSIsInJkcyI6IiIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMjg4MzAzNzc0MzAzNTY2MzIxNCIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjI4ODMwMzc3NDMwMzU2NjMyMTQiLCJpbWFnZURvY2lkIjoiODg3MzMwMjg4MzU4NTM5ODcyMSIsInJkcyI6IiIsInF1ZXJ5IjoiSXBob25lKzE2K3BybyttYXgiLCJncGNpZCI6IiIsIm1pZCI6IiIsInB2dCI6ImhnIiwidXVsZSI6IncrQ0FJUUlDSUdRbkpoZW1scyIsImdsIjoiYnIiLCJobCI6InB0IiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+"source":
+"OLX",
+"source_icon":
+"https://encrypted-tbn1.gstatic.com/favicon-tbn?q=tbn%3AANd9GcR5ye8cvNEdMsVAschq94XOYfzHdsHsF_9gO6oPD45lqHDdJAShrBEpTpYRTZOB1XOitbJ3jEyEyTWBINeDcQJi0QoBU7xrgw",
+"price":
+"R$ 7.000,00",
+"extracted_price":
+7000,
+"second_hand_condition":
+"usado",
+"rating":
+,
+"thumbnail":
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcTz1Cn6yV-s0SE3OJtcmx0VpTmDtCdCjiA38HUuketXCf1F3dLzhmFXvPpTNiQRL2H6mbP7aeSem57QgvMtXG7iaJzIhqPyZDNjv8-44GeZAaC2CeIHmvSd4Q",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/OUo9EXicDclLDoIwFADAEyEiCGhiDCnyiyIIEsIO2wrVFKo8G-FUXsfb6Gzn-2kBxLBWVdrh5yiAEgUunTZrBqiB4RnuuTq0vRCsa7aPzf_WTkxWPs4nDXXmWCjDPNvpxwgwf88LkXMXEEE35uh2cH7dKZToqnk62U8t90qZiDxm6Wm_CEx-SayaZpQvrbSRByh9i9XRFLaPZKzc-CZtxTB8Wjk1WiAaBlxmxEh_kQc-Gw",
+"thumbnails":
+[
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcTz1Cn6yV-s0SE3OJtcmx0VpTmDtCdCjiA38HUuketXCf1F3dLzhmFXvPpTNiQRL2H6mbP7aeSem57QgvMtXG7iaJzIhqPyZDNjv8-44GeZAaC2CeIHmvSd4Q",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRBac1K0afMuVtCOKtdoVmtGmK9CLuYGFjnZPHQNp03uv-YR4VWoWNHNMhMYpr0h-gTj-EvhAyK_yYvg_tBQ88jX8i6fxyY_REOfTBzU4NsjqrdBTMljALGLw",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQqQHIZJKNAJw2KxEgk_qw3sJb5YGoGhS7teTCN7OKUP3_7xxLGkDWAeT3y5A-clH5sGLzN3isQEjvVKxVqcV56eS96Qx83TUEZ_eqVC1-txDFvG1-JvsbY"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/OUo9EXicDclLDoIwFADAEyEiCGhiDCnyiyIIEsIO2wrVFKo8G-FUXsfb6Gzn-2kBxLBWVdrh5yiAEgUunTZrBqiB4RnuuTq0vRCsa7aPzf_WTkxWPs4nDXXmWCjDPNvpxwgwf88LkXMXEEE35uh2cH7dKZToqnk62U8t90qZiDxm6Wm_CEx-SayaZpQvrbSRByh9i9XRFLaPZKzc-CZtxTB8Wjk1WiAaBlxmxEh_kQc-Gw",
+"https://serpapi.com/images/url/wt7GpnicDclhCoIwGADQE5lGEhpEOKkJ6ioxbf0Rm-kcqct9WnaqrtNt6v193w8HkGql67eW9ZOEW6HBtV3MKgU51GzGukZXvJOybqvNY_2_lUMKG7MI5WzuG3kZDgm4ex-KLmkAN77tBgPFO9FeDt6RSGMxjBqNzCTtUuKRkIdU9gbXqlho25E7k59NdKwyQEfLEmerXpaviWbRdl_G6H0yiRKPvkBxeBdOgIPnD7CHPzY",
+"https://serpapi.com/images/url/lsIwtnicDcn_DkJAAADgJ8K4IbbWDJ0wZX40_rGcG1K47sbpoXqf3qa-f7_vp2NspqYk4RG9tpnhRmD1qIgtZTfWIxFNT4l20zz3Y3sg-_-ZVtQYEMUk9k6lH0SWvyoBd9uhIiugfq0WcIJdojOc2pF-DrILqHTOQzg4VwunYFMtAT08lcLwHYGexu59yQOeE5SrGk4MLeY7kGZuWWGS27LAuHNcoCz4C62LH-88POs"
+]
+},
+{
+"position":
+38,
+"title":
+"iPhone 16 Pro / 16 Pro Max 256GB 5G Dual eSim Novo (Lacrado 1 ano de garantia)",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:4998196867764063351",
+"product_id":
+"4998196867764063351",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=4998196867764063351",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNDk5ODE5Njg2Nzc2NDA2MzM1MSIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjQ5OTgxOTY4Njc3NjQwNjMzNTEiLCJpbWFnZURvY2lkIjoiNzE0ODU3MTQ4ODIwODQ5ODEyNyIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ==",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiNDk5ODE5Njg2Nzc2NDA2MzM1MSIsImNhdGFsb2dpZCI6IiIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjQ5OTgxOTY4Njc3NjQwNjMzNTEiLCJpbWFnZURvY2lkIjoiNzE0ODU3MTQ4ODIwODQ5ODEyNyIsInJkcyI6IlBDXzU5NDc2Njc5NTk2NzQ0Mjc5OTB8UFJPRF9QQ181OTQ3NjY3OTU5Njc0NDI3OTkwIiwicXVlcnkiOiJJcGhvbmUrMTYrcHJvK21heCIsImdwY2lkIjoiIiwibWlkIjoiIiwicHZ0IjoiaGciLCJ1dWxlIjoidytDQUlRSUNJR1FuSmhlbWxzIiwiZ2wiOiJiciIsImhsIjoicHQiLCJlbmdpbmUiOiJnb29nbGVfc2hvcHBpbmcifQ%3D%3D",
+"source":
+"Shopee",
+"source_icon":
+"https://encrypted-tbn1.gstatic.com/favicon-tbn?q=tbn%3AANd9GcQ2cyhl46-kAd47FcQm01DInMtXUSJC-dApyIr5eyranFmyCUq692yKolrN5g0VtAug_oUXf4JuVZNC3URvjka_TRDfzgS_",
+"price":
+"R$ 6.418,00",
+"extracted_price":
+6418,
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQlvpr7KoXpAAUjAhOZMEBAQn0gD_huF6wQJr4B9obrKZaCnMDt8DSfW4n8tPuC9jRhnBmmP0hGXXWbNHGi_O-BC11L-5AZ07mIvtfZeQ71CgC5dDDlNNse-g",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/6vpDF3icDclJDoIwFADQEzFFkCExprSKiiJoDIQNYWwhUCp8Nd7K63gbfdv3_TAAMTuKUvNyeguoKwkKvpDpDDm0pVyOgzKzUYiW0_V99T8HBZXtlVH_FJPpj4lA6NYhdk5PGxdFXKUkY4_t8hUdJt21x2Ly0xzzEwGLXJtY5xaED2x3F8bdYQhV5iVJXAQ7r83Okos17SgZKFXNYf-EJq0jU8MUGxUhfRDMtUR_g-89PA",
+"thumbnails":
+[
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQlvpr7KoXpAAUjAhOZMEBAQn0gD_huF6wQJr4B9obrKZaCnMDt8DSfW4n8tPuC9jRhnBmmP0hGXXWbNHGi_O-BC11L-5AZ07mIvtfZeQ71CgC5dDDlNNse-g",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQOOBXnlQ0p-lC90baR_Insv0jRdS_kHUfIk01m7OGtZQXFIqNkuCyaRMoRWF3SaksJEvXiXaY5X6fYOhIORo3kjx5_vuXtUoUo4hBWAM5Ihu1p8Bu6Qiyq",
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcRcXgToryo3Idb7AU5PsTBACdg06JBEUDQ_srAF9kNM5uJCPy9di6QVpbcM_t2_w9iy_zkrA5FyyrYdV67Owd4Tcn_8k5wTrGVivclm3iE0gjL5LmYIp_IL",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRpoXEBMPMMEqVlGrT-hNO0kTR2ElBasdxMKBzsIlsbFS2zM_AWNk0ADHKqTCOT5CP4cPptpeJOMnWxZC_ym4Vn5YZC6rOb7gPzACuGofa_9mESfO7lOu0z",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSGVAUil884HgmtJ_QHpdTzh6NRjKt1x7warnhT8iqBjB66f0RRpO3PFay1X5uHS6LtA0de486V2jAgynarXwcnHAbnkUze783isxXBVNm2HWj140uws0vyWg"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/6vpDF3icDclJDoIwFADQEzFFkCExprSKiiJoDIQNYWwhUCp8Nd7K63gbfdv3_TAAMTuKUvNyeguoKwkKvpDpDDm0pVyOgzKzUYiW0_V99T8HBZXtlVH_FJPpj4lA6NYhdk5PGxdFXKUkY4_t8hUdJt21x2Ly0xzzEwGLXJtY5xaED2x3F8bdYQhV5iVJXAQ7r83Okos17SgZKFXNYf-EJq0jU8MUGxUhfRDMtUR_g-89PA",
+"https://serpapi.com/images/url/gwXZV3icDcltCoIwAADQE6WGaSVEqGQtyOFCmv2R-VHT6TbblLxU9-k29f6-74dqLZVnmjUvX7PUdbXQBbeNp9JEN6VRit5UVEjZ8Od-2P3P8-NqeywTCAPMu8SSiy7cWgVBOeBqslpUXXN2Sh-AWct-DY_6nuAIDDEbw5mgi0C3yL4Sps6HCTeYZA52HxmkACJhs_bt5NOIdSpSsaLBzb84gI5LuQlGN2nm4QclED5c",
+"https://serpapi.com/images/url/bTLClHicDcltDoIgAADQE6UtQ9OtNSx1Ou1r6vIXS3BIphJQjg7VfbpNvb_v-2mV4tIzzWbAQnPVkJmqB8ugUl0VwwYee1O2I-dsoJvH-n8e3BM3wmd8ofko9GjFpHZgAY4y9-GW0Lmd-EGxOyEpYOh2-ww8k-1Ru4TZp5LXOENqgSaXafTuBASh1qIipe0cJrLM8YBWHZhyEZXshe-9xYI5vaUg7auYozj9ASQ6PlE",
+"https://serpapi.com/images/url/QKrdx3icDcltCoIwAADQE6UiViRE6FpWMic1-vojOk1F3aaboDtU9-k29f6-76dSSkjXNAtGh1moIl-ojFlGKVWqampQ3pmy4kLUrNz12_-5XpRvAnoR_AF9FCME-1sbDGRRRdhqyMWGrZ_KfEKhr-WpldnhamuUePeosbz9MewJwGQJYofGQonijBG7Ty-QzJ1zY8vnC6wGnK3LWHtgDPg7TTYdvL7xusWjpX8UYz3o",
+"https://serpapi.com/images/url/U4x04nicDclREoFAGADgE1EpazVjzPagHUyoVG-mtmwbrdX-JKdyHbfhe_2-nxpAadcwKsm6QUFVjqCQ1phryEGwMbu1hq5vSgnJl_fF_1wSlHOfRX5CjuKKsUN5C-vTgaoyftcoCJsNWK9Zn3eyjrG4e42H0NkMQ7Wz96t8sLLpg0ZoC8QsKwejZNIQPsi8y3omKSnk5fiuZtgW-pV5SdBOaNpYjvnotfkcUv4DjqQ-lg"
+]
+},
+{
+"position":
+39,
+"title":
+"iPhone 16 Pro Max Apple (1TB) Titânio Deserto + Fonte Turbo 20W Original",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:17128447372857349012",
+"product_id":
+"17128447372857349012",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=17128447372857349012",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTcxMjg0NDczNzI4NTczNDkwMTIiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNzEyODQ0NzM3Mjg1NzM0OTAxMiIsImltYWdlRG9jaWQiOiIzMDAwMTU3NDgzMjE0OTcyNDYxIiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTcxMjg0NDczNzI4NTczNDkwMTIiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNzEyODQ0NzM3Mjg1NzM0OTAxMiIsImltYWdlRG9jaWQiOiIzMDAwMTU3NDgzMjE0OTcyNDYxIiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"source":
+"Ri Happy Brinquedos",
+"source_icon":
+"https://encrypted-tbn1.gstatic.com/favicon-tbn?q=tbn%3AANd9GcSjIXUjScfJHoNkS8PWM0BwEOEuTz_DWp2mWbuXODg8GRKhYyVwLkhWeFdZqiYely7D6-EXN2fyZHl9DaKDjYRsyDB5HXc5HlXYH0A",
+"price":
+"R$ 15.000,00 agora",
+"extracted_price":
+15000,
+"installment":
+{
+"price":
+"R$ 2.500/mês",
+"extracted_price":
+2500,
+"period":
+6
+},
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcRUtKtpk98KBugRdFUChGzxAlDyt6r5i7kX9Cl4bcEwQJj7LGtRkinzFvt9jPluUn4d-vl9drSFf3-JELyyTMQQjYQKDPlZetA_kURplWNV8whjgUyCktvT",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/K0iFtHicDclJDoIwFADQEwExolATY5ApATWA1mljpEWG1lrhi9ZDeR9vo2_7vp8KQHYTwygEaZWEgmqQi4FednCGmujkdjW66iZlLcrZffq_ibOiKCQZhhgkQ3Y8f5QZDbBbhe-Xwz0F43ZUW2yPXG7mxH-mUWMtQshYLd5BD6hJ-AMLk2o9R7RdB5ehFvkLpTbLNG0Oaewl_FiAc2I4k3y32trPqimxchn0mx9uwz-e",
+"thumbnails":
+[
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcRUtKtpk98KBugRdFUChGzxAlDyt6r5i7kX9Cl4bcEwQJj7LGtRkinzFvt9jPluUn4d-vl9drSFf3-JELyyTMQQjYQKDPlZetA_kURplWNV8whjgUyCktvT",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcT4pURovu6ZRyvPfPssypoYGtvG48Gjmb9nVdl8OibT6FF-NtvNZhzKIQZRrjA8KwfcGMJWsrP8ysXUYt_h2Qcufmcb8LHspdtAmdNeBg6cSWe81OubjYMP0Q",
+"https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcQ3B_EpuFTKQwAnsd4nv65AdGHQ8mQ3NXQ6CcXiDxsorYeq4NEaevHYhHVL3YJctxCNCh1EBMjhsxLQ62LjLbc5gFuyjFyXxOhoIWxgFOiBgJ0eJtRDJWR5Rg",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcTfJHQYRTlMCHHN6klgO29jditno49bql_pgJQ54BEAzc8o_jMefK12nYjT-uZ7vWAxKeqlrXKMTpgrgAzCQvuXewwUz_IBUkf9K5cN9hc2vScwRWUAaUO2Ig",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcS8yyKP-wApeeEczeGH29v54X_kxGs1ZqjJ9R9vD0Xt7hMeQ3WLl80pfbwhjCucDldaKgwVEDf0Mdn4CMu4lbOAa8A2M2viNEQPDbtHgiFYWCzLmebCtsD7"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/K0iFtHicDclJDoIwFADQEwExolATY5ApATWA1mljpEWG1lrhi9ZDeR9vo2_7vp8KQHYTwygEaZWEgmqQi4FednCGmujkdjW66iZlLcrZffq_ibOiKCQZhhgkQ3Y8f5QZDbBbhe-Xwz0F43ZUW2yPXG7mxH-mUWMtQshYLd5BD6hJ-AMLk2o9R7RdB5ehFvkLpTbLNG0Oaewl_FiAc2I4k3y32trPqimxchn0mx9uwz-e",
+"https://serpapi.com/images/url/rjhQfHicDclLDoIwFADAEwFKCCkkxuCCqshXEGFjbMs3ApU-MHgqr-NtdLbz_dQAXJiKUvR0XDgUTALSq3Il4A4NlenQKaIeOG_6avvc_M-0PGZgGms8iYZ50vNomYMyEGLhQ4ZhxhrCbUeM_sIeyG9IrNu25MHs5fXbOYR5NLYWcl4lxe4xFWOAFnFNMrjVakinsqMEnfaCM7A65hW7SqfntEBrfyJt5gar8ActOUBX",
+"https://serpapi.com/images/url/WqRe1XicDcnbCoIwAADQL0orL5QQ4TUzUyaR-hQ1x6bgNt20-Vf9Tn9T5_V8P0RKLhxdRxSOC5eoWckXXWtYyKdsoQZZrwvCOG8pPg6H_zlu1uxPEBjeI-RTdLuAt0tFY9LZttzmFINdD4ysArYPqzZQgo01GswsfKI5rkl8T406gVL5mU82oXftiFApsLdpl76ghaNp6aKlUjlh51LhKG89nKxRIosgKQurwD-Xwz66",
+"https://serpapi.com/images/url/cnzW9nicDcn_DkJAAADgJ8Iy_Thba8dayjB1Jv1jnHNId4eL8lS9Tm9T37_f91NJKQZT0wjD_VtIUigyZwuVDjKTNVYxf2hDxYWoGd112_-Z0C_AAaPy5ITJGbWe7Tj-6t7SQAdNUUvGDZB3bSroKVwa1h7OeMPTxiOlu9BZ0iDleVuPMXy5pGv7q-shQXsKZzscn1cyTdGcHq3oXgJ3iX1QYX284OkcRzCLAv1If8J9P3I",
+"https://serpapi.com/images/url/3igAAHicDclJDoIwFADQEzGKAUyMIS1CFHBKnDaGljKJUOwXhEN5H2-jb_u-nxyAi5misJo-Bw4skYDUmpwJiKGgMm0eisgbzos6W7Tz_82cKLE9erCGYb2Veocz5tKReb5ud1PjfLu_PaFd23Jl7-0Oq2cw85DtJqegslSekj4v0YviKonXWX90caqGSW2g8GVUZOPElqOHeldE7m6LCfhZsbyc0Bg8GEEgsPkDHLA9xw"
+]
+},
+{
+"position":
+40,
+"title":
+"Apple Iphone 16 Pro Max (256 Gb) - Desert (Desert, 256gb)",
+"product_link":
+"https://www.google.com.br/shopping/product/1?gl=br&prds=pid:17939843345981992204",
+"product_id":
+"17939843345981992204",
+"serpapi_product_api":
+"https://serpapi.com/search.json?engine=google_product&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&product_id=17939843345981992204",
+"immersive_product_page_token":
+"eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTc5Mzk4NDMzNDU5ODE5OTIyMDQiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNzkzOTg0MzM0NTk4MTk5MjIwNCIsImltYWdlRG9jaWQiOiIxMzY0NDczMjQwNTU1MDc1MDk1IiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"serpapi_immersive_product_api":
+"https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IkhxbTFhTUtsSnBMQXA4NFA3dGIyNlFNIiwicHJvZHVjdGlkIjoiMTc5Mzk4NDMzNDU5ODE5OTIyMDQiLCJjYXRhbG9naWQiOiIiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxNzkzOTg0MzM0NTk4MTk5MjIwNCIsImltYWdlRG9jaWQiOiIxMzY0NDczMjQwNTU1MDc1MDk1IiwicmRzIjoiUENfNTk0NzY2Nzk1OTY3NDQyNzk5MHxQUk9EX1BDXzU5NDc2Njc5NTk2NzQ0Mjc5OTAiLCJxdWVyeSI6IklwaG9uZSsxNitwcm8rbWF4IiwiZ3BjaWQiOiIiLCJtaWQiOiIiLCJwdnQiOiJoZyIsInV1bGUiOiJ3K0NBSVFJQ0lHUW5KaGVtbHMiLCJnbCI6ImJyIiwiaGwiOiJwdCIsImVuZ2luZSI6Imdvb2dsZV9zaG9wcGluZyJ9",
+"source":
+"Dhr Comercio",
+"source_icon":
+"https://encrypted-tbn1.gstatic.com/favicon-tbn?q=tbn%3AANd9GcRnihL0X_y7m-Gn7VGKQwRgetSBLTfm7XnbGdMsCEbqP19zB7FVfLhqNcXNNgyyvNq3C8hP951ugIQTAT5smORgBIVQntV68eEdrkugm5bJ",
+"price":
+"R$ 7.481,70",
+"extracted_price":
+7481.7,
+"rating":
+4.6,
+"reviews":
+25000,
+"thumbnail":
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcTR4JFiwNbZEy4KA-ohB4pl2WoXC57vwOd1EckuYqzCKVdqZcf2Z9_Z-Ups0H5FAFotoylxyC84d774aWOUw5MTvV9bB4LS4eRBut3OON7TkRmTVDUyZIlc",
+"serpapi_thumbnail":
+"https://serpapi.com/images/url/o9T9_3icDclJDoIwAADAFyEqJRUTYwDBHRJk0V4MtCiEpcVWsD7K__gbnet8P4UQjM9VNW_xQzKRE0VkrTa6c5GKEo8wbVReUMbK9r7sFv-bmx4x1jgMwM4tBy9DjgR7U6GFBVg9TejZ1mE_-GTi4Op56d72PiYdwrcpMq5IiRgfb3TXdKmgsn5JewYIhCBN_GjQj2EfG5kFDieQB9ZTaL7vwbAKmjBeRRJta_wD-PQ9Pg",
+"thumbnails":
+[
+"https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcTR4JFiwNbZEy4KA-ohB4pl2WoXC57vwOd1EckuYqzCKVdqZcf2Z9_Z-Ups0H5FAFotoylxyC84d774aWOUw5MTvV9bB4LS4eRBut3OON7TkRmTVDUyZIlc",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQBmnmyy7csOabuGdaJ7_dCAQJFvra-S4S34Hidk9FsvEx1c_dz4koo055pqRmgZPxgZDtRVw1jyIeSCysH7IrIj5151RPTeqnJL2tcM_ueaZ0xMh580hZp",
+"https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcTqOb6VJlWkuka8pQhMFy_0mEouS3YzJVaY6QRh6NDotEO5RA9ZTZMTwg8dJ54TLC0aCdmwwXx7A45vBtnCpBi9Y49IYzQlxCoj2zR_n4jOqcm2T_zfLfgc",
+"https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQ3VEOR_43sZTltZnpQN--gzlfvqg4t7x926eOT_FAWnadGPTcGNjUcmc76Ef0cJW22DwJL90daU5CdRgLLj0eRI93ZHWZh-4VHmSMTF_qE4GhdnwT5Mjog"
+],
+"serpapi_thumbnails":
+[
+"https://serpapi.com/images/url/o9T9_3icDclJDoIwAADAFyEqJRUTYwDBHRJk0V4MtCiEpcVWsD7K__gbnet8P4UQjM9VNW_xQzKRE0VkrTa6c5GKEo8wbVReUMbK9r7sFv-bmx4x1jgMwM4tBy9DjgR7U6GFBVg9TejZ1mE_-GTi4Op56d72PiYdwrcpMq5IiRgfb3TXdKmgsn5JewYIhCBN_GjQj2EfG5kFDieQB9ZTaL7vwbAKmjBeRRJta_wD-PQ9Pg",
+"https://serpapi.com/images/url/2NmDQXicDclJDoIwAADAF8miNAiJMYoiEBcW44ELKW1TkLQUWpX6KP_jb3Su8_00SgnpmybhaNRCETxTNZ8bVCqoWmSgnpmy6YVoOV0Pq__5mzP2DijbMs60dpG8wPpxwDBxKxxssiR8jnBWOMXCiVrceaF87icbVfjtdH1vASCGnNEynWi5U_ntZd91TIpAy8iNx_gObGDn6ZUMPDnOFTpVDwJLazo1YGk1pfgBXu0-hA",
+"https://serpapi.com/images/url/cm_lMXicDcnbEkJAAADQLyoSipmmQWoyLkM7FS9m7RaK3ZWVy0f1P_1Nndfz_RScs1YXhBtBr5HxG57xjCzmecshL9Ec0VpoC8pYSfJts_mfbvhYOyDQBJl6dqrLs3vCNQsLbz-mYm3T7rSMJ-cMYzWMCtXfUW4HSmRoCUg80Odr7CgycC0RWrju--uwMmTlbXJiMbPUYlk7xlNYDRZ9SFOUEvkRNKiWQDrd3XuOfiaYPkE",
+"https://serpapi.com/images/url/krBTUHicDcnbCoIwAADQL5qKVxQiorwkXtKmgi9im05F58yR1Uf1P_1Nndfz_XScs9USxYai-4vxBgN-o7JAVl7zHglonsS1mxnrKdkvu_9ZhwibLkqU3I7TSlXWEo68pCyJACDvsX0sROXG05T1JoaVcyhojd0LRG40ZGhChm63EvILWT5tfmBKuM60I05JEAxSk55NpfSKsgNq7k3XEDrVYqtuh-kGtXCYyQ_dQTyT"
+]
+}
+],
+"filters":
+[
+{
+"type":
+"Refinar resultados",
+"input_type":
+"link_with_icon",
+"options":
+[
+{
+"text":
+"Usado",
+"shoprs":
+"CAEYCioRaXBob25lIDE2IHBybyBtYXgyCQgKEgVVc2Fkb1iJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=Usado%3A+Iphone+16+pro+max&shoprs=CAEYCioRaXBob25lIDE2IHBybyBtYXgyCQgKEgVVc2Fkb1iJqiBgAg"
+}
+]
+},
+{
+"type":
+"Ordenar por",
+"input_type":
+"link",
+"options":
+[
+{
+"text":
+"Relevância",
+"shoprs":
+"CAEYFyoRaXBob25lIDE2IHBybyBtYXgyCggXKgQQARgBUARgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=iphone+16+pro+max&shoprs=CAEYFyoRaXBob25lIDE2IHBybyBtYXgyCggXKgQQARgBUARgAg"
+},
+{
+"text":
+"Preço: do menor para o maior",
+"shoprs":
+"CAEYFyoRaXBob25lIDE2IHBybyBtYXgyKQgXEh1QcmXDp286IGRvIG1lbm9yIHBhcmEgbyBtYWlvcioEEAEYAVABYAKIAQE",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=iphone+16+pro+max&shoprs=CAEYFyoRaXBob25lIDE2IHBybyBtYXgyKQgXEh1QcmXDp286IGRvIG1lbm9yIHBhcmEgbyBtYWlvcioEEAEYAVABYAKIAQE"
+},
+{
+"text":
+"Preço: do maior para o menor",
+"shoprs":
+"CAEYFyoRaXBob25lIDE2IHBybyBtYXgyKQgXEh1QcmXDp286IGRvIG1haW9yIHBhcmEgbyBtZW5vcioEEAEYAVACYAKIAQI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=iphone+16+pro+max&shoprs=CAEYFyoRaXBob25lIDE2IHBybyBtYXgyKQgXEh1QcmXDp286IGRvIG1haW9yIHBhcmEgbyBtZW5vcioEEAEYAVACYAKIAQI"
+},
+{
+"text":
+"Classificação: da maior para ...",
+"shoprs":
+"CAEYFyoRaXBob25lIDE2IHBybyBtYXgyMggXEiZDbGFzc2lmaWNhw6fDo286IGRhIG1haW9yIHBhcmEgYSBtZW5vcioEEAEYAVADYAKIAQM",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=iphone+16+pro+max&shoprs=CAEYFyoRaXBob25lIDE2IHBybyBtYXgyMggXEiZDbGFzc2lmaWNhw6fDo286IGRhIG1haW9yIHBhcmEgYSBtZW5vcioEEAEYAVADYAKIAQM"
+}
+]
+},
+{
+"type":
+"Memória interna",
+"input_type":
+"link",
+"options":
+[
+{
+"text":
+"64 GB",
+"shoprs":
+"CAESGioYCKuEPRISCQAAAAAAAFBAEQAAAAAAAFBAGAEqEWlwaG9uZSAxNiBwcm8gbWF4Mi8IARIFNjQgR0IiGioYCKuEPRISCQAAAAAAAFBAEQAAAAAAAFBAOggIq4Q9EAAwBliJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=64+gb+iphone+16+pro+max&shoprs=CAESGioYCKuEPRISCQAAAAAAAFBAEQAAAAAAAFBAGAEqEWlwaG9uZSAxNiBwcm8gbWF4Mi8IARIFNjQgR0IiGioYCKuEPRISCQAAAAAAAFBAEQAAAAAAAFBAOggIq4Q9EAAwBliJqiBgAg"
+},
+{
+"text":
+"128 GB",
+"shoprs":
+"CAESGioYCKuEPRISCQAAAAAAAGBAEQAAAAAAAGBAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MjAIARIGMTI4IEdCIhoqGAirhD0SEgkAAAAAAABgQBEAAAAAAABgQDoICKuEPRAAMAZYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=128+gb+iphone+16+pro+max&shoprs=CAESGioYCKuEPRISCQAAAAAAAGBAEQAAAAAAAGBAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MjAIARIGMTI4IEdCIhoqGAirhD0SEgkAAAAAAABgQBEAAAAAAABgQDoICKuEPRAAMAZYiaogYAI"
+},
+{
+"text":
+"256 GB",
+"shoprs":
+"CAESGioYCKuEPRISCQAAAAAAAHBAEQAAAAAAAHBAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MjAIARIGMjU2IEdCIhoqGAirhD0SEgkAAAAAAABwQBEAAAAAAABwQDoICKuEPRAAMAZYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=256+gb+iphone+16+pro+max&shoprs=CAESGioYCKuEPRISCQAAAAAAAHBAEQAAAAAAAHBAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MjAIARIGMjU2IEdCIhoqGAirhD0SEgkAAAAAAABwQBEAAAAAAABwQDoICKuEPRAAMAZYiaogYAI"
+},
+{
+"text":
+"512 GB",
+"shoprs":
+"CAESGioYCKuEPRISCQAAAAAAAIBAEQAAAAAAAIBAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MjAIARIGNTEyIEdCIhoqGAirhD0SEgkAAAAAAACAQBEAAAAAAACAQDoICKuEPRAAMAZYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=512+gb+iphone+16+pro+max&shoprs=CAESGioYCKuEPRISCQAAAAAAAIBAEQAAAAAAAIBAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MjAIARIGNTEyIEdCIhoqGAirhD0SEgkAAAAAAACAQBEAAAAAAACAQDoICKuEPRAAMAZYiaogYAI"
+},
+{
+"text":
+"1 TB",
+"shoprs":
+"CAESGioYCKuEPRISCQAAAAAAQI9AEQAAAAAAQI9AGAEqEWlwaG9uZSAxNiBwcm8gbWF4Mi4IARIEMSBUQiIaKhgIq4Q9EhIJAAAAAABAj0ARAAAAAABAj0A6CAirhD0QADAGWImqIGAC",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=1+tb+iphone+16+pro+max&shoprs=CAESGioYCKuEPRISCQAAAAAAQI9AEQAAAAAAQI9AGAEqEWlwaG9uZSAxNiBwcm8gbWF4Mi4IARIEMSBUQiIaKhgIq4Q9EhIJAAAAAABAj0ARAAAAAABAj0A6CAirhD0QADAGWImqIGAC"
+}
+]
+},
+{
+"type":
+"Classificação do produto",
+"input_type":
+"link",
+"options":
+[
+{
+"text":
+"4 ou mais",
+"shoprs":
+"CAESBWIDCJADGB4qEWlwaG9uZSAxNiBwcm8gbWF4MhYIHhIJNCBvdSBtYWlzIgViAwiQA0AEYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=Iphone+16+pro+max&shoprs=CAESBWIDCJADGB4qEWlwaG9uZSAxNiBwcm8gbWF4MhYIHhIJNCBvdSBtYWlzIgViAwiQA0AEYAI"
+}
+]
+},
+{
+"type":
+"Preço",
+"input_type":
+"price_range",
+"options":
+[
+{
+"text":
+"Abaixo de R$ 4.500",
+"shoprs":
+"CAESDRILEQAAAMCIw_BBGAEYBSoRaXBob25lIDE2IHBybyBtYXgyLAgFEhNBYmFpeG8gZGUgUiTCoDQuNTAwGAIiDRILEQAAAMCIw_BBGAEqAhgBWImqIGAC",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=Iphone+16+pro+max+de+at%C3%A9+R%24%C2%A04.500&shoprs=CAESDRILEQAAAMCIw_BBGAEYBSoRaXBob25lIDE2IHBybyBtYXgyLAgFEhNBYmFpeG8gZGUgUiTCoDQuNTAwGAIiDRILEQAAAMCIw_BBGAEqAhgBWImqIGAC"
+},
+{
+"text":
+"Acima de R$ 4.500",
+"shoprs":
+"CAESDRILCQAAAMCIw_BBGAEYBSoRaXBob25lIDE2IHBybyBtYXgyKwgFEhJBY2ltYSBkZSBSJMKgNC41MDAYAiINEgsJAAAAwIjD8EEYASoCGAFYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=Iphone+16+pro+max+acima+de+R%24%C2%A04.500&shoprs=CAESDRILCQAAAMCIw_BBGAEYBSoRaXBob25lIDE2IHBybyBtYXgyKwgFEhJBY2ltYSBkZSBSJMKgNC41MDAYAiINEgsJAAAAwIjD8EEYASoCGAFYiaogYAI"
+}
+]
+},
+{
+"type":
+"Lojas",
+"input_type":
+"link",
+"options":
+[
+{
+"text":
+"Magazine Luiza",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyEggCEg5NYWdhemluZSBMdWl6YViJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=magazine+luiza+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyEggCEg5NYWdhemluZSBMdWl6YViJqiBgAg"
+},
+{
+"text":
+"Casas Bahia",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyDwgCEgtDYXNhcyBCYWhpYViJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=casas+bahia+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyDwgCEgtDYXNhcyBCYWhpYViJqiBgAg"
+},
+{
+"text":
+"Mercado Livre",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyEQgCEg1NZXJjYWRvIExpdnJlWImqIGAC",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=mercado+livre+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyEQgCEg1NZXJjYWRvIExpdnJlWImqIGAC"
+},
+{
+"text":
+"OLX",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyBwgCEgNPTFhYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=olx+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyBwgCEgNPTFhYiaogYAI"
+},
+{
+"text":
+"Amazon.com.br",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyEQgCEg1BbWF6b24uY29tLmJyWImqIGAC",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=amazon.com.br+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyEQgCEg1BbWF6b24uY29tLmJyWImqIGAC"
+},
+{
+"text":
+"Americanas.com",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyEggCEg5BbWVyaWNhbmFzLmNvbViJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=americanas.com+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyEggCEg5BbWVyaWNhbmFzLmNvbViJqiBgAg"
+},
+{
+"text":
+"Apple",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyCQgCEgVBcHBsZViJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=apple+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyCQgCEgVBcHBsZViJqiBgAg"
+},
+{
+"text":
+"Bemol",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyCQgCEgVCZW1vbFiJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=bemol+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyCQgCEgVCZW1vbFiJqiBgAg"
+},
+{
+"text":
+"Buscapé",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyDAgCEghCdXNjYXDDqViJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=buscap%C3%A9+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyDAgCEghCdXNjYXDDqViJqiBgAg"
+},
+{
+"text":
+"Carrefour",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyDQgCEglDYXJyZWZvdXJYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=carrefour+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyDQgCEglDYXJyZWZvdXJYiaogYAI"
+},
+{
+"text":
+"claro.com.br",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyEAgCEgxjbGFyby5jb20uYnJYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=claro.com.br+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyEAgCEgxjbGFyby5jb20uYnJYiaogYAI"
+},
+{
+"text":
+"eBay",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyCAgCEgRlQmF5WImqIGAC",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=ebay+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyCAgCEgRlQmF5WImqIGAC"
+},
+{
+"text":
+"Enjoei.com",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyDggCEgpFbmpvZWkuY29tWImqIGAC",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=enjoei.com+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyDggCEgpFbmpvZWkuY29tWImqIGAC"
+},
+{
+"text":
+"iPlace",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyCggCEgZpUGxhY2VYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=iplace+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyCggCEgZpUGxhY2VYiaogYAI"
+},
+{
+"text":
+"iSafe",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyCQgCEgVpU2FmZViJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=isafe+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyCQgCEgVpU2FmZViJqiBgAg"
+},
+{
+"text":
+"KaBuM!",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyCggCEgZLYUJ1TSFYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=kabum%21+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyCggCEgZLYUJ1TSFYiaogYAI"
+},
+{
+"text":
+"Qskinz",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyCggCEgZRc2tpbnpYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=qskinz+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyCggCEgZRc2tpbnpYiaogYAI"
+},
+{
+"text":
+"Ri Happy Brinquedos",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyFwgCEhNSaSBIYXBweSBCcmlucXVlZG9zWImqIGAC",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=ri+happy+brinquedos+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyFwgCEhNSaSBIYXBweSBCcmlucXVlZG9zWImqIGAC"
+},
+{
+"text":
+"Shopee",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyCggCEgZTaG9wZWVYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=shopee+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyCggCEgZTaG9wZWVYiaogYAI"
+},
+{
+"text":
+"Shopping Livelo",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyEwgCEg9TaG9wcGluZyBMaXZlbG9YiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=shopping+livelo+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyEwgCEg9TaG9wcGluZyBMaXZlbG9YiaogYAI"
+},
+{
+"text":
+"Smiles",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyCggCEgZTbWlsZXNYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=smiles+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyCggCEgZTbWlsZXNYiaogYAI"
+},
+{
+"text":
+"Trocafone",
+"shoprs":
+"CAEYAioRaXBob25lIDE2IHBybyBtYXgyDQgCEglUcm9jYWZvbmVYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=trocafone+iphone+16+pro+max&shoprs=CAEYAioRaXBob25lIDE2IHBybyBtYXgyDQgCEglUcm9jYWZvbmVYiaogYAI"
+}
+]
+},
+{
+"type":
+"Peso",
+"input_type":
+"link",
+"options":
+[
+{
+"text":
+"até 227 gramas",
+"shoprs":
+"CAESESoPCKqEPRIJEQAAAAAAYGxAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MjQIARIPYXTDqSAyMjcgZ3JhbWFzIhEqDwiqhD0SCREAAAAAAGBsQCoCGAE6CAiqhD0QADAGWImqIGAC",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=at%C3%A9+227+gramas+iphone+16+pro+max&shoprs=CAESESoPCKqEPRIJEQAAAAAAYGxAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MjQIARIPYXTDqSAyMjcgZ3JhbWFzIhEqDwiqhD0SCREAAAAAAGBsQCoCGAE6CAiqhD0QADAGWImqIGAC"
+},
+{
+"text":
+"227 – 300 gramas",
+"shoprs":
+"CAESGioYCKqEPRISCQAAAAAAYGxAEQAAAAAAwHJAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MloIARISMjI3IOKAkyAzMDAgZ3JhbWFzIhoqGAiqhD0SEgkAAAAAAGBsQBEAAAAAAMByQCocChgyMjcgZ3JhbWFzIHRvIDMwMCBncmFtYXMYAToICKqEPRAAMAZYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=227+gramas+to+300+gramas+iphone+16+pro+max&shoprs=CAESGioYCKqEPRISCQAAAAAAYGxAEQAAAAAAwHJAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MloIARISMjI3IOKAkyAzMDAgZ3JhbWFzIhoqGAiqhD0SEgkAAAAAAGBsQBEAAAAAAMByQCocChgyMjcgZ3JhbWFzIHRvIDMwMCBncmFtYXMYAToICKqEPRAAMAZYiaogYAI"
+},
+{
+"text":
+"300 – 360 gramas",
+"shoprs":
+"CAESGioYCKqEPRISCQAAAAAAwHJAEQAAAAAAgHZAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MloIARISMzAwIOKAkyAzNjAgZ3JhbWFzIhoqGAiqhD0SEgkAAAAAAMByQBEAAAAAAIB2QCocChgzMDAgZ3JhbWFzIHRvIDM2MCBncmFtYXMYAToICKqEPRAAMAZYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=300+gramas+to+360+gramas+iphone+16+pro+max&shoprs=CAESGioYCKqEPRISCQAAAAAAwHJAEQAAAAAAgHZAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MloIARISMzAwIOKAkyAzNjAgZ3JhbWFzIhoqGAiqhD0SEgkAAAAAAMByQBEAAAAAAIB2QCocChgzMDAgZ3JhbWFzIHRvIDM2MCBncmFtYXMYAToICKqEPRAAMAZYiaogYAI"
+},
+{
+"text":
+"acima de 360 gramas",
+"shoprs":
+"CAESESoPCKqEPRIJCQAAAAAAgHZAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MjgIARITYWNpbWEgZGUgMzYwIGdyYW1hcyIRKg8IqoQ9EgkJAAAAAACAdkAqAhgBOggIqoQ9EAAwBliJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=acima+de+360+gramas+iphone+16+pro+max&shoprs=CAESESoPCKqEPRIJCQAAAAAAgHZAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MjgIARITYWNpbWEgZGUgMzYwIGdyYW1hcyIRKg8IqoQ9EgkJAAAAAACAdkAqAhgBOggIqoQ9EAAwBliJqiBgAg"
+}
+]
+},
+{
+"type":
+"Recursos",
+"input_type":
+"checkbox",
+"options":
+[
+{
+"text":
+"Smartphone",
+"shoprs":
+"CAEYASoRaXBob25lIDE2IHBybyBtYXgyGggBEgpTbWFydHBob25lOgoIu90sELzdLDADWImqIGAC",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=smartphone+iphone+16+pro+max&shoprs=CAEYASoRaXBob25lIDE2IHBybyBtYXgyGggBEgpTbWFydHBob25lOgoIu90sELzdLDADWImqIGAC"
+},
+{
+"text":
+"Quad-band",
+"shoprs":
+"CAEYASoRaXBob25lIDE2IHBybyBtYXgyGQgBEglRdWFkLWJhbmQ6CgiK9zwQkfc8MANYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=quad-band+iphone+16+pro+max&shoprs=CAEYASoRaXBob25lIDE2IHBybyBtYXgyGQgBEglRdWFkLWJhbmQ6CgiK9zwQkfc8MANYiaogYAI"
+},
+{
+"text":
+"Carregamento rápido",
+"shoprs":
+"CAEYASoRaXBob25lIDE2IHBybyBtYXgyJggBEhRDYXJyZWdhbWVudG8gcsOhcGlkbzoMCO6u6gEQ767qATADWImqIGAC",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=carregamento+r%C3%A1pido+iphone+16+pro+max&shoprs=CAEYASoRaXBob25lIDE2IHBybyBtYXgyJggBEhRDYXJyZWdhbWVudG8gcsOhcGlkbzoMCO6u6gEQ767qATADWImqIGAC"
+},
+{
+"text":
+"Com vídeo 4K",
+"shoprs":
+"CAEYASoRaXBob25lIDE2IHBybyBtYXgyHwgBEg1Db20gdsOtZGVvIDRLOgwIs7mwAhC0ubACMANYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=com+v%C3%ADdeo+4k+iphone+16+pro+max&shoprs=CAEYASoRaXBob25lIDE2IHBybyBtYXgyHwgBEg1Db20gdsOtZGVvIDRLOgwIs7mwAhC0ubACMANYiaogYAI"
+}
+]
+},
+{
+"type":
+"Autonomia da bateria",
+"input_type":
+"link",
+"options":
+[
+{
+"text":
+"10 horas de conversação",
+"shoprs":
+"CAESGioYCMT-PBISCQAAAAAAACRAEQAAAAAAACRAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MkcIARIZMTAgaG9yYXMgZGUgY29udmVyc2HDp8OjbyIaKhgIxP48EhIJAAAAAAAAJEARAAAAAAAAJEAqAhgBOggIxP48EAAwBliJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=10+horas+de+conversa%C3%A7%C3%A3o+iphone+16+pro+max&shoprs=CAESGioYCMT-PBISCQAAAAAAACRAEQAAAAAAACRAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MkcIARIZMTAgaG9yYXMgZGUgY29udmVyc2HDp8OjbyIaKhgIxP48EhIJAAAAAAAAJEARAAAAAAAAJEAqAhgBOggIxP48EAAwBliJqiBgAg"
+},
+{
+"text":
+"24 horas de conversação",
+"shoprs":
+"CAESGioYCMT-PBISCQAAAAAAADhAEQAAAAAAADhAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MkcIARIZMjQgaG9yYXMgZGUgY29udmVyc2HDp8OjbyIaKhgIxP48EhIJAAAAAAAAOEARAAAAAAAAOEAqAhgBOggIxP48EAAwBliJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=24+horas+de+conversa%C3%A7%C3%A3o+iphone+16+pro+max&shoprs=CAESGioYCMT-PBISCQAAAAAAADhAEQAAAAAAADhAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MkcIARIZMjQgaG9yYXMgZGUgY29udmVyc2HDp8OjbyIaKhgIxP48EhIJAAAAAAAAOEARAAAAAAAAOEAqAhgBOggIxP48EAAwBliJqiBgAg"
+},
+{
+"text":
+"30 horas de conversação",
+"shoprs":
+"CAESGioYCMT-PBISCQAAAAAAAD5AEQAAAAAAAD5AGAEqEWlwaG9uZSAxNiBwcm8gbWF4MkcIARIZMzAgaG9yYXMgZGUgY29udmVyc2HDp8OjbyIaKhgIxP48EhIJAAAAAAAAPkARAAAAAAAAPkAqAhgBOggIxP48EAAwBliJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=30+horas+de+conversa%C3%A7%C3%A3o+iphone+16+pro+max&shoprs=CAESGioYCMT-PBISCQAAAAAAAD5AEQAAAAAAAD5AGAEqEWlwaG9uZSAxNiBwcm8gbWF4MkcIARIZMzAgaG9yYXMgZGUgY29udmVyc2HDp8OjbyIaKhgIxP48EhIJAAAAAAAAPkARAAAAAAAAPkAqAhgBOggIxP48EAAwBliJqiBgAg"
+},
+{
+"text":
+"33 horas de conversação",
+"shoprs":
+"CAESGioYCMT-PBISCQAAAAAAgEBAEQAAAAAAgEBAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MkcIARIZMzMgaG9yYXMgZGUgY29udmVyc2HDp8OjbyIaKhgIxP48EhIJAAAAAACAQEARAAAAAACAQEAqAhgBOggIxP48EAAwBliJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=33+horas+de+conversa%C3%A7%C3%A3o+iphone+16+pro+max&shoprs=CAESGioYCMT-PBISCQAAAAAAgEBAEQAAAAAAgEBAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MkcIARIZMzMgaG9yYXMgZGUgY29udmVyc2HDp8OjbyIaKhgIxP48EhIJAAAAAACAQEARAAAAAACAQEAqAhgBOggIxP48EAAwBliJqiBgAg"
+},
+{
+"text":
+"48 horas de conversação",
+"shoprs":
+"CAESGioYCMT-PBISCQAAAAAAAEhAEQAAAAAAAEhAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MkcIARIZNDggaG9yYXMgZGUgY29udmVyc2HDp8OjbyIaKhgIxP48EhIJAAAAAAAASEARAAAAAAAASEAqAhgBOggIxP48EAAwBliJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=48+horas+de+conversa%C3%A7%C3%A3o+iphone+16+pro+max&shoprs=CAESGioYCMT-PBISCQAAAAAAAEhAEQAAAAAAAEhAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MkcIARIZNDggaG9yYXMgZGUgY29udmVyc2HDp8OjbyIaKhgIxP48EhIJAAAAAAAASEARAAAAAAAASEAqAhgBOggIxP48EAAwBliJqiBgAg"
+}
+]
+},
+{
+"type":
+"Resolução da câmera traseira",
+"input_type":
+"link",
+"options":
+[
+{
+"text":
+"12 megapixels",
+"shoprs":
+"CAESGioYCOiHPRISCQAAAAAAAChAEQAAAAAAAChAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MjsIARINMTIgbWVnYXBpeGVscyIaKhgI6Ic9EhIJAAAAAAAAKEARAAAAAAAAKEAqAhgBOggI6Ic9EAAwBliJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=12+megapixels+iphone+16+pro+max&shoprs=CAESGioYCOiHPRISCQAAAAAAAChAEQAAAAAAAChAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MjsIARINMTIgbWVnYXBpeGVscyIaKhgI6Ic9EhIJAAAAAAAAKEARAAAAAAAAKEAqAhgBOggI6Ic9EAAwBliJqiBgAg"
+},
+{
+"text":
+"48 megapixels",
+"shoprs":
+"CAESGioYCOiHPRISCQAAAAAAAEhAEQAAAAAAAEhAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MjsIARINNDggbWVnYXBpeGVscyIaKhgI6Ic9EhIJAAAAAAAASEARAAAAAAAASEAqAhgBOggI6Ic9EAAwBliJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=48+megapixels+iphone+16+pro+max&shoprs=CAESGioYCOiHPRISCQAAAAAAAEhAEQAAAAAAAEhAGAEqEWlwaG9uZSAxNiBwcm8gbWF4MjsIARINNDggbWVnYXBpeGVscyIaKhgI6Ic9EhIJAAAAAAAASEARAAAAAAAASEAqAhgBOggI6Ic9EAAwBliJqiBgAg"
+}
+]
+},
+{
+"type":
+"Atributos de segurança",
+"input_type":
+"checkbox",
+"options":
+[
+{
+"text":
+"Reconhecimento facial",
+"shoprs":
+"CAEYASoRaXBob25lIDE2IHBybyBtYXgyJQgBEhVSZWNvbmhlY2ltZW50byBmYWNpYWw6Cgi4_WkQuf1pMABYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=reconhecimento+facial+iphone+16+pro+max&shoprs=CAEYASoRaXBob25lIDE2IHBybyBtYXgyJQgBEhVSZWNvbmhlY2ltZW50byBmYWNpYWw6Cgi4_WkQuf1pMABYiaogYAI"
+},
+{
+"text":
+"Impressão digital",
+"shoprs":
+"CAEYASoRaXBob25lIDE2IHBybyBtYXgyIggBEhJJbXByZXNzw6NvIGRpZ2l0YWw6Cgi4_WkQu_1pMABYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=impress%C3%A3o+digital+iphone+16+pro+max&shoprs=CAEYASoRaXBob25lIDE2IHBybyBtYXgyIggBEhJJbXByZXNzw6NvIGRpZ2l0YWw6Cgi4_WkQu_1pMABYiaogYAI"
+}
+]
+},
+{
+"type":
+"RAM",
+"input_type":
+"link",
+"options":
+[
+{
+"text":
+"RAM: 4 GB",
+"shoprs":
+"CAESGyoZCPS88AESEgkAAAAAAAAQQBEAAAAAAAAQQBgBKhFpcGhvbmUgMTYgcHJvIG1heDI5CAESCVJBTTogNCBHQiIbKhkI9LzwARISCQAAAAAAABBAEQAAAAAAABBAKgIYAToJCPS88AEQADAGWImqIGAC",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=ram%3A+4+gb+iphone+16+pro+max&shoprs=CAESGyoZCPS88AESEgkAAAAAAAAQQBEAAAAAAAAQQBgBKhFpcGhvbmUgMTYgcHJvIG1heDI5CAESCVJBTTogNCBHQiIbKhkI9LzwARISCQAAAAAAABBAEQAAAAAAABBAKgIYAToJCPS88AEQADAGWImqIGAC"
+},
+{
+"text":
+"RAM: 8 GB",
+"shoprs":
+"CAESGyoZCPS88AESEgkAAAAAAAAgQBEAAAAAAAAgQBgBKhFpcGhvbmUgMTYgcHJvIG1heDI5CAESCVJBTTogOCBHQiIbKhkI9LzwARISCQAAAAAAACBAEQAAAAAAACBAKgIYAToJCPS88AEQADAGWImqIGAC",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=ram%3A+8+gb+iphone+16+pro+max&shoprs=CAESGyoZCPS88AESEgkAAAAAAAAgQBEAAAAAAAAgQBgBKhFpcGhvbmUgMTYgcHJvIG1heDI5CAESCVJBTTogOCBHQiIbKhkI9LzwARISCQAAAAAAACBAEQAAAAAAACBAKgIYAToJCPS88AEQADAGWImqIGAC"
+}
+]
+},
+{
+"type":
+"Tipo de lente",
+"input_type":
+"checkbox",
+"options":
+[
+{
+"text":
+"Ultragrande angular",
+"shoprs":
+"CAEYASoRaXBob25lIDE2IHBybyBtYXgyJQgBEhNVbHRyYWdyYW5kZSBhbmd1bGFyOgwIntewAhCg17ACMABYiaogYAI",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=ultragrande+angular+iphone+16+pro+max&shoprs=CAEYASoRaXBob25lIDE2IHBybyBtYXgyJQgBEhNVbHRyYWdyYW5kZSBhbmd1bGFyOgwIntewAhCg17ACMABYiaogYAI"
+},
+{
+"text":
+"Teleobjetiva",
+"shoprs":
+"CAEYASoRaXBob25lIDE2IHBybyBtYXgyHggBEgxUZWxlb2JqZXRpdmE6DAie17ACEKLXsAIwAFiJqiBgAg",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=teleobjetiva+iphone+16+pro+max&shoprs=CAEYASoRaXBob25lIDE2IHBybyBtYXgyHggBEgxUZWxlb2JqZXRpdmE6DAie17ACEKLXsAIwAFiJqiBgAg"
+},
+{
+"text":
+"Grande angular",
+"shoprs":
+"CAEYASoRaXBob25lIDE2IHBybyBtYXgyIAgBEg5HcmFuZGUgYW5ndWxhcjoMCJ7XsAIQn9ewAjAAWImqIGAC",
+"serpapi_link":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=grande+angular+iphone+16+pro+max&shoprs=CAEYASoRaXBob25lIDE2IHBybyBtYXgyIAgBEg5HcmFuZGUgYW5ndWxhcjoMCJ7XsAIQn9ewAjAAWImqIGAC"
+}
+]
+}
+],
+"serpapi_pagination":
+{
+"next":
+"https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=br&google_domain=google.com.br&hl=pt&location=Brazil&q=Iphone+16+pro+max&start=10"
+}
+}
+
+GET
+
+
+https://serpapi.com/search.json?engine=google_shopping&q=Iphone+16+pro+max&location=Brazil&google_domain=google.com.br&hl=pt&gl=br
+
+Code to integrate
+
+cURLRubyPythonJavaScriptGoPHPJavaRust.NETGoogle Sheets
+
+require "serpapi" 
+
+client = SerpApi::Client.new(
+  engine: "google_shopping",
+  q: "Iphone 16 pro max",
+  location: "Brazil",
+  google_domain: "google.com.br",
+  hl: "pt",
+  gl: "br",
+  api_key: "41f77d6b3d3221ce072bcef028f109331ac66811c71c1daceee0a46ccf540ad4"
+)
+
+results = client.search
+API Parameters
+Search Query
+q
+
+Required
+
+Parameter defines the query you want to search. You can use anything that you would use in a regular Google Shopping search.
+
+Geographic Location
+location
+
+Optional
+
+Parameter defines from where you want the search to originate. If several locations match the location requested, we'll pick the most popular one. Head to the /locations.json API if you need more precise control. The location and uule parameters can't be used together. It is recommended to specify location at the city level in order to simulate a real user’s search. If location is omitted, the search may take on the location of the proxy.
+
+uule
+
+Optional
+
+Parameter is the Google encoded location you want to use for the search. uule and location parameters can't be used together.
+
+Localization
+google_domain
+
+Optional
+
+Parameter defines the Google domain to use. It defaults to google.com. Head to the Google domains for a full list of supported Google domains.
+
+gl
+
+Optional
+
+Parameter defines the country to use for the Google search. It's a two-letter country code. (e.g., us for the United States, uk for United Kingdom, or fr for France) Head to the Google Shopping countries for a full list of supported Google Shopping countries.
+
+hl
+
+Optional
+
+Parameter defines the language to use for the Google Shopping search. It's a two-letter language code. (e.g., en for English, es for Spanish, or fr for French) Head to the Google languages for a full list of supported Google languages.
+
+Advanced Filters
+shoprs
+
+Optional
+
+The parameter defines the token that includes metadata about query and search filter(s). Providing q parameter alongside the shoprs is not required.
+
+To apply multiple filters join them with || separator, e.g. shoprs_1||shoprs_2||shoprs_3.
+
+min_price
+
+Optional
+
+Lower bound of price range query.
+
+This parameter overrides corresponding filter embedded into shoprs parameter.
+
+max_price
+
+Optional
+
+Upper bound of price range query.
+
+This parameter overrides corresponding filter embedded into shoprs parameter.
+
+sort_by
+
+Optional
+
+Parameter defines the sorting order of the results.
+
+Available options:
+1 - Price: low to high
+2 - Price: high to low
+
+This parameter overrides corresponding filter embedded into shoprs parameter.
+
+free_shipping
+
+Optional
+
+Show only products with free shipping.
+
+This parameter overrides corresponding filter embedded into shoprs parameter.
+
+on_sale
+
+Optional
+
+Show only products that are on sale.
+
+This parameter overrides corresponding filter embedded into shoprs parameter.
+
+small_business
+
+Optional
+
+Show only products from small business.
+
+This parameter overrides corresponding filter embedded into shoprs parameter.
+
+Pagination
+start
+
+Optional
+
+Parameter defines the result offset. It skips the given number of results. It's used for pagination. (e.g., 0 (default) is the first page of results, 60 is the 2nd page of results, 120 is the 3rd page of results, etc.).
+
+For the new layout, the parameter is not recommended. To easily retrieve paginated results accurately, it is advisable to follow the link provided in serpapi_pagination.next.
+
+num
+
+Optional
+
+Parameter defines the maximum number of results to return. (e.g., 60 (default) returns 60 results, 40 returns 40 results, and 100 (maximum) returns 100 results).
+Any number greater than maximum number (100) will default to 100.
+Any number lesser than minimum number (1) will default to 60.
+
+For the new layout, the parameter is no longer supported.
+
+Serpapi Parameters
+engine
+
+Required
+
+Set parameter to google_shopping to use the Google Shopping API engine.
+
+device
+
+Optional
+
+Parameter defines the device to use to get the results. It can be set to desktop (default) to use a regular browser, tablet to use a tablet browser (currently using iPads), or mobile to use a mobile browser.
+
+no_cache
+
+Optional
+
+Parameter will force SerpApi to fetch the Google Shopping results even if a cached version is already present. A cache is served only if the query and all parameters are exactly the same. Cache expires after 1h. Cached searches are free, and are not counted towards your searches per month. It can be set to false (default) to allow results from the cache, or true to disallow results from the cache. no_cache and async parameters should not be used together.
+
+async
+
+Optional
+
+Parameter defines the way you want to submit your search to SerpApi. It can be set to false (default) to open an HTTP connection and keep it open until you got your search results, or true to just submit your search to SerpApi and retrieve them later. In this case, you'll need to use our Searches Archive API to retrieve your results. async and no_cache parameters should not be used together. async should not be used on accounts with Ludicrous Speed enabled.
+
+zero_trace
+
+Optional
+
+Enterprise only. Parameter enables ZeroTrace mode. It can be set to false (default) or true. Enable this mode to skip storing search parameters, search files, and search metadata on our servers. This may make debugging more difficult.
+
+api_key
+
+Required
+
+Parameter defines the SerpApi private key to use.
+
+output
+
+Optional
+
+Parameter defines the final output you want. It can be set to json (default) to get a structured JSON of the results, or html to get the raw html retrieved.
+
+json_restrictor
+
+Optional
+
+Parameter defines the fields you want to restrict in the response. For example, setting it to organic_results[].{title,snippet} will only return the title and snippet of the organic results. See JSON Restrictor for more details.
+
+API Results
+Full results for  
+q
+:
+Office Chair
+GET
+
+
+https://serpapi.com/search.json?engine=google_shopping&q=Office+Chair
+
+Code to integrate
+
+
+Ruby
+
+require "serpapi" 
+
+client = SerpApi::Client.new(
+  engine: "google_shopping",
+  q: "Office Chair",
+  api_key: "41f77d6b3d3221ce072bcef028f109331ac66811c71c1daceee0a46ccf540ad4"
+)
+
+results = client.search
+shopping_results = results[:shopping_results]
+
+JSON Example
+
+{
+  "search_metadata": {
+    "id": "6895ae51fc8a2b4359020342",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/cbb345c0f9de6f20/6895ae51fc8a2b4359020342.json",
+    "created_at": "2025-08-08 07:59:13 UTC",
+    "processed_at": "2025-08-08 07:59:13 UTC",
+    "google_shopping_url": "https://www.google.com/search?udm=28&q=Office+Chair&hl=en&gl=us",
+    "raw_html_file": "https://serpapi.com/searches/cbb345c0f9de6f20/6895ae51fc8a2b4359020342.html",
+    "total_time_taken": 3.32
+  },
+  "search_parameters": {
+    "engine": "google_shopping",
+    "q": "Office Chair",
+    "google_domain": "google.com",
+    "hl": "en",
+    "gl": "us",
+    "device": "desktop"
+  },
+  "search_information": {
+    "query_displayed": "Office Chair",
+    "shopping_results_state": "Results for exact spelling"
+  },
+  "filters": [
+    {
+      "type": "Refine results",
+      "input_type": "link_with_icon",
+      "options": [
+        {
+          "text": "Nearby",
+          "shoprs": "CAEYAyoMb2ZmaWNlIGNoYWlyMgwIAxIGTmVhcmJ5GAJYu6wgYAI",
+          "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=us&google_domain=google.com&hl=en&q=Office+Chair+nearby&shoprs=CAEYAyoMb2ZmaWNlIGNoYWlyMgwIAxIGTmVhcmJ5GAJYu6wgYAI"
+        },
+        {
+          "text": "On sale",
+          "shoprs": "CAESBEoCGAEYBioMb2ZmaWNlIGNoYWlyMhMIBhIHT24gc2FsZRgCIgRKAhgBWLusIGAC",
+          "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=us&google_domain=google.com&hl=en&q=Office+Chair+sale&shoprs=CAESBEoCGAEYBioMb2ZmaWNlIGNoYWlyMhMIBhIHT24gc2FsZRgCIgRKAhgBWLusIGAC"
+        },
+        {
+          "text": "Get it today",
+          "shoprs": "CAESDZoBCgoIEAA4AUAFSAEYFCoMb2ZmaWNlIGNoYWlyMiUIFBIMR2V0IGl0IHRvZGF5Ig2aAQoKCBAAOAFABUgBKgQQARgBYAI",
+          "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=us&google_domain=google.com&hl=en&q=office+chair&shoprs=CAESDZoBCgoIEAA4AUAFSAEYFCoMb2ZmaWNlIGNoYWlyMiUIFBIMR2V0IGl0IHRvZGF5Ig2aAQoKCBAAOAFABUgBKgQQARgBYAI"
+        },
+        {
+          "text": "Small business",
+          "shoprs": "CAESAmoAGBYqDG9mZmljZSBjaGFpcjIcCBYSDlNtYWxsIGJ1c2luZXNzIgJqACoEEAEYAWAC",
+          "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=us&google_domain=google.com&hl=en&q=office+chair&shoprs=CAESAmoAGBYqDG9mZmljZSBjaGFpcjIcCBYSDlNtYWxsIGJ1c2luZXNzIgJqACoEEAEYAWAC"
+        }
+      ]
+    },
+    ...
+  ],
+  "inline_shopping_results": [
+    {
+      "position": 1,
+      "block_position": "top",
+      "title": "School Chair, Stackable, 18\"H Seat, Ventilated Back",
+      "price": "$279.96",
+      "extracted_price": 279.96,
+      "link": "https://www.schooloutfitters.com/catalog/product_info/pfam_id/PFAM52753/products_id/PRO70826?sc_cid=Google_LNT-118-CSW-SO",
+      "tracking_link": "https://www.google.com/aclk?sa=l&ai=DChsSEwj7-emZ3_qOAxUqm1oFHZIEADcYACICCAEQARoCdnU&co=1&ase=2&gclid=EAIaIQobChMI-_npmd_6jgMVKptaBR2SBAA3EAQYASABEgJEUPD_BwE&cid=CAASJeRo-r-QxnpIRLuHggYEXo2d67PjZCwatn2oFcsWMWNelk-U_RY&category=acrcp_v1_48&sig=AOD64_0iyMK2S9kCJesjVv_XAySNByAROA&ctype=5&q=&nis=4&ved=2ahUKEwjE9eWZ3_qOAxWpSjABHZ-mD5gQ5bgDKAB6BAgHEAs&adurl=",
+      "source": "school outfitters",
+      "rating": 4.5,
+      "reviews": 32,
+      "thumbnail": "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcQjrP2G6joHA7LwEYzqhnm2c-C0XviT7SZUgRKq4BFydKqx2CpMjQx0ICdTtClJugFiSMC_VDWFBQ5m1Y3gGhp8gKGtxXqT80mJBVu6hixobcYwz8l2r8MvgGg5EigKABQPz5MvA5w&usqp=CAc",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/3UtI8XicDcnbboIwGADgt9mdnBRlJMaUKnUyFhl4wBujxfwtEWihHOQR9wZ7m-27_X5_mFKicXX9UdL6JdQjm6h7aWrQqJviVKNVoTesEoKXsJLL_3PRV_ZOaJTXe4vM82qLFp_9Jh0lKwuLTrBx7niyiC8H-A7kzPNfWSAHC4swjwbjA2eJws9dCz6PQ3w9rk--F9mFmU6BMOFAQNRwloljFDvv2M4ZH6o7TfvReVq1E3ZAwN5wCJAX7Uc77JDdv7WNFEuM6B98pUd4"
+    },
+    ...
+  ],
+  "categorized_shopping_results": [
+    {
+      "title": "Ergonomic office chairs",
+      "shopping_results": [
+        {
+          "position": 1,
+          "title": "Union & Scale Hyken Ergonomic Mesh Swivel Task Chair",
+          "product_link": "https://www.google.com/shopping/product/7366082511916788769?gl=us",
+          "product_id": "7366082511916788769",
+          "serpapi_product_api": "https://serpapi.com/search.json?engine=google_product&gl=us&google_domain=google.com&hl=en&product_id=7366082511916788769",
+          "immersive_product_page_token": "eyJlaSI6IlVxNlZhTVNFTzZtVndia1BuODItd0FrIiwicHJvZHVjdGlkIjoiIiwiY2F0YWxvZ2lkIjoiNzM2NjA4MjUxMTkxNjc4ODc2OSIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjU0NDA4MDk0MDAxNzk1NDM3ODEiLCJpbWFnZURvY2lkIjoiODkwODUzODk1NzEyNTg0NDY3NyIsInJkcyI6IlBDXzExMzg3NTYxMTcxNzYzNTI5MzEyfFBST0RfUENfMTEzODc1NjExNzE3NjM1MjkzMTIiLCJxdWVyeSI6Ik9mZmljZStDaGFpciIsImdwY2lkIjoiMTEzODc1NjExNzE3NjM1MjkzMTIiLCJtaWQiOiI1NzY0NjI4MTY0NDg1OTI0MDgiLCJwdnQiOiJoZyIsInV1bGUiOm51bGwsImdsIjoidXMiLCJobCI6ImVuIiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+          "serpapi_immersive_product_api": "https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IlVxNlZhTVNFTzZtVndia1BuODItd0FrIiwicHJvZHVjdGlkIjoiIiwiY2F0YWxvZ2lkIjoiNzM2NjA4MjUxMTkxNjc4ODc2OSIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjU0NDA4MDk0MDAxNzk1NDM3ODEiLCJpbWFnZURvY2lkIjoiODkwODUzODk1NzEyNTg0NDY3NyIsInJkcyI6IlBDXzExMzg3NTYxMTcxNzYzNTI5MzEyfFBST0RfUENfMTEzODc1NjExNzE3NjM1MjkzMTIiLCJxdWVyeSI6Ik9mZmljZStDaGFpciIsImdwY2lkIjoiMTEzODc1NjExNzE3NjM1MjkzMTIiLCJtaWQiOiI1NzY0NjI4MTY0NDg1OTI0MDgiLCJwdnQiOiJoZyIsInV1bGUiOm51bGwsImdsIjoidXMiLCJobCI6ImVuIiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+          "source": "Staples",
+          "source_icon": "https://serpapi.com/searches/6895ae51fc8a2b4359020342/images/a057505f6871eb71655a95ecfaf211dc0a5e9df79d9597c0e3c7e3da30136487f23c68976ec0a57372b875e64b23e0061751233f704afdd850f04b7f355d3219.png",
+          "multiple_sources": true,
+          "price": "$144.99",
+          "extracted_price": 144.99,
+          "old_price": "$300",
+          "extracted_old_price": 300,
+          "rating": 4.4,
+          "reviews": 7900,
+          "thumbnail": "https://serpapi.com/searches/6895ae51fc8a2b4359020342/images/a057505f6871eb71655a95ecfaf211dc0a5e9df79d9597c0e3c7e3da30136487f23c68976ec0a57372b875e64b23e006b043570794de6295a7c72c9700fd1e48.webp",
+          "tag": "51% OFF",
+          "extensions": [
+            "51% OFF"
+          ],
+          "delivery": "Get it by Wed (Free)"
+        },
+        ...
+      ]
+    },
+    ...
+  ],
+  "shopping_results": [
+    {
+      "position": 1,
+      "title": "Mainstays Executive Ergonomic High Back Leather Home Office Desk Chair",
+      "product_link": "https://www.google.com/shopping/product/7349398578013612374?gl=us",
+      "product_id": "7349398578013612374",
+      "serpapi_product_api": "https://serpapi.com/search.json?engine=google_product&gl=us&google_domain=google.com&hl=en&product_id=7349398578013612374",
+      "immersive_product_page_token": "eyJlaSI6IlVxNlZhTVNFTzZtVndia1BuODItd0FrIiwicHJvZHVjdGlkIjoiIiwiY2F0YWxvZ2lkIjoiNzM0OTM5ODU3ODAxMzYxMjM3NCIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjI5NDQyMjEyMjk3OTk1ODg2NiIsImltYWdlRG9jaWQiOiIxMDgxODc3MjkzMTAzMTc3NDQ4OCIsInJkcyI6IlBDXzUyMTA4NDQ3NTU1NDQ2NjcyfFBST0RfUENfNTIxMDg0NDc1NTU0NDY2NzIiLCJxdWVyeSI6Ik9mZmljZStDaGFpciIsImdwY2lkIjoiNTIxMDg0NDc1NTU0NDY2NzIiLCJtaWQiOiI1NzY0NjI4MDM3ODkyMjg3OTMiLCJwdnQiOiJoZyIsInV1bGUiOm51bGwsImdsIjoidXMiLCJobCI6ImVuIiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+      "serpapi_immersive_product_api": "https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IlVxNlZhTVNFTzZtVndia1BuODItd0FrIiwicHJvZHVjdGlkIjoiIiwiY2F0YWxvZ2lkIjoiNzM0OTM5ODU3ODAxMzYxMjM3NCIsImhlYWRsaW5lT2ZmZXJEb2NpZCI6IjI5NDQyMjEyMjk3OTk1ODg2NiIsImltYWdlRG9jaWQiOiIxMDgxODc3MjkzMTAzMTc3NDQ4OCIsInJkcyI6IlBDXzUyMTA4NDQ3NTU1NDQ2NjcyfFBST0RfUENfNTIxMDg0NDc1NTU0NDY2NzIiLCJxdWVyeSI6Ik9mZmljZStDaGFpciIsImdwY2lkIjoiNTIxMDg0NDc1NTU0NDY2NzIiLCJtaWQiOiI1NzY0NjI4MDM3ODkyMjg3OTMiLCJwdnQiOiJoZyIsInV1bGUiOm51bGwsImdsIjoidXMiLCJobCI6ImVuIiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+      "source": "Walmart",
+      "source_icon": "https://serpapi.com/searches/6895ae51fc8a2b4359020342/images/83ef7be2113af3b1dc16130960c26922bd5d7f23fda06c2328337cdbd60fb3ab.png",
+      "multiple_sources": true,
+      "price": "$92.00",
+      "extracted_price": 92.0,
+      "rating": 4.3,
+      "reviews": 64,
+      "snippet": "Easy to set up (24 user reviews)",
+      "extensions": [
+        "In store, 3 mi"
+      ],
+      "thumbnail": "https://serpapi.com/searches/6895ae51fc8a2b4359020342/images/83ef7be2113af3b1dc16130960c26922c61fa58f1c40ac57240b3cc1436e7dde.webp",
+      "thumbnails": [
+        "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcT4Wet-mo0gAB6bsID5e56lAkReLPhLiRan2ljNHoHXRoiC0KeH1Lwg2GoJ2e_TN1vOSrX8vBjtZ6zQUk8JAYOaw760sxgp"
+      ],
+      "serpapi_thumbnails": [
+        "https://serpapi.com/images/url/ekZGKXicDcltCoIwAADQE6VTcpkQoQWaiZYZWX9C55jzY1tuaHWQ7tZt6v1930-tlJCOrmOGhpdQuJqpkgGNSFUoijTEe13WXAjKyPqx-p_jxtXSR9n8gtWs54C4HizlbmthC3Zum-LoUEc0LZjZNXHAgzzldAP2ODCiiZg-D018z2JjTE5Dbo9eo27wfTy3duhek2JaQCCfRPwAdzQ1Mg"
+      ],
+      "delivery": "Get it today ($10)"
+    },
+    {
+      "position": 2,
+      "title": "Realspace Modern Comfort Pizana Bouclé Fabric High-Back Executive Office Chair",
+      "product_link": "https://www.google.com/shopping/product/16877169727909013824?gl=us",
+      "product_id": "16877169727909013824",
+      "serpapi_product_api": "https://serpapi.com/search.json?engine=google_product&gl=us&google_domain=google.com&hl=en&product_id=16877169727909013824",
+      "immersive_product_page_token": "eyJlaSI6IlVxNlZhTVNFTzZtVndia1BuODItd0FrIiwicHJvZHVjdGlkIjoiIiwiY2F0YWxvZ2lkIjoiMTY4NzcxNjk3Mjc5MDkwMTM4MjQiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxODE0MTc1NTczODI0Nzk5MDcyMyIsImltYWdlRG9jaWQiOiIxMzQ2MDI1MTY4MzY3Nzc1MDY5MyIsInJkcyI6IlBDXzc2MzIzMjE0Mzc4MzIzNDc4MjR8UFJPRF9QQ183NjMyMzIxNDM3ODMyMzQ3ODI0IiwicXVlcnkiOiJPZmZpY2UrQ2hhaXIiLCJncGNpZCI6Ijc2MzIzMjE0Mzc4MzIzNDc4MjQiLCJtaWQiOiI1NzY0NjI3NTg0Mzg4NzY1MzYiLCJwdnQiOiJoZyIsInV1bGUiOm51bGwsImdsIjoidXMiLCJobCI6ImVuIiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0=",
+      "serpapi_immersive_product_api": "https://serpapi.com/search.json?engine=google_immersive_product&page_token=eyJlaSI6IlVxNlZhTVNFTzZtVndia1BuODItd0FrIiwicHJvZHVjdGlkIjoiIiwiY2F0YWxvZ2lkIjoiMTY4NzcxNjk3Mjc5MDkwMTM4MjQiLCJoZWFkbGluZU9mZmVyRG9jaWQiOiIxODE0MTc1NTczODI0Nzk5MDcyMyIsImltYWdlRG9jaWQiOiIxMzQ2MDI1MTY4MzY3Nzc1MDY5MyIsInJkcyI6IlBDXzc2MzIzMjE0Mzc4MzIzNDc4MjR8UFJPRF9QQ183NjMyMzIxNDM3ODMyMzQ3ODI0IiwicXVlcnkiOiJPZmZpY2UrQ2hhaXIiLCJncGNpZCI6Ijc2MzIzMjE0Mzc4MzIzNDc4MjQiLCJtaWQiOiI1NzY0NjI3NTg0Mzg4NzY1MzYiLCJwdnQiOiJoZyIsInV1bGUiOm51bGwsImdsIjoidXMiLCJobCI6ImVuIiwiZW5naW5lIjoiZ29vZ2xlX3Nob3BwaW5nIn0%3D",
+      "source": "Office Depot",
+      "source_icon": "https://serpapi.com/searches/6895ae51fc8a2b4359020342/images/83ef7be2113af3b1dc16130960c26922fa481b11342f4c155abdc670be27da95.png",
+      "multiple_sources": true,
+      "price": "$319.99",
+      "extracted_price": 319.99,
+      "rating": 4.4,
+      "reviews": 55,
+      "snippet": "Comfortable (15 user reviews)",
+      "extensions": [
+        "In store, 7 mi"
+      ],
+      "thumbnail": "https://serpapi.com/searches/6895ae51fc8a2b4359020342/images/83ef7be2113af3b1dc16130960c26922199e3ffa10344e1ca1378b60d62829e4.webp",
+      "thumbnails": [
+        "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcSdSnOlUOeQILlAf35hqH-EsP2wUgF_qXI0G7t1XOubSVNhmIJsTDfCy5krL_5onSS3qzQAg6ihYq3me2wptSlGE45ckOV3"
+      ],
+      "serpapi_thumbnails": [
+        "https://serpapi.com/images/url/yzRXvnicDcltCoIwAADQE_mRa0VChJSZIS5Ziv2SnNOJOje3EDtId-s29f6-74dpLZRrWZSTaRGaVoYuuW02Sj91S0wyDpZioxAtbw5y_z_Xi6tdQHCFOepTRJMw6r0aQCYvhq9uzpw250LmoR1s9SpHrxJnMRvCq7qf6uMCuykq4MgxBvKdeM2mZQ8JBurMQuM-8NeQdCgDP6DINcE"
+      ],
+      "delivery": "Free delivery"
+    },
+    ...
+  ],
+  "serpapi_pagination": {
+    "next": "https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=us&google_domain=google.com&hl=en&q=Office+Chair&start=10"
+  }
+}
