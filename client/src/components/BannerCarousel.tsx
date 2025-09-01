@@ -96,7 +96,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
-              width: `${100 / banners.length}%`
+              minWidth: '100%'
             }}
             onClick={() => handleBannerClick(banner)}
             data-testid={`banner-carousel-${banner.id}`}
