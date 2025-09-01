@@ -83,7 +83,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
         className="flex transition-transform duration-500 ease-in-out h-full"
         style={{
           transform: `translateX(-${currentIndex * 100}%)`,
-          width: `${banners.length * 100}%`
         }}
       >
         {banners.map((banner, index) => (
@@ -96,7 +95,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
-              minWidth: '100%'
             }}
             onClick={() => handleBannerClick(banner)}
             data-testid={`banner-carousel-${banner.id}`}
