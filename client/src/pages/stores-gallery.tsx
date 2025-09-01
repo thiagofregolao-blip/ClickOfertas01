@@ -429,7 +429,8 @@ export default function StoresGallery() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
+                  className="border-2 text-black font-semibold hover:opacity-90 backdrop-blur-sm"
+                  style={{ backgroundColor: '#FFE600', borderColor: '#FFE600' }}
                   data-testid="button-price-comparison"
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
