@@ -58,13 +58,7 @@ export default function StoriesFeed() {
     refetchInterval: 30000, // Atualizar a cada 30 segundos
   });
 
-  // Debug: Log para ver os dados recebidos
-  console.log('🔍 Stories Feed Debug:', { 
-    stories, 
-    isLoading, 
-    error, 
-    storiesLength: stories?.length 
-  });
+  // Performance optimization: removed debug logs
 
   // Agrupar stories por loja
   const storiesGrouped = stories.reduce((acc, story) => {

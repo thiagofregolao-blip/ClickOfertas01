@@ -61,8 +61,8 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false, 
       refetchOnMount: true, // Permite refetch no mount para dados atualizados
       refetchOnReconnect: true, // Refetch ao reconectar
-      staleTime: 5 * 60 * 1000, // 5 minutos (equilibrado)
-      gcTime: 30 * 60 * 1000, // 30 minutos
+      staleTime: 2 * 60 * 1000, // 2 minutos - otimizado para mobile
+      gcTime: 15 * 60 * 1000, // 15 minutos - otimizado para mobile
       retry: (failureCount, error: any) => {
         // Nunca retry em erro 401 ou 403
         if (error?.message?.includes('401') || error?.message?.includes('403')) {

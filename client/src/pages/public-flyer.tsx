@@ -119,8 +119,8 @@ export default function PublicFlyer() {
   // Buscar todas as lojas para navegação entre stories (sempre executado no topo)
   const { data: allStores } = useQuery<StoreWithProducts[]>({
     queryKey: ['/api/public/stores'],
-    staleTime: 10 * 60 * 1000, // 10 minutos (otimizado)
-    gcTime: 30 * 60 * 1000, // 30 minutos (otimizado)
+    staleTime: 5 * 60 * 1000, // 5 minutos - otimizado para mobile
+    gcTime: 15 * 60 * 1000, // 15 minutos - otimizado para mobile
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false, // Evita refetch desnecessário
@@ -130,7 +130,7 @@ export default function PublicFlyer() {
   // Buscar os novos Instagram Stories
   const { data: instagramStories = [], isLoading: storiesLoading } = useQuery<InstagramStory[]>({
     queryKey: ['/api/instagram-stories'],
-    refetchInterval: 30000, // Atualizar a cada 30 segundos
+    refetchInterval: 60000, // Atualizar a cada 60 segundos - otimizado para mobile
     staleTime: 30 * 1000,
   });
 
@@ -147,12 +147,7 @@ export default function PublicFlyer() {
     return acc;
   }, {} as Record<string, { store: InstagramStory['store']; stories: InstagramStory[] }>);
 
-  console.log('🔍 Instagram Stories Debug:', { 
-    instagramStories, 
-    storiesLoading, 
-    storiesLength: instagramStories?.length,
-    grouped: Object.keys(instagramStoriesGrouped)
-  });
+  // Performance optimization: removed debug logs
 
   // TEMPORARIAMENTE DESABILITADO - Buscar clones virtuais disponíveis para usuário autenticado
   /*
@@ -185,12 +180,12 @@ export default function PublicFlyer() {
       }
       
       const data = await response.json();
-      console.log(`🎯 Promoções personalizadas recebidas:`, data);
+      // Promotions received successfully
       return data;
     },
     enabled: !!params?.slug,
-    staleTime: 1 * 60 * 1000, // 1 minuto (mais fresco para mudanças de status)
-    gcTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 30 * 1000, // 30 segundos - mais fresco para raspadinhas
+    gcTime: 3 * 60 * 1000, // 3 minutos - otimizado para mobile
     refetchOnWindowFocus: false,
     refetchOnMount: true,
   });
@@ -204,7 +199,7 @@ export default function PublicFlyer() {
   // CORREÇÃO: Removido recordFlyerView das dependências para evitar loop infinito
   useEffect(() => {
     if (store?.id && !isStoriesView) {
-      console.log(`📊 Registrando view da loja: ${store.name}`);
+      // Store view tracking
       // Registro de visualização de panfleto (não stories)  
       recordFlyerView(store.id);
     }
@@ -662,13 +657,7 @@ export default function PublicFlyer() {
                   // CORREÇÃO: Só renderizar como raspadinha se for promoção real (vem de activePromotions)
                   const isRealPromotion = activePromotions.some(promo => promo.id === product.id);
                   
-                  console.log("🔍 PRODUTO MAPEADO (STORIES):", {
-                    productId: product.id,
-                    productName: product.name,
-                    isScratchCard: product.isScratchCard,
-                    isRealPromotion,
-                    activePromotionsCount: activePromotions.length
-                  });
+                  // Performance optimization: removed debug logs
                   
                   return isRealPromotion ? (
                     // PROMOÇÃO REAL: Renderizar como ScratchCard

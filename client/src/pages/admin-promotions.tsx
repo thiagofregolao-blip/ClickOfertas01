@@ -217,16 +217,7 @@ export default function AdminPromotions() {
                   const totalUsed = promotions.reduce((total: number, p: PromotionWithDetails) => total + parseInt(p.usedCount || "0"), 0);
                   const totalMax = promotions.reduce((total: number, p: PromotionWithDetails) => total + parseInt(p.maxClients || "0"), 0);
                   
-                  // Debug: log valores para verificar
-                  console.log('📊 Analytics Debug:', { 
-                    totalUsed, 
-                    totalMax, 
-                    promotions: promotions.map(p => ({ 
-                      name: p.name, 
-                      usedCount: p.usedCount, 
-                      maxClients: p.maxClients 
-                    }))
-                  });
+                  // Performance optimization: removed debug logs
                   
                   if (totalMax === 0) return '0';
                   return Math.round((totalUsed / totalMax) * 100) || 0;

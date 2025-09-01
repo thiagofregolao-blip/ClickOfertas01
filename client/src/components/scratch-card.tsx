@@ -36,18 +36,7 @@ interface ScratchArea {
 export default function ScratchCard({ product, currency, themeColor, logoUrl, onRevealed, onClick }: ScratchCardProps) {
   const queryClient = useQueryClient(); // NEW: Para invalidação de cache
   
-  console.log(`%c🔥🔥🔥 SCRATCHCARD COMPONENTE EXECUTANDO! 🔥🔥🔥`, 
-    'background: red; color: white; padding: 15px; font-size: 30px; font-weight: bold;');
-  
-  // 🔍 DEBUG: Log inicial dos props
-  console.log("🎯 ScratchCard RENDERIZADO:", {
-    productId: product.id,
-    productName: product.name,
-    isScratchCard: product.isScratchCard,
-    scratchMessage: product.scratchMessage,
-    currency,
-    themeColor
-  });
+  // Performance optimization: removed debug logs
   
   // SISTEMA SIMPLIFICADO
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -181,39 +170,32 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
 
   // 🚀 FORÇAR INICIALIZAÇÃO DIRETA DO CANVAS
   useEffect(() => {
-    console.log(`%c🚀 USEEFFECT EXECUTADO! 🚀`, 
-      'background: red; color: white; padding: 10px; font-size: 20px; font-weight: bold;');
-    console.log("🎨 CANVAS useEffect chamado:", {
-      productId: product.id,
-      isRevealed,
-      isScratchCard: product.isScratchCard,
-      canvasExists: !!canvasRef.current
-    });
+    // Performance optimization: removed debug logs
+    // Canvas initialization
     
     // FORÇA INICIALIZAÇÃO MESMO SE CONDIÇÕES NÃO ESTIVEREM PERFEITAS
     if (isRevealed) {
-      console.log("❌ Canvas NÃO inicializado: isRevealed=true");
+      // Skip if already revealed
       return;
     }
     if (!product.isScratchCard) {
-      console.log("❌ Canvas NÃO inicializado: !isScratchCard");
+      // Skip if not scratch card
       return;
     }
     
     // TIMEOUT PARA GARANTIR QUE O CANVAS EXISTE
     setTimeout(() => {
       if (!canvasRef.current) {
-        console.log("❌ Canvas NÃO inicializado: canvasRef.current=null APÓS timeout");
+        // Canvas not available after timeout
         return;
       }
       
-      console.log(`%c✅ Canvas INICIALIZANDO COM TIMEOUT! ✅`, 
-        'background: green; color: white; padding: 5px; font-size: 16px; font-weight: bold;');
+      // Canvas initializing
       
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
       if (!ctx) {
-        console.log("❌ Sem contexto 2D!");
+        // No 2D context available
         return;
       }
 
@@ -228,13 +210,7 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     
-    console.log("📐 DIMENSÕES ORIGINAIS DO CANVAS:", {
-      rectWidth: rect.width,
-      rectHeight: rect.height,
-      rectTop: rect.top,
-      rectLeft: rect.left,
-      dpr
-    });
+    // Canvas dimensions setup
     
     // AJUSTAR DIMENSÕES: usar TODA a área disponível do container
     const actualHeight = rect.height || 200; // Usar altura TOTAL do container
@@ -248,20 +224,14 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
     canvas.style.width = actualWidth + 'px';
     canvas.style.height = actualHeight + 'px';
     
-    console.log("🔧 DIMENSÕES CORRIGIDAS:", {
-      canvasWidth: canvas.width,
-      canvasHeight: canvas.height,
-      styleWidth: canvas.style.width,
-      styleHeight: canvas.style.height
-    });
+    // Canvas dimensions corrected
     
     // Usar dimensões corrigidas para cálculos
     const cssWidth = actualWidth;
     const cssHeight = actualHeight;
 
     // 🎯 RECREANDO EXATAMENTE COMO SUA IMAGEM DE REFERÊNCIA
-    console.log(`%c🎯 COPIANDO SUA IMAGEM EXATAMENTE! 🎯`, 
-      'background: linear-gradient(to bottom, #FFA500, #FF1493, #8B008B); color: white; padding: 8px; font-weight: bold;');
+    // Drawing scratch texture
     
     // 🌈 GRADIENTE LARANJA → VERMELHO: Muito mais vibrante!  
     const gradient = ctx.createLinearGradient(0, 0, 0, cssHeight);
@@ -285,12 +255,12 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
     ctx.shadowBlur = 8;
     ctx.fillText('◆', cssWidth * 0.92, cssHeight * 0.92);
     
-    console.log("✅ Gradiente desenhado!");
+    // Gradient applied
 
     // Símbolos $ do canvas removidos - mantidos apenas na chuva
 
     // ✨ TEXTO PRINCIPAL COM DESTAQUE ESPECIAL
-    console.log("📝✨ Adicionando texto destacado na textura...");
+    // Adding scratch text
     ctx.font = 'bold 18px Arial'; // Aumentado para melhor legibilidade
     ctx.textAlign = 'center';
     
@@ -333,8 +303,7 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
       ctx.fillText(line, x, y);
     });
     
-      console.log(`%c🏁 TEXTURA COMPLETA! Canvas pronto para ser riscado! 🏁`, 
-        'background: green; color: white; padding: 5px; font-size: 16px; font-weight: bold;');
+      // Texture complete
     }, 100); // 100ms timeout
     
     startProgressLoop();
@@ -547,8 +516,7 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
 
   // Event handlers
   const handleMouseDown = (e: React.MouseEvent) => {
-    console.log(`%c🔥 MOUSE DOWN FUNCIONOU! EVENTOS CHEGARAM AO CANVAS! 🔥`, 
-      'background: green; color: white; padding: 10px; font-size: 20px; font-weight: bold;');
+    // Mouse down event
     console.log("🖱️ MOUSE DOWN chamado:", {
       productId: product.id,
       blocked: blocked(),
@@ -574,8 +542,7 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
 
   // Touch handlers
   const handleTouchStart = (e: React.TouchEvent) => {
-    console.log(`%c🔥 TOUCH START FUNCIONOU! EVENTOS CHEGARAM AO CANVAS! 🔥`, 
-      'background: blue; color: white; padding: 10px; font-size: 20px; font-weight: bold;');
+    // Touch start event
     console.log("👆 TOUCH START chamado:", {
       productId: product.id,
       blocked: blocked(),
