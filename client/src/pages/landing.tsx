@@ -38,38 +38,47 @@ export default function Landing() {
         {/* Conteúdo promocional central */}
         <div className="flex items-end justify-start h-full p-4 sm:p-8 lg:p-16 lg:pl-64 pb-16 sm:pb-24 lg:pb-32">
           <div className="text-center text-white max-w-xs sm:max-w-lg">
-            {/* Título principal */}
+            {/* Título principal - Click Ofertas */}
             <div className="mb-4 sm:mb-8">
-              <div className="text-4xl sm:text-6xl lg:text-8xl font-bold mb-2 sm:mb-4">
-                <span className="block">9.9</span>
+              <div className="text-3xl sm:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6">
+                <span className="block text-white drop-shadow-lg">Click Ofertas</span>
+                <span className="block text-yellow-300 text-xl sm:text-2xl lg:text-3xl font-semibold">Paraguai</span>
               </div>
-              <div className="text-lg sm:text-2xl lg:text-4xl font-bold mb-1 sm:mb-2">
-                SUPER
-              </div>
-              <div className="text-lg sm:text-2xl lg:text-4xl font-bold">
-                SHOPPING DAY
+              <div className="text-sm sm:text-lg lg:text-xl font-medium text-white/90 mb-4">
+                Sua ponte para as melhores ofertas do Paraguai
               </div>
             </div>
 
-            {/* Badges promocionais */}
-            <div className="flex flex-wrap justify-center gap-1 sm:gap-2 mb-4 sm:mb-8">
-              <div className="bg-blue-600 text-white px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-bold">
-                +16 MILHÕES
-                <div className="text-xs hidden sm:block">EM CUPONS</div>
-              </div>
-              <div className="bg-green-600 text-white px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-bold">
-                FRETE GRÁTIS
-                <div className="text-xs hidden sm:block">Confira as condições</div>
-              </div>
-              <div className="bg-blue-700 text-white px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-bold">
-                ACHADINHOS
-                <div className="text-xs hidden sm:block">ATÉ R$99</div>
+            {/* Descrição do que somos */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8 border border-white/20">
+              <h3 className="text-lg sm:text-xl font-bold mb-3 text-yellow-300">Quem Somos</h3>
+              <p className="text-sm sm:text-base text-white/95 leading-relaxed mb-4">
+                Conectamos você às <strong>melhores lojas do Paraguai</strong> com ofertas exclusivas, 
+                cupons digitais e comparação de preços inteligente.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                  <span>Ofertas verificadas</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                  <span>Cupons exclusivos</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                  <span>Comparação BR vs PY</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                  <span>Lojas confiáveis</span>
+                </div>
               </div>
             </div>
 
-            {/* Data */}
-            <div className="bg-orange-600 text-white inline-block px-3 sm:px-6 py-1 sm:py-2 rounded-full font-bold text-sm sm:text-base">
-              20 AGO - 10 SET
+            {/* Call to action */}
+            <div className="bg-yellow-400 text-gray-900 inline-block px-4 sm:px-8 py-2 sm:py-3 rounded-full font-bold text-sm sm:text-base shadow-lg">
+              ✨ Descubra ofertas incríveis agora!
             </div>
 
             {/* Elementos decorativos */}
