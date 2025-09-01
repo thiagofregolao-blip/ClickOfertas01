@@ -557,7 +557,7 @@ export default function StoresGallery() {
           <div className="flex items-center gap-4">
             {/* Logo e Título */}
             <div className="flex items-center gap-1 flex-shrink-0">
-              <span className="text-red-500 font-black text-xl" style={{textShadow: '1px 1px 0 white, -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white'}}>Click</span>
+              <span className="text-red-500 font-black text-xl tracking-tighter" style={{textShadow: '1px 1px 0 white, -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white', fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"', fontWeight: '900', textTransform: 'uppercase'}}>Click</span>
               <span className="text-white font-bold text-xl">Ofertas.PY</span>
             </div>
             
