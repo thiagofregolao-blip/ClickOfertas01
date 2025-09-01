@@ -174,7 +174,12 @@ export default function Landing() {
               {/* Link para cadastro */}
               <div className="text-center mt-4 sm:mt-6">
                 <span className="text-gray-600 text-xs sm:text-sm">Novo na Click Ofertas? </span>
-                <Button variant="link" className="p-0 h-auto text-orange-500 font-medium text-xs sm:text-sm">
+                <Button 
+                  variant="link" 
+                  onClick={() => window.location.href = '/api/login'}
+                  className="p-0 h-auto text-orange-500 font-medium text-xs sm:text-sm"
+                  data-testid="button-signup"
+                >
                   Cadastrar
                 </Button>
               </div>
