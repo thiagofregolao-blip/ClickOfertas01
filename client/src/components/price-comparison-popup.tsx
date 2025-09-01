@@ -16,6 +16,16 @@ interface BrazilianPrice {
   currency: string;
   productUrl: string;
   availability: string;
+  stores_count?: number;
+  price_range?: {
+    min: number;
+    max: number;
+  };
+  stores_details?: Array<{
+    name: string;
+    price: number;
+    link: string;
+  }>;
 }
 
 interface ProductComparison {
@@ -222,33 +232,68 @@ export default function PriceComparisonPopup({
                     {comparisonData.brazilianPrices.map((price, index) => (
                       <Card key={index} className="border-gray-200">
                         <CardContent className="p-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h5 className="font-medium text-gray-900">{price.storeName}</h5>
-                                <Badge variant={price.availability === 'in_stock' ? 'default' : 'secondary'}>
-                                  {price.availability === 'in_stock' ? 'Disponível' : 'Consultar'}
-                                </Badge>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h5 className="font-medium text-gray-900">{price.storeName}</h5>
+                                  <Badge variant={price.availability === 'in_stock' ? 'default' : 'secondary'}>
+                                    {price.availability === 'in_stock' ? 'Disponível' : 'Consultar'}
+                                  </Badge>
+                                  {price.stores_count && price.stores_count > 1 && (
+                                    <Badge variant="outline" className="text-blue-600 border-blue-600">
+                                      <BarChart3 className="w-3 h-3 mr-1" />
+                                      Média de {price.stores_count} lojas
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-600 line-clamp-1">{price.productName}</p>
+                                
+                                {/* Mostrar faixa de preço se disponível */}
+                                {price.price_range && (
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    Faixa: R$ {formatBrazilianPrice(price.price_range.min.toFixed(2))} - R$ {formatBrazilianPrice(price.price_range.max.toFixed(2))}
+                                  </p>
+                                )}
                               </div>
-                              <p className="text-sm text-gray-600 line-clamp-1">{price.productName}</p>
+                              <div className="text-right">
+                                <p className="text-xl font-bold text-blue-600">
+                                  R$ {formatBrazilianPrice(price.price)}
+                                </p>
+                                {price.stores_count && price.stores_count > 1 && (
+                                  <p className="text-xs text-gray-500">preço médio</p>
+                                )}
+                                {price.productUrl && (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="mt-1 text-blue-600 border-blue-600 hover:bg-blue-50"
+                                    onClick={() => window.open(price.productUrl, '_blank')}
+                                    data-testid={`link-product-${index}`}
+                                  >
+                                    <ExternalLink className="w-3 h-3 mr-1" />
+                                    Ver Lojas
+                                  </Button>
+                                )}
+                              </div>
                             </div>
-                            <div className="text-right">
-                              <p className="text-xl font-bold text-blue-600">
-                                R$ {formatBrazilianPrice(price.price)}
-                              </p>
-                              {price.productUrl && (
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="mt-1 text-blue-600 border-blue-600 hover:bg-blue-50"
-                                  onClick={() => window.open(price.productUrl, '_blank')}
-                                  data-testid={`link-product-${index}`}
-                                >
-                                  <ExternalLink className="w-3 h-3 mr-1" />
-                                  Ver no ML
-                                </Button>
-                              )}
-                            </div>
+                            
+                            {/* Mostrar detalhes das lojas se disponível */}
+                            {price.stores_details && price.stores_details.length > 0 && (
+                              <div className="bg-gray-50 p-2 rounded border-t">
+                                <p className="text-xs font-medium text-gray-700 mb-1">Lojas pesquisadas:</p>
+                                <div className="grid grid-cols-1 gap-1">
+                                  {price.stores_details.slice(0, 3).map((store, storeIndex) => (
+                                    <div key={storeIndex} className="flex justify-between items-center text-xs">
+                                      <span className="text-gray-600">{store.name}</span>
+                                      <span className="font-medium text-gray-800">
+                                        R$ {formatBrazilianPrice(store.price.toFixed(2))}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
