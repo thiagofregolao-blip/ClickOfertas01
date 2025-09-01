@@ -392,6 +392,18 @@ export default function StoresGallery() {
       <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95 bg-primary">
         <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
           <div className="flex items-center justify-between mb-4">
+            {/* Logo e Título */}
+            <div className="flex items-center gap-3">
+              <img 
+                src="/attached_assets/generated_images/Paraguay_flag_shopping_bag_8a96d412.png" 
+                alt="Click Ofertas Paraguay Logo" 
+                className="h-10 w-10 object-contain"
+              />
+              <div className="flex items-center gap-1">
+                <span className="text-red-500 font-bold text-xl">Click</span>
+                <span className="text-white font-bold text-xl">Ofertas.PY</span>
+              </div>
+            </div>
             {/* Barra de Busca no Header */}
             <div className="flex-1 max-w-md">
               <div className="relative">
