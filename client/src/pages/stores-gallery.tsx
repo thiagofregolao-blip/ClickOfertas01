@@ -526,93 +526,95 @@ export default function StoresGallery() {
       </div>
 
       {/* NOVA BARRA DE INSTAGRAM STORIES - GLOBAL */}
-      <div className="bg-white border-b">
-        <div className={`mx-auto py-6 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-            
-            {/* Botão criar story (se autenticado) - PRIMEIRO */}
-            {isAuthenticated && (
-              <div 
-                className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
-                onClick={() => setLocation('/create-story')}
-                data-testid="button-create-story"
-              >
-                <div className="relative">
-                  <div className="w-24 h-24 rounded-full border-2 border-dashed border-blue-500 p-1 hover:border-blue-600 transition-colors">
-                    <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
-                      {user?.profileImageUrl ? (
-                        <img 
-                          src={user.profileImageUrl} 
-                          alt="Meu Perfil"
-                          className="w-full h-full rounded-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            const parent = target.parentElement as HTMLElement;
-                            if (parent) {
-                              parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-white"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>`;
-                            }
-                          }}
-                        />
-                      ) : (
-                        <User className="w-8 h-8 text-white" />
-                      )}
+      {!searchQuery.trim() && (
+        <div className="bg-white border-b">
+          <div className={`mx-auto py-6 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+              
+              {/* Botão criar story (se autenticado) - PRIMEIRO */}
+              {isAuthenticated && (
+                <div 
+                  className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
+                  onClick={() => setLocation('/create-story')}
+                  data-testid="button-create-story"
+                >
+                  <div className="relative">
+                    <div className="w-24 h-24 rounded-full border-2 border-dashed border-blue-500 p-1 hover:border-blue-600 transition-colors">
+                      <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
+                        {user?.profileImageUrl ? (
+                          <img 
+                            src={user.profileImageUrl} 
+                            alt="Meu Perfil"
+                            className="w-full h-full rounded-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const parent = target.parentElement as HTMLElement;
+                              if (parent) {
+                                parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-white"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>`;
+                              }
+                            }}
+                          />
+                        ) : (
+                          <User className="w-8 h-8 text-white" />
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Ícone de câmera sobreposto */}
+                    <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1.5 border-2 border-white">
+                      <Camera className="w-3 h-3 text-white" />
                     </div>
                   </div>
                   
-                  {/* Ícone de câmera sobreposto */}
-                  <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1.5 border-2 border-white">
-                    <Camera className="w-3 h-3 text-white" />
-                  </div>
+                  <span className="text-xs text-gray-600 font-medium">Criar</span>
                 </div>
-                
-                <span className="text-xs text-gray-600 font-medium">Criar</span>
-              </div>
-            )}
-            
-            {/* Stories das Lojas - DEPOIS */}
-            {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
-              <div 
-                key={storyStore.id} 
-                className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
-                onClick={() => openStoryModal(stories[0], 0)} // Abrir primeiro story da loja
-                data-testid={`story-circle-${storyStore.slug}`}
-              >
-                {/* Círculo da loja */}
-                <div className="relative">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
-                    <div className="w-full h-full rounded-full overflow-hidden">
-                      <Avatar className="w-full h-full">
-                        <AvatarImage 
-                          src={storyStore.logoUrl} 
-                          alt={storyStore.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <AvatarFallback className="text-sm font-bold bg-white">
-                          {storyStore.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
+              )}
+              
+              {/* Stories das Lojas - DEPOIS */}
+              {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
+                <div 
+                  key={storyStore.id} 
+                  className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
+                  onClick={() => openStoryModal(stories[0], 0)} // Abrir primeiro story da loja
+                  data-testid={`story-circle-${storyStore.slug}`}
+                >
+                  {/* Círculo da loja */}
+                  <div className="relative">
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
+                      <div className="w-full h-full rounded-full overflow-hidden">
+                        <Avatar className="w-full h-full">
+                          <AvatarImage 
+                            src={storyStore.logoUrl} 
+                            alt={storyStore.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <AvatarFallback className="text-sm font-bold bg-white">
+                            {storyStore.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
                     </div>
+                    
+                    {/* Contador de stories */}
+                    <Badge 
+                      variant="secondary" 
+                      className="absolute -top-1 -right-1 bg-green-500 text-white border-2 border-white text-xs px-1"
+                    >
+                      {stories.length}
+                    </Badge>
                   </div>
                   
-                  {/* Contador de stories */}
-                  <Badge 
-                    variant="secondary" 
-                    className="absolute -top-1 -right-1 bg-green-500 text-white border-2 border-white text-xs px-1"
-                  >
-                    {stories.length}
-                  </Badge>
+                  {/* Nome da loja */}
+                  <div className="text-xs text-gray-600 max-w-[96px] text-center leading-tight truncate">
+                    {storyStore.name}
+                  </div>
                 </div>
-                
-                {/* Nome da loja */}
-                <div className="text-xs text-gray-600 max-w-[96px] text-center leading-tight truncate">
-                  {storyStore.name}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
 
       {/* Feed Unificado */}
