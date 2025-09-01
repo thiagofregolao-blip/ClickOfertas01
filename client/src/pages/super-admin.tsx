@@ -23,7 +23,9 @@ const bannerSchema = z.object({
   title: z.string().min(1, "Título é obrigatório"),
   description: z.string().optional(),
   imageUrl: z.string().url("URL da imagem inválida"),
-  linkUrl: z.string().url("URL do link inválida").optional().or(z.literal("")),
+  linkUrl: z.string().optional().refine((val) => !val || val === "" || z.string().url().safeParse(val).success, {
+    message: "URL do link inválida"
+  }),
   bannerType: z.enum(['rotating', 'static_left', 'static_right']),
   priority: z.string().default("0"),
   backgroundColor: z.string().default("#ffffff"),

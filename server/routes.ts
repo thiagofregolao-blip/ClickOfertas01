@@ -2402,7 +2402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         title: z.string().min(1, "Título é obrigatório"),
         description: z.string().optional(),
         imageUrl: z.string().url("URL da imagem inválida"),
-        linkUrl: z.string().url("URL do link inválida").optional(),
+        linkUrl: z.string().url("URL do link inválida").optional().or(z.literal("")),
         bannerType: z.enum(['rotating', 'static_left', 'static_right'], {
           errorMap: () => ({ message: "Tipo de banner deve ser: rotating, static_left ou static_right" })
         }),
@@ -2413,7 +2413,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         endsAt: z.string().datetime().optional().nullable(),
       });
 
-      const bannerData = bannerSchema.parse(req.body);
+      const rawData = bannerSchema.parse(req.body);
+      
+      // Converter strings para Date se fornecidas
+      const bannerData = {
+        ...rawData,
+        startsAt: rawData.startsAt ? new Date(rawData.startsAt) : undefined,
+        endsAt: rawData.endsAt ? new Date(rawData.endsAt) : undefined,
+      };
+      
       const banner = await storage.createBanner(bannerData);
       
       res.status(201).json(banner);
@@ -2435,7 +2443,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         title: z.string().min(1, "Título é obrigatório").optional(),
         description: z.string().optional(),
         imageUrl: z.string().url("URL da imagem inválida").optional(),
-        linkUrl: z.string().url("URL do link inválida").optional().nullable(),
+        linkUrl: z.string().url("URL do link inválida").optional().or(z.literal("")).nullable(),
         bannerType: z.enum(['rotating', 'static_left', 'static_right']).optional(),
         isActive: z.boolean().optional(),
         priority: z.string().optional(),
@@ -2445,7 +2453,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         endsAt: z.string().datetime().optional().nullable(),
       });
 
-      const updates = bannerSchema.parse(req.body);
+      const rawUpdates = bannerSchema.parse(req.body);
+      
+      // Converter strings para Date se fornecidas
+      const updates = {
+        ...rawUpdates,
+        startsAt: rawUpdates.startsAt ? new Date(rawUpdates.startsAt) : undefined,
+        endsAt: rawUpdates.endsAt ? new Date(rawUpdates.endsAt) : undefined,
+      };
+      
       const banner = await storage.updateBanner(bannerId, updates);
       
       if (!banner) {
