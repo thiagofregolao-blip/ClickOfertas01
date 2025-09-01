@@ -113,10 +113,40 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      successRedirect: "/cards",
-      failureRedirect: "/api/login",
-    })(req, res, next);
+    passport.authenticate(`replitauth:${req.hostname}`, 
+      async (err: any, user: any) => {
+        if (err || !user) {
+          return res.redirect("/api/login");
+        }
+        
+        // Fazer login do usuário na sessão
+        req.logIn(user, async (loginErr) => {
+          if (loginErr) {
+            return res.redirect("/api/login");
+          }
+          
+          try {
+            // Buscar dados do usuário no banco para verificar se tem loja
+            const userId = user.claims?.sub;
+            if (userId) {
+              const userData = await storage.getUser(userId);
+              
+              // Redirecionar baseado no perfil
+              if (userData?.storeOwnerToken) {
+                res.redirect("/admin");
+              } else {
+                res.redirect("/cards");
+              }
+            } else {
+              res.redirect("/cards");
+            }
+          } catch (error) {
+            console.error("Error checking user store status:", error);
+            res.redirect("/cards");
+          }
+        });
+      }
+    )(req, res, next);
   });
 
   app.get("/api/logout", (req, res) => {
