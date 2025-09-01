@@ -42,7 +42,7 @@ export default function Landing() {
       <div className="flex-1 bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 relative overflow-hidden">
 
         {/* Conteúdo promocional central */}
-        <div className="flex items-center justify-start h-full p-8 lg:p-16 lg:pl-32">
+        <div className="flex items-center justify-start h-full p-8 lg:p-16 lg:pl-48">
           <div className="text-center text-white max-w-lg">
             {/* Título principal */}
             <div className="mb-8">
@@ -92,7 +92,7 @@ export default function Landing() {
         </div>
 
         {/* Formulário de Login Sobreposto */}
-        <div className="absolute top-1/2 right-8 lg:right-16 transform -translate-y-1/2 w-80 lg:w-96 bg-white rounded-xl shadow-2xl p-6 lg:p-8">
+        <div className="absolute top-1/2 right-8 lg:right-32 transform -translate-y-1/2 w-80 lg:w-96 bg-white rounded-xl shadow-2xl p-6 lg:p-8">
           <div className="w-full">
             {/* Título do formulário */}
             <div className="mb-6">
