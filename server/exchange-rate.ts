@@ -5,6 +5,14 @@ let cachedRate: { value: number; timestamp: number } | null = null;
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hora em milliseconds
 
 /**
+ * Limpa o cache da cotação (força nova busca)
+ */
+export function clearExchangeRateCache(): void {
+  cachedRate = null;
+  console.log('🗑️ Cache de cotação limpo');
+}
+
+/**
  * Busca a cotação atual USD → BRL
  * Usa cache de 1 hora para otimizar performance
  */
@@ -18,12 +26,8 @@ export async function getCurrentExchangeRate(): Promise<number> {
   try {
     console.log('🔄 Buscando cotação USD → BRL...');
     
-    // API gratuita para cotação
-    const response = await axios.get('https://api.exchangerate.host/latest', {
-      params: {
-        base: 'USD',
-        symbols: 'BRL'
-      },
+    // API gratuita para cotação (sem necessidade de chave)
+    const response = await axios.get('https://open.er-api.com/v6/latest/USD', {
       timeout: 5000
     });
 

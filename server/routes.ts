@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { getCurrentExchangeRate, convertUsdToBrl, formatBRL, formatUSD } from "./exchange-rate";
+import { getCurrentExchangeRate, convertUsdToBrl, formatBRL, formatUSD, clearExchangeRateCache } from "./exchange-rate";
 import { setupOAuthProviders } from "./authProviders";
 import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema } from "@shared/schema";
 import { z } from "zod";
@@ -2123,11 +2123,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint para obter cotação atual USD → BRL
   app.get('/api/exchange-rate/usd-brl', async (req, res) => {
     try {
+      // Se parâmetro 'fresh' for true, limpa o cache
+      if (req.query.fresh === 'true') {
+        clearExchangeRateCache();
+      }
+      
       const rate = await getCurrentExchangeRate();
       res.json({ 
         rate, 
         lastUpdated: new Date().toISOString(),
-        source: 'exchangerate.host',
+        source: 'open.er-api.com',
         formatted: {
           usd: formatUSD(1),
           brl: formatBRL(rate)
