@@ -56,8 +56,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Smart redirect after login based on user type
-  app.get('/api/auth/redirect', isAuthenticated, async (req: any, res) => {
+  // Smart redirect after login based on user type  
+  app.get('/api/auth/redirect', async (req: any, res) => {
+    console.log("🔥 REDIRECT ENDPOINT CHAMADO!");
+    if (!req.isAuthenticated()) {
+      console.log("❌ NÃO AUTENTICADO - redirecionando para /");
+      return res.redirect('/');
+    }
     try {
       const userId = req.user.claims?.sub || req.user.id;
       console.log("🔍 REDIRECT DEBUG - UserId:", userId);
