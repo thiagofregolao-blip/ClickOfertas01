@@ -58,28 +58,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Smart redirect after login based on user type  
   app.get('/api/auth/redirect', async (req: any, res) => {
-    console.log("🔥 REDIRECT ENDPOINT CHAMADO!");
     if (!req.isAuthenticated()) {
-      console.log("❌ NÃO AUTENTICADO - redirecionando para /");
       return res.redirect('/');
     }
     try {
       const userId = req.user.claims?.sub || req.user.id;
-      console.log("🔍 REDIRECT DEBUG - UserId:", userId);
-      
       const user = await storage.getUser(userId);
-      console.log("🔍 REDIRECT DEBUG - User:", {
-        id: user?.id,
-        email: user?.email,
-        storeOwnerToken: user?.storeOwnerToken,
-        hasToken: !!user?.storeOwnerToken
-      });
       
       if (user?.storeOwnerToken) {
-        console.log("✅ REDIRECT DEBUG - Tem token, indo para /admin");
         res.redirect('/admin');
       } else {
-        console.log("❌ REDIRECT DEBUG - Sem token, indo para /cards");
         res.redirect('/cards');
       }
     } catch (error) {
@@ -354,7 +342,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         address: userData.address || null,
         city: userData.city || null,
         provider: 'email',
-        isEmailVerified: false
+        isEmailVerified: false,
+        storeOwnerToken: 'STORE_OWNER_' + Date.now()
       });
 
       // Create session

@@ -20,6 +20,7 @@ import CouponDetails from "@/pages/coupon-details";
 import StoriesFeed from "@/pages/stories-feed";
 import CreateStory from "@/pages/create-story";
 import PriceComparison from "@/pages/price-comparison";
+import SignupPage from "@/pages/signup";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -62,6 +63,7 @@ function Router() {
         // Usuário não logado - acesso público
         <>
           <Route path="/" component={Landing} />
+          <Route path="/signup" component={SignupPage} />
           <Route path="/cards" component={StoresGallery} />
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />

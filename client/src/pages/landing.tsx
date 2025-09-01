@@ -176,7 +176,7 @@ export default function Landing() {
                 <span className="text-gray-600 text-xs sm:text-sm">Novo na Click Ofertas? </span>
                 <Button 
                   variant="link" 
-                  onClick={() => window.location.href = '/api/signup'}
+                  onClick={() => window.location.href = '/signup'}
                   className="p-0 h-auto text-orange-500 font-medium text-xs sm:text-sm"
                   data-testid="button-signup"
                 >
