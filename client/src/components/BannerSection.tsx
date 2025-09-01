@@ -79,7 +79,7 @@ export function BannerSection() {
     <div className="w-full px-4 mb-6" data-testid="banner-section">
       <div className="max-w-6xl mx-auto">
         {/* Layout desktop: carousel + banners estáticos lado a lado */}
-        <div className="hidden md:flex gap-4">
+        <div className="hidden md:flex gap-3">
           {/* Banner rotativo (ocupa mais espaço) */}
           {rotatingBanners.length > 0 && (
             <div className="flex-1">
@@ -87,13 +87,13 @@ export function BannerSection() {
             </div>
           )}
 
-          {/* Banners estáticos (lado direito) */}
-          <div className="w-80 space-y-4">
+          {/* Banners estáticos (lado direito) - proporção exata da imagem */}
+          <div className="w-64 space-y-2">
             {/* Banner estático esquerdo (topo direito) */}
             {staticLeftBanners[0] && (
               <StaticBanner 
                 banner={staticLeftBanners[0]} 
-                className="h-[calc(50%-0.5rem)]" 
+                className="h-[calc(50%-0.25rem)]" 
               />
             )}
             
@@ -101,7 +101,7 @@ export function BannerSection() {
             {staticRightBanners[0] && (
               <StaticBanner 
                 banner={staticRightBanners[0]} 
-                className="h-[calc(50%-0.5rem)]" 
+                className="h-[calc(50%-0.25rem)]" 
               />
             )}
           </div>
