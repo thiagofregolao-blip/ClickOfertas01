@@ -1205,8 +1205,8 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
             </div>
           ) : (
             /* Layout Desktop - Grid horizontal sem scroll */
-            <div className="grid grid-cols-5 gap-3">
-              {displayProducts.slice(0, 5).map((product) => (
+            <div className="grid grid-cols-6 gap-3">
+              {displayProducts.slice(0, 6).map((product) => (
                 <div key={product.id} className="h-72">
                   <ProductCard
                     product={product}
