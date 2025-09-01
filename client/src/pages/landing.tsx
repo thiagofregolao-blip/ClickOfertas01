@@ -181,6 +181,119 @@ export default function Landing() {
           </div>
         </div>
       </div>
+
+      {/* Rodapé estilo Shopee */}
+      <footer className="bg-gray-100 py-12 px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+            {/* Atendimento ao Cliente */}
+            <div>
+              <h3 className="font-bold text-gray-900 mb-4 text-sm">ATENDIMENTO AO CLIENTE</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li><a href="#" className="hover:text-orange-500">Central de Ajuda</a></li>
+                <li><a href="#" className="hover:text-orange-500">Como Comprar</a></li>
+                <li><a href="#" className="hover:text-orange-500">Métodos de Pagamento</a></li>
+                <li><a href="#" className="hover:text-orange-500">Garantia Click Ofertas</a></li>
+                <li><a href="#" className="hover:text-orange-500">Devolução e Reembolso</a></li>
+                <li><a href="#" className="hover:text-orange-500">Fale Conosco</a></li>
+                <li><a href="#" className="hover:text-orange-500">Ouvidoria</a></li>
+                <li><a href="#" className="hover:text-orange-500">Preferências de cookies</a></li>
+              </ul>
+            </div>
+
+            {/* Sobre a Click Ofertas */}
+            <div>
+              <h3 className="font-bold text-gray-900 mb-4 text-sm">SOBRE A CLICK OFERTAS</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li><a href="#" className="hover:text-orange-500">Sobre Nós</a></li>
+                <li><a href="#" className="hover:text-orange-500">Políticas</a></li>
+                <li><a href="#" className="hover:text-orange-500">Política de Privacidade</a></li>
+                <li><a href="#" className="hover:text-orange-500">Programa de Afiliados</a></li>
+                <li><a href="#" className="hover:text-orange-500">Seja um Entregador</a></li>
+                <li><a href="#" className="hover:text-orange-500">Ofertas Relâmpago</a></li>
+                <li><a href="#" className="hover:text-orange-500">Click Ofertas Blog</a></li>
+                <li><a href="#" className="hover:text-orange-500">Imprensa</a></li>
+              </ul>
+            </div>
+
+            {/* Pagamento */}
+            <div>
+              <h3 className="font-bold text-gray-900 mb-4 text-sm">PAGAMENTO</h3>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-white p-2 rounded border text-center text-xs font-bold text-blue-600">VISA</div>
+                <div className="bg-white p-2 rounded border text-center text-xs font-bold text-red-500">MC</div>
+                <div className="bg-white p-2 rounded border text-center text-xs font-bold text-red-600">HIper</div>
+                <div className="bg-white p-2 rounded border text-center text-xs font-bold text-blue-500">Elo</div>
+                <div className="bg-white p-2 rounded border text-center text-xs font-bold text-blue-600">AME</div>
+                <div className="bg-white p-2 rounded border text-center text-xs font-bold text-black">BOL</div>
+                <div className="bg-white p-2 rounded border text-center text-xs font-bold text-green-500">PIX</div>
+              </div>
+            </div>
+
+            {/* Siga-nos */}
+            <div>
+              <h3 className="font-bold text-gray-900 mb-4 text-sm">SIGA-NOS</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-purple-500 rounded"></div>
+                  <span>Instagram</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-red-500 rounded"></div>
+                  <span>TikTok</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-green-500 rounded"></div>
+                  <span>WhatsApp</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-blue-600 rounded"></div>
+                  <span>Facebook</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                  <span>LinkedIn</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Baixar App */}
+            <div>
+              <h3 className="font-bold text-gray-900 mb-4 text-sm">BAIXAR APP CLICK OFERTAS</h3>
+              <div className="bg-white p-4 rounded border mb-4">
+                <div className="w-20 h-20 bg-black mx-auto mb-2 flex items-center justify-center text-white text-xs">
+                  QR CODE
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <div className="w-4 h-4 bg-black rounded"></div>
+                  <span>App Store</span>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <div className="w-4 h-4 bg-green-500 rounded"></div>
+                  <span>Google Play</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Copyright */}
+          <div className="border-t border-gray-300 mt-12 pt-8">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
+              <div className="text-sm text-gray-500">
+                © 2025 Click Ofertas. Todos os direitos reservados
+              </div>
+              <div className="text-sm text-gray-500">
+                País e região: Paraguai | Brasil | Argentina | Chile
+              </div>
+            </div>
+            <div className="mt-4 text-xs text-gray-400">
+              CNPJ/MF nº 35.635.824/0001-12. Endereço: Av. Brigadeiro Faria Lima, 3732 - 22º e 23º andares, Itaim Bibi, São Paulo (SP), Brasil, 04538-132
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
