@@ -634,7 +634,7 @@ export default function StoresGallery() {
 
       {/* SEÇÃO DE BANNERS + STORIES LADO A LADO */}
       {!searchQuery.trim() && (
-        <div className="bg-white border-b">
+        <div className="bg-white border-b -mt-2">
           <div className={`mx-auto ${isMobile ? 'px-4 max-w-full' : 'px-12 max-w-6xl'}`}>
             <div className="flex gap-4">
               {/* Banner à esquerda */}
