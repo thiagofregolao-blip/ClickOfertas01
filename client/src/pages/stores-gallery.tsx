@@ -557,7 +557,7 @@ export default function StoresGallery() {
           <div className="flex items-center gap-4">
             {/* Logo e Título */}
             <div className="flex items-center gap-1 flex-shrink-0">
-              <span className="text-white font-medium text-xl tracking-normal" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: '500'}}>Click</span>
+              <span className="text-white font-bold text-xl tracking-normal" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: '700'}}>Click</span>
               <span className="text-white font-medium text-xl tracking-normal">Ofertas.PY</span>
             </div>
             
