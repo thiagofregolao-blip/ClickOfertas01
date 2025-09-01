@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertStoreSchema, updateStoreSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import AdminLayout from "@/components/admin-layout";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,10 @@ export default function AdminStoreConfig() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
+  const [location] = useLocation();
+  
+  // Detecta se estamos na rota de criação de store
+  const isCreating = location === '/create-store';
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -136,24 +141,37 @@ export default function AdminStoreConfig() {
   };
 
   if (isLoading || storeLoading) {
+    const LoadingContent = (
+      <Card className="animate-pulse">
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-16 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+
+    if (isCreating) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="max-w-4xl w-full">
+            {LoadingContent}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <AdminLayout>
-        <Card className="animate-pulse">
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-16 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {LoadingContent}
       </AdminLayout>
     );
   }
 
-  return (
-    <AdminLayout>
-      <div className="max-w-4xl mx-auto">
+  const FormContent = (
+    <div className="max-w-4xl mx-auto">
         <Card>
           <CardHeader>
             <CardTitle>Configurações da Loja</CardTitle>
@@ -421,7 +439,22 @@ export default function AdminStoreConfig() {
             </form>
           </CardContent>
         </Card>
+    </div>
+  );
+
+  if (isCreating) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="w-full">
+          {FormContent}
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <AdminLayout>
+      {FormContent}
     </AdminLayout>
   );
 }
