@@ -12,7 +12,7 @@ export default function Landing() {
   const { versionName, version } = useAppVersion();
   
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="min-h-screen flex flex-col">
       {/* Debug: Mostra versão atual */}
       {process.env.NODE_ENV === 'development' && (
         <div className="fixed top-2 left-2 z-50 bg-black/80 text-white text-xs px-2 py-1 rounded">
@@ -20,33 +20,29 @@ export default function Landing() {
         </div>
       )}
 
-      {/* Header simples */}
-      <div className="lg:hidden w-full bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between">
+      {/* Faixa branca superior com logo */}
+      <div className="w-full bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between max-w-6xl mx-auto">
           <div className="flex items-center space-x-2">
-            <FileText className="w-6 h-6 text-orange-500" />
-            <span className="font-bold text-lg">Click Ofertas</span>
+            <FileText className="w-8 h-8 text-orange-500" />
+            <span className="font-bold text-xl">Click Ofertas</span>
+            <span className="text-orange-500">Entre</span>
           </div>
           <Button 
             variant="link" 
             onClick={() => window.location.href = '/cards'}
-            className="text-orange-500"
+            className="text-orange-500 hidden lg:block"
           >
             Precisa de ajuda?
           </Button>
         </div>
       </div>
 
+      {/* Conteúdo principal split-screen */}
+      <div className="flex-1 flex flex-col lg:flex-row">
+
       {/* Lado Esquerdo - Área Promocional (estilo Shopee) */}
       <div className="flex-1 bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 relative overflow-hidden">
-        {/* Logo no desktop */}
-        <div className="hidden lg:block absolute top-6 left-6">
-          <div className="flex items-center space-x-2 text-white">
-            <FileText className="w-8 h-8" />
-            <span className="font-bold text-xl">Click Ofertas</span>
-            <span className="text-orange-100">Entre</span>
-          </div>
-        </div>
 
         {/* Conteúdo promocional central */}
         <div className="flex items-center justify-center h-full p-8 lg:p-16">
@@ -187,6 +183,7 @@ export default function Landing() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
