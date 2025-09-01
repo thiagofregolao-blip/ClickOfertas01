@@ -78,20 +78,32 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
 
   return (
     <div className="relative w-full h-40 md:w-[790px] md:h-[230px] overflow-hidden shadow-lg group rounded-lg">
-      {/* Banner atual */}
-      <div
-        className="w-full h-full cursor-pointer"
+      {/* Container dos banners com efeito slide */}
+      <div 
+        className="flex transition-transform duration-500 ease-in-out h-full"
         style={{
-          backgroundColor: currentBanner.backgroundColor,
-          backgroundImage: `url(${currentBanner.imageUrl})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
+          transform: `translateX(-${currentIndex * 100}%)`,
+          width: `${banners.length * 100}%`
         }}
-        onClick={() => handleBannerClick(currentBanner)}
-        data-testid={`banner-carousel-${currentBanner.id}`}
       >
-        
+        {banners.map((banner, index) => (
+          <div
+            key={banner.id}
+            className="w-full h-full cursor-pointer flex-shrink-0"
+            style={{
+              backgroundColor: banner.backgroundColor,
+              backgroundImage: `url(${banner.imageUrl})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              width: `${100 / banners.length}%`
+            }}
+            onClick={() => handleBannerClick(banner)}
+            data-testid={`banner-carousel-${banner.id}`}
+          >
+            
+          </div>
+        ))}
       </div>
 
       {/* Controles de navegação - aparecem no hover */}
