@@ -60,18 +60,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/redirect', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims?.sub || req.user.id;
+      console.log("🔍 REDIRECT DEBUG - UserId:", userId);
+      
       const user = await storage.getUser(userId);
+      console.log("🔍 REDIRECT DEBUG - User:", {
+        id: user?.id,
+        email: user?.email,
+        storeOwnerToken: user?.storeOwnerToken,
+        hasToken: !!user?.storeOwnerToken
+      });
       
       if (user?.storeOwnerToken) {
-        // Usuário tem token de lojista - redireciona para admin
+        console.log("✅ REDIRECT DEBUG - Tem token, indo para /admin");
         res.redirect('/admin');
       } else {
-        // Usuário normal - redireciona para cards
+        console.log("❌ REDIRECT DEBUG - Sem token, indo para /cards");
         res.redirect('/cards');
       }
     } catch (error) {
       console.error("Error in smart redirect:", error);
-      // Em caso de erro, redireciona para cards como fallback
       res.redirect('/cards');
     }
   });
