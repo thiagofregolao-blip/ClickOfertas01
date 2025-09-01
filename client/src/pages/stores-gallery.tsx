@@ -636,7 +636,7 @@ export default function StoresGallery() {
       {!searchQuery.trim() && (
         <div className="bg-white border-b">
           <div className={`mx-auto ${isMobile ? 'px-4 max-w-full' : 'px-12 max-w-6xl'}`}>
-            <div className="flex gap-4 py-4">
+            <div className="flex gap-4 py-2">
               {/* Banner à esquerda */}
               <div className="flex-shrink-0">
                 <BannerSection />
