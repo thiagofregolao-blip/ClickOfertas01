@@ -43,7 +43,7 @@ export function StaticBanner({ banner, className = '' }: StaticBannerProps) {
         style={{
           backgroundColor: banner.backgroundColor,
           backgroundImage: `url(${banner.imageUrl})`,
-          backgroundSize: 'contain',
+          backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
         }}
