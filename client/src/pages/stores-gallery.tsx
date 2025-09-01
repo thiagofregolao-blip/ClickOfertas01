@@ -393,11 +393,6 @@ export default function StoresGallery() {
         <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <img 
-                src={logoUrl} 
-                alt="Click Ofertas Paraguai" 
-                className="h-20 w-auto object-contain"
-              />
             </div>
             <div className="flex items-center gap-3">
               {/* Botão de Comparação de Preços */}
