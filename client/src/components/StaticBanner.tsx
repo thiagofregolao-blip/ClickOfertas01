@@ -37,7 +37,7 @@ export function StaticBanner({ banner, className = '' }: StaticBannerProps) {
   };
 
   return (
-    <div className={`h-12 md:w-[400px] md:h-[110px] overflow-hidden shadow-lg cursor-pointer transition-transform duration-300 hover:scale-105 ${className}`}>
+    <div className={`h-12 md:w-[400px] md:h-[110px] overflow-hidden shadow-lg cursor-pointer ${className}`}>
       <div
         className="w-full h-full relative"
         style={{

@@ -80,7 +80,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
     <div className="relative w-full h-40 md:w-[790px] md:h-[230px] overflow-hidden shadow-lg group">
       {/* Banner atual */}
       <div
-        className="w-full h-full cursor-pointer transition-transform duration-300 hover:scale-105"
+        className="w-full h-full cursor-pointer"
         style={{
           backgroundColor: currentBanner.backgroundColor,
           backgroundImage: `url(${currentBanner.imageUrl})`,
