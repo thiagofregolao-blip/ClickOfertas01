@@ -1,226 +1,193 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Users, Share, Download, Star, CheckCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { FileText, ShoppingBag, TrendingUp, Users, Globe } from "lucide-react";
 import { useAppVersion } from "@/hooks/use-mobile";
 import { useState } from "react";
-import LoginPage from "@/components/login-page";
 
 /**
  * Página de Aterrissagem - Click Ofertas Paraguai
- * 
- * Apresenta as duas versões da aplicação:
- * - Mobile: Instagram-style, otimizado para smartphones
- * - Desktop: Layout tradicional, otimizado para computadores
+ * Design inspirado na Shopee - Split screen com área promocional e login
  */
 export default function Landing() {
   const { versionName, version } = useAppVersion();
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Debug: Mostra versão atual */}
       {process.env.NODE_ENV === 'development' && (
         <div className="fixed top-2 left-2 z-50 bg-black/80 text-white text-xs px-2 py-1 rounded">
           {versionName}
         </div>
       )}
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <FileText className="text-primary text-2xl" />
-              <h1 className="text-xl font-bold text-gray-900">Click Ofertas Paraguai</h1>
-            </div>
-            <div className="flex gap-3">
-              <Button 
-                onClick={() => window.location.href = '/cards'}
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary hover:text-white"
-                data-testid="button-nav-stores"
-              >
-                Ver Lojas
-              </Button>
-              <Button 
-                onClick={() => setIsLoginModalOpen(true)}
-                className="bg-primary text-white hover:bg-blue-600"
-                data-testid="button-login"
-              >
-                Acessar Painel
-              </Button>
-            </div>
+
+      {/* Header simples */}
+      <div className="lg:hidden w-full bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <FileText className="w-6 h-6 text-orange-500" />
+            <span className="font-bold text-lg">Click Ofertas</span>
           </div>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Crie panfletos digitais
-            <span className="text-primary block">em minutos</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Transforme sua loja em uma vitrine digital. Cadastre produtos, personalize o design 
-            e compartilhe ofertas que convertem em vendas.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg"
-              onClick={() => setIsLoginModalOpen(true)}
-              className="bg-primary text-white hover:bg-blue-600 px-8 py-4 text-lg"
-              data-testid="button-start"
-            >
-              Começar Gratuitamente
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              onClick={() => window.location.href = '/cards'}
-              className="px-8 py-4 text-lg border-2"
-              data-testid="button-stores"
-            >
-              Ver Panfletos das Lojas
-            </Button>
-          </div>
-        </div>
-
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          <Card className="text-center hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                <FileText className="w-6 h-6 text-primary" />
-              </div>
-              <CardTitle>Criação Rápida</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">
-                Cadastre produtos e gere panfletos profissionais em questão de minutos.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="mx-auto w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mb-4">
-                <Share className="w-6 h-6 text-secondary" />
-              </div>
-              <CardTitle>Compartilhamento Fácil</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">
-                Link público para WhatsApp, Instagram e redes sociais. Alcance mais clientes.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="mx-auto w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mb-4">
-                <Download className="w-6 h-6 text-accent" />
-              </div>
-              <CardTitle>Download PNG & PDF</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">
-                Baixe como imagem ou imprima em PDF. Perfeito para compartilhar ou colar na loja.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Benefits Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Perfeito para pequenos comércios do Paraguai
-            </h2>
-            <p className="text-xl text-gray-600">
-              Desenvolvido especialmente para lojistas que precisam divulgar ofertas rapidamente
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div className="flex items-start space-x-4">
-                <CheckCircle className="w-6 h-6 text-secondary mt-1" />
-                <div>
-                  <h3 className="font-semibold text-gray-900">Moeda Configurável</h3>
-                  <p className="text-gray-600">Suporte para Guaranis (Gs.), Dólares (US$) e outras moedas</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start space-x-4">
-                <CheckCircle className="w-6 h-6 text-secondary mt-1" />
-                <div>
-                  <h3 className="font-semibold text-gray-900">WhatsApp Integrado</h3>
-                  <p className="text-gray-600">Links diretos para contato via WhatsApp no panfleto</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start space-x-4">
-                <CheckCircle className="w-6 h-6 text-secondary mt-1" />
-                <div>
-                  <h3 className="font-semibold text-gray-900">Design Responsivo</h3>
-                  <p className="text-gray-600">Otimizado para celular e carregamento rápido em 3G/4G</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-6">
-              <div className="flex items-start space-x-4">
-                <CheckCircle className="w-6 h-6 text-secondary mt-1" />
-                <div>
-                  <h3 className="font-semibold text-gray-900">Produtos em Destaque</h3>
-                  <p className="text-gray-600">Marque ofertas especiais com selo visual chamativo</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start space-x-4">
-                <CheckCircle className="w-6 h-6 text-secondary mt-1" />
-                <div>
-                  <h3 className="font-semibold text-gray-900">Cores Personalizadas</h3>
-                  <p className="text-gray-600">Aplique as cores da sua marca em todo o panfleto</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start space-x-4">
-                <CheckCircle className="w-6 h-6 text-secondary mt-1" />
-                <div>
-                  <h3 className="font-semibold text-gray-900">Sem Conhecimento Técnico</h3>
-                  <p className="text-gray-600">Interface simples, não precisa ser designer</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="text-center bg-primary rounded-2xl p-12 text-white">
-          <h2 className="text-3xl font-bold mb-4">
-            Comece a divulgar suas ofertas hoje mesmo
-          </h2>
-          <p className="text-xl mb-8 text-blue-100">
-            Junte-se aos comerciantes que já estão vendendo mais com panfletos digitais
-          </p>
           <Button 
-            size="lg"
-            onClick={() => setIsLoginModalOpen(true)}
-            className="bg-white text-primary hover:bg-gray-100 px-8 py-4 text-lg font-semibold"
-            data-testid="button-cta"
+            variant="link" 
+            onClick={() => window.location.href = '/cards'}
+            className="text-orange-500"
           >
-            Criar Meu Panfleto Grátis
+            Precisa de ajuda?
           </Button>
         </div>
       </div>
 
-      {/* Login Modal - Para Lojistas */}
-      <LoginPage 
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        mode="store"
-      />
+      {/* Lado Esquerdo - Área Promocional (estilo Shopee) */}
+      <div className="flex-1 bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 relative overflow-hidden">
+        {/* Logo no desktop */}
+        <div className="hidden lg:block absolute top-6 left-6">
+          <div className="flex items-center space-x-2 text-white">
+            <FileText className="w-8 h-8" />
+            <span className="font-bold text-xl">Click Ofertas</span>
+            <span className="text-orange-100">Entre</span>
+          </div>
+        </div>
+
+        {/* Conteúdo promocional central */}
+        <div className="flex items-center justify-center h-full p-8 lg:p-16">
+          <div className="text-center text-white max-w-lg">
+            {/* Título principal */}
+            <div className="mb-8">
+              <div className="text-6xl lg:text-8xl font-bold mb-4">
+                <span className="block">9.9</span>
+              </div>
+              <div className="text-2xl lg:text-4xl font-bold mb-2">
+                SUPER
+              </div>
+              <div className="text-2xl lg:text-4xl font-bold">
+                SHOPPING DAY
+              </div>
+            </div>
+
+            {/* Badges promocionais */}
+            <div className="flex flex-wrap justify-center gap-2 mb-8">
+              <div className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">
+                +16 MILHÕES
+                <div className="text-xs">EM CUPONS</div>
+              </div>
+              <div className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold">
+                FRETE GRÁTIS
+                <div className="text-xs">Confira as condições</div>
+              </div>
+              <div className="bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold">
+                ACHADINHOS
+                <div className="text-xs">ATÉ R$99</div>
+              </div>
+            </div>
+
+            {/* Data */}
+            <div className="bg-orange-600 text-white inline-block px-6 py-2 rounded-full font-bold">
+              20 AGO - 10 SET
+            </div>
+
+            {/* Elementos decorativos */}
+            <div className="absolute top-20 left-10 opacity-20">
+              <ShoppingBag className="w-16 h-16" />
+            </div>
+            <div className="absolute bottom-20 right-10 opacity-20">
+              <TrendingUp className="w-20 h-20" />
+            </div>
+            <div className="absolute top-1/3 right-20 opacity-20">
+              <Users className="w-12 h-12" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Lado Direito - Formulário de Login */}
+      <div className="flex-1 lg:max-w-md bg-white flex flex-col justify-center p-8 lg:p-12">
+        <div className="w-full max-w-sm mx-auto">
+          {/* Título do formulário */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Entre</h2>
+          </div>
+
+          {/* Formulário */}
+          <div className="space-y-4">
+            {/* Campo de usuário/email */}
+            <div>
+              <Input 
+                placeholder="Número de telefone/Nome do usuário/Email"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                data-testid="input-login"
+              />
+            </div>
+
+            {/* Campo de senha */}
+            <div className="relative">
+              <Input 
+                type="password"
+                placeholder="Senha"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                data-testid="input-password"
+              />
+            </div>
+
+            {/* Botão de entrar */}
+            <Button 
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
+              data-testid="button-login"
+            >
+              ENTRE
+            </Button>
+
+            {/* Links auxiliares */}
+            <div className="flex justify-between text-sm">
+              <Button variant="link" className="p-0 h-auto text-orange-500">
+                Esqueci minha senha
+              </Button>
+              <Button variant="link" className="p-0 h-auto text-orange-500">
+                Fazer login com SMS
+              </Button>
+            </div>
+
+            {/* Divisor */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">OU</span>
+              </div>
+            </div>
+
+            {/* Botões de login social */}
+            <div className="space-y-3">
+              <Button 
+                variant="outline"
+                className="w-full border-gray-300 py-3 rounded-lg font-medium flex items-center justify-center space-x-2"
+                data-testid="button-facebook"
+              >
+                <div className="w-5 h-5 bg-blue-600 rounded"></div>
+                <span>Facebook</span>
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={() => window.location.href = '/api/login'}
+                className="w-full border-gray-300 py-3 rounded-lg font-medium flex items-center justify-center space-x-2"
+                data-testid="button-google"
+              >
+                <Globe className="w-5 h-5 text-red-500" />
+                <span>Google</span>
+              </Button>
+            </div>
+
+            {/* Link para cadastro */}
+            <div className="text-center mt-8">
+              <span className="text-gray-600">Novo na Click Ofertas? </span>
+              <Button variant="link" className="p-0 h-auto text-orange-500 font-medium">
+                Cadastrar
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
