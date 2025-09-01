@@ -77,7 +77,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
   };
 
   return (
-    <div className="relative w-full h-40 md:w-[790px] md:h-[230px] overflow-hidden shadow-lg group">
+    <div className="relative w-full h-40 md:w-[790px] md:h-[230px] overflow-hidden shadow-lg group rounded-lg">
       {/* Banner atual */}
       <div
         className="w-full h-full cursor-pointer"
