@@ -627,26 +627,6 @@ export default function StoresGallery() {
       )}
 
 
-      {/* Botão Criar Nova Loja para usuários logados sem loja */}
-      {isAuthenticated && !user?.hasStore && !searchQuery.trim() && (
-        <div className="mb-6 text-center">
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 rounded-xl p-6 border border-blue-200 mx-4">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">
-              Crie sua Loja Digital
-            </h2>
-            <p className="text-gray-600 mb-4">
-              Transforme sua loja em uma vitrine digital e alcance mais clientes
-            </p>
-            <Button
-              onClick={() => setLocation('/create-store')}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-lg font-semibold"
-              data-testid="button-create-store"
-            >
-              📝 Criar Nova Loja
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* Feed Unificado */}
       <UnifiedFeedView 
