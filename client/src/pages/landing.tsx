@@ -13,12 +13,6 @@ export default function Landing() {
   
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Debug: Mostra versão atual */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-2 left-2 z-50 bg-black/80 text-white text-xs px-2 py-1 rounded">
-          {versionName}
-        </div>
-      )}
 
       {/* Faixa branca superior com logo */}
       <div className="w-full bg-white p-4 shadow-sm">
