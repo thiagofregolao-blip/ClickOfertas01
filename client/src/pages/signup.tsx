@@ -62,10 +62,7 @@ export default function SignupPage() {
   // Mutations
   const userRegisterMutation = useMutation({
     mutationFn: async (data: UserRegisterForm) => {
-      await apiRequest('/api/auth/register', {
-        method: 'POST',
-        body: data,
-      });
+      await apiRequest('POST', '/api/auth/register', data);
     },
     onSuccess: () => {
       toast({
@@ -85,10 +82,7 @@ export default function SignupPage() {
 
   const storeRegisterMutation = useMutation({
     mutationFn: async (data: StoreRegisterForm) => {
-      await apiRequest('/api/auth/register-store', {
-        method: 'POST',
-        body: data,
-      });
+      await apiRequest('POST', '/api/auth/register-store', data);
     },
     onSuccess: () => {
       toast({
