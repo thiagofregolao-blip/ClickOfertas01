@@ -644,22 +644,7 @@ export default function StoresGallery() {
               
               {/* Stories à direita */}
               <div className="flex-1 min-w-0">
-                {/* Texto convidativo - apenas no desktop */}
-                {!isMobile && (
-                  <div className="px-4 pt-4 pb-2">
-                    <h2 className="text-lg font-semibold text-gray-800 text-center">
-                      🏪 Explore nossas lojas parceiras e descubra ofertas incríveis!
-                    </h2>
-                  </div>
-                )}
-                
-                {isMobile ? (
-                  // Layout Mobile - Scroll horizontal
-                  <div className="flex items-start gap-2 overflow-x-auto scrollbar-hide pt-8">
-                ) : (
-                  // Layout Desktop - Grid 4 colunas
-                  <div className="grid grid-cols-4 gap-4 justify-items-center pt-4 px-4">
-                )}
+                <div className="flex items-start gap-2 overflow-x-auto scrollbar-hide pt-8">
               
               {/* Botão criar story (se autenticado) - PRIMEIRO */}
               {isAuthenticated && (
