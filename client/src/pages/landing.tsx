@@ -50,27 +50,27 @@ export default function Landing() {
             </div>
 
             {/* Descrição do que somos */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6 border border-white/20">
-              <h3 className="text-base sm:text-lg font-bold mb-2 text-yellow-300">Quem Somos</h3>
-              <p className="text-xs sm:text-sm text-white/95 leading-relaxed mb-3">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 border border-white/20">
+              <h3 className="text-lg sm:text-xl font-bold mb-3 text-yellow-300">Quem Somos</h3>
+              <p className="text-sm sm:text-base text-white/95 leading-relaxed mb-4">
                 Conectamos você às <strong>melhores lojas do Paraguai</strong> com ofertas exclusivas, 
                 cupons digitais e comparação de preços inteligente.
               </p>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 bg-yellow-300 rounded-full"></div>
+              <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
                   <span>Ofertas verificadas</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 bg-yellow-300 rounded-full"></div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
                   <span>Cupons exclusivos</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 bg-yellow-300 rounded-full"></div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
                   <span>Comparação BR vs PY</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 bg-yellow-300 rounded-full"></div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
                   <span>Lojas confiáveis</span>
                 </div>
               </div>
