@@ -400,7 +400,7 @@ export default function StoresGallery() {
             </div>
             
             {/* Barra de Busca */}
-            <div className="flex-1 max-w-md">
+            <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
@@ -816,7 +816,7 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
   onProductSelect: (product: Product, store: StoreWithProducts) => void
 }) {
   return (
-    <div className={`mx-auto ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
+    <div className={`mx-auto px-4 ${isMobile ? 'max-w-full' : 'max-w-4xl'}`}>
         {searchQuery.trim() ? (
           // Layout de Busca Compacto
           searchResults.length === 0 ? (
