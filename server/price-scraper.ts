@@ -306,88 +306,77 @@ function filterAndLimitResults(results: InsertBrazilianPrice[]): InsertBrazilian
   return finalResults;
 }
 
-// Função para buscar no Mercado Livre (API pública)
+// Função para buscar no Mercado Livre (API pública) - IMPLEMENTAÇÃO OFICIAL
 async function searchMercadoLivre(productName: string): Promise<any[]> {
   try {
-    // Melhorar termos de busca para melhor precisão
+    console.log(`🛒 Buscando no Mercado Livre Brasil: ${productName}`);
+    
+    // Criar termos de busca mais eficazes
     const searchTerms = createSmartSearchTerms(productName);
-    console.log(`🛒 Buscando no Mercado Livre: ${productName} (API pública)`);
-    console.log(`🔍 Termos de busca: ${searchTerms.join(', ')}`);
+    console.log(`🔍 Termos otimizados: ${searchTerms.join(', ')}`);
     
-    // Tentar diferentes termos de busca
+    // Tentar cada termo de busca
     for (const searchTerm of searchTerms) {
-      // Usar apenas API pública - mais confiável
-      const url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(searchTerm)}&limit=20`;
+      console.log(`🔍 Testando termo: "${searchTerm}"`);
       
-      console.log(`🔍 Testando: ${searchTerm}`);
+      // URL da API oficial do ML Brasil - sem necessidade de autenticação
+      const url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(searchTerm)}&limit=20&condition=new&sort=relevance`;
       
-      const response = await fetch(url, {
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (compatible; ClickOfertasBot/1.0)'
-        },
-        timeout: 10000
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        const results = data.results || [];
-        console.log(`✅ Encontrados ${results.length} produtos com termo: "${searchTerm}"`);
-        
-        // Se encontrou resultados válidos, retornar
-        if (results.length > 0) {
-          // Filtrar produtos com preços realistas (entre R$ 50 e R$ 15.000)
-          const filteredResults = results.filter((item: any) => {
-            const price = parseFloat(item.price || 0);
-            return price >= 50 && price <= 15000;
-          });
-          
-          if (filteredResults.length > 0) {
-            console.log(`✅ Produtos filtrados: ${filteredResults.length} com preços realistas`);
-            return filteredResults;
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'ClickOfertasBot/1.0'
           }
-        }
-      } else {
-        const errorText = await response.text();
-        console.log(`⚠️ Erro HTTP ${response.status} para termo: "${searchTerm}" - ${errorText.substring(0, 100)}`);
-      }
-    }
-    
-    // Se nenhum termo funcionou, tentar busca super simples como último recurso
-    console.log(`🔄 Tentando busca simples como último recurso...`);
-    const simpleSearch = productName.split(' ')[0]; // Primeira palavra apenas
-    const simpleUrl = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(simpleSearch)}&limit=10`;
-    
-    const simpleResponse = await fetch(simpleUrl, {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (compatible; ClickOfertasBot/1.0)'
-      }
-    });
-    
-    if (simpleResponse.ok) {
-      const data = await simpleResponse.json();
-      const results = data.results || [];
-      console.log(`✅ Busca simples encontrou ${results.length} produtos`);
-      
-      if (results.length > 0) {
-        const filteredResults = results.filter((item: any) => {
-          const price = parseFloat(item.price || 0);
-          return price >= 50 && price <= 15000;
         });
         
-        if (filteredResults.length > 0) {
-          console.log(`✅ Produtos filtrados da busca simples: ${filteredResults.length}`);
-          return filteredResults;
+        if (response.ok) {
+          const data = await response.json();
+          console.log(`📦 API Response:`, {
+            site_id: data.site_id,
+            query: data.query,
+            total: data.paging?.total || 0,
+            results_count: data.results?.length || 0
+          });
+          
+          const results = data.results || [];
+          
+          if (results.length > 0) {
+            // Filtrar produtos com preços realistas e disponíveis
+            const validResults = results.filter((item: any) => {
+              const price = parseFloat(item.price || 0);
+              const isValidPrice = price >= 50 && price <= 15000;
+              const isAvailable = item.available_quantity > 0;
+              const hasValidTitle = item.title && item.title.length > 5;
+              
+              return isValidPrice && isAvailable && hasValidTitle;
+            });
+            
+            if (validResults.length > 0) {
+              console.log(`✅ Encontrados ${validResults.length} produtos válidos para "${searchTerm}"`);
+              // Logar alguns exemplos para debug
+              validResults.slice(0, 3).forEach((item: any, index: number) => {
+                console.log(`📱 ${index + 1}. ${item.title} - R$ ${item.price} (ID: ${item.id})`);
+              });
+              return validResults;
+            }
+          }
+        } else {
+          const errorText = await response.text();
+          console.log(`⚠️ Erro ${response.status} para "${searchTerm}": ${errorText.substring(0, 200)}`);
         }
+      } catch (fetchError) {
+        console.log(`❌ Erro na requisição para "${searchTerm}":`, fetchError);
       }
     }
     
-    // Se nenhum termo funcionou, usar dados simulados mais realistas
-    console.log(`⚠️ Todas as tentativas falharam, usando dados simulados mais realistas...`);
+    // Se chegou aqui, nenhum termo funcionou
+    console.log(`⚠️ Nenhum termo retornou resultados válidos. Usando dados simulados realistas.`);
     return generateMercadoLivreSimulatedResults(productName);
+    
   } catch (error) {
-    console.error('❌ Erro ao buscar no Mercado Livre:', error);
+    console.error('❌ Erro geral na busca ML:', error);
     return generateMercadoLivreSimulatedResults(productName);
   }
 }
