@@ -391,40 +391,38 @@ export default function StoresGallery() {
       {/* Header Responsivo */}
       <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95 bg-primary">
         <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
-          {/* Logo e Título */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex items-center gap-1">
-              <span className="text-red-500 font-bold text-xl">Click</span>
-              <span className="text-white font-bold text-xl">Ofertas.PY</span>
+          <div className="flex items-center justify-between mb-4">
+            {/* Logo e Título */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <span className="text-red-500 font-bold text-xl">Click</span>
+                <span className="text-white font-bold text-xl">Ofertas.PY</span>
+              </div>
             </div>
-          </div>
-          
-          {/* Barra de Busca no Header */}
-          <div className="flex-1 max-w-md mb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setIsSearchFocused(false)}
-                className="pl-10 pr-10 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
-              />
-              {searchInput && (
-                <button
-                  onClick={() => setSearchInput('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  title="Limpar busca"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
+            {/* Barra de Busca no Header */}
+            <div className="flex-1 max-w-md">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setIsSearchFocused(false)}
+                  className="pl-10 pr-10 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
+                />
+                {searchInput && (
+                  <button
+                    onClick={() => setSearchInput('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Limpar busca"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-          
-          {/* Menu de Navegação */}
-          <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center gap-3">
               {/* Botão de Comparação de Preços */}
               <Link href="/price-comparison">
                 <Button
@@ -534,9 +532,9 @@ export default function StoresGallery() {
         </div>
       </div>
 
+      {/* NOVA BARRA DE INSTAGRAM STORIES - GLOBAL */}
       {!searchQuery.trim() && (
         <div className="bg-white border-b">
-          {/* NOVA BARRA DE INSTAGRAM STORIES - GLOBAL */}
           <div className={`mx-auto py-6 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
               
@@ -552,7 +550,7 @@ export default function StoresGallery() {
                       <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
                         {user?.profileImageUrl ? (
                           <img 
-                            src={user?.profileImageUrl || ''} 
+                            src={user.profileImageUrl} 
                             alt="Meu Perfil"
                             className="w-full h-full rounded-full object-cover"
                             onError={(e) => {
@@ -624,6 +622,7 @@ export default function StoresGallery() {
           </div>
         </div>
       )}
+
 
       {/* Feed Unificado */}
       <UnifiedFeedView 
