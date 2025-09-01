@@ -390,7 +390,7 @@ export default function StoresGallery() {
     <div className="min-h-screen bg-gray-100">
       {/* Header Responsivo */}
       <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95 bg-primary">
-        <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
+        <div className={`mx-auto py-4 ${isMobile ? 'px-4 max-w-2xl' : 'px-8 max-w-7xl'}`}>
           {/* Logo e Barra de Busca na mesma linha */}
           <div className="flex items-center gap-4 mb-4">
             {/* Logo e Título */}
@@ -538,7 +538,7 @@ export default function StoresGallery() {
       {/* NOVA BARRA DE INSTAGRAM STORIES - GLOBAL */}
       {!searchQuery.trim() && (
         <div className="bg-white border-b">
-          <div className={`mx-auto py-6 px-4 ${isMobile ? 'max-w-full' : 'max-w-4xl'}`}>
+          <div className={`mx-auto py-6 ${isMobile ? 'px-4 max-w-full' : 'px-8 max-w-7xl'}`}>
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
               
               {/* Botão criar story (se autenticado) - PRIMEIRO */}
@@ -817,7 +817,7 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
   onProductSelect: (product: Product, store: StoreWithProducts) => void
 }) {
   return (
-    <div className={`mx-auto px-4 ${isMobile ? 'max-w-full' : 'max-w-4xl'}`}>
+    <div className={`mx-auto ${isMobile ? 'px-4 max-w-full' : 'px-8 max-w-7xl'}`}>
         {searchQuery.trim() ? (
           // Layout de Busca Compacto
           searchResults.length === 0 ? (
