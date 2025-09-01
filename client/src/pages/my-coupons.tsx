@@ -200,7 +200,7 @@ export default function MyCoupons() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+      <div className="border-b shadow-sm text-white p-4" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-4">
@@ -239,7 +239,7 @@ export default function MyCoupons() {
               🧹 Excluir Todos (TESTE)
             </Button>
           </div>
-          <p className="text-blue-100 mt-2">
+          <p className="text-white/90 mt-2">
             {coupons.length === 0 ? 'Nenhum cupom encontrado' : `${coupons.length} cupom${coupons.length > 1 ? 's' : ''} disponível${coupons.length > 1 ? 'eis' : ''}`}
           </p>
         </div>

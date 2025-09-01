@@ -165,22 +165,22 @@ export default function UserSettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="border-b shadow-sm sticky top-0 z-10" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setLocation('/cards')}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-white hover:bg-white/10"
               data-testid="button-back"
             >
               <ArrowLeft className="w-4 h-4" />
               Voltar
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Configurações do Perfil</h1>
-              <p className="text-sm text-gray-600">Gerencie suas informações pessoais</p>
+              <h1 className="text-2xl font-bold text-white">Configurações do Perfil</h1>
+              <p className="text-sm text-white/90">Gerencie suas informações pessoais</p>
             </div>
           </div>
         </div>

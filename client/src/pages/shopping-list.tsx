@@ -224,17 +224,17 @@ export default function ShoppingList() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="border-b shadow-sm" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
+        <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <ShoppingCart className="h-7 w-7 text-blue-600" />
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <ShoppingCart className="h-7 w-7 text-white" />
                 Lista de Compras
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-white/90 mt-1">
                 {savedProducts.length} produto{savedProducts.length !== 1 ? 's' : ''} em {groupedProducts.length} loja{groupedProducts.length !== 1 ? 's' : ''}
               </p>
             </div>
@@ -243,13 +243,18 @@ export default function ShoppingList() {
               <Button 
                 onClick={generatePDF}
                 disabled={isGeneratingPDF}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-white hover:bg-gray-100 text-gray-900 border border-white/20"
               >
                 <Download className="h-4 w-4 mr-2" />
                 {isGeneratingPDF ? 'Gerando...' : 'Baixar PDF'}
               </Button>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto p-4">
+        <div className="mb-6">
 
           {/* Resumo */}
           {savedProducts.length > 0 && (
