@@ -107,7 +107,7 @@ export async function setupOAuthProviders(app: Express) {
   app.get('/api/auth/google/callback',
     passport.authenticate('google', { failureRedirect: '/?error=google_auth_failed' }),
     (req, res) => {
-      res.redirect('/admin');
+      res.redirect('/api/auth/redirect');
     }
   );
 
@@ -119,7 +119,7 @@ export async function setupOAuthProviders(app: Express) {
   app.get('/api/auth/apple/callback',
     passport.authenticate('apple', { failureRedirect: '/?error=apple_auth_failed' }),
     (req, res) => {
-      res.redirect('/admin');
+      res.redirect('/api/auth/redirect');
     }
   );
 
