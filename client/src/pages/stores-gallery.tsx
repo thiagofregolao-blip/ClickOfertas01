@@ -632,14 +632,19 @@ export default function StoresGallery() {
         </div>
       </div>
 
-      {/* SEÇÃO DE BANNERS - Apenas quando não há busca ativa */}
-      {!searchQuery.trim() && <BannerSection />}
-
-      {/* NOVA BARRA DE INSTAGRAM STORIES - GLOBAL */}
+      {/* SEÇÃO DE BANNERS + STORIES LADO A LADO */}
       {!searchQuery.trim() && (
         <div className="bg-white border-b">
-          <div className={`mx-auto py-6 ${isMobile ? 'px-4 max-w-full' : 'px-12 max-w-6xl'}`}>
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+          <div className={`mx-auto ${isMobile ? 'px-4 max-w-full' : 'px-12 max-w-6xl'}`}>
+            <div className="flex gap-4 py-6">
+              {/* Banner à esquerda */}
+              <div className="flex-shrink-0">
+                <BannerSection />
+              </div>
+              
+              {/* Stories à direita */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
               
               {/* Botão criar story (se autenticado) - PRIMEIRO */}
               {isAuthenticated && (
@@ -721,6 +726,8 @@ export default function StoresGallery() {
                   </div>
                 </div>
               ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
