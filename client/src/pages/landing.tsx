@@ -42,7 +42,7 @@ export default function Landing() {
       <div className="flex-1 bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 relative overflow-hidden">
 
         {/* Conteúdo promocional central */}
-        <div className="flex items-center justify-start h-full p-8 lg:p-16 lg:pl-64">
+        <div className="flex items-end justify-start h-full p-8 lg:p-16 lg:pl-64 pb-32">
           <div className="text-center text-white max-w-lg">
             {/* Título principal */}
             <div className="mb-8">
