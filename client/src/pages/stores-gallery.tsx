@@ -343,7 +343,7 @@ export default function StoresGallery() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen bg-white">
         {/* Header */}
         <div className="bg-white border-b sticky top-0 z-50">
           <div className="max-w-2xl mx-auto px-4 py-4">
@@ -378,7 +378,7 @@ export default function StoresGallery() {
 
   if (!stores || stores.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Nenhuma loja encontrada</h2>
           <p className="text-gray-600">Ainda não há panfletos disponíveis.</p>
@@ -388,7 +388,7 @@ export default function StoresGallery() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       {/* Header Responsivo */}
       <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
         <div className={`mx-auto py-4 ${isMobile ? 'px-4 max-w-2xl' : 'px-12 max-w-6xl'}`}>
