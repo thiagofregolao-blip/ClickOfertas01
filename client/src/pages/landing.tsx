@@ -6,7 +6,7 @@ import { useState } from "react";
 
 /**
  * Página de Aterrissagem - Click Ofertas Paraguai
- * Design inspirado na Shopee - Split screen com área promocional e login
+ * Design inspirado na Shopee - Área laranja com formulário sobreposto
  */
 export default function Landing() {
   const { versionName, version } = useAppVersion();
@@ -38,10 +38,7 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Conteúdo principal split-screen */}
-      <div className="flex-1 flex flex-col lg:flex-row">
-
-      {/* Lado Esquerdo - Área Promocional (estilo Shopee) */}
+      {/* Área Promocional de fundo (estilo Shopee) */}
       <div className="flex-1 bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 relative overflow-hidden">
 
         {/* Conteúdo promocional central */}
@@ -93,97 +90,96 @@ export default function Landing() {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Lado Direito - Formulário de Login */}
-      <div className="w-full lg:w-96 bg-white flex flex-col justify-center p-8 lg:p-12">
-        <div className="w-full max-w-sm mx-auto">
-          {/* Título do formulário */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Entre</h2>
-          </div>
-
-          {/* Formulário */}
-          <div className="space-y-4">
-            {/* Campo de usuário/email */}
-            <div>
-              <Input 
-                placeholder="Número de telefone/Nome do usuário/Email"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                data-testid="input-login"
-              />
+        {/* Formulário de Login Sobreposto */}
+        <div className="absolute top-1/2 right-8 lg:right-16 transform -translate-y-1/2 w-80 lg:w-96 bg-white rounded-xl shadow-2xl p-6 lg:p-8">
+          <div className="w-full">
+            {/* Título do formulário */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Entre</h2>
             </div>
 
-            {/* Campo de senha */}
-            <div className="relative">
-              <Input 
-                type="password"
-                placeholder="Senha"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                data-testid="input-password"
-              />
-            </div>
-
-            {/* Botão de entrar */}
-            <Button 
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
-              data-testid="button-login"
-            >
-              ENTRE
-            </Button>
-
-            {/* Links auxiliares */}
-            <div className="flex justify-between text-sm">
-              <Button variant="link" className="p-0 h-auto text-orange-500">
-                Esqueci minha senha
-              </Button>
-              <Button variant="link" className="p-0 h-auto text-orange-500">
-                Fazer login com SMS
-              </Button>
-            </div>
-
-            {/* Divisor */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+            {/* Formulário */}
+            <div className="space-y-4">
+              {/* Campo de usuário/email */}
+              <div>
+                <Input 
+                  placeholder="Número de telefone/Nome do usuário/Email"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  data-testid="input-login"
+                />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">OU</span>
+
+              {/* Campo de senha */}
+              <div className="relative">
+                <Input 
+                  type="password"
+                  placeholder="Senha"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  data-testid="input-password"
+                />
               </div>
-            </div>
 
-            {/* Botões de login social */}
-            <div className="space-y-3">
+              {/* Botão de entrar */}
               <Button 
-                variant="outline"
-                className="w-full border-gray-300 py-3 rounded-lg font-medium flex items-center justify-center space-x-2"
-                data-testid="button-facebook"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
+                data-testid="button-login"
               >
-                <div className="w-5 h-5 bg-blue-600 rounded"></div>
-                <span>Facebook</span>
+                ENTRE
               </Button>
-              
-              <Button 
-                variant="outline"
-                onClick={() => window.location.href = '/api/login'}
-                className="w-full border-gray-300 py-3 rounded-lg font-medium flex items-center justify-center space-x-2"
-                data-testid="button-google"
-              >
-                <Globe className="w-5 h-5 text-red-500" />
-                <span>Google</span>
-              </Button>
-            </div>
 
-            {/* Link para cadastro */}
-            <div className="text-center mt-8">
-              <span className="text-gray-600">Novo na Click Ofertas? </span>
-              <Button variant="link" className="p-0 h-auto text-orange-500 font-medium">
-                Cadastrar
-              </Button>
+              {/* Links auxiliares */}
+              <div className="flex justify-between text-sm">
+                <Button variant="link" className="p-0 h-auto text-orange-500">
+                  Esqueci minha senha
+                </Button>
+                <Button variant="link" className="p-0 h-auto text-orange-500">
+                  Fazer login com SMS
+                </Button>
+              </div>
+
+              {/* Divisor */}
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">OU</span>
+                </div>
+              </div>
+
+              {/* Botões de login social */}
+              <div className="space-y-3">
+                <Button 
+                  variant="outline"
+                  className="w-full border-gray-300 py-3 rounded-lg font-medium flex items-center justify-center space-x-2"
+                  data-testid="button-facebook"
+                >
+                  <div className="w-5 h-5 bg-blue-600 rounded"></div>
+                  <span>Facebook</span>
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  onClick={() => window.location.href = '/api/login'}
+                  className="w-full border-gray-300 py-3 rounded-lg font-medium flex items-center justify-center space-x-2"
+                  data-testid="button-google"
+                >
+                  <Globe className="w-5 h-5 text-red-500" />
+                  <span>Google</span>
+                </Button>
+              </div>
+
+              {/* Link para cadastro */}
+              <div className="text-center mt-6">
+                <span className="text-gray-600">Novo na Click Ofertas? </span>
+                <Button variant="link" className="p-0 h-auto text-orange-500 font-medium">
+                  Cadastrar
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );
