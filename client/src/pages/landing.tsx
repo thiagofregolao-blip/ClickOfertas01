@@ -95,20 +95,20 @@ export default function Landing() {
         </div>
 
         {/* Formulário de Login Sobreposto */}
-        <div className="absolute top-1/2 right-2 sm:right-4 lg:right-48 transform -translate-y-1/2 w-72 sm:w-80 lg:w-96 bg-white rounded-xl shadow-2xl p-4 sm:p-6 lg:p-8">
+        <div className="absolute top-1/2 right-2 sm:right-4 lg:right-48 transform -translate-y-1/2 w-64 sm:w-80 lg:w-96 bg-white rounded-xl shadow-2xl p-3 sm:p-6 lg:p-8">
           <div className="w-full">
             {/* Título do formulário */}
-            <div className="mb-4 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Entre</h2>
+            <div className="mb-3 sm:mb-6">
+              <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2">Entre</h2>
             </div>
 
             {/* Formulário */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {/* Campo de usuário/email */}
               <div>
                 <Input 
                   placeholder="Email/Telefone/Usuário"
-                  className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm sm:text-base"
+                  className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-xs sm:text-base"
                   data-testid="input-login"
                 />
               </div>
@@ -118,7 +118,7 @@ export default function Landing() {
                 <Input 
                   type="password"
                   placeholder="Senha"
-                  className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm sm:text-base"
+                  className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-xs sm:text-base"
                   data-testid="input-password"
                 />
               </div>
@@ -126,7 +126,7 @@ export default function Landing() {
               {/* Botão de entrar */}
               <Button 
                 onClick={() => window.location.href = '/api/login'}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 sm:py-3 rounded-lg font-medium text-xs sm:text-base"
                 data-testid="button-login"
               >
                 ENTRE
@@ -143,7 +143,7 @@ export default function Landing() {
               </div>
 
               {/* Divisor */}
-              <div className="relative my-4 sm:my-6">
+              <div className="relative my-3 sm:my-6">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300"></div>
                 </div>
@@ -153,29 +153,29 @@ export default function Landing() {
               </div>
 
               {/* Botões de login social */}
-              <div className="space-y-2 sm:space-y-3">
+              <div className="space-y-2">
                 <Button 
                   variant="outline"
-                  className="w-full border-gray-300 py-2 sm:py-3 rounded-lg font-medium flex items-center justify-center space-x-2 text-sm sm:text-base"
+                  className="w-full border-gray-300 py-2 sm:py-3 rounded-lg font-medium flex items-center justify-center space-x-2 text-xs sm:text-base"
                   data-testid="button-facebook"
                 >
-                  <div className="w-4 sm:w-5 h-4 sm:h-5 bg-blue-600 rounded"></div>
+                  <div className="w-3 sm:w-5 h-3 sm:h-5 bg-blue-600 rounded"></div>
                   <span>Facebook</span>
                 </Button>
                 
                 <Button 
                   variant="outline"
                   onClick={() => window.location.href = '/api/login'}
-                  className="w-full border-gray-300 py-2 sm:py-3 rounded-lg font-medium flex items-center justify-center space-x-2 text-sm sm:text-base"
+                  className="w-full border-gray-300 py-2 sm:py-3 rounded-lg font-medium flex items-center justify-center space-x-2 text-xs sm:text-base"
                   data-testid="button-google"
                 >
-                  <Globe className="w-4 sm:w-5 h-4 sm:h-5 text-red-500" />
+                  <Globe className="w-3 sm:w-5 h-3 sm:h-5 text-red-500" />
                   <span>Google</span>
                 </Button>
               </div>
 
               {/* Link para cadastro */}
-              <div className="text-center mt-4 sm:mt-6">
+              <div className="text-center mt-3 sm:mt-6">
                 <span className="text-gray-600 text-xs sm:text-sm">Novo na Click Ofertas? </span>
                 <Button 
                   variant="link" 
