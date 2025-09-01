@@ -210,9 +210,14 @@ export default function PriceComparisonPopup({
               {/* Lista de Preços Brasileiros */}
               {comparisonData.brazilianPrices.length > 0 && (
                 <div>
-                  <h4 className="font-semibold text-gray-800 mb-3">
-                    Preços encontrados no Brasil ({comparisonData.brazilianPrices.length} lojas):
-                  </h4>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-semibold text-gray-800">
+                      Preços encontrados no Brasil ({comparisonData.brazilianPrices.length} lojas):
+                    </h4>
+                    <p className="text-sm text-gray-500">
+                      👆 Clique em "Ver no ML" para verificar o produto
+                    </p>
+                  </div>
                   <div className="grid gap-3 max-h-96 overflow-y-auto">
                     {comparisonData.brazilianPrices.map((price, index) => (
                       <Card key={index} className="border-gray-200">
@@ -235,11 +240,12 @@ export default function PriceComparisonPopup({
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
-                                  className="mt-1"
+                                  className="mt-1 text-blue-600 border-blue-600 hover:bg-blue-50"
                                   onClick={() => window.open(price.productUrl, '_blank')}
+                                  data-testid={`link-product-${index}`}
                                 >
                                   <ExternalLink className="w-3 h-3 mr-1" />
-                                  Ver
+                                  Ver no ML
                                 </Button>
                               )}
                             </div>

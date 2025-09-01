@@ -116,7 +116,7 @@ function createSmartSearchTerms(productName: string): string[] {
     searchTerms.push(detectedBrand);
   }
   
-  return [...new Set(searchTerms)]; // Remover duplicatas
+  return Array.from(new Set(searchTerms)); // Remover duplicatas
 }
 
 // Função para extrair marca e modelo do nome do produto
@@ -303,17 +303,28 @@ async function searchMercadoLivre(productName: string): Promise<any[]> {
     
     // Tentar diferentes termos de busca
     for (const searchTerm of searchTerms) {
+      // Usar API pública sem Client ID primeiro, depois tentar com Client ID se falhar
       let url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(searchTerm)}&limit=20&condition=new`;
-      if (clientId) {
-        url += `&client_id=${clientId}`;
-      }
       
-      const response = await fetch(url, {
+      // Primeiro tentar sem Client ID (API pública)
+      let response = await fetch(url, {
         headers: {
           'Accept': 'application/json',
           'User-Agent': 'ClickOfertasParaguai/1.0'
         }
       });
+      
+      // Se falhar e temos Client ID, tentar com Client ID
+      if (!response.ok && clientId) {
+        console.log(`🔄 Tentando com Client ID após erro ${response.status}...`);
+        url += `&client_id=${clientId}`;
+        response = await fetch(url, {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'ClickOfertasParaguai/1.0'
+          }
+        });
+      }
       
       if (response.ok) {
         const data = await response.json();
@@ -504,8 +515,8 @@ export async function savePriceHistory(brazilianPrices: InsertBrazilianPrice[]):
       mlItemId: null, // Seria ideal ter o ID do ML, mas vamos usar nome por enquanto
       storeName: price.storeName,
       price: price.price,
-      currency: price.currency,
-      availability: price.availability,
+      currency: price.currency || 'BRL',
+      availability: price.availability || 'unknown',
       productUrl: price.productUrl,
       freeShipping: false, // Seria extraído do resultado do ML
       condition: 'new', // Assumir novo por padrão
@@ -526,8 +537,7 @@ export async function getPriceHistory(productName: string, days: number = 30): P
   try {
     const history = await db.select()
       .from(priceHistory)
-      .where(sql`${priceHistory.productName} ILIKE ${`%${productName}%`}`)
-      .where(sql`${priceHistory.recordedAt} >= NOW() - INTERVAL '${days} days'`)
+      .where(sql`${priceHistory.productName} ILIKE ${`%${productName}%`} AND ${priceHistory.recordedAt} >= NOW() - INTERVAL '${days} days'`)
       .orderBy(sql`${priceHistory.recordedAt} DESC`);
 
     console.log(`📈 Histórico encontrado: ${history.length} registros para "${productName}"`);
