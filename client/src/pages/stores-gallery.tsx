@@ -458,7 +458,7 @@ export default function StoresGallery() {
                         onClick={(e) => {
                           e.stopPropagation();
                           setIsUserMenuOpen(false);
-                          window.location.href = '/api/auth/logout?redirect_uri=/cards';
+                          window.location.href = '/api/auth/logout';
                         }}
                         className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-red-600"
                         data-testid="button-user-logout"
@@ -514,7 +514,7 @@ export default function StoresGallery() {
                     </button>
                     
                     <button
-                      onClick={() => window.location.href = '/api/auth/logout?redirect_uri=/cards'}
+                      onClick={() => window.location.href = '/api/auth/logout'}
                       className="text-red-300 hover:text-red-100 font-medium flex items-center gap-1 text-sm"
                       data-testid="button-user-logout"
                     >
