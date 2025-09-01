@@ -91,9 +91,32 @@ function extractDomainFromUrl(url: string): string {
 export function normalizeProductName(productName: string): string {
   return productName
     .toLowerCase()
-    .replace(/[^\w\s]/g, ' ') // Remove caracteres especiais
+    // Remover apenas alguns caracteres especiais, manter hífens e números
+    .replace(/[^\w\s\-]/g, ' ') 
     .replace(/\s+/g, ' ') // Remove espaços extras
     .trim();
+}
+
+// Função para criar termos de busca mais inteligentes
+function createSmartSearchTerms(productName: string): string[] {
+  const normalized = normalizeProductName(productName);
+  const words = normalized.split(' ').filter(word => word.length > 2);
+  
+  // Criar diferentes combinações de busca
+  const searchTerms = [
+    normalized, // Nome completo
+    words.slice(0, 3).join(' '), // Primeiras 3 palavras
+    words.slice(0, 2).join(' '), // Primeiras 2 palavras
+  ];
+  
+  // Adicionar marca se detectada
+  const brands = ['apple', 'samsung', 'xiaomi', 'motorola', 'lg', 'sony', 'dell', 'hp', 'asus'];
+  const detectedBrand = words.find(word => brands.includes(word));
+  if (detectedBrand) {
+    searchTerms.push(detectedBrand);
+  }
+  
+  return [...new Set(searchTerms)]; // Remover duplicatas
 }
 
 // Função para extrair marca e modelo do nome do produto
@@ -273,30 +296,51 @@ async function searchMercadoLivre(productName: string): Promise<any[]> {
   try {
     const clientId = process.env.MERCADOLIVRE_CLIENT_ID;
     
-    // URL com Client ID para melhor acesso à API
-    let url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(productName)}&limit=20`;
-    if (clientId) {
-      url += `&client_id=${clientId}`;
-    }
-    
+    // Melhorar termos de busca para melhor precisão
+    const searchTerms = createSmartSearchTerms(productName);
     console.log(`🛒 Buscando no Mercado Livre: ${productName} ${clientId ? '(com Client ID)' : '(sem Client ID)'}`);
+    console.log(`🔍 Termos de busca: ${searchTerms.join(', ')}`);
     
-    const response = await fetch(url, {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'ClickOfertasParaguai/1.0'
+    // Tentar diferentes termos de busca
+    for (const searchTerm of searchTerms) {
+      let url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(searchTerm)}&limit=20&condition=new`;
+      if (clientId) {
+        url += `&client_id=${clientId}`;
       }
-    });
-    
-    if (!response.ok) {
-      console.log(`⚠️ Erro HTTP ${response.status}, usando dados simulados realistas...`);
-      return generateMercadoLivreSimulatedResults(productName);
+      
+      const response = await fetch(url, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'ClickOfertasParaguai/1.0'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const results = data.results || [];
+        console.log(`✅ Encontrados ${results.length} produtos com termo: "${searchTerm}"`);
+        
+        // Se encontrou resultados válidos, retornar
+        if (results.length > 0) {
+          // Filtrar produtos com preços realistas (entre R$ 50 e R$ 15.000)
+          const filteredResults = results.filter((item: any) => {
+            const price = parseFloat(item.price || 0);
+            return price >= 50 && price <= 15000;
+          });
+          
+          if (filteredResults.length > 0) {
+            console.log(`✅ Produtos filtrados: ${filteredResults.length} com preços realistas`);
+            return filteredResults;
+          }
+        }
+      } else {
+        console.log(`⚠️ Erro HTTP ${response.status} para termo: "${searchTerm}"`);
+      }
     }
     
-    const data = await response.json();
-    console.log(`✅ Encontrados ${data.results?.length || 0} produtos no Mercado Livre`);
-    
-    return data.results || [];
+    // Se nenhum termo funcionou, usar dados simulados mais realistas
+    console.log(`⚠️ Nenhum termo encontrou resultados válidos, usando dados simulados...`);
+    return generateMercadoLivreSimulatedResults(productName);
   } catch (error) {
     console.error('❌ Erro ao buscar no Mercado Livre:', error);
     return generateMercadoLivreSimulatedResults(productName);
@@ -310,22 +354,36 @@ function generateMercadoLivreSimulatedResults(productName: string): any[] {
   const baseProduct = productName.toLowerCase();
   const isIphone = baseProduct.includes('iphone');
   const isSamsung = baseProduct.includes('samsung') || baseProduct.includes('galaxy');
+  const isNotebook = baseProduct.includes('notebook') || baseProduct.includes('laptop');
+  const isPerfume = baseProduct.includes('perfume') || baseProduct.includes('fragrance');
+  const isGeneral = !isIphone && !isSamsung && !isNotebook && !isPerfume;
   
-  // Preços base realistas para diferentes categorias
+  // Preços base MUITO mais realistas para diferentes categorias
   let basePrices: number[] = [];
   
   if (isIphone) {
-    basePrices = [6500, 7200, 8900, 9500, 10200]; // Preços típicos iPhone no ML
+    basePrices = [2800, 3500, 4200, 5500, 6800]; // iPhones mais realistas
   } else if (isSamsung) {
-    basePrices = [4500, 5800, 6700, 7900, 8500]; // Preços típicos Samsung no ML
+    basePrices = [800, 1200, 1800, 2500, 3200]; // Samsung mais acessível
+  } else if (isNotebook) {
+    basePrices = [1800, 2200, 2800, 3500, 4200]; // Notebooks realistas
+  } else if (isPerfume) {
+    basePrices = [120, 180, 280, 380, 520]; // Perfumes realistas
   } else {
-    basePrices = [3500, 4200, 5500, 6800, 7500]; // Outros smartphones
+    basePrices = [60, 120, 220, 350, 480]; // Produtos gerais mais baratos
   }
+  
+  // Gerar variações mais realistas
+  const variants = isIphone ? ['64GB', '128GB', '256GB', 'Pro', 'Pro Max'] :
+                  isSamsung ? ['64GB', '128GB', 'A15', 'A25', 'S24'] :
+                  isNotebook ? ['i3 8GB', 'i5 8GB', 'i5 16GB', 'i7 16GB', 'i7 32GB'] :
+                  isPerfume ? ['50ml', '100ml', '125ml', '150ml', '200ml'] :
+                  ['Básico', 'Intermediário', 'Avançado', 'Premium', 'Deluxe'];
   
   return basePrices.map((price, index) => ({
     id: `ML${Date.now()}${index}`,
-    title: `${productName} ${['128GB', '256GB', '512GB', '1TB', 'Pro'][index] || ''}`,
-    price: price + (Math.random() * 500 - 250), // Variação realista
+    title: `${productName} ${variants[index] || ''}`,
+    price: Math.round(price + (Math.random() * 100 - 50)), // Variação muito menor e mais realista
     permalink: `https://produto.mercadolivre.com.br/MLB-${Date.now()}${index}`,
     thumbnail: '',
     available_quantity: Math.floor(Math.random() * 10) + 1,
@@ -367,10 +425,12 @@ export async function scrapeBrazilianPrices(productName: string): Promise<Insert
     // Buscar no Mercado Livre
     let mercadoLivreResults = await searchMercadoLivre(productName);
     
-    // Se não conseguir dados reais, usar simulados
+    // PRIORIZAR API REAL: só usar simulados se realmente necessário
     if (mercadoLivreResults.length === 0) {
       console.log('⚠️ API indisponível, usando dados simulados realistas...');
       mercadoLivreResults = generateMercadoLivreSimulatedResults(productName);
+    } else {
+      console.log(`✅ Usando dados REAIS da API do Mercado Livre: ${mercadoLivreResults.length} produtos`);
     }
     
     // Converter resultados para nosso formato
