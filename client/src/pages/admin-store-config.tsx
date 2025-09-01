@@ -58,6 +58,7 @@ export default function AdminStoreConfig() {
   const { data: store, isLoading: storeLoading } = useQuery<Store>({
     queryKey: ["/api/stores/me"],
     retry: false,
+    enabled: !isCreating, // Só busca store se não estiver criando
   });
 
   const form = useForm<StoreFormData>({
@@ -104,10 +105,14 @@ export default function AdminStoreConfig() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/stores/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Sucesso!",
-        description: "Configurações da loja salvas com sucesso",
+        description: isCreating ? "Loja criada com sucesso!" : "Configurações salvas com sucesso",
       });
+      if (isCreating) {
+        window.location.href = "/admin";
+      }
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
