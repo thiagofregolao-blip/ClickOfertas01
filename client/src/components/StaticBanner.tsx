@@ -43,8 +43,9 @@ export function StaticBanner({ banner, className = '' }: StaticBannerProps) {
         style={{
           backgroundColor: banner.backgroundColor,
           backgroundImage: `url(${banner.imageUrl})`,
-          backgroundSize: 'cover',
+          backgroundSize: 'contain',
           backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
         }}
         onClick={() => handleBannerClick(banner)}
         data-testid={`static-banner-${banner.id}`}

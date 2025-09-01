@@ -84,8 +84,9 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
         style={{
           backgroundColor: currentBanner.backgroundColor,
           backgroundImage: `url(${currentBanner.imageUrl})`,
-          backgroundSize: 'cover',
+          backgroundSize: 'contain',
           backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
         }}
         onClick={() => handleBannerClick(currentBanner)}
         data-testid={`banner-carousel-${currentBanner.id}`}
