@@ -49,26 +49,7 @@ export function StaticBanner({ banner, className = '' }: StaticBannerProps) {
         onClick={() => handleBannerClick(banner)}
         data-testid={`static-banner-${banner.id}`}
       >
-        {/* Overlay para melhor legibilidade do texto */}
-        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
         
-        {/* Conteúdo do banner */}
-        <div className="relative z-10 h-full flex flex-col justify-center px-4">
-          <h3 
-            className="text-sm md:text-lg font-bold mb-1 drop-shadow-md line-clamp-2"
-            style={{ color: banner.textColor }}
-          >
-            {banner.title}
-          </h3>
-          {banner.description && (
-            <p 
-              className="text-xs md:text-sm opacity-90 drop-shadow-md line-clamp-2"
-              style={{ color: banner.textColor }}
-            >
-              {banner.description}
-            </p>
-          )}
-        </div>
       </div>
     </div>
   );

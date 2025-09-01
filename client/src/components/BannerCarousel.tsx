@@ -90,26 +90,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
         onClick={() => handleBannerClick(currentBanner)}
         data-testid={`banner-carousel-${currentBanner.id}`}
       >
-        {/* Overlay para melhor legibilidade do texto */}
-        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
         
-        {/* Conteúdo do banner */}
-        <div className="relative z-10 h-full flex flex-col justify-center px-6">
-          <h3 
-            className="text-lg md:text-xl font-bold mb-1 drop-shadow-md"
-            style={{ color: currentBanner.textColor }}
-          >
-            {currentBanner.title}
-          </h3>
-          {currentBanner.description && (
-            <p 
-              className="text-sm md:text-base opacity-90 drop-shadow-md line-clamp-2"
-              style={{ color: currentBanner.textColor }}
-            >
-              {currentBanner.description}
-            </p>
-          )}
-        </div>
       </div>
 
       {/* Controles de navegação - aparecem no hover */}
