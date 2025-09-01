@@ -108,17 +108,13 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
-  app.get("/api/signup", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"],
-    })(req, res, next);
+  app.get("/api/signup", (req, res) => {
+    res.redirect('/api/login?signup=true');
   });
 
   app.get("/api/callback", (req, res, next) => {
-    const isSignup = req.query.signup === 'true';
     passport.authenticate(`replitauth:${req.hostname}`, {
-      successRedirect: isSignup ? "/cards" : "/api/auth/redirect",
+      successRedirect: "/cards",
       failureRedirect: "/api/login",
     })(req, res, next);
   });
