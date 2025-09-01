@@ -129,16 +129,9 @@ export default function PriceComparison() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="border-b shadow-sm" style={{ backgroundColor: '#21409A' }}>
+      <div className="border-b shadow-sm" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
         <div className="mx-auto max-w-6xl px-4 py-6">
           <div className="text-center">
-            <div className="flex items-center justify-center gap-4 mb-2">
-              <img 
-                src="/attached_assets/ChatGPT Image 30 de ago. de 2025, 17_53_24_1756587354486.png" 
-                alt="Click Ofertas Paraguai" 
-                className="h-16 w-auto"
-              />
-            </div>
             <h1 className="text-xl font-bold text-white mb-2">
               Comparação de Preços Internacional
             </h1>
