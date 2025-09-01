@@ -43,7 +43,7 @@ export default function Landing() {
 
         {/* Conteúdo promocional central */}
         <div className="flex items-center justify-center h-full p-8 lg:p-16">
-          <div className="text-center text-white max-w-lg">
+          <div className="text-center text-white max-w-lg lg:mr-48">
             {/* Título principal */}
             <div className="mb-8">
               <div className="text-6xl lg:text-8xl font-bold mb-4">
