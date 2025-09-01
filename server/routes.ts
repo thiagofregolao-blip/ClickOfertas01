@@ -2019,11 +2019,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Importar o serviço de scraping
-      const { scrapeBrazilianPrices, generateProductSuggestions } = await import('./price-scraper');
+      const { scrapeBrazilianPricesNew } = await import('./new-price-scraper');
+      const { generateProductSuggestions } = await import('./price-scraper');
       
       // Fazer scraping dos preços brasileiros
       console.log(`🔍 Iniciando comparação para: ${paraguayProduct.name}`);
-      const brazilianPrices = await scrapeBrazilianPrices(paraguayProduct.name);
+      const brazilianPrices = await scrapeBrazilianPricesNew(paraguayProduct.name);
       
       // Salvar preços encontrados no banco
       for (const priceData of brazilianPrices) {

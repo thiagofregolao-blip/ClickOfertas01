@@ -1,0 +1,108 @@
+import express from "express";
+import { getJson } from "serpapi";
+import dotenv from "dotenv";
+
+dotenv.config();
+const app = express();
+app.use(express.json());
+
+/**
+ * GET /price-average?q=soja&gl=py&hl=es
+ * q  = termo de busca (obrigatório)
+ * gl = país (default: py). Ex.: br, ar, us...
+ * hl = idioma (default: es)
+ */
+app.get("/price-average", async (req, res) => {
+  try {
+    const q  = (req.query.q || "").toString().trim();
+    const gl = (req.query.gl || "py").toString();
+    const hl = (req.query.hl || "es").toString();
+
+    if (!q) {
+      return res.status(400).json({ error: "Parâmetro 'q' é obrigatório." });
+    }
+
+    // Consulta no Google Shopping via SerpApi
+    const data = await getJson({
+      engine: "google_shopping",
+      q,
+      gl,         // país (geo)
+      hl,         // idioma
+      api_key: process.env.SERPAPI_API_KEY,
+    });
+
+    const items = (data.shopping_results || [])
+      // remove anúncios “shopping_ads” e resultados sem preço
+      .filter(it => !it.position || it.position >= 1)
+      .map(it => {
+        // Preferir extracted_price (numérico). Se não existir, tentar parse de "price".
+        let p = it.extracted_price;
+        if (typeof p !== "number" && typeof it.price === "string") {
+          // tenta extrair dígitos, vírgulas e pontos
+          const raw = it.price.replace(/[^\d.,-]/g, "").replace(/\./g, "").replace(",", ".");
+          const asNum = Number(raw);
+          if (!Number.isNaN(asNum)) p = asNum;
+        }
+        return {
+          title: it.title,
+          source: it.source,       // loja
+          link: it.link,
+          currency: it.currency || null,
+          price: typeof p === "number" ? p : null,
+        };
+      })
+      .filter(it => it.price !== null);
+
+    // Opcional: deduplicar por loja (pega o menor preço por loja)
+    const byStore = new Map();
+    for (const it of items) {
+      const key = (it.source || "").toLowerCase();
+      if (!byStore.has(key) || it.price < byStore.get(key).price) {
+        byStore.set(key, it);
+      }
+    }
+    const cleaned = Array.from(byStore.values());
+
+    if (!cleaned.length) {
+      return res.json({
+        query: q,
+        results: [],
+        currency: null,
+        average_price: null,
+        count: 0,
+        note: "Nenhum preço válido encontrado.",
+      });
+    }
+
+    // Se as moedas divergirem, você pode: (a) filtrar pela moeda majoritária ou (b) converter.
+    // Aqui, vamos filtrar pela moeda mais comum.
+    const currencyCounts = cleaned.reduce((acc, it) => {
+      const c = it.currency || "UNKNOWN";
+      acc[c] = (acc[c] || 0) + 1;
+      return acc;
+    }, {});
+    const dominantCurrency = Object.entries(currencyCounts).sort((a,b) => b[1]-a[1])[0][0];
+    const sameCurrency = cleaned.filter(it => (it.currency || "UNKNOWN") === dominantCurrency);
+
+    const avg =
+      sameCurrency.reduce((sum, it) => sum + it.price, 0) / sameCurrency.length;
+
+    return res.json({
+      query: q,
+      currency: dominantCurrency === "UNKNOWN" ? null : dominantCurrency,
+      average_price: Number(avg.toFixed(2)),
+      count: sameCurrency.length,
+      results: sameCurrency
+        .sort((a, b) => a.price - b.price)
+        .map(({ title, source, link, price, currency }) => ({
+          title, store: source, link, price, currency
+        })),
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Falha ao consultar a SerpApi." });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`API rodando em http://localhost:${PORT}`));

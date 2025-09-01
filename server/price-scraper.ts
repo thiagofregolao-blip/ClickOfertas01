@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid';
 import { db } from './db';
 import { priceHistory } from '@shared/schema';
 import { sql } from 'drizzle-orm';
+import { getJson } from 'serpapi';
 
 // Função para gerar ID único
 function generateId(): string {
