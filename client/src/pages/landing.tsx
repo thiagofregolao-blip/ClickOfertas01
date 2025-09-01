@@ -50,7 +50,7 @@ export default function Landing() {
             </div>
 
             {/* Descrição do que somos */}
-            <div className="bg-white/20 backdrop-blur-md rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6 border border-white/30 shadow-lg">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6 border border-white/20">
               <h3 className="text-base sm:text-lg font-bold mb-2 text-yellow-300">Quem Somos</h3>
               <p className="text-xs sm:text-sm text-white/95 leading-relaxed mb-3">
                 Conectamos você às <strong>melhores lojas do Paraguai</strong> com ofertas exclusivas, 
