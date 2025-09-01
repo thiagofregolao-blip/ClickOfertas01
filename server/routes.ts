@@ -43,11 +43,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims?.sub || req.user.id;
       const user = await storage.getUser(userId);
       
-      // Verifica se o usuário tem uma loja
-      const userStore = await storage.getUserStore(userId);
+      // Verifica se o usuário tem token de lojista
       const userWithStoreInfo = {
         ...user,
-        hasStore: !!userStore
+        hasStore: !!user?.storeOwnerToken
       };
       
       res.json(userWithStoreInfo);
@@ -61,11 +60,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/redirect', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims?.sub || req.user.id;
-      const userStore = await storage.getUserStore(userId);
+      const user = await storage.getUser(userId);
       
-      if (userStore) {
-        // Usuário tem loja - redireciona para cards (galeria)
-        res.redirect('/cards');
+      if (user?.storeOwnerToken) {
+        // Usuário tem token de lojista - redireciona para admin
+        res.redirect('/admin');
       } else {
         // Usuário normal - redireciona para cards
         res.redirect('/cards');

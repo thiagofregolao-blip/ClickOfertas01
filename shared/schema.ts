@@ -42,6 +42,7 @@ export const users = pgTable("users", {
   provider: varchar("provider").default("email"), // 'email', 'google', 'apple', 'replit'
   providerId: varchar("provider_id"),
   isEmailVerified: boolean("is_email_verified").default(false),
+  storeOwnerToken: varchar("store_owner_token"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
