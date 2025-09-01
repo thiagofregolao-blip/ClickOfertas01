@@ -39,7 +39,7 @@ export default function Landing() {
       </div>
 
       {/* Área Promocional de fundo (estilo Shopee) */}
-      <div className="h-[70vh] sm:h-[80vh] lg:h-[85vh] bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 relative overflow-hidden">
+      <div className="h-[70vh] sm:h-[80vh] lg:h-[85vh] relative overflow-hidden" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
 
         {/* Conteúdo promocional central */}
         <div className="flex items-end justify-start h-full p-4 sm:p-8 lg:p-16 lg:pl-64 pb-16 sm:pb-24 lg:pb-32">
