@@ -291,10 +291,18 @@ export class DatabaseStorage implements IStorage {
 
   async createStore(userId: string, storeData: InsertStore): Promise<Store> {
     const slug = this.generateSlug(storeData.name);
+    
+    // Ensure customUsdBrlRate is converted to string if it's a number
+    const processedData = {
+      ...storeData,
+      customUsdBrlRate: storeData.customUsdBrlRate !== undefined ? 
+        String(storeData.customUsdBrlRate) : undefined,
+    };
+    
     const [store] = await db
       .insert(stores)
       .values({
-        ...storeData,
+        ...processedData,
         userId,
         slug,
       })
