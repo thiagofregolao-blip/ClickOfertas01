@@ -534,9 +534,9 @@ export default function StoresGallery() {
         </div>
       </div>
 
-      {/* NOVA BARRA DE INSTAGRAM STORIES - GLOBAL */}
       {!searchQuery.trim() && (
         <div className="bg-white border-b">
+          {/* NOVA BARRA DE INSTAGRAM STORIES - GLOBAL */}
           <div className={`mx-auto py-6 px-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
               
@@ -552,7 +552,7 @@ export default function StoresGallery() {
                       <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
                         {user?.profileImageUrl ? (
                           <img 
-                            src={user.profileImageUrl} 
+                            src={user?.profileImageUrl || ''} 
                             alt="Meu Perfil"
                             className="w-full h-full rounded-full object-cover"
                             onError={(e) => {
@@ -624,7 +624,6 @@ export default function StoresGallery() {
           </div>
         </div>
       )}
-
 
       {/* Feed Unificado */}
       <UnifiedFeedView 
