@@ -560,6 +560,8 @@ export const insertStoreSchema = createInsertSchema(stores).omit({
   userId: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  customUsdBrlRate: z.string().optional().transform(val => val ? Number(val) : undefined)
 });
 
 export const insertProductSchema = createInsertSchema(products).omit({
@@ -571,9 +573,7 @@ export const insertProductSchema = createInsertSchema(products).omit({
   scratchExpiresAt: z.union([z.string(), z.date()]).optional().nullable(),
 });
 
-export const updateStoreSchema = insertStoreSchema.extend({
-  customUsdBrlRate: z.number().optional()
-}).partial();
+export const updateStoreSchema = insertStoreSchema.partial();
 export const updateProductSchema = insertProductSchema.partial();
 
 export const insertSavedProductSchema = createInsertSchema(savedProducts).omit({
