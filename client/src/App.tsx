@@ -69,42 +69,30 @@ function Router() {
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
         </>
-      ) : user?.hasStore ? (
-        // Lojista logado - painel admin + stories
-        <>
-          <Route path="/" component={AdminDashboard} />
-          <Route path="/admin" component={AdminDashboard} />
-          <Route path="/admin/config" component={AdminStoreConfig} />
-          <Route path="/admin/products" component={AdminProducts} />
-          <Route path="/admin/promotions" component={AdminPromotions} />
-          <Route path="/admin/preview" component={AdminPreview} />
-          <Route path="/admin/analytics" component={Analytics} />
-          <Route path="/cards" component={StoresGallery} />
-          <Route path="/stories-feed" component={StoriesFeed} />
-          <Route path="/create-story" component={CreateStory} />
-          <Route path="/price-comparison" component={PriceComparison} />
-          <Route path="/settings" component={UserSettingsPage} />
-          <Route path="/shopping-list" component={ShoppingList} />
-          <Route path="/my-coupons" component={MyCoupons} />
-          <Route path="/coupon" component={CouponDetails} />
-          <Route path="/flyer/:slug" component={PublicFlyer} />
-          <Route path="/stores/:slug" component={PublicFlyer} />
-        </>
       ) : (
-        // Usuário logado sem loja - pode criar loja
+        // Usuário logado - acesso completo
         <>
-          <Route path="/" component={AdminStoreConfig} />
-          <Route path="/create-store" component={AdminStoreConfig} />
+          {/* Rotas principais */}
+          <Route path="/" component={StoresGallery} />
           <Route path="/cards" component={StoresGallery} />
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
           <Route path="/price-comparison" component={PriceComparison} />
+          <Route path="/flyer/:slug" component={PublicFlyer} />
+          <Route path="/stores/:slug" component={PublicFlyer} />
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/my-coupons" component={MyCoupons} />
           <Route path="/coupon" component={CouponDetails} />
-          <Route path="/flyer/:slug" component={PublicFlyer} />
-          <Route path="/stores/:slug" component={PublicFlyer} />
+          
+          {/* Rotas de admin - sempre disponíveis para usuários logados */}
+          <Route path="/admin" component={user?.hasStore ? AdminDashboard : AdminStoreConfig} />
+          <Route path="/admin/config" component={AdminStoreConfig} />
+          <Route path="/admin/products" component={user?.hasStore ? AdminProducts : AdminStoreConfig} />
+          <Route path="/admin/promotions" component={user?.hasStore ? AdminPromotions : AdminStoreConfig} />
+          <Route path="/admin/preview" component={user?.hasStore ? AdminPreview : AdminStoreConfig} />
+          <Route path="/admin/analytics" component={user?.hasStore ? Analytics : AdminStoreConfig} />
+          <Route path="/create-store" component={AdminStoreConfig} />
         </>
       )}
       <Route component={NotFound} />
