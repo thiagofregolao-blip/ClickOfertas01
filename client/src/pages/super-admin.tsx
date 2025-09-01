@@ -75,15 +75,6 @@ export default function SuperAdmin() {
     queryKey: ['/api/admin/banners'],
     enabled: !!user?.isSuperAdmin,
     retry: (failureCount, error) => !isUnauthorizedError(error),
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Acesso negado",
-          description: "Você não tem permissão para acessar os banners.",
-          variant: "destructive",
-        });
-      }
-    },
   });
 
   // Form para criar/editar banner
@@ -104,7 +95,7 @@ export default function SuperAdmin() {
   // Mutation para criar banner
   const createBannerMutation = useMutation({
     mutationFn: async (data: BannerFormData) => {
-      return await apiRequest('/api/admin/banners', 'POST', data);
+      return await apiRequest('POST', '/api/admin/banners', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/banners'] });
@@ -135,7 +126,7 @@ export default function SuperAdmin() {
   // Mutation para atualizar banner
   const updateBannerMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<BannerFormData> & { isActive?: boolean } }) => {
-      return await apiRequest(`/api/admin/banners/${id}`, 'PUT', data);
+      return await apiRequest('PUT', `/api/admin/banners/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/banners'] });
@@ -166,7 +157,7 @@ export default function SuperAdmin() {
   // Mutation para deletar banner
   const deleteBannerMutation = useMutation({
     mutationFn: async (bannerId: string) => {
-      return await apiRequest(`/api/admin/banners/${bannerId}`, 'DELETE');
+      return await apiRequest('DELETE', `/api/admin/banners/${bannerId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/banners'] });
