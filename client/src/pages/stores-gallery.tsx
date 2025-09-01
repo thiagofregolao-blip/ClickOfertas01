@@ -1100,12 +1100,12 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
     // Pegar produtos regulares (não em destaque) 
     const nonFeaturedProducts = filteredProducts.filter(p => !p.isFeatured);
     
-    // 3 produtos aleatórios do restante (com rotação a cada 1 minuto)
+    // 4 produtos aleatórios do restante (com rotação a cada 1 minuto)
     const rotationSeed = getCurrentRotationSeed() + store.id.charCodeAt(0);
-    const randomProducts = getRandomProducts(nonFeaturedProducts, 3, rotationSeed);
+    const randomProducts = getRandomProducts(nonFeaturedProducts, 4, rotationSeed);
     
-    // Combinar: 2 destaque + 3 regulares = 5 produtos total
-    return [...featuredProducts, ...randomProducts].slice(0, 5);
+    // Combinar: 2 destaque + 4 regulares = 6 produtos total
+    return [...featuredProducts, ...randomProducts].slice(0, 6);
   })();
 
   return (
