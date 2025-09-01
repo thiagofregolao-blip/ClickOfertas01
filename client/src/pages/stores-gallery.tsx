@@ -391,7 +391,7 @@ export default function StoresGallery() {
     <div className="min-h-screen bg-white">
       {/* Header Responsivo */}
       <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
-        <div className={`mx-auto py-4 ${isMobile ? 'px-2 max-w-full' : 'px-4 max-w-6xl'}`}>
+        <div className={`mx-auto py-4 ${isMobile ? 'px-1 max-w-full' : 'px-2 max-w-6xl'}`}>
           {/* Menu de Navegação - PRIMEIRO */}
           <div className="flex items-center justify-between gap-3 mb-6">
             
@@ -635,7 +635,7 @@ export default function StoresGallery() {
       {/* SEÇÃO DE BANNERS + STORIES LADO A LADO */}
       {!searchQuery.trim() && (
         <div className="bg-white border-b -mt-2">
-          <div className={`mx-auto ${isMobile ? 'px-2 max-w-full' : 'px-4 max-w-6xl'}`}>
+          <div className={`mx-auto ${isMobile ? 'px-1 max-w-full' : 'px-2 max-w-6xl'}`}>
             <div className="flex gap-4">
               {/* Banner à esquerda */}
               <div className="flex-shrink-0">
@@ -924,7 +924,7 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
   onProductSelect: (product: Product, store: StoreWithProducts) => void
 }) {
   return (
-    <div className={`mx-auto ${isMobile ? 'px-2 max-w-full' : 'px-4 max-w-6xl'}`}>
+    <div className={`mx-auto ${isMobile ? 'px-1 max-w-full' : 'px-2 max-w-6xl'}`}>
         {searchQuery.trim() ? (
           // Layout de Busca Compacto
           searchResults.length === 0 ? (
