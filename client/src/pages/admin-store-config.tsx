@@ -140,7 +140,7 @@ export default function AdminStoreConfig() {
       ...data,
       latitude: data.latitude && data.latitude.trim() ? data.latitude : undefined,
       longitude: data.longitude && data.longitude.trim() ? data.longitude : undefined,
-      customUsdBrlRate: data.customUsdBrlRate && data.customUsdBrlRate.trim() ? Number(data.customUsdBrlRate) : undefined,
+      customUsdBrlRate: data.customUsdBrlRate && data.customUsdBrlRate.trim() ? data.customUsdBrlRate : undefined,
     };
     saveMutation.mutate(payload);
   };

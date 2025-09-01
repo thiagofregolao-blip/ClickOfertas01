@@ -103,8 +103,13 @@ function Router() {
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
           <Route path="/create-store" component={AdminStoreConfig} />
-          {/* Bloqueia acesso ao admin e criação de stories para usuários normais */}
-          <Route path="/admin*" component={NotFound} />
+          <Route path="/admin" component={AdminStoreConfig} />
+          <Route path="/admin/config" component={AdminStoreConfig} />
+          {/* Bloqueia acesso a outras rotas admin para usuários normais */}
+          <Route path="/admin/products" component={NotFound} />
+          <Route path="/admin/promotions" component={NotFound} />
+          <Route path="/admin/preview" component={NotFound} />
+          <Route path="/admin/analytics" component={NotFound} />
           <Route path="/create-story" component={NotFound} />
         </>
       )}
