@@ -391,27 +391,12 @@ export default function StoresGallery() {
       {/* Header Responsivo */}
       <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95 bg-primary">
         <div className={`mx-auto px-4 py-4 ${isMobile ? 'max-w-2xl' : 'max-w-4xl'}`}>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-center mb-4">
             {/* Logo e Título */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1">
-                <span className="text-red-500 font-bold text-xl">Click</span>
-                <span className="text-white font-bold text-xl">Ofertas.PY</span>
-              </div>
+            <div className="flex items-center gap-1">
+              <span className="text-red-500 font-bold text-xl">Click</span>
+              <span className="text-white font-bold text-xl">Ofertas.PY</span>
             </div>
-            
-            {/* Botão de Comparação de Preços */}
-            <Link href="/price-comparison">
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
-                data-testid="button-price-comparison"
-              >
-                <BarChart3 className="w-4 h-4 mr-2" />
-                {isMobile ? "Comparar" : "Comparar Preços"}
-              </Button>
-            </Link>
           </div>
           
           {/* Barra de Busca */}
@@ -440,6 +425,19 @@ export default function StoresGallery() {
           
           {/* Menu de Navegação */}
           <div className="flex items-center gap-3">
+            {/* Botão de Comparação de Preços */}
+            <Link href="/price-comparison">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
+                data-testid="button-price-comparison"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                {isMobile ? "Comparar" : "Comparar Preços"}
+              </Button>
+            </Link>
+            
             {isAuthenticated ? (
               // Usuário logado - mostrar informações e menu
               <div className="relative">
