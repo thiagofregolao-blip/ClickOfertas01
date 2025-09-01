@@ -100,7 +100,7 @@ export default function Landing() {
       </div>
 
       {/* Lado Direito - Formulário de Login */}
-      <div className="flex-1 lg:max-w-md bg-white flex flex-col justify-center p-8 lg:p-12">
+      <div className="w-full lg:w-96 bg-white flex flex-col justify-center p-8 lg:p-12">
         <div className="w-full max-w-sm mx-auto">
           {/* Título do formulário */}
           <div className="mb-8">
