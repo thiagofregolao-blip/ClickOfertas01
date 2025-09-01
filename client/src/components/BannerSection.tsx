@@ -80,14 +80,14 @@ export function BannerSection() {
       <div className="max-w-6xl mx-auto">
         {/* Layout desktop: carousel + banners estáticos lado a lado */}
         <div className="hidden md:flex gap-3">
-          {/* Banner rotativo (900x270px) */}
+          {/* Banner rotativo (790x230px) */}
           {rotatingBanners.length > 0 && (
             <div>
               <BannerCarousel banners={rotatingBanners} />
             </div>
           )}
 
-          {/* Banners estáticos (600x180px cada) */}
+          {/* Banners estáticos (400x110px cada) */}
           <div className="space-y-2">
             {/* Banner estático esquerdo (topo direito) */}
             {staticLeftBanners[0] && (
