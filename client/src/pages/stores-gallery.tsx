@@ -399,134 +399,138 @@ export default function StoresGallery() {
                 <span className="text-white font-bold text-xl">Ofertas.PY</span>
               </div>
             </div>
-            {/* Barra de Busca no Header */}
-            <div className="flex-1 max-w-md">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setIsSearchFocused(false)}
-                  className="pl-10 pr-10 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
-                />
-                {searchInput && (
-                  <button
-                    onClick={() => setSearchInput('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                    title="Limpar busca"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* Botão de Comparação de Preços */}
-              <Link href="/price-comparison">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
-                  data-testid="button-price-comparison"
-                >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  {isMobile ? "Comparar" : "Comparar Preços"}
-                </Button>
-              </Link>
-              {isAuthenticated ? (
-                // Usuário logado - mostrar informações e menu
-                <div className="relative">
-                  <button
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="text-white hover:text-gray-200 font-medium flex items-center gap-2"
-                    data-testid="button-user-menu"
-                  >
-                    <User className="w-5 h-5" />
-                    <span className="text-sm">
-                      Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
-                    </span>
-                    <Settings className="w-4 h-4" />
-                  </button>
-                  
-                  {/* Menu dropdown do usuário */}
-                  {isUserMenuOpen && (
-                    <div className="user-dropdown-menu absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border py-2 z-50">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsUserMenuOpen(false);
-                          setLocation('/settings');
-                        }}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
-                        data-testid="button-user-config"
-                      >
-                        <Settings className="w-4 h-4" />
-                        Configurações
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsUserMenuOpen(false);
-                          setLocation('/shopping-list');
-                        }}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
-                        data-testid="button-shopping-list"
-                      >
-                        <ShoppingCart className="w-4 h-4" />
-                        Lista de Compras
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsUserMenuOpen(false);
-                          setLocation('/my-coupons');
-                        }}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
-                        data-testid="button-my-coupons"
-                      >
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
-                          <line x1="8" y1="2" x2="8" y2="22"/>
-                          <line x1="16" y1="2" x2="16" y2="22"/>
-                        </svg>
-                        Meus Cupons
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsUserMenuOpen(false);
-                          window.location.href = '/api/auth/logout?redirect_uri=/cards';
-                        }}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-red-600"
-                        data-testid="button-user-logout"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        Sair
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                // Usuário não logado - mostrar botão entrar
+            
+            {/* Botão de Comparação de Preços */}
+            <Link href="/price-comparison">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
+                data-testid="button-price-comparison"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                {isMobile ? "Comparar" : "Comparar Preços"}
+              </Button>
+            </Link>
+          </div>
+          
+          {/* Barra de Busca */}
+          <div className="flex-1 max-w-md mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                className="pl-10 pr-10 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
+              />
+              {searchInput && (
                 <button
-                  onClick={() => setIsLoginModalOpen(true)}
-                  className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
-                  data-testid="button-user-login"
+                  onClick={() => setSearchInput('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Limpar busca"
                 >
-                  <User className="w-4 h-4" />
-                  Entrar
+                  <X className="w-4 h-4" />
                 </button>
               )}
-              
-              <button
-                onClick={() => window.location.href = '/'}
-                className="text-white hover:text-gray-200 font-medium"
-              >
-                Início
-              </button>
             </div>
+          </div>
+          
+          {/* Menu de Navegação */}
+          <div className="flex items-center gap-3">
+            {isAuthenticated ? (
+              // Usuário logado - mostrar informações e menu
+              <div className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="text-white hover:text-gray-200 font-medium flex items-center gap-2"
+                  data-testid="button-user-menu"
+                >
+                  <User className="w-5 h-5" />
+                  <span className="text-sm">
+                    Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
+                  </span>
+                  <Settings className="w-4 h-4" />
+                </button>
+                
+                {/* Menu dropdown do usuário */}
+                {isUserMenuOpen && (
+                  <div className="user-dropdown-menu absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border py-2 z-50">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsUserMenuOpen(false);
+                        setLocation('/settings');
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
+                      data-testid="button-user-config"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Configurações
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsUserMenuOpen(false);
+                        setLocation('/shopping-list');
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
+                      data-testid="button-shopping-list"
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                      Lista de Compras
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsUserMenuOpen(false);
+                        setLocation('/my-coupons');
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
+                      data-testid="button-my-coupons"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+                        <line x1="8" y1="2" x2="8" y2="22"/>
+                        <line x1="16" y1="2" x2="16" y2="22"/>
+                      </svg>
+                      Meus Cupons
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsUserMenuOpen(false);
+                        window.location.href = '/api/auth/logout?redirect_uri=/cards';
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                      data-testid="button-user-logout"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sair
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              // Usuário não logado - mostrar botão entrar
+              <button
+                onClick={() => setIsLoginModalOpen(true)}
+                className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
+                data-testid="button-user-login"
+              >
+                <User className="w-4 h-4" />
+                Entrar
+              </button>
+            )}
+            
+            <button
+              onClick={() => window.location.href = '/'}
+              className="text-white hover:text-gray-200 font-medium"
+            >
+              Início
+            </button>
           </div>
           
         </div>
