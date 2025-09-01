@@ -80,20 +80,20 @@ export function BannerSection() {
       <div className="max-w-6xl mx-auto">
         {/* Layout desktop: carousel + banners estáticos lado a lado */}
         <div className="hidden md:flex gap-3">
-          {/* Banner rotativo (largura reduzida) */}
+          {/* Banner rotativo (900x270px) */}
           {rotatingBanners.length > 0 && (
-            <div className="w-3/5">
+            <div>
               <BannerCarousel banners={rotatingBanners} />
             </div>
           )}
 
-          {/* Banners estáticos (lado direito) - proporção exata da imagem */}
-          <div className="w-64 space-y-2">
+          {/* Banners estáticos (600x180px cada) */}
+          <div className="space-y-2">
             {/* Banner estático esquerdo (topo direito) */}
             {staticLeftBanners[0] && (
               <StaticBanner 
                 banner={staticLeftBanners[0]} 
-                className="h-[calc(50%-0.25rem)]" 
+                className="" 
               />
             )}
             
@@ -101,7 +101,7 @@ export function BannerSection() {
             {staticRightBanners[0] && (
               <StaticBanner 
                 banner={staticRightBanners[0]} 
-                className="h-[calc(50%-0.25rem)]" 
+                className="" 
               />
             )}
           </div>
