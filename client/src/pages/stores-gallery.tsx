@@ -444,59 +444,135 @@ export default function StoresGallery() {
           <div className="flex items-center gap-3">
             
             {isAuthenticated ? (
-              // Usuário logado - mostrar informações e menu na mesma linha
-              <div className="flex items-center gap-4">
-                {/* Saudação */}
-                <div className="text-white font-medium flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  <span className="text-sm">
-                    Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
-                  </span>
-                </div>
-                
-                {/* Botões do menu */}
-                <div className="flex items-center gap-2">
+              // Usuário logado - diferentes layouts para mobile e desktop
+              isMobile ? (
+                // Mobile - manter menu dropdown
+                <div className="relative">
                   <button
-                    onClick={() => setLocation('/settings')}
-                    className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
-                    data-testid="button-user-config"
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="text-white hover:text-gray-200 font-medium flex items-center gap-2"
+                    data-testid="button-user-menu"
                   >
+                    <User className="w-5 h-5" />
+                    <span className="text-sm">
+                      Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
+                    </span>
                     <Settings className="w-4 h-4" />
-                    Configurações
                   </button>
                   
-                  <button
-                    onClick={() => setLocation('/shopping-list')}
-                    className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
-                    data-testid="button-shopping-list"
-                  >
-                    <ShoppingCart className="w-4 h-4" />
-                    Lista de Compras
-                  </button>
-                  
-                  <button
-                    onClick={() => setLocation('/my-coupons')}
-                    className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
-                    data-testid="button-my-coupons"
-                  >
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
-                      <line x1="8" y1="2" x2="8" y2="22"/>
-                      <line x1="16" y1="2" x2="16" y2="22"/>
-                    </svg>
-                    Meus Cupons
-                  </button>
-                  
-                  <button
-                    onClick={() => window.location.href = '/api/auth/logout?redirect_uri=/cards'}
-                    className="text-red-300 hover:text-red-100 font-medium flex items-center gap-1 text-sm"
-                    data-testid="button-user-logout"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Sair
-                  </button>
+                  {/* Menu dropdown do usuário */}
+                  {isUserMenuOpen && (
+                    <div className="user-dropdown-menu absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border py-2 z-50">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsUserMenuOpen(false);
+                          setLocation('/settings');
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
+                        data-testid="button-user-config"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Configurações
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsUserMenuOpen(false);
+                          setLocation('/shopping-list');
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
+                        data-testid="button-shopping-list"
+                      >
+                        <ShoppingCart className="w-4 h-4" />
+                        Lista de Compras
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsUserMenuOpen(false);
+                          setLocation('/my-coupons');
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
+                        data-testid="button-my-coupons"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+                          <line x1="8" y1="2" x2="8" y2="22"/>
+                          <line x1="16" y1="2" x2="16" y2="22"/>
+                        </svg>
+                        Meus Cupons
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsUserMenuOpen(false);
+                          window.location.href = '/api/auth/logout?redirect_uri=/cards';
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                        data-testid="button-user-logout"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sair
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </div>
+              ) : (
+                // Desktop - menu na mesma linha
+                <div className="flex items-center gap-4">
+                  {/* Saudação */}
+                  <div className="text-white font-medium flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    <span className="text-sm">
+                      Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
+                    </span>
+                  </div>
+                  
+                  {/* Botões do menu */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setLocation('/settings')}
+                      className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
+                      data-testid="button-user-config"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Configurações
+                    </button>
+                    
+                    <button
+                      onClick={() => setLocation('/shopping-list')}
+                      className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
+                      data-testid="button-shopping-list"
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                      Lista de Compras
+                    </button>
+                    
+                    <button
+                      onClick={() => setLocation('/my-coupons')}
+                      className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
+                      data-testid="button-my-coupons"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+                        <line x1="8" y1="2" x2="8" y2="22"/>
+                        <line x1="16" y1="2" x2="16" y2="22"/>
+                      </svg>
+                      Meus Cupons
+                    </button>
+                    
+                    <button
+                      onClick={() => window.location.href = '/api/auth/logout?redirect_uri=/cards'}
+                      className="text-red-300 hover:text-red-100 font-medium flex items-center gap-1 text-sm"
+                      data-testid="button-user-logout"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sair
+                    </button>
+                  </div>
+                </div>
+              )
             ) : (
               // Usuário não logado - mostrar botão entrar
               <button
