@@ -346,14 +346,36 @@ async function searchGoogleShopping(productName: string): Promise<any[]> {
               .filter((item: any) => {
                 // Usar extracted_price se disponível, senão extrair do campo price
                 const price = item.extracted_price || parseFloat(item.price?.replace(/[^\d.,]/g, '').replace(',', '.') || '0');
-                const isValidPrice = price >= 50 && price <= 25000; // Aumentar limite para produtos caros como iPhone
+                const isValidPrice = price >= 50 && price <= 25000;
                 const hasValidTitle = item.title && item.title.length > 5;
                 const hasValidSource = item.source;
                 
-                // Log para debug
-                console.log(`🔍 Produto: ${item.title?.substring(0, 30)}... - R$ ${price} - Válido: ${isValidPrice && hasValidTitle && hasValidSource}`);
+                // FILTRO PRINCIPAL: Excluir acessórios e buscar apenas o produto principal
+                const title = item.title?.toLowerCase() || '';
+                const isAccessory = title.includes('capa') || title.includes('película') || 
+                                  title.includes('protetor') || title.includes('cabo') || 
+                                  title.includes('adaptador') || title.includes('case') ||
+                                  title.includes('capinha') || title.includes('cover');
                 
-                return isValidPrice && hasValidTitle && hasValidSource;
+                // Verificar se é o produto principal (não acessório)
+                let isMainProduct = true;
+                const searchLower = searchTerm.toLowerCase();
+                
+                if (searchLower.includes('iphone')) {
+                  isMainProduct = !isAccessory && price >= 1000; // iPhone deve custar no mínimo R$ 1000
+                } else if (searchLower.includes('samsung') || searchLower.includes('galaxy')) {
+                  isMainProduct = !isAccessory && price >= 500; // Samsung deve custar no mínimo R$ 500
+                } else if (searchLower.includes('notebook') || searchLower.includes('laptop')) {
+                  isMainProduct = !isAccessory && price >= 800; // Notebook deve custar no mínimo R$ 800
+                } else {
+                  // Para outros produtos, apenas excluir acessórios óbvios
+                  isMainProduct = !isAccessory;
+                }
+                
+                // Log para debug
+                console.log(`🔍 ${item.title?.substring(0, 40)}... - R$ ${price} - Acessório: ${isAccessory} - Principal: ${isMainProduct}`);
+                
+                return isValidPrice && hasValidTitle && hasValidSource && isMainProduct;
               })
               .map((item: any) => {
                 // Usar extracted_price se disponível, senão extrair do campo price
