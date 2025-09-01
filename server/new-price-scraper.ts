@@ -137,13 +137,32 @@ export async function getAveragePrices(productName: string): Promise<{
     const dominantCurrency = Object.entries(currencyCounts).sort((a: any, b: any) => b[1]-a[1])[0][0];
     const sameCurrency = cleaned.filter((it: any) => (it.currency || "UNKNOWN") === dominantCurrency);
 
-    const avg = sameCurrency.reduce((sum: number, it: any) => sum + it.price, 0) / sameCurrency.length;
+    // NOVA REGRA: Excluir 3 menores e 3 maiores preços para ter média mais confiável
+    let pricesForAverage = sameCurrency;
+    
+    if (sameCurrency.length > 6) {
+      // Ordenar por preço
+      const sortedPrices = [...sameCurrency].sort((a: any, b: any) => a.price - b.price);
+      
+      // Remover 3 menores e 3 maiores
+      pricesForAverage = sortedPrices.slice(3, -3);
+      
+      console.log(`📊 Aplicando regra de exclusão de extremos:`);
+      console.log(`📊 Total inicial: ${sameCurrency.length} lojas`);
+      console.log(`📊 Após exclusão: ${pricesForAverage.length} lojas`);
+      console.log(`📊 Removidos: 3 menores (R$ ${sortedPrices.slice(0, 3).map(p => p.price).join(', ')}) + 3 maiores (R$ ${sortedPrices.slice(-3).map(p => p.price).join(', ')})`);
+    } else {
+      console.log(`📊 Poucos resultados (${sameCurrency.length}), usando todos para média`);
+    }
+
+    const avg = pricesForAverage.reduce((sum: number, it: any) => sum + it.price, 0) / pricesForAverage.length;
 
     console.log(`✅ RESULTADO FINAL:`);
-    console.log(`📊 ${sameCurrency.length} lojas encontradas`);
+    console.log(`📊 ${sameCurrency.length} lojas encontradas (${pricesForAverage.length} usadas para média)`);
     console.log(`💰 Preço médio: R$ ${avg.toFixed(2)}`);
     
-    sameCurrency.forEach((item: any, index: number) => {
+    console.log(`🏪 Lojas usadas no cálculo da média:`);
+    pricesForAverage.forEach((item: any, index: number) => {
       console.log(`🏪 ${index + 1}. ${item.source} - R$ ${item.price}`);
     });
 
@@ -151,8 +170,8 @@ export async function getAveragePrices(productName: string): Promise<{
       query: q,
       currency: dominantCurrency === "UNKNOWN" ? null : dominantCurrency,
       average_price: Number(avg.toFixed(2)),
-      count: sameCurrency.length,
-      results: sameCurrency
+      count: pricesForAverage.length, // Usar apenas as lojas consideradas no cálculo
+      results: pricesForAverage
         .sort((a: any, b: any) => a.price - b.price)
         .map(({ title, source, link, price, currency }: any) => ({
           title, store: source, link, price, currency
