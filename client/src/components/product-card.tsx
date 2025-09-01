@@ -1,12 +1,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, Heart, Bookmark } from "lucide-react";
+import { Star, Heart, Bookmark, BarChart3 } from "lucide-react";
 import type { Product } from "@shared/schema";
 import { Likeable } from "@/components/heart-animation";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAuth } from "@/hooks/useAuth";
 import ScratchCard from "./scratch-card";
 import { formatBrazilianPrice } from "@/lib/priceUtils";
+import PriceComparisonPopup from "./price-comparison-popup";
+import { useState } from "react";
 
 
 interface ProductCardProps {
@@ -60,6 +62,7 @@ export default function ProductCard({
   const { hearts, handleDoubleTap, handleSaveProduct, isSaving, isProductLiked, isProductSaved, toggleLike } = useEngagement();
   const { isAuthenticated } = useAuth();
   const categoryColors = getCategoryColors(product.category || undefined);
+  const [showPriceComparison, setShowPriceComparison] = useState(false);
   
   const handleCardClick = () => {
     if (onClick) {
@@ -151,6 +154,22 @@ export default function ProductCard({
               />
             </div>
           )}
+
+          {/* Badge de Comparação de Preços */}
+          <div className="absolute bottom-2 left-2 z-10">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowPriceComparison(true);
+              }}
+              className="bg-yellow-400 hover:bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded-full shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-1"
+              title="Comparar preços com Brasil"
+              data-testid={`button-price-comparison-${product.id}`}
+            >
+              <BarChart3 className="w-3 h-3" />
+              BR
+            </button>
+          </div>
         </div>
         
         <div className="product-content p-2 flex flex-col h-full">
@@ -185,6 +204,14 @@ export default function ProductCard({
           </div>
         </div>
       </div>
+
+      {/* Popup de Comparação de Preços */}
+      <PriceComparisonPopup
+        isOpen={showPriceComparison}
+        onClose={() => setShowPriceComparison(false)}
+        productId={product.id}
+        productName={product.name}
+      />
     </div>
   );
 
