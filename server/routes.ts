@@ -142,36 +142,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', async (req: any, res) => {
     try {
-      // Verificar sessão manual primeiro
-      if (req.session?.user) {
+      // Verificar sessão manual primeiro (sistema de email/senha)
+      if (req.session?.user?.id) {
         const user = req.session.user;
+        
+        // Buscar informações completas do usuário
+        const fullUser = await storage.getUser(user.id);
+        if (!fullUser) {
+          return res.status(401).json({ message: "User not found" });
+        }
+        
+        // Verificar se tem loja
+        const userStore = await storage.getUserStore(fullUser.id);
+        
         const userWithStoreInfo = {
-          ...user,
-          hasStore: !!user?.storeOwnerToken
+          ...fullUser,
+          hasStore: !!userStore
         };
         return res.json(userWithStoreInfo);
       }
 
-      // Primeiro verificar se está autenticado via Replit
-      if (!req.session?.user?.id) {
-        return res.status(401).json({ message: "Unauthorized" });
+      // Verificar autenticação via Replit OAuth se não há sessão manual
+      if (req.isAuthenticated && req.isAuthenticated()) {
+        const userId = req.user.claims?.sub;
+        const user = await storage.getUser(userId);
+        
+        if (!user) {
+          return res.status(401).json({ message: "User not found" });
+        }
+        
+        // Verificar se tem loja
+        const userStore = await storage.getUserStore(user.id);
+        
+        const userWithStoreInfo = {
+          ...user,
+          hasStore: !!userStore
+        };
+        
+        return res.json(userWithStoreInfo);
       }
 
-      // Handle OAuth sessions
-      const userId = req.user.claims?.sub;
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(401).json({ message: "User not found" });
-      }
-      
-      // Verifica se o usuário tem token de lojista
-      const userWithStoreInfo = {
-        ...user,
-        hasStore: !!user?.storeOwnerToken
-      };
-      
-      res.json(userWithStoreInfo);
+      return res.status(401).json({ message: "Unauthorized" });
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -201,7 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update user profile route
   app.put('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
       const updateSchema = z.object({
         firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
         lastName: z.string().min(2, "Sobrenome deve ter pelo menos 2 caracteres"), 

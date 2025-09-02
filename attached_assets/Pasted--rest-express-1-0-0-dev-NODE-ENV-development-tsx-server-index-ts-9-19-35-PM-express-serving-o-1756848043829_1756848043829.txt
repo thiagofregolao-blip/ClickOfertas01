@@ -1,0 +1,40 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+9:19:35 PM [express] serving on port 5000
+🔄 Iniciando jobs de limpeza automática
+🧹 Iniciando limpeza de stories expirados...
+⏰ Jobs agendados: limpeza de stories a cada 1 hora
+✅ Limpeza de stories concluída
+Browserslist: browsers data (caniuse-lite) is 11 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[vite:css] Replace color-adjust to print-color-adjust. The color-adjust shorthand is currently deprecated.
+96 |    body {
+97 |      -webkit-print-color-adjust: exact;
+98 |      color-adjust: exact;
+   |      ^^^^^^^^^^^^^^^^^^^^
+99 |    }
+100|    
+9:19:46 PM [express] GET /api/auth/user 200 in 132ms :: {"id":"0cd572bd-c248-4e84-9b22-dd858656cd80"…
+9:19:55 PM [express] GET /api/auth/user 200 in 139ms :: {"id":"0cd572bd-c248-4e84-9b22-dd858656cd80"…
+/home/runner/workspace/server/replitAuth.ts:167
+  if (!req.isAuthenticated()) {
+           ^
+
+
+TypeError: req.isAuthenticated is not a function
+    at isAuthenticated (/home/runner/workspace/server/replitAuth.ts:167:12)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/home/runner/workspace/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:284:15
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at /home/runner/workspace/node_modules/express-session/index.js:514:7
+    at /home/runner/workspace/node_modules/connect-pg-simple/index.js:370:18
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+
+Node.js v20.19.3
