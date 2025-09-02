@@ -16,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Trash2, Eye } from 'lucide-react';
+import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Trash2, Eye, LogOut } from 'lucide-react';
 import { isUnauthorizedError } from '@/lib/authUtils';
 
 const bannerSchema = z.object({
@@ -51,12 +51,48 @@ interface Banner {
   updatedAt: string;
 }
 
+interface StoreData {
+  id: string;
+  name: string;
+  logoUrl?: string;
+  themeColor: string;
+  currency: string;
+  whatsapp?: string;
+  instagram?: string;
+  address?: string;
+  isActive: boolean;
+  userId: string;
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+  products: Array<any>;
+}
+
+interface UserData {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  storeName?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  provider: string;
+  isEmailVerified: boolean;
+  isSuperAdmin: boolean;
+  storeOwnerToken?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function SuperAdmin() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateBannerOpen, setIsCreateBannerOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
+  const [editingStore, setEditingStore] = useState<StoreData | null>(null);
+  const [editingUser, setEditingUser] = useState<UserData | null>(null);
 
   // Redirect if not super admin
   useEffect(() => {
@@ -68,6 +104,20 @@ export default function SuperAdmin() {
   // Buscar banners
   const { data: banners = [] } = useQuery<Banner[]>({
     queryKey: ['/api/admin/banners'],
+    enabled: !!user?.isSuperAdmin,
+    retry: (failureCount, error) => !isUnauthorizedError(error),
+  });
+
+  // Buscar lojas
+  const { data: stores = [] } = useQuery<StoreData[]>({
+    queryKey: ['/api/admin/stores'],
+    enabled: !!user?.isSuperAdmin,
+    retry: (failureCount, error) => !isUnauthorizedError(error),
+  });
+
+  // Buscar usuários
+  const { data: users = [] } = useQuery<UserData[]>({
+    queryKey: ['/api/admin/users'],
     enabled: !!user?.isSuperAdmin,
     retry: (failureCount, error) => !isUnauthorizedError(error),
   });
@@ -213,6 +263,104 @@ export default function SuperAdmin() {
     }
   };
 
+  // Mutations para lojas
+  const updateStoreMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<StoreData> }) => {
+      return await apiRequest('PUT', `/api/admin/stores/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/stores'] });
+      setEditingStore(null);
+      toast({ title: "Loja atualizada", description: "Loja atualizada com sucesso!" });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({ title: "Acesso negado", description: "Você não tem permissão.", variant: "destructive" });
+      } else {
+        toast({ title: "Erro", description: "Erro ao atualizar loja.", variant: "destructive" });
+      }
+    },
+  });
+
+  const deleteStoreMutation = useMutation({
+    mutationFn: async (storeId: string) => {
+      return await apiRequest('DELETE', `/api/admin/stores/${storeId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/stores'] });
+      toast({ title: "Loja deletada", description: "Loja deletada com sucesso!" });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({ title: "Acesso negado", description: "Você não tem permissão.", variant: "destructive" });
+      } else {
+        toast({ title: "Erro", description: "Erro ao deletar loja.", variant: "destructive" });
+      }
+    },
+  });
+
+  // Mutations para usuários
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<UserData> }) => {
+      return await apiRequest('PUT', `/api/admin/users/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      setEditingUser(null);
+      toast({ title: "Usuário atualizado", description: "Usuário atualizado com sucesso!" });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({ title: "Acesso negado", description: "Você não tem permissão.", variant: "destructive" });
+      } else {
+        toast({ title: "Erro", description: "Erro ao atualizar usuário.", variant: "destructive" });
+      }
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      return await apiRequest('DELETE', `/api/admin/users/${userId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      toast({ title: "Usuário deletado", description: "Usuário deletado com sucesso!" });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({ title: "Acesso negado", description: "Você não tem permissão.", variant: "destructive" });
+      } else {
+        toast({ title: "Erro", description: "Erro ao deletar usuário.", variant: "destructive" });
+      }
+    },
+  });
+
+  const handleDeleteStore = (storeId: string) => {
+    if (confirm("Tem certeza que deseja deletar esta loja? Todos os produtos serão removidos.")) {
+      deleteStoreMutation.mutate(storeId);
+    }
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    if (confirm("Tem certeza que deseja deletar este usuário?")) {
+      deleteUserMutation.mutate(userId);
+    }
+  };
+
+  const handleToggleStoreActive = (store: StoreData) => {
+    updateStoreMutation.mutate({
+      id: store.id,
+      data: { isActive: !store.isActive }
+    });
+  };
+
+  const handleToggleUserSuperAdmin = (userData: UserData) => {
+    updateUserMutation.mutate({
+      id: userData.id,
+      data: { isSuperAdmin: !userData.isSuperAdmin }
+    });
+  };
+
   const getBannerTypeLabel = (type: string) => {
     const types = {
       rotating: "Rotativo",
@@ -242,14 +390,26 @@ export default function SuperAdmin() {
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-25 to-yellow-50 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto p-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
-            <Settings className="w-8 h-8 text-red-600" />
-            Painel Super Admin
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Gerencie banners, lojas e usuários do Click Ofertas Paraguai
-          </p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+              <Settings className="w-8 h-8 text-red-600" />
+              Painel Super Admin
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Gerencie banners, lojas e usuários do Click Ofertas Paraguai
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => (window.location.href = "/api/auth/logout")}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            data-testid="button-super-admin-logout"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair
+          </Button>
         </div>
 
         <Tabs defaultValue="banners" className="w-full">
@@ -617,20 +777,182 @@ export default function SuperAdmin() {
             </div>
           </TabsContent>
 
-          {/* ABAS FUTURAS */}
+          {/* ABA DE LOJAS */}
           <TabsContent value="stores" className="space-y-6">
-            <div className="text-center py-12">
-              <Store className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">Gerenciamento de Lojas</h3>
-              <p className="text-gray-500">Em desenvolvimento...</p>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                Gerenciamento de Lojas
+              </h2>
+            </div>
+
+            <div className="grid gap-4">
+              {(stores || []).map((store) => (
+                <Card key={store.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <CardTitle className="text-lg">{store.name}</CardTitle>
+                        <Badge variant={store.isActive ? "default" : "secondary"}>
+                          {store.isActive ? "Ativa" : "Inativa"}
+                        </Badge>
+                        <Badge variant="outline">
+                          {store.products.length} produtos
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Switch 
+                          checked={store.isActive}
+                          onCheckedChange={() => handleToggleStoreActive(store)}
+                          data-testid={`switch-store-active-${store.id}`}
+                        />
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => handleDeleteStore(store.id)}
+                          data-testid={`button-delete-store-${store.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium">Slug:</span> /{store.slug}
+                      </div>
+                      <div>
+                        <span className="font-medium">Moeda:</span> {store.currency}
+                      </div>
+                      <div>
+                        <span className="font-medium">Criada:</span> {new Date(store.createdAt).toLocaleDateString('pt-BR')}
+                      </div>
+                      {store.whatsapp && (
+                        <div>
+                          <span className="font-medium">WhatsApp:</span> {store.whatsapp}
+                        </div>
+                      )}
+                      {store.instagram && (
+                        <div>
+                          <span className="font-medium">Instagram:</span> {store.instagram}
+                        </div>
+                      )}
+                      {store.address && (
+                        <div>
+                          <span className="font-medium">Endereço:</span> {store.address}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {(!stores || stores.length === 0) && (
+                <Card>
+                  <CardContent className="text-center py-8">
+                    <Store className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+                    <p className="text-gray-500">Nenhuma loja encontrada.</p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
 
+          {/* ABA DE USUÁRIOS */}
           <TabsContent value="users" className="space-y-6">
-            <div className="text-center py-12">
-              <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">Gerenciamento de Usuários</h3>
-              <p className="text-gray-500">Em desenvolvimento...</p>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                Gerenciamento de Usuários
+              </h2>
+            </div>
+
+            <div className="grid gap-4">
+              {(users || []).map((userData) => (
+                <Card key={userData.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <CardTitle className="text-lg">{userData.email}</CardTitle>
+                        {userData.isSuperAdmin && (
+                          <Badge variant="destructive">Super Admin</Badge>
+                        )}
+                        {userData.storeOwnerToken && (
+                          <Badge variant="default">Lojista</Badge>
+                        )}
+                        <Badge variant="outline">
+                          {userData.provider}
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          size="sm"
+                          variant={userData.isSuperAdmin ? "destructive" : "outline"}
+                          onClick={() => handleToggleUserSuperAdmin(userData)}
+                          data-testid={`button-toggle-admin-${userData.id}`}
+                        >
+                          {userData.isSuperAdmin ? "Remover Admin" : "Tornar Admin"}
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => handleDeleteUser(userData.id)}
+                          data-testid={`button-delete-user-${userData.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      {userData.firstName && (
+                        <div>
+                          <span className="font-medium">Nome:</span> {userData.firstName} {userData.lastName}
+                        </div>
+                      )}
+                      {userData.storeName && (
+                        <div>
+                          <span className="font-medium">Loja:</span> {userData.storeName}
+                        </div>
+                      )}
+                      {userData.phone && (
+                        <div>
+                          <span className="font-medium">Telefone:</span> {userData.phone}
+                        </div>
+                      )}
+                      {userData.address && (
+                        <div>
+                          <span className="font-medium">Endereço:</span> {userData.address}
+                        </div>
+                      )}
+                      {userData.city && (
+                        <div>
+                          <span className="font-medium">Cidade:</span> {userData.city}
+                        </div>
+                      )}
+                      <div>
+                        <span className="font-medium">Cadastro:</span> {new Date(userData.createdAt).toLocaleDateString('pt-BR')}
+                      </div>
+                      <div>
+                        <span className="font-medium">Email Verificado:</span> {userData.isEmailVerified ? "Sim" : "Não"}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {(!users || users.length === 0) && (
+                <Card>
+                  <CardContent className="text-center py-8">
+                    <Users className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+                    <p className="text-gray-500">Nenhum usuário encontrado.</p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
 

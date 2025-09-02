@@ -96,6 +96,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User>;
   getAllUsers(): Promise<User[]>;
+  deleteUser(id: string): Promise<void>;
 
   // Store operations
   getUserStore(userId: string): Promise<Store | undefined>;
@@ -103,6 +104,7 @@ export interface IStorage {
   updateStore(storeId: string, store: UpdateStore): Promise<Store>;
   getStoreBySlug(slug: string): Promise<StoreWithProducts | undefined>;
   getAllActiveStores(): Promise<StoreWithProducts[]>;
+  getAllStores(): Promise<StoreWithProducts[]>;
   deleteStore(storeId: string, userId: string): Promise<void>;
 
   // Product operations
@@ -277,6 +279,10 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async deleteUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
+  }
+
   // Store operations
   async getUserStore(userId: string): Promise<Store | undefined> {
     const [store] = await db
@@ -388,6 +394,30 @@ export class DatabaseStorage implements IStorage {
         return {
           ...store,
           products: filteredProducts,
+        };
+      })
+    );
+
+    return storesWithProducts;
+  }
+
+  async getAllStores(): Promise<StoreWithProducts[]> {
+    const allStores = await db
+      .select()
+      .from(stores)
+      .orderBy(desc(stores.createdAt));
+    
+    const storesWithProducts = await Promise.all(
+      allStores.map(async (store) => {
+        const storeProducts = await db
+          .select()
+          .from(products)
+          .where(eq(products.storeId, store.id))
+          .orderBy(desc(products.isFeatured), products.sortOrder, products.createdAt);
+
+        return {
+          ...store,
+          products: storeProducts,
         };
       })
     );

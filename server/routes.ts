@@ -2609,6 +2609,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin - Get all stores (Super Admin only)
+  app.get('/api/admin/stores', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ message: "Acesso negado. Apenas super administradores." });
+      }
+
+      const stores = await storage.getAllStores();
+      res.json(stores);
+    } catch (error) {
+      console.error("Error fetching stores:", error);
+      res.status(500).json({ message: "Failed to fetch stores" });
+    }
+  });
+
+  // Admin - Update store (Super Admin only)
+  app.put('/api/admin/stores/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ message: "Acesso negado. Apenas super administradores." });
+      }
+
+      const { id } = req.params;
+      const updateData = req.body;
+      const store = await storage.updateStore(id, updateData);
+      res.json(store);
+    } catch (error) {
+      console.error("Error updating store:", error);
+      res.status(500).json({ message: "Failed to update store" });
+    }
+  });
+
+  // Admin - Delete store (Super Admin only)
+  app.delete('/api/admin/stores/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ message: "Acesso negado. Apenas super administradores." });
+      }
+
+      const { id } = req.params;
+      await storage.deleteStore(id, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting store:", error);
+      res.status(500).json({ message: "Failed to delete store" });
+    }
+  });
+
+  // Admin - Get all users (Super Admin only)
+  app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ message: "Acesso negado. Apenas super administradores." });
+      }
+
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // Admin - Update user (Super Admin only)
+  app.put('/api/admin/users/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ message: "Acesso negado. Apenas super administradores." });
+      }
+
+      const { id } = req.params;
+      const updateData = req.body;
+      const updatedUser = await storage.updateUser(id, updateData);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  // Admin - Delete user (Super Admin only)
+  app.delete('/api/admin/users/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ message: "Acesso negado. Apenas super administradores." });
+      }
+
+      const { id } = req.params;
+      await storage.deleteUser(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
