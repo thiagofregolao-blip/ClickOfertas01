@@ -681,62 +681,59 @@ export default function StoresGallery() {
         </div>
       )}
 
-      {/* SEÇÃO DE BANNERS + STORIES LADO A LADO - Desktop apenas */}
+      {/* SEÇÃO DE BANNERS + STORIES NA MESMA LINHA - Desktop apenas */}
       {!searchQuery.trim() && !isMobile && (
         <div className="bg-white border-b -mt-4">
-          <div className="mx-auto px-2 max-w-6xl">
-            <div className="flex gap-4">
+          <div className="mx-auto px-2 max-w-6xl py-4">
+            <div className="flex items-center gap-6">
               {/* Banner à esquerda */}
               <div className="flex-shrink-0">
                 <BannerSection />
               </div>
               
-              {/* Stories à direita */}
-              <div className="flex-1 min-w-0 pl-4">
-                
-                {/* Grid 2 linhas x 4 colunas para 8 stories aleatórios */}
-                <div className={`${isMobile ? 'flex items-start gap-2 overflow-x-auto scrollbar-hide' : 'grid grid-cols-4 grid-rows-2 gap-4 max-h-44'}`}>
-              
-              {/* Stories das Lojas - ordem por criação */}
-              {(isMobile ? Object.values(instagramStoriesGrouped) : Object.values(instagramStoriesGrouped).slice(0, 8)).map(({ store: storyStore, stories }) => (
-                <div 
-                  key={storyStore.id} 
-                  className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
-                  onClick={() => openStoryModal(stories[0], 0)} // Abrir primeiro story da loja
-                  data-testid={`story-circle-${storyStore.slug}`}
-                >
-                  {/* Círculo da loja */}
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
-                      <div className="w-full h-full rounded-full overflow-hidden">
-                        <Avatar className="w-full h-full">
-                          <AvatarImage 
-                            src={storyStore.logoUrl} 
-                            alt={storyStore.name}
-                            className="w-full h-full object-cover"
-                          />
-                          <AvatarFallback className="text-sm font-bold bg-white">
-                            {storyStore.name.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
+              {/* Stories à direita - em linha horizontal */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
+                  {/* Stories das Lojas - máximo 8 em linha horizontal */}
+                  {Object.values(instagramStoriesGrouped).slice(0, 8).map(({ store: storyStore, stories }) => (
+                    <div 
+                      key={storyStore.id} 
+                      className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
+                      onClick={() => openStoryModal(stories[0], 0)}
+                      data-testid={`story-circle-${storyStore.slug}`}
+                    >
+                      {/* Círculo da loja */}
+                      <div className="relative">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
+                          <div className="w-full h-full rounded-full overflow-hidden">
+                            <Avatar className="w-full h-full">
+                              <AvatarImage 
+                                src={storyStore.logoUrl} 
+                                alt={storyStore.name}
+                                className="w-full h-full object-cover"
+                              />
+                              <AvatarFallback className="text-sm font-bold bg-white">
+                                {storyStore.name.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                          </div>
+                        </div>
+                        
+                        {/* Contador de stories */}
+                        <Badge 
+                          variant="secondary" 
+                          className="absolute -top-1 -right-1 bg-green-500 text-white border-2 border-white text-xs px-1"
+                        >
+                          {stories.length}
+                        </Badge>
+                      </div>
+                      
+                      {/* Nome da loja - aumentado o width para não cortar */}
+                      <div className="text-xs text-gray-600 w-20 text-center leading-tight">
+                        <span className="block truncate">{storyStore.name}</span>
                       </div>
                     </div>
-                    
-                    {/* Contador de stories */}
-                    <Badge 
-                      variant="secondary" 
-                      className="absolute -top-1 -right-1 bg-green-500 text-white border-2 border-white text-xs px-1"
-                    >
-                      {stories.length}
-                    </Badge>
-                  </div>
-                  
-                  {/* Nome da loja */}
-                  <div className="text-xs text-gray-600 max-w-[64px] text-center leading-tight truncate">
-                    {storyStore.name}
-                  </div>
-                </div>
-              ))}
+                  ))}
                 </div>
               </div>
             </div>
@@ -784,9 +781,9 @@ export default function StoresGallery() {
                     </Badge>
                   </div>
                   
-                  {/* Nome da loja */}
-                  <div className="text-xs text-gray-600 max-w-[80px] text-center leading-tight truncate">
-                    {storyStore.name}
+                  {/* Nome da loja - mobile */}
+                  <div className="text-xs text-gray-600 w-20 text-center leading-tight">
+                    <span className="block truncate">{storyStore.name}</span>
                   </div>
                 </div>
               ))}
