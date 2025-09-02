@@ -2,6 +2,56 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+
+// Middleware para verificar autenticação (sessão manual ou Replit Auth)
+const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
+  try {
+    // Verificar sessão manual primeiro
+    if (req.session?.user) {
+      return next();
+    }
+    
+    // Verificar autenticação Replit como fallback
+    if (req.session?.user?.id) {
+      return next();
+    }
+    
+    return res.status(401).json({ message: "Unauthorized" });
+  } catch (error) {
+    console.error("Error checking authentication:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Middleware para verificar super admin
+const isSuperAdmin = async (req: any, res: any, next: any) => {
+  try {
+    let user = null;
+    
+    // Verificar sessão manual primeiro
+    if (req.session?.user) {
+      user = req.session.user;
+    }
+    // Verificar autenticação Replit como fallback
+    else if (req.session?.user?.id) {
+      const userId = req.session.user.id;
+      user = await storage.getUser(userId);
+    }
+    
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    if (!user?.isSuperAdmin) {
+      return res.status(403).json({ message: "Access denied - Super Admin required" });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error checking super admin:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 import { getCurrentExchangeRate, convertUsdToBrl, formatBRL, formatUSD, clearExchangeRateCache } from "./exchange-rate";
 import { setupOAuthProviders } from "./authProviders";
 import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema } from "@shared/schema";
@@ -1809,9 +1859,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ===== NOVO SISTEMA: PROMOÇÕES DIRETAS E SIMPLIFICADAS =====
 
   // 0. Listar promoções do usuário logado (para admin)
-  app.get('/api/promotions', isAuthenticated, async (req: any, res) => {
+  app.get('/api/promotions', isAuthenticatedCustom, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub || req.user?.id;
+      const userId = req.session?.user?.id || req.user?.id;
       
       // Buscar loja do usuário
       const userStore = await storage.getUserStore(userId);
@@ -1858,10 +1908,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 3. Criar nova promoção (Admin)
-  app.post('/api/stores/:storeId/promotions', isAuthenticated, async (req: any, res) => {
+  app.post('/api/stores/:storeId/promotions', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const { storeId } = req.params;
-      const userId = req.user?.claims?.sub || req.user?.id;
+      const userId = req.session?.user?.id || req.user?.id;
       
       if (!userId) {
         return res.status(401).json({ message: "Usuário não autenticado" });
@@ -1892,10 +1942,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 4. Atualizar promoção existente (Admin)
-  app.patch('/api/promotions/:promotionId', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/promotions/:promotionId', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const { promotionId } = req.params;
-      const userId = req.user?.claims?.sub || req.user?.id;
+      const userId = req.session?.user?.id || req.user?.id;
       
       if (!userId) {
         return res.status(401).json({ message: "Usuário não autenticado" });
@@ -1931,10 +1981,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 5. Deletar promoção (Admin)
-  app.delete('/api/promotions/:promotionId', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/promotions/:promotionId', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const { promotionId } = req.params;
-      const userId = req.user?.claims?.sub || req.user?.id;
+      const userId = req.session?.user?.id || req.user?.id;
       
       if (!userId) {
         return res.status(401).json({ message: "Usuário não autenticado" });
@@ -2065,10 +2115,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 9. Analytics: buscar estatísticas da promoção (Admin)
-  app.get('/api/promotions/:promotionId/stats', isAuthenticated, async (req: any, res) => {
+  app.get('/api/promotions/:promotionId/stats', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const { promotionId } = req.params;
-      const userId = req.user?.claims?.sub || req.user?.id;
+      const userId = req.session?.user?.id || req.user?.id;
       
       if (!userId) {
         return res.status(401).json({ message: "Usuário não autenticado" });
@@ -2428,56 +2478,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ROTAS ADMINISTRATIVAS DE BANNERS (Super Admin apenas)
-  
-  // Middleware para verificar autenticação (sessão manual ou Replit Auth)
-  const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
-    try {
-      // Verificar sessão manual primeiro
-      if (req.session?.user) {
-        return next();
-      }
-      
-      // Verificar autenticação Replit como fallback
-      if (req.session?.user?.id) {
-        return next();
-      }
-      
-      return res.status(401).json({ message: "Unauthorized" });
-    } catch (error) {
-      console.error("Error checking authentication:", error);
-      res.status(500).json({ message: "Server error" });
-    }
-  };
-
-  // Middleware para verificar super admin
-  const isSuperAdmin = async (req: any, res: any, next: any) => {
-    try {
-      let user = null;
-      
-      // Verificar sessão manual primeiro
-      if (req.session?.user) {
-        user = req.session.user;
-      }
-      // Verificar autenticação Replit como fallback
-      else if (req.session?.user?.id) {
-        const userId = req.session.user.id;
-        user = await storage.getUser(userId);
-      }
-      
-      if (!user) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      
-      if (!user?.isSuperAdmin) {
-        return res.status(403).json({ message: "Access denied - Super Admin required" });
-      }
-
-      next();
-    } catch (error) {
-      console.error("Error checking super admin:", error);
-      res.status(500).json({ message: "Server error" });
-    }
-  };
 
   // Listar todos os banners (Super Admin)
   app.get('/api/admin/banners', isAuthenticatedCustom, isSuperAdmin, async (req, res) => {
