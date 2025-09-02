@@ -90,7 +90,7 @@ export default function Landing() {
       </div>
 
       {/* Área Promocional de fundo (estilo Shopee) */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#F04940] to-[#FA7D22] min-h-screen">
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#F04940] to-[#FA7D22] h-[85vh]">
         <div className="absolute inset-0 bg-black/20"></div>
         
         {/* Layout Mobile vs Desktop */}
@@ -220,7 +220,7 @@ export default function Landing() {
           </div>
 
           {/* Desktop Layout */}
-          <div className="hidden lg:flex items-start justify-between h-full max-w-7xl mx-auto px-8 xl:px-16 py-8 pt-8">
+          <div className="hidden lg:flex items-start justify-between h-full max-w-7xl mx-auto px-8 xl:px-16 py-6 pt-8">
             {/* Conteúdo do lado esquerdo */}
             <div className="text-left text-white max-w-2xl flex-1 pr-8">
               <div className="mb-4 text-center">
