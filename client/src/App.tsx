@@ -82,7 +82,7 @@ function Router() {
       ) : user?.hasStore ? (
         // Lojista logado - painel admin completo
         <>
-          <Route path="/" component={AdminDashboard} />
+          <Route path="/" component={Landing} />
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/config" component={AdminStoreConfig} />
           <Route path="/admin/products" component={AdminProducts} />
@@ -106,7 +106,7 @@ function Router() {
       ) : (
         // Usuário normal logado - sem acesso ao admin
         <>
-          <Route path="/" component={StoresGallery} />
+          <Route path="/" component={Landing} />
           <Route path="/cards" component={StoresGallery} />
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
