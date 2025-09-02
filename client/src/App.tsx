@@ -85,8 +85,9 @@ function Router() {
           <Route path="/admin/promotions" component={AdminPromotions} />
           <Route path="/admin/preview" component={AdminPreview} />
           <Route path="/admin/analytics" component={Analytics} />
-          <Route path="/super-admin" component={SuperAdmin} />
+          <Route path="/super-admin" component={SuperAdminLogin} />
           <Route path="/super-admin-login" component={SuperAdminLogin} />
+          <Route path="/admin-panel" component={SuperAdmin} />
           <Route path="/cards" component={StoresGallery} />
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
@@ -110,8 +111,9 @@ function Router() {
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/my-coupons" component={MyCoupons} />
           <Route path="/coupon" component={CouponDetails} />
-          <Route path="/super-admin" component={SuperAdmin} />
+          <Route path="/super-admin" component={SuperAdminLogin} />
           <Route path="/super-admin-login" component={SuperAdminLogin} />
+          <Route path="/admin-panel" component={SuperAdmin} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
           {/* Redireciona qualquer rota de admin para /cards */}

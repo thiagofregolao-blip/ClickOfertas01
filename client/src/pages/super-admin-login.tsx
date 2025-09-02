@@ -35,7 +35,7 @@ export default function SuperAdminLogin() {
 
       if (response.ok) {
         // Login bem-sucedido, redirecionar
-        window.location.href = '/super-admin';
+        window.location.href = '/admin-panel';
       } else {
         const data = await response.json().catch(() => ({ message: 'Erro ao fazer login' }));
         setError(data.message || 'Email ou senha incorretos');
