@@ -220,7 +220,7 @@ export default function Landing() {
           </div>
 
           {/* Desktop Layout */}
-          <div className="hidden lg:flex items-center justify-between h-full max-w-7xl mx-auto px-8 xl:px-16 py-16">
+          <div className="hidden lg:flex items-start justify-between h-full max-w-7xl mx-auto px-8 xl:px-16 py-16 pt-32">
             {/* Conteúdo do lado esquerdo */}
             <div className="text-left text-white max-w-2xl flex-1 pr-8">
               <div className="mb-12">
@@ -279,17 +279,17 @@ export default function Landing() {
             </div>
 
             {/* Formulário de Login Desktop */}
-            <div className="w-96 max-w-md bg-white rounded-xl shadow-2xl p-8 flex-shrink-0">
+            <div className="w-[440px] max-w-lg bg-white rounded-xl shadow-2xl p-10 flex-shrink-0 mt-8">
               <div className="w-full">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Entre</h2>
+                <div className="mb-8">
+                  <h2 className="text-3xl font-bold text-gray-900 mb-2">Entre</h2>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div>
                     <Input 
                       placeholder="Email/Telefone/Usuário"
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
+                      className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-lg"
                       data-testid="input-login-desktop"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -300,7 +300,7 @@ export default function Landing() {
                     <Input 
                       type="password"
                       placeholder="Senha"
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
+                      className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-lg"
                       data-testid="input-password-desktop"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -310,13 +310,13 @@ export default function Landing() {
                   <Button 
                     onClick={handleLogin}
                     disabled={isLoading}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium text-base"
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-lg font-medium text-lg"
                     data-testid="button-login-desktop"
                   >
                     {isLoading ? 'ENTRANDO...' : 'ENTRE'}
                   </Button>
 
-                  <div className="flex flex-row justify-between text-sm">
+                  <div className="flex flex-row justify-between text-base">
                     <Button variant="link" className="p-0 h-auto text-orange-500 text-left">
                       Esqueci minha senha
                     </Button>
@@ -326,12 +326,12 @@ export default function Landing() {
                   </div>
 
 
-                  <div className="text-center mt-6">
-                    <span className="text-gray-600 text-sm">Novo na Click Ofertas? </span>
+                  <div className="text-center mt-8">
+                    <span className="text-gray-600 text-base">Novo na Click Ofertas? </span>
                     <Button 
                       variant="link" 
                       onClick={() => window.location.href = '/signup'}
-                      className="p-0 h-auto text-orange-500 font-medium text-sm"
+                      className="p-0 h-auto text-orange-500 font-medium text-base"
                       data-testid="button-signup-desktop"
                     >
                       Cadastrar
