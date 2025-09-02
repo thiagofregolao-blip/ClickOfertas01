@@ -528,18 +528,7 @@ export default function StoresGallery() {
               {/* Botão temporário de acesso Super Admin */}
               <button
                 onClick={() => {
-                  const email = 'admin@clickofertas.py';
-                  const password = 'super123admin';
-                  // Fazer login do super admin
-                  fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                  }).then(res => res.json()).then(data => {
-                    if (data.message === 'Login realizado com sucesso') {
-                      window.location.href = '/super-admin';
-                    }
-                  });
+                  window.location.href = '/super-admin-login';
                 }}
                 className="fixed bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium z-50"
               >
