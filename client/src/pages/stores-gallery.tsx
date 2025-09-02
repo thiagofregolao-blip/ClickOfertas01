@@ -577,21 +577,23 @@ export default function StoresGallery() {
 
           {/* Logo e Barra de Busca - SEGUNDO */}
           <div className="flex items-center gap-4">
-            {/* Logo e Título */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <img 
-                src="/attached_assets/logo certo 01_1756774388368.png"
-                alt="Click Ofertas PY Logo"
-                className="w-20 h-20 object-contain"
-              />
-              <div className="flex items-center gap-1">
-                <span className="text-white font-bold text-xl tracking-normal" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: '700'}}>Click</span>
-                <span className="font-bold text-xl tracking-normal">
-                  <span className="text-white">Ofertas.</span>
-                  <span style={{color: '#FFE600'}}>PY</span>
-                </span>
+            {/* Logo e Título - Oculto no mobile */}
+            {!isMobile && (
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <img 
+                  src="/attached_assets/logo certo 01_1756774388368.png"
+                  alt="Click Ofertas PY Logo"
+                  className="w-20 h-20 object-contain"
+                />
+                <div className="flex items-center gap-1">
+                  <span className="text-white font-bold text-xl tracking-normal" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: '700'}}>Click</span>
+                  <span className="font-bold text-xl tracking-normal">
+                    <span className="text-white">Ofertas.</span>
+                    <span style={{color: '#FFE600'}}>PY</span>
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
             
             {/* Barra de Busca */}
             <div className="flex-1 max-w-lg">
