@@ -146,9 +146,9 @@ export function StoreStoriesSection({ stores, isMobile }: { stores: StoreWithPro
             </div>
           </div>
         ) : (
-          // Layout Desktop - Grid 4 linhas
+          // Layout Desktop - Grid 4 colunas por linha
           <div className="px-4 py-4">
-            <div className="grid grid-cols-1 gap-6 justify-items-center max-w-md mx-auto">
+            <div className="grid grid-cols-4 gap-6 justify-items-center">
               {/* Usuário Logado - Primeiro Item */}
               {isAuthenticated && user && (
                 <div className="flex flex-col items-center space-y-2">
