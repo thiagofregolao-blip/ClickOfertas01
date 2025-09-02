@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileText, ShoppingBag, TrendingUp, Users, Globe } from "lucide-react";
+import { FileText, ShoppingBag, TrendingUp, Users, Globe, LogIn } from "lucide-react";
 import { useAppVersion } from "@/hooks/use-mobile";
 import { useState } from "react";
 
@@ -100,35 +100,44 @@ export default function Landing() {
                   </div>
 
                   <div className="space-y-4">
+                    {/* Campo de Email/Telefone/Usuário */}
+                    <div>
+                      <Input 
+                        placeholder="Email/Telefone/Usuário"
+                        className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
+                        data-testid="input-login-mobile"
+                      />
+                    </div>
+
+                    {/* Campo de Senha */}
+                    <div>
+                      <Input 
+                        type="password"
+                        placeholder="Senha"
+                        className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
+                        data-testid="input-password-mobile"
+                      />
+                    </div>
+
                     {/* Botão principal de login */}
                     <Button 
                       onClick={() => window.location.href = '/api/login'}
                       className="w-full bg-gradient-to-r from-[#F04940] to-[#FA7D22] hover:from-[#E03A32] hover:to-[#E96D1D] text-white py-4 rounded-xl font-semibold text-base shadow-lg"
                       data-testid="button-login"
                     >
-                      <Globe className="w-5 h-5 mr-2" />
-                      Entrar com Google
+                      <LogIn className="w-5 h-5 mr-2" />
+                      ENTRAR
                     </Button>
 
-                    {/* Divisor */}
-                    <div className="relative my-4">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-300"></div>
-                      </div>
-                      <div className="relative flex justify-center text-sm">
-                        <span className="px-3 bg-white text-gray-500">ou</span>
-                      </div>
+                    {/* Links de apoio */}
+                    <div className="flex flex-row justify-between text-sm mt-4">
+                      <Button variant="link" className="p-0 h-auto text-[#F04940] text-left">
+                        Esqueci minha senha
+                      </Button>
+                      <Button variant="link" className="p-0 h-auto text-[#F04940] text-right">
+                        Login com SMS
+                      </Button>
                     </div>
-
-                    {/* Botão Facebook */}
-                    <Button 
-                      variant="outline"
-                      className="w-full border-2 border-blue-100 py-4 rounded-xl font-semibold flex items-center justify-center space-x-3 text-base bg-blue-50 hover:bg-blue-100"
-                      data-testid="button-facebook"
-                    >
-                      <div className="w-5 h-5 bg-blue-600 rounded-full"></div>
-                      <span className="text-blue-700">Entrar com Facebook</span>
-                    </Button>
 
                     {/* Link para cadastro */}
                     <div className="text-center mt-6 pt-4 border-t border-gray-200">
@@ -249,35 +258,6 @@ export default function Landing() {
                     </Button>
                   </div>
 
-                  <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-300"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-white text-gray-500">OU</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Button 
-                      variant="outline"
-                      className="w-full border-gray-300 py-3 rounded-lg font-medium flex items-center justify-center space-x-2 text-base"
-                      data-testid="button-facebook-desktop"
-                    >
-                      <div className="w-5 h-5 bg-blue-600 rounded"></div>
-                      <span>Facebook</span>
-                    </Button>
-                    
-                    <Button 
-                      variant="outline"
-                      onClick={() => window.location.href = '/api/login'}
-                      className="w-full border-gray-300 py-3 rounded-lg font-medium flex items-center justify-center space-x-2 text-base"
-                      data-testid="button-google-desktop"
-                    >
-                      <Globe className="w-5 h-5 text-red-500" />
-                      <span>Google</span>
-                    </Button>
-                  </div>
 
                   <div className="text-center mt-6">
                     <span className="text-gray-600 text-sm">Novo na Click Ofertas? </span>
