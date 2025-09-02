@@ -644,7 +644,7 @@ export default function StoresGallery() {
               
               {/* Stories à direita */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-start gap-2 overflow-x-auto scrollbar-hide pt-8">
+                <div className={`${isMobile ? 'flex items-start gap-2 overflow-x-auto scrollbar-hide' : 'grid grid-cols-4 gap-6 justify-items-center'} pt-8`}>
               
               {/* Botão criar story (se autenticado) - PRIMEIRO */}
               {isAuthenticated && (
