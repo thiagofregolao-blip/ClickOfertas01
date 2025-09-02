@@ -220,9 +220,9 @@ export default function Landing() {
           </div>
 
           {/* Desktop Layout */}
-          <div className="hidden lg:flex items-center justify-start h-full p-16 lg:pl-16 pb-32">
+          <div className="hidden lg:flex items-center justify-between h-full max-w-7xl mx-auto px-8 xl:px-16 py-16">
             {/* Conteúdo do lado esquerdo */}
-            <div className="text-left text-white max-w-lg ml-16">
+            <div className="text-left text-white max-w-2xl flex-1 pr-8">
               <div className="mb-12">
                 <h1 className="text-6xl font-bold mb-6 leading-tight">
                   Descubra as melhores{" "}
@@ -267,19 +267,19 @@ export default function Landing() {
               </div>
 
               {/* Elementos decorativos */}
-              <div className="absolute top-20 left-10 opacity-20">
+              <div className="absolute top-20 left-10 opacity-20 pointer-events-none">
                 <ShoppingBag className="w-16 h-16" />
               </div>
-              <div className="absolute bottom-20 right-10 opacity-20">
+              <div className="absolute bottom-20 left-32 opacity-20 pointer-events-none">
                 <TrendingUp className="w-20 h-20" />
               </div>
-              <div className="absolute top-1/3 right-20 opacity-20">
+              <div className="absolute top-1/3 left-64 opacity-20 pointer-events-none">
                 <Users className="w-12 h-12" />
               </div>
             </div>
 
             {/* Formulário de Login Desktop */}
-            <div className="absolute top-1/2 right-48 transform -translate-y-1/2 w-96 bg-white rounded-xl shadow-2xl p-8">
+            <div className="w-96 max-w-md bg-white rounded-xl shadow-2xl p-8 flex-shrink-0">
               <div className="w-full">
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">Entre</h2>
