@@ -389,41 +389,31 @@ export default function StoresGallery() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header Responsivo */}
-      <div className="sticky top-0 z-50" style={{background: isMobile ? 'linear-gradient(135deg, #FF6B35 0%, #F7941E 100%)' : 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
-        
-        {/* Mobile: Layout estilo Shopee */}
-        {isMobile ? (
-          <div className="relative w-full">
-            {/* Barra de busca no topo */}
-            <div className="px-4 pt-3 pb-2 z-10">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setIsSearchFocused(false)}
-                  className="pl-10 pr-10 py-3 w-full bg-white border-0 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-200 shadow-sm"
-                />
-                {searchInput && (
-                  <button
-                    onClick={() => setSearchInput('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                    title="Limpar busca"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
+      {/* Mobile: Barra de busca fixa apenas */}
+      {isMobile && (
+        <div className="sticky top-0 z-50" style={{background: 'linear-gradient(135deg, #FF6B35 0%, #F7941E 100%)'}}>
+          <div className="px-4 pt-3 pb-2 relative">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                className="pl-10 pr-10 py-3 w-full bg-white border-0 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-200 shadow-sm"
+              />
+              {searchInput && (
+                <button
+                  onClick={() => setSearchInput('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Limpar busca"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
-
-            {/* Banner rotativo mobile - logo abaixo da busca */}
-            <div className="w-full">
-              <BannerSection />
-            </div>
-
+            
             {/* Menu de usuário mobile sobreposto */}
             {isAuthenticated && (
               <div className="absolute top-3 right-3 z-20">
@@ -501,8 +491,18 @@ export default function StoresGallery() {
               </div>
             )}
           </div>
-        ) : (
-          /* Desktop: Layout original */
+        </div>
+      )}
+      
+      {/* Mobile: Banner não fixo */}
+      {isMobile && (
+        <BannerSection />
+      )}
+      
+      {/* Desktop: Header completo */}
+      {!isMobile && (
+        <div className="sticky top-0 z-50" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
+          {/* Desktop: Layout original */}
           <div className={`mx-auto py-4 px-2 max-w-6xl`}>
             {/* Menu de Navegação - PRIMEIRO */}
             <div className="flex items-center justify-between gap-3 mb-6">
@@ -655,8 +655,8 @@ export default function StoresGallery() {
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* SEÇÃO DE BANNERS + STORIES LADO A LADO - Desktop apenas */}
       {!searchQuery.trim() && !isMobile && (
