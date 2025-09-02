@@ -741,10 +741,17 @@ export default function StoresGallery() {
         </div>
       )}
 
+      {/* DEBUG INFO */}
+      {isMobile && (
+        <div className="bg-red-100 p-2 text-xs">
+          DEBUG: isMobile={String(isMobile)}, searchQuery="{searchQuery}", storiesCount={Object.keys(instagramStoriesGrouped).length}
+        </div>
+      )}
+
       {/* SEÇÃO DE STORIES - Mobile apenas */}
       {!searchQuery.trim() && isMobile && (
-        <div className="bg-white border-b">
-          <div className="mx-auto px-2 max-w-full">
+        <div className="bg-white border-b pt-4">
+          <div className="mx-auto px-4 max-w-full">
             {/* Texto e botão criar story na mesma linha */}
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
