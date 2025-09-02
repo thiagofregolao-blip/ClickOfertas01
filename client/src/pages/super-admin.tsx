@@ -612,7 +612,7 @@ export default function SuperAdmin() {
                 </Card>
               ))}
 
-              {banners.length === 0 && (
+              {(!banners || banners.length === 0) && (
                 <Card>
                   <CardContent className="text-center py-8">
                     <Image className="w-12 h-12 mx-auto text-gray-400 mb-3" />
