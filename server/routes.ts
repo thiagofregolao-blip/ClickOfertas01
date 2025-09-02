@@ -2611,7 +2611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin - Get all stores (Super Admin only)
-  app.get('/api/admin/stores', isAuthenticated, async (req: any, res) => {
+  app.get('/api/admin/stores', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
       const user = await storage.getUser(userId);
@@ -2629,7 +2629,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin - Update store (Super Admin only)
-  app.put('/api/admin/stores/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/admin/stores/:id', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
       const user = await storage.getUser(userId);
@@ -2649,7 +2649,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin - Delete store (Super Admin only)
-  app.delete('/api/admin/stores/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/admin/stores/:id', isAuthenticatedCustom, async (req: any, res) => {
     try {
       console.log("=== DELETE STORE REQUEST ===");
       const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
@@ -2685,7 +2685,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin - Get all users (Super Admin only)
-  app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
+  app.get('/api/admin/users', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
       const user = await storage.getUser(userId);
@@ -2703,7 +2703,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin - Update user (Super Admin only)
-  app.put('/api/admin/users/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/admin/users/:id', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
       const user = await storage.getUser(userId);
@@ -2723,7 +2723,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin - Delete user (Super Admin only)
-  app.delete('/api/admin/users/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/admin/users/:id', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
       const user = await storage.getUser(userId);
