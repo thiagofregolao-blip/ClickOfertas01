@@ -739,7 +739,7 @@ export default function StoresGallery() {
 
       {/* SEÇÃO DE STORIES - Mobile apenas */}
       {!searchQuery.trim() && isMobile && (
-        <div className="bg-white border-b pt-1">
+        <div className="bg-white border-b">
           <div className="mx-auto px-4 max-w-full">
             {/* Texto e botão criar story na mesma linha */}
             <div className="mb-1 flex items-center justify-between">
