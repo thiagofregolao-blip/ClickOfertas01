@@ -68,7 +68,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Verificar se é super admin
         if (user.isSuperAdmin) {
-          res.redirect('/super-admin');
+          res.send(`
+            <script>
+              window.close();
+              window.opener.location.href = '/super-admin';
+            </script>
+            <p>Login realizado com sucesso! Redirecionando...</p>
+          `);
         } else {
           res.status(403).send("Acesso negado. Super Admin necessário.");
         }
