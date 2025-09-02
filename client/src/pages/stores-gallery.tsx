@@ -693,21 +693,9 @@ export default function StoresGallery() {
               
               {/* Stories à direita */}
               <div className="flex-1 min-w-0 pl-4">
-                {/* Texto e botão criar story na mesma linha */}
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {isAuthenticated && (
-                      <button
-                        className="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 rounded-lg transition-all shadow-lg font-medium text-sm"
-                        onClick={() => setLocation('/create-story')}
-                        data-testid="button-create-story"
-                      >
-                        <Camera className="w-3 h-3 mr-1 inline" />
-                        Criar Story
-                      </button>
-                    )}
-                    <p className="text-sm text-gray-600">📱 Story de ofertas exclusivas</p>
-                  </div>
+                {/* Título da seção de stories */}
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600">📱 Story de ofertas exclusivas</p>
                 </div>
                 
                 {/* Grid 2 linhas x 4 colunas para 8 stories aleatórios */}
@@ -764,20 +752,9 @@ export default function StoresGallery() {
       {!searchQuery.trim() && isMobile && (
         <div className="bg-white border-b">
           <div className="mx-auto px-4 max-w-full">
-            {/* Texto e botão criar story na mesma linha */}
-            <div className="mb-1 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {isAuthenticated && (
-                  <button
-                    className="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 rounded-lg transition-all shadow-lg font-medium text-sm"
-                    onClick={() => setLocation('/create-story')}
-                    data-testid="button-create-story"
-                  >
-                    <Camera className="w-3 h-3 mr-1 inline" />
-                    Criar Story
-                  </button>
-                )}
-              </div>
+            {/* Título da seção de stories mobile */}
+            <div className="mb-1">
+              <p className="text-sm text-gray-600">📱 Story de ofertas exclusivas</p>
             </div>
             
             {/* Stories em scroll horizontal para mobile */}
