@@ -456,7 +456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Store routes
-  app.get('/api/stores/me', isAuthenticated, async (req: any, res) => {
+  app.get('/api/stores/me', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const userId = req.user.claims?.sub || req.user.id;
       const store = await storage.getUserStore(userId);
@@ -467,7 +467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/stores', isAuthenticated, async (req: any, res) => {
+  app.post('/api/stores', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const userId = req.user.claims?.sub || req.user.id;
       const storeData = insertStoreSchema.parse(req.body);
@@ -483,7 +483,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/stores/:id', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/stores/:id', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.claims?.sub || req.user.id;
