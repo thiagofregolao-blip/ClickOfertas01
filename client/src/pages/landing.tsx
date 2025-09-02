@@ -338,14 +338,6 @@ export default function Landing() {
             {/* Conteúdo do lado esquerdo */}
             <div className="text-left text-white max-w-2xl flex-1 pr-8">
               <div className="mb-4 text-center relative">
-                {/* Logo da Mascote */}
-                <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 hidden xl:block">
-                  <img 
-                    src="/attached_assets/logo certo 01_1756853766080.png" 
-                    alt="Mascote Click Ofertas" 
-                    className="w-32 h-32 object-contain drop-shadow-2xl animate-bounce"
-                  />
-                </div>
                 
                 <h1 className="text-6xl font-bold mb-4 leading-tight">
                   Descubra as melhores{" "}
