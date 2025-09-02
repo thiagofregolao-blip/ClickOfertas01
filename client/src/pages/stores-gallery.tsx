@@ -644,20 +644,20 @@ export default function StoresGallery() {
               
               {/* Stories à direita */}
               <div className="flex-1 min-w-0">
-                {/* Botão criar story retangular - ACIMA da barra */}
-                {isAuthenticated && (
-                  <div className="mb-4 text-center">
+                {/* Texto e botão criar story na mesma linha */}
+                <div className="mb-4 flex items-center justify-between">
+                  <p className="text-sm text-gray-600">📱 Veja os stories das lojas e descubra promoções exclusivas!</p>
+                  {isAuthenticated && (
                     <button
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg hover:opacity-90 transition-all shadow-lg font-medium"
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-1.5 rounded-lg hover:opacity-90 transition-all shadow-lg font-medium text-sm"
                       onClick={() => setLocation('/create-story')}
                       data-testid="button-create-story"
                     >
-                      <Camera className="w-4 h-4 mr-2 inline" />
+                      <Camera className="w-3 h-3 mr-1 inline" />
                       Criar Story
                     </button>
-                    <p className="text-sm text-gray-600 mt-2">📱 Veja os stories das lojas e descubra promoções exclusivas!</p>
-                  </div>
-                )}
+                  )}
+                </div>
                 
                 {/* Grid 2 linhas x 4 colunas para 8 stories aleatórios */}
                 <div className={`${isMobile ? 'flex items-start gap-2 overflow-x-auto scrollbar-hide' : 'grid grid-cols-4 grid-rows-2 gap-4 max-h-44'}`}>
@@ -676,7 +676,7 @@ export default function StoresGallery() {
                 >
                   {/* Círculo da loja */}
                   <div className="relative">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
                       <div className="w-full h-full rounded-full overflow-hidden">
                         <Avatar className="w-full h-full">
                           <AvatarImage 
