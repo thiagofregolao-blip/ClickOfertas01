@@ -393,25 +393,43 @@ export default function StoresGallery() {
       {isMobile && (
         <div className="sticky top-0 z-50" style={{background: 'linear-gradient(135deg, #FF6B35 0%, #F7941E 100%)'}}>
           <div className="px-4 pt-3 pb-2 relative">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setIsSearchFocused(false)}
-                className="pl-10 pr-10 py-3 w-full bg-white border-0 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-200 shadow-sm"
-              />
-              {searchInput && (
-                <button
-                  onClick={() => setSearchInput('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  title="Limpar busca"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
+            <div className="flex items-center gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setIsSearchFocused(false)}
+                  className="pl-10 pr-10 py-3 w-full bg-white border-0 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-200 shadow-sm"
+                />
+                {searchInput && (
+                  <button
+                    onClick={() => setSearchInput('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Limpar busca"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              
+              {/* Sino de notificações mobile */}
+              <button
+                className="bg-white/90 backdrop-blur-sm text-gray-600 hover:text-orange-500 p-3 rounded-lg shadow-sm transition-colors relative"
+                title="Notificações"
+                data-testid="button-notifications-mobile"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                </svg>
+                {/* Badge de notificação */}
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  3
+                </span>
+              </button>
             </div>
             
             {/* Menu de usuário mobile sobreposto */}
@@ -638,8 +656,24 @@ export default function StoresGallery() {
                 </div>
               </div>
 
-              {/* Botão de Comparação de Preços - Desktop apenas */}
+              {/* Sino de notificações e Botão de Comparação de Preços - Desktop */}
               <div className="flex items-center gap-3">
+                {/* Sino de notificações desktop */}
+                <button
+                  className="bg-white/90 backdrop-blur-sm text-gray-600 hover:text-orange-500 p-2 rounded-lg shadow-sm transition-colors relative"
+                  title="Notificações"
+                  data-testid="button-notifications-desktop"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                  </svg>
+                  {/* Badge de notificação */}
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    3
+                  </span>
+                </button>
+                
                 <Link href="/price-comparison">
                   <Button
                     variant="outline"
