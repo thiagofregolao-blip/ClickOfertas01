@@ -405,7 +405,7 @@ export default function StoresGallery() {
                   onChange={(e) => setSearchInput(e.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
                   onBlur={() => setIsSearchFocused(false)}
-                  className="pl-10 pr-10 py-3 w-full bg-white/95 backdrop-blur-sm border-0 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-white/50 rounded-lg shadow-sm"
+                  className="pl-10 pr-10 py-3 w-full bg-white/95 backdrop-blur-sm border-0 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-white/50 shadow-sm"
                 />
                 {searchInput && (
                   <button
