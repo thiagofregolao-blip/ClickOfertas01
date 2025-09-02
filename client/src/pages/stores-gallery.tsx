@@ -643,7 +643,7 @@ export default function StoresGallery() {
               </div>
               
               {/* Stories à direita */}
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 pl-4">
                 {/* Texto e botão criar story na mesma linha */}
                 <div className="mb-4 flex items-center justify-between">
                   <p className="text-sm text-gray-600">📱 Veja os stories das lojas e descubra promoções exclusivas!</p>
