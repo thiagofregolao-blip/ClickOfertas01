@@ -103,7 +103,7 @@ export default function Landing() {
                 <div className="text-center text-white">
                   <div className="flex items-center justify-center gap-3 mb-2">
                     <img 
-                      src="/attached_assets/logo certo 01_1756853766080.png" 
+                      src="/attached_assets/logo%20certo%2001_1756853766080.png" 
                       alt="Mascote Click Ofertas" 
                       className="w-12 h-12 object-contain"
                     />
@@ -161,7 +161,7 @@ export default function Landing() {
                   <div className="text-center mb-6">
                     <div className="flex items-center justify-center gap-3 mb-2">
                       <img 
-                        src="/attached_assets/logo certo 01_1756853766080.png" 
+                        src="/attached_assets/logo%20certo%2001_1756853766080.png" 
                         alt="Mascote Click Ofertas" 
                         className="w-12 h-12 object-contain"
                       />
