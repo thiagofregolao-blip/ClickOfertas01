@@ -34,7 +34,51 @@ async function verifyStoreOwnershipByProduct(productId: string, userId: string):
 export async function registerRoutes(app: Express): Promise<Server> {
   // Routes que NÃO devem usar Replit Auth (devem vir ANTES do setupAuth)
   
-  // Login route específico para email/senha (sem Replit Auth)
+  // Login route específico para email/senha (sem Replit Auth) - GET e POST
+  app.get('/api/auth/login', async (req, res) => {
+    try {
+      const { email, password } = req.query;
+      
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email e senha são obrigatórios" });
+      }
+
+      // Find user by email
+      const user = await storage.getUserByEmail(email as string);
+      if (!user) {
+        return res.status(401).send("Email ou senha incorretos");
+      }
+
+      // Verify password
+      if (!user.password) {
+        return res.status(401).send("Email ou senha incorretos");
+      }
+
+      const isValidPassword = await bcrypt.compare(password as string, user.password);
+      if (!isValidPassword) {
+        return res.status(401).send("Email ou senha incorretos");
+      }
+
+      // Create session
+      req.login(user, async (err) => {
+        if (err) {
+          console.error("Session error:", err);
+          return res.status(500).send("Erro ao criar sessão");
+        }
+        
+        // Verificar se é super admin
+        if (user.isSuperAdmin) {
+          res.redirect('/super-admin');
+        } else {
+          res.status(403).send("Acesso negado. Super Admin necessário.");
+        }
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).send("Erro interno do servidor");
+    }
+  });
+
   app.post('/api/auth/login', async (req, res) => {
     try {
       const { email, password } = loginUserSchema.parse(req.body);

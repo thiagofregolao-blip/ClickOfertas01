@@ -19,50 +19,15 @@ export default function SuperAdminLogin() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    try {
-      // Primeiro fazer logout completo de qualquer sessão anterior
-      await fetch('/api/auth/logout', { method: 'POST' });
-      
-      // Aguardar um pouco para limpar a sessão
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Verificar se o usuário é super admin
-        const userResponse = await fetch('/api/auth/user');
-        const userData = await userResponse.json();
-        
-        if (userData.isSuperAdmin) {
-          toast({
-            title: "Login realizado com sucesso",
-            description: "Bem-vindo, Super Admin!",
-          });
-          setLocation('/super-admin');
-        } else {
-          setError("Acesso negado. Credenciais de Super Admin necessárias.");
-          // Fazer logout se não for super admin
-          await fetch('/api/auth/logout', { method: 'POST' });
-        }
-      } else {
-        setError(data.message || "Erro ao fazer login");
-      }
-    } catch (error) {
-      setError("Erro de conexão");
-    } finally {
-      setIsLoading(false);
-    }
+    
+    // Redirecionar diretamente para abrir em nova aba incógnita
+    const loginUrl = `/api/auth/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
+    window.open(loginUrl, '_blank');
+    
+    toast({
+      title: "Redirecionando",
+      description: "Abrindo login em nova aba incógnita...",
+    });
   };
 
   return (
