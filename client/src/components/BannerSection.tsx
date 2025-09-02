@@ -76,7 +76,7 @@ export function BannerSection() {
   }
 
   return (
-    <div className="w-full px-4 mb-6 mt-8" data-testid="banner-section">
+    <div className="w-full px-4 mb-6 md:mt-8" data-testid="banner-section">
       <div className="max-w-6xl mx-auto">
         {/* Layout desktop: carousel + banners estáticos lado a lado */}
         <div className="hidden md:flex gap-[5px]">
