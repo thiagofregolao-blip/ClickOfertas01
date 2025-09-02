@@ -582,7 +582,7 @@ export default function StoresGallery() {
               <img 
                 src="/attached_assets/logo certo 01_1756774388368.png"
                 alt="Click Ofertas PY Logo"
-                className="w-12 h-12 object-contain"
+                className="w-16 h-16 object-contain"
               />
               <div className="flex items-center gap-1">
                 <span className="text-white font-bold text-xl tracking-normal" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: '700'}}>Click</span>
