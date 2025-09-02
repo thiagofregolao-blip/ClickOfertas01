@@ -391,7 +391,14 @@ export default function Landing() {
             <div className="w-[360px] max-w-md bg-white rounded-xl shadow-2xl p-8 flex-shrink-0">
               <div className="w-full">
                 <div className="mb-8">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-2">Entre</h2>
+                  <div className="flex items-center justify-center gap-3 mb-2">
+                    <img 
+                      src="/attached_assets/logo%20certo%2001_1756853766080.png" 
+                      alt="Mascote Click Ofertas" 
+                      className="w-10 h-10 object-contain"
+                    />
+                    <h2 className="text-3xl font-bold text-gray-900">Entre</h2>
+                  </div>
                 </div>
 
                 <div className="space-y-6">
