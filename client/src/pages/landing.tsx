@@ -395,7 +395,7 @@ export default function Landing() {
                     <img 
                       src="/attached_assets/logo%20certo%2001_1756853766080.png" 
                       alt="Mascote Click Ofertas" 
-                      className="w-10 h-10 object-contain"
+                      className="w-16 h-16 object-contain"
                     />
                     <h2 className="text-3xl font-bold text-gray-900">Entre</h2>
                   </div>
