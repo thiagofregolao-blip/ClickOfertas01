@@ -610,7 +610,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/stores/:slug/my-available-promotions', async (req: any, res) => {
     try {
       const { slug } = req.params;
-      const userId = req.user?.claims?.sub || req.user?.id;
+      const userId = req.session?.user?.id || req.user?.id;
 
       // Buscar loja pelo slug
       const store = await storage.getStoreBySlug(slug);
@@ -644,7 +644,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/promotions/:promotionId/status', async (req: any, res) => {
     try {
       const { promotionId } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.session?.user?.id || req.user?.claims?.sub;
       const userAgent = req.headers['user-agent'];
       const ipAddress = req.ip || req.connection?.remoteAddress;
 
@@ -660,7 +660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/promotions/:promotionId/scratch', async (req: any, res) => {
     try {
       const { promotionId } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.session?.user?.id || req.user?.claims?.sub;
       const userAgent = req.headers['user-agent'];
       const ipAddress = req.ip || req.connection?.remoteAddress;
 
