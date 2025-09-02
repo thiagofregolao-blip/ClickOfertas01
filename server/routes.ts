@@ -508,6 +508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete('/api/stores/:id', isAuthenticated, async (req: any, res) => {
+    console.log("=== REGULAR DELETE STORE ENDPOINT CALLED ===");
     try {
       const { id } = req.params;
       const userId = req.user.claims?.sub || req.user.id;
