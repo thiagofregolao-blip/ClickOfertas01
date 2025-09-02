@@ -426,9 +426,85 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteStore(storeId: string, userId: string): Promise<void> {
-    await db
-      .delete(stores)
-      .where(and(eq(stores.id, storeId), eq(stores.userId, userId)));
+    // Usar transação para garantir consistência dos dados
+    await db.transaction(async (tx) => {
+      // Primeiro deletar todos os produtos da loja (e dados relacionados)
+      const storeProducts = await tx
+        .select({ id: products.id })
+        .from(products)
+        .where(eq(products.storeId, storeId));
+      
+      const productIds = storeProducts.map(p => p.id);
+      
+      if (productIds.length > 0) {
+        // Deletar likes dos produtos
+        await tx
+          .delete(productLikes)
+          .where(inArray(productLikes.productId, productIds));
+        
+        // Deletar produtos salvos
+        await tx
+          .delete(savedProducts)
+          .where(inArray(savedProducts.productId, productIds));
+        
+        // Deletar visualizações de story dos produtos
+        await tx
+          .delete(storyViews)
+          .where(inArray(storyViews.productId, productIds));
+        
+        // Deletar produtos riscados
+        await tx
+          .delete(scratchedProducts)
+          .where(inArray(scratchedProducts.productId, productIds));
+        
+        // Deletar produtos finalmente
+        await tx
+          .delete(products)
+          .where(eq(products.storeId, storeId));
+      }
+      
+      // Deletar dados relacionados diretamente à loja
+      
+      // Deletar cupons da loja
+      await tx
+        .delete(coupons)
+        .where(eq(coupons.storeId, storeId));
+      
+      // Deletar clones virtuais de raspadinha
+      await tx
+        .delete(virtualScratchClones)
+        .where(eq(virtualScratchClones.storeId, storeId));
+      
+      // Deletar campanhas de raspadinha
+      await tx
+        .delete(scratchCampaigns)
+        .where(eq(scratchCampaigns.storeId, storeId));
+      
+      // Deletar promoções da loja
+      await tx
+        .delete(promotions)
+        .where(eq(promotions.storeId, storeId));
+      
+      // Deletar stories do Instagram da loja
+      await tx
+        .delete(instagramStories)
+        .where(eq(instagramStories.storeId, storeId));
+      
+      // Deletar visualizações de story da loja
+      await tx
+        .delete(storyViews)
+        .where(eq(storyViews.storeId, storeId));
+      
+      // Deletar visualizações de flyer da loja
+      await tx
+        .delete(flyerViews)
+        .where(eq(flyerViews.storeId, storeId));
+      
+      // Finalmente deletar a loja
+      await tx
+        .delete(stores)
+        .where(and(eq(stores.id, storeId), eq(stores.userId, userId)));
+    });
   }
 
   // Product operations
