@@ -498,7 +498,7 @@ export default function SuperAdmin() {
 
             {/* Lista de Banners */}
             <div className="grid gap-4">
-              {banners.map((banner) => (
+              {(banners || []).map((banner) => (
                 <Card key={banner.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
