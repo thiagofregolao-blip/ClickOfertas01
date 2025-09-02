@@ -223,8 +223,8 @@ export default function Landing() {
           <div className="hidden lg:flex items-start justify-between h-full max-w-7xl mx-auto px-8 xl:px-16 py-8 pt-8">
             {/* Conteúdo do lado esquerdo */}
             <div className="text-left text-white max-w-2xl flex-1 pr-8">
-              <div className="mb-8 text-center">
-                <h1 className="text-6xl font-bold mb-6 leading-tight">
+              <div className="mb-4 text-center">
+                <h1 className="text-6xl font-bold mb-4 leading-tight">
                   Descubra as melhores{" "}
                   <span className="text-yellow-300">ofertas</span>{" "}
                   do Paraguai
