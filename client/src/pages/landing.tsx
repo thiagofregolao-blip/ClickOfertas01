@@ -276,15 +276,17 @@ export default function Landing() {
 
               {/* Lojas Parceiras */}
               <div className="mb-6">
-                <h3 className="text-lg font-bold mb-4 text-center text-yellow-300">
-                  🤝 Lojas Parceiras
-                </h3>
+                <div className="text-center mb-4">
+                  <h3 className="text-xl font-bold text-yellow-300">
+                    🤝 Lojas Parceiras
+                  </h3>
+                </div>
                 
                 {/* Linha de Logos */}
-                <div className="flex gap-4 justify-center items-center overflow-x-auto pb-2">
+                <div className="flex gap-6 justify-center items-center flex-wrap">
                   {/* Shopping China */}
-                  <div className="group cursor-pointer flex-shrink-0">
-                    <div className="w-14 h-14 rounded-full bg-white shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300">
+                  <div className="group cursor-pointer">
+                    <div className="w-20 h-20 rounded-full bg-white shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300">
                       <img 
                         src="https://i0.wp.com/logoroga.com/wp-content/uploads/2012/05/shoppingchina.jpg?fit=500%2C375&ssl=1"
                         alt="Shopping China"
@@ -295,8 +297,8 @@ export default function Landing() {
                   </div>
 
                   {/* TechMania */}
-                  <div className="group cursor-pointer flex-shrink-0">
-                    <div className="w-14 h-14 rounded-full bg-white shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300">
+                  <div className="group cursor-pointer">
+                    <div className="w-20 h-20 rounded-full bg-white shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300">
                       <img 
                         src="/attached_assets/generated_images/TechMania_electronics_store_logo_bd5d9135.png"
                         alt="TechMania"
@@ -307,8 +309,8 @@ export default function Landing() {
                   </div>
 
                   {/* Moda Bella */}
-                  <div className="group cursor-pointer flex-shrink-0">
-                    <div className="w-14 h-14 rounded-full bg-white shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300">
+                  <div className="group cursor-pointer">
+                    <div className="w-20 h-20 rounded-full bg-white shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300">
                       <img 
                         src="/attached_assets/generated_images/Moda_Bella_fashion_boutique_logo_1eea69b0.png"
                         alt="Moda Bella"
@@ -319,8 +321,8 @@ export default function Landing() {
                   </div>
 
                   {/* Casa Verde */}
-                  <div className="group cursor-pointer flex-shrink-0">
-                    <div className="w-14 h-14 rounded-full bg-white shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300">
+                  <div className="group cursor-pointer">
+                    <div className="w-20 h-20 rounded-full bg-white shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300">
                       <img 
                         src="/attached_assets/generated_images/Casa_Verde_garden_store_logo_577f194d.png"
                         alt="Casa Verde"
@@ -331,8 +333,8 @@ export default function Landing() {
                   </div>
 
                   {/* Farmacia San Rafael */}
-                  <div className="group cursor-pointer flex-shrink-0">
-                    <div className="w-14 h-14 rounded-full bg-white shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300">
+                  <div className="group cursor-pointer">
+                    <div className="w-20 h-20 rounded-full bg-white shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300">
                       <img 
                         src="/attached_assets/generated_images/Farmacia_San_Rafael_pharmacy_logo_a3ae01ab.png"
                         alt="Farmacia San Rafael"
@@ -343,8 +345,8 @@ export default function Landing() {
                   </div>
 
                   {/* Brinque Mundo */}
-                  <div className="group cursor-pointer flex-shrink-0">
-                    <div className="w-14 h-14 rounded-full bg-white shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300">
+                  <div className="group cursor-pointer">
+                    <div className="w-20 h-20 rounded-full bg-white shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300">
                       <img 
                         src="/attached_assets/generated_images/Brinque_Mundo_toy_store_logo_241405a6.png"
                         alt="Brinque Mundo"
@@ -355,17 +357,17 @@ export default function Landing() {
                   </div>
 
                   {/* Cell Shop */}
-                  <div className="group cursor-pointer flex-shrink-0">
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300 flex items-center justify-center">
-                      <ShoppingBag className="w-6 h-6 text-white" />
+                  <div className="group cursor-pointer">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300 flex items-center justify-center">
+                      <ShoppingBag className="w-8 h-8 text-white" />
                     </div>
                     <p className="text-xs text-white/80 text-center mt-2 group-hover:text-yellow-300 transition-colors">Cell Shop</p>
                   </div>
 
                   {/* Atacado Store */}
-                  <div className="group cursor-pointer flex-shrink-0">
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300 flex items-center justify-center">
-                      <ShoppingBag className="w-6 h-6 text-white" />
+                  <div className="group cursor-pointer">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg border-2 border-yellow-300/50 overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-yellow-300 flex items-center justify-center">
+                      <ShoppingBag className="w-8 h-8 text-white" />
                     </div>
                     <p className="text-xs text-white/80 text-center mt-2 group-hover:text-yellow-300 transition-colors">Atacado Store</p>
                   </div>
