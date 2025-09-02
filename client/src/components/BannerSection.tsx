@@ -108,7 +108,7 @@ export function BannerSection() {
         </div>
 
         {/* Layout mobile: banner de tela cheia sem bordas laterais */}
-        <div className="md:hidden -mx-4 w-screen min-h-[280px]">
+        <div className="md:hidden -mx-4 w-screen min-h-[320px]">
           {/* Banner rotativo */}
           {rotatingBanners.length > 0 && (
             <BannerCarousel banners={rotatingBanners} />

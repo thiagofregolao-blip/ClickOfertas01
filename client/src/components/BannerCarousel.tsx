@@ -77,7 +77,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
   };
 
   return (
-    <div className="relative w-full h-40 md:w-[790px] md:h-[230px] overflow-hidden shadow-lg group md:rounded-lg">
+    <div className="relative w-full h-80 md:w-[790px] md:h-[230px] overflow-hidden shadow-lg group md:rounded-lg">
       {/* Container dos banners com efeito slide */}
       <div 
         className="flex transition-transform duration-500 ease-in-out h-full"
