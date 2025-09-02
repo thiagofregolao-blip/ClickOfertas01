@@ -101,7 +101,14 @@ export default function Landing() {
               {/* Header com logo */}
               <div className="p-6 pt-12">
                 <div className="text-center text-white">
-                  <h1 className="text-3xl font-bold mb-2">Click Ofertas</h1>
+                  <div className="flex items-center justify-center gap-3 mb-2">
+                    <img 
+                      src="/attached_assets/logo certo 01_1756853766080.png" 
+                      alt="Mascote Click Ofertas" 
+                      className="w-12 h-12 object-contain"
+                    />
+                    <h1 className="text-3xl font-bold">Click Ofertas</h1>
+                  </div>
                   <p className="text-white/90 text-sm">Paraguai</p>
                 </div>
               </div>
@@ -223,7 +230,16 @@ export default function Landing() {
           <div className="hidden lg:flex items-start justify-between h-full max-w-7xl mx-auto px-8 xl:px-16 py-6 pt-8">
             {/* Conteúdo do lado esquerdo */}
             <div className="text-left text-white max-w-2xl flex-1 pr-8">
-              <div className="mb-4 text-center">
+              <div className="mb-4 text-center relative">
+                {/* Logo da Mascote */}
+                <div className="absolute -top-12 -left-20 hidden xl:block">
+                  <img 
+                    src="/attached_assets/logo certo 01_1756853766080.png" 
+                    alt="Mascote Click Ofertas" 
+                    className="w-32 h-32 object-contain drop-shadow-2xl animate-bounce"
+                  />
+                </div>
+                
                 <h1 className="text-6xl font-bold mb-4 leading-tight">
                   Descubra as melhores{" "}
                   <span className="text-yellow-300">ofertas</span>{" "}
