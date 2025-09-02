@@ -229,9 +229,6 @@ export default function Landing() {
                   <span className="text-yellow-300">ofertas</span>{" "}
                   do Paraguai
                 </h1>
-                <div className="text-xl text-white/90 font-medium">
-                  Sua ponte para as melhores ofertas do Paraguai
-                </div>
               </div>
 
               {/* Descrição do que somos */}
