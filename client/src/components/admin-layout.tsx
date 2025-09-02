@@ -41,14 +41,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <img 
-                src="/attached_assets/logo certo 01_1756774388368.png"
-                alt="Click Ofertas PY Logo"
-                className="w-10 h-10 object-contain"
-              />
-              <h1 className="text-xl font-bold text-gray-900">Click Ofertas PY</h1>
               {store && (
-                <span className="text-sm text-gray-500">• {store.name}</span>
+                <span className="text-lg font-bold text-gray-900">{store.name}</span>
               )}
             </div>
 
