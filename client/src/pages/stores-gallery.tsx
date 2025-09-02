@@ -390,18 +390,13 @@ export default function StoresGallery() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header Responsivo */}
-      <div className="sticky top-0 z-50" style={{background: isMobile ? 'transparent' : 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
+      <div className="sticky top-0 z-50" style={{background: isMobile ? 'linear-gradient(135deg, #FF6B35 0%, #F7941E 100%)' : 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
         
-        {/* Mobile: Banner como header */}
+        {/* Mobile: Layout estilo Shopee */}
         {isMobile ? (
           <div className="relative w-full">
-            {/* Banner rotativo mobile - preenche toda a tela */}
-            <div className="w-full">
-              <BannerSection />
-            </div>
-            
-            {/* Barra de busca sobreposta */}
-            <div className="absolute bottom-3 left-3 right-3 z-10">
+            {/* Barra de busca no topo */}
+            <div className="px-4 pt-3 pb-2 z-10">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
@@ -410,7 +405,7 @@ export default function StoresGallery() {
                   onChange={(e) => setSearchInput(e.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
                   onBlur={() => setIsSearchFocused(false)}
-                  className="pl-10 pr-10 py-2 w-full bg-white/95 backdrop-blur-sm border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200 shadow-lg"
+                  className="pl-10 pr-10 py-3 w-full bg-white/95 backdrop-blur-sm border-0 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-white/50 rounded-lg shadow-sm"
                 />
                 {searchInput && (
                   <button
@@ -424,9 +419,14 @@ export default function StoresGallery() {
               </div>
             </div>
 
+            {/* Banner rotativo mobile - logo abaixo da busca */}
+            <div className="w-full">
+              <BannerSection />
+            </div>
+
             {/* Menu de usuário mobile sobreposto */}
             {isAuthenticated && (
-              <div className="absolute top-3 right-3 z-10">
+              <div className="absolute top-3 right-3 z-20">
                 <div className="relative">
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
