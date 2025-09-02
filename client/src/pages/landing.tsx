@@ -90,7 +90,7 @@ export default function Landing() {
       </div>
 
       {/* Área Promocional de fundo (estilo Shopee) */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#F04940] to-[#FA7D22] h-[85vh]">
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#F04940] to-[#FA7D22] min-h-[90vh]">
         <div className="absolute inset-0 bg-black/20"></div>
         
         {/* Layout Mobile vs Desktop */}
