@@ -20,7 +20,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   });
 
   const navigation = [
-    { name: "Dashboard", href: "/", icon: BarChart3 },
+    { name: "Dashboard", href: "/admin", icon: BarChart3 },
     { name: "Configurações", href: "/admin/config", icon: Settings },
     { name: "Produtos", href: "/admin/products", icon: Package },
     { name: "Promoções", href: "/admin/promotions", icon: Gift },
