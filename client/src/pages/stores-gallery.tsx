@@ -558,21 +558,6 @@ export default function StoresGallery() {
               </button>
             )}
 
-            {/* Botão de Comparação de Preços - Mobile na mesma linha da saudação */}
-            {isMobile && (
-              <Link href="/price-comparison">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-2 text-black font-semibold hover:opacity-90 backdrop-blur-sm"
-                  style={{ backgroundColor: '#FFE600', borderColor: '#FFE600' }}
-                  data-testid="button-price-comparison-mobile"
-                >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Comparar
-                </Button>
-              </Link>
-            )}
           </div>
 
           {/* Logo e Barra de Busca - SEGUNDO */}
@@ -901,6 +886,58 @@ export default function StoresGallery() {
         onClose={() => setIsLoginModalOpen(false)}
         mode="user"
       />
+
+      {/* Barra de Navegação Fixa - Mobile apenas */}
+      {isMobile && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+          <div className="flex items-center justify-around py-2 px-4">
+            {/* Configurações */}
+            <button
+              onClick={() => setLocation('/settings')}
+              className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-primary"
+              data-testid="button-mobile-settings"
+            >
+              <Settings className="w-5 h-5" />
+              <span className="text-xs">Config</span>
+            </button>
+            
+            {/* Lista de Compras */}
+            <button
+              onClick={() => setLocation('/shopping-list')}
+              className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-primary"
+              data-testid="button-mobile-shopping"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              <span className="text-xs">Lista</span>
+            </button>
+            
+            {/* Comparar Preços */}
+            <Link href="/price-comparison">
+              <button
+                className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-primary"
+                data-testid="button-mobile-comparison"
+              >
+                <BarChart3 className="w-5 h-5" />
+                <span className="text-xs">Comparar</span>
+              </button>
+            </Link>
+            
+            {/* Meus Cupons */}
+            <button
+              onClick={() => setLocation('/my-coupons')}
+              className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-primary"
+              data-testid="button-mobile-coupons"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+                <line x1="8" y1="2" x2="8" y2="22"/>
+                <line x1="16" y1="2" x2="16" y2="22"/>
+              </svg>
+              <span className="text-xs">Cupons</span>
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
