@@ -92,7 +92,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
             style={{
               backgroundColor: banner.backgroundColor,
               backgroundImage: `url(${banner.imageUrl})`,
-              backgroundSize: 'cover',
+              backgroundSize: 'contain',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
             }}
