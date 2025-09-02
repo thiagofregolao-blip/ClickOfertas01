@@ -508,7 +508,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete('/api/stores/:id', isAuthenticated, async (req: any, res) => {
-    console.log("=== REGULAR DELETE STORE ENDPOINT CALLED ===");
     try {
       const { id } = req.params;
       const userId = req.user.claims?.sub || req.user.id;
@@ -2651,32 +2650,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin - Delete store (Super Admin only)
   app.delete('/api/admin/stores/:id', isAuthenticatedCustom, async (req: any, res) => {
     try {
-      console.log("=== DELETE STORE REQUEST ===");
       const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
-      console.log("User ID:", userId);
-      
       const user = await storage.getUser(userId);
-      console.log("User found:", !!user, "isSuperAdmin:", user?.isSuperAdmin);
       
       if (!user?.isSuperAdmin) {
-        console.log("Access denied - not super admin");
         return res.status(403).json({ message: "Acesso negado. Apenas super administradores." });
       }
 
       const { id } = req.params;
-      console.log(`Super admin ${userId} attempting to delete store ${id}`);
       
       // Verificar se a loja existe antes de deletar
       const storeToDelete = await storage.getStore(id);
-      console.log("Store exists:", !!storeToDelete, "Store ID:", storeToDelete?.id);
-      
       if (!storeToDelete) {
-        console.log("Store not found");
         return res.status(404).json({ message: "Loja não encontrada" });
       }
       
       await storage.deleteStore(id, userId, true); // true = isSuperAdmin
-      console.log(`Store ${id} deletion completed`);
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting store:", error);

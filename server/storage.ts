@@ -426,13 +426,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteStore(storeId: string, userId: string, isSuperAdmin = false): Promise<void> {
-    console.log(`=== STORAGE deleteStore called ===`);
-    console.log(`StoreId: ${storeId}, UserId: ${userId}, IsSuperAdmin: ${isSuperAdmin}`);
-    
     // Usar transação para garantir consistência dos dados
     await db.transaction(async (tx) => {
-      console.log("Starting transaction...");
-      
       // Primeiro deletar todos os produtos da loja (e dados relacionados)
       const storeProducts = await tx
         .select({ id: products.id })
@@ -440,7 +435,6 @@ export class DatabaseStorage implements IStorage {
         .where(eq(products.storeId, storeId));
       
       const productIds = storeProducts.map(p => p.id);
-      console.log(`Found ${productIds.length} products to delete:`, productIds);
       
       if (productIds.length > 0) {
         // Deletar likes dos produtos
@@ -507,25 +501,18 @@ export class DatabaseStorage implements IStorage {
         .where(eq(flyerViews.storeId, storeId));
       
       // Finalmente deletar a loja
-      console.log("Deleting store...");
       if (isSuperAdmin) {
-        console.log("Super admin deletion - no user check");
         // Super admin pode deletar qualquer loja
-        const result = await tx
+        await tx
           .delete(stores)
           .where(eq(stores.id, storeId));
-        console.log("Store deletion result:", result);
       } else {
-        console.log("Regular user deletion - checking user ownership");
         // Usuário normal só pode deletar suas próprias lojas
-        const result = await tx
+        await tx
           .delete(stores)
           .where(and(eq(stores.id, storeId), eq(stores.userId, userId)));
-        console.log("Store deletion result:", result);
       }
-      console.log("Transaction completed successfully");
     });
-    console.log("=== STORAGE deleteStore finished ===");
   }
 
   // Product operations
