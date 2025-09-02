@@ -74,208 +74,301 @@ export default function StoresGallery() {
   
   const STORY_DURATION = 5000; // 5 segundos
 
-  // Carregar todas as lojas primeiro
-  const { data: stores, isLoading } = useQuery({
-    queryKey: ['/api/public/stores'],
-  });
-
-  // Carregar stories apenas quando há lojas
-  const { data: instagramStories } = useQuery({
-    queryKey: ['/api/instagram-stories'], 
-    enabled: !!stores
-  });
-
-  // Função de busca que funciona tanto para lojas quanto produtos
-  const searchResults = useMemo(() => {
-    if (!searchQuery.trim() || !stores) return [];
-    
-    const query = searchQuery.toLowerCase();
-    const results: any[] = [];
-    
-    // Buscar em todas as lojas
-    stores.forEach((store: StoreWithProducts) => {
-      // Verificar se o nome da loja corresponde
-      if (store.name.toLowerCase().includes(query) || 
-          store.description?.toLowerCase().includes(query)) {
-        results.push({ type: 'store', data: store, store });
-      }
-      
-      // Verificar produtos ativos desta loja
-      const activeProducts = store.products.filter(p => p.isActive);
-      activeProducts.forEach((product: Product) => {
-        if (product.name.toLowerCase().includes(query) ||
-            product.description?.toLowerCase().includes(query) ||
-            product.category?.toLowerCase().includes(query)) {
-          results.push({ type: 'product', data: product, store });
-        }
-      });
-    });
-    
-    return results;
-  }, [searchQuery, stores]);
-
-  // Instagram Stories agrupados por loja
-  const instagramStoriesGrouped = useMemo(() => {
-    if (!instagramStories || !stores) return {};
-    
-    return instagramStories.reduce((acc: any, story: InstagramStoryWithDetails) => {
-      const storeId = story.storeId;
-      const store = stores.find((s: StoreWithProducts) => s.id === storeId);
-      
-      if (store) {
-        if (!acc[storeId]) {
-          acc[storeId] = { store, stories: [] };
-        }
-        acc[storeId].stories.push(story);
-      }
-      
-      return acc;
-    }, {});
-  }, [instagramStories, stores]);
-
-  // Stories da loja atual no viewer
-  const currentStoreStories = useMemo(() => {
-    if (!viewingStory) return [];
-    return instagramStoriesGrouped[viewingStory.storeId]?.stories || [viewingStory];
-  }, [viewingStory, instagramStoriesGrouped]);
-
-  // Função para abrir story modal
-  const openStoryModal = useCallback((story: InstagramStoryWithDetails, index = 0) => {
-    setViewingStory(story);
-    setCurrentStoryIndex(index);
-    setProgress(0);
-    setIsPaused(false);
-    progressRef.current = 0;
-  }, []);
-
-  // Função para fechar story modal
-  const closeStoryModal = useCallback(() => {
-    setViewingStory(null);
-    setCurrentStoryIndex(0);
-    setProgress(0);
-    setIsPaused(false);
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    progressRef.current = 0;
-  }, []);
-
-  // Função para próximo story
-  const nextStory = useCallback(() => {
-    if (currentStoryIndex < currentStoreStories.length - 1) {
-      setCurrentStoryIndex(prev => prev + 1);
-      setProgress(0);
-      progressRef.current = 0;
-    } else {
-      closeStoryModal();
-    }
-  }, [currentStoryIndex, currentStoreStories.length, closeStoryModal]);
-
-  // Função para story anterior
-  const prevStory = useCallback(() => {
-    if (currentStoryIndex > 0) {
-      setCurrentStoryIndex(prev => prev - 1);
-      setProgress(0);
-      progressRef.current = 0;
-    }
-  }, [currentStoryIndex]);
-
   // Timer para progresso do story
   useEffect(() => {
-    if (viewingStory && !isPaused) {
-      timerRef.current = setInterval(() => {
-        progressRef.current += 20; // 20ms increments
-        const newProgress = (progressRef.current / STORY_DURATION) * 100;
-        
-        if (newProgress >= 100) {
-          nextStory();
-        } else {
-          setProgress(newProgress);
-        }
-      }, 20);
+    if (!viewingStory || isPaused) return;
+
+    // Reset progress
+    setProgress(0);
+    progressRef.current = 0;
+
+    // Clear previous timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
     }
+
+    // Start new timer
+    timerRef.current = setInterval(() => {
+      progressRef.current += (100 / (STORY_DURATION / 50));
+      setProgress(progressRef.current);
+      
+      if (progressRef.current >= 100) {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+        nextStory();
+      }
+    }, 50);
 
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
-        timerRef.current = null;
       }
     };
-  }, [viewingStory, isPaused, nextStory]);
+  }, [currentStoryIndex, viewingStory, isPaused]);
 
-  // Pausar/retomar story quando usuário interage
-  useEffect(() => {
-    const handleUserInteraction = () => {
-      if (viewingStory && !isPaused) {
-        setIsPaused(true);
-        setTimeout(() => setIsPaused(false), 300); // Pause por 300ms
-      }
-    };
-
-    if (viewingStory) {
-      document.addEventListener('mousedown', handleUserInteraction);
-      document.addEventListener('touchstart', handleUserInteraction);
+  const nextStory = () => {
+    if (currentStoryIndex < currentStoreStories.length - 1) {
+      setCurrentStoryIndex(prev => prev + 1);
+    } else {
+      // Acabaram os stories da loja atual, vamos para a próxima loja
+      const storeIds = Object.keys(instagramStoriesGrouped);
+      const currentStoreId = viewingStory?.storeId;
+      const currentStoreIndex = storeIds.findIndex(id => id === currentStoreId);
       
-      return () => {
-        document.removeEventListener('mousedown', handleUserInteraction);
-        document.removeEventListener('touchstart', handleUserInteraction);
-      };
+      if (currentStoreIndex !== -1 && currentStoreIndex < storeIds.length - 1) {
+        // Há próxima loja, ir para o primeiro story dela
+        const nextStoreId = storeIds[currentStoreIndex + 1];
+        const nextStoreFirstStory = instagramStoriesGrouped[nextStoreId]?.stories[0];
+        
+        if (nextStoreFirstStory) {
+          setViewingStory(nextStoreFirstStory);
+          setCurrentStoryIndex(0);
+          setProgress(0);
+        } else {
+          closeStoryModal();
+        }
+      } else {
+        // Não há mais lojas, fecha o modal
+        closeStoryModal();
+      }
     }
-  }, [viewingStory, isPaused]);
+  };
 
-  // Atualizar viewMode baseado na detecção de dispositivo
-  useEffect(() => {
-    setViewMode(isMobile ? 'mobile' : 'desktop');
-  }, [isMobile]);
+  const prevStory = () => {
+    if (currentStoryIndex > 0) {
+      setCurrentStoryIndex(prev => prev - 1);
+    } else {
+      // Estamos no primeiro story da loja atual, vamos para a loja anterior
+      const storeIds = Object.keys(instagramStoriesGrouped);
+      const currentStoreId = viewingStory?.storeId;
+      const currentStoreIndex = storeIds.findIndex(id => id === currentStoreId);
+      
+      if (currentStoreIndex > 0) {
+        // Há loja anterior, ir para o último story dela
+        const prevStoreId = storeIds[currentStoreIndex - 1];
+        const prevStoreStories = instagramStoriesGrouped[prevStoreId]?.stories;
+        
+        if (prevStoreStories && prevStoreStories.length > 0) {
+          const lastStoryOfPrevStore = prevStoreStories[prevStoreStories.length - 1];
+          setViewingStory(lastStoryOfPrevStore);
+          setCurrentStoryIndex(prevStoreStories.length - 1);
+          setProgress(0);
+        }
+      }
+      // Se não há loja anterior, fica no story atual (não faz nada)
+    }
+  };
 
-  // Fechar dropdown quando clica fora
+  const closeStoryModal = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    setViewingStory(null);
+    setCurrentStoryIndex(0);
+    setProgress(0);
+    setIsPaused(false);
+  };
+
+  const openStoryModal = (story: InstagramStoryWithDetails, index: number = 0) => {
+    setViewingStory(story);
+    setCurrentStoryIndex(index);
+    setProgress(0);
+    setIsPaused(false);
+  };
+
+  // Fecha o menu do usuário quando clica fora
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    const handleClickOutside = (event: MouseEvent) => {
       if (isUserMenuOpen) {
-        const dropdown = document.querySelector('.user-dropdown-menu');
-        if (dropdown && !dropdown.contains(event.target as Node)) {
+        const target = event.target as HTMLElement;
+        // Verifica se o clique foi fora do menu do usuário
+        if (!target.closest('[data-testid="button-user-menu"]') && 
+            !target.closest('.user-dropdown-menu')) {
           setIsUserMenuOpen(false);
         }
       }
+    };
+    
+    if (isUserMenuOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
     }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isUserMenuOpen]);
 
-  // Filtrar lojas com products ativos e limitar a 6 products por loja
+  // Sincronizar viewMode com a detecção automática
+  useEffect(() => {
+    setViewMode(version);
+  }, [version]);
+
+  // Performance: Remover logs em produção
+  
+  // Event listener para produtos similares
+  useEffect(() => {
+    const handleOpenProductModal = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { product, store } = customEvent.detail;
+      setSelectedProduct(product);
+      setSelectedStore(store);
+    };
+    
+    window.addEventListener('openProductModal', handleOpenProductModal as EventListener);
+    return () => window.removeEventListener('openProductModal', handleOpenProductModal as EventListener);
+  }, []);
+  
+  const { data: stores, isLoading } = useQuery<StoreWithProducts[]>({
+    queryKey: ['/api/public/stores'],
+    staleTime: 0, // Sempre buscar dados frescos para refletir mudanças de destaque
+    gcTime: 5 * 60 * 1000, // 5 minutos (cache mais curto)
+    refetchOnWindowFocus: true, // Refetch quando usuário volta à janela
+    refetchOnMount: true, // Sempre buscar dados atualizados
+    refetchOnReconnect: true, // Refetch ao reconectar
+  });
+
+  // Instagram Stories data
+  const { data: instagramStories = [], isLoading: storiesLoading } = useQuery<InstagramStoryWithDetails[]>({
+    queryKey: ['/api/instagram-stories'],
+    staleTime: 2 * 60 * 1000, // 2 minutos
+  });
+
+  // Agrupar stories por loja
+  const instagramStoriesGrouped = useMemo(() => {
+    const grouped: Record<string, { store: any; stories: InstagramStoryWithDetails[] }> = {};
+    
+    instagramStories.forEach((story) => {
+      if (!grouped[story.storeId]) {
+        grouped[story.storeId] = {
+          store: story.store,
+          stories: []
+        };
+      }
+      grouped[story.storeId].stories.push(story);
+    });
+    
+    return grouped;
+  }, [instagramStories]);
+
+  // Get all stories for current store
+  const currentStoreStories = useMemo(() => {
+    if (!viewingStory || !instagramStoriesGrouped) return [];
+    return instagramStoriesGrouped[viewingStory.storeId]?.stories || [];
+  }, [viewingStory, instagramStoriesGrouped]);
+
+  // Função otimizada para verificar se a loja postou produtos hoje
+  const hasProductsToday = useCallback((store: StoreWithProducts): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return store.products.some(product => {
+      if (!product.updatedAt) return false;
+      const productDate = new Date(product.updatedAt);
+      productDate.setHours(0, 0, 0, 0);
+      return productDate.getTime() === today.getTime() && product.isActive;
+    });
+  }, []);
+
+  // Filtrar e ordenar lojas com memoização
   const filteredStores = useMemo(() => {
     if (!stores) return [];
     
-    return stores
-      .map((store: StoreWithProducts) => ({
-        ...store,
-        products: store.products.filter(p => p.isActive).slice(0, 6) // Máximo 6 produtos por loja
-      }))
-      .filter((store: StoreWithProducts) => store.products.length > 0);
-  }, [stores]);
+    return stores.filter(store => {
+      if (!searchQuery.trim()) return true;
+      
+      const query = searchQuery.toLowerCase();
+      
+      // Buscar no nome da loja
+      if (store.name.toLowerCase().includes(query)) return true;
+      
+      // Buscar nos produtos
+      return store.products.some(product => 
+        product.isActive && (
+          product.name.toLowerCase().includes(query) ||
+          product.description?.toLowerCase().includes(query) ||
+          product.category?.toLowerCase().includes(query)
+        )
+      );
+    }).sort((a, b) => {
+      // Priorizar lojas que postaram produtos hoje
+      const aHasToday = hasProductsToday(a);
+      const bHasToday = hasProductsToday(b);
+      
+      if (aHasToday && !bHasToday) return -1;
+      if (!aHasToday && bHasToday) return 1;
+      
+      // Se ambas têm ou não têm produtos hoje, ordenar por mais recente
+      const aLatest = Math.max(...a.products.map(p => p.updatedAt ? new Date(p.updatedAt).getTime() : 0));
+      const bLatest = Math.max(...b.products.map(p => p.updatedAt ? new Date(p.updatedAt).getTime() : 0));
+      
+      return bLatest - aLatest;
+    });
+  }, [stores, searchQuery, hasProductsToday]);
+
+  // Criar resultados de busca combinados com memoização
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim() || !stores) return [];
+    
+    const query = searchQuery.toLowerCase();
+    const results: Array<{ type: 'store' | 'product', data: any, store: any }> = [];
+    
+    stores.forEach(store => {
+      // Buscar lojas por nome
+      if (store.name.toLowerCase().includes(query)) {
+        results.push({ type: 'store', data: store, store });
+      }
+      
+      // Buscar produtos
+      store.products
+        .filter(product => 
+          product.isActive && (
+            product.name.toLowerCase().includes(query) ||
+            product.description?.toLowerCase().includes(query) ||
+            product.category?.toLowerCase().includes(query)
+          )
+        )
+        .forEach(product => {
+          results.push({ type: 'product', data: { ...product, store }, store });
+        });
+    });
+    
+    // Ordenar: lojas primeiro, depois produtos por preço
+    return results.sort((a, b) => {
+      if (a.type === 'store' && b.type === 'product') return -1;
+      if (a.type === 'product' && b.type === 'store') return 1;
+      if (a.type === 'product' && b.type === 'product') {
+        return Number(a.data.price || 0) - Number(b.data.price || 0);
+      }
+      return 0;
+    });
+  }, [searchQuery, stores]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white">
-        <div className="mx-auto py-4 px-2 max-w-6xl">
-          <Skeleton className="h-16 w-full mb-6" />
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="bg-white border rounded-lg shadow-sm mb-6 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Skeleton className="w-12 h-12 rounded-full" />
-                <div className="flex-1">
-                  <Skeleton className="h-6 w-32 mb-2" />
-                  <Skeleton className="h-4 w-48" />
+        {/* Header */}
+        <div className="bg-white border-b sticky top-0 z-50">
+          <div className="max-w-2xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-8 w-20" />
+            </div>
+          </div>
+        </div>
+        
+        {/* Loading Posts */}
+        <div className="max-w-2xl mx-auto">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="bg-white mb-4 border-b">
+              <div className="p-4">
+                <Skeleton className="h-12 w-12 rounded-full mb-3" />
+                <Skeleton className="h-4 w-32 mb-2" />
+                <Skeleton className="h-3 w-48 mb-4" />
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-32" />
+                  ))}
                 </div>
+                <Skeleton className="h-10 w-full" />
               </div>
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="h-32" />
-                ))}
-              </div>
-              <Skeleton className="h-10 w-full" />
             </div>
           ))}
         </div>
@@ -296,46 +389,14 @@ export default function StoresGallery() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Mobile: Banner rotativo no topo + Search bar sobreposta */}
-      {isMobile ? (
-        <div className="relative -mx-1">
-          {/* Banners rotativos ocupando todo o topo */}
-          <div className="w-full">
-            <BannerSection />
-          </div>
-          
-          {/* Barra de busca sobreposta aos banners */}
-          <div className="absolute top-4 left-4 right-4 z-50">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setIsSearchFocused(false)}
-                className="pl-10 pr-10 py-2 w-full bg-white/90 backdrop-blur-sm border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200 shadow-lg"
-              />
-              {searchInput && (
-                <button
-                  onClick={() => setSearchInput('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  title="Limpar busca"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* Desktop: Header tradicional */
-        <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
-          <div className="mx-auto py-4 px-2 max-w-6xl">
-            {/* Menu de Navegação - PRIMEIRO */}
-            <div className="flex items-center justify-between gap-3 mb-6">
-              
-              {/* Botão temporário de acesso Super Admin - Desktop apenas */}
+      {/* Header Responsivo */}
+      <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
+        <div className={`mx-auto py-4 ${isMobile ? 'px-1 max-w-full' : 'px-2 max-w-6xl'}`}>
+          {/* Menu de Navegação - PRIMEIRO */}
+          <div className="flex items-center justify-between gap-3 mb-6">
+            
+            {/* Botão temporário de acesso Super Admin - Oculto no mobile */}
+            {!isMobile && (
               <button
                 onClick={() => {
                   const email = 'admin@clickofertas.py';
@@ -355,8 +416,84 @@ export default function StoresGallery() {
               >
                 🔧 Super Admin
               </button>
-              
-              {isAuthenticated ? (
+            )}
+            
+            {isAuthenticated ? (
+              // Usuário logado - diferentes layouts para mobile e desktop
+              isMobile ? (
+                // Mobile - manter menu dropdown
+                <div className="relative">
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="text-white hover:text-gray-200 font-medium flex items-center gap-2"
+                    data-testid="button-user-menu"
+                  >
+                    <User className="w-5 h-5" />
+                    <span className="text-sm">
+                      Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
+                    </span>
+                    <Settings className="w-4 h-4" />
+                  </button>
+                  
+                  {/* Menu dropdown do usuário */}
+                  {isUserMenuOpen && (
+                    <div className="user-dropdown-menu absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border py-2 z-50">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsUserMenuOpen(false);
+                          setLocation('/settings');
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
+                        data-testid="button-user-config"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Configurações
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsUserMenuOpen(false);
+                          setLocation('/shopping-list');
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
+                        data-testid="button-shopping-list"
+                      >
+                        <ShoppingCart className="w-4 h-4" />
+                        Lista de Compras
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsUserMenuOpen(false);
+                          setLocation('/my-coupons');
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
+                        data-testid="button-my-coupons"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+                          <line x1="8" y1="2" x2="8" y2="22"/>
+                          <line x1="16" y1="2" x2="16" y2="22"/>
+                        </svg>
+                        Meus Cupons
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsUserMenuOpen(false);
+                          window.location.href = '/api/auth/logout';
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                        data-testid="button-user-logout"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sair
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
                 // Desktop - menu na mesma linha
                 <div className="flex items-center gap-4">
                   {/* Saudação */}
@@ -410,8 +547,10 @@ export default function StoresGallery() {
                     </button>
                   </div>
                 </div>
-              ) : (
-                // Usuário não logado - Desktop apenas
+              )
+            ) : (
+              // Usuário não logado - mostrar botão entrar apenas no desktop
+              !isMobile && (
                 <button
                   onClick={() => setIsLoginModalOpen(true)}
                   className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
@@ -420,13 +559,15 @@ export default function StoresGallery() {
                   <User className="w-4 h-4" />
                   Entrar
                 </button>
-              )}
+              )
+            )}
 
-            </div>
+          </div>
 
-            {/* Logo e Barra de Busca - SEGUNDO */}
-            <div className="flex items-center gap-4">
-              {/* Logo e Título */}
+          {/* Logo e Barra de Busca - SEGUNDO */}
+          <div className="flex items-center gap-4">
+            {/* Logo e Título - Oculto no mobile */}
+            {!isMobile && (
               <div className="flex items-center gap-2 flex-shrink-0">
                 <img 
                   src="/attached_assets/logo certo 01_1756774388368.png"
@@ -441,32 +582,34 @@ export default function StoresGallery() {
                   </span>
                 </div>
               </div>
-              
-              {/* Barra de Busca */}
-              <div className="flex-1 max-w-lg">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    onFocus={() => setIsSearchFocused(true)}
-                    onBlur={() => setIsSearchFocused(false)}
-                    className="pl-10 pr-10 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
-                  />
-                  {searchInput && (
-                    <button
-                      onClick={() => setSearchInput('')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                      title="Limpar busca"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
+            )}
+            
+            {/* Barra de Busca */}
+            <div className="flex-1 max-w-lg">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setIsSearchFocused(false)}
+                  className="pl-10 pr-10 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
+                />
+                {searchInput && (
+                  <button
+                    onClick={() => setSearchInput('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Limpar busca"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
+            </div>
 
-              {/* Botão de Comparação de Preços - Desktop apenas */}
+            {/* Botão de Comparação de Preços - Desktop apenas */}
+            {!isMobile && (
               <div className="flex items-center gap-3">
                 <Link href="/price-comparison">
                   <Button
@@ -481,16 +624,16 @@ export default function StoresGallery() {
                   </Button>
                 </Link>
               </div>
-            </div>
-            
+            )}
           </div>
+          
         </div>
-      )}
+      </div>
 
-      {/* SEÇÃO DE BANNERS + STORIES LADO A LADO - Apenas Desktop */}
-      {!isMobile && !searchQuery.trim() && (
+      {/* SEÇÃO DE BANNERS + STORIES LADO A LADO */}
+      {!searchQuery.trim() && (
         <div className="bg-white border-b -mt-4">
-          <div className="mx-auto px-2 max-w-6xl">
+          <div className={`mx-auto ${isMobile ? 'px-1 max-w-full' : 'px-2 max-w-6xl'}`}>
             <div className="flex gap-4">
               {/* Banner à esquerda */}
               <div className="flex-shrink-0">
@@ -517,52 +660,52 @@ export default function StoresGallery() {
                 </div>
                 
                 {/* Grid 2 linhas x 4 colunas para 8 stories aleatórios */}
-                <div className="grid grid-cols-4 grid-rows-2 gap-4 max-h-44">
+                <div className={`${isMobile ? 'flex items-start gap-2 overflow-x-auto scrollbar-hide' : 'grid grid-cols-4 grid-rows-2 gap-4 max-h-44'}`}>
               
-                  {/* Stories das Lojas - limitado a 8 aleatórios no desktop com rotação horária */}
-                  {Object.values(instagramStoriesGrouped).sort(() => {
-                    const hourSeed = Math.floor(Date.now() / (60 * 60 * 1000));
-                    let x = Math.sin(hourSeed) * 10000;
-                    return (x - Math.floor(x)) - 0.5;
-                  }).slice(0, 8).map(({ store: storyStore, stories }) => (
-                    <div 
-                      key={storyStore.id} 
-                      className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
-                      onClick={() => openStoryModal(stories[0], 0)} // Abrir primeiro story da loja
-                      data-testid={`story-circle-${storyStore.slug}`}
-                    >
-                      {/* Círculo da loja */}
-                      <div className="relative">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
-                          <div className="w-full h-full rounded-full overflow-hidden">
-                            <Avatar className="w-full h-full">
-                              <AvatarImage 
-                                src={storyStore.logoUrl} 
-                                alt={storyStore.name}
-                                className="w-full h-full object-cover"
-                              />
-                              <AvatarFallback className="text-sm font-bold bg-white">
-                                {storyStore.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                          </div>
-                        </div>
-                        
-                        {/* Contador de stories */}
-                        <Badge 
-                          variant="secondary" 
-                          className="absolute -top-1 -right-1 bg-green-500 text-white border-2 border-white text-xs px-1"
-                        >
-                          {stories.length}
-                        </Badge>
-                      </div>
-                      
-                      {/* Nome da loja */}
-                      <div className="text-xs text-gray-600 max-w-[64px] text-center leading-tight truncate">
-                        {storyStore.name}
+              {/* Stories das Lojas - limitado a 8 aleatórios no desktop com rotação horária */}
+              {(isMobile ? Object.values(instagramStoriesGrouped) : Object.values(instagramStoriesGrouped).sort(() => {
+                const hourSeed = Math.floor(Date.now() / (60 * 60 * 1000));
+                let x = Math.sin(hourSeed) * 10000;
+                return (x - Math.floor(x)) - 0.5;
+              }).slice(0, 8)).map(({ store: storyStore, stories }) => (
+                <div 
+                  key={storyStore.id} 
+                  className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
+                  onClick={() => openStoryModal(stories[0], 0)} // Abrir primeiro story da loja
+                  data-testid={`story-circle-${storyStore.slug}`}
+                >
+                  {/* Círculo da loja */}
+                  <div className="relative">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
+                      <div className="w-full h-full rounded-full overflow-hidden">
+                        <Avatar className="w-full h-full">
+                          <AvatarImage 
+                            src={storyStore.logoUrl} 
+                            alt={storyStore.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <AvatarFallback className="text-sm font-bold bg-white">
+                            {storyStore.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
                       </div>
                     </div>
-                  ))}
+                    
+                    {/* Contador de stories */}
+                    <Badge 
+                      variant="secondary" 
+                      className="absolute -top-1 -right-1 bg-green-500 text-white border-2 border-white text-xs px-1"
+                    >
+                      {stories.length}
+                    </Badge>
+                  </div>
+                  
+                  {/* Nome da loja */}
+                  <div className="text-xs text-gray-600 max-w-[64px] text-center leading-tight truncate">
+                    {storyStore.name}
+                  </div>
+                </div>
+              ))}
                 </div>
               </div>
             </div>
@@ -570,69 +713,7 @@ export default function StoresGallery() {
         </div>
       )}
 
-      {/* Mobile: Stories horizontais logo após os banners */}
-      {isMobile && !searchQuery.trim() && (
-        <div className="bg-white border-b p-4">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {isAuthenticated && (
-                <button
-                  className="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 rounded-lg transition-all shadow-lg font-medium text-sm"
-                  onClick={() => setLocation('/create-story')}
-                  data-testid="button-create-story"
-                >
-                  <Camera className="w-3 h-3 mr-1 inline" />
-                  Criar Story
-                </button>
-              )}
-              <p className="text-sm text-gray-600">📱 Story de ofertas exclusivas</p>
-            </div>
-          </div>
-          
-          {/* Stories móveis horizontais */}
-          <div className="flex items-start gap-2 overflow-x-auto scrollbar-hide">
-            {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
-              <div 
-                key={storyStore.id} 
-                className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
-                onClick={() => openStoryModal(stories[0], 0)}
-                data-testid={`story-circle-${storyStore.slug}`}
-              >
-                {/* Círculo da loja */}
-                <div className="relative">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
-                    <div className="w-full h-full rounded-full overflow-hidden">
-                      <Avatar className="w-full h-full">
-                        <AvatarImage 
-                          src={storyStore.logoUrl} 
-                          alt={storyStore.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <AvatarFallback className="text-sm font-bold bg-white">
-                          {storyStore.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                  </div>
-                  
-                  {/* Contador de stories */}
-                  <Badge 
-                    variant="secondary" 
-                    className="absolute -top-1 -right-1 bg-green-500 text-white border-2 border-white text-xs px-1"
-                  >
-                    {stories.length}
-                  </Badge>
-                </div>
-                
-                {/* Nome da loja */}
-                <div className="text-xs text-gray-600 max-w-[64px] text-center leading-tight truncate">
-                  {storyStore.name}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+
 
       {/* Feed Unificado */}
       <UnifiedFeedView 
@@ -966,77 +1047,225 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
       )
     : activeProducts;
   
+  const featuredProducts = filteredProducts.filter(p => p.isFeatured);
+  
+  // Verificar se a loja postou produtos hoje
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const hasNewProductsToday = store.products.some(product => {
+    if (!product.updatedAt) return false;
+    const productDate = new Date(product.updatedAt);
+    productDate.setHours(0, 0, 0, 0);
+    return productDate.getTime() === today.getTime() && product.isActive;
+  });
+  
+  // Agrupar por categoria para ordem consistente
+  const productsByCategory = filteredProducts.reduce((acc, product) => {
+    const category = product.category || 'Geral';
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(product);
+    return acc;
+  }, {} as Record<string, typeof filteredProducts>);
+
+  // Ordenar categorias
+  const categoryOrder = ['Perfumes', 'Eletrônicos', 'Pesca', 'Geral'];
+  const sortedCategories = Object.keys(productsByCategory).sort((a, b) => {
+    const indexA = categoryOrder.indexOf(a);
+    const indexB = categoryOrder.indexOf(b);
+    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    return indexA - indexB;
+  });
+
+  // Produtos ordenados por categoria, priorizando destacados
+  const categorySortedProducts = sortedCategories.flatMap(category => {
+    const categoryProducts = productsByCategory[category];
+    const featured = categoryProducts.filter(p => p.isFeatured);
+    const regular = categoryProducts.filter(p => !p.isFeatured);
+    return [...featured, ...regular];
+  });
+  
+  // Priorizar produtos em destaque de diferentes categorias
+  const featuredByCategory: Record<string, any> = {};
+  const regularProducts: any[] = [];
+  
+  categorySortedProducts.forEach(product => {
+    const category = product.category || 'Geral';
+    if (product.isFeatured && !featuredByCategory[category]) {
+      featuredByCategory[category] = product;
+    } else {
+      regularProducts.push(product);
+    }
+  });
+  
+  const featuredFromDifferentCategories = Object.values(featuredByCategory);
+  
+  // Sistema de rotação simples com timestamp
+  const getCurrentRotationSeed = () => {
+    // Muda a cada 1 minuto (60.000 ms)
+    return Math.floor(Date.now() / (1 * 60 * 1000));
+  };
+  
+  // Função de randomização com seed determinístico  
+  const seededRandom = (seed: number) => {
+    let x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  };
+  
+  // Randomizar produtos usando seed
+  const getRandomProducts = (products: any[], count: number, seed: number) => {
+    const shuffled = [...products];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const randomIndex = Math.floor(seededRandom(seed + i) * (i + 1));
+      [shuffled[i], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[i]];
+    }
+    return shuffled.slice(0, count);
+  };
+  
+  // Criar displayProducts - 2 produtos em destaque + 3 produtos aleatórios
+  const displayProducts = (() => {
+    // Pegar exatamente 2 produtos em destaque
+    const featuredProducts = filteredProducts.filter(p => p.isFeatured).slice(0, 2);
+    
+    // Pegar produtos regulares (não em destaque) 
+    const nonFeaturedProducts = filteredProducts.filter(p => !p.isFeatured);
+    
+    // 4 produtos aleatórios do restante (com rotação a cada 1 minuto)
+    const rotationSeed = getCurrentRotationSeed() + store.id.charCodeAt(0);
+    const randomProducts = getRandomProducts(nonFeaturedProducts, 4, rotationSeed);
+    
+    // Combinar: 2 destaque + 4 regulares = 6 produtos total
+    return [...featuredProducts, ...randomProducts].slice(0, 6);
+  })();
+
   return (
-    <Card className="w-full mb-6 shadow-sm border-gray-200 hover:shadow-md transition-shadow">
-      <CardContent className="p-6">
-        {/* Header da Loja */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <Avatar className="w-12 h-12 border-2 border-gray-200">
-              <AvatarImage src={store.logoUrl} alt={store.name} />
-              <AvatarFallback className="text-lg font-bold">
-                {store.name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <h3 className="font-bold text-lg text-gray-900 leading-tight">
-                {limitStoreName(store.name, isMobile)}
-              </h3>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <MapPin className="w-3 h-3" />
-                <span>{store.address || 'Paraguay'}</span>
-                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                <span>4.8</span>
-              </div>
+    <div className="bg-white mb-3 border-b">
+      {/* Post Header with Background Effect */}
+      <div className="relative overflow-hidden">
+        {/* Background Effect */}
+        <div 
+          className="absolute inset-0 opacity-8"
+          style={{
+            background: `linear-gradient(135deg, ${store.themeColor || '#E11D48'}15, transparent 70%)`
+          }}
+        />
+        <div 
+          className="absolute inset-0 opacity-5"
+          style={{
+            background: `radial-gradient(circle at top right, ${store.themeColor || '#E11D48'}20, transparent 60%)`
+          }}
+        />
+        
+        {/* Content */}
+        <div className="relative px-4 py-3 flex items-center backdrop-blur-[0.5px]">
+          <Link href={`/flyer/${store.slug}`}>
+            <div 
+              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-lg cursor-pointer hover:scale-105 transition-transform"
+              style={{ backgroundColor: store.themeColor || '#E11D48' }}
+            >
+              {store.logoUrl ? (
+                <LazyImage
+                  src={store.logoUrl} 
+                  alt={store.name}
+                  className="rounded-full object-cover"
+                  style={{ 
+                    width: '2.75rem', 
+                    height: '2.75rem',
+                    filter: 'brightness(1.1) contrast(1.3) saturate(1.1)'
+                  }}
+                  placeholder={store.name.charAt(0)}
+                />
+              ) : (
+                <span className="text-lg drop-shadow-sm">{store.name.charAt(0)}</span>
+              )}
+            </div>
+          </Link>
+          
+          <div className="flex-1">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-gray-900 drop-shadow-sm">{limitStoreName(store.name, isMobile)}</h3>
+              
+              <Link href={`/flyer/${store.slug}`}>
+                <button 
+                  className="text-xs font-semibold py-2 px-4 rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-lg text-white"
+                  style={{ 
+                    backgroundColor: store.themeColor || '#E11D48',
+                    boxShadow: `0 4px 12px ${store.themeColor || '#E11D48'}30`
+                  }}
+                >
+                  💰 Ver {filteredProducts.length > 4 ? `+${filteredProducts.length - 4} ofertas` : 'panfleto'}
+                </button>
+              </Link>
             </div>
           </div>
-          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-            ✅ Ativo
-          </Badge>
         </div>
+      </div>
 
-        {/* Grid de Produtos */}
-        {filteredProducts.length > 0 ? (
-          <>
-            <div className={`grid gap-3 mb-4 ${
-              isMobile 
-                ? 'grid-cols-2' 
-                : 'grid-cols-3 lg:grid-cols-6'
-            }`}>
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  store={store}
-                  onClick={() => onProductClick?.(product)}
-                  isMobile={isMobile}
-                />
+      {/* Products Horizontal Cards */}
+      {displayProducts.length > 0 ? (
+        <div className="px-4 pb-3">
+          {isMobile ? (
+            /* Layout Mobile - Carousel horizontal com scroll */
+            <div className="relative">
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                {displayProducts.map((product) => (
+                  <div key={product.id} className="flex-shrink-0 w-32 sm:w-36 md:w-40 h-56 sm:h-60">
+                    <ProductCard
+                      product={product}
+                      currency={store.currency || 'Gs.'}
+                      themeColor={store.themeColor || '#E11D48'}
+                      showFeaturedBadge={true}
+                      onClick={onProductClick}
+                      customUsdBrlRate={store.customUsdBrlRate ? Number(store.customUsdBrlRate) : undefined}
+                    />
+                  </div>
+                ))}
+              </div>
+              
+              {/* Indicador de scroll para mobile */}
+              {displayProducts.length > 3 && (
+                <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-white via-white/80 to-transparent flex items-center justify-center pointer-events-none">
+                  <div className="bg-gray-400 rounded-full p-1">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Layout Desktop - Grid horizontal sem scroll */
+            <div className="grid grid-cols-6 gap-3">
+              {displayProducts.slice(0, 6).map((product) => (
+                <div key={product.id} className="h-72">
+                  <ProductCard
+                    product={product}
+                    currency={store.currency || 'Gs.'}
+                    themeColor={store.themeColor || '#E11D48'}
+                    showFeaturedBadge={true}
+                    onClick={onProductClick}
+                    customUsdBrlRate={store.customUsdBrlRate ? Number(store.customUsdBrlRate) : undefined}
+                  />
+                </div>
+              ))}
+              
+              {/* Preencher slots vazios se houver menos de 5 produtos */}
+              {Array.from({ length: Math.max(0, 5 - displayProducts.length) }).map((_, index) => (
+                <div key={`empty-${index}`} className="h-72 bg-gray-100 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center">
+                  <span className="text-gray-400 text-xs">+</span>
+                </div>
               ))}
             </div>
-            
-            {/* Footer da Loja */}
-            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-              <div className="text-sm text-gray-600">
-                {filteredProducts.length} produto{filteredProducts.length > 1 ? 's' : ''} disponível{filteredProducts.length > 1 ? 'eis' : ''}
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="flex items-center gap-1">
-                  <Heart className="w-3 h-3" />
-                  Curtir
-                </Button>
-                <Button variant="outline" size="sm" className="flex items-center gap-1">
-                  <Share className="w-3 h-3" />
-                  Compartilhar
-                </Button>
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            <p>Nenhum produto encontrado para "{searchQuery}"</p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </div>
+      ) : (
+        <div className="px-4 py-6 text-center text-gray-500">
+          <p>Esta loja ainda não tem produtos ativos</p>
+        </div>
+      )}
+
+    </div>
   );
 }
