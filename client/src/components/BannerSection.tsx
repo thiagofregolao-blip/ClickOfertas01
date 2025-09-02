@@ -107,8 +107,8 @@ export function BannerSection() {
           </div>
         </div>
 
-        {/* Layout mobile: banners empilhados */}
-        <div className="md:hidden space-y-4">
+        {/* Layout mobile: banner de tela cheia sem bordas laterais */}
+        <div className="md:hidden -mx-4 w-screen min-h-[280px]">
           {/* Banner rotativo */}
           {rotatingBanners.length > 0 && (
             <BannerCarousel banners={rotatingBanners} />
@@ -116,7 +116,7 @@ export function BannerSection() {
 
           {/* Banners estáticos em grid 2x1 */}
           {(staticLeftBanners[0] || staticRightBanners[0]) && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 px-4 mt-4">
               {staticLeftBanners[0] && (
                 <StaticBanner banner={staticLeftBanners[0]} />
               )}
