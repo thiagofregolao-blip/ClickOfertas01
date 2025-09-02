@@ -159,7 +159,14 @@ export default function Landing() {
               <div className="px-6 pb-8">
                 <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl">
                   <div className="text-center mb-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">Entre agora</h3>
+                    <div className="flex items-center justify-center gap-3 mb-2">
+                      <img 
+                        src="/attached_assets/logo certo 01_1756853766080.png" 
+                        alt="Mascote Click Ofertas" 
+                        className="w-12 h-12 object-contain"
+                      />
+                      <h3 className="text-xl font-bold text-gray-900">Entre agora</h3>
+                    </div>
                     <p className="text-gray-600 text-sm">Acesse as melhores ofertas</p>
                   </div>
 
