@@ -258,10 +258,6 @@ export default function Landing() {
                 </div>
               </div>
 
-              {/* Call to action */}
-              <div className="bg-yellow-400 text-gray-900 inline-block px-6 py-2 rounded-full font-bold text-sm shadow-lg">
-                ✨ Descubra ofertas incríveis agora!
-              </div>
 
               {/* Elementos decorativos */}
               <div className="absolute top-20 left-10 opacity-20 pointer-events-none">
