@@ -279,7 +279,7 @@ export default function Landing() {
             </div>
 
             {/* Formulário de Login Desktop */}
-            <div className="w-[440px] max-w-lg bg-white rounded-xl shadow-2xl p-10 flex-shrink-0">
+            <div className="w-[360px] max-w-md bg-white rounded-xl shadow-2xl p-8 flex-shrink-0">
               <div className="w-full">
                 <div className="mb-8">
                   <h2 className="text-3xl font-bold text-gray-900 mb-2">Entre</h2>
