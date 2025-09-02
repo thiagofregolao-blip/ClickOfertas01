@@ -739,10 +739,10 @@ export default function StoresGallery() {
 
       {/* SEÇÃO DE STORIES - Mobile apenas */}
       {!searchQuery.trim() && isMobile && (
-        <div className="bg-white border-b pt-4">
+        <div className="bg-white border-b pt-2">
           <div className="mx-auto px-4 max-w-full">
             {/* Texto e botão criar story na mesma linha */}
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-2 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {isAuthenticated && (
                   <button
@@ -768,7 +768,7 @@ export default function StoresGallery() {
                 >
                   {/* Círculo da loja */}
                   <div className="relative">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
                       <div className="w-full h-full rounded-full overflow-hidden">
                         <Avatar className="w-full h-full">
                           <AvatarImage 
@@ -793,7 +793,7 @@ export default function StoresGallery() {
                   </div>
                   
                   {/* Nome da loja */}
-                  <div className="text-xs text-gray-600 max-w-[64px] text-center leading-tight truncate">
+                  <div className="text-xs text-gray-600 max-w-[80px] text-center leading-tight truncate">
                     {storyStore.name}
                   </div>
                 </div>
