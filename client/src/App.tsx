@@ -120,9 +120,9 @@ function Router() {
           <Route path="/admin-panel" component={SuperAdmin} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
-          {/* Redireciona qualquer rota de admin para /cards */}
-          <Route path="/admin" component={StoresGallery} />
-          <Route path="/admin/*" component={StoresGallery} />
+          {/* Usuário normal não tem acesso ao admin - redireciona para /cards */}
+          <Route path="/admin" component={() => { window.location.href = '/cards'; return null; }} />
+          <Route path="/admin/*" component={() => { window.location.href = '/cards'; return null; }} />
         </>
       )}
       <Route component={NotFound} />
