@@ -149,7 +149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Primeiro verificar se está autenticado via Replit
-      if (!req.isAuthenticated() || !req.user) {
+      if (!req.session?.user?.id) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
@@ -176,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Smart redirect after login based on user type  
   app.get('/api/auth/redirect', async (req: any, res) => {
-    if (!req.isAuthenticated()) {
+    if (!req.session?.user?.id) {
       return res.redirect('/');
     }
     try {
@@ -2374,7 +2374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/banners/view', async (req, res) => {
     try {
       const { bannerId } = req.body;
-      const userId = req.isAuthenticated() ? (req as any).user?.claims?.sub || (req as any).user?.id : undefined;
+      const userId = req.session?.user?.id || null;
       const userAgent = req.headers['user-agent'];
       const ipAddress = req.ip || req.connection.remoteAddress;
 
@@ -2390,7 +2390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/banners/click', async (req, res) => {
     try {
       const { bannerId } = req.body;
-      const userId = req.isAuthenticated() ? (req as any).user?.claims?.sub || (req as any).user?.id : undefined;
+      const userId = req.session?.user?.id || null;
       const userAgent = req.headers['user-agent'];
       const ipAddress = req.ip || req.connection.remoteAddress;
 
@@ -2413,7 +2413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verificar autenticação Replit como fallback
-      if (req.isAuthenticated()) {
+      if (req.session?.user?.id) {
         return next();
       }
       
@@ -2434,8 +2434,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user = req.session.user;
       }
       // Verificar autenticação Replit como fallback
-      else if (req.isAuthenticated()) {
-        const userId = req.user?.claims?.sub || req.user?.id;
+      else if (req.session?.user?.id) {
+        const userId = req.session.user.id;
         user = await storage.getUser(userId);
       }
       
