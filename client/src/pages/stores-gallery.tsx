@@ -646,7 +646,7 @@ export default function StoresGallery() {
               <div className="flex-1 min-w-0 pl-4">
                 {/* Texto e botão criar story na mesma linha */}
                 <div className="mb-4 flex items-center justify-between">
-                  <p className="text-sm text-gray-600">📱 Veja os stories das lojas e descubra promoções exclusivas!</p>
+                  <p className="text-sm text-gray-600">📱 Story de ofertas exclusivas</p>
                   {isAuthenticated && (
                     <button
                       className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-1.5 rounded-lg hover:opacity-90 transition-all shadow-lg font-medium text-sm"
