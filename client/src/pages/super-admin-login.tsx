@@ -19,15 +19,32 @@ export default function SuperAdminLogin() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Redirecionar diretamente para abrir em nova aba incógnita
-    const loginUrl = `/api/auth/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
-    window.open(loginUrl, '_blank');
-    
-    toast({
-      title: "Redirecionando",
-      description: "Abrindo login em nova aba incógnita...",
-    });
+    setIsLoading(true);
+    setError("");
+
+    try {
+      // Limpar qualquer sessão anterior
+      await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+      
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        // Login bem-sucedido, redirecionar
+        window.location.href = '/super-admin';
+      } else {
+        const data = await response.json().catch(() => ({ message: 'Erro ao fazer login' }));
+        setError(data.message || 'Email ou senha incorretos');
+      }
+    } catch (error) {
+      setError('Erro de conexão');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
