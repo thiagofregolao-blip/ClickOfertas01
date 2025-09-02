@@ -392,8 +392,8 @@ export default function StoresGallery() {
       {/* Header Responsivo */}
       <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
         <div className={`mx-auto py-4 ${isMobile ? 'px-1 max-w-full' : 'px-2 max-w-6xl'}`}>
-          {/* Menu de Navegação - PRIMEIRO */}
-          <div className="flex items-center justify-between gap-3 mb-6">
+          {/* Menu de Navegação - PRIMEIRO - Alinhado com o logo */}
+          <div className="flex items-center justify-end gap-3 mb-6" style={{ marginLeft: '80px' }}>
             
             {/* Botão temporário de acesso Super Admin */}
             <button
