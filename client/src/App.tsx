@@ -48,7 +48,9 @@ function Router() {
         <Route path="/price-comparison" component={LoadingComponent} />
         <Route path="/flyer/:slug" component={PublicFlyer} />
         <Route path="/stores/:slug" component={PublicFlyer} />
-        <Route path="/super-admin" component={LoadingComponent} />
+        <Route path="/super-admin" component={SuperAdminLogin} />
+        <Route path="/super-admin-login" component={SuperAdminLogin} />
+        <Route path="/admin-panel" component={SuperAdmin} />
         <Route path="/admin" component={LoadingComponent} />
         <Route path="/admin/*" component={LoadingComponent} />
         <Route path="/settings" component={LoadingComponent} />
@@ -72,6 +74,8 @@ function Router() {
           <Route path="/create-story" component={CreateStory} />
           <Route path="/price-comparison" component={PriceComparison} />
           <Route path="/super-admin-login" component={SuperAdminLogin} />
+          <Route path="/super-admin" component={SuperAdminLogin} />
+          <Route path="/admin-panel" component={SuperAdmin} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
         </>
