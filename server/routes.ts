@@ -2658,7 +2658,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { id } = req.params;
-      await storage.deleteStore(id, userId);
+      console.log(`Super admin ${userId} deleting store ${id}`);
+      await storage.deleteStore(id, userId, true); // true = isSuperAdmin
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting store:", error);

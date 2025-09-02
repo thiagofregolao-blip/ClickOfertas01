@@ -105,7 +105,7 @@ export interface IStorage {
   getStoreBySlug(slug: string): Promise<StoreWithProducts | undefined>;
   getAllActiveStores(): Promise<StoreWithProducts[]>;
   getAllStores(): Promise<StoreWithProducts[]>;
-  deleteStore(storeId: string, userId: string): Promise<void>;
+  deleteStore(storeId: string, userId: string, isSuperAdmin?: boolean): Promise<void>;
 
   // Product operations
   getStoreProducts(storeId: string): Promise<Product[]>;
@@ -425,7 +425,7 @@ export class DatabaseStorage implements IStorage {
     return storesWithProducts;
   }
 
-  async deleteStore(storeId: string, userId: string): Promise<void> {
+  async deleteStore(storeId: string, userId: string, isSuperAdmin = false): Promise<void> {
     // Usar transação para garantir consistência dos dados
     await db.transaction(async (tx) => {
       // Primeiro deletar todos os produtos da loja (e dados relacionados)
@@ -501,9 +501,17 @@ export class DatabaseStorage implements IStorage {
         .where(eq(flyerViews.storeId, storeId));
       
       // Finalmente deletar a loja
-      await tx
-        .delete(stores)
-        .where(and(eq(stores.id, storeId), eq(stores.userId, userId)));
+      if (isSuperAdmin) {
+        // Super admin pode deletar qualquer loja
+        await tx
+          .delete(stores)
+          .where(eq(stores.id, storeId));
+      } else {
+        // Usuário normal só pode deletar suas próprias lojas
+        await tx
+          .delete(stores)
+          .where(and(eq(stores.id, storeId), eq(stores.userId, userId)));
+      }
     });
   }
 
