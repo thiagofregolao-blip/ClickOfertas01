@@ -61,16 +61,9 @@ export default function SuperAdmin() {
   // Redirect if not super admin
   useEffect(() => {
     if (!isLoading && (!user?.isSuperAdmin)) {
-      toast({
-        title: "Acesso negado",
-        description: "Você precisa ser Super Admin para acessar esta página.",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/super-admin-login";
-      }, 1000);
+      window.location.href = "/super-admin-login";
     }
-  }, [user, isLoading, toast]);
+  }, [user, isLoading]);
 
   // Buscar banners
   const { data: banners = [] } = useQuery<Banner[]>({

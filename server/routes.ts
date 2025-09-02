@@ -121,9 +121,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Auth middleware (só depois das rotas especiais)
-  await setupAuth(app);
-  await setupOAuthProviders(app);
+  // Auth middleware (só depois das rotas especiais) - DESABILITADO para evitar conflitos
+  // await setupAuth(app);
+  // await setupOAuthProviders(app);
 
   // Logout completo - limpa todas as sessões
   app.post('/api/auth/logout', (req: any, res) => {
