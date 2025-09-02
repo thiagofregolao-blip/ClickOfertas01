@@ -644,50 +644,26 @@ export default function StoresGallery() {
               
               {/* Stories à direita */}
               <div className="flex-1 min-w-0">
-                <div className={`${isMobile ? 'flex items-start gap-2 overflow-x-auto scrollbar-hide' : 'grid grid-cols-4 gap-6 justify-items-center'} pt-8`}>
-              
-              {/* Botão criar story (se autenticado) - PRIMEIRO */}
-              {isAuthenticated && (
-                <div 
-                  className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
-                  onClick={() => setLocation('/create-story')}
-                  data-testid="button-create-story"
-                >
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-full border-2 border-dashed border-blue-500 p-1 hover:border-blue-600 transition-colors">
-                      <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
-                        {user?.profileImageUrl ? (
-                          <img 
-                            src={user.profileImageUrl} 
-                            alt="Meu Perfil"
-                            className="w-full h-full rounded-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              const parent = target.parentElement as HTMLElement;
-                              if (parent) {
-                                parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-white"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>`;
-                              }
-                            }}
-                          />
-                        ) : (
-                          <User className="w-8 h-8 text-white" />
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Ícone de câmera sobreposto */}
-                    <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1.5 border-2 border-white">
-                      <Camera className="w-3 h-3 text-white" />
-                    </div>
+                {/* Botão criar story retangular - ACIMA da barra */}
+                {isAuthenticated && (
+                  <div className="mb-4 text-center">
+                    <button
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg hover:opacity-90 transition-all shadow-lg font-medium"
+                      onClick={() => setLocation('/create-story')}
+                      data-testid="button-create-story"
+                    >
+                      <Camera className="w-4 h-4 mr-2 inline" />
+                      Criar Story
+                    </button>
+                    <p className="text-sm text-gray-600 mt-2">📱 Veja os stories das lojas e descubra promoções exclusivas!</p>
                   </div>
-                  
-                  <span className="text-xs text-gray-600 font-medium">Criar</span>
-                </div>
-              )}
+                )}
+                
+                {/* Grid 2 linhas x 4 colunas para 8 stories aleatórios */}
+                <div className={`${isMobile ? 'flex items-start gap-2 overflow-x-auto scrollbar-hide' : 'grid grid-cols-4 grid-rows-2 gap-4 max-h-44'}`}>
               
-              {/* Stories das Lojas - DEPOIS */}
-              {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
+              {/* Stories das Lojas - limitado a 8 aleatórios no desktop */}
+              {(isMobile ? Object.values(instagramStoriesGrouped) : Object.values(instagramStoriesGrouped).sort(() => Math.random() - 0.5).slice(0, 8)).map(({ store: storyStore, stories }) => (
                 <div 
                   key={storyStore.id} 
                   className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
