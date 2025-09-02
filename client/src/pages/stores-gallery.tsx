@@ -549,15 +549,17 @@ export default function StoresGallery() {
                 </div>
               )
             ) : (
-              // Usuário não logado - mostrar botão entrar
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
-                data-testid="button-user-login"
-              >
-                <User className="w-4 h-4" />
-                Entrar
-              </button>
+              // Usuário não logado - mostrar botão entrar apenas no desktop
+              !isMobile && (
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
+                  data-testid="button-user-login"
+                >
+                  <User className="w-4 h-4" />
+                  Entrar
+                </button>
+              )
             )}
 
           </div>
