@@ -143,7 +143,7 @@ export default function SuperAdminLogin() {
             variant="outline"
             onClick={async () => {
               await fetch('/api/auth/logout', { method: 'POST' });
-              await fetch('/api/logout');
+              await fetch('/api/auth/logout');
               toast({
                 title: "Logout realizado",
                 description: "Todas as sessões foram encerradas. Agora você pode fazer login como super admin.",

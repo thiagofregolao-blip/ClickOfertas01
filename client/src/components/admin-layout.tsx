@@ -95,7 +95,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => (window.location.href = "/api/logout")}
+                onClick={() => (window.location.href = "/api/auth/logout")}
                 className="hidden sm:flex text-red-600 hover:text-red-700 hover:bg-red-50"
                 data-testid="button-logout"
               >
@@ -156,7 +156,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <Button
                     variant="ghost"
                     className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                    onClick={() => (window.location.href = "/api/logout")}
+                    onClick={() => (window.location.href = "/api/auth/logout")}
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Sair
