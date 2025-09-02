@@ -693,10 +693,6 @@ export default function StoresGallery() {
               
               {/* Stories à direita */}
               <div className="flex-1 min-w-0 pl-4">
-                {/* Título da seção de stories */}
-                <div className="mb-4">
-                  <p className="text-sm text-gray-600">📱 Story de ofertas exclusivas</p>
-                </div>
                 
                 {/* Grid 2 linhas x 4 colunas para 8 stories aleatórios */}
                 <div className={`${isMobile ? 'flex items-start gap-2 overflow-x-auto scrollbar-hide' : 'grid grid-cols-4 grid-rows-2 gap-4 max-h-44'}`}>
@@ -752,10 +748,6 @@ export default function StoresGallery() {
       {!searchQuery.trim() && isMobile && (
         <div className="bg-white border-b">
           <div className="mx-auto px-4 max-w-full">
-            {/* Título da seção de stories mobile */}
-            <div className="mb-1">
-              <p className="text-sm text-gray-600">📱 Story de ofertas exclusivas</p>
-            </div>
             
             {/* Stories em scroll horizontal para mobile */}
             <div className="flex items-start gap-2 overflow-x-auto scrollbar-hide pb-4">
