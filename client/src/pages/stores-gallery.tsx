@@ -662,8 +662,12 @@ export default function StoresGallery() {
                 {/* Grid 2 linhas x 4 colunas para 8 stories aleatórios */}
                 <div className={`${isMobile ? 'flex items-start gap-2 overflow-x-auto scrollbar-hide' : 'grid grid-cols-4 grid-rows-2 gap-4 max-h-44'}`}>
               
-              {/* Stories das Lojas - limitado a 8 aleatórios no desktop */}
-              {(isMobile ? Object.values(instagramStoriesGrouped) : Object.values(instagramStoriesGrouped).sort(() => Math.random() - 0.5).slice(0, 8)).map(({ store: storyStore, stories }) => (
+              {/* Stories das Lojas - limitado a 8 aleatórios no desktop com rotação horária */}
+              {(isMobile ? Object.values(instagramStoriesGrouped) : Object.values(instagramStoriesGrouped).sort(() => {
+                const hourSeed = Math.floor(Date.now() / (60 * 60 * 1000));
+                let x = Math.sin(hourSeed) * 10000;
+                return (x - Math.floor(x)) - 0.5;
+              }).slice(0, 8)).map(({ store: storyStore, stories }) => (
                 <div 
                   key={storyStore.id} 
                   className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
