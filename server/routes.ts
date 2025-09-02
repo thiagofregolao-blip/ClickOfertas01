@@ -32,6 +32,30 @@ async function verifyStoreOwnershipByProduct(productId: string, userId: string):
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup session middleware BEFORE routes
+  const session = (await import('express-session')).default;
+  const connectPg = (await import('connect-pg-simple')).default(session);
+  
+  const pgStore = new connectPg({
+    conString: process.env.DATABASE_URL,
+    createTableIfMissing: false,
+    ttl: 7 * 24 * 60 * 60, // 1 week in seconds
+    tableName: "sessions",
+  });
+  
+  app.set("trust proxy", 1);
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'fallback-secret-key',
+    store: pgStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: false, // Set to false for localhost
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+    },
+  }));
+
   // Routes que NÃO devem usar Replit Auth (devem vir ANTES do setupAuth)
   
 
@@ -61,7 +85,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create session manually
-      (req as any).session.user = user;
+      console.log("Session object:", !!req.session);
+      console.log("Session keys:", req.session ? Object.keys(req.session) : "session is undefined");
+      
+      if (!req.session) {
+        console.error("Session middleware not working");
+        return res.status(500).json({ message: "Erro de configuração do servidor" });
+      }
+      
+      // Initialize session object if needed
+      if (!req.session.user) {
+        req.session.user = {};
+      }
+      
+      req.session.user = user;
       
       // Verifica se o usuário tem uma loja
       const userStore = await storage.getUserStore(user.id);
@@ -321,22 +358,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isEmailVerified: false
       });
 
-      // Create session
-      req.login(user, (err) => {
-        if (err) {
-          console.error("Session error:", err);
-          return res.status(500).json({ message: "Erro ao criar sessão" });
-        }
-        res.status(201).json({ 
-          message: "Usuário criado com sucesso",
-          user: {
-            id: user.id,
-            email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName
-          },
-          hasStore: false
-        });
+      // Create session manually
+      (req as any).session.user = user;
+      
+      res.status(201).json({ 
+        message: "Usuário criado com sucesso",
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
+        },
+        hasStore: false
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -375,21 +408,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storeOwnerToken: 'STORE_OWNER_' + Date.now()
       });
 
-      // Create session
-      req.login(user, (err) => {
-        if (err) {
-          console.error("Session error:", err);
-          return res.status(500).json({ message: "Erro ao criar sessão" });
-        }
-        res.status(201).json({ 
-          message: "Loja criada com sucesso",
-          user: {
-            id: user.id,
-            email: user.email,
-            storeName: user.storeName
-          },
-          hasStore: true
-        });
+      // Create session manually
+      (req as any).session.user = user;
+      
+      res.status(201).json({ 
+        message: "Loja criada com sucesso",
+        user: {
+          id: user.id,
+          email: user.email,
+          storeName: user.storeName
+        },
+        hasStore: true
       });
     } catch (error) {
       console.error("Registration error:", error);
