@@ -390,16 +390,18 @@ export default function StoresGallery() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header Responsivo */}
-      <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95" style={{background: isMobile ? 'transparent' : 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
+      <div className="sticky top-0 z-50" style={{background: isMobile ? 'transparent' : 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
         
         {/* Mobile: Banner como header */}
         {isMobile ? (
-          <div className="relative">
-            {/* Banner rotativo mobile */}
-            <BannerSection />
+          <div className="relative w-full">
+            {/* Banner rotativo mobile - preenche toda a tela */}
+            <div className="w-full">
+              <BannerSection />
+            </div>
             
             {/* Barra de busca sobreposta */}
-            <div className="absolute bottom-2 left-2 right-2 z-10">
+            <div className="absolute bottom-3 left-3 right-3 z-10">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
@@ -424,7 +426,7 @@ export default function StoresGallery() {
 
             {/* Menu de usuário mobile sobreposto */}
             {isAuthenticated && (
-              <div className="absolute top-2 right-2 z-10">
+              <div className="absolute top-3 right-3 z-10">
                 <div className="relative">
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
