@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { FileText, ShoppingBag, TrendingUp, Users, Globe, LogIn } from "lucide-react";
 import { useAppVersion } from "@/hooks/use-mobile";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 /**
  * Página de Aterrissagem - Click Ofertas Paraguai
@@ -10,6 +11,62 @@ import { useState } from "react";
  */
 export default function Landing() {
   const { versionName, version } = useAppVersion();
+  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha email e senha",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Login realizado com sucesso",
+          description: "Redirecionando..."
+        });
+
+        // Redirecionar baseado no tipo de usuário
+        if (data.user?.isSuperAdmin) {
+          window.location.href = '/admin-panel';
+        } else if (data.user?.hasStore) {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/cards';
+        }
+      } else {
+        toast({
+          title: "Erro no login",
+          description: data.message || "Email ou senha incorretos",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro no login",
+        description: "Erro de conexão",
+        variant: "destructive"
+      });
+    }
+    setIsLoading(false);
+  };
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -106,6 +163,8 @@ export default function Landing() {
                         placeholder="Email/Telefone/Usuário"
                         className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
                         data-testid="input-login-mobile"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                       />
                     </div>
 
@@ -116,17 +175,20 @@ export default function Landing() {
                         placeholder="Senha"
                         className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
                         data-testid="input-password-mobile"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                       />
                     </div>
 
                     {/* Botão principal de login */}
                     <Button 
-                      onClick={() => window.location.href = '/api/login'}
+                      onClick={handleLogin}
+                      disabled={isLoading}
                       className="w-full bg-gradient-to-r from-[#F04940] to-[#FA7D22] hover:from-[#E03A32] hover:to-[#E96D1D] text-white py-4 rounded-xl font-semibold text-base shadow-lg"
                       data-testid="button-login"
                     >
                       <LogIn className="w-5 h-5 mr-2" />
-                      ENTRAR
+                      {isLoading ? 'ENTRANDO...' : 'ENTRAR'}
                     </Button>
 
                     {/* Links de apoio */}
@@ -229,6 +291,8 @@ export default function Landing() {
                       placeholder="Email/Telefone/Usuário"
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
                       data-testid="input-login-desktop"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
 
@@ -238,15 +302,18 @@ export default function Landing() {
                       placeholder="Senha"
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
                       data-testid="input-password-desktop"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                     />
                   </div>
 
                   <Button 
-                    onClick={() => window.location.href = '/api/login'}
+                    onClick={handleLogin}
+                    disabled={isLoading}
                     className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium text-base"
                     data-testid="button-login-desktop"
                   >
-                    ENTRE
+                    {isLoading ? 'ENTRANDO...' : 'ENTRE'}
                   </Button>
 
                   <div className="flex flex-row justify-between text-sm">
