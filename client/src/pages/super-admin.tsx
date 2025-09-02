@@ -67,7 +67,7 @@ export default function SuperAdmin() {
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = "/super-admin-login";
       }, 1000);
     }
   }, [user, isLoading, toast]);
