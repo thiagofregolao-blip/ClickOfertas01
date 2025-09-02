@@ -605,6 +605,14 @@ export default function StoresGallery() {
 
             {/* Logo e Barra de Busca - SEGUNDO */}
             <div className="flex items-center gap-4">
+              {/* Título */}
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <span className="text-white font-bold text-xl tracking-normal" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: '700'}}>Click</span>
+                <span className="font-bold text-xl tracking-normal">
+                  <span className="text-white">Ofertas.</span>
+                  <span style={{color: '#FFE600'}}>PY</span>
+                </span>
+              </div>
               
               {/* Barra de Busca */}
               <div className="flex-1 max-w-lg">
