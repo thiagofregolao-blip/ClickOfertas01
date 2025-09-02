@@ -220,10 +220,10 @@ export default function Landing() {
           </div>
 
           {/* Desktop Layout */}
-          <div className="hidden lg:flex items-start justify-between h-full max-w-7xl mx-auto px-8 xl:px-16 py-16 pt-32">
+          <div className="hidden lg:flex items-start justify-between h-full max-w-7xl mx-auto px-8 xl:px-16 py-8 pt-16">
             {/* Conteúdo do lado esquerdo */}
             <div className="text-left text-white max-w-2xl flex-1 pr-8">
-              <div className="mb-12">
+              <div className="mb-8">
                 <h1 className="text-6xl font-bold mb-6 leading-tight">
                   Descubra as melhores{" "}
                   <span className="text-yellow-300">ofertas</span>{" "}
@@ -279,7 +279,7 @@ export default function Landing() {
             </div>
 
             {/* Formulário de Login Desktop */}
-            <div className="w-[440px] max-w-lg bg-white rounded-xl shadow-2xl p-10 flex-shrink-0 mt-8">
+            <div className="w-[440px] max-w-lg bg-white rounded-xl shadow-2xl p-10 flex-shrink-0">
               <div className="w-full">
                 <div className="mb-8">
                   <h2 className="text-3xl font-bold text-gray-900 mb-2">Entre</h2>
