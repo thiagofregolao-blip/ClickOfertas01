@@ -298,7 +298,7 @@ export default function StoresGallery() {
     <div className="min-h-screen bg-white">
       {/* Mobile: Banner rotativo no topo + Search bar sobreposta */}
       {isMobile ? (
-        <div className="relative">
+        <div className="relative -mx-1">
           {/* Banners rotativos ocupando todo o topo */}
           <div className="w-full">
             <BannerSection />
