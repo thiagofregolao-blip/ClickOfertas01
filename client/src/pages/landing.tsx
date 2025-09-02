@@ -93,17 +93,6 @@ export default function Landing() {
       <div className="relative overflow-hidden bg-gradient-to-br from-[#F04940] to-[#FA7D22] min-h-screen">
         <div className="absolute inset-0 bg-black/20"></div>
         
-        {/* Header Superior estilo Shopee - apenas desktop */}
-        <div className="hidden lg:block relative z-20 bg-white/10 backdrop-blur-sm border-b border-white/20">
-          <div className="max-w-7xl mx-auto px-8 xl:px-16 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="w-8 h-8 text-white" />
-              <h1 className="text-2xl font-bold text-white">Click Ofertas</h1>
-            </div>
-            <div className="text-white text-lg font-medium">Entre</div>
-          </div>
-        </div>
-        
         {/* Layout Mobile vs Desktop */}
         <div className="relative z-10 w-full h-full">
           {/* Mobile Layout */}
