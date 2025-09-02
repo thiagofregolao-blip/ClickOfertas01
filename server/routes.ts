@@ -32,7 +32,58 @@ async function verifyStoreOwnershipByProduct(productId: string, userId: string):
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
+  // Routes que NÃO devem usar Replit Auth (devem vir ANTES do setupAuth)
+  
+  // Login route específico para email/senha (sem Replit Auth)
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { email, password } = loginUserSchema.parse(req.body);
+
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(401).json({ message: "Email ou senha incorretos" });
+      }
+
+      // Verify password
+      if (!user.password) {
+        return res.status(401).json({ message: "Email ou senha incorretos" });
+      }
+
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Email ou senha incorretos" });
+      }
+
+      // Create session
+      req.login(user, async (err) => {
+        if (err) {
+          console.error("Session error:", err);
+          return res.status(500).json({ message: "Erro ao criar sessão" });
+        }
+        // Verifica se o usuário tem uma loja
+        const userStore = await storage.getUserStore(user.id);
+        res.json({ 
+          message: "Login realizado com sucesso",
+          user: {
+            id: user.id,
+            email: user.email,
+            storeName: user.storeName
+          },
+          hasStore: !!userStore
+        });
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Erro interno do servidor" });
+      }
+    }
+  });
+
+  // Auth middleware (só depois das rotas especiais)
   await setupAuth(app);
   await setupOAuthProviders(app);
 
@@ -237,54 +288,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Login route  
-  app.post('/api/auth/login', async (req, res) => {
-    try {
-      const { email, password } = loginUserSchema.parse(req.body);
-
-      // Find user by email
-      const user = await storage.getUserByEmail(email);
-      if (!user) {
-        return res.status(401).json({ message: "Email ou senha incorretos" });
-      }
-
-      // Verify password
-      if (!user.password) {
-        return res.status(401).json({ message: "Email ou senha incorretos" });
-      }
-
-      const isValidPassword = await bcrypt.compare(password, user.password);
-      if (!isValidPassword) {
-        return res.status(401).json({ message: "Email ou senha incorretos" });
-      }
-
-      // Create session
-      req.login(user, async (err) => {
-        if (err) {
-          console.error("Session error:", err);
-          return res.status(500).json({ message: "Erro ao criar sessão" });
-        }
-        // Verifica se o usuário tem uma loja
-        const userStore = await storage.getUserStore(user.id);
-        res.json({ 
-          message: "Login realizado com sucesso",
-          user: {
-            id: user.id,
-            email: user.email,
-            storeName: user.storeName
-          },
-          hasStore: !!userStore
-        });
-      });
-    } catch (error) {
-      console.error("Login error:", error);
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ message: "Dados inválidos", errors: error.errors });
-      } else {
-        res.status(500).json({ message: "Erro interno do servidor" });
-      }
-    }
-  });
 
   // New registration routes for user/store separation
 
