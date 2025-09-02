@@ -754,7 +754,6 @@ export default function StoresGallery() {
                     Criar Story
                   </button>
                 )}
-                <p className="text-sm text-gray-600">📱 Story de ofertas exclusivas</p>
               </div>
             </div>
             
