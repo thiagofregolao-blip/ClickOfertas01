@@ -576,13 +576,13 @@ export default function StoresGallery() {
           </div>
 
           {/* Logo e Barra de Busca - SEGUNDO */}
-          <div className="flex items-center gap-4">
-            {/* Logo e Título */}
-            <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            {/* Logo e Título - Expandido */}
+            <div className="flex items-center gap-3 flex-shrink-0">
               <img 
                 src="/attached_assets/logo certo 01_1756774388368.png"
                 alt="Click Ofertas PY Logo"
-                className="w-12 h-12 object-contain"
+                className="w-16 h-16 object-contain"
               />
               <div className="flex items-center gap-1">
                 <span className="text-white font-bold text-xl tracking-normal" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: '700'}}>Click</span>
@@ -593,8 +593,8 @@ export default function StoresGallery() {
               </div>
             </div>
             
-            {/* Barra de Busca */}
-            <div className="flex-1 max-w-lg">
+            {/* Barra de Busca - Centro */}
+            <div className="flex-1 max-w-lg mx-6">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
@@ -617,9 +617,9 @@ export default function StoresGallery() {
               </div>
             </div>
 
-            {/* Botão de Comparação de Preços - Desktop apenas */}
+            {/* Botão de Comparação de Preços - Desktop apenas - Direita */}
             {!isMobile && (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-shrink-0">
                 <Link href="/price-comparison">
                   <Button
                     variant="outline"
