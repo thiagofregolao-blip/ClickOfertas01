@@ -390,49 +390,52 @@ export default function StoresGallery() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header Responsivo */}
-      <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
-        <div className={`mx-auto py-4 ${isMobile ? 'px-1 max-w-full' : 'px-2 max-w-6xl'}`}>
-          {/* Menu de Navegação - PRIMEIRO */}
-          <div className="flex items-center justify-between gap-3 mb-6">
+      <div className="border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95" style={{background: isMobile ? 'transparent' : 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
+        
+        {/* Mobile: Banner como header */}
+        {isMobile ? (
+          <div className="relative">
+            {/* Banner rotativo mobile */}
+            <BannerSection />
             
-            {/* Botão temporário de acesso Super Admin - Oculto no mobile */}
-            {!isMobile && (
-              <button
-                onClick={() => {
-                  const email = 'admin@clickofertas.py';
-                  const password = 'super123admin';
-                  // Fazer login do super admin
-                  fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                  }).then(res => res.json()).then(data => {
-                    if (data.message === 'Login realizado com sucesso') {
-                      window.location.href = '/super-admin';
-                    }
-                  });
-                }}
-                className="fixed bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium z-50"
-              >
-                🔧 Super Admin
-              </button>
-            )}
-            
-            {isAuthenticated ? (
-              // Usuário logado - diferentes layouts para mobile e desktop
-              isMobile ? (
-                // Mobile - manter menu dropdown
+            {/* Barra de busca sobreposta */}
+            <div className="absolute bottom-2 left-2 right-2 z-10">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setIsSearchFocused(false)}
+                  className="pl-10 pr-10 py-2 w-full bg-white/95 backdrop-blur-sm border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200 shadow-lg"
+                />
+                {searchInput && (
+                  <button
+                    onClick={() => setSearchInput('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Limpar busca"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Menu de usuário mobile sobreposto */}
+            {isAuthenticated && (
+              <div className="absolute top-2 right-2 z-10">
                 <div className="relative">
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="text-white hover:text-gray-200 font-medium flex items-center gap-2"
+                    className="bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 font-medium flex items-center gap-2 px-3 py-1.5 rounded-full"
                     data-testid="button-user-menu"
                   >
-                    <User className="w-5 h-5" />
-                    <span className="text-sm">
-                      Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
+                    <User className="w-4 h-4" />
+                    <span className="text-xs">
+                      {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'User'}
                     </span>
-                    <Settings className="w-4 h-4" />
+                    <Settings className="w-3 h-3" />
                   </button>
                   
                   {/* Menu dropdown do usuário */}
@@ -493,7 +496,37 @@ export default function StoresGallery() {
                     </div>
                   )}
                 </div>
-              ) : (
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Desktop: Layout original */
+          <div className={`mx-auto py-4 px-2 max-w-6xl`}>
+            {/* Menu de Navegação - PRIMEIRO */}
+            <div className="flex items-center justify-between gap-3 mb-6">
+              
+              {/* Botão temporário de acesso Super Admin */}
+              <button
+                onClick={() => {
+                  const email = 'admin@clickofertas.py';
+                  const password = 'super123admin';
+                  // Fazer login do super admin
+                  fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                  }).then(res => res.json()).then(data => {
+                    if (data.message === 'Login realizado com sucesso') {
+                      window.location.href = '/super-admin';
+                    }
+                  });
+                }}
+                className="fixed bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium z-50"
+              >
+                🔧 Super Admin
+              </button>
+              
+              {isAuthenticated ? (
                 // Desktop - menu na mesma linha
                 <div className="flex items-center gap-4">
                   {/* Saudação */}
@@ -547,10 +580,8 @@ export default function StoresGallery() {
                     </button>
                   </div>
                 </div>
-              )
-            ) : (
-              // Usuário não logado - mostrar botão entrar apenas no desktop
-              !isMobile && (
+              ) : (
+                // Usuário não logado - mostrar botão entrar
                 <button
                   onClick={() => setIsLoginModalOpen(true)}
                   className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
@@ -559,15 +590,13 @@ export default function StoresGallery() {
                   <User className="w-4 h-4" />
                   Entrar
                 </button>
-              )
-            )}
+              )}
 
-          </div>
+            </div>
 
-          {/* Logo e Barra de Busca - SEGUNDO */}
-          <div className="flex items-center gap-4">
-            {/* Logo e Título - Oculto no mobile */}
-            {!isMobile && (
+            {/* Logo e Barra de Busca - SEGUNDO */}
+            <div className="flex items-center gap-4">
+              {/* Logo e Título */}
               <div className="flex items-center gap-2 flex-shrink-0">
                 <img 
                   src="/attached_assets/logo certo 01_1756774388368.png"
@@ -582,34 +611,32 @@ export default function StoresGallery() {
                   </span>
                 </div>
               </div>
-            )}
-            
-            {/* Barra de Busca */}
-            <div className="flex-1 max-w-lg">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setIsSearchFocused(false)}
-                  className="pl-10 pr-10 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
-                />
-                {searchInput && (
-                  <button
-                    onClick={() => setSearchInput('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                    title="Limpar busca"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
+              
+              {/* Barra de Busca */}
+              <div className="flex-1 max-w-lg">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onFocus={() => setIsSearchFocused(true)}
+                    onBlur={() => setIsSearchFocused(false)}
+                    className="pl-10 pr-10 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
+                  />
+                  {searchInput && (
+                    <button
+                      onClick={() => setSearchInput('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      title="Limpar busca"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Botão de Comparação de Preços - Desktop apenas */}
-            {!isMobile && (
+              {/* Botão de Comparação de Preços - Desktop apenas */}
               <div className="flex items-center gap-3">
                 <Link href="/price-comparison">
                   <Button
@@ -624,10 +651,9 @@ export default function StoresGallery() {
                   </Button>
                 </Link>
               </div>
-            )}
+            </div>
           </div>
-          
-        </div>
+        )}
       </div>
 
       {/* SEÇÃO DE BANNERS + STORIES LADO A LADO */}
