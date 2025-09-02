@@ -195,7 +195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.redirect('/');
     }
     try {
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (user?.storeOwnerToken) {
@@ -264,7 +264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/profile-images", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       if (!req.body.imageURL) {
         return res.status(400).json({ error: "imageURL é obrigatório" });
       }
@@ -458,7 +458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Store routes
   app.get('/api/stores/me', isAuthenticatedCustom, async (req: any, res) => {
     try {
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       const store = await storage.getUserStore(userId);
       res.json(store);
     } catch (error) {
@@ -469,7 +469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/stores', isAuthenticatedCustom, async (req: any, res) => {
     try {
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       const storeData = insertStoreSchema.parse(req.body);
       const store = await storage.createStore(userId, storeData);
       res.status(201).json(store);
@@ -486,7 +486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/stores/:id', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       
       // Verify store ownership
       const isOwner = await verifyStoreOwnership(id, userId);
@@ -510,7 +510,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/stores/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       await storage.deleteStore(id, userId);
       res.status(204).send();
     } catch (error) {
@@ -631,7 +631,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/stores/:storeId/products', isAuthenticated, async (req: any, res) => {
     try {
       const { storeId } = req.params;
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       
       // Verify store ownership
       const isOwner = await verifyStoreOwnership(storeId, userId);
@@ -650,7 +650,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/stores/:storeId/products', isAuthenticated, async (req: any, res) => {
     try {
       const { storeId } = req.params;
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       
       // Verify store ownership
       const isOwner = await verifyStoreOwnership(storeId, userId);
@@ -772,7 +772,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/stores/:storeId/products/:productId', isAuthenticated, async (req: any, res) => {
     try {
       const { storeId, productId } = req.params;
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       
       // Verify store ownership
       const isOwner = await verifyStoreOwnership(storeId, userId);
@@ -846,7 +846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/products/:productId/save', isAuthenticated, async (req: any, res) => {
     try {
       const { productId } = req.params;
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       
       const saveData = insertSavedProductSchema.parse({
         productId,
@@ -864,7 +864,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Buscar produtos salvos
   app.get('/api/saved-products', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       const savedProducts = await storage.getSavedProducts(userId);
       res.json(savedProducts);
     } catch (error) {
@@ -877,7 +877,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/saved-products/:savedProductId', isAuthenticated, async (req: any, res) => {
     try {
       const { savedProductId } = req.params;
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       
       await storage.removeSavedProduct(savedProductId, userId);
       res.json({ success: true });
@@ -1052,7 +1052,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Criar um novo Instagram Story
   app.post('/api/instagram-stories', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       const storyData = insertInstagramStorySchema.parse({
         ...req.body,
         userId
@@ -1112,7 +1112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/instagram-stories/:storyId', isAuthenticated, async (req: any, res) => {
     try {
       const { storyId } = req.params;
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       
       // Verificar se o usuário é dono do story
       const existingStory = await storage.getInstagramStory(storyId);
@@ -1140,7 +1140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/instagram-stories/:storyId', isAuthenticated, async (req: any, res) => {
     try {
       const { storyId } = req.params;
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       
       // Verificar se o usuário é dono do story
       const existingStory = await storage.getInstagramStory(storyId);
@@ -1215,7 +1215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/instagram-stories/:storyId/like', isAuthenticated, async (req: any, res) => {
     try {
       const { storyId } = req.params;
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       
       await storage.removeInstagramStoryLike(storyId, userId);
       await storage.decrementStoryLikesCount(storyId);
@@ -1229,7 +1229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Buscar Stories do usuário logado
   app.get('/api/my-instagram-stories', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims?.sub || req.user.id;
+      const userId = req.user.id;
       const stories = await storage.getUserInstagramStories(userId);
       res.json(stories);
     } catch (error) {
