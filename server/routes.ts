@@ -2404,15 +2404,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ROTAS ADMINISTRATIVAS DE BANNERS (Super Admin apenas)
   
+  // Middleware para verificar autenticação (sessão manual ou Replit Auth)
+  const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
+    try {
+      // Verificar sessão manual primeiro
+      if (req.session?.user) {
+        return next();
+      }
+      
+      // Verificar autenticação Replit como fallback
+      if (req.isAuthenticated()) {
+        return next();
+      }
+      
+      return res.status(401).json({ message: "Unauthorized" });
+    } catch (error) {
+      console.error("Error checking authentication:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  };
+
   // Middleware para verificar super admin
   const isSuperAdmin = async (req: any, res: any, next: any) => {
     try {
-      if (!req.isAuthenticated()) {
+      let user = null;
+      
+      // Verificar sessão manual primeiro
+      if (req.session?.user) {
+        user = req.session.user;
+      }
+      // Verificar autenticação Replit como fallback
+      else if (req.isAuthenticated()) {
+        const userId = req.user?.claims?.sub || req.user?.id;
+        user = await storage.getUser(userId);
+      }
+      
+      if (!user) {
         return res.status(401).json({ message: "Unauthorized" });
       }
-
-      const userId = req.user?.claims?.sub || req.user?.id;
-      const user = await storage.getUser(userId);
       
       if (!user?.isSuperAdmin) {
         return res.status(403).json({ message: "Access denied - Super Admin required" });
@@ -2426,7 +2455,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // Listar todos os banners (Super Admin)
-  app.get('/api/admin/banners', isAuthenticated, isSuperAdmin, async (req, res) => {
+  app.get('/api/admin/banners', isAuthenticatedCustom, isSuperAdmin, async (req, res) => {
     try {
       const banners = await storage.getAllBanners();
       res.json(banners);
@@ -2437,7 +2466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Buscar banner específico (Super Admin)
-  app.get('/api/admin/banners/:bannerId', isAuthenticated, isSuperAdmin, async (req, res) => {
+  app.get('/api/admin/banners/:bannerId', isAuthenticatedCustom, isSuperAdmin, async (req, res) => {
     try {
       const { bannerId } = req.params;
       const banner = await storage.getBanner(bannerId);
@@ -2454,7 +2483,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Criar banner (Super Admin)
-  app.post('/api/admin/banners', isAuthenticated, isSuperAdmin, async (req, res) => {
+  app.post('/api/admin/banners', isAuthenticatedCustom, isSuperAdmin, async (req, res) => {
     try {
       const bannerSchema = z.object({
         title: z.string().min(1, "Título é obrigatório"),
@@ -2493,7 +2522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Atualizar banner (Super Admin)
-  app.put('/api/admin/banners/:bannerId', isAuthenticated, isSuperAdmin, async (req, res) => {
+  app.put('/api/admin/banners/:bannerId', isAuthenticatedCustom, isSuperAdmin, async (req, res) => {
     try {
       const { bannerId } = req.params;
       
@@ -2537,7 +2566,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Deletar banner (Super Admin)
-  app.delete('/api/admin/banners/:bannerId', isAuthenticated, isSuperAdmin, async (req, res) => {
+  app.delete('/api/admin/banners/:bannerId', isAuthenticatedCustom, isSuperAdmin, async (req, res) => {
     try {
       const { bannerId } = req.params;
       
