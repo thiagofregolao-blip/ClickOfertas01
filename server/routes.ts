@@ -36,12 +36,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
   await setupOAuthProviders(app);
 
+  // Logout completo - limpa todas as sessões
+  app.post('/api/auth/logout', (req: any, res) => {
+    req.logout(() => {
+      req.session?.destroy(() => {
+        res.clearCookie('connect.sid');
+        res.json({ success: true, message: 'Logout realizado' });
+      });
+    });
+  });
+
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', async (req: any, res) => {
     try {
+      // Primeiro verificar se está autenticado
+      if (!req.isAuthenticated() || !req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
       // Handle both OAuth and traditional login sessions
-      const userId = req.user.claims?.sub || req.user.id;
+      // Para login tradicional, pega diretamente req.user.id
+      // Para OAuth, pega req.user.claims.sub
+      const userId = req.user.id || req.user.claims?.sub;
       const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
       
       // Verifica se o usuário tem token de lojista
       const userWithStoreInfo = {
