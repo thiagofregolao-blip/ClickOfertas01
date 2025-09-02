@@ -38,7 +38,7 @@ export default function SuperAdminLogin() {
         const userResponse = await fetch('/api/auth/user');
         const userData = await userResponse.json();
         
-        if (userData.role === 'super_admin') {
+        if (userData.isSuperAdmin) {
           toast({
             title: "Login realizado com sucesso",
             description: "Bem-vindo, Super Admin!",
