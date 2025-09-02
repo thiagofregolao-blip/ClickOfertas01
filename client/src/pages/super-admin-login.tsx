@@ -23,6 +23,12 @@ export default function SuperAdminLogin() {
     setError("");
 
     try {
+      // Primeiro fazer logout completo de qualquer sessão anterior
+      await fetch('/api/auth/logout', { method: 'POST' });
+      
+      // Aguardar um pouco para limpar a sessão
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -149,10 +155,30 @@ export default function SuperAdminLogin() {
           </CardContent>
         </Card>
 
+        {/* Botão de logout completo */}
+        <div className="text-center">
+          <Button
+            variant="outline"
+            onClick={async () => {
+              await fetch('/api/auth/logout', { method: 'POST' });
+              await fetch('/api/logout');
+              toast({
+                title: "Logout realizado",
+                description: "Todas as sessões foram encerradas. Agora você pode fazer login como super admin.",
+              });
+              window.location.reload();
+            }}
+            className="w-full mb-4"
+          >
+            🚪 Logout Completo (Recomendado)
+          </Button>
+        </div>
+
         {/* Aviso de segurança */}
         <div className="text-center text-sm text-gray-500">
           <p>⚠️ Esta é uma área restrita</p>
           <p>Apenas super administradores têm acesso</p>
+          <p className="text-orange-600 font-medium mt-2">💡 Se já estiver logado com outra conta, clique em "Logout Completo" primeiro</p>
         </div>
       </div>
     </div>
