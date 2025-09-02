@@ -136,7 +136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/logout', (req: any, res) => {
     req.session?.destroy(() => {
       res.clearCookie('connect.sid');
-      res.redirect('/');
+      res.redirect('/super-admin');
     });
   });
 
