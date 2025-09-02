@@ -423,6 +423,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storeOwnerToken: 'STORE_OWNER_' + Date.now()
       });
 
+      // Create store for the user
+      const store = await storage.createStore(user.id, {
+        name: userData.storeName,
+        themeColor: '#E11D48',
+        currency: 'Gs.',
+        isActive: true
+      });
+
+      console.log(`Store created for user ${user.email}: ${store.name} (ID: ${store.id})`);
+
       // Create session manually
       (req as any).session.user = user;
       
