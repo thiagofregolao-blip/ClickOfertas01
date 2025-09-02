@@ -60,23 +60,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado. Super Admin necessário." });
       }
 
-      // Create session
-      req.login(user, async (err) => {
-        if (err) {
-          console.error("Session error:", err);
-          return res.status(500).json({ message: "Erro ao criar sessão" });
-        }
-        // Verifica se o usuário tem uma loja
-        const userStore = await storage.getUserStore(user.id);
-        res.json({ 
-          message: "Login realizado com sucesso",
-          user: {
-            id: user.id,
-            email: user.email,
-            storeName: user.storeName
-          },
-          hasStore: !!userStore
-        });
+      // Create session manually
+      (req as any).session.user = user;
+      
+      // Verifica se o usuário tem uma loja
+      const userStore = await storage.getUserStore(user.id);
+      res.json({ 
+        message: "Login realizado com sucesso",
+        user: {
+          id: user.id,
+          email: user.email,
+          storeName: user.storeName
+        },
+        hasStore: !!userStore
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -105,15 +101,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', async (req: any, res) => {
     try {
-      // Primeiro verificar se está autenticado
+      // Verificar sessão manual primeiro
+      if (req.session?.user) {
+        const user = req.session.user;
+        const userWithStoreInfo = {
+          ...user,
+          hasStore: !!user?.storeOwnerToken
+        };
+        return res.json(userWithStoreInfo);
+      }
+
+      // Primeiro verificar se está autenticado via Replit
       if (!req.isAuthenticated() || !req.user) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      // Handle both OAuth and traditional login sessions
-      // Para login tradicional, pega diretamente req.user.id
-      // Para OAuth, pega req.user.claims.sub
-      const userId = req.user.id || req.user.claims?.sub;
+      // Handle OAuth sessions
+      const userId = req.user.claims?.sub;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -268,20 +272,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isEmailVerified: false
       });
 
-      // Create session
-      req.login(user, (err) => {
-        if (err) {
-          console.error("Session error:", err);
-          return res.status(500).json({ message: "Erro ao criar sessão" });
+      // Create session manually
+      (req as any).session.user = user;
+      
+      res.status(201).json({ 
+        message: "Usuário criado com sucesso",
+        user: {
+          id: user.id,
+          email: user.email,
+          storeName: user.storeName
         }
-        res.status(201).json({ 
-          message: "Usuário criado com sucesso",
-          user: {
-            id: user.id,
-            email: user.email,
-            storeName: user.storeName
-          }
-        });
       });
     } catch (error) {
       console.error("Registration error:", error);
