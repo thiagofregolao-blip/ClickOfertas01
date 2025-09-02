@@ -79,10 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Email ou senha incorretos" });
       }
 
-      // Verificar se é super admin ANTES de criar sessão
-      if (!user.isSuperAdmin) {
-        return res.status(403).json({ message: "Acesso negado. Super Admin necessário." });
-      }
+      // Remover verificação de super admin - permitir todos os usuários
 
       // Create session manually
       console.log("Session object:", !!req.session);
@@ -102,14 +99,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verifica se o usuário tem uma loja
       const userStore = await storage.getUserStore(user.id);
+      
       res.json({ 
         message: "Login realizado com sucesso",
         user: {
           id: user.id,
           email: user.email,
-          storeName: user.storeName
-        },
-        hasStore: !!userStore
+          storeName: user.storeName,
+          isSuperAdmin: user.isSuperAdmin,
+          hasStore: !!userStore
+        }
       });
     } catch (error) {
       console.error("Login error:", error);
