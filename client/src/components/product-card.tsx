@@ -104,8 +104,8 @@ export default function ProductCard({
           
           {/* Overlay com preço */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all">
-            {/* Preço sobreposto */}
-            <div className="absolute bottom-2 right-2 bg-black/80 text-yellow-400 text-xs px-2 py-1 rounded font-semibold">
+            {/* Preço sobreposto - Hidden on mobile */}
+            <div className="absolute bottom-2 right-2 bg-black/80 text-yellow-400 text-xs px-2 py-1 rounded font-semibold hidden sm:block">
               {currency} {formatBrazilianPrice(product.price || '0')}
             </div>
             
@@ -137,6 +137,11 @@ export default function ProductCard({
           
           {/* Preço */}
           <div className="mb-1 sm:mb-2 text-left">
+            {/* Preço USD em vermelho - só no mobile */}
+            <p className="text-xs text-red-600 font-medium mb-1 sm:hidden">
+              {currency} {formatBrazilianPrice(product.price || '0')}
+            </p>
+            {/* Preço BRL */}
             <p className="text-xs text-gray-500">
               R$ {(() => {
                 const priceUSD = Number(product.price || 0);
