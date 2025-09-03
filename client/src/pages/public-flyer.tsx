@@ -763,7 +763,7 @@ export default function PublicFlyer() {
           {filteredProducts.length > 0 || virtualClones.length > 0 ? (
             params ? (
               // YouTube-style grid layout
-              <div className="grid gap-3 sm:gap-6 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              <div className="grid gap-3 sm:gap-6 grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {/* PRODUTOS ORIGINAIS + PROMOÇÕES COM RASPADINHA */}
                 {filteredProducts.map((product) => {
                   
@@ -924,7 +924,7 @@ export default function PublicFlyer() {
               </div>
             ) : (
               // YouTube-style grid também para layout compacto
-              <div className="grid gap-3 sm:gap-6 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              <div className="grid gap-3 sm:gap-6 grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {filteredProducts.map((product) => {
                   const isRealPromotion = activePromotions.some(promo => promo.id === product.id);
                   
