@@ -956,26 +956,15 @@ export default function PublicFlyer() {
                         </div>
                         
                         {/* Info estilo YouTube */}
-                        <div className="flex gap-3 mt-3">
-                          <div className="flex-shrink-0">
-                            <div 
-                              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
-                              style={{ backgroundColor: store?.themeColor || '#E11D48' }}
-                            >
-                              {store.name.charAt(0)}
-                            </div>
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                              {product.name}
-                            </h3>
-                            <p className="text-xs text-gray-600 mt-1">{store.name}</p>
-                            <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
-                              <span>🎁 Promoção</span>
-                              <span>•</span>
-                              <span>{store?.currency || 'Gs.'} {product.scratchPrice}</span>
-                            </div>
+                        <div className="mt-3">
+                          <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                            {product.name}
+                          </h3>
+                          <p className="text-xs text-gray-600 mt-1">{store.name}</p>
+                          <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                            <span>🎁 Promoção</span>
+                            <span>•</span>
+                            <span>{store?.currency || 'Gs.'} {product.scratchPrice}</span>
                           </div>
                         </div>
                       </div>
@@ -1022,26 +1011,15 @@ export default function PublicFlyer() {
                         </div>
                         
                         {/* Info estilo YouTube */}
-                        <div className="flex gap-3 mt-3">
-                          <div className="flex-shrink-0">
-                            <div 
-                              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
-                              style={{ backgroundColor: store?.themeColor || '#E11D48' }}
-                            >
-                              {store.name.charAt(0)}
-                            </div>
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                              {product.name}
-                            </h3>
-                            <p className="text-xs text-gray-600 mt-1">{store.name}</p>
-                            <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
-                              <span>📦 {product.category || 'Produto'}</span>
-                              <span>•</span>
-                              <span>Disponível</span>
-                            </div>
+                        <div className="mt-3">
+                          <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                            {product.name}
+                          </h3>
+                          <p className="text-xs text-gray-600 mt-1">{store.name}</p>
+                          <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                            <span>📦 {product.category || 'Produto'}</span>
+                            <span>•</span>
+                            <span>Disponível</span>
                           </div>
                         </div>
                       </div>
