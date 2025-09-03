@@ -85,7 +85,7 @@ export default function ProductCard({
     >
       <div className="relative flex-shrink-0">
         {/* Thumbnail YouTube-style */}
-        <div className="relative aspect-video bg-gray-200 rounded-t-lg overflow-hidden">
+        <div className="relative aspect-[4/3] sm:aspect-video bg-gray-200 rounded-t-lg overflow-hidden">
           {product.imageUrl ? (
             <img 
               src={product.imageUrl} 
