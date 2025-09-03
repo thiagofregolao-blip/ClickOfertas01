@@ -24,6 +24,11 @@ const storeFormSchema = insertStoreSchema.extend({
   themeColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/i, "Cor deve estar no formato #RRGGBB"),
   latitude: z.string().optional().refine(val => !val || (!isNaN(Number(val)) && Number(val) >= -90 && Number(val) <= 90), "Latitude deve ser um número entre -90 e 90"),
   longitude: z.string().optional().refine(val => !val || (!isNaN(Number(val)) && Number(val) >= -180 && Number(val) <= 180), "Longitude deve ser um número entre -180 e 180"),
+  // Banner fields
+  bannerUrl: z.string().optional(),
+  bannerText: z.string().optional(),
+  bannerSubtext: z.string().optional(),
+  bannerGradient: z.string().optional(),
 }).omit({
   customUsdBrlRate: true,
 }).extend({
@@ -74,6 +79,11 @@ export default function AdminStoreConfig() {
       latitude: "",
       longitude: "",
       customUsdBrlRate: "",
+      // Banner fields
+      bannerUrl: "",
+      bannerText: "",
+      bannerSubtext: "",
+      bannerGradient: "purple-to-pink",
     },
   });
 
@@ -91,6 +101,11 @@ export default function AdminStoreConfig() {
         latitude: store.latitude ? String(store.latitude) : "",
         longitude: store.longitude ? String(store.longitude) : "",
         customUsdBrlRate: store.customUsdBrlRate ? String(store.customUsdBrlRate) : "",
+        // Banner fields
+        bannerUrl: store.bannerUrl || "",
+        bannerText: store.bannerText || "",
+        bannerSubtext: store.bannerSubtext || "",
+        bannerGradient: store.bannerGradient || "purple-to-pink",
       });
     }
   }, [store, form]);
@@ -320,6 +335,147 @@ export default function AdminStoreConfig() {
                       data-testid="input-instagram"
                       className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700"
                     />
+                  </div>
+                </div>
+              </div>
+
+              {/* Seção: Banner YouTube-Style */}
+              <div className="bg-gradient-to-r from-purple-50 to-pink-100 dark:from-purple-950/30 dark:to-pink-900/30 rounded-xl p-6 border-l-4 border-purple-400">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">🎨</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Banner YouTube-Style</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Configure o banner principal da sua loja</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="bannerUrl">Imagem de Fundo do Banner</Label>
+                    <div className="space-y-3">
+                      <Input
+                        id="bannerUrl"
+                        {...form.register("bannerUrl")}
+                        placeholder="https://exemplo.com/banner.jpg"
+                        data-testid="input-banner-url"
+                        className="bg-white dark:bg-gray-800 border-purple-200 dark:border-purple-700"
+                      />
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        URL da imagem de fundo do banner. Recomendamos 1920x600px.
+                      </p>
+                      {form.watch("bannerUrl") && (
+                        <div className="mt-2">
+                          <p className="text-sm font-medium mb-1">Preview:</p>
+                          <div className="relative h-32 bg-gray-200 rounded-lg overflow-hidden">
+                            <img 
+                              src={form.watch("bannerUrl") || ""} 
+                              alt="Preview do banner"
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                              onLoad={(e) => {
+                                e.currentTarget.style.display = 'block';
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="bannerText">Texto Principal</Label>
+                      <Input
+                        id="bannerText"
+                        {...form.register("bannerText")}
+                        placeholder="SUPER OFERTAS"
+                        data-testid="input-banner-text"
+                        className="bg-white dark:bg-gray-800 border-purple-200 dark:border-purple-700"
+                      />
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        Texto principal do banner (ex: nome da loja em destaque)
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="bannerSubtext">Texto Secundário</Label>
+                      <Input
+                        id="bannerSubtext"
+                        {...form.register("bannerSubtext")}
+                        placeholder="Os melhores preços você encontra aqui!"
+                        data-testid="input-banner-subtext"
+                        className="bg-white dark:bg-gray-800 border-purple-200 dark:border-purple-700"
+                      />
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        Texto secundário ou slogan (opcional)
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bannerGradient">Estilo do Gradiente</Label>
+                    <Select 
+                      value={form.watch("bannerGradient") || "purple-to-pink"} 
+                      onValueChange={(value) => form.setValue("bannerGradient", value)}
+                    >
+                      <SelectTrigger data-testid="select-banner-gradient" className="bg-white dark:bg-gray-800 border-purple-200 dark:border-purple-700">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="purple-to-pink">Roxo → Rosa</SelectItem>
+                        <SelectItem value="blue-to-cyan">Azul → Ciano</SelectItem>
+                        <SelectItem value="red-to-orange">Vermelho → Laranja</SelectItem>
+                        <SelectItem value="green-to-blue">Verde → Azul</SelectItem>
+                        <SelectItem value="yellow-to-red">Amarelo → Vermelho</SelectItem>
+                        <SelectItem value="indigo-to-purple">Índigo → Roxo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      Gradiente de fundo quando não há imagem personalizada
+                    </p>
+                  </div>
+
+                  {/* Preview do Banner */}
+                  <div className="space-y-2">
+                    <Label>Preview do Banner</Label>
+                    <div className="relative h-40 rounded-lg overflow-hidden border">
+                      <div 
+                        className={`absolute inset-0 ${
+                          form.watch("bannerGradient") === "blue-to-cyan" ? "bg-gradient-to-br from-blue-600 via-cyan-600 to-cyan-500" :
+                          form.watch("bannerGradient") === "red-to-orange" ? "bg-gradient-to-br from-red-600 via-red-500 to-orange-500" :
+                          form.watch("bannerGradient") === "green-to-blue" ? "bg-gradient-to-br from-green-600 via-teal-600 to-blue-500" :
+                          form.watch("bannerGradient") === "yellow-to-red" ? "bg-gradient-to-br from-yellow-500 via-orange-500 to-red-600" :
+                          form.watch("bannerGradient") === "indigo-to-purple" ? "bg-gradient-to-br from-indigo-600 via-purple-600 to-purple-500" :
+                          "bg-gradient-to-br from-purple-600 via-pink-600 to-red-500"
+                        }`}
+                      >
+                        {form.watch("bannerUrl") && (
+                          <div 
+                            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
+                            style={{ backgroundImage: `url(${form.watch("bannerUrl")})` }}
+                          />
+                        )}
+                        
+                        <div className="relative z-10 h-full flex items-center justify-center p-4">
+                          <div className="text-center">
+                            <h1 className="text-xl md:text-3xl font-black text-white drop-shadow-2xl tracking-wider transform -rotate-1">
+                              {form.watch("bannerText") || form.watch("name") || "NOME DA LOJA"}
+                            </h1>
+                            {form.watch("bannerSubtext") && (
+                              <p className="text-sm md:text-lg text-white/90 mt-1 font-semibold drop-shadow-lg">
+                                {form.watch("bannerSubtext")}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/30"></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

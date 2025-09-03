@@ -65,6 +65,13 @@ export const stores = pgTable("stores", {
   latitude: decimal("latitude", { precision: 10, scale: 8 }),
   longitude: decimal("longitude", { precision: 11, scale: 8 }),
   slug: varchar("slug").unique(),
+  
+  // Banner YouTube-style fields
+  bannerUrl: text("banner_url"), // URL da imagem de fundo do banner
+  bannerText: text("banner_text"), // Texto principal do banner (ex: "IURI INDICA")
+  bannerSubtext: text("banner_subtext"), // Texto secundário/descrição
+  bannerGradient: varchar("banner_gradient", { length: 50 }).default("purple-to-pink"), // Gradiente: purple-to-pink, blue-to-cyan, etc.
+  
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

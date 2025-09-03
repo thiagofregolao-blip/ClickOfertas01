@@ -564,87 +564,188 @@ export default function PublicFlyer() {
             </div>
           </>
         ) : (
-          /* Traditional Flyer Layout */
+          /* YouTube-Style Channel Layout */
           <>
-            <FlyerHeader store={store} />
-            
-            {/* Contact Bar */}
-            <div className="bg-white border-b">
-              <div className="px-4 py-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 text-sm">
-                    {store.whatsapp && (
-                      <a 
-                        href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Olá! Vi suas ofertas no Click Ofertas Paraguai e gostaria de mais informações.`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-green-600 hover:text-green-700 transition-colors relative z-10 cursor-pointer"
-                        onClick={(e) => e.stopPropagation()}
-                        data-testid={`whatsapp-link-${store.slug}`}
-                      >
-                        📱 WhatsApp
-                      </a>
-                    )}
-                    {store.instagram && (
-                      <a 
-                        href={`https://instagram.com/${store.instagram.replace('@', '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-pink-600 hover:text-pink-700 transition-colors relative z-10 cursor-pointer"
-                        onClick={(e) => e.stopPropagation()}
-                        data-testid={`instagram-link-${store.slug}`}
-                      >
-                        📸 Instagram
-                      </a>
-                    )}
-                  </div>
-                  
-                  {filteredProducts.length > 0 && (
-                    <Badge className="text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-none shadow-lg animate-pulse ring-1 ring-white/30">
-                      🔥 {filteredProducts.length} oferta{filteredProducts.length > 1 ? 's' : ''} imperdível{filteredProducts.length > 1 ? 'eis' : ''}
-                    </Badge>
+            {/* YouTube-Style Banner */}
+            <div className="relative h-48 md:h-64 bg-gradient-to-br from-purple-600 via-pink-600 to-red-500 overflow-hidden">
+              {/* Banner Background Image (if available) */}
+              {store.bannerUrl && (
+                <div 
+                  className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
+                  style={{ backgroundImage: `url(${store.bannerUrl})` }}
+                />
+              )}
+              
+              {/* Banner Content */}
+              <div className="relative z-10 h-full flex items-center justify-center p-8">
+                <div className="text-center">
+                  <h1 className="text-4xl md:text-6xl font-black text-white drop-shadow-2xl tracking-wider transform -rotate-2">
+                    {store.bannerText || store.name.toUpperCase()}
+                  </h1>
+                  {store.bannerSubtext && (
+                    <p className="text-lg md:text-xl text-white/90 mt-2 font-semibold drop-shadow-lg">
+                      {store.bannerSubtext}
+                    </p>
                   )}
                 </div>
               </div>
+              
+              {/* Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/30"></div>
             </div>
-            
-            {/* Promotional Banner */}
-            <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 p-4 text-center">
-              <div className="flex items-center justify-center gap-4">
-                <div className="bg-blue-600 text-white px-4 py-2 rounded-lg transform -rotate-3">
-                  <span className="font-bold text-lg">PROMOÇÃO ESPECIAL</span>
+
+            {/* Channel Info Section */}
+            <div className="bg-white border-b">
+              <div className="px-6 py-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+                  {/* Avatar */}
+                  <div className="flex-shrink-0">
+                    <div 
+                      className="w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-white"
+                      style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                    >
+                      {store.logoUrl ? (
+                        <img 
+                          src={store.logoUrl} 
+                          alt={store.name}
+                          className="w-18 h-18 md:w-22 md:h-22 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-2xl md:text-3xl">{store.name.charAt(0)}</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Store Info */}
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{store.name}</h2>
+                    
+                    {/* Statistics */}
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
+                      <span className="flex items-center gap-1">
+                        <span className="font-semibold">{filteredProducts.length}</span>
+                        produto{filteredProducts.length !== 1 ? 's' : ''}
+                      </span>
+                      <span className="text-gray-400">•</span>
+                      <span className="flex items-center gap-1">
+                        <span className="font-semibold">{activePromotions.length}</span>
+                        promoção{activePromotions.length !== 1 ? 'ões' : 'ão'}
+                      </span>
+                      <span className="text-gray-400">•</span>
+                      <span className="flex items-center gap-1">
+                        <span className="font-semibold">1.2k</span>
+                        visualizações
+                      </span>
+                    </div>
+                    
+                    {/* Description */}
+                    <p className="text-gray-700 text-sm md:text-base leading-relaxed mb-4">
+                      {store.address || "Sua loja de confiança com os melhores preços e atendimento especializado."}
+                    </p>
+                    
+                    {/* Contact Links */}
+                    <div className="flex flex-wrap items-center gap-4">
+                      {store.whatsapp && (
+                        <a 
+                          href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Olá! Vi suas ofertas no Click Ofertas Paraguai e gostaria de mais informações.`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-green-600 hover:text-green-700 transition-colors flex items-center gap-2 text-sm font-medium"
+                          data-testid={`whatsapp-link-${store.slug}`}
+                        >
+                          📱 WhatsApp
+                        </a>
+                      )}
+                      {store.instagram && (
+                        <a 
+                          href={`https://instagram.com/${store.instagram.replace('@', '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-pink-600 hover:text-pink-700 transition-colors flex items-center gap-2 text-sm font-medium"
+                          data-testid={`instagram-link-${store.slug}`}
+                        >
+                          📸 Instagram
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Action Button */}
+                  <div className="flex-shrink-0">
+                    <Button 
+                      variant="default" 
+                      className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-semibold"
+                      onClick={() => {
+                        if (store.whatsapp) {
+                          window.open(`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Olá! Vi suas ofertas no Click Ofertas Paraguai e gostaria de mais informações.`, '_blank');
+                        }
+                      }}
+                    >
+                      📞 Contatar
+                    </Button>
+                  </div>
                 </div>
-                <div className="text-black font-bold text-xl">
-                  OS MELHORES PREÇOS VOCÊ ENCONTRA AQUI!
+              </div>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="bg-white border-b">
+              <div className="px-6">
+                <div className="flex items-center gap-8">
+                  <button className="py-4 px-2 text-sm font-medium text-gray-900 border-b-2 border-red-600">
+                    Produtos
+                  </button>
+                  <button className="py-4 px-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                    Promoções
+                  </button>
+                  <button className="py-4 px-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                    Stories
+                  </button>
+                  <button className="py-4 px-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                    Sobre
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="bg-gray-50 border-b">
+              <div className="px-6 py-3">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-medium text-gray-700">Filtros:</span>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" className="bg-gray-900 text-white hover:bg-gray-800">
+                      Mais recentes
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-gray-600 hover:bg-gray-200">
+                      Em alta
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-gray-600 hover:bg-gray-200">
+                      Mais antigo
+                    </Button>
+                    {sortedCategories.length > 1 && (
+                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                        <SelectTrigger className="w-48 h-8 text-sm">
+                          <SelectValue placeholder="Todas as categorias" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todas as categorias</SelectItem>
+                          {sortedCategories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category} ({productsByCategory[category].length})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </>
         )}
 
-        <div className={`${isStoriesView ? 'p-6' : 'p-4'}`}>
-          {/* Category Filter - Only show for traditional flyer */}
-          {!isStoriesView && sortedCategories.length > 1 && (
-            <div className="mb-6 flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
-              <Filter className="w-5 h-5 text-gray-600" />
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">Filtrar por categoria:</span>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Todas as categorias" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as categorias</SelectItem>
-                    {sortedCategories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category} ({productsByCategory[category].length})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
+        <div className={`${isStoriesView ? 'p-6' : 'p-6'}`}>
           
           {/* Stories Counter */}
           {isStoriesView && (
@@ -656,11 +757,11 @@ export default function PublicFlyer() {
           )}
 
 
-          {/* Products Grid */}
+          {/* YouTube-Style Products Grid */}
           {filteredProducts.length > 0 || virtualClones.length > 0 ? (
             storeParams ? (
-              // Layout moderno para páginas de loja individual (/stores/:slug)
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              // YouTube-style grid layout
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {/* PRODUTOS ORIGINAIS + PROMOÇÕES COM RASPADINHA */}
                 {filteredProducts.map((product) => {
                   // CORREÇÃO: Só renderizar como raspadinha se for promoção real (vem de activePromotions)
@@ -669,34 +770,141 @@ export default function PublicFlyer() {
                   // Performance optimization: removed debug logs
                   
                   return isRealPromotion ? (
-                    // PROMOÇÃO REAL: Renderizar como ScratchCard
-                    <div key={product.id} className="relative">
-                      <ScratchCard
-                        product={product}
-                        currency={store?.currency || "Gs."}
-                        themeColor={store?.themeColor || "#E11D48"}
-                        logoUrl={store?.logoUrl}
-                        onRevealed={handlePromotionRevealed}
-                        onClick={(product) => {
-                          setSelectedProduct(product);
-                          setSelectedStore(store || null);
-                        }}
-                      />
+                    // PROMOÇÃO REAL: YouTube-style Scratch Card
+                    <div key={product.id} className="group cursor-pointer">
+                      <div className="relative">
+                        {/* Thumbnail */}
+                        <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
+                          <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
+                            <div className="text-white text-center">
+                              <div className="text-4xl mb-2">🎁</div>
+                              <div className="font-bold text-lg">RASPE E GANHE</div>
+                              <div className="text-sm opacity-90">Desconto especial</div>
+                            </div>
+                          </div>
+                          {/* Play button overlay */}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-all">
+                            <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white">
+                              <span className="text-xl">▶</span>
+                            </div>
+                          </div>
+                          {/* Duration badge */}
+                          <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                            PROMO
+                          </div>
+                        </div>
+                        
+                        {/* Video info */}
+                        <div className="flex gap-3 mt-3">
+                          {/* Avatar */}
+                          <div className="flex-shrink-0">
+                            <div 
+                              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                              style={{ backgroundColor: store?.themeColor || '#E11D48' }}
+                            >
+                              {store?.logoUrl ? (
+                                <img 
+                                  src={store.logoUrl} 
+                                  alt={store.name}
+                                  className="w-9 h-9 rounded-full object-cover"
+                                />
+                              ) : (
+                                store.name.charAt(0)
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Title and details */}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                              {product.name}
+                            </h3>
+                            <p className="text-xs text-gray-600 mt-1">{store.name}</p>
+                            <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                              <span>🎁 Promoção</span>
+                              <span>•</span>
+                              <span>{store?.currency || 'Gs.'} {product.scratchPrice}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ) : (
-                    // PRODUTO NORMAL: Sempre ProductCard (mesmo com isScratchCard=true)
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      currency={store?.currency || "USD"}
-                      themeColor={store?.themeColor || "#E11D48"}
-                      showFeaturedBadge={true}
-                      enableEngagement={true}
-                      onClick={(product) => {
+                    // PRODUTO NORMAL: YouTube-style Product Card
+                    <div 
+                      key={product.id} 
+                      className="group cursor-pointer"
+                      onClick={() => {
                         setSelectedProduct(product);
                         setSelectedStore(store || null);
                       }}
-                    />
+                    >
+                      <div className="relative">
+                        {/* Thumbnail */}
+                        <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
+                          {product.imageUrl ? (
+                            <img 
+                              src={product.imageUrl} 
+                              alt={product.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                              <span className="text-gray-600 text-4xl">📦</span>
+                            </div>
+                          )}
+                          
+                          {/* Hover overlay */}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all">
+                            {/* Duration badge */}
+                            <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                              {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString()}
+                            </div>
+                            
+                            {/* Feature badge */}
+                            {product.isFeatured && (
+                              <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
+                                DESTAQUE
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Video info */}
+                        <div className="flex gap-3 mt-3">
+                          {/* Avatar */}
+                          <div className="flex-shrink-0">
+                            <div 
+                              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                              style={{ backgroundColor: store?.themeColor || '#E11D48' }}
+                            >
+                              {store?.logoUrl ? (
+                                <img 
+                                  src={store.logoUrl} 
+                                  alt={store.name}
+                                  className="w-9 h-9 rounded-full object-cover"
+                                />
+                              ) : (
+                                store.name.charAt(0)
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Title and details */}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                              {product.name}
+                            </h3>
+                            <p className="text-xs text-gray-600 mt-1">{store.name}</p>
+                            <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                              <span>📦 {product.category || 'Produto'}</span>
+                              <span>•</span>
+                              <span>Disponível</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   );
                 })}
                 
