@@ -16,6 +16,7 @@ import { formatBrazilianPrice, formatPriceWithCurrency } from "@/lib/priceUtils"
 import jsPDF from "jspdf";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
+import mascoteImage from '@/assets/mascote-click.png';
 
 interface ScratchCardProps {
   product: Product;
@@ -990,8 +991,18 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
   // Render do card para raspar
   return (
     <>
-      <div className="scratch-card relative isolate z-10 bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-400 overflow-hidden group text-center flex flex-col h-full min-h-[200px] sm:min-h-[220px] cursor-pointer select-none rounded-xl">
-        <div className="h-full flex flex-col relative w-full isolate bg-gradient-to-br from-yellow-100 to-orange-100 p-0 m-0">
+      <div className="scratch-card relative isolate z-10 overflow-hidden group text-center flex flex-col h-full min-h-[200px] sm:min-h-[220px] cursor-pointer select-none rounded-xl" style={{
+        backgroundImage: `url(${mascoteImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}>
+        <div className="h-full flex flex-col relative w-full isolate p-0 m-0" style={{
+          backgroundImage: `url(${mascoteImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}>
           {/* DEBUG REMOVIDO ✅ */}
           
           {/* Chuva suave de cifrões e logos da empresa */}
