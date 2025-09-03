@@ -1,0 +1,1267 @@
+===============================================================
+CÓDIGO COMPLETO - SISTEMA DE RASPADINHA E PROMOÇÕES
+===============================================================
+
+=== 1. SCHEMA DAS TABELAS (shared/schema.ts) ===
+
+// Cupons gerados pelas raspadinhas (agora referencia clone)
+export const coupons = pgTable("coupons", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  cloneId: varchar("clone_id").references(() => virtualScratchClones.id, { onDelete: "cascade" }), // Nova referência
+  // REMOVIDO: promotionId - campo não existe na base real
+  productId: varchar("product_id").references(() => products.id, { onDelete: "cascade" }), // Permite NULL para promoções
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  couponCode: varchar("coupon_code").unique().notNull(), // Código único do cupom
+  
+  // 🎯 DADOS DA PROMOÇÃO (quando productId = null)
+  promotionName: text("promotion_name"), // Nome da promoção raspada
+  promotionImageUrl: text("promotion_image_url"), // Imagem da promoção raspada  
+  promotionDescription: text("promotion_description"), // Descrição da promoção
+  
+  originalPrice: decimal("original_price", { precision: 12, scale: 2 }).notNull(),
+  discountPrice: decimal("discount_price", { precision: 12, scale: 2 }).notNull(),
+  discountPercentage: varchar("discount_percentage").notNull(), // Porcentagem de desconto
+  qrCode: text("qr_code").notNull(), // Base64 do QR Code
+  expiresAt: timestamp("expires_at").notNull(), // Quando expira o cupom
+  isRedeemed: boolean("is_redeemed").default(false), // Se já foi utilizado
+  redeemedAt: timestamp("redeemed_at"), // Quando foi utilizado
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// NOVO SISTEMA: Promoções diretas e simplificadas
+export const promotions = pgTable("promotions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  
+  // Dados do produto da promoção (pode referenciar produto existente ou ser novo)
+  baseProductId: varchar("base_product_id").references(() => products.id), // Referência opcional para copiar dados
+  name: text("name").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  category: varchar("category").default("Promoção"),
+  
+  // Preços e desconto
+  originalPrice: decimal("original_price", { precision: 12, scale: 2 }).notNull(),
+  promotionalPrice: decimal("promotional_price", { precision: 12, scale: 2 }).notNull(),
+  discountPercentage: varchar("discount_percentage").notNull(),
+  
+  // Controle da campanha
+  isActive: boolean("is_active").default(true),
+  maxClients: varchar("max_clients").notNull(), // Quantos clientes podem raspar
+  usedCount: varchar("used_count").default("0"), // Quantos já rasparam
+  
+  // Validade
+  validFrom: timestamp("valid_from").defaultNow(),
+  validUntil: timestamp("valid_until").notNull(),
+  
+  // Mensagem da raspadinha
+  scratchMessage: text("scratch_message").default("Raspe aqui e ganhe desconto especial!"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// NOVA TABELA: Controle de distribuição de promoções para usuários
+export const promotionAssignments = pgTable("promotion_assignments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  promotionId: varchar("promotion_id").notNull().references(() => promotions.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+  status: varchar("status").notNull().default("assigned"), // 'assigned', 'generated', 'redeemed'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Controle de quem já raspou qual promoção
+export const promotionScratches = pgTable("promotion_scratches", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  promotionId: varchar("promotion_id").notNull().references(() => promotions.id, { onDelete: "cascade" }),
+  userId: varchar("user_id"), // pode ser anônimo
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  couponCode: varchar("coupon_code").unique().notNull(), // Código do cupom gerado
+  scratchedAt: timestamp("scratched_at").defaultNow(),
+  // REMOVIDO: expiresAt - coluna não existe no banco atual
+  isUsed: boolean("is_used").default(false), // Se cupom foi utilizado
+  usedAt: timestamp("used_at"), // Quando foi utilizado
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+=== 2. FUNÇÕES DO STORAGE (server/storage.ts) ===
+
+// ================================
+// PROMOTION OPERATIONS (NEW - SIMPLIFIED SYSTEM)
+// ================================
+
+async getStorePromotions(storeId: string): Promise<PromotionWithDetails[]> {
+  const storePromotions = await db
+    .select({
+      id: promotions.id,
+      storeId: promotions.storeId,
+      baseProductId: promotions.baseProductId,
+      name: promotions.name,
+      description: promotions.description,
+      imageUrl: promotions.imageUrl,
+      category: promotions.category,
+      originalPrice: promotions.originalPrice,
+      promotionalPrice: promotions.promotionalPrice,
+      discountPercentage: promotions.discountPercentage,
+      isActive: promotions.isActive,
+      maxClients: promotions.maxClients,
+      usedCount: promotions.usedCount,
+      validFrom: promotions.validFrom,
+      validUntil: promotions.validUntil,
+      scratchMessage: promotions.scratchMessage,
+      createdAt: promotions.createdAt,
+      updatedAt: promotions.updatedAt,
+      // Dados da loja
+      storeName: stores.name,
+      storeLogoUrl: stores.logoUrl,
+      storeThemeColor: stores.themeColor,
+    })
+    .from(promotions)
+    .leftJoin(stores, eq(promotions.storeId, stores.id))
+    .where(eq(promotions.storeId, storeId))
+    .orderBy(desc(promotions.createdAt));
+
+  return storePromotions.map(promo => ({
+    ...promo,
+    store: {
+      id: promo.storeId,
+      name: promo.storeName || 'Loja',
+      logoUrl: promo.storeLogoUrl,
+      themeColor: promo.storeThemeColor,
+      isActive: true,
+      address: null,
+      createdAt: null,
+      updatedAt: null,
+      userId: '',
+      currency: 'Gs.',
+      displayCurrency: 'local',
+      dollarRate: '7500',
+      customUsdBrlRate: null,
+      whatsapp: null,
+      instagram: null,
+      latitude: null,
+      longitude: null,
+      slug: null
+    }
+  })) as PromotionWithDetails[];
+}
+
+async createPromotion(storeId: string, promotionData: InsertPromotion): Promise<Promotion> {
+  // Converter strings de data para objetos Date
+  const processedData = {
+    ...promotionData,
+    storeId: storeId,
+    validFrom: promotionData.validFrom ? new Date(promotionData.validFrom) : new Date(),
+    validUntil: promotionData.validUntil ? new Date(promotionData.validUntil) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 dias padrão
+  };
+
+  const [promotion] = await db
+    .insert(promotions)
+    .values(processedData)
+    .returning();
+  return promotion;
+}
+
+async canUserScratchPromotion(
+  promotionId: string, 
+  userId?: string, 
+  userAgent?: string, 
+  ipAddress?: string
+): Promise<{allowed: boolean, reason: string, promotion?: Promotion}> {
+  const promotion = await db
+    .select()
+    .from(promotions)
+    .where(eq(promotions.id, promotionId))
+    .then(result => result[0]);
+
+  if (!promotion) {
+    return { allowed: false, reason: "Promoção não encontrada" };
+  }
+
+  if (!promotion.isActive) {
+    return { allowed: false, reason: "Promoção não está ativa" };
+  }
+
+  // Verificar validade
+  const now = new Date();
+  if (now < new Date(promotion.validFrom)) {
+    return { allowed: false, reason: "Promoção ainda não começou" };
+  }
+  if (now > new Date(promotion.validUntil)) {
+    return { allowed: false, reason: "Promoção expirou" };
+  }
+
+  // Verificar limite de participantes
+  const usedCount = parseInt(promotion.usedCount || "0");
+  const maxClients = parseInt(promotion.maxClients || "0");
+  if (usedCount >= maxClients) {
+    return { allowed: false, reason: "Limite de participantes atingido" };
+  }
+
+  // Verificar se já raspou
+  if (userId || userAgent || ipAddress) {
+    const existingScratch = await db
+      .select()
+      .from(promotionScratches)
+      .where(and(
+        eq(promotionScratches.promotionId, promotionId),
+        or(
+          userId ? eq(promotionScratches.userId, userId) : sql`FALSE`,
+          userAgent ? eq(promotionScratches.userAgent, userAgent) : sql`FALSE`,
+          ipAddress ? eq(promotionScratches.ipAddress, ipAddress) : sql`FALSE`
+        )
+      ))
+      .then(result => result[0]);
+
+    if (existingScratch) {
+      return { allowed: false, reason: "Você já raspou esta promoção" };
+    }
+  }
+
+  return { allowed: true, reason: "Pode raspar", promotion };
+}
+
+async getMyAvailablePromotions(userId: string, storeId?: string): Promise<PromotionWithDetails[]> {
+  console.log(`🎯 getMyAvailablePromotions para usuário ${userId} e loja ${storeId}`);
+
+  // Verificar se já existem atribuições para o usuário
+  const existingAssignments = await db
+    .select({
+      promotion: promotions,
+      store: stores
+    })
+    .from(promotionAssignments)
+    .innerJoin(promotions, eq(promotionAssignments.promotionId, promotions.id))
+    .innerJoin(stores, eq(promotions.storeId, stores.id))
+    .where(and(
+      eq(promotionAssignments.userId, userId),
+      storeId ? eq(promotions.storeId, storeId) : sql`TRUE`,
+      eq(promotions.isActive, true),
+      gte(promotions.validUntil, new Date())
+    ));
+
+  console.log(`🎯 Promoções já atribuídas ao usuário ${userId}:`, existingAssignments.length);
+
+  const existingResults = existingAssignments.map(r => ({
+    promotion: r.promotion,
+    store: r.store
+  }));
+
+  // Se não há promoções atribuídas, buscar novas para atribuir
+  if (existingResults.length === 0) {
+    console.log(`🎯 Nenhuma promoção atribuída. Buscando novas promoções para ${userId}...`);
+
+    // Buscar promoções ativas que ainda não foram atribuídas a este usuário
+    const availablePromotions = await db
+      .select({
+        promotion: promotions,
+        store: stores
+      })
+      .from(promotions)
+      .innerJoin(stores, eq(promotions.storeId, stores.id))
+      .leftJoin(
+        promotionAssignments,
+        and(
+          eq(promotionAssignments.promotionId, promotions.id),
+          eq(promotionAssignments.userId, userId)
+        )
+      )
+      .where(and(
+        eq(promotions.isActive, true),
+        gte(promotions.validUntil, new Date()),
+        storeId ? eq(promotions.storeId, storeId) : sql`TRUE`,
+        isNull(promotionAssignments.id) // Não atribuída a este usuário
+      ));
+
+    console.log(`🎯 Novas promoções encontradas:`, availablePromotions.length);
+
+    if (availablePromotions.length > 0) {
+      // Selecionar uma promoção aleatória (ou a primeira)
+      const newPromotions = availablePromotions.slice(0, 1); // Limitar a 1 promoção por vez
+
+      // Criar assignments automáticos
+      const newAssignments = newPromotions.map(p => ({
+        promotionId: p.promotion.id,
+        userId: userId,
+        status: 'assigned'
+      }));
+
+      await db.insert(promotionAssignments).values(newAssignments);
+      console.log(`🎉 Criados ${newAssignments.length} assignments automáticos para usuário ${userId}`);
+
+      // Retornar as novas promoções atribuídas
+      return newPromotions.map(r => ({
+        ...r.promotion,
+        store: r.store
+      }));
+    }
+  }
+
+  // Retornar promoções existentes, mas filtrar as que já esgotaram
+  const validPromotions = existingResults.filter(r => {
+    const usedCount = parseInt(r.promotion.usedCount || "0");
+    const maxClients = parseInt(r.promotion.maxClients || "0");
+    return usedCount < maxClients; // Apenas promoções que ainda têm vagas
+  });
+
+  // NOVA VERIFICAÇÃO: Filtrar promoções onde o usuário já gerou cupom
+  const finalPromotions = [];
+  for (const r of validPromotions) {
+    const alreadyGenerated = await this.hasUserGeneratedCoupon(r.promotion.id, userId);
+    if (!alreadyGenerated) {
+      finalPromotions.push(r);
+    } else {
+      console.log(`🚫 Promoção ${r.promotion.name} excluída - usuário ${userId} já possui cupom`);
+    }
+  }
+
+  return finalPromotions.map(r => ({
+    ...r.promotion,
+    store: r.store
+  }));
+}
+
+async hasUserGeneratedCoupon(promotionId: string, userId: string): Promise<boolean> {
+  // Verificar na tabela promotionAssignments
+  const [assignmentResult] = await db
+    .select({ count: count() })
+    .from(promotionAssignments)
+    .where(and(
+      eq(promotionAssignments.promotionId, promotionId),
+      eq(promotionAssignments.userId, userId),
+      sql`${promotionAssignments.status} IN ('generated', 'redeemed')`
+    ));
+  
+  if ((assignmentResult?.count || 0) > 0) {
+    return true;
+  }
+
+  // NOVA VERIFICAÇÃO: Verificar na tabela coupons (para cupons gerados via promoções)
+  // Buscar cupons onde userId + promotionName existe (cupons de promoção têm promotionName preenchido)
+  const promotion = await db.select({ name: promotions.name }).from(promotions).where(eq(promotions.id, promotionId)).limit(1);
+  if (promotion.length > 0) {
+    const [couponResult] = await db
+      .select({ count: count() })
+      .from(coupons)
+      .where(and(
+        eq(coupons.userId, userId),
+        eq(coupons.promotionName, promotion[0].name) // Comparar pelo nome da promoção
+      ));
+    
+    return (couponResult?.count || 0) > 0;
+  }
+  
+  return false;
+}
+
+async incrementPromotionUsage(promotionId: string): Promise<boolean> {
+  console.log('📊 incrementPromotionUsage - iniciando para promotionId:', promotionId);
+  
+  // Incremento atômico com verificação de limite para prevenir condição de corrida
+  const result = await db
+    .update(promotions)
+    .set({
+      usedCount: sql`CAST(${promotions.usedCount} AS INTEGER) + 1`,
+      updatedAt: new Date()
+    })
+    .where(and(
+      eq(promotions.id, promotionId),
+      sql`CAST(${promotions.usedCount} AS INTEGER) < CAST(${promotions.maxClients} AS INTEGER)` // Só incrementa se ainda tem vaga
+    ))
+    .returning({ usedCount: promotions.usedCount });
+  
+  if (result.length === 0) {
+    console.log('❌ Não foi possível incrementar - limite atingido ou promoção não encontrada');
+    return false;
+  }
+  
+  console.log('✅ Contador usedCount incrementado atomicamente para:', result[0].usedCount);
+  return true;
+}
+
+async updatePromotionAssignmentStatus(promotionId: string, userId: string, status: string): Promise<void> {
+  await db
+    .update(promotionAssignments)
+    .set({ status })
+    .where(and(
+      eq(promotionAssignments.promotionId, promotionId),
+      eq(promotionAssignments.userId, userId)
+    ));
+}
+
+=== 3. ROTAS DA API (server/routes.ts) ===
+
+// PUBLIC: Buscar promoções ativas (usado no flyer público)
+app.get('/api/public/promotions/active', async (req, res) => {
+  try {
+    const activePromotions = await storage.getActivePromotions();
+    res.json(activePromotions);
+  } catch (error) {
+    console.error("Error fetching active promotions:", error);
+    res.status(500).json({ message: "Failed to fetch active promotions" });
+  }
+});
+
+// NEW: Buscar promoções disponíveis para o usuário específico (sistema personalizado)
+app.get('/api/stores/:slug/my-available-promotions', async (req: any, res) => {
+  try {
+    const { slug } = req.params;
+    const userId = req.session?.user?.id || req.user?.id;
+
+    // Buscar loja pelo slug
+    const store = await storage.getStoreBySlug(slug);
+    if (!store) {
+      return res.status(404).json({ message: 'Loja não encontrada' });
+    }
+
+    // Se não há usuário logado, retornar lista vazia (sistema requer login)
+    if (!userId) {
+      console.log('🚫 Usuário não logado - retornando lista vazia');
+      return res.json({ promotions: [] });
+    }
+
+    // Buscar promoções personalizadas para este usuário
+    const userPromotions = await storage.getMyAvailablePromotions(userId, store.id);
+    
+    console.log(`🎯 Promoções para usuário ${userId}:`, userPromotions.length);
+    
+    res.json({ 
+      promotions: userPromotions,
+      storeId: store.id,
+      userId: userId 
+    });
+  } catch (error) {
+    console.error("Error fetching user-specific promotions:", error);
+    res.status(500).json({ message: "Failed to fetch promotions" });
+  }
+});
+
+// Verificar status de uma promoção específica para o usuário
+app.get('/api/promotions/:promotionId/status', async (req: any, res) => {
+  try {
+    const { promotionId } = req.params;
+    const userId = req.session?.user?.id || req.user?.claims?.sub;
+    const userAgent = req.headers['user-agent'];
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+
+    const status = await storage.getPromotionScratchStatus(promotionId, userId, userAgent, ipAddress);
+    res.json(status);
+  } catch (error) {
+    console.error("Error checking promotion status:", error);
+    res.status(500).json({ message: "Failed to check promotion status" });
+  }
+});
+
+// Raspar uma promoção
+app.post('/api/promotions/:promotionId/scratch', async (req: any, res) => {
+  try {
+    const { promotionId } = req.params;
+    const userId = req.session?.user?.id || req.user?.claims?.sub;
+    const userAgent = req.headers['user-agent'];
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+
+    const result = await storage.scratchPromotion(promotionId, userId, userAgent, ipAddress);
+    
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(400).json(result);
+    }
+  } catch (error) {
+    console.error("Error scratching promotion:", error);
+    res.status(500).json({ message: "Failed to scratch promotion" });
+  }
+});
+
+// Geração de cupom via produto (usado para promoções)
+app.post('/api/products/:productId/generate-coupon', isAuthenticatedCustom, async (req: any, res) => {
+  try {
+    const { productId } = req.params;
+    const userId = req.session?.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Usuário não autenticado' });
+    }
+
+    console.log('🎫 Gerando cupom para produto/promoção:', productId, 'usuário:', userId);
+
+    // 1. Buscar dados do produto/promoção
+    const product = await storage.getProduct(productId);
+    if (!product) {
+      return res.status(404).json({ message: 'Produto/promoção não encontrado' });
+    }
+
+    // 2. Verificar se é uma promoção (baseado no productId)
+    const promotion = await storage.getPromotion(productId);
+    let finalProduct = product;
+    let isPromotion = false;
+
+    if (promotion) {
+      console.log('🎯 É uma promoção! Usando dados da promoção:', promotion.name);
+      finalProduct = {
+        ...product,
+        name: promotion.name,
+        description: promotion.description,
+        imageUrl: promotion.imageUrl,
+        price: promotion.originalPrice.toString(),
+        scratchPrice: promotion.promotionalPrice.toString(),
+        category: promotion.category || 'Promoção'
+      };
+      isPromotion = true;
+    }
+
+    // 3. Verificar se usuário pode raspar esta promoção
+    if (isPromotion) {
+      const canScratch = await storage.canUserScratchPromotion(productId, userId);
+      if (!canScratch.allowed) {
+        return res.status(400).json({ 
+          success: false, 
+          message: canScratch.reason 
+        });
+      }
+    }
+
+    // 4. Gerar código único do cupom
+    const couponCode = `coupon-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+
+    // 5. Calcular valores
+    const originalPrice = parseFloat(finalProduct.price || '0');
+    const discountPrice = parseFloat(finalProduct.scratchPrice || finalProduct.price || '0');
+    const discountPercentage = originalPrice > 0 ? 
+      Math.round(((originalPrice - discountPrice) / originalPrice) * 100) : 0;
+
+    // 6. Gerar QR Code
+    const qrCodeData = `CUPOM: ${couponCode}\nProduto: ${finalProduct.name}\nDesconto: ${discountPercentage}%\nCódigo: ${couponCode}`;
+    const qrCode = await QRCode.toDataURL(qrCodeData, {
+      errorCorrectionLevel: 'M',
+      type: 'image/png',
+      quality: 0.92,
+      margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    });
+
+    // 7. Criar cupom no banco
+    const couponData = {
+      couponCode,
+      productId: finalProduct.id,
+      storeId: finalProduct.storeId,
+      userId: userId,
+      userAgent: req.headers['user-agent'],
+      ipAddress: req.ip || req.connection?.remoteAddress,
+      originalPrice: originalPrice.toString(),
+      discountPrice: discountPrice.toString(),
+      discountPercentage: discountPercentage.toString(),
+      qrCode,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 dias
+      // Para promoções, adicionar informações específicas
+      ...(isPromotion && {
+        promotionName: finalProduct.name,
+        promotionImageUrl: finalProduct.imageUrl,
+        promotionDescription: finalProduct.description
+      })
+    };
+
+    const coupon = await storage.createCoupon(couponData);
+    console.log('✅ Cupom criado:', coupon.id);
+
+    // 8. Se é promoção, atualizar status e contadores
+    if (isPromotion) {
+      console.log('🎯 Atualizando status da promotion_assignment para "generated"...');
+      await storage.updatePromotionAssignmentStatus(productId, userId, 'generated');
+      console.log('✅ Status da assignment atualizado para "generated"');
+
+      console.log('📈 Incrementando contador usedCount da promoção...');
+      const incremented = await storage.incrementPromotionUsage(productId);
+      if (incremented) {
+        console.log('✅ Contador usedCount incrementado com sucesso');
+      } else {
+        console.log('⚠️ Não foi possível incrementar contador (limite atingido)');
+      }
+    }
+
+    res.status(201).json({
+      success: true,
+      coupon: coupon
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao gerar cupom:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor'
+    });
+  }
+});
+
+=== 4. COMPONENTE FRONTEND SCRATCH CARD (client/src/components/scratch-card.tsx) ===
+
+import { useState, useRef, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Clock, Gift, Sparkles, Download, Share2, QrCode, CheckCircle } from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
+import type { Product } from "@shared/schema";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { formatBrazilianPrice, formatPriceWithCurrency } from "@/lib/priceUtils";
+import jsPDF from "jspdf";
+import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
+
+interface ScratchCardProps {
+  product: Product;
+  currency: string;
+  themeColor: string;
+  logoUrl?: string;
+  onRevealed?: (product: Product) => void;
+  onClick?: (product: Product) => void;
+}
+
+interface ScratchArea {
+  x: number;
+  y: number;
+  radius: number;
+}
+
+export default function ScratchCard({ product, currency, themeColor, logoUrl, onRevealed, onClick }: ScratchCardProps) {
+  const queryClient = useQueryClient(); // NEW: Para invalidação de cache
+  
+  // SISTEMA SIMPLIFICADO
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isScratching, setIsScratching] = useState(false);
+  const [scratchProgress, setScratchProgress] = useState(0);
+  const [isRevealed, setIsRevealed] = useState(false);
+  const [isFading, setIsFading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [coupon, setCoupon] = useState<any>(null);
+  const [couponGenerated, setCouponGenerated] = useState(false);
+  const [generatingCoupon, setGeneratingCoupon] = useState(false); // 🚫 FLAG ANTI-DUPLICAÇÃO
+  const [revelationStarted, setRevelationStarted] = useState(false); // 🚫 FLAG REVELAÇÃO ÚNICA
+  const [showCouponModal, setShowCouponModal] = useState(false);
+  const scratchedAreas = useRef<ScratchArea[]>([]);
+  const { toast } = useToast();
+  
+  // FASE 1: AudioContext otimizado
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const lastSoundTime = useRef<number>(0);
+  const SOUND_COOLDOWN = 120; // ms
+  
+  // FASE 2: Progresso por alpha real e traçado contínuo
+  const rafId = useRef<number | null>(null);
+  const needsProgressCalc = useRef<boolean>(false);
+  const lastPoint = useRef<{ x: number; y: number } | null>(null);
+
+  // Mutation para gerar cupom
+  const generateCouponMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const response = await fetch(`/api/products/${productId}/generate-coupon`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`${response.status}: ${error}`);
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data: any) => {
+      // 🧹 LIMPAR FLAG GLOBAL NO SUCESSO
+      const globalKey = `coupon-generated-${product.id}`;
+      sessionStorage.removeItem(globalKey);
+      
+      setGeneratingCoupon(false); // ✅ Resetar flag
+      if (data?.success && data?.coupon) {
+        // Salvar dados do cupom e abrir modal
+        setCoupon(data.coupon);
+        setCouponGenerated(true);
+        setShowModal(false);
+        setShowCouponModal(true);
+        
+        toast({
+          title: "🎉 Cupom gerado!",
+          description: "Veja os detalhes do seu cupom! Clique para fechar.",
+          // SEM DURATION - fica aberto até usuário fechar manualmente
+          action: (
+            <ToastAction 
+              altText="Fechar" 
+              onClick={() => {
+                // NEW: Invalidar cache APENAS quando usuário fechar o toast
+                queryClient.invalidateQueries({
+                  predicate: (query) => {
+                    // Invalida todas as queries que contém 'my-available-promotions'
+                    return query.queryKey.some(key => 
+                      typeof key === 'string' && key.includes('my-available-promotions')
+                    );
+                  }
+                });
+                console.log('🎯 Cache das promoções invalidado APÓS usuário fechar');
+              }}
+            >
+              Fechar
+            </ToastAction>
+          )
+        });
+      }
+    },
+    onError: (error: any) => {
+      // 🧹 LIMPAR FLAG GLOBAL NO ERRO
+      const globalKey = `coupon-generated-${product.id}`;
+      sessionStorage.removeItem(globalKey);
+      
+      setGeneratingCoupon(false); // ✅ Resetar flag
+      toast({
+        title: "Erro ao gerar cupom",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // 🚀 FORÇAR INICIALIZAÇÃO DIRETA DO CANVAS
+  useEffect(() => {
+    // FORÇA INICIALIZAÇÃO MESMO SE CONDIÇÕES NÃO ESTIVEREM PERFEITAS
+    if (isRevealed) {
+      // Skip if already revealed
+      return;
+    }
+    if (!product.isScratchCard) {
+      // Skip if not scratch card
+      return;
+    }
+    
+    // TIMEOUT PARA GARANTIR QUE O CANVAS EXISTE
+    setTimeout(() => {
+      if (!canvasRef.current) {
+        // Canvas not available after timeout
+        return;
+      }
+      
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        // No 2D context available
+        return;
+      }
+
+    // Reset estado ao mudar produto (sem setIsRevealed(false) - controlado pelo servidor)
+    scratchedAreas.current = [];
+    setScratchProgress(0);
+    setIsFading(false);
+    lastPoint.current = null;
+    needsProgressCalc.current = false;
+
+    // FASE 1: Configurar DPI correto para telas retina
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    
+    // AJUSTAR DIMENSÕES: usar TODA a área disponível do container
+    const actualHeight = rect.height || 200; // Usar altura TOTAL do container
+    const actualWidth = rect.width || 200; // Usar largura TOTAL do container
+    
+    canvas.width = Math.round(actualWidth * dpr);
+    canvas.height = Math.round(actualHeight * dpr);
+    ctx.scale(dpr, dpr);
+    
+    // Forçar dimensões CSS também
+    canvas.style.width = actualWidth + 'px';
+    canvas.style.height = actualHeight + 'px';
+    
+    // Usar dimensões corrigidas para cálculos
+    const cssWidth = actualWidth;
+    const cssHeight = actualHeight;
+
+    // 🎯 RECREANDO EXATAMENTE COMO SUA IMAGEM DE REFERÊNCIA
+    // 🌈 GRADIENTE LARANJA → VERMELHO: Muito mais vibrante!  
+    const gradient = ctx.createLinearGradient(0, 0, 0, cssHeight);
+    gradient.addColorStop(0, '#FF8C00');    // Laranja brilhante topo
+    gradient.addColorStop(0.4, '#FF6347');  // Laranja-vermelho 
+    gradient.addColorStop(0.7, '#FF4500');  // Laranja-vermelho mais intenso
+    gradient.addColorStop(1, '#DC143C');    // Vermelho puro na base
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, cssWidth, cssHeight);
+    
+    // ◆ DIAMANTE GRANDE NO CANTO (exatamente como na imagem)
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+    ctx.shadowBlur = 8;
+    ctx.fillText('◆', cssWidth * 0.92, cssHeight * 0.92);
+
+    // ✨ TEXTO PRINCIPAL COM DESTAQUE ESPECIAL
+    ctx.font = 'bold 18px Arial'; // Aumentado para melhor legibilidade
+    ctx.textAlign = 'center';
+    
+    const lines = product.scratchMessage?.split(' ') || ['Você', 'ganhou', 'um', 'super', 'desconto!', 'Raspe', 'aqui', 'e', 'confira'];
+    const lineHeight = 24;
+    const startY = cssHeight / 2 - (lines.length * lineHeight) / 2;
+    
+    // 📦 FUNDO MAIS TRANSPARENTE PARA O TEXTO
+    // Desenhar fundo suave cobrindo toda a área
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+    ctx.shadowBlur = 2;
+    ctx.fillStyle = 'rgba(40, 40, 40, 0.05)'; // Muito mais transparente
+    
+    // Retângulo cobrindo todo o canvas
+    ctx.fillRect(0, 0, cssWidth, cssHeight);
+    
+    // ✨ TEXTO SOBRE O FUNDO
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+    ctx.shadowBlur = 2;
+    
+    lines.forEach((line, index) => {
+      const x = cssWidth / 2;
+      const y = startY + (index * lineHeight);
+      
+      // 🖤 CONTORNO PRETO PRIMEIRO
+      ctx.strokeStyle = '#000000'; // Preto sólido
+      ctx.lineWidth = 3; // Contorno espesso
+      ctx.lineJoin = 'round'; // Cantos arredondados
+      ctx.miterLimit = 2;
+      ctx.strokeText(line, x, y);
+      
+      // ✨ TEXTO BRANCO POR CIMA
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText(line, x, y);
+    });
+    
+    }, 100); // 100ms timeout
+    
+    startProgressLoop();
+  }, [product.id, isRevealed]);
+
+  // Sistema de bloqueio simplificado
+  const blocked = () => {
+    const isBlocked = isRevealed;
+    console.log("🚫 BLOCKED() chamado:", {
+      productId: product.id,
+      isRevealed,
+      isBlocked,
+      resultado: isBlocked ? "BLOQUEADO" : "LIBERADO"
+    });
+    return isBlocked;
+  };
+
+  // Função de scratch melhorada
+  const handleScratch = (clientX: number, clientY: number) => {
+    console.log(`%c🎨 HANDLE SCRATCH CHAMADO! 🎨`, 
+      'background: purple; color: white; padding: 5px; font-size: 16px; font-weight: bold;');
+    console.log("🎨 handleScratch dados:", { clientX, clientY, productId: product.id });
+    
+    if (!canvasRef.current || blocked()) {
+      console.log("❌ handleScratch PAROU: canvas ou blocked");
+      return;
+    }
+
+    // Throttle scratches
+    const now = Date.now();
+    if (now - lastScratchTime.current < SCRATCH_THROTTLE) {
+      console.log("⏳ handleScratch THROTTLED");
+      return;
+    }
+    lastScratchTime.current = now;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      console.log("❌ handleScratch: Sem contexto 2D!");
+      return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    
+    console.log("✏️ handleScratch posições:", { x, y, rectLeft: rect.left, rectTop: rect.top });
+
+    // Raio maior para raspagem mais natural
+    const scratchRadius = 25;
+
+    // FASE 1: Som otimizado com AudioContext reutilizável
+    const soundNow = Date.now();
+    if (soundNow - lastSoundTime.current >= SOUND_COOLDOWN) {
+      try {
+        // Criar AudioContext apenas uma vez
+        if (!audioCtxRef.current) {
+          audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        
+        const audioCtx = audioCtxRef.current;
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.frequency.setValueAtTime(150 + Math.random() * 50, audioCtx.currentTime);
+        oscillator.type = 'sawtooth';
+        gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.1);
+        
+        lastSoundTime.current = soundNow;
+      } catch (e) {
+        // Som não disponível
+      }
+    }
+
+    // FASE 2: Traçado contínuo com lineTo
+    console.log("🖌️ Iniciando desenho no canvas!");
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = scratchRadius * 2;
+    
+    console.log("🎯 Configurações de desenho:", {
+      operation: ctx.globalCompositeOperation,
+      lineWidth: ctx.lineWidth,
+      lastPoint: lastPoint.current
+    });
+    
+    if (lastPoint.current) {
+      // Desenhar linha contínua do ponto anterior
+      console.log("📏 Desenhando LINHA de", lastPoint.current, "até", {x, y});
+      ctx.beginPath();
+      ctx.moveTo(lastPoint.current.x, lastPoint.current.y);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    } else {
+      // Primeiro ponto - desenhar círculo
+      console.log("⭕ Desenhando CÍRCULO em", {x, y}, "raio:", scratchRadius);
+      ctx.fillStyle = 'rgba(0,0,0,1)';
+      ctx.beginPath();
+      ctx.arc(x, y, scratchRadius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    console.log("✅ Desenho concluído!");
+    
+    // Atualizar último ponto
+    lastPoint.current = { x, y };
+    
+    // FASE 2: Marcar para recálculo de progresso real
+    needsProgressCalc.current = true;
+    startProgressLoop();
+  };
+
+  // Event handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    console.log("🖱️ MOUSE DOWN chamado:", {
+      productId: product.id,
+      blocked: blocked(),
+      clientX: e.clientX,
+      clientY: e.clientY
+    });
+    if (blocked()) return;
+    setIsScratching(true);
+    lastPoint.current = null;
+    handleScratch(e.clientX, e.clientY);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isScratching) {
+      handleScratch(e.clientX, e.clientY);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsScratching(false);
+    lastPoint.current = null; // Finalizar traçado
+  };
+
+  // Touch handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    console.log("👆 TOUCH START chamado:", {
+      productId: product.id,
+      blocked: blocked(),
+      touchCount: e.touches.length
+    });
+    e.preventDefault();
+    if (blocked()) return;
+    setIsScratching(true);
+    lastPoint.current = null;
+    const touch = e.touches[0];
+    handleScratch(touch.clientX, touch.clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    if (isScratching) {
+      const touch = e.touches[0];
+      handleScratch(touch.clientX, touch.clientY);
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    setIsScratching(false);
+    lastPoint.current = null;
+  };
+
+  // FASE 2: Função para medir progresso real por alpha
+  const measureRealProgress = () => {
+    if (!canvasRef.current || !needsProgressCalc.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    try {
+      needsProgressCalc.current = false;
+      const step = 6; // Amostragem a cada 6 pixels para performance
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      
+      let transparent = 0;
+      let total = 0;
+      
+      // Amostragem inteligente
+      for (let i = 3; i < data.length; i += 4 * step) {
+        total++;
+        if (data[i] === 0) transparent++; // Canal alpha = 0 (transparente)
+      }
+      
+      const progress = total > 0 ? transparent / total : 0;
+      setScratchProgress(progress);
+      
+      // Revelar com threshold - PROTEÇÃO MÁXIMA ANTI-DUPLICAÇÃO GLOBAL
+      const globalKey = `coupon-generated-${product.id}`;
+      const alreadyProcessing = sessionStorage.getItem(globalKey);
+      
+      if (progress >= 0.7 && !isRevealed && !isFading && !revelationStarted && !alreadyProcessing) {
+        console.log("🎯 INICIANDO REVELAÇÃO ÚNICA!");
+        
+        // 🛑 BLOQUEAR GLOBALMENTE IMEDIATAMENTE
+        sessionStorage.setItem(globalKey, Date.now().toString());
+        setRevelationStarted(true); 
+        setIsFading(true);
+        
+        // 🛑 PARAR RAF LOOP IMEDIATAMENTE
+        if (rafId.current) {
+          cancelAnimationFrame(rafId.current);
+          rafId.current = null;
+        }
+        
+        setTimeout(() => {
+          setIsRevealed(true);
+          
+          // SISTEMA SIMPLIFICADO: Baseado apenas no tipo
+          // PRODUTO NORMAL: Sempre gera cupom (com proteção anti-duplicação)
+          if (!generatingCoupon && !couponGenerated) {
+            setGeneratingCoupon(true);
+            generateCouponMutation.mutate(product.id);
+          }
+        }, 220);
+      }
+    } catch (e) {
+      // Fallback silencioso se getImageData falhar
+    }
+  };
+  
+  // Loop de RAF para medição otimizada
+  const startProgressLoop = () => {
+    if (rafId.current) return;
+    
+    const loop = () => {
+      measureRealProgress();
+      rafId.current = requestAnimationFrame(loop);
+    };
+    
+    rafId.current = requestAnimationFrame(loop);
+  };
+
+  // Resto do componente com UI e modais...
+  return (
+    <Card className="scratch-card" data-testid={`scratch-card-${product.id}`}>
+      {/* Canvas de raspadinha */}
+      <div className="relative overflow-hidden rounded-t-lg bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950">
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-white/10 dark:via-black/5 dark:to-black/10" />
+        
+        {/* Canvas overlay para raspadinha */}
+        {product.isScratchCard && !isRevealed && (
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 z-10 cursor-crosshair"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            data-testid={`scratch-canvas-${product.id}`}
+          />
+        )}
+        
+        {/* Produto revelado */}
+        <div className={`relative z-0 p-4 transition-all duration-300 ${
+          isRevealed ? 'opacity-100' : 'opacity-100'
+        }`}>
+          {/* Imagem do produto */}
+          <div className="aspect-square mb-3 rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-md">
+            <img 
+              src={product.imageUrl || '/placeholder-product.jpg'} 
+              alt={product.name}
+              className="w-full h-full object-cover"
+              data-testid={`product-image-${product.id}`}
+            />
+          </div>
+          
+          {/* Info do produto */}
+          <div className="space-y-2">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-2" data-testid={`product-name-${product.id}`}>
+              {product.name}
+            </h3>
+            
+            {/* Preços */}
+            <div className="space-y-1">
+              {product.isScratchCard && product.scratchPrice && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500 dark:text-gray-400 line-through" data-testid={`original-price-${product.id}`}>
+                    {formatPriceWithCurrency(product.price || '0', currency)}
+                  </span>
+                  <Badge variant="destructive" className="text-xs" data-testid={`discount-badge-${product.id}`}>
+                    {(() => {
+                      const originalPrice = parseFloat(product.price || '0');
+                      const discountPrice = parseFloat(product.scratchPrice || '0');
+                      const discountPercentage = originalPrice > 0 ? Math.round(((originalPrice - discountPrice) / originalPrice) * 100) : 0;
+                      return `${discountPercentage}% OFF`;
+                    })()}
+                  </Badge>
+                </div>
+              )}
+              
+              <div className="text-lg font-bold text-green-600 dark:text-green-400" data-testid={`final-price-${product.id}`}>
+                {formatPriceWithCurrency(
+                  product.isScratchCard && product.scratchPrice ? product.scratchPrice : product.price || '0', 
+                  currency
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Modal de cupom gerado */}
+      {showCouponModal && coupon && (
+        <Dialog open={showCouponModal} onOpenChange={setShowCouponModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                Cupom Gerado!
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* QR Code */}
+              <div className="flex justify-center">
+                <img 
+                  src={coupon.qrCode} 
+                  alt="QR Code do Cupom" 
+                  className="w-32 h-32 border rounded-lg"
+                  data-testid={`coupon-qr-${coupon.id}`}
+                />
+              </div>
+              
+              {/* Código do cupom */}
+              <div className="text-center">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Código do Cupom:</p>
+                <p className="font-mono font-bold text-lg" data-testid={`coupon-code-${coupon.id}`}>
+                  {coupon.couponCode}
+                </p>
+              </div>
+              
+              {/* Validade */}
+              <div className="text-center">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Válido até:</p>
+                <p className="font-semibold" data-testid={`coupon-expiry-${coupon.id}`}>
+                  {new Date(coupon.expiresAt).toLocaleString('pt-BR')}
+                </p>
+              </div>
+              
+              {/* Botões de ação */}
+              <div className="flex gap-2">
+                <Button 
+                  onClick={downloadPDF} 
+                  variant="outline" 
+                  className="flex-1"
+                  data-testid={`download-pdf-${coupon.id}`}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  PDF
+                </Button>
+                <Button 
+                  onClick={shareOnWhatsApp} 
+                  variant="outline" 
+                  className="flex-1"
+                  data-testid={`share-whatsapp-${coupon.id}`}
+                >
+                  <Share2 className="h-4 w-4 mr-2" />
+                  WhatsApp
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </Card>
+  );
+}
+
+=== 5. LÓGICA DE VERIFICAÇÃO DE CUPONS ===
+
+A verificação se o usuário já gerou cupom é feita na função `hasUserGeneratedCoupon` que verifica:
+
+1. **Tabela promotionAssignments**: Status 'generated' ou 'redeemed'
+2. **Tabela coupons**: Cupons gerados para aquela promoção (pelo nome)
+
+Esta dupla verificação garante que:
+- Usuários que rasparam via sistema de assignments não vejam mais a promoção
+- Usuários que geraram cupons diretamente também não vejam mais a promoção
+- Promoções esgotadas (usedCount >= maxClients) são filtradas
+- Sistema é resistente a condições de corrida
+
+=== 6. FLUXO COMPLETO ===
+
+1. **Usuário acessa loja**: Sistema verifica promoções disponíveis
+2. **Sistema atribui promoção**: Cria promotionAssignment com status 'assigned'
+3. **Usuário vê raspadinha**: Componente ScratchCard renderiza canvas
+4. **Usuário raspa**: Sistema detecta progresso e gera cupom
+5. **Cupom é gerado**: Status muda para 'generated', contador incrementa
+6. **Promoção desaparece**: hasUserGeneratedCoupon retorna true, filtra da lista
+7. **Usuário não vê mais**: Promoção não aparece nas próximas consultas
+
+===============================================================
+FIM DO CÓDIGO COMPLETO
+===============================================================
