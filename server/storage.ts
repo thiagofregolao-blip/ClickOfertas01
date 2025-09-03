@@ -175,7 +175,7 @@ export interface IStorage {
   deletePromotion(promotionId: string): Promise<void>;
   canUserScratchPromotion(promotionId: string, userId?: string, userAgent?: string, ipAddress?: string): Promise<{allowed: boolean, reason: string, promotion?: Promotion}>;
   createPromotionScratch(scratch: InsertPromotionScratch): Promise<PromotionScratch>;
-  incrementPromotionUsage(promotionId: string): Promise<void>;
+  incrementPromotionUsage(promotionId: string): Promise<boolean>;
   getActivePromotions(): Promise<PromotionWithDetails[]>;
   getPromotionStats(promotionId: string): Promise<any>;
 
@@ -1674,26 +1674,29 @@ export class DatabaseStorage implements IStorage {
     return scratch;
   }
 
-  async incrementPromotionUsage(promotionId: string): Promise<void> {
+  async incrementPromotionUsage(promotionId: string): Promise<boolean> {
     console.log('📊 incrementPromotionUsage - iniciando para promotionId:', promotionId);
     
-    // Buscar valor atual
-    const currentPromo = await db.select({ usedCount: promotions.usedCount }).from(promotions).where(eq(promotions.id, promotionId));
-    const currentUsedCount = parseInt(currentPromo[0]?.usedCount || "0");
-    const newUsedCount = currentUsedCount + 1;
-    
-    console.log('📊 Contador atual:', currentUsedCount, '-> novo:', newUsedCount);
-    
-    // Atualizar com novo valor
-    await db
+    // Incremento atômico com verificação de limite para prevenir condição de corrida
+    const result = await db
       .update(promotions)
       .set({
-        usedCount: newUsedCount.toString(),
+        usedCount: sql`CAST(${promotions.usedCount} AS INTEGER) + 1`,
         updatedAt: new Date()
       })
-      .where(eq(promotions.id, promotionId));
-      
-    console.log('✅ Contador usedCount atualizado:', currentUsedCount, '->', newUsedCount);
+      .where(and(
+        eq(promotions.id, promotionId),
+        sql`CAST(${promotions.usedCount} AS INTEGER) < CAST(${promotions.maxClients} AS INTEGER)` // Só incrementa se ainda tem vaga
+      ))
+      .returning({ usedCount: promotions.usedCount });
+    
+    if (result.length === 0) {
+      console.log('❌ Não foi possível incrementar - limite atingido ou promoção não encontrada');
+      return false;
+    }
+    
+    console.log('✅ Contador usedCount incrementado atomicamente para:', result[0].usedCount);
+    return true;
   }
 
   async getActivePromotions(): Promise<PromotionWithDetails[]> {
@@ -2036,8 +2039,14 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    // Retornar promoções existentes
-    return existingResults.map(r => ({
+    // Retornar promoções existentes, mas filtrar as que já esgotaram
+    const validPromotions = existingResults.filter(r => {
+      const usedCount = parseInt(r.promotion.usedCount || "0");
+      const maxClients = parseInt(r.promotion.maxClients || "0");
+      return usedCount < maxClients; // Apenas promoções que ainda têm vagas
+    });
+
+    return validPromotions.map(r => ({
       ...r.promotion,
       store: r.store
     }));

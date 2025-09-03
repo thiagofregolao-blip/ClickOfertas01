@@ -1435,8 +1435,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // 📊 IMPORTANTE: Incrementar contador de uso da promoção para analytics
           console.log('📈 Incrementando contador usedCount da promoção...');
-          await storage.incrementPromotionUsage(productId);
-          console.log('✅ Contador usedCount incrementado com sucesso');
+          const incrementSuccess = await storage.incrementPromotionUsage(productId);
+          if (incrementSuccess) {
+            console.log('✅ Contador usedCount incrementado com sucesso');
+          } else {
+            console.log('⚠️ Aviso: Não foi possível incrementar contador (limite pode ter sido atingido)');
+          }
         } catch (assignmentError) {
           console.error('⚠️ Erro ao atualizar status da assignment (não bloqueante):', assignmentError);
           // Não falha o processo de geração do cupom por causa disto
@@ -2079,7 +2083,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const scratch = await storage.createPromotionScratch(scratchData);
       
       // Atualizar contador de usos da promoção
-      await storage.incrementPromotionUsage(promotionId);
+      const incrementSuccess = await storage.incrementPromotionUsage(promotionId);
+      
+      if (!incrementSuccess) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Limite de participantes já foi atingido" 
+        });
+      }
 
       // CRUCIAL: Atualizar status do assignment para 'generated' para que a promoção suma da lista do usuário
       if (userId) {
