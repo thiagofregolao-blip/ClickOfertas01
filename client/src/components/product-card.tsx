@@ -137,8 +137,8 @@ export default function ProductCard({
           
           {/* Preço */}
           <div className="mb-4 sm:mb-2 text-left">
-            {/* Preço USD em vermelho - só no mobile */}
-            <p className="text-base text-red-600 font-medium mb-1 sm:hidden">
+            {/* Preço USD em vermelho - mobile e desktop */}
+            <p className="text-base text-red-600 font-medium mb-1">
               {currency} {formatBrazilianPrice(product.price || '0')}
             </p>
             {/* Preço BRL */}
