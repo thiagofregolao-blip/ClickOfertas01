@@ -837,13 +837,11 @@ export default function PublicFlyer() {
                       key={product.id} 
                       className={`group cursor-pointer pb-4 mb-4 rounded-lg overflow-hidden ${
                         product.isFeatured 
-                          ? '' 
+                          ? 'border border-gray-200' 
                           : 'border border-gray-200'
                       }`}
                       style={product.isFeatured ? {
-                        background: 'linear-gradient(to right, #ef4444, #dc2626, #f97316)',
-                        padding: '0.5px',
-                        borderRadius: '0.5rem'
+                        boxShadow: 'inset 0 0 0 1px #ef4444'
                       } : {}}
                       onClick={() => {
                         setSelectedProduct(product);
