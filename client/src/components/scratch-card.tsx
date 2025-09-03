@@ -1035,7 +1035,7 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
 
           {/* Badge indicativo - CORREÇÃO: pointer-events-none para não bloquear canvas */}
           <div className="absolute top-2 right-2 z-[1001] pointer-events-none">
-            <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white animate-heartbeat text-xs shadow-lg">
+            <Badge className="bg-gradient-to-r from-red-600 via-yellow-500 to-blue-600 text-white animate-heartbeat text-xs shadow-lg border border-white/30">
               <Gift className="w-3 h-3 mr-1" />
               RASPE AQUI
             </Badge>
