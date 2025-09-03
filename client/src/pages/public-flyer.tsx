@@ -837,7 +837,7 @@ export default function PublicFlyer() {
                       key={product.id} 
                       className={`group cursor-pointer pb-4 mb-4 rounded-lg overflow-hidden ${
                         product.isFeatured 
-                          ? 'p-0.5 bg-gradient-to-r from-red-500 via-red-600 to-orange-500' 
+                          ? 'p-px bg-gradient-to-r from-red-500 via-red-600 to-orange-500' 
                           : 'border border-gray-200'
                       }`}
                       onClick={() => {
