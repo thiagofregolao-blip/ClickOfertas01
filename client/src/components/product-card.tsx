@@ -75,7 +75,7 @@ export default function ProductCard({
 
   const productContent = (
     <div 
-      className={`group cursor-pointer pb-4 mb-4 rounded-lg overflow-hidden ${
+      className={`group cursor-pointer rounded-lg overflow-hidden h-full flex flex-col ${
         product.isFeatured 
           ? 'border border-red-500' 
           : 'border border-gray-200'
@@ -83,7 +83,7 @@ export default function ProductCard({
       onClick={handleCardClick}
       data-testid={`card-product-${product.id}`}
     >
-      <div className="relative">
+      <div className="relative flex-shrink-0">
         {/* Thumbnail YouTube-style */}
         <div className="relative aspect-video bg-gray-200 rounded-t-lg overflow-hidden">
           {product.imageUrl ? (
@@ -136,11 +136,16 @@ export default function ProductCard({
         </div>
         
         {/* Info estilo YouTube */}
-        <div className="mt-3 px-3">
-          <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
-            {product.name}
-          </h3>
-          <div className="mt-1">
+        <div className="flex-1 flex flex-col mt-3 px-3 pb-3">
+          {/* Título com altura fixa */}
+          <div className="h-10 flex items-start mb-2">
+            <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+              {product.name}
+            </h3>
+          </div>
+          
+          {/* Preço */}
+          <div className="mb-2">
             <p className="text-xs text-gray-500">
               R$ {(() => {
                 const priceUSD = Number(product.price || 0);
@@ -151,8 +156,8 @@ export default function ProductCard({
             </p>
           </div>
           
-          {/* Action buttons */}
-          <div className="flex items-center justify-center gap-4 mt-2 pt-2 border-t border-gray-100">
+          {/* Action buttons - sempre na parte inferior */}
+          <div className="flex items-center justify-center gap-4 mt-auto pt-2 border-t border-gray-100">
             <button 
               onClick={(e) => {
                 e.stopPropagation();
