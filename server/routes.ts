@@ -2081,6 +2081,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Atualizar contador de usos da promoção
       await storage.incrementPromotionUsage(promotionId);
 
+      // CRUCIAL: Atualizar status do assignment para 'generated' para que a promoção suma da lista do usuário
+      if (userId) {
+        await storage.updatePromotionAssignmentStatus(promotionId, userId, 'generated');
+        console.log(`🎯 Atualizando status da promotion_assignment para "generated"...`);
+      }
+
       res.json({
         success: true,
         message: "Parabéns! Você ganhou um cupom de desconto!",
