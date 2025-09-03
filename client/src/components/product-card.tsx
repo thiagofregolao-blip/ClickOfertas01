@@ -148,7 +148,7 @@ export default function ProductCard({
           </div>
           
           {/* Action buttons - sempre na parte inferior */}
-          <div className="flex items-center justify-center gap-2 sm:gap-4 mt-auto pt-0 sm:pt-2 sm:border-t sm:border-gray-100">
+          <div className="flex items-center justify-center gap-2 sm:gap-4 mt-auto pt-0 sm:pt-2 sm:border-t sm:border-gray-100 w-full">
             <button 
               onClick={(e) => {
                 e.stopPropagation();
