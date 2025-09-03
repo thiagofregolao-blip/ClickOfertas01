@@ -509,15 +509,7 @@ export default function PublicFlyer() {
                     className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-white"
                     style={{ backgroundColor: store.themeColor || '#E11D48' }}
                   >
-                    {store.logoUrl ? (
-                      <img 
-                        src={store.logoUrl} 
-                        alt={store.name}
-                        className="w-22 h-22 rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-3xl">{store.name.charAt(0)}</span>
-                    )}
+                    <span className="text-3xl">{store.name.charAt(0)}</span>
                   </div>
                   {/* Stories indicator */}
                   <div className="absolute -top-1 -right-1 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-4 border-white">
@@ -604,15 +596,7 @@ export default function PublicFlyer() {
                       className="w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-white"
                       style={{ backgroundColor: store.themeColor || '#E11D48' }}
                     >
-                      {store.logoUrl ? (
-                        <img 
-                          src={store.logoUrl} 
-                          alt={store.name}
-                          className="w-18 h-18 md:w-22 md:h-22 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-2xl md:text-3xl">{store.name.charAt(0)}</span>
-                      )}
+                      <span className="text-2xl md:text-3xl">{store.name.charAt(0)}</span>
                     </div>
                   </div>
                   
@@ -802,15 +786,7 @@ export default function PublicFlyer() {
                               className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
                               style={{ backgroundColor: store?.themeColor || '#E11D48' }}
                             >
-                              {store?.logoUrl ? (
-                                <img 
-                                  src={store.logoUrl} 
-                                  alt={store.name}
-                                  className="w-9 h-9 rounded-full object-cover"
-                                />
-                              ) : (
-                                store.name.charAt(0)
-                              )}
+                              {store.name.charAt(0)}
                             </div>
                           </div>
                           
@@ -878,15 +854,7 @@ export default function PublicFlyer() {
                               className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
                               style={{ backgroundColor: store?.themeColor || '#E11D48' }}
                             >
-                              {store?.logoUrl ? (
-                                <img 
-                                  src={store.logoUrl} 
-                                  alt={store.name}
-                                  className="w-9 h-9 rounded-full object-cover"
-                                />
-                              ) : (
-                                store.name.charAt(0)
-                              )}
+                              {store.name.charAt(0)}
                             </div>
                           </div>
                           
@@ -994,15 +962,7 @@ export default function PublicFlyer() {
                               className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
                               style={{ backgroundColor: store?.themeColor || '#E11D48' }}
                             >
-                              {store?.logoUrl ? (
-                                <img 
-                                  src={store.logoUrl} 
-                                  alt={store.name}
-                                  className="w-9 h-9 rounded-full object-cover"
-                                />
-                              ) : (
-                                store.name.charAt(0)
-                              )}
+                              {store.name.charAt(0)}
                             </div>
                           </div>
                           
@@ -1068,15 +1028,7 @@ export default function PublicFlyer() {
                               className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
                               style={{ backgroundColor: store?.themeColor || '#E11D48' }}
                             >
-                              {store?.logoUrl ? (
-                                <img 
-                                  src={store.logoUrl} 
-                                  alt={store.name}
-                                  className="w-9 h-9 rounded-full object-cover"
-                                />
-                              ) : (
-                                store.name.charAt(0)
-                              )}
+                              {store.name.charAt(0)}
                             </div>
                           </div>
                           
@@ -1243,7 +1195,7 @@ export default function PublicFlyer() {
               <div className="absolute top-0 left-0 right-0">
                 <div className="bg-black/15 backdrop-blur-sm pt-8 pb-3 px-3 flex items-center gap-3">
                   <Avatar className="w-8 h-8 border-2 border-white">
-                    <AvatarImage src={viewingStory.store.logoUrl} alt={viewingStory.store.name} />
+                    <AvatarImage src="" alt={viewingStory.store.name} />
                     <AvatarFallback className="text-xs">
                       {viewingStory.store.name.charAt(0)}
                     </AvatarFallback>
