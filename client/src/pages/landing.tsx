@@ -221,15 +221,33 @@ export default function Landing() {
 
                     {/* Link para cadastro */}
                     <div className="text-center mt-6 pt-4 border-t border-gray-200">
-                      <span className="text-gray-600 text-sm">Novo por aqui? </span>
-                      <Button 
-                        variant="link" 
-                        onClick={() => window.location.href = '/signup'}
-                        className="p-0 h-auto text-[#F04940] font-semibold text-sm"
-                        data-testid="button-signup"
-                      >
-                        Criar conta grátis
-                      </Button>
+                      <span className="text-gray-600 text-sm mb-3 block">Novo por aqui? Escolha seu tipo:</span>
+                      <div className="space-y-2">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => window.location.href = '/signup?type=user'}
+                          className="w-full text-[#F04940] border-[#F04940] hover:bg-[#F04940] hover:text-white text-sm"
+                          data-testid="button-signup-user"
+                        >
+                          👤 Cadastrar como Usuário
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => window.location.href = '/signup?type=store'}
+                          className="w-full text-[#F04940] border-[#F04940] hover:bg-[#F04940] hover:text-white text-sm"
+                          data-testid="button-signup-store"
+                        >
+                          🏪 Cadastrar como Loja
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => window.location.href = '/signup?type=admin'}
+                          className="w-full text-[#F04940] border-[#F04940] hover:bg-[#F04940] hover:text-white text-sm"
+                          data-testid="button-signup-admin"
+                        >
+                          ⚡ Cadastrar como Super Admin
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -381,15 +399,36 @@ export default function Landing() {
                   </div>
 
                   <div className="text-center">
-                    <span className="text-gray-600 text-base">Novo na Click Ofertas? </span>
-                    <Button 
-                      variant="link" 
-                      onClick={() => window.location.href = '/signup'}
-                      className="p-0 h-auto text-orange-500 font-medium text-base"
-                      data-testid="button-signup-desktop"
-                    >
-                      Cadastrar
-                    </Button>
+                    <span className="text-gray-600 text-base mb-3 block">Novo na Click Ofertas? Escolha seu tipo:</span>
+                    <div className="flex gap-2 justify-center">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.location.href = '/signup?type=user'}
+                        className="text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                        data-testid="button-signup-user-desktop"
+                      >
+                        👤 Usuário
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.location.href = '/signup?type=store'}
+                        className="text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                        data-testid="button-signup-store-desktop"
+                      >
+                        🏪 Loja
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.location.href = '/signup?type=admin'}
+                        className="text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                        data-testid="button-signup-admin-desktop"
+                      >
+                        ⚡ Super Admin
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

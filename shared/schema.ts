@@ -760,6 +760,15 @@ export const registerStoreOwnerSchema = z.object({
   city: z.string().optional(),
 });
 
+// Schema para cadastro de super admin
+export const registerSuperAdminSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(8, "Senha de admin deve ter pelo menos 8 caracteres"),
+  firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  lastName: z.string().min(2, "Sobrenome deve ter pelo menos 2 caracteres"),
+  adminCode: z.string().min(1, "Código de administrador é obrigatório"),
+});
+
 // Esquemas de validação para cadastro (compatibilidade)
 export const registerUserSchema = createInsertSchema(users, {
   email: z.string().email("Email inválido"),
@@ -791,6 +800,7 @@ export const loginUserSchema = z.object({
 
 export type RegisterUserNormalType = z.infer<typeof registerUserNormalSchema>;
 export type RegisterStoreOwnerType = z.infer<typeof registerStoreOwnerSchema>;
+export type RegisterSuperAdminType = z.infer<typeof registerSuperAdminSchema>;
 export type RegisterUserType = z.infer<typeof registerUserSchema>;
 export type LoginUserType = z.infer<typeof loginUserSchema>;
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { ArrowLeft, Mail, Lock, User, Store, Phone, MapPin } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, User, Store, Phone, MapPin, Shield } from 'lucide-react';
 
 // Schemas
 const userRegisterSchema = z.object({
@@ -28,12 +28,30 @@ const storeRegisterSchema = z.object({
   city: z.string().optional(),
 });
 
+const adminRegisterSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(8, "Senha de admin deve ter pelo menos 8 caracteres"),
+  firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  lastName: z.string().min(2, "Sobrenome deve ter pelo menos 2 caracteres"),
+  adminCode: z.string().min(1, "Código de administrador é obrigatório"),
+});
+
 type UserRegisterForm = z.infer<typeof userRegisterSchema>;
 type StoreRegisterForm = z.infer<typeof storeRegisterSchema>;
+type AdminRegisterForm = z.infer<typeof adminRegisterSchema>;
 
 export default function SignupPage() {
-  const [userType, setUserType] = useState<'user' | 'store'>('user');
+  const [userType, setUserType] = useState<'user' | 'store' | 'admin'>('user');
   const { toast } = useToast();
+
+  // Detecta o tipo vindo da URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const typeParam = urlParams.get('type');
+    if (typeParam === 'store' || typeParam === 'admin' || typeParam === 'user') {
+      setUserType(typeParam);
+    }
+  }, []);
 
   // Forms
   const userForm = useForm<UserRegisterForm>({
@@ -56,6 +74,17 @@ export default function SignupPage() {
       phone: '',
       address: '',
       city: '',
+    }
+  });
+
+  const adminForm = useForm<AdminRegisterForm>({
+    resolver: zodResolver(adminRegisterSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      firstName: '',
+      lastName: '',
+      adminCode: '',
     }
   });
 
@@ -100,12 +129,36 @@ export default function SignupPage() {
     },
   });
 
+  const adminRegisterMutation = useMutation({
+    mutationFn: async (data: AdminRegisterForm) => {
+      await apiRequest('POST', '/api/auth/register-admin', data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Super Admin criado!",
+        description: "Acesso administrativo criado com sucesso!",
+      });
+      window.location.href = '/admin-panel';
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao criar Super Admin",
+        description: error.message || "Verifique o código de administrador",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleUserSubmit = (data: UserRegisterForm) => {
     userRegisterMutation.mutate(data);
   };
 
   const handleStoreSubmit = (data: StoreRegisterForm) => {
     storeRegisterMutation.mutate(data);
+  };
+
+  const handleAdminSubmit = (data: AdminRegisterForm) => {
+    adminRegisterMutation.mutate(data);
   };
 
   return (
@@ -129,24 +182,33 @@ export default function SignupPage() {
           </div>
 
           {/* Seletor de tipo */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
+          <div className="grid grid-cols-3 bg-gray-100 rounded-lg p-1 gap-1">
             <Button
               variant={userType === 'user' ? 'default' : 'ghost'}
               onClick={() => setUserType('user')}
-              className="flex-1 h-10"
+              className="h-10 text-xs"
               data-testid="button-select-user"
             >
-              <User className="w-4 h-4 mr-2" />
+              <User className="w-3 h-3 mr-1" />
               Cliente
             </Button>
             <Button
               variant={userType === 'store' ? 'default' : 'ghost'}
               onClick={() => setUserType('store')}
-              className="flex-1 h-10"
+              className="h-10 text-xs"
               data-testid="button-select-store"
             >
-              <Store className="w-4 h-4 mr-2" />
-              Lojista
+              <Store className="w-3 h-3 mr-1" />
+              Loja
+            </Button>
+            <Button
+              variant={userType === 'admin' ? 'default' : 'ghost'}
+              onClick={() => setUserType('admin')}
+              className="h-10 text-xs"
+              data-testid="button-select-admin"
+            >
+              <Shield className="w-3 h-3 mr-1" />
+              Admin
             </Button>
           </div>
         </div>
@@ -410,6 +472,128 @@ export default function SignupPage() {
                   data-testid="button-register-store"
                 >
                   {storeRegisterMutation.isPending ? 'Criando loja...' : 'Criar Loja'}
+                </Button>
+              </form>
+            </Form>
+          </div>
+        )}
+
+        {/* Formulário do Super Admin */}
+        {userType === 'admin' && (
+          <div className="p-6">
+            <Form {...adminForm}>
+              <form onSubmit={adminForm.handleSubmit(handleAdminSubmit)} className="space-y-4">
+                <FormField
+                  control={adminForm.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Nome *
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Seu primeiro nome"
+                          {...field}
+                          data-testid="input-admin-firstname"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={adminForm.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sobrenome *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Seu sobrenome"
+                          {...field}
+                          data-testid="input-admin-lastname"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={adminForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Mail className="w-4 h-4" />
+                        Email *
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="admin@empresa.com"
+                          type="email"
+                          {...field}
+                          data-testid="input-admin-email"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={adminForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Lock className="w-4 h-4" />
+                        Senha *
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Mínimo 8 caracteres"
+                          type="password"
+                          {...field}
+                          data-testid="input-admin-password"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={adminForm.control}
+                  name="adminCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Shield className="w-4 h-4" />
+                        Código de Administrador *
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Código especial fornecido"
+                          {...field}
+                          data-testid="input-admin-code"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="submit"
+                  className="w-full bg-red-600 hover:bg-red-700"
+                  disabled={adminRegisterMutation.isPending}
+                  data-testid="button-register-admin"
+                >
+                  {adminRegisterMutation.isPending ? 'Criando Super Admin...' : 'Criar Super Admin'}
                 </Button>
               </form>
             </Form>

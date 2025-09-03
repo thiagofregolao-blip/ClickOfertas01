@@ -55,7 +55,7 @@ const isSuperAdmin = async (req: any, res: any, next: any) => {
 };
 import { getCurrentExchangeRate, convertUsdToBrl, formatBRL, formatUSD, clearExchangeRateCache } from "./exchange-rate";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
@@ -388,6 +388,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Registration error:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Erro interno do servidor" });
+      }
+    }
+  });
+
+  // Register super admin
+  app.post('/api/auth/register-admin', async (req, res) => {
+    try {
+      const userData = registerSuperAdminSchema.parse(req.body);
+      
+      // Verificar código de administrador (você pode definir um código específico)
+      const validAdminCode = "CLICKOFERTAS2025"; // Defina seu código aqui
+      if (userData.adminCode !== validAdminCode) {
+        return res.status(400).json({ message: "Código de administrador inválido" });
+      }
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "Email já está em uso" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(userData.password, 12);
+
+      // Create user as super admin
+      const user = await storage.createUser({
+        email: userData.email,
+        password: hashedPassword,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        isSuperAdmin: true, // Define como super admin
+      });
+
+      // Create session
+      req.session.user = user;
+
+      res.status(201).json({
+        message: "Super Admin criado com sucesso",
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          isSuperAdmin: user.isSuperAdmin,
+        }
+      });
+    } catch (error) {
+      console.error("Super admin registration error:", error);
       if (error instanceof z.ZodError) {
         res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       } else {
