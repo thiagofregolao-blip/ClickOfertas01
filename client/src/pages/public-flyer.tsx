@@ -843,7 +843,7 @@ export default function PublicFlyer() {
                     >
                       <div className="relative">
                         {/* Thumbnail */}
-                        <div className="relative aspect-video bg-gray-200 overflow-hidden">
+                        <div className="relative aspect-video bg-gray-200 rounded-t-lg overflow-hidden">
                           {product.imageUrl ? (
                             <img 
                               src={product.imageUrl} 
@@ -1040,8 +1040,8 @@ export default function PublicFlyer() {
                     >
                       <div className="relative">
                         {/* Thumbnail */}
-                        <div className={`relative aspect-video rounded-lg overflow-hidden ${product.isFeatured ? 'p-0.5 bg-gradient-to-r from-red-500 via-red-600 to-orange-500' : 'bg-gray-200'}`}>
-                          <div className={`${product.isFeatured ? 'w-full h-full rounded-md overflow-hidden bg-gray-200 relative' : ''}`}>
+                        <div className={`relative aspect-video rounded-t-lg overflow-hidden ${product.isFeatured ? 'p-0.5 bg-gradient-to-r from-red-500 via-red-600 to-orange-500' : 'bg-gray-200'}`}>
+                          <div className={`${product.isFeatured ? 'w-full h-full rounded-t-md overflow-hidden bg-gray-200 relative' : ''}`}>
                             {product.imageUrl ? (
                               <img 
                                 src={product.imageUrl} 
