@@ -1,0 +1,107 @@
+Vamos direto ao ponto. Pelo que você descreveu e pelo que vi no seu código, o motivo de a promoção continuar aparecendo depois de raspar é, basicamente, falta de “refresh” imediato da lista e/ou ID errado sendo usado ao gerar o cupom — o que impede o backend de marcar que o usuário já rasgou aquela promoção. 
+
+O que está acontecendo
+
+A lista não é atualizada após gerar o cupom
+No onSuccess da generateCouponMutation, você invalida o cache só quando o usuário clica no botão “Fechar” do toast. Enquanto o toast estiver aberto (ou se a pessoa simplesmente não clicar), a query que carrega “minhas promoções disponíveis” continua com os dados antigos, então a mesma promoção segue renderizando. (E não há um refetch imediato). 
+
+Rota usando productId em vez de promotionId
+A geração do cupom vai em POST /api/products/:productId/generate-coupon. O backend só trata como promoção se getPromotion(productId) encontrar uma promoção com aquele mesmo ID. Se o product.id exibido no card for o ID do produto base (e não o ID da promoção), isPromotion fica false e o cupom é criado sem promotionName. A sua filtragem posterior (hasUserGeneratedCoupon) depende do nome da promoção no cupom — sem isso, o backend “acha” que o usuário não gerou cupom e a promoção volta para a lista. 
+
+Vínculo frágil cupom↔promoção
+Na tabela coupons não há promotionId; você compara por promotionName. Isso é frágil (nome pode mudar / pode não ser setado se o passo 2 falhar). O ideal é ter relação direta com a promoção. 
+
+Correções rápidas (sem mexer no schema)
+A) Atualize a lista imediatamente no front-end
+
+Invalide/refaça a query na hora em onSuccess, e não só no botão do toast.
+
+Opcional: remova o card localmente assim que o cupom for gerado, para feedback instantâneo.
+
+// dentro de onSuccess (além do que você já faz)
+onSuccess: (data: any) => {
+  // ... seu código atual que seta o cupom e abre modal
+
+  // 1) Invalidação imediata das queries relevantes
+  queryClient.invalidateQueries({
+    predicate: (query) =>
+      query.queryKey.some(
+        (k) => typeof k === "string" && k.includes("my-available-promotions")
+      ),
+  });
+
+  // 2) (Opcional) Remover o card localmente sem esperar o refetch
+  queryClient.setQueryData(
+    // ajuste essa key para a que você usa de verdade
+    ["my-available-promotions"],
+    (old: any) => {
+      if (!old) return old;
+      // Se sua API retorna { promotions: [...] }
+      if (Array.isArray(old.promotions)) {
+        return {
+          ...old,
+          promotions: old.promotions.filter((p: any) => p.id !== product.id),
+        };
+      }
+      // Se retorna array direto:
+      if (Array.isArray(old)) {
+        return old.filter((p: any) => p.id !== product.id);
+      }
+      return old;
+    }
+  );
+
+  // 3) (Opcional) Informe o pai para remover o card
+  onRevealed?.(product);
+}
+
+
+Dica: mantenha o botão “Fechar” do toast apenas para UX; mas não dependa dele para atualizar a lista.
+
+B) Garanta que você envia o ID da promoção, não o do produto base
+
+Idealmente, quando o card é de raspadinha de promoção, o ID do item mostrado deve ser o promotion.id. Assim, ao chamar POST /api/products/:productId/generate-coupon, o backend cairá no ramo isPromotion = true, preencherá promotionName no cupom e depois hasUserGeneratedCoupon conseguirá excluir a promoção das próximas buscas. 
+
+Se hoje o card recebe product.id (do produto base), duas saídas rápidas:
+
+Mais simples (trocar rota no front): quando product.isScratchCard for de promoção, chame a rota de promo que já existe:
+
+// em vez de /api/products/:productId/generate-coupon
+await fetch(`/api/promotions/${promotionIdReal}/scratch`, { method: 'POST', credentials: 'include' })
+
+
+Para isso, passe junto o promotionId real no objeto que chega ao componente (ex.: product.promotionId).
+
+Ou, manter a rota atual, mas mandar o promotionId no body e adaptar o backend para usá-lo (se presente) ao decidir isPromotion (e ao gravar promotionName). Ex.:
+
+// front
+await fetch(`/api/products/${product.id}/generate-coupon`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  credentials: 'include',
+  body: JSON.stringify({ promotionId: product.promotionId }),
+});
+
+
+No backend, se req.body.promotionId existir, use getPromotion(req.body.promotionId) para marcar isPromotion = true e preencher os dados da promoção no cupom. 
+
+Endurecendo o backend (recomendado)
+
+Adicione promotionId em coupons
+Evita comparar por nome. Depois, na criação do cupom de promoção, grave promotionId no cupom. Assim, hasUserGeneratedCoupon vira uma query simples por (userId, promotionId). 
+
+Faça “upsert” do assignment ao gerar cupom
+Se por algum motivo não existir promotionAssignments para aquele (promotionId, userId), faça um insert ... on conflict do update para marcar status = 'generated'. Isso previne o caso em que a promo foi mostrada sem assignment prévio. 
+
+Evite depender de promotionName
+Mesmo mantendo compatibilidade, deixe o nome como “decorativo” e tome decisões só por IDs.
+
+Checklist prático para você testar agora
+
+ No front, mova a invalidação de cache para o onSuccess imediato (e, se quiser, remova o card da lista com setQueryData).
+
+ Garanta que a raspadinha chama a rota correta com o ID da promoção, não o do produto base (ou envie promotionId no body e trate no backend).
+
+ (Depois) Inclua promotionId em coupons e troque hasUserGeneratedCoupon para consultar por ID ao invés de nome.
+
+Fazendo só o passo A (invalidação imediata + remover card local), você já percebe a promoção “sumir” da lista na hora. Aplicando B e o endurecimento do backend, você elimina as arestas que fazem a promoção reaparecer em sessões seguintes

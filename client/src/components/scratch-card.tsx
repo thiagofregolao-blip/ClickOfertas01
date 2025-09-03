@@ -105,35 +105,53 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
       
       setGeneratingCoupon(false); // ✅ Resetar flag
       if (data?.success && data?.coupon) {
+        // 🚀 INVALIDAÇÃO IMEDIATA DO CACHE (correção crítica)
+        queryClient.invalidateQueries({
+          predicate: (query) => {
+            // Invalida todas as queries que contém 'my-available-promotions'
+            return query.queryKey.some(key => 
+              typeof key === 'string' && key.includes('my-available-promotions')
+            );
+          }
+        });
+        console.log('🎯 Cache das promoções invalidado IMEDIATAMENTE');
+        
+        // 💨 REMOÇÃO LOCAL DO CARD para feedback instantâneo
+        // Atualizar todas as queries que contém promoções
+        queryClient.getQueryCache().getAll().forEach(query => {
+          if (query.queryKey.some(key => typeof key === 'string' && key.includes('my-available-promotions'))) {
+            queryClient.setQueryData(query.queryKey, (old: any) => {
+              if (!old) return old;
+              // Se retorna { promotions: [...] }
+              if (old.promotions && Array.isArray(old.promotions)) {
+                return {
+                  ...old,
+                  promotions: old.promotions.filter((p: any) => p.id !== product.id)
+                };
+              }
+              // Se retorna array direto
+              if (Array.isArray(old)) {
+                return old.filter((p: any) => p.id !== product.id);
+              }
+              return old;
+            });
+          }
+        });
+        console.log('💨 Card removido localmente de todas as listas de promoções');
+        
         // Salvar dados do cupom e abrir modal
         setCoupon(data.coupon);
         setCouponGenerated(true);
         setShowModal(false);
         setShowCouponModal(true);
         
+        // 🎉 Notificar callback do pai (se houver)
+        onRevealed?.(product);
+        
         toast({
           title: "🎉 Cupom gerado!",
-          description: "Veja os detalhes do seu cupom! Clique para fechar.",
-          // SEM DURATION - fica aberto até usuário fechar manualmente
-          action: (
-            <ToastAction 
-              altText="Fechar" 
-              onClick={() => {
-                // NEW: Invalidar cache APENAS quando usuário fechar o toast
-                queryClient.invalidateQueries({
-                  predicate: (query) => {
-                    // Invalida todas as queries que contém 'my-available-promotions'
-                    return query.queryKey.some(key => 
-                      typeof key === 'string' && key.includes('my-available-promotions')
-                    );
-                  }
-                });
-                console.log('🎯 Cache das promoções invalidado APÓS usuário fechar');
-              }}
-            >
-              Fechar
-            </ToastAction>
-          )
+          description: "Veja os detalhes do seu cupom!",
+          // Manter toast simples - cache já foi invalidado
         });
       }
     },
