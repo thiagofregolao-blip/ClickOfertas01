@@ -803,7 +803,14 @@ export default function PublicFlyer() {
                             <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
                               {product.name}
                             </h3>
-                            <p className="text-xs text-gray-600 mt-1">{store?.currency || 'Gs.'} {parseFloat(product.scratchPrice).toLocaleString()}</p>
+                            <div className="mt-1">
+                              <p className="text-xs font-semibold text-red-600">
+                                ${parseFloat(product.scratchPrice).toLocaleString()}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                R$ {(parseFloat(product.scratchPrice) * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -866,7 +873,14 @@ export default function PublicFlyer() {
                             <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
                               {product.name}
                             </h3>
-                            <p className="text-xs text-gray-600 mt-1">{store?.currency || 'USD'} {parseFloat(product.price).toLocaleString()}</p>
+                            <div className="mt-1">
+                              <p className="text-xs font-semibold text-red-600">
+                                ${parseFloat(product.price).toLocaleString()}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                R$ {(parseFloat(product.price) * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -958,7 +972,14 @@ export default function PublicFlyer() {
                           <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
                             {product.name}
                           </h3>
-                          <p className="text-xs text-gray-600 mt-1">{store?.currency || 'Gs.'} {parseFloat(product.scratchPrice).toLocaleString()}</p>
+                          <div className="mt-1">
+                            <p className="text-xs font-semibold text-red-600">
+                              ${parseFloat(product.scratchPrice).toLocaleString()}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              R$ {(parseFloat(product.scratchPrice) * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1008,7 +1029,14 @@ export default function PublicFlyer() {
                           <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
                             {product.name}
                           </h3>
-                          <p className="text-xs text-gray-600 mt-1">{store?.currency || 'USD'} {parseFloat(product.price).toLocaleString()}</p>
+                          <div className="mt-1">
+                            <p className="text-xs font-semibold text-red-600">
+                              ${parseFloat(product.price).toLocaleString()}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              R$ {(parseFloat(product.price) * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
