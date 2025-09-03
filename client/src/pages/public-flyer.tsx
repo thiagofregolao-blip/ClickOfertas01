@@ -862,9 +862,6 @@ export default function PublicFlyer() {
                             {product.name}
                           </h3>
                           <div className="mt-1">
-                            <p className="text-xs font-semibold text-red-600">
-                              ${parseFloat(product.price).toLocaleString()}
-                            </p>
                             <p className="text-xs text-gray-500">
                               R$ {(parseFloat(product.price) * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </p>
@@ -1025,9 +1022,6 @@ export default function PublicFlyer() {
                             {product.name}
                           </h3>
                           <div className="mt-1">
-                            <p className="text-xs font-semibold text-red-600">
-                              ${parseFloat(product.price).toLocaleString()}
-                            </p>
                             <p className="text-xs text-gray-500">
                               R$ {(parseFloat(product.price) * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </p>
