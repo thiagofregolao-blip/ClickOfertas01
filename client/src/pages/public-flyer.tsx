@@ -14,6 +14,7 @@ import ScratchCard from "@/components/scratch-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import FlyerHeader from "@/components/flyer-header";
 import FlyerFooter from "@/components/flyer-footer";
+import PriceComparisonPopup from "@/components/price-comparison-popup";
 import { downloadFlyerAsPNG } from "@/lib/flyer-utils";
 import type { StoreWithProducts, Product, PromotionWithDetails } from "@shared/schema";
 import { InstagramStories } from "@/components/instagram-stories";
@@ -82,12 +83,15 @@ export default function PublicFlyer() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showInstagramStories, setShowInstagramStories] = useState(isStoriesView);
   const menuRef = useRef<HTMLDivElement>(null);
-  const { recordFlyerView } = useEngagement();
+  const { recordFlyerView, hearts, handleDoubleTap, handleSaveProduct, isSaving, isProductLiked, isProductSaved, toggleLike } = useEngagement();
   const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set());
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedStore, setSelectedStore] = useState<StoreWithProducts | null>(null);
   const [viewingStory, setViewingStory] = useState<InstagramStory | null>(null);
   const [likedStories, setLikedStories] = useState<Set<string>>(new Set());
+  const [showPriceComparison, setShowPriceComparison] = useState(false);
+  const [comparisonProductId, setComparisonProductId] = useState<string>("");
+  const [comparisonProductName, setComparisonProductName] = useState<string>("");
   const { isAuthenticated } = useAuth();
 
   // Log da versão e modo de acesso (para desenvolvimento)
@@ -836,15 +840,36 @@ export default function PublicFlyer() {
                           
                           {/* Action buttons */}
                           <div className="flex items-center justify-center gap-2 sm:gap-4 mt-auto pt-0 sm:pt-2 sm:border-t sm:border-gray-100 -mx-3 px-3 sm:mx-0">
-                            <button className="hidden sm:flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
-                              <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleLike(product.id, e);
+                              }}
+                              className="hidden sm:flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors"
+                            >
+                              <Heart className={`w-3 h-3 sm:w-4 sm:h-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : ''}`} />
                               <span className="text-xs sm:text-xs">Curtir</span>
                             </button>
-                            <button className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
-                              <Bookmark className="w-5 h-5 sm:w-4 sm:h-4" />
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSaveProduct(product.id);
+                              }}
+                              disabled={isSaving}
+                              className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors"
+                            >
+                              <Bookmark className={`w-5 h-5 sm:w-4 sm:h-4 ${isAuthenticated && isProductSaved(product.id) ? 'text-blue-600 fill-blue-600' : ''}`} />
                               <span className="text-xs sm:text-xs">Salvar</span>
                             </button>
-                            <button className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setComparisonProductId(product.id);
+                                setComparisonProductName(product.name);
+                                setShowPriceComparison(true);
+                              }}
+                              className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors"
+                            >
                               <BarChart3 className="w-5 h-5 sm:w-4 sm:h-4" />
                               <span className="text-xs sm:text-xs">Comparar</span>
                             </button>
@@ -1035,15 +1060,36 @@ export default function PublicFlyer() {
                           
                           {/* Action buttons */}
                           <div className="flex items-center justify-center gap-2 sm:gap-4 mt-auto pt-0 sm:pt-2 sm:border-t sm:border-gray-100 -mx-3 px-3 sm:mx-0">
-                            <button className="hidden sm:flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
-                              <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleLike(product.id, e);
+                              }}
+                              className="hidden sm:flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors"
+                            >
+                              <Heart className={`w-3 h-3 sm:w-4 sm:h-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : ''}`} />
                               <span className="text-xs sm:text-xs">Curtir</span>
                             </button>
-                            <button className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
-                              <Bookmark className="w-5 h-5 sm:w-4 sm:h-4" />
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSaveProduct(product.id);
+                              }}
+                              disabled={isSaving}
+                              className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors"
+                            >
+                              <Bookmark className={`w-5 h-5 sm:w-4 sm:h-4 ${isAuthenticated && isProductSaved(product.id) ? 'text-blue-600 fill-blue-600' : ''}`} />
                               <span className="text-xs sm:text-xs">Salvar</span>
                             </button>
-                            <button className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setComparisonProductId(product.id);
+                                setComparisonProductName(product.name);
+                                setShowPriceComparison(true);
+                              }}
+                              className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors"
+                            >
                               <BarChart3 className="w-5 h-5 sm:w-4 sm:h-4" />
                               <span className="text-xs sm:text-xs">Comparar</span>
                             </button>
@@ -1282,6 +1328,14 @@ export default function PublicFlyer() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Popup de Comparação de Preços */}
+      <PriceComparisonPopup
+        isOpen={showPriceComparison}
+        onClose={() => setShowPriceComparison(false)}
+        productId={comparisonProductId}
+        productName={comparisonProductName}
+      />
     </div>
   );
 }

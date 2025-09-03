@@ -179,7 +179,13 @@ export default function ProductCard({
               <Bookmark className={`w-5 h-5 sm:w-4 sm:h-4 ${enableEngagement && isAuthenticated && isProductSaved(product.id) ? 'text-blue-600 fill-blue-600' : ''}`} />
               <span className="text-xs sm:text-xs">Salvar</span>
             </button>
-            <button className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowPriceComparison(true);
+              }}
+              className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors"
+            >
               <BarChart3 className="w-5 h-5 sm:w-4 sm:h-4" />
               <span className="text-xs sm:text-xs">Comparar</span>
             </button>
