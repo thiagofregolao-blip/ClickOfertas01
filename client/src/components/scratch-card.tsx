@@ -99,6 +99,7 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
       return await response.json();
     },
     onSuccess: (data: any) => {
+      console.log('🎯 RESPONSE onSuccess data:', data);
       // 🧹 LIMPAR FLAG GLOBAL NO SUCESSO
       const globalKey = `coupon-generated-${product.id}`;
       sessionStorage.removeItem(globalKey);

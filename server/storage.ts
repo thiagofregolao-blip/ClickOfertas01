@@ -2064,7 +2064,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async hasUserGeneratedCoupon(promotionId: string, userId: string): Promise<boolean> {
-    // Verificar na tabela promotionAssignments
+    console.log('🔍 hasUserGeneratedCoupon - Verificando:', { promotionId, userId });
+    
+    // PRIORIDADE 1: Verificar na tabela promotionAssignments (mais confiável)
     const [assignmentResult] = await db
       .select({ count: count() })
       .from(promotionAssignments)
@@ -2074,25 +2076,32 @@ export class DatabaseStorage implements IStorage {
         sql`${promotionAssignments.status} IN ('generated', 'redeemed')`
       ));
     
+    console.log('📊 Assignment count:', assignmentResult?.count || 0);
     if ((assignmentResult?.count || 0) > 0) {
+      console.log('✅ Usuário já gerou cupom (via assignments)');
       return true;
     }
 
-    // NOVA VERIFICAÇÃO: Verificar na tabela coupons (para cupons gerados via promoções)
-    // Buscar cupons onde userId + promotionName existe (cupons de promoção têm promotionName preenchido)
+    // FALLBACK: Verificar na tabela coupons (backup)
     const promotion = await db.select({ name: promotions.name }).from(promotions).where(eq(promotions.id, promotionId)).limit(1);
     if (promotion.length > 0) {
+      console.log('🔍 Verificando coupons por nome da promoção:', promotion[0].name);
       const [couponResult] = await db
         .select({ count: count() })
         .from(coupons)
         .where(and(
           eq(coupons.userId, userId),
-          eq(coupons.promotionName, promotion[0].name) // Comparar pelo nome da promoção
+          eq(coupons.promotionName, promotion[0].name)
         ));
       
-      return (couponResult?.count || 0) > 0;
+      console.log('📊 Coupon count:', couponResult?.count || 0);
+      if ((couponResult?.count || 0) > 0) {
+        console.log('✅ Usuário já gerou cupom (via coupons)');
+        return true;
+      }
     }
     
+    console.log('❌ Usuário não gerou cupom ainda');
     return false;
   }
 
