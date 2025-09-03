@@ -141,10 +141,7 @@ export default function ProductCard({
             {product.name}
           </h3>
           <div className="mt-1">
-            <p className="text-xs text-gray-500 line-clamp-1">
-              {product.description || ''}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500">
               R$ {(() => {
                 const priceUSD = Number(product.price || 0);
                 const rate = customUsdBrlRate || 5.47;
