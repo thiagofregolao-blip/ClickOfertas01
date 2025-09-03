@@ -640,11 +640,6 @@ export default function PublicFlyer() {
                       </span>
                     </div>
                     
-                    {/* Description */}
-                    <p className="text-gray-700 text-sm md:text-base leading-relaxed mb-4">
-                      {store.address || "Sua loja de confiança com os melhores preços e atendimento especializado."}
-                    </p>
-                    
                     {/* Contact Links */}
                     <div className="flex flex-wrap items-center gap-4">
                       {store.whatsapp && (
