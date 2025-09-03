@@ -218,25 +218,25 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
     // 🎯 RECREANDO EXATAMENTE COMO SUA IMAGEM DE REFERÊNCIA
     // Drawing scratch texture
     
-    // 🌈 GRADIENTE LARANJA → VERMELHO: Muito mais vibrante!  
-    const gradient = ctx.createLinearGradient(0, 0, 0, cssHeight);
-    gradient.addColorStop(0, '#FF8C00');    // Laranja brilhante topo
-    gradient.addColorStop(0.4, '#FF6347');  // Laranja-vermelho 
-    gradient.addColorStop(0.7, '#FF4500');  // Laranja-vermelho mais intenso
-    gradient.addColorStop(1, '#DC143C');    // Vermelho puro na base
-
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, cssWidth, cssHeight);
+    // 🎨 USANDO MASCOTE COMO FUNDO DO CANVAS
+    const img = new Image();
+    img.onload = () => {
+      // Desenhar o mascote no canvas como fundo
+      ctx.drawImage(img, 0, 0, cssWidth, cssHeight);
+      
+      // Sem overlay - mascote fica bem visível
+    };
+    img.src = mascoteImage;
     
     // ✅ LINHAS REMOVIDAS - visual mais limpo!
     
     // Confetes removidos para visual mais limpo
     
-    // ◆ DIAMANTE GRANDE NO CANTO (exatamente como na imagem)
+    // ◆ DIAMANTE GRANDE NO CANTO (visível sobre o mascote)
     ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-    ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
     ctx.shadowBlur = 8;
     ctx.fillText('◆', cssWidth * 0.92, cssHeight * 0.92);
     
@@ -255,16 +255,8 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
     const lineHeight = 24;
     const startY = cssHeight / 2 - (lines.length * lineHeight) / 2;
     
-    // 📦 FUNDO MAIS TRANSPARENTE PARA O TEXTO
-    // Desenhar fundo suave cobrindo toda a área
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
-    ctx.shadowOffsetX = 1;
-    ctx.shadowOffsetY = 1;
-    ctx.shadowBlur = 2;
-    ctx.fillStyle = 'rgba(40, 40, 40, 0.05)'; // Muito mais transparente
-    
-    // Retângulo cobrindo todo o canvas
-    ctx.fillRect(0, 0, cssWidth, cssHeight);
+    // 📦 TEXTO VISÍVEL SOBRE O MASCOTE
+    // Sem camada escura adicional - só contorno no texto
     
     // ✨ TEXTO SOBRE O FUNDO
     ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
@@ -276,14 +268,14 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
       const x = cssWidth / 2;
       const y = startY + (index * lineHeight);
       
-      // 🖤 CONTORNO PRETO PRIMEIRO
+      // 🖤 CONTORNO PRETO GROSSO PARA DESTACAR SOBRE O MASCOTE
       ctx.strokeStyle = '#000000'; // Preto sólido
-      ctx.lineWidth = 3; // Contorno espesso
+      ctx.lineWidth = 5; // Contorno bem espesso para contraste
       ctx.lineJoin = 'round'; // Cantos arredondados
       ctx.miterLimit = 2;
       ctx.strokeText(line, x, y);
       
-      // ✨ TEXTO BRANCO POR CIMA
+      // ✨ TEXTO BRANCO POR CIMA BEM VISÍVEL
       ctx.fillStyle = '#FFFFFF';
       ctx.fillText(line, x, y);
     });
