@@ -1567,13 +1567,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { couponId } = req.params;
       const userId = getUserId(req);
       
+      console.log('🗑️ DELETE CUPOM - Debug:', { couponId, userId });
+      
       // Verificar se cupom existe e pertence ao usuário
       const coupon = await storage.getCoupon(couponId);
       if (!coupon) {
+        console.log('❌ Cupom não encontrado:', couponId);
         return res.status(404).json({ message: "Cupom não encontrado" });
       }
       
+      console.log('🔍 COMPARAÇÃO IDs:', { 
+        couponUserId: coupon.userId, 
+        requestUserId: userId,
+        couponUserIdType: typeof coupon.userId,
+        requestUserIdType: typeof userId,
+        isEqual: coupon.userId === userId 
+      });
+      
       if (coupon.userId !== userId) {
+        console.log('❌ ACESSO NEGADO - IDs não coincidem');
         return res.status(403).json({ message: "Não autorizado a excluir este cupom" });
       }
       
