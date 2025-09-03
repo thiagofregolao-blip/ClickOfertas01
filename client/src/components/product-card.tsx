@@ -136,7 +136,7 @@ export default function ProductCard({
           </div>
           
           {/* Preço */}
-          <div className="mb-1 sm:mb-2 text-left">
+          <div className="mb-4 sm:mb-2 text-left">
             {/* Preço USD em vermelho - só no mobile */}
             <p className="text-sm text-red-600 font-medium mb-1 sm:hidden">
               {currency} {formatBrazilianPrice(product.price || '0')}
