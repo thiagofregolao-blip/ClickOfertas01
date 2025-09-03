@@ -756,12 +756,7 @@ export default function PublicFlyer() {
               <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {/* PRODUTOS ORIGINAIS + PROMOÇÕES COM RASPADINHA */}
                 {filteredProducts.map((product) => {
-                  // CORREÇÃO: Só renderizar como raspadinha se for promoção real (vem de activePromotions)
-                  const isRealPromotion = activePromotions.some(promo => promo.id === product.id);
-                  
-                  // Performance optimization: removed debug logs
-                  
-                  return isRealPromotion ? (
+                  return product.isScratchCard ? (
                     // PROMOÇÃO REAL: Scratch Card com mesmo layout
                     <ScratchCard
                       key={product.id}
