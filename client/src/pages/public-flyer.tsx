@@ -592,12 +592,20 @@ export default function PublicFlyer() {
                 <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
                   {/* Avatar */}
                   <div className="flex-shrink-0">
-                    <div 
-                      className="w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-white"
-                      style={{ backgroundColor: store.themeColor || '#E11D48' }}
-                    >
-                      <span className="text-2xl md:text-3xl">{store.name.charAt(0)}</span>
-                    </div>
+                    {store.logoUrl ? (
+                      <img 
+                        src={store.logoUrl} 
+                        alt={store.name}
+                        className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover shadow-xl ring-4 ring-white"
+                      />
+                    ) : (
+                      <div 
+                        className="w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-white"
+                        style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                      >
+                        <span className="text-2xl md:text-3xl">{store.name.charAt(0)}</span>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Store Info */}
