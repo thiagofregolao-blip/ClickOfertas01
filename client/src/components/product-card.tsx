@@ -156,7 +156,7 @@ export default function ProductCard({
                   toggleLike(product.id, e);
                 }
               }}
-              className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors"
+              className="hidden sm:flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors"
             >
               <Heart className={`w-3 h-3 sm:w-4 sm:h-4 ${enableEngagement && isProductLiked(product.id) ? 'text-red-500 fill-red-500' : ''}`} />
               <span className="text-xs sm:text-xs">Curtir</span>
