@@ -559,7 +559,7 @@ export default function PublicFlyer() {
           /* YouTube-Style Channel Layout */
           <>
             {/* YouTube-Style Banner */}
-            <div className="relative h-48 md:h-64 bg-gradient-to-br from-purple-600 via-pink-600 to-red-500 overflow-hidden">
+            <div className="relative h-36 md:h-48 bg-gradient-to-br from-purple-600 via-pink-600 to-red-500 overflow-hidden">
               {/* Banner Background Image (if available) */}
               {store.bannerUrl && (
                 <div 
