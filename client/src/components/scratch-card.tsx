@@ -1004,33 +1004,6 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
             <div className="rain-element text-orange-500 text-2xl">🎯</div>
             <div className="rain-element text-teal-500 text-xl">✨</div>
             
-            {/* Logo real da empresa na chuva */}
-            {logoUrl && (
-              <>
-                <div className="rain-element w-8 h-8 rounded-full overflow-hidden shadow-lg bg-white">
-                  <img 
-                    src={logoUrl} 
-                    alt="Logo" 
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
-                  />
-                </div>
-                <div className="rain-element w-7 h-7 rounded-full overflow-hidden shadow-lg bg-white">
-                  <img 
-                    src={logoUrl} 
-                    alt="Logo" 
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
-                  />
-                </div>
-              </>
-            )}
           </div>
 
           {/* Badge indicativo - CORREÇÃO: pointer-events-none para não bloquear canvas */}
