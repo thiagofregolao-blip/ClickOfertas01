@@ -666,14 +666,14 @@ export default function PublicFlyer() {
                   <div className="flex-shrink-0">
                     <Button 
                       variant="default" 
-                      className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-semibold"
+                      className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white px-6 py-2 rounded-full font-semibold shadow-lg"
                       onClick={() => {
                         if (store.whatsapp) {
                           window.open(`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Olá! Vi suas ofertas no Click Ofertas Paraguai e gostaria de mais informações.`, '_blank');
                         }
                       }}
                     >
-                      📞 Contatar
+                      Conectar
                     </Button>
                   </div>
                 </div>
