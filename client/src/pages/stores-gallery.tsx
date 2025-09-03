@@ -390,13 +390,6 @@ export default function StoresGallery() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Global Header */}
-      <GlobalHeader 
-        onSearch={setSearchInput}
-        searchValue={searchInput}
-        showPriceComparison={true}
-      />
-
       {/* User Menu for Mobile - Positioned over header */}
       {isMobile && isAuthenticated && (
         <div className="fixed top-3 right-3 z-[60]">
