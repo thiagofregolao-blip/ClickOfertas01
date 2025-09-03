@@ -109,9 +109,9 @@ export default function ProductCard({
               {currency} {formatBrazilianPrice(product.price || '0')}
             </div>
             
-            {/* Featured Badge */}
+            {/* Featured Badge - Hidden on mobile */}
             {showFeaturedBadge && product.isFeatured && (
-              <div className="absolute top-2 left-2">
+              <div className="absolute top-2 left-2 hidden sm:block">
                 <Badge variant="destructive" className="bg-red-500 text-white text-xs px-2 py-1">
                   <Star className="w-3 h-3 mr-1" />
                   Destaque
@@ -119,8 +119,8 @@ export default function ProductCard({
               </div>
             )}
             
-            {/* Price comparison button */}
-            <div className="absolute top-2 right-2">
+            {/* Price comparison button - Hidden on mobile */}
+            <div className="absolute top-2 right-2 hidden sm:block">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
