@@ -995,32 +995,27 @@ export default function PublicFlyer() {
                     >
                       <div className="relative">
                         {/* Thumbnail */}
-                        <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
-                          {product.imageUrl ? (
-                            <img 
-                              src={product.imageUrl} 
-                              alt={product.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
-                              <span className="text-gray-600 text-4xl">📦</span>
-                            </div>
-                          )}
-                          
-                          {/* Overlay com preço e badges */}
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all">
-                            {/* Preço */}
-                            <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
-                              {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString()}
-                            </div>
-                            
-                            {/* Badge destaque */}
-                            {product.isFeatured && (
-                              <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
-                                DESTAQUE
+                        <div className={`relative aspect-video rounded-lg overflow-hidden ${product.isFeatured ? 'p-1 bg-gradient-to-r from-red-500 via-red-600 to-orange-500' : 'bg-gray-200'}`}>
+                          <div className={`${product.isFeatured ? 'w-full h-full rounded-md overflow-hidden bg-gray-200 relative' : ''}`}>
+                            {product.imageUrl ? (
+                              <img 
+                                src={product.imageUrl} 
+                                alt={product.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                                <span className="text-gray-600 text-4xl">📦</span>
                               </div>
                             )}
+                            
+                            {/* Overlay com preço */}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all">
+                              {/* Preço */}
+                              <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                                {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString()}
+                              </div>
+                            </div>
                           </div>
                         </div>
                         
