@@ -1565,7 +1565,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/coupons/:couponId', isAuthenticated, async (req: any, res) => {
     try {
       const { couponId } = req.params;
-      const userId = req.user?.claims?.sub || req.user?.id;
+      const userId = getUserId(req);
       
       // Verificar se cupom existe e pertence ao usuário
       const coupon = await storage.getCoupon(couponId);
