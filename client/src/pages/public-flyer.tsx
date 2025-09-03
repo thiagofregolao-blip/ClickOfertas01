@@ -322,8 +322,8 @@ export default function PublicFlyer() {
     description: promotion.description || "",
     price: promotion.originalPrice,
     imageUrl: promotion.imageUrl || "",
-    imageUrl2: undefined,
-    imageUrl3: undefined,
+    imageUrl2: null,
+    imageUrl3: null,
     category: promotion.category,
     storeId: promotion.storeId,
     isActive: true,
@@ -334,10 +334,10 @@ export default function PublicFlyer() {
     scratchMessage: promotion.scratchMessage || "Parabéns! Você ganhou um desconto especial!",
     scratchPrice: promotion.promotionalPrice,
     scratchExpiresAt: promotion.validUntil || new Date().toISOString(),
-    scratchTimeLimitMinutes: undefined,
-    scratchBackgroundColor: undefined,
-    maxScratchRedemptions: undefined,
-    currentScratchRedemptions: undefined,
+    scratchTimeLimitMinutes: null,
+    scratchBackgroundColor: null,
+    maxScratchRedemptions: null,
+    currentScratchRedemptions: null,
     createdAt: new Date(promotion.createdAt),
     updatedAt: new Date(promotion.updatedAt)
   }));
@@ -835,13 +835,17 @@ export default function PublicFlyer() {
                     // PRODUTO NORMAL: YouTube-style Product Card
                     <div 
                       key={product.id} 
-                      className="group cursor-pointer pb-4 mb-4 border border-gray-200 rounded-lg overflow-hidden"
+                      className={`group cursor-pointer pb-4 mb-4 rounded-lg overflow-hidden ${
+                        product.isFeatured 
+                          ? 'p-0.5 bg-gradient-to-r from-red-500 via-red-600 to-orange-500' 
+                          : 'border border-gray-200'
+                      }`}
                       onClick={() => {
                         setSelectedProduct(product);
                         setSelectedStore(store || null);
                       }}
                     >
-                      <div className="relative">
+                      <div className={`relative ${product.isFeatured ? 'bg-white rounded-md' : ''}`}>
                         {/* Thumbnail */}
                         <div className="relative aspect-video bg-gray-200 rounded-t-lg overflow-hidden">
                           {product.imageUrl ? (
@@ -1032,16 +1036,19 @@ export default function PublicFlyer() {
                     // PRODUTO NORMAL: YouTube-style Product Card
                     <div 
                       key={product.id} 
-                      className="group cursor-pointer pb-4 mb-4 border border-gray-200 rounded-lg p-3"
+                      className={`group cursor-pointer pb-4 mb-4 rounded-lg p-3 ${
+                        product.isFeatured 
+                          ? 'p-0.5 bg-gradient-to-r from-red-500 via-red-600 to-orange-500' 
+                          : 'border border-gray-200'
+                      }`}
                       onClick={() => {
                         setSelectedProduct(product);
                         setSelectedStore(store || null);
                       }}
                     >
-                      <div className="relative">
+                      <div className={`relative ${product.isFeatured ? 'bg-white rounded-md p-3' : ''}`}>
                         {/* Thumbnail */}
-                        <div className={`relative aspect-video rounded-t-lg overflow-hidden ${product.isFeatured ? 'p-0.5 bg-gradient-to-r from-red-500 via-red-600 to-orange-500' : 'bg-gray-200'}`}>
-                          <div className={`${product.isFeatured ? 'w-full h-full rounded-t-md overflow-hidden bg-gray-200 relative' : ''}`}>
+                        <div className="relative aspect-video bg-gray-200 rounded-t-lg overflow-hidden">
                             {product.imageUrl ? (
                               <img 
                                 src={product.imageUrl} 
@@ -1061,7 +1068,6 @@ export default function PublicFlyer() {
                                 {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                               </div>
                             </div>
-                          </div>
                         </div>
                         
                         {/* Info estilo YouTube */}
