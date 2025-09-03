@@ -479,7 +479,62 @@ export default function StoresGallery() {
         </div>
       )}
       
-      {/* Mobile: Banner não fixo */}
+      {/* Mobile: Header com logo, busca e banner */}
+      {isMobile && (
+        <div className="bg-gradient-to-r from-red-500 to-orange-500">
+          <div className="px-4 py-3">
+            {/* Logo e Busca */}
+            <div className="flex items-center gap-3 mb-3">
+              {/* Logo */}
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <span className="text-white font-bold text-lg tracking-normal" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: '700'}}>Click</span>
+                <span className="font-bold text-lg tracking-normal">
+                  <span className="text-white">Ofertas.</span>
+                  <span style={{color: '#FFE600'}}>PY</span>
+                </span>
+              </div>
+              
+              {/* Barra de Busca Mobile */}
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder={isSearchFocused || searchInput ? "Buscar produtos..." : currentText}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onFocus={() => setIsSearchFocused(true)}
+                    onBlur={() => setIsSearchFocused(false)}
+                    className="pl-10 pr-10 py-2 w-full bg-white border-0 rounded-lg shadow-sm text-gray-900 placeholder-gray-400"
+                    data-testid="mobile-search-input"
+                  />
+                  {searchInput && (
+                    <button
+                      onClick={() => setSearchInput('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      title="Limpar busca"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              {/* Botão Comparar Preços Mobile */}
+              <Link href="/price-comparison">
+                <Button
+                  size="sm"
+                  className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-medium px-2 py-2 rounded-lg shadow-sm"
+                  data-testid="button-price-comparison-mobile"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Mobile: Banner abaixo do header */}
       {isMobile && (
         <BannerSection />
       )}
