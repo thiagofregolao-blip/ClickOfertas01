@@ -765,11 +765,6 @@ export default function PublicFlyer() {
                     // PROMOÇÃO REAL: YouTube-style Scratch Card
                     <div key={product.id} className="group cursor-pointer">
                       <div className="relative">
-                        {/* Product title above thumbnail */}
-                        <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors mb-2">
-                          {product.name}
-                        </h3>
-                        
                         {/* Thumbnail */}
                         <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
                           <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
@@ -791,15 +786,31 @@ export default function PublicFlyer() {
                           </div>
                         </div>
                         
-                        {/* Price info only */}
-                        <div className="mt-3">
-                          <div className="">
-                            <p className="text-xs font-semibold text-red-600">
-                              ${parseFloat(product.scratchPrice || '0').toLocaleString()}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              R$ {(parseFloat(product.scratchPrice || '0') * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                            </p>
+                        {/* Video info */}
+                        <div className="flex gap-3 mt-3">
+                          {/* Avatar */}
+                          <div className="flex-shrink-0">
+                            <div 
+                              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                              style={{ backgroundColor: store?.themeColor || '#E11D48' }}
+                            >
+                              {store.name.charAt(0)}
+                            </div>
+                          </div>
+                          
+                          {/* Title and details */}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                              {product.name}
+                            </h3>
+                            <div className="mt-1">
+                              <p className="text-xs font-semibold text-red-600">
+                                ${parseFloat(product.scratchPrice || '0').toLocaleString()}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                R$ {(parseFloat(product.scratchPrice || '0') * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -815,11 +826,6 @@ export default function PublicFlyer() {
                       }}
                     >
                       <div className="relative">
-                        {/* Product title above thumbnail */}
-                        <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors mb-2">
-                          {product.name}
-                        </h3>
-                        
                         {/* Thumbnail */}
                         <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
                           {product.imageUrl ? (
@@ -850,9 +856,12 @@ export default function PublicFlyer() {
                           </div>
                         </div>
                         
-                        {/* Price info only */}
+                        {/* Info estilo YouTube */}
                         <div className="mt-3">
-                          <div className="">
+                          <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                            {product.name}
+                          </h3>
+                          <div className="mt-1">
                             <p className="text-xs font-semibold text-red-600">
                               ${parseFloat(product.price).toLocaleString()}
                             </p>
@@ -918,11 +927,6 @@ export default function PublicFlyer() {
                     // PROMOÇÃO REAL: YouTube-style Scratch Card
                     <div key={product.id} className="group cursor-pointer">
                       <div className="relative">
-                        {/* Product title above thumbnail */}
-                        <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors mb-2">
-                          {product.name}
-                        </h3>
-                        
                         {/* Thumbnail de promoção */}
                         <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
                           <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
@@ -950,15 +954,31 @@ export default function PublicFlyer() {
                           </div>
                         </div>
                         
-                        {/* Price info only */}
-                        <div className="mt-3">
-                          <div className="">
-                            <p className="text-xs font-semibold text-red-600">
-                              ${parseFloat(product.scratchPrice || '0').toLocaleString()}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              R$ {(parseFloat(product.scratchPrice || '0') * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                            </p>
+                        {/* Video info */}
+                        <div className="flex gap-3 mt-3">
+                          {/* Avatar */}
+                          <div className="flex-shrink-0">
+                            <div 
+                              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                              style={{ backgroundColor: store?.themeColor || '#E11D48' }}
+                            >
+                              {store.name.charAt(0)}
+                            </div>
+                          </div>
+                          
+                          {/* Title and details */}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                              {product.name}
+                            </h3>
+                            <div className="mt-1">
+                              <p className="text-xs font-semibold text-red-600">
+                                ${parseFloat(product.scratchPrice || '0').toLocaleString()}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                R$ {(parseFloat(product.scratchPrice || '0') * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -974,11 +994,6 @@ export default function PublicFlyer() {
                       }}
                     >
                       <div className="relative">
-                        {/* Product title above thumbnail */}
-                        <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors mb-2">
-                          {product.name}
-                        </h3>
-                        
                         {/* Thumbnail */}
                         <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
                           {product.imageUrl ? (
@@ -1009,9 +1024,12 @@ export default function PublicFlyer() {
                           </div>
                         </div>
                         
-                        {/* Price info only */}
+                        {/* Info estilo YouTube */}
                         <div className="mt-3">
-                          <div className="">
+                          <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                            {product.name}
+                          </h3>
+                          <div className="mt-1">
                             <p className="text-xs font-semibold text-red-600">
                               ${parseFloat(product.price).toLocaleString()}
                             </p>
