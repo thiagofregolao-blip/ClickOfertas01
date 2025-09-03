@@ -803,7 +803,7 @@ export default function PublicFlyer() {
                             <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
                               {product.name}
                             </h3>
-                            <p className="text-xs text-gray-600 mt-1">{store.name}</p>
+                            <p className="text-xs text-gray-600 mt-1">{store?.currency || 'Gs.'} {parseFloat(product.scratchPrice).toLocaleString()}</p>
                           </div>
                         </div>
                       </div>
@@ -866,7 +866,7 @@ export default function PublicFlyer() {
                             <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
                               {product.name}
                             </h3>
-                            <p className="text-xs text-gray-600 mt-1">{store.name}</p>
+                            <p className="text-xs text-gray-600 mt-1">{store?.currency || 'USD'} {parseFloat(product.price).toLocaleString()}</p>
                           </div>
                         </div>
                       </div>
@@ -958,7 +958,7 @@ export default function PublicFlyer() {
                           <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
                             {product.name}
                           </h3>
-                          <p className="text-xs text-gray-600 mt-1">{store.name}</p>
+                          <p className="text-xs text-gray-600 mt-1">{store?.currency || 'Gs.'} {parseFloat(product.scratchPrice).toLocaleString()}</p>
                         </div>
                       </div>
                     </div>
@@ -1008,7 +1008,7 @@ export default function PublicFlyer() {
                           <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
                             {product.name}
                           </h3>
-                          <p className="text-xs text-gray-600 mt-1">{store.name}</p>
+                          <p className="text-xs text-gray-600 mt-1">{store?.currency || 'USD'} {parseFloat(product.price).toLocaleString()}</p>
                         </div>
                       </div>
                     </div>
