@@ -994,11 +994,15 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
             <div className="rain-element text-yellow-500 text-lg drop-shadow-lg">$</div>
             <div className="rain-element text-amber-400 text-xl drop-shadow-lg">💴</div>
             
-            {/* Mini logos da empresa (redondos) */}
-            <div className="rain-element w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">C</div>
-            <div className="rain-element w-5 h-5 bg-gradient-to-br from-pink-500 to-red-500 rounded-full flex items-center justify-center text-white text-xs shadow-lg">O</div>
-            <div className="rain-element w-6 h-6 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">P</div>
-            <div className="rain-element w-5 h-5 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full flex items-center justify-center text-white text-xs shadow-lg">!</div>
+            {/* Confetes coloridos */}
+            <div className="rain-element text-pink-500 text-2xl animate-spin">🎊</div>
+            <div className="rain-element text-blue-500 text-xl">🎉</div>
+            <div className="rain-element text-red-500 text-2xl animate-pulse">🎈</div>
+            <div className="rain-element text-green-500 text-xl">🎁</div>
+            <div className="rain-element text-purple-500 text-2xl">🎪</div>
+            <div className="rain-element text-yellow-500 text-xl animate-bounce">⭐</div>
+            <div className="rain-element text-orange-500 text-2xl">🎯</div>
+            <div className="rain-element text-teal-500 text-xl">✨</div>
             
             {/* Logo real da empresa na chuva */}
             {logoUrl && (
