@@ -692,7 +692,7 @@ export default function StoresGallery() {
       {/* SEÇÃO DE BANNERS - Desktop apenas */}
       {!searchQuery.trim() && !isMobile && (
         <div className="bg-white border-b -mt-4">
-          <div className="mx-auto px-2 max-w-6xl py-4">
+          <div className="mx-auto px-2 max-w-6xl py-2">
             {/* Banner ocupando toda a largura */}
             <div className="w-full">
               <BannerSection />
@@ -705,13 +705,6 @@ export default function StoresGallery() {
       {!searchQuery.trim() && !isMobile && (
         <div className="bg-white border-b">
           <div className="mx-auto px-4 max-w-6xl py-4">
-            {/* Título da seção */}
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-gray-800 text-center">
-                🏪 Explore nossas lojas parceiras e descubra ofertas incríveis!
-              </h2>
-            </div>
-            
             {/* Stories das Lojas - layout horizontal com scroll */}
             <div className="flex items-start gap-4 overflow-x-auto scrollbar-hide">
               {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
@@ -723,7 +716,7 @@ export default function StoresGallery() {
                 >
                   {/* Círculo da loja */}
                   <div className="relative">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
                       <div className="w-full h-full rounded-full overflow-hidden">
                         <Avatar className="w-full h-full">
                           <AvatarImage 
@@ -748,7 +741,7 @@ export default function StoresGallery() {
                   </div>
                   
                   {/* Nome da loja */}
-                  <div className="text-xs text-gray-600 w-18 text-center leading-tight">
+                  <div className="text-xs text-gray-600 w-20 text-center leading-tight">
                     <span className="block truncate">{limitStoreName(storyStore.name, false)}</span>
                   </div>
                 </div>
