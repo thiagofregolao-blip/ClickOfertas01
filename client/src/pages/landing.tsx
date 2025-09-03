@@ -4,6 +4,7 @@ import { FileText, ShoppingBag, TrendingUp, Users, Globe, LogIn } from "lucide-r
 import { useAppVersion } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import GlobalHeader from "@/components/global-header";
 
 /**
  * Página de Aterrissagem - Click Ofertas Paraguai
@@ -70,24 +71,8 @@ export default function Landing() {
   
   return (
     <div className="min-h-screen flex flex-col">
-
-      {/* Faixa branca superior com logo */}
-      <div className="w-full bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between max-w-6xl mx-auto">
-          <div className="flex items-center space-x-2">
-            <FileText className="w-8 h-8 text-orange-500" />
-            <span className="font-bold text-xl">Click Ofertas</span>
-            <span className="text-orange-500">Entre</span>
-          </div>
-          <Button 
-            variant="link" 
-            onClick={() => window.location.href = '/cards'}
-            className="text-orange-500 hidden lg:block"
-          >
-            Precisa de ajuda?
-          </Button>
-        </div>
-      </div>
+      {/* Global Header */}
+      <GlobalHeader showPriceComparison={false} />
 
       {/* Área Promocional de fundo (estilo Shopee) */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#F04940] to-[#FA7D22] min-h-[90vh]">
