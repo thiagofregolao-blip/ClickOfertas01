@@ -113,8 +113,7 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
         setShowModal(false);
         setShowCouponModal(true);
         
-        // 🎉 Notificar callback do pai (se houver) - REMOÇÃO LOCAL IMEDIATA
-        onRevealed?.(product);
+        // ✅ REMOÇÃO REMOVIDA DO onSuccess - agora só quando fechar o modal
         
         toast({
           title: "🎉 Cupom gerado!",
@@ -885,6 +884,9 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
             onOpenChange={(open) => {
               setShowCouponModal(open);
               if (!open) {
+                // 🎯 AGORA SIM: remover o card da lista quando fechar o modal
+                onRevealed?.(product);
+                
                 // 🚀 USUÁRIO FECHOU O MODAL → AGORA SIM ATUALIZA A LISTA
                 console.log('🎯 Modal fechado - invalidando cache amplo para capturar todas as queries');
                 queryClient.invalidateQueries({

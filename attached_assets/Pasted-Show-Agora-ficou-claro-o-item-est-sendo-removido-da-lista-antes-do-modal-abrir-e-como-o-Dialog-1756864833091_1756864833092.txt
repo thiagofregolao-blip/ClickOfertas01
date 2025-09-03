@@ -1,0 +1,47 @@
+Show! Agora ficou claro: o item está sendo removido da lista antes do modal abrir — e como o <Dialog> do cupom está dentro do próprio card, quando o card sai da tela o modal some junto. O seu onSuccess abre o modal corretamente (setShowCouponModal(true)), mas o card é desmontado logo depois, então você só vê o toast. 
+ 
+
+Conserto simples (sem refatorar telas)
+
+Não remova o card no onSuccess.
+Se você colocou onRevealed?.(product) ali, remova. Deixe o card existir enquanto o modal estiver aberto. O onSuccess já faz:
+
+setCoupon(data.coupon); setShowCouponModal(true); (mantém). 
+
+Remova/invalide só ao fechar o modal.
+Troque o onOpenChange do <Dialog> para acionar a remoção da lista quando o usuário fechar.
+
+{showCouponModal && coupon && (
+  <Dialog
+    open={showCouponModal}
+    onOpenChange={(open) => {
+      setShowCouponModal(open);
+      if (!open) {
+        // Agora pode remover da lista
+        onRevealed?.(product);
+
+        // E invalidar as queries de promoções disponíveis
+        queryClient.invalidateQueries({
+          predicate: (q) => {
+            const keys = Array.isArray(q.queryKey) ? q.queryKey : [q.queryKey];
+            return keys.some(k =>
+              typeof k === 'string' &&
+              /(my-available-promotions|products|store-products|store:|grid)/i.test(k)
+            );
+          }
+        });
+      }
+    }}
+  >
+    {/* ...conteúdo do cupom... */}
+  </Dialog>
+)}
+
+
+No seu código atual o <Dialog> está com onOpenChange={setShowCouponModal}; só trocar por essa função com a remoção/invalidação no fechamento. 
+
+Mantenha a invalidação do toast somente como reforço.
+Hoje você invalida no botão “Fechar” do toast — ok, pode manter, mas o essencial é disparar a remoção no fechamento do modal (como acima) para não depender do toast. 
+
+Por que funciona?
+O onSuccess abre o modal (ainda dentro do card). Como o card não é removido até o modal fechar, o <Dialog> continua montado e exibe o QR/código. Quando o usuário fechar o modal, você remove o item e invalida a query; nas próximas buscas, o backend já filtra a promoção (status generated/cupom existente).
