@@ -71,8 +71,6 @@ export default function Landing() {
   
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Global Header */}
-      <GlobalHeader showPriceComparison={false} />
 
       {/* Área Promocional de fundo (estilo Shopee) */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#F04940] to-[#FA7D22] min-h-[90vh]">
