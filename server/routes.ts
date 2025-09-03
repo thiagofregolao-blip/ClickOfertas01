@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { getUserId } from "./utils/auth";
 
 // Middleware para verificar autenticação (sessão manual ou Replit Auth)
 const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
@@ -610,7 +611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/stores/:slug/my-available-promotions', async (req: any, res) => {
     try {
       const { slug } = req.params;
-      const userId = req.session?.user?.id || req.user?.id;
+      const userId = getUserId(req);
 
       // Buscar loja pelo slug
       const store = await storage.getStoreBySlug(slug);
@@ -644,7 +645,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/promotions/:promotionId/status', async (req: any, res) => {
     try {
       const { promotionId } = req.params;
-      const userId = req.session?.user?.id || req.user?.claims?.sub;
+      const userId = getUserId(req);
       const userAgent = req.headers['user-agent'];
       const ipAddress = req.ip || req.connection?.remoteAddress;
 
@@ -660,7 +661,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/promotions/:promotionId/scratch', async (req: any, res) => {
     try {
       const { promotionId } = req.params;
-      const userId = req.session?.user?.id || req.user?.claims?.sub;
+      const userId = getUserId(req);
       const userAgent = req.headers['user-agent'];
       const ipAddress = req.ip || req.connection?.remoteAddress;
 
@@ -731,7 +732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/stores/:storeId/products/:productId', isAuthenticated, async (req: any, res) => {
     try {
       const { storeId, productId } = req.params;
-      const userId = req.user?.claims?.sub || req.user?.id;
+      const userId = getUserId(req);
       
       // Verify store ownership
       const isOwner = await verifyStoreOwnership(storeId, userId);
@@ -1295,7 +1296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('🎫 INICIANDO GERAÇÃO DE CUPOM');
       const { productId } = req.params;
-      const userId = req.user?.claims?.sub || req.user?.id;
+      const userId = getUserId(req);
       const userAgent = req.get('User-Agent');
       const ipAddress = req.ip;
 
@@ -1475,7 +1476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Buscar cupons do usuário
   app.get('/api/coupons/user', async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub || req.user?.id;
+      const userId = getUserId(req);
       const coupons = await storage.getUserCoupons(userId);
       res.json(coupons);
     } catch (error) {
@@ -1589,7 +1590,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 🧹 BOTÃO TEMPORÁRIO: Excluir todos os cupons do usuário (para testes)
   app.delete('/api/coupons/user/all', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub || req.user?.id;
+      const userId = getUserId(req);
       await storage.deleteAllUserCoupons(userId);
       res.json({ success: true, message: "Todos os cupons excluídos" });
     } catch (error) {

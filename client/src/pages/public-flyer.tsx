@@ -190,10 +190,19 @@ export default function PublicFlyer() {
     refetchOnMount: true,
   });
   
-  const activePromotions = promotionsResponse?.promotions || [];
+  // Estado para remoção local de promoções (UX imediata)
+  const [removedPromotions, setRemovedPromotions] = useState<string[]>([]);
   
-  // REMOVIDO: Debug desnecessário
+  // Filtrar promoções removidas localmente
+  const activePromotions = (promotionsResponse?.promotions || []).filter(
+    (promo: any) => !removedPromotions.includes(promo.id)
+  );
   
+  // Callback para remoção local imediata de promoções
+  const handlePromotionRevealed = (product: any) => {
+    console.log('🎯 Promoção removida localmente:', product.id);
+    setRemovedPromotions(prev => [...prev, product.id]);
+  };
 
   // Registrar visualização do panfleto/loja quando carregado
   // CORREÇÃO: Removido recordFlyerView das dependências para evitar loop infinito
@@ -667,6 +676,7 @@ export default function PublicFlyer() {
                         currency={store?.currency || "Gs."}
                         themeColor={store?.themeColor || "#E11D48"}
                         logoUrl={store?.logoUrl}
+                        onRevealed={handlePromotionRevealed}
                         onClick={(product) => {
                           setSelectedProduct(product);
                           setSelectedStore(store || null);
@@ -760,6 +770,7 @@ export default function PublicFlyer() {
                         currency={store?.currency || "Gs."}
                         themeColor={store?.themeColor || "#E11D48"}
                         logoUrl={store?.logoUrl}
+                        onRevealed={handlePromotionRevealed}
                         onClick={(product) => {
                           setSelectedProduct(product);
                           setSelectedStore(store || null);

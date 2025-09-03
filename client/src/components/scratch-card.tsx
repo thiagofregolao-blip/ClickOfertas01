@@ -113,7 +113,7 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
         setShowModal(false);
         setShowCouponModal(true);
         
-        // 🎉 Notificar callback do pai (se houver)
+        // 🎉 Notificar callback do pai (se houver) - REMOÇÃO LOCAL IMEDIATA
         onRevealed?.(product);
         
         toast({
@@ -886,11 +886,13 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
               setShowCouponModal(open);
               if (!open) {
                 // 🚀 USUÁRIO FECHOU O MODAL → AGORA SIM ATUALIZA A LISTA
-                console.log('🎯 Modal fechado - invalidando cache das promoções');
+                console.log('🎯 Modal fechado - invalidando cache amplo para capturar todas as queries');
                 queryClient.invalidateQueries({
                   predicate: (query) => {
-                    return query.queryKey.some(key => 
-                      typeof key === 'string' && key.includes('my-available-promotions')
+                    const keys = Array.isArray(query.queryKey) ? query.queryKey : [query.queryKey];
+                    return keys.some(k =>
+                      typeof k === 'string' &&
+                      /(my-available-promotions|products|store-products|store:|grid|promotions)/i.test(k)
                     );
                   }
                 });

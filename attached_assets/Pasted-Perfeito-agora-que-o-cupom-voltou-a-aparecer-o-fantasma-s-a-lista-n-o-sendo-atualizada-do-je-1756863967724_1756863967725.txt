@@ -1,0 +1,123 @@
+Perfeito — agora que o cupom voltou a aparecer, o “fantasma” é só a lista não sendo atualizada do jeito certo. Pelo seu código, o back-end já marca a promoção como generated e incrementa o contador quando o cupom é criado, então o filtro no back-end deveria esconder essa promoção nas próximas consultas. O que está te pegando são duas coisas:
+
+IDs de usuário inconsistentes entre endpoints (às vezes session.user.id, às vezes user.claims.sub).
+
+A lista do front não é invalidada/atualizada quando o cupom é gerado (ou o key da query não bate).
+
+Abaixo vai um passo-a-passo com correções mínimas (sem quebrar o que já está funcionando) — faz isso e o item some da lista assim que o cupom sai.
+
+1) Padronize o userId em todos os endpoints
+
+Hoje cada rota pega o id do usuário de um lugar diferente:
+
+GET /api/stores/:slug/my-available-promotions usa req.session?.user?.id || req.user?.id 
+
+GET /api/promotions/:promotionId/status e POST /api/promotions/:promotionId/scratch usam req.user?.claims?.sub 
+ 
+
+POST /api/products/:productId/generate-coupon usa só req.session?.user?.id (sem fallback) 
+
+👉 Crie um util simples e use em todas as rotas:
+
+// server/utils/auth.ts
+export function getUserId(req: any) {
+  return req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
+}
+
+
+Aí troque nas rotas:
+
+Em /api/stores/:slug/my-available-promotions:
+const userId = getUserId(req); (em vez de misturar campos) 
+
+Em /api/products/:productId/generate-coupon:
+substitua const userId = req.session?.user?.id; por const userId = getUserId(req); e mantenha o 401 se faltar id 
+
+Em status e scratch: idem, use o mesmo helper 
+ 
+
+Por quê? Porque seu filtro de “já gerou cupom” no storage confere assignments e coupons pelo userId. Se cada rota usa um id diferente, o back-end não reconhece que aquele usuário já gerou o cupom — e a promoção volta para a lista. (O filtro em getMyAvailablePromotions está correto: ele remove promoções com assignment generated/redeemed e também confere coupons.promotionName para o mesmo usuário. 
+ 
+)
+
+2) Atualize a UI imediatamente (remoção local) e invalide a query certa
+
+Hoje você invalida o cache apenas de keys que contenham 'my-available-promotions' quando o usuário fecha o toast: 
+
+Se a sua grade de produtos estiver usando outro key (ex.: products, store-products, etc.), nada é refetchado.
+
+Faça duas melhorias rápidas no ScratchCard:
+
+(a) Remova o item localmente assim que o cupom gerar
+
+O componente já aceita onRevealed. Basta chamá-lo no onSuccess da mutation (logo após abrir o modal do cupom):
+
+// dentro do onSuccess do generateCouponMutation
+setCoupon(data.coupon);
+setCouponGenerated(true);
+setShowModal(false);
+setShowCouponModal(true);
+
+// NEW: avise o pai para remover da lista
+onRevealed?.(product);
+
+
+(Esse é o mesmo onSuccess onde hoje você abre o toast. 
+)
+
+No componente pai (a grade), mantenha um estado local da lista e passe o callback:
+
+const [items, setItems] = useState(dataFromQuery); // lista de produtos/promos
+
+const handleRevealed = (p) => {
+  setItems(prev => prev.filter(item => item.id !== p.id));
+};
+
+{items.map(p => (
+  <ScratchCard
+    key={p.id}
+    product={p}
+    currency={currency}
+    themeColor={theme}
+    onRevealed={handleRevealed}
+  />
+))}
+
+
+Isso faz o item sumir na hora, sem depender de refetch.
+
+(b) Invalide também as queries de produtos da loja
+
+Amplie o predicate para cobrir as chaves que a sua grade usa (sem conhecer seu key exato, dá pra fazer por regex de strings comuns):
+
+queryClient.invalidateQueries({
+  predicate: (q) => {
+    const keys = Array.isArray(q.queryKey) ? q.queryKey : [q.queryKey];
+    return keys.some(k =>
+      typeof k === 'string' &&
+      /(my-available-promotions|products|store-products|store:|grid)/i.test(k)
+    );
+  }
+});
+
+
+Isso substitui o trecho onde hoje você só procura 'my-available-promotions' (o bloco do toast) 
+
+Dica: se a sua grade não usa a rota /api/stores/:slug/my-available-promotions (usa a lista de produtos genérica), mantenha a remoção local via onRevealed e deixe a invalidação como reforço para os casos em que a mesma tela também mostra contadores/quantidades.
+
+3) (Opcional) “Cinto e suspensório” no back-end
+
+Se a grade for alimentada por endpoint genérico de produtos (não pelas “minhas promoções”), vale adicionar um filtro opcional no back-end para esconder scratch-cards já gerados para o usuário. A lógica já existe no storage (hasUserGeneratedCoupon) — é só reaproveitar.
+
+Você já faz isso ao montar “minhas promoções” (filtra assignments com generated/redeemed e/ou coupons.promotionName) 
+ 
+
+Repita esse critério quando listar produtos, caso a rota da grade seja a de produtos.
+
+Por que isso resolve?
+
+Quando o cupom é criado, você atualiza assignment para generated e incrementa usedCount corretamente (isso já está no código). 
+
+Com o userId padronizado, o storage passa a enxergar que aquele usuário já tem cupom e remove a promoção nas próximas consultas.
+
+No front, o item sai da tela imediatamente via onRevealed (UX suave), e a invalidação mais ampla garante que qualquer query relevante refaça o fetch.
