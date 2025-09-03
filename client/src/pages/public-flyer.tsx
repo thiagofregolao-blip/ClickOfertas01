@@ -261,7 +261,7 @@ export default function PublicFlyer() {
     
     setIsDownloading(true);
     try {
-      await downloadFlyerAsPNG(store.name, 'flyer-content');
+      await downloadFlyerAsPNG('flyer-content', store.name);
       toast({
         title: "Download concluído!",
         description: "O panfleto foi salvo como imagem PNG.",

@@ -7,39 +7,56 @@ export async function downloadFlyerAsPNG(elementId: string, filename: string): P
   }
 
   try {
-    // Hide action buttons before capturing
+    // Hide action buttons and other elements before capturing
     const actionButtons = document.querySelectorAll('.no-print');
-    actionButtons.forEach(btn => {
-      (btn as HTMLElement).style.display = 'none';
+    const originalDisplays: string[] = [];
+    
+    actionButtons.forEach((btn, index) => {
+      const htmlBtn = btn as HTMLElement;
+      originalDisplays[index] = htmlBtn.style.display;
+      htmlBtn.style.display = 'none';
     });
+
+    // Wait a bit for the UI to update
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     const canvas = await html2canvas(element, {
       scale: 2, // Higher quality
       useCORS: true,
-      allowTaint: true,
+      allowTaint: false,
       backgroundColor: '#ffffff',
       width: element.scrollWidth,
       height: element.scrollHeight,
+      logging: false,
+      removeContainer: true,
     });
 
     // Restore action buttons
-    actionButtons.forEach(btn => {
-      (btn as HTMLElement).style.display = '';
+    actionButtons.forEach((btn, index) => {
+      (btn as HTMLElement).style.display = originalDisplays[index] || '';
     });
 
-    // Convert canvas to blob and download
-    const link = document.createElement('a');
-    link.download = `${filename}.png`;
-    link.href = canvas.toDataURL('image/png');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Create download link
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = `${filename.replace(/[^a-zA-Z0-9-_]/g, '_')}.png`;
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+    }, 'image/png', 0.95);
+
   } catch (error) {
     // Restore action buttons in case of error
     const actionButtons = document.querySelectorAll('.no-print');
     actionButtons.forEach(btn => {
       (btn as HTMLElement).style.display = '';
     });
+    console.error('Error generating PNG:', error);
     throw error;
   }
 }
