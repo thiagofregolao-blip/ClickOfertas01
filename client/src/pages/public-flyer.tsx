@@ -795,7 +795,7 @@ export default function PublicFlyer() {
                     >
                       <div className={`relative ${product.isFeatured ? 'bg-white rounded-md' : ''}`}>
                         {/* Thumbnail */}
-                        <div className="relative aspect-video bg-gray-200 rounded-t-lg overflow-hidden">
+                        <div className="relative aspect-[4/3] sm:aspect-video bg-gray-200 rounded-t-lg overflow-hidden">
                           {product.imageUrl ? (
                             <img 
                               src={product.imageUrl} 
@@ -810,8 +810,8 @@ export default function PublicFlyer() {
                           
                           {/* Hover overlay */}
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all">
-                            {/* Duration badge */}
-                            <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                            {/* Duration badge - Hidden on mobile */}
+                            <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded hidden sm:block">
                               {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString()}
                             </div>
                             
@@ -820,28 +820,33 @@ export default function PublicFlyer() {
                         
                         {/* Info estilo YouTube */}
                         <div className="mt-3 px-3">
-                          <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                          <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors text-left mb-4 sm:mb-1">
                             {product.name}
                           </h3>
-                          <div className="mt-1">
+                          <div className="mb-4 sm:mb-1 text-left">
+                            {/* Preço USD em vermelho - só no mobile */}
+                            <p className="text-sm text-red-600 font-medium mb-1 sm:hidden">
+                              {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString()}
+                            </p>
+                            {/* Preço BRL */}
                             <p className="text-xs text-gray-500">
                               R$ {(parseFloat(product.price) * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </p>
                           </div>
                           
                           {/* Action buttons */}
-                          <div className="flex items-center justify-center gap-4 mt-2 pt-2 border-t border-gray-100">
-                            <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
-                              <Heart className="w-4 h-4" />
-                              <span>Curtir</span>
+                          <div className="flex items-center justify-center gap-2 sm:gap-4 mt-auto pt-0 sm:pt-2 sm:border-t sm:border-gray-100 -mx-3 px-3 sm:mx-0">
+                            <button className="hidden sm:flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
+                              <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+                              <span className="text-xs sm:text-xs">Curtir</span>
                             </button>
-                            <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
-                              <Bookmark className="w-4 h-4" />
-                              <span>Salvar</span>
+                            <button className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
+                              <Bookmark className="w-3 h-3 sm:w-4 sm:h-4" />
+                              <span className="text-xs sm:text-xs">Salvar</span>
                             </button>
-                            <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
-                              <BarChart3 className="w-4 h-4" />
-                              <span>Comparar</span>
+                            <button className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
+                              <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" />
+                              <span className="text-xs sm:text-xs">Comparar</span>
                             </button>
                           </div>
                         </div>
@@ -990,7 +995,7 @@ export default function PublicFlyer() {
                     >
                       <div className="relative">
                         {/* Thumbnail */}
-                        <div className="relative aspect-video bg-gray-200 rounded-t-lg overflow-hidden">
+                        <div className="relative aspect-[4/3] sm:aspect-video bg-gray-200 rounded-t-lg overflow-hidden">
                             {product.imageUrl ? (
                               <img 
                                 src={product.imageUrl} 
@@ -1014,28 +1019,33 @@ export default function PublicFlyer() {
                         
                         {/* Info estilo YouTube */}
                         <div className="mt-3 px-3">
-                          <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                          <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors text-left mb-4 sm:mb-1">
                             {product.name}
                           </h3>
-                          <div className="mt-1">
+                          <div className="mb-4 sm:mb-1 text-left">
+                            {/* Preço USD em vermelho - só no mobile */}
+                            <p className="text-sm text-red-600 font-medium mb-1 sm:hidden">
+                              {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString()}
+                            </p>
+                            {/* Preço BRL */}
                             <p className="text-xs text-gray-500">
                               R$ {(parseFloat(product.price) * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </p>
                           </div>
                           
                           {/* Action buttons */}
-                          <div className="flex items-center justify-center gap-4 mt-2 pt-2 border-t border-gray-100">
-                            <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
-                              <Heart className="w-4 h-4" />
-                              <span>Curtir</span>
+                          <div className="flex items-center justify-center gap-2 sm:gap-4 mt-auto pt-0 sm:pt-2 sm:border-t sm:border-gray-100 -mx-3 px-3 sm:mx-0">
+                            <button className="hidden sm:flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
+                              <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+                              <span className="text-xs sm:text-xs">Curtir</span>
                             </button>
-                            <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
-                              <Bookmark className="w-4 h-4" />
-                              <span>Salvar</span>
+                            <button className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
+                              <Bookmark className="w-3 h-3 sm:w-4 sm:h-4" />
+                              <span className="text-xs sm:text-xs">Salvar</span>
                             </button>
-                            <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
-                              <BarChart3 className="w-4 h-4" />
-                              <span>Comparar</span>
+                            <button className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
+                              <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" />
+                              <span className="text-xs sm:text-xs">Comparar</span>
                             </button>
                           </div>
                         </div>
