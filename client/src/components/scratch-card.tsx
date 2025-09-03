@@ -106,41 +106,8 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
       
       setGeneratingCoupon(false); // ✅ Resetar flag
       if (data?.success && data?.coupon) {
-        // 🚀 INVALIDAÇÃO IMEDIATA DO CACHE (correção crítica)
-        queryClient.invalidateQueries({
-          predicate: (query) => {
-            // Invalida todas as queries que contém 'my-available-promotions'
-            return query.queryKey.some(key => 
-              typeof key === 'string' && key.includes('my-available-promotions')
-            );
-          }
-        });
-        console.log('🎯 Cache das promoções invalidado IMEDIATAMENTE');
-        
-        // 💨 REMOÇÃO LOCAL DO CARD para feedback instantâneo
-        // Atualizar todas as queries que contém promoções
-        queryClient.getQueryCache().getAll().forEach(query => {
-          if (query.queryKey.some(key => typeof key === 'string' && key.includes('my-available-promotions'))) {
-            queryClient.setQueryData(query.queryKey, (old: any) => {
-              if (!old) return old;
-              // Se retorna { promotions: [...] }
-              if (old.promotions && Array.isArray(old.promotions)) {
-                return {
-                  ...old,
-                  promotions: old.promotions.filter((p: any) => p.id !== product.id)
-                };
-              }
-              // Se retorna array direto
-              if (Array.isArray(old)) {
-                return old.filter((p: any) => p.id !== product.id);
-              }
-              return old;
-            });
-          }
-        });
-        console.log('💨 Card removido localmente de todas as listas de promoções');
-        
-        // Salvar dados do cupom e abrir modal
+        // ✅ APENAS ABRIR O MODAL - SEM invalidação aqui!
+        // A invalidação será feita quando o usuário FECHAR o modal
         setCoupon(data.coupon);
         setCouponGenerated(true);
         setShowModal(false);
@@ -152,7 +119,6 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
         toast({
           title: "🎉 Cupom gerado!",
           description: "Veja os detalhes do seu cupom!",
-          // Manter toast simples - cache já foi invalidado
         });
       }
     },
@@ -914,7 +880,22 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
         </div>
         <ProductModal />
         {showCouponModal && coupon && (
-          <Dialog open={showCouponModal} onOpenChange={setShowCouponModal}>
+          <Dialog 
+            open={showCouponModal} 
+            onOpenChange={(open) => {
+              setShowCouponModal(open);
+              if (!open) {
+                // 🚀 USUÁRIO FECHOU O MODAL → AGORA SIM ATUALIZA A LISTA
+                console.log('🎯 Modal fechado - invalidando cache das promoções');
+                queryClient.invalidateQueries({
+                  predicate: (query) => {
+                    return query.queryKey.some(key => 
+                      typeof key === 'string' && key.includes('my-available-promotions')
+                    );
+                  }
+                });
+              }
+            }}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-bold text-center">🎫 Seu Cupom de Desconto</DialogTitle>

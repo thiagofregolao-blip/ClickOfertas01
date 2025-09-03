@@ -1,0 +1,64 @@
+Entendi o que aconteceu. Com a alteração, você está “mexendo” na lista logo após gerar o cupom (via invalidateQueries ou removendo o item do cache). Isso faz o card da raspadinha desmontar (unmount) antes do setShowCouponModal(true)/setCoupon(...) completar — e como o modal e o estado do cupom vivem dentro do próprio card, tudo some. Na próxima renderização a promoção volta a aparecer porque o refetch termina antes do backend sinalizar/filtrar corretamente (ou porque o estado foi perdido).
+
+Aqui vai um ajuste seguro que mantém o modal aberto e só atualiza a lista depois que o usuário fecha o modal/toast:
+
+O que mudar (frontend)
+
+Mover a invalidação para o fechamento do modal (ou do toast)
+Seu código já está invalidando no botão “Fechar” do toast — isso é bom e evita desmontar o card antes da hora 
+. Garanta que não exista outra invalidação antecipada no onSuccess. E acrescente também a invalidação no onOpenChange do próprio <Dialog> do cupom, para cobrir o caso de fechar o modal em vez do toast:
+
+{showCouponModal && coupon && (
+  <Dialog
+    open={showCouponModal}
+    onOpenChange={(open) => {
+      setShowCouponModal(open);
+      if (!open) {
+        // usuário fechou o modal → agora sim atualiza a lista
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.some(
+              (key) => typeof key === "string" && key.includes("my-available-promotions")
+            ),
+        });
+      }
+    }}
+  >
+    {/* ... */}
+  </Dialog>
+)}
+
+
+O seu <Dialog> do cupom está dentro do card da raspadinha, então se o card desmonta cedo, o modal desmonta junto 
+. Por isso a invalidação tem que acontecer só ao fechar.
+
+Não remova o item da lista via setQueryData enquanto o modal estiver aberto
+Qualquer remoção otimista com setQueryData vai desmontar o card e matar o modal. Deixe o backend ser a “fonte da verdade” e apenas invalide depois que o usuário fechar o modal/toast (como acima).
+
+Garanta que o onSuccess só abre o modal e não invalida nada
+O seu onSuccess já seta o cupom e abre o modal — mantenha assim; nada de refetch aí: 
+.
+
+Dois pontos importantes para o backend/fluxo
+
+Confirmar que você está enviando o ID da promoção para a mutation
+Hoje você chama generateCouponMutation.mutate(product.id) quando atinge o limiar de raspagem 
+. O endpoint /api/products/:productId/generate-coupon tenta primeiro ler produto e depois checa se esse ID também é uma promoção; se for promoção, ele atualiza o assignment para generated e incrementa o usedCount antes de responder 
+ 
+.
+Se o product.id que você passa não for o mesmo promotionId do assignment, o updatePromotionAssignmentStatus não encontra nada para atualizar — e a promoção volta na lista. Se precisar, ajuste para garantir que o ID enviado é o da promoção atribuída a esse usuário.
+
+O filtro no “minhas promoções disponíveis” depende do status/cupom
+O backend já remove da lista promoções cujo assignment está generated/redeemed e também confere se já existe cupom dessa promoção para o usuário (pelo nome) 
+ 
+. Com a invalidação acontecendo após fechar o modal, o refetch vem com essa promoção já filtrada.
+
+Checklist rápido
+
+ Remova qualquer invalidateQueries imediato no onSuccess.
+
+ Adicione a invalidação no onOpenChange do <Dialog> do cupom (quando open vira false).
+
+ Garanta que generateCouponMutation recebe o ID da promoção correta.
+
+ (Opcional) Se quiser 100% à prova de estado local: suba o estado do cupom para um store global (Zustand/Context) ou redirecione para uma página de cupom (/cupons/:id) ao invés de modal — assim, mesmo que a lista seja atualizada, o cupom continua visível.
