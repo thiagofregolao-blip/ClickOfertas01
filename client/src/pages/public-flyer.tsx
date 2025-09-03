@@ -825,11 +825,11 @@ export default function PublicFlyer() {
                           </h3>
                           <div className="mb-4 sm:mb-1 text-left">
                             {/* Preço USD em vermelho - só no mobile */}
-                            <p className="text-sm text-red-600 font-medium mb-1 sm:hidden">
+                            <p className="text-base text-red-600 font-medium mb-1 sm:hidden">
                               {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </p>
                             {/* Preço BRL */}
-                            <p className="text-xs text-gray-500">
+                            <p className="text-sm text-gray-500">
                               R$ {(parseFloat(product.price) * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </p>
                           </div>
@@ -1024,11 +1024,11 @@ export default function PublicFlyer() {
                           </h3>
                           <div className="mb-4 sm:mb-1 text-left">
                             {/* Preço USD em vermelho - só no mobile */}
-                            <p className="text-sm text-red-600 font-medium mb-1 sm:hidden">
+                            <p className="text-base text-red-600 font-medium mb-1 sm:hidden">
                               {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </p>
                             {/* Preço BRL */}
-                            <p className="text-xs text-gray-500">
+                            <p className="text-sm text-gray-500">
                               R$ {(parseFloat(product.price) * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </p>
                           </div>

@@ -138,11 +138,11 @@ export default function ProductCard({
           {/* Preço */}
           <div className="mb-4 sm:mb-2 text-left">
             {/* Preço USD em vermelho - só no mobile */}
-            <p className="text-sm text-red-600 font-medium mb-1 sm:hidden">
+            <p className="text-base text-red-600 font-medium mb-1 sm:hidden">
               {currency} {formatBrazilianPrice(product.price || '0')}
             </p>
             {/* Preço BRL */}
-            <p className="text-xs text-gray-500">
+            <p className="text-sm text-gray-500">
               R$ {(() => {
                 const priceUSD = Number(product.price || 0);
                 const rate = customUsdBrlRate || 5.47;
