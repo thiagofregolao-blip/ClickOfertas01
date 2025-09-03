@@ -1794,7 +1794,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(...conditions));
 
     return {
-      isUsed: !!existingScratch?.isUsed,
+      isUsed: !!existingScratch, // Se existe qualquer registro = já foi usado
       scratch: existingScratch
     };
   }
