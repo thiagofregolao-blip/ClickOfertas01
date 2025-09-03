@@ -15,12 +15,14 @@ interface GlobalHeaderProps {
   onSearch?: (query: string) => void;
   searchValue?: string;
   showPriceComparison?: boolean;
+  showFullResults?: boolean;
 }
 
 export default function GlobalHeader({ 
   onSearch, 
   searchValue = "", 
-  showPriceComparison = true 
+  showPriceComparison = true,
+  showFullResults = true
 }: GlobalHeaderProps) {
   const [searchInput, setSearchInput] = useState(searchValue);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -98,6 +100,135 @@ export default function GlobalHeader({
     setLocation('/price-comparison');
   };
 
+  // Se houver busca ativa e showFullResults for true, mostrar em tela cheia
+  if (showFullResults && searchQuery && searchResults.length > 0) {
+    return (
+      <div className="min-h-screen bg-white">
+        {/* Header fixo */}
+        <header className="bg-gradient-to-r from-red-500 to-orange-500 shadow-md sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-3 py-3">
+            <div className="flex items-center gap-4">
+              {/* Logo/Nome do App */}
+              <Link href="/cards">
+                <div className="flex-shrink-0 cursor-pointer">
+                  <h1 className="text-white font-bold text-lg md:text-xl whitespace-nowrap">
+                    Click Ofertas.PY
+                  </h1>
+                </div>
+              </Link>
+
+              {/* Barra de Busca */}
+              <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md mx-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    type="text"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onFocus={() => setIsSearchFocused(true)}
+                    placeholder="Buscar produtos..."
+                    className="pl-10 pr-10 py-2 w-full bg-white border-0 rounded-lg shadow-sm focus:ring-2 focus:ring-white/20 text-gray-700 placeholder-gray-400"
+                    data-testid="global-search-input"
+                  />
+                  {searchInput && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchInput('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </form>
+
+              {/* Botão Comparar Preços */}
+              {showPriceComparison && (
+                <Button
+                  onClick={handlePriceComparison}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-3 py-2 rounded-lg shadow-sm flex-shrink-0 hidden sm:flex items-center gap-2"
+                  data-testid="button-price-comparison"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span className="hidden md:inline">Comparar Preços</span>
+                </Button>
+              )}
+
+              {/* Mobile: Apenas ícone de comparação */}
+              {showPriceComparison && (
+                <Button
+                  onClick={handlePriceComparison}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 p-2 rounded-lg shadow-sm sm:hidden"
+                  data-testid="button-price-comparison-mobile"
+                >
+                  <BarChart3 className="w-5 h-5" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Resultados em tela cheia */}
+        <div className="max-w-4xl mx-auto p-4">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              Resultados da busca: "{searchQuery}"
+            </h2>
+            <p className="text-gray-600">
+              {searchResults.length} resultado{searchResults.length !== 1 ? 's' : ''} encontrado{searchResults.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {searchResults.map((result, index) => (
+              <Card key={`${result.type}-${result.data.id || index}`} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-0">
+                  {result.type === 'store' ? (
+                    <div 
+                      onClick={() => {
+                        setLocation(`/flyer/${result.data.slug}`);
+                        setSearchInput('');
+                        setIsSearchFocused(false);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <StoreResultItem
+                        store={result.data}
+                        searchQuery={searchQuery}
+                      />
+                    </div>
+                  ) : (
+                    <SearchResultItem
+                      product={result.data}
+                      store={result.store}
+                      onClick={() => {
+                        setLocation(`/flyer/${result.store.slug}`);
+                        setSearchInput('');
+                        setIsSearchFocused(false);
+                      }}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {searchResults.length === 0 && (
+            <div className="text-center py-12">
+              <Search className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Nenhum resultado encontrado
+              </h3>
+              <p className="text-gray-600">
+                Tente pesquisar por outros termos
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       <header className="bg-gradient-to-r from-red-500 to-orange-500 shadow-md">
@@ -137,8 +268,8 @@ export default function GlobalHeader({
                 )}
               </div>
               
-              {/* Resultados de Busca */}
-              {(isSearchFocused || searchInput) && searchResults.length > 0 && (
+              {/* Resultados compactos quando showFullResults = false */}
+              {!showFullResults && (isSearchFocused || searchInput) && searchResults.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border z-50 max-h-96 overflow-y-auto">
                   <div className="p-2">
                     <div className="text-sm text-gray-600 mb-2 px-2">
@@ -192,7 +323,7 @@ export default function GlobalHeader({
               )}
               
               {/* Sem resultados */}
-              {(isSearchFocused || searchInput) && searchQuery && searchResults.length === 0 && (
+              {!showFullResults && (isSearchFocused || searchInput) && searchQuery && searchResults.length === 0 && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border z-50">
                   <div className="p-4 text-center text-gray-500">
                     <Search className="w-8 h-8 mx-auto mb-2 text-gray-300" />
