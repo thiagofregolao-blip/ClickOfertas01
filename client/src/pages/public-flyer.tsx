@@ -884,7 +884,7 @@ export default function PublicFlyer() {
                           </div>
                           
                           {/* Action buttons */}
-                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                          <div className="flex items-center justify-center gap-4 mt-2 pt-2 border-t border-gray-100">
                             <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
                               <Heart className="w-4 h-4" />
                               <span>Curtir</span>
@@ -1076,7 +1076,7 @@ export default function PublicFlyer() {
                           </div>
                           
                           {/* Action buttons */}
-                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                          <div className="flex items-center justify-center gap-4 mt-2 pt-2 border-t border-gray-100">
                             <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
                               <Heart className="w-4 h-4" />
                               <span>Curtir</span>
