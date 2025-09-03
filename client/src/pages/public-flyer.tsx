@@ -569,7 +569,7 @@ export default function PublicFlyer() {
               )}
               
               {/* Banner Content */}
-              <div className="relative z-10 h-full flex items-center justify-center p-8">
+              <div className="relative z-10 h-full flex items-center justify-center p-8 pt-12">
                 <div className="text-center">
                   <h1 className="text-4xl md:text-6xl font-black text-white drop-shadow-2xl tracking-wider transform -rotate-2">
                     {store.bannerText || store.name.toUpperCase()}
