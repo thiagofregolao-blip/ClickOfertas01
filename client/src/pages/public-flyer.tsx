@@ -835,7 +835,7 @@ export default function PublicFlyer() {
                     // PRODUTO NORMAL: YouTube-style Product Card
                     <div 
                       key={product.id} 
-                      className="group cursor-pointer pb-4 mb-4 border-b border-gray-200"
+                      className="group cursor-pointer pb-4 mb-4 border border-gray-200 rounded-lg p-3"
                       onClick={() => {
                         setSelectedProduct(product);
                         setSelectedStore(store || null);
@@ -1032,7 +1032,7 @@ export default function PublicFlyer() {
                     // PRODUTO NORMAL: YouTube-style Product Card
                     <div 
                       key={product.id} 
-                      className="group cursor-pointer pb-4 mb-4 border-b border-gray-200"
+                      className="group cursor-pointer pb-4 mb-4 border border-gray-200 rounded-lg p-3"
                       onClick={() => {
                         setSelectedProduct(product);
                         setSelectedStore(store || null);
