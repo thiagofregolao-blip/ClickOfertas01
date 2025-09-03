@@ -3,7 +3,7 @@ import { useRoute } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Share, Download, Printer, MoreVertical, Filter, Gift, Camera, Heart, Eye } from "lucide-react";
+import { Share, Download, Printer, MoreVertical, Filter, Gift, Camera, Heart, Eye, Bookmark, BarChart3 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -811,6 +811,22 @@ export default function PublicFlyer() {
                                 R$ {(parseFloat(product.scratchPrice || '0') * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                               </p>
                             </div>
+                            
+                            {/* Action buttons for promotions */}
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                              <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
+                                <Heart className="w-3 h-3" />
+                                <span>Curtir</span>
+                              </button>
+                              <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
+                                <Bookmark className="w-3 h-3" />
+                                <span>Salvar</span>
+                              </button>
+                              <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
+                                <BarChart3 className="w-3 h-3" />
+                                <span>Comparar</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -865,6 +881,22 @@ export default function PublicFlyer() {
                             <p className="text-xs text-gray-500">
                               R$ {(parseFloat(product.price) * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </p>
+                          </div>
+                          
+                          {/* Action buttons */}
+                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                            <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
+                              <Heart className="w-3 h-3" />
+                              <span>Curtir</span>
+                            </button>
+                            <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
+                              <Bookmark className="w-3 h-3" />
+                              <span>Salvar</span>
+                            </button>
+                            <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
+                              <BarChart3 className="w-3 h-3" />
+                              <span>Comparar</span>
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -976,6 +1008,22 @@ export default function PublicFlyer() {
                                 R$ {(parseFloat(product.scratchPrice || '0') * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                               </p>
                             </div>
+                            
+                            {/* Action buttons for promotions */}
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                              <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
+                                <Heart className="w-3 h-3" />
+                                <span>Curtir</span>
+                              </button>
+                              <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
+                                <Bookmark className="w-3 h-3" />
+                                <span>Salvar</span>
+                              </button>
+                              <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
+                                <BarChart3 className="w-3 h-3" />
+                                <span>Comparar</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1025,6 +1073,22 @@ export default function PublicFlyer() {
                             <p className="text-xs text-gray-500">
                               R$ {(parseFloat(product.price) * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </p>
+                          </div>
+                          
+                          {/* Action buttons */}
+                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                            <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
+                              <Heart className="w-3 h-3" />
+                              <span>Curtir</span>
+                            </button>
+                            <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
+                              <Bookmark className="w-3 h-3" />
+                              <span>Salvar</span>
+                            </button>
+                            <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
+                              <BarChart3 className="w-3 h-3" />
+                              <span>Comparar</span>
+                            </button>
                           </div>
                         </div>
                       </div>
