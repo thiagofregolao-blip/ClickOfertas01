@@ -71,9 +71,30 @@ export default function Landing() {
   
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Header Branco Superior */}
+      <header className="bg-white border-b border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          {/* Logo/Nome à esquerda */}
+          <div className="flex items-center">
+            <h1 className="text-lg font-bold text-gray-900">
+              Click Ofertas PY
+            </h1>
+          </div>
+          
+          {/* Precisa de Ajuda à direita */}
+          <div>
+            <a 
+              href="#" 
+              className="text-sm text-gray-600 hover:text-orange-500 transition-colors"
+            >
+              Precisa de Ajuda?
+            </a>
+          </div>
+        </div>
+      </header>
 
       {/* Área Promocional de fundo (estilo Shopee) */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#F04940] to-[#FA7D22] min-h-[90vh]">
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#F04940] to-[#FA7D22] min-h-[85vh]">
         <div className="absolute inset-0 bg-black/20"></div>
         
         {/* Layout Mobile vs Desktop */}
