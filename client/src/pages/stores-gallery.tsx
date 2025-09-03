@@ -33,9 +33,21 @@ function limitStoreName(name: string, isMobile: boolean): string {
 }
 
 export default function StoresGallery() {
-  const [searchInput, setSearchInput] = useState('');
+  // Verificar se há um termo de busca na URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlSearch = urlParams.get('search') || '';
+  
+  const [searchInput, setSearchInput] = useState(urlSearch);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchQuery = useDebounce(searchInput, 500); // Debounce de 500ms
+  
+  // Remover parâmetro de busca da URL após aplicar
+  useEffect(() => {
+    if (urlSearch) {
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [urlSearch]);
   
   // Frases para efeito de digitação automática
   const typewriterPhrases = [

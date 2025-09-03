@@ -403,7 +403,13 @@ export default function PublicFlyer() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Global Header */}
-      <GlobalHeader showPriceComparison={true} />
+      <GlobalHeader 
+        showPriceComparison={true}
+        onSearch={(query) => {
+          // Redirecionar para cards com busca
+          window.location.href = `/cards?search=${encodeURIComponent(query)}`;
+        }}
+      />
       
       {/* Action Buttons - Hidden on print */}
       <div className="fixed top-4 right-4 z-50 no-print">

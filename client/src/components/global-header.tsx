@@ -39,8 +39,13 @@ export default function GlobalHeader({
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (onSearch) {
-      onSearch(searchInput);
+    if (searchInput.trim()) {
+      if (onSearch) {
+        onSearch(searchInput);
+      } else {
+        // Redirecionar para a página cards com o termo de busca
+        setLocation(`/cards?search=${encodeURIComponent(searchInput.trim())}`);
+      }
     }
   };
 
