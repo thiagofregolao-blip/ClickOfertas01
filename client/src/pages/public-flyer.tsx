@@ -804,11 +804,6 @@ export default function PublicFlyer() {
                               {product.name}
                             </h3>
                             <p className="text-xs text-gray-600 mt-1">{store.name}</p>
-                            <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
-                              <span>🎁 Promoção</span>
-                              <span>•</span>
-                              <span>{store?.currency || 'Gs.'} {product.scratchPrice}</span>
-                            </div>
                           </div>
                         </div>
                       </div>
@@ -872,11 +867,6 @@ export default function PublicFlyer() {
                               {product.name}
                             </h3>
                             <p className="text-xs text-gray-600 mt-1">{store.name}</p>
-                            <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
-                              <span>📦 {product.category || 'Produto'}</span>
-                              <span>•</span>
-                              <span>Disponível</span>
-                            </div>
                           </div>
                         </div>
                       </div>
@@ -969,11 +959,6 @@ export default function PublicFlyer() {
                             {product.name}
                           </h3>
                           <p className="text-xs text-gray-600 mt-1">{store.name}</p>
-                          <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
-                            <span>🎁 Promoção</span>
-                            <span>•</span>
-                            <span>{store?.currency || 'Gs.'} {product.scratchPrice}</span>
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -1024,11 +1009,6 @@ export default function PublicFlyer() {
                             {product.name}
                           </h3>
                           <p className="text-xs text-gray-600 mt-1">{store.name}</p>
-                          <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
-                            <span>📦 {product.category || 'Produto'}</span>
-                            <span>•</span>
-                            <span>Disponível</span>
-                          </div>
                         </div>
                       </div>
                     </div>
