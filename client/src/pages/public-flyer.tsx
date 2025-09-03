@@ -753,7 +753,7 @@ export default function PublicFlyer() {
           {filteredProducts.length > 0 || virtualClones.length > 0 ? (
             storeParams ? (
               // YouTube-style grid layout
-              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
                 {/* PRODUTOS ORIGINAIS + PROMOÇÕES COM RASPADINHA */}
                 {filteredProducts.map((product) => {
                   // CORREÇÃO: Só renderizar como raspadinha se for promoção real (vem de activePromotions)
@@ -948,7 +948,7 @@ export default function PublicFlyer() {
               </div>
             ) : (
               // YouTube-style grid também para layout compacto
-              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
                 {filteredProducts.map((product) => {
                   const isRealPromotion = activePromotions.some(promo => promo.id === product.id);
                   
