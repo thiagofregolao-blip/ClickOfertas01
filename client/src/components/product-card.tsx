@@ -75,132 +75,116 @@ export default function ProductCard({
 
   const productContent = (
     <div 
-      className={`relative ${categoryColors.bg} border-2 ${categoryColors.border} overflow-hidden group text-center flex flex-col h-full min-h-[200px] sm:min-h-[220px] ${
-        onClick ? 'cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]' : ''
-      }`}
+      className={`group cursor-pointer pb-4 mb-4 rounded-lg overflow-hidden ${
+        product.isFeatured 
+          ? 'border border-red-500' 
+          : 'border border-gray-200'
+      } ${onClick ? 'hover:shadow-lg transition-all duration-200' : ''}`}
       onClick={handleCardClick}
       data-testid={`card-product-${product.id}`}
     >
-      <div className="h-full flex flex-col">
-        {/* Engagement Buttons */}
-        {enableEngagement && (
-          <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleLike(product.id, e);
-              }}
-              className="bg-white/90 hover:bg-white backdrop-blur-sm p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
-              title={isProductLiked(product.id) ? "Descurtir produto" : "Curtir produto"}
-            >
-              <Heart className={`w-4 h-4 ${isProductLiked(product.id) ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSaveProduct(product.id);
-              }}
-              disabled={isSaving}
-              className={`backdrop-blur-sm p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110 ${
-                isAuthenticated && isProductSaved(product.id)
-                  ? 'bg-blue-100/90 hover:bg-blue-200/90'
-                  : 'bg-white/90 hover:bg-white'
-              }`}
-              title={isAuthenticated && isProductSaved(product.id) ? "Produto salvo" : "Salvar produto"}
-            >
-              <Bookmark className={`w-4 h-4 ${
-                isAuthenticated && isProductSaved(product.id)
-                  ? 'text-blue-600 fill-blue-600'
-                  : isAuthenticated 
-                    ? 'text-blue-600' 
-                    : 'text-gray-400'
-              }`} />
-            </button>
-          </div>
-        )}
-
-        <div className="relative">
+      <div className="relative">
+        {/* Thumbnail YouTube-style */}
+        <div className="relative aspect-video bg-gray-200 rounded-t-lg overflow-hidden">
           {product.imageUrl ? (
             <img 
               src={product.imageUrl} 
               alt={product.name}
-              className="product-image w-full h-20 md:h-24 lg:h-28 object-cover"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const placeholder = target.nextElementSibling as HTMLElement;
-                if (placeholder) {
-                  placeholder.style.display = 'flex';
-                }
+                target.src = '/placeholder-image.jpg';
               }}
             />
-          ) : null}
-          
-          {/* Placeholder when no image */}
-          <div 
-            className="product-image w-full h-20 md:h-24 lg:h-28 bg-gray-100 flex items-center justify-center"
-            style={{ display: product.imageUrl ? 'none' : 'flex' }}
-          >
-            <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-300 rounded opacity-30"></div>
-          </div>
-
-          {/* Badge de etiqueta para produtos em destaque */}
-          {(product.isFeatured && showFeaturedBadge) && (
-            <div className="absolute top-0 left-0 z-10">
-              <img 
-                src="/attached_assets/ChatGPT Image 26 de ago. de 2025, 19_53_25_1756248832502.png" 
-                alt="Oferta Especial"
-                className="w-12 h-12 sm:w-14 sm:h-14 object-contain animate-pulse drop-shadow-lg"
-              />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+              <span className="text-gray-600 text-4xl">📦</span>
             </div>
           )}
-
-          {/* Badge de Comparação de Preços */}
-          <div className="absolute bottom-2 left-2 z-10">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowPriceComparison(true);
-              }}
-              className="bg-yellow-400 hover:bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded-full shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-1"
-              title="Comparar preços com Brasil"
-              data-testid={`button-price-comparison-${product.id}`}
-            >
-              <BarChart3 className="w-3 h-3" />
-              BR
-            </button>
+          
+          {/* Overlay com preço */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all">
+            {/* Preço sobreposto */}
+            <div className="absolute bottom-2 right-2 bg-black/80 text-yellow-400 text-xs px-2 py-1 rounded font-semibold">
+              {currency} {formatBrazilianPrice(product.price || '0')}
+            </div>
+            
+            {/* Featured Badge */}
+            {showFeaturedBadge && product.isFeatured && (
+              <div className="absolute top-2 left-2">
+                <Badge variant="destructive" className="bg-red-500 text-white text-xs px-2 py-1">
+                  <Star className="w-3 h-3 mr-1" />
+                  Destaque
+                </Badge>
+              </div>
+            )}
+            
+            {/* Price comparison button */}
+            <div className="absolute top-2 right-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPriceComparison(true);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded transition-all duration-200"
+                title="Comparar preços no Brasil"
+              >
+                BR
+              </button>
+            </div>
           </div>
         </div>
         
-        <div className="product-content p-2 flex flex-col h-full">
-          <h3 className="product-title text-xs sm:text-sm font-bold text-blue-600 mb-1 mt-1 line-clamp-2 h-8 sm:h-10 flex items-center justify-center text-center">
+        {/* Info estilo YouTube */}
+        <div className="mt-3 px-3">
+          <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
             {product.name}
           </h3>
-          
-          <div className="text-[10px] sm:text-xs text-gray-500 mb-2 text-center leading-tight">
-            <p className="line-clamp-2">{product.description || ''}</p>
-          </div>
-          
-          <div className="flex flex-col items-center justify-center mt-auto space-y-1">
-            <span className="text-[10px] sm:text-xs text-gray-600 font-medium">A partir de</span>
-            
-            <div className="flex items-end justify-center gap-0.5 relative">
-              <span className="text-xs sm:text-sm font-medium self-end" style={{ color: '#A21614' }}>US$</span>
-              <span className="text-lg sm:text-xl md:text-2xl font-bold leading-none" style={{ color: '#A21614' }}>
-                {formatBrazilianPrice(product.price || '0')}
-              </span>
-            </div>
-
-            {/* Preço em Real - para todas as lojas */}
-            <div className="text-xs sm:text-sm text-gray-600 font-medium">
+          <div className="mt-1">
+            <p className="text-xs text-gray-500 line-clamp-1">
+              {product.description || ''}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
               R$ {(() => {
                 const priceUSD = Number(product.price || 0);
-                // Usar taxa personalizada da loja ou taxa padrão 5.47
                 const rate = customUsdBrlRate || 5.47;
                 const priceBRL = priceUSD * rate;
                 return formatBrazilianPrice(priceBRL);
               })()}
-            </div>
+            </p>
+          </div>
+          
+          {/* Action buttons */}
+          <div className="flex items-center justify-center gap-4 mt-2 pt-2 border-t border-gray-100">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (enableEngagement) {
+                  toggleLike(product.id, e);
+                }
+              }}
+              className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors"
+            >
+              <Heart className={`w-4 h-4 ${enableEngagement && isProductLiked(product.id) ? 'text-red-500 fill-red-500' : ''}`} />
+              <span>Curtir</span>
+            </button>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (enableEngagement) {
+                  handleSaveProduct(product.id);
+                }
+              }}
+              disabled={isSaving}
+              className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors"
+            >
+              <Bookmark className={`w-4 h-4 ${enableEngagement && isAuthenticated && isProductSaved(product.id) ? 'text-blue-600 fill-blue-600' : ''}`} />
+              <span>Salvar</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
+              <BarChart3 className="w-4 h-4" />
+              <span>Comparar</span>
+            </button>
           </div>
         </div>
       </div>
