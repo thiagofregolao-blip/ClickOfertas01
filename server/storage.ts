@@ -2064,7 +2064,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async hasUserGeneratedCoupon(promotionId: string, userId: string): Promise<boolean> {
-    const [result] = await db
+    // Verificar na tabela promotionAssignments
+    const [assignmentResult] = await db
       .select({ count: count() })
       .from(promotionAssignments)
       .where(and(
@@ -2073,7 +2074,20 @@ export class DatabaseStorage implements IStorage {
         sql`${promotionAssignments.status} IN ('generated', 'redeemed')`
       ));
     
-    return (result?.count || 0) > 0;
+    if ((assignmentResult?.count || 0) > 0) {
+      return true;
+    }
+
+    // NOVA VERIFICAÇÃO: Verificar na tabela coupons (para cupons gerados via produtos)
+    const [couponResult] = await db
+      .select({ count: count() })
+      .from(coupons)
+      .where(and(
+        eq(coupons.productId, promotionId), // productId pode ser promotionId quando é promoção
+        eq(coupons.userId, userId)
+      ));
+    
+    return (couponResult?.count || 0) > 0;
   }
 
   // NEW: Instagram Stories operations implementation
