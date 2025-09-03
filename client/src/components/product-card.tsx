@@ -148,7 +148,7 @@ export default function ProductCard({
           </div>
           
           {/* Action buttons - sempre na parte inferior */}
-          <div className="flex items-center justify-center gap-4 mt-auto pt-1 sm:pt-2 border-t border-gray-100">
+          <div className="flex items-center justify-center gap-2 sm:gap-4 mt-auto pt-0 sm:pt-2 sm:border-t sm:border-gray-100">
             <button 
               onClick={(e) => {
                 e.stopPropagation();
@@ -156,10 +156,10 @@ export default function ProductCard({
                   toggleLike(product.id, e);
                 }
               }}
-              className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors"
+              className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors"
             >
-              <Heart className={`w-4 h-4 ${enableEngagement && isProductLiked(product.id) ? 'text-red-500 fill-red-500' : ''}`} />
-              <span>Curtir</span>
+              <Heart className={`w-3 h-3 sm:w-4 sm:h-4 ${enableEngagement && isProductLiked(product.id) ? 'text-red-500 fill-red-500' : ''}`} />
+              <span className="text-xs sm:text-xs">Curtir</span>
             </button>
             <button 
               onClick={(e) => {
@@ -169,14 +169,14 @@ export default function ProductCard({
                 }
               }}
               disabled={isSaving}
-              className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors"
+              className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors"
             >
-              <Bookmark className={`w-4 h-4 ${enableEngagement && isAuthenticated && isProductSaved(product.id) ? 'text-blue-600 fill-blue-600' : ''}`} />
-              <span>Salvar</span>
+              <Bookmark className={`w-3 h-3 sm:w-4 sm:h-4 ${enableEngagement && isAuthenticated && isProductSaved(product.id) ? 'text-blue-600 fill-blue-600' : ''}`} />
+              <span className="text-xs sm:text-xs">Salvar</span>
             </button>
-            <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
-              <BarChart3 className="w-4 h-4" />
-              <span>Comparar</span>
+            <button className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
+              <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="text-xs sm:text-xs">Comparar</span>
             </button>
           </div>
         </div>
