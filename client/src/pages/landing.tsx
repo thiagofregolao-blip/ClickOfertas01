@@ -76,8 +76,8 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo/Nome à esquerda */}
           <div className="flex items-center">
-            <h1 className="text-lg font-bold text-gray-900">
-              Click Ofertas PY
+            <h1 className="text-xl font-bold text-gray-900">
+              Click Ofertas <span className="text-orange-500">PY</span>
             </h1>
           </div>
           
@@ -85,7 +85,7 @@ export default function Landing() {
           <div>
             <a 
               href="#" 
-              className="text-sm text-gray-600 hover:text-orange-500 transition-colors"
+              className="text-base text-orange-500 hover:text-orange-600 font-medium transition-colors"
             >
               Precisa de Ajuda?
             </a>
