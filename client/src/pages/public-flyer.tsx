@@ -828,8 +828,8 @@ export default function PublicFlyer() {
                             {product.name}
                           </h3>
                           <div className="mb-4 sm:mb-1 text-left">
-                            {/* Preço USD em vermelho - só no mobile */}
-                            <p className="text-base text-red-600 font-medium mb-1 sm:hidden">
+                            {/* Preço USD em vermelho - mobile e desktop */}
+                            <p className="text-base text-red-600 font-medium mb-1">
                               {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </p>
                             {/* Preço BRL */}
@@ -1048,8 +1048,8 @@ export default function PublicFlyer() {
                             {product.name}
                           </h3>
                           <div className="mb-4 sm:mb-1 text-left">
-                            {/* Preço USD em vermelho - só no mobile */}
-                            <p className="text-base text-red-600 font-medium mb-1 sm:hidden">
+                            {/* Preço USD em vermelho - mobile e desktop */}
+                            <p className="text-base text-red-600 font-medium mb-1">
                               {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </p>
                             {/* Preço BRL */}
