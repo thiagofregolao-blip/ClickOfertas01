@@ -1012,8 +1012,8 @@ export default function PublicFlyer() {
                             {/* Overlay com preço */}
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all">
                               {/* Preço */}
-                              <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
-                                {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString()}
+                              <div className="absolute bottom-2 right-2 bg-black/80 text-red-500 text-sm px-2 py-1 rounded font-semibold">
+                                {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                               </div>
                             </div>
                           </div>
