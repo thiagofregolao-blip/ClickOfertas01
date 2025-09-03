@@ -599,28 +599,28 @@ export default function PublicFlyer() {
             {/* Channel Info Section */}
             <div className="bg-white border-b">
               <div className="px-3 py-6">
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+                <div className="flex flex-row items-center gap-4">
                   {/* Avatar */}
                   <div className="flex-shrink-0">
                     {store.logoUrl ? (
                       <img 
                         src={store.logoUrl} 
                         alt={store.name}
-                        className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover shadow-xl ring-4 ring-white"
+                        className="w-16 h-16 md:w-24 md:h-24 rounded-full object-cover shadow-xl ring-4 ring-white"
                       />
                     ) : (
                       <div 
-                        className="w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-white"
+                        className="w-16 h-16 md:w-24 md:h-24 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-white"
                         style={{ backgroundColor: store.themeColor || '#E11D48' }}
                       >
-                        <span className="text-2xl md:text-3xl">{store.name.charAt(0)}</span>
+                        <span className="text-xl md:text-3xl">{store.name.charAt(0)}</span>
                       </div>
                     )}
                   </div>
                   
                   {/* Store Info */}
                   <div className="flex-1 min-w-0">
-                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{store.name}</h2>
+                    <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">{store.name}</h2>
                     
                     {/* Statistics */}
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
