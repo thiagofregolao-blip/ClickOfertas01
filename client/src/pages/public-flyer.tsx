@@ -841,11 +841,11 @@ export default function PublicFlyer() {
                               <span className="text-xs sm:text-xs">Curtir</span>
                             </button>
                             <button className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
-                              <Bookmark className="w-4 h-4 sm:w-4 sm:h-4" />
+                              <Bookmark className="w-5 h-5 sm:w-4 sm:h-4" />
                               <span className="text-xs sm:text-xs">Salvar</span>
                             </button>
                             <button className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
-                              <BarChart3 className="w-4 h-4 sm:w-4 sm:h-4" />
+                              <BarChart3 className="w-5 h-5 sm:w-4 sm:h-4" />
                               <span className="text-xs sm:text-xs">Comparar</span>
                             </button>
                           </div>
@@ -1040,11 +1040,11 @@ export default function PublicFlyer() {
                               <span className="text-xs sm:text-xs">Curtir</span>
                             </button>
                             <button className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
-                              <Bookmark className="w-4 h-4 sm:w-4 sm:h-4" />
+                              <Bookmark className="w-5 h-5 sm:w-4 sm:h-4" />
                               <span className="text-xs sm:text-xs">Salvar</span>
                             </button>
                             <button className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
-                              <BarChart3 className="w-4 h-4 sm:w-4 sm:h-4" />
+                              <BarChart3 className="w-5 h-5 sm:w-4 sm:h-4" />
                               <span className="text-xs sm:text-xs">Comparar</span>
                             </button>
                           </div>
