@@ -49,7 +49,7 @@ export default function GlobalHeader({
   };
 
   return (
-    <header className="bg-gradient-to-r from-orange-500 to-red-500 shadow-md">
+    <header className="bg-gradient-to-r from-red-500 to-orange-500 shadow-md">
       <div className="max-w-7xl mx-auto px-3 py-3">
         <div className="flex items-center gap-4">
           {/* Logo/Nome do App */}
@@ -62,7 +62,7 @@ export default function GlobalHeader({
           </Link>
 
           {/* Barra de Busca */}
-          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-2xl mx-4">
+          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md mx-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
