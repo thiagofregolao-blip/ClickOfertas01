@@ -351,7 +351,8 @@ export default function LoginPage({ isOpen, onClose, mode = 'user' }: LoginPageP
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
-                  Click Ofertas Paraguai
+                  <span className="hidden sm:inline">Click Ofertas Paraguai</span>
+                  <span className="sm:hidden">Ofertas</span>
                 </h1>
                 <p className="text-gray-600 mt-2">
                   {mode === 'user' 

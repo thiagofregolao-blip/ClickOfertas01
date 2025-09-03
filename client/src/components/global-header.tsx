@@ -108,8 +108,8 @@ export default function GlobalHeader({
         <header className="bg-gradient-to-r from-red-500 to-orange-500 shadow-md sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-3 py-3">
             <div className="flex items-center gap-4">
-              {/* Logo/Nome do App */}
-              <Link href="/cards">
+              {/* Logo/Nome do App - Oculto no mobile */}
+              <Link href="/cards" className="hidden sm:block">
                 <div className="flex-shrink-0 cursor-pointer">
                   <h1 className="text-white font-bold text-lg md:text-xl whitespace-nowrap">
                     Click Ofertas.PY
@@ -234,8 +234,8 @@ export default function GlobalHeader({
       <header className="bg-gradient-to-r from-red-500 to-orange-500 shadow-md">
         <div className="max-w-7xl mx-auto px-3 py-3">
           <div className="flex items-center gap-4">
-            {/* Logo/Nome do App */}
-            <Link href="/cards">
+            {/* Logo/Nome do App - Oculto no mobile */}
+            <Link href="/cards" className="hidden sm:block">
               <div className="flex-shrink-0 cursor-pointer">
                 <h1 className="text-white font-bold text-lg md:text-xl whitespace-nowrap">
                   Click Ofertas.PY

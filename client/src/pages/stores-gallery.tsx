@@ -485,14 +485,7 @@ export default function StoresGallery() {
           <div className="px-4 py-3">
             {/* Logo e Busca */}
             <div className="flex items-center gap-3 mb-3">
-              {/* Logo */}
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <span className="text-white font-bold text-lg tracking-normal" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: '700'}}>Click</span>
-                <span className="font-bold text-lg tracking-normal">
-                  <span className="text-white">Ofertas.</span>
-                  <span style={{color: '#FFE600'}}>PY</span>
-                </span>
-              </div>
+              {/* Logo - removido para mobile */}
               
               {/* Barra de Busca Mobile */}
               <div className="flex-1">
