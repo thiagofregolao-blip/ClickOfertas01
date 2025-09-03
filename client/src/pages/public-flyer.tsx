@@ -885,16 +885,16 @@ export default function PublicFlyer() {
                           
                           {/* Action buttons */}
                           <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
-                            <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
-                              <Heart className="w-3 h-3" />
+                            <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
+                              <Heart className="w-4 h-4" />
                               <span>Curtir</span>
                             </button>
-                            <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
-                              <Bookmark className="w-3 h-3" />
+                            <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
+                              <Bookmark className="w-4 h-4" />
                               <span>Salvar</span>
                             </button>
-                            <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
-                              <BarChart3 className="w-3 h-3" />
+                            <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
+                              <BarChart3 className="w-4 h-4" />
                               <span>Comparar</span>
                             </button>
                           </div>
@@ -1077,16 +1077,16 @@ export default function PublicFlyer() {
                           
                           {/* Action buttons */}
                           <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
-                            <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
-                              <Heart className="w-3 h-3" />
+                            <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
+                              <Heart className="w-4 h-4" />
                               <span>Curtir</span>
                             </button>
-                            <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
-                              <Bookmark className="w-3 h-3" />
+                            <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
+                              <Bookmark className="w-4 h-4" />
                               <span>Salvar</span>
                             </button>
-                            <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
-                              <BarChart3 className="w-3 h-3" />
+                            <button className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
+                              <BarChart3 className="w-4 h-4" />
                               <span>Comparar</span>
                             </button>
                           </div>
