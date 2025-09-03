@@ -599,35 +599,31 @@ export default function PublicFlyer() {
             {/* Channel Info Section */}
             <div className="bg-white border-b">
               <div className="px-3 py-6">
-                <div className="flex flex-col md:flex-row md:items-center gap-4">
-                  {/* Logo e Nome da loja - lado a lado */}
-                  <div className="flex flex-row items-center gap-4">
-                    {/* Avatar */}
+                {/* Mobile Layout */}
+                <div className="md:hidden">
+                  {/* Logo + Nome lado a lado */}
+                  <div className="flex items-center gap-4 mb-4">
                     <div className="flex-shrink-0">
                       {store.logoUrl ? (
                         <img 
                           src={store.logoUrl} 
                           alt={store.name}
-                          className="w-16 h-16 md:w-24 md:h-24 rounded-full object-cover shadow-xl ring-4 ring-white"
+                          className="w-16 h-16 rounded-full object-cover shadow-xl ring-4 ring-white"
                         />
                       ) : (
                         <div 
-                          className="w-16 h-16 md:w-24 md:h-24 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-white"
+                          className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-white"
                           style={{ backgroundColor: store.themeColor || '#E11D48' }}
                         >
-                          <span className="text-xl md:text-3xl">{store.name.charAt(0)}</span>
+                          <span className="text-xl">{store.name.charAt(0)}</span>
                         </div>
                       )}
                     </div>
-                    
-                    {/* Nome da loja */}
-                    <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-gray-900">{store.name}</h2>
-                    </div>
+                    <h2 className="text-xl font-bold text-gray-900">{store.name}</h2>
                   </div>
                   
-                  {/* Statistics - Mobile: abaixo da logo, Desktop: à direita */}
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 md:ml-auto">
+                  {/* Statistics abaixo */}
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
                     <span className="flex items-center gap-1">
                       <span className="font-semibold">{filteredProducts.length}</span>
                       produto{filteredProducts.length !== 1 ? 's' : ''}
@@ -644,8 +640,8 @@ export default function PublicFlyer() {
                     </span>
                   </div>
                   
-                  {/* Contact Links - sempre embaixo no mobile */}
-                  <div className="flex flex-wrap items-center gap-4 md:ml-auto">
+                  {/* Contact Links */}
+                  <div className="flex flex-wrap items-center gap-4">
                     {store.whatsapp && (
                       <a 
                         href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Olá! Vi suas ofertas no Click Ofertas Paraguai e gostaria de mais informações.`}
@@ -668,6 +664,76 @@ export default function PublicFlyer() {
                         📸 Instagram
                       </a>
                     )}
+                  </div>
+                </div>
+                
+                {/* Desktop Layout - Original */}
+                <div className="hidden md:flex md:items-center gap-6">
+                  {/* Avatar */}
+                  <div className="flex-shrink-0">
+                    {store.logoUrl ? (
+                      <img 
+                        src={store.logoUrl} 
+                        alt={store.name}
+                        className="w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white"
+                      />
+                    ) : (
+                      <div 
+                        className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-white"
+                        style={{ backgroundColor: store.themeColor || '#E11D48' }}
+                      >
+                        <span className="text-3xl">{store.name.charAt(0)}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Store Info */}
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">{store.name}</h2>
+                    
+                    {/* Statistics */}
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
+                      <span className="flex items-center gap-1">
+                        <span className="font-semibold">{filteredProducts.length}</span>
+                        produto{filteredProducts.length !== 1 ? 's' : ''}
+                      </span>
+                      <span className="text-gray-400">•</span>
+                      <span className="flex items-center gap-1">
+                        <span className="font-semibold">{activePromotions.length}</span>
+                        promoção{activePromotions.length !== 1 ? 'ões' : 'ão'}
+                      </span>
+                      <span className="text-gray-400">•</span>
+                      <span className="flex items-center gap-1">
+                        <span className="font-semibold">1.2k</span>
+                        visualizações
+                      </span>
+                    </div>
+                    
+                    {/* Contact Links */}
+                    <div className="flex flex-wrap items-center gap-4">
+                      {store.whatsapp && (
+                        <a 
+                          href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}?text=Olá! Vi suas ofertas no Click Ofertas Paraguai e gostaria de mais informações.`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-green-600 hover:text-green-700 transition-colors flex items-center gap-2 text-sm font-medium"
+                          data-testid={`whatsapp-link-${store.slug}`}
+                        >
+                          📱 WhatsApp
+                        </a>
+                      )}
+                      {store.instagram && (
+                        <a 
+                          href={`https://instagram.com/${store.instagram.replace('@', '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-pink-600 hover:text-pink-700 transition-colors flex items-center gap-2 text-sm font-medium"
+                          data-testid={`instagram-link-${store.slug}`}
+                        >
+                          📸 Instagram
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
