@@ -496,7 +496,7 @@ export default function PublicFlyer() {
 
 
       {/* Content */}
-      <div id="flyer-content" className="max-w-4xl mx-auto bg-white shadow-lg">
+      <div id="flyer-content" className="max-w-6xl mx-auto bg-white shadow-lg">
         {isStoriesView ? (
           /* Stories Layout - Professional */
           <>
@@ -588,7 +588,7 @@ export default function PublicFlyer() {
 
             {/* Channel Info Section */}
             <div className="bg-white border-b">
-              <div className="px-6 py-6">
+              <div className="px-3 py-6">
                 <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
                   {/* Avatar */}
                   <div className="flex-shrink-0">
@@ -682,7 +682,7 @@ export default function PublicFlyer() {
 
             {/* Navigation Tabs */}
             <div className="bg-white border-b">
-              <div className="px-6">
+              <div className="px-3">
                 <div className="flex items-center gap-8">
                   <button className="py-4 px-2 text-sm font-medium text-gray-900 border-b-2 border-red-600">
                     Produtos
@@ -702,7 +702,7 @@ export default function PublicFlyer() {
 
             {/* Filter Bar */}
             <div className="bg-gray-50 border-b">
-              <div className="px-6 py-3">
+              <div className="px-3 py-3">
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-medium text-gray-700">Filtros:</span>
                   <div className="flex items-center gap-2">
