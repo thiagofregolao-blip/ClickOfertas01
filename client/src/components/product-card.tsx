@@ -129,7 +129,7 @@ export default function ProductCard({
         {/* Info estilo YouTube */}
         <div className="flex-1 flex flex-col mt-2 px-3 pb-0 sm:mt-3 sm:pb-3">
           {/* Título com altura fixa */}
-          <div className="h-8 sm:h-10 flex items-start mb-3 sm:mb-2">
+          <div className="h-8 sm:h-10 flex items-start mb-4 sm:mb-2">
             <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors text-left">
               {product.name}
             </h3>
