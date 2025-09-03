@@ -787,7 +787,7 @@ export default function PublicFlyer() {
                         </div>
                         
                         {/* Video info */}
-                        <div className="flex gap-3 mt-3">
+                        <div className="flex gap-3 mt-3 px-3">
                           {/* Avatar */}
                           <div className="flex-shrink-0">
                             <div 
@@ -835,7 +835,7 @@ export default function PublicFlyer() {
                     // PRODUTO NORMAL: YouTube-style Product Card
                     <div 
                       key={product.id} 
-                      className="group cursor-pointer pb-4 mb-4 border border-gray-200 rounded-lg p-3"
+                      className="group cursor-pointer pb-4 mb-4 border border-gray-200 rounded-lg overflow-hidden"
                       onClick={() => {
                         setSelectedProduct(product);
                         setSelectedStore(store || null);
@@ -843,7 +843,7 @@ export default function PublicFlyer() {
                     >
                       <div className="relative">
                         {/* Thumbnail */}
-                        <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
+                        <div className="relative aspect-video bg-gray-200 overflow-hidden">
                           {product.imageUrl ? (
                             <img 
                               src={product.imageUrl} 
@@ -873,7 +873,7 @@ export default function PublicFlyer() {
                         </div>
                         
                         {/* Info estilo YouTube */}
-                        <div className="mt-3">
+                        <div className="mt-3 px-3">
                           <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
                             {product.name}
                           </h3>
@@ -984,7 +984,7 @@ export default function PublicFlyer() {
                         </div>
                         
                         {/* Video info */}
-                        <div className="flex gap-3 mt-3">
+                        <div className="flex gap-3 mt-3 px-3">
                           {/* Avatar */}
                           <div className="flex-shrink-0">
                             <div 
@@ -1065,7 +1065,7 @@ export default function PublicFlyer() {
                         </div>
                         
                         {/* Info estilo YouTube */}
-                        <div className="mt-3">
+                        <div className="mt-3 px-3">
                           <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
                             {product.name}
                           </h3>
