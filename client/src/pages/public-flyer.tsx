@@ -762,75 +762,18 @@ export default function PublicFlyer() {
                   // Performance optimization: removed debug logs
                   
                   return isRealPromotion ? (
-                    // PROMOÇÃO REAL: YouTube-style Scratch Card
-                    <div key={product.id} className="group cursor-pointer">
-                      <div className="relative">
-                        {/* Thumbnail */}
-                        <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
-                          <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
-                            <div className="text-white text-center">
-                              <div className="text-4xl mb-2">🎁</div>
-                              <div className="font-bold text-lg">RASPE E GANHE</div>
-                              <div className="text-sm opacity-90">Desconto especial</div>
-                            </div>
-                          </div>
-                          {/* Play button overlay */}
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-all">
-                            <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white">
-                              <span className="text-xl">▶</span>
-                            </div>
-                          </div>
-                          {/* Duration badge */}
-                          <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
-                            PROMO
-                          </div>
-                        </div>
-                        
-                        {/* Video info */}
-                        <div className="flex gap-3 mt-3 px-3">
-                          {/* Avatar */}
-                          <div className="flex-shrink-0">
-                            <div 
-                              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
-                              style={{ backgroundColor: store?.themeColor || '#E11D48' }}
-                            >
-                              {store.name.charAt(0)}
-                            </div>
-                          </div>
-                          
-                          {/* Title and details */}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                              {product.name}
-                            </h3>
-                            <div className="mt-1">
-                              <p className="text-xs font-semibold text-red-600">
-                                ${parseFloat(product.scratchPrice || '0').toLocaleString()}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                R$ {(parseFloat(product.scratchPrice || '0') * 5.47).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                              </p>
-                            </div>
-                            
-                            {/* Action buttons for promotions */}
-                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
-                              <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors">
-                                <Heart className="w-3 h-3" />
-                                <span>Curtir</span>
-                              </button>
-                              <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-500 transition-colors">
-                                <Bookmark className="w-3 h-3" />
-                                <span>Salvar</span>
-                              </button>
-                              <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
-                                <BarChart3 className="w-3 h-3" />
-                                <span>Comparar</span>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    // PROMOÇÃO REAL: Scratch Card com mesmo layout
+                    <ScratchCard
+                      key={product.id}
+                      product={product}
+                      currency={store?.currency || 'USD'}
+                      themeColor={store?.themeColor || '#E11D48'}
+                      logoUrl={store?.logoUrl || undefined}
+                      onClick={(product) => {
+                        setSelectedProduct(product);
+                        setSelectedStore(store || null);
+                      }}
+                    />
                   ) : (
                     // PRODUTO NORMAL: YouTube-style Product Card
                     <div 
