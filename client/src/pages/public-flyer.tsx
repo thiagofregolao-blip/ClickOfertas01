@@ -812,7 +812,7 @@ export default function PublicFlyer() {
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all">
                             {/* Duration badge - Hidden on mobile */}
                             <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded hidden sm:block">
-                              {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString()}
+                              {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </div>
                             
                           </div>
@@ -826,7 +826,7 @@ export default function PublicFlyer() {
                           <div className="mb-4 sm:mb-1 text-left">
                             {/* Preço USD em vermelho - só no mobile */}
                             <p className="text-sm text-red-600 font-medium mb-1 sm:hidden">
-                              {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString()}
+                              {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </p>
                             {/* Preço BRL */}
                             <p className="text-xs text-gray-500">
@@ -1025,7 +1025,7 @@ export default function PublicFlyer() {
                           <div className="mb-4 sm:mb-1 text-left">
                             {/* Preço USD em vermelho - só no mobile */}
                             <p className="text-sm text-red-600 font-medium mb-1 sm:hidden">
-                              {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString()}
+                              {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </p>
                             {/* Preço BRL */}
                             <p className="text-xs text-gray-500">
