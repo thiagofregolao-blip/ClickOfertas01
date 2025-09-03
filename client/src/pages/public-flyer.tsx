@@ -1039,9 +1039,9 @@ export default function PublicFlyer() {
                     // PRODUTO NORMAL: YouTube-style Product Card
                     <div 
                       key={product.id} 
-                      className={`group cursor-pointer pb-4 mb-4 rounded-lg p-3 ${
+                      className={`group cursor-pointer pb-4 mb-4 rounded-lg overflow-hidden ${
                         product.isFeatured 
-                          ? 'p-0.5 bg-gradient-to-r from-red-500 via-red-600 to-orange-500' 
+                          ? 'border border-red-500' 
                           : 'border border-gray-200'
                       }`}
                       onClick={() => {
@@ -1049,7 +1049,7 @@ export default function PublicFlyer() {
                         setSelectedStore(store || null);
                       }}
                     >
-                      <div className={`relative ${product.isFeatured ? 'bg-white rounded-md p-3' : ''}`}>
+                      <div className="relative">
                         {/* Thumbnail */}
                         <div className="relative aspect-video bg-gray-200 rounded-t-lg overflow-hidden">
                             {product.imageUrl ? (
