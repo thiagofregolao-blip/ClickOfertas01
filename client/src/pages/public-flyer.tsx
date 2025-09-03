@@ -71,7 +71,9 @@ interface InstagramStory {
 export default function PublicFlyer() {
   const [, flyerParams] = useRoute("/flyer/:slug");
   const [, storeParams] = useRoute("/stores/:slug");
-  const params = flyerParams || storeParams;
+  const [, directSlugParams] = useRoute("/:slug");  // Nova rota para slugs diretos
+  const params = flyerParams || storeParams || directSlugParams;
+  
   const isStoriesView = !!storeParams; // Detecta se é acesso via stories
   const { isMobile, isDesktop, version, versionName } = useAppVersion();
   const { toast } = useToast();
@@ -197,6 +199,7 @@ export default function PublicFlyer() {
   const activePromotions = (promotionsResponse?.promotions || []).filter(
     (promo: any) => !removedPromotions.includes(promo.id)
   );
+  
   
   // Callback para remoção local imediata de promoções
   const handlePromotionRevealed = (product: any) => {
@@ -341,6 +344,7 @@ export default function PublicFlyer() {
     createdAt: new Date(promotion.createdAt),
     updatedAt: new Date(promotion.updatedAt)
   }));
+  
 
   // Mesclar produtos normais com promoções
   const allProductsWithPromotions = [...(store?.products || []), ...promotionsAsProducts];
@@ -348,6 +352,7 @@ export default function PublicFlyer() {
   const activeProducts = isStoriesView 
     ? allProductsWithPromotions.filter(p => p.isActive && p.showInStories) // Só produtos dos stories
     : allProductsWithPromotions.filter(p => p.isActive); // Todos produtos ativos
+  
   
   // Agrupar produtos por categoria
   const productsByCategory = activeProducts.reduce((acc, product) => {
@@ -374,6 +379,7 @@ export default function PublicFlyer() {
   const filteredProducts = selectedCategory === "all" 
     ? sortedCategories.flatMap(category => productsByCategory[category]) // Ordenar por categoria quando "all"
     : activeProducts.filter(product => (product.category || 'Geral') === selectedCategory);
+    
 
   // DESABILITADO TEMPORARIAMENTE - Sistema antigo de stories baseado em produtos
   // Agora usando o novo sistema de Instagram Stories abaixo
@@ -751,11 +757,12 @@ export default function PublicFlyer() {
 
           {/* YouTube-Style Products Grid */}
           {filteredProducts.length > 0 || virtualClones.length > 0 ? (
-            storeParams ? (
+            params ? (
               // YouTube-style grid layout
               <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {/* PRODUTOS ORIGINAIS + PROMOÇÕES COM RASPADINHA */}
                 {filteredProducts.map((product) => {
+                  
                   return product.isScratchCard ? (
                     // PROMOÇÃO REAL: Scratch Card com mesmo layout
                     <ScratchCard

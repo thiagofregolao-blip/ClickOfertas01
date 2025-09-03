@@ -78,6 +78,7 @@ function Router() {
           <Route path="/admin-panel" component={SuperAdmin} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
+          <Route path="/:slug" component={PublicFlyer} />
         </>
       ) : user?.hasStore ? (
         // Lojista logado - painel admin completo
@@ -102,6 +103,7 @@ function Router() {
           <Route path="/coupon" component={CouponDetails} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
+          <Route path="/:slug" component={PublicFlyer} />
         </>
       ) : (
         // Usuário normal logado - sem acesso ao admin
@@ -120,6 +122,7 @@ function Router() {
           <Route path="/admin-panel" component={SuperAdmin} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
+          <Route path="/:slug" component={PublicFlyer} />
           {/* Usuário normal não tem acesso ao admin - redireciona para /cards */}
           <Route path="/admin" component={() => { window.location.href = '/cards'; return null; }} />
           <Route path="/admin/*" component={() => { window.location.href = '/cards'; return null; }} />
