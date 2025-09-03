@@ -951,55 +951,149 @@ export default function PublicFlyer() {
                 */}
               </div>
             ) : (
-              // Layout compacto para tela cheia (/flyer/:slug)
-              <div className={`grid gap-${isStoriesView ? '6' : '3'} ${
-                isStoriesView 
-                  ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
-                  : 'grid-cols-3 md:grid-cols-4 lg:grid-cols-6'
-              }`}>
-                {/* PRODUTOS ORIGINAIS + PROMOÇÕES COM RASPADINHA */}
+              // YouTube-style grid também para layout compacto
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {filteredProducts.map((product) => {
-                  // CORREÇÃO: Só renderizar como raspadinha se for promoção real (vem de activePromotions)
                   const isRealPromotion = activePromotions.some(promo => promo.id === product.id);
                   
-                  console.log("🔍 PRODUTO MAPEADO:", {
-                    productId: product.id,
-                    productName: product.name,
-                    isScratchCard: product.isScratchCard,
-                    isRealPromotion,
-                    activePromotionsCount: activePromotions.length
-                  });
-                  
                   return isRealPromotion ? (
-                    // PROMOÇÃO REAL: Renderizar como ScratchCard
-                    <div key={product.id} className="relative">
-                      <ScratchCard
-                        product={product}
-                        currency={store?.currency || "Gs."}
-                        themeColor={store?.themeColor || "#E11D48"}
-                        logoUrl={store?.logoUrl}
-                        onRevealed={handlePromotionRevealed}
-                        onClick={(product) => {
-                          setSelectedProduct(product);
-                          setSelectedStore(store || null);
-                        }}
-                      />
+                    // PROMOÇÃO REAL: YouTube-style Scratch Card
+                    <div key={product.id} className="group cursor-pointer">
+                      <div className="relative">
+                        {/* Thumbnail de promoção */}
+                        <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
+                          <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
+                            <div className="text-white text-center">
+                              <div className="text-4xl mb-2">🎁</div>
+                              <div className="font-bold text-lg">RASPE E GANHE</div>
+                              <div className="text-sm opacity-90">Desconto especial</div>
+                            </div>
+                          </div>
+                          {/* Play button overlay */}
+                          <div 
+                            className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-all cursor-pointer"
+                            onClick={() => {
+                              setSelectedProduct(product);
+                              setSelectedStore(store || null);
+                            }}
+                          >
+                            <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white">
+                              <span className="text-xl">🎁</span>
+                            </div>
+                          </div>
+                          {/* Badge de promoção */}
+                          <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                            PROMO
+                          </div>
+                        </div>
+                        
+                        {/* Info estilo YouTube */}
+                        <div className="flex gap-3 mt-3">
+                          <div className="flex-shrink-0">
+                            <div 
+                              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                              style={{ backgroundColor: store?.themeColor || '#E11D48' }}
+                            >
+                              {store?.logoUrl ? (
+                                <img 
+                                  src={store.logoUrl} 
+                                  alt={store.name}
+                                  className="w-9 h-9 rounded-full object-cover"
+                                />
+                              ) : (
+                                store.name.charAt(0)
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                              {product.name}
+                            </h3>
+                            <p className="text-xs text-gray-600 mt-1">{store.name}</p>
+                            <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                              <span>🎁 Promoção</span>
+                              <span>•</span>
+                              <span>{store?.currency || 'Gs.'} {product.scratchPrice}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ) : (
-                    // PRODUTO NORMAL: Sempre ProductCard (mesmo com isScratchCard=true)
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      currency={store?.currency || "Gs."}
-                      themeColor={store?.themeColor || "#E11D48"}
-                      showFeaturedBadge={product.isFeatured || false}
-                      enableEngagement={true}
-                      onClick={(product) => {
+                    // PRODUTO NORMAL: YouTube-style Product Card
+                    <div 
+                      key={product.id} 
+                      className="group cursor-pointer"
+                      onClick={() => {
                         setSelectedProduct(product);
                         setSelectedStore(store || null);
                       }}
-                      customUsdBrlRate={store?.customUsdBrlRate ? Number(store.customUsdBrlRate) : undefined}
-                    />
+                    >
+                      <div className="relative">
+                        {/* Thumbnail */}
+                        <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
+                          {product.imageUrl ? (
+                            <img 
+                              src={product.imageUrl} 
+                              alt={product.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                              <span className="text-gray-600 text-4xl">📦</span>
+                            </div>
+                          )}
+                          
+                          {/* Overlay com preço e badges */}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all">
+                            {/* Preço */}
+                            <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                              {store?.currency || 'USD'} {parseFloat(product.price).toLocaleString()}
+                            </div>
+                            
+                            {/* Badge destaque */}
+                            {product.isFeatured && (
+                              <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
+                                DESTAQUE
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Info estilo YouTube */}
+                        <div className="flex gap-3 mt-3">
+                          <div className="flex-shrink-0">
+                            <div 
+                              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                              style={{ backgroundColor: store?.themeColor || '#E11D48' }}
+                            >
+                              {store?.logoUrl ? (
+                                <img 
+                                  src={store.logoUrl} 
+                                  alt={store.name}
+                                  className="w-9 h-9 rounded-full object-cover"
+                                />
+                              ) : (
+                                store.name.charAt(0)
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                              {product.name}
+                            </h3>
+                            <p className="text-xs text-gray-600 mt-1">{store.name}</p>
+                            <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                              <span>📦 {product.category || 'Produto'}</span>
+                              <span>•</span>
+                              <span>Disponível</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   );
                 })}
                 
