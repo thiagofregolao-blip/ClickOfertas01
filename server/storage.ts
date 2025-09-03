@@ -2078,16 +2078,22 @@ export class DatabaseStorage implements IStorage {
       return true;
     }
 
-    // NOVA VERIFICAÇÃO: Verificar na tabela coupons (para cupons gerados via produtos)
-    const [couponResult] = await db
-      .select({ count: count() })
-      .from(coupons)
-      .where(and(
-        eq(coupons.productId, promotionId), // productId pode ser promotionId quando é promoção
-        eq(coupons.userId, userId)
-      ));
+    // NOVA VERIFICAÇÃO: Verificar na tabela coupons (para cupons gerados via promoções)
+    // Buscar cupons onde userId + promotionName existe (cupons de promoção têm promotionName preenchido)
+    const promotion = await db.select({ name: promotions.name }).from(promotions).where(eq(promotions.id, promotionId)).limit(1);
+    if (promotion.length > 0) {
+      const [couponResult] = await db
+        .select({ count: count() })
+        .from(coupons)
+        .where(and(
+          eq(coupons.userId, userId),
+          eq(coupons.promotionName, promotion[0].name) // Comparar pelo nome da promoção
+        ));
+      
+      return (couponResult?.count || 0) > 0;
+    }
     
-    return (couponResult?.count || 0) > 0;
+    return false;
   }
 
   // NEW: Instagram Stories operations implementation
