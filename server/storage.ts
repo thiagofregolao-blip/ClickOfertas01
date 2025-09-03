@@ -2046,7 +2046,18 @@ export class DatabaseStorage implements IStorage {
       return usedCount < maxClients; // Apenas promoções que ainda têm vagas
     });
 
-    return validPromotions.map(r => ({
+    // NOVA VERIFICAÇÃO: Filtrar promoções onde o usuário já gerou cupom
+    const finalPromotions = [];
+    for (const r of validPromotions) {
+      const alreadyGenerated = await this.hasUserGeneratedCoupon(r.promotion.id, userId);
+      if (!alreadyGenerated) {
+        finalPromotions.push(r);
+      } else {
+        console.log(`🚫 Promoção ${r.promotion.name} excluída - usuário ${userId} já possui cupom`);
+      }
+    }
+
+    return finalPromotions.map(r => ({
       ...r.promotion,
       store: r.store
     }));
