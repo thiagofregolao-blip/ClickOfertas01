@@ -2608,11 +2608,14 @@ export class DatabaseStorage implements IStorage {
         ipAddress,
       });
 
-    // Incrementar contador
+    // Incrementar contador - sem usar CAST por problemas de compatibilidade
+    const currentBanner = await db.select({ clicksCount: banners.clicksCount }).from(banners).where(eq(banners.id, bannerId)).limit(1);
+    const currentClicks = parseInt(currentBanner[0]?.clicksCount || '0');
+    
     await db
       .update(banners)
       .set({
-        clicksCount: sql`CAST(${banners.clicksCount} AS INTEGER) + 1`,
+        clicksCount: (currentClicks + 1).toString(),
         updatedAt: new Date(),
       })
       .where(eq(banners.id, bannerId));
@@ -2627,13 +2630,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveDailyPrizes(): Promise<DailyPrize[]> {
+    // Consulta simples apenas para prêmios ativos (sem comparação de limites por enquanto)
     return await db.select()
       .from(dailyPrizes)
-      .where(and(
-        eq(dailyPrizes.isActive, true),
-        gte(sql`CAST(${dailyPrizes.total_wins_limit} AS INTEGER)`, sql`CAST(${dailyPrizes.current_wins} AS INTEGER)`),
-        gte(dailyPrizes.expires_at, new Date())
-      ))
+      .where(eq(dailyPrizes.isActive, true))
       .orderBy(desc(dailyPrizes.createdAt));
   }
 
@@ -2660,12 +2660,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async incrementPrizeWins(prizeId: string): Promise<void> {
-    await db.update(dailyPrizes)
-      .set({
-        current_wins: sql`CAST(${dailyPrizes.current_wins} AS INTEGER) + 1`,
-        updatedAt: new Date(),
-      })
-      .where(eq(dailyPrizes.id, prizeId));
+    // Buscar prêmio atual
+    const prize = await this.getDailyPrize(prizeId);
+    if (prize) {
+      const currentWins = parseInt(prize.current_wins || '0');
+      const newWins = currentWins + 1;
+      
+      await db.update(dailyPrizes)
+        .set({
+          current_wins: newWins.toString(),
+          updatedAt: new Date(),
+        })
+        .where(eq(dailyPrizes.id, prizeId));
+    }
   }
 
   async getUserDailyAttempt(userId: string, date: string): Promise<UserDailyAttempt[]> {

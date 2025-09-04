@@ -117,7 +117,7 @@ export default function ThreeDailyScratchCards() {
   const queryClient = useQueryClient();
 
   // Buscar as 3 cartas diárias
-  const { data: cardsData, isLoading } = useQuery({
+  const { data: cardsData, isLoading } = useQuery<{ success: boolean; cards: DailyScratchCard[]; count: number }>({
     queryKey: ['/api/daily-scratch/cards'],
     refetchOnWindowFocus: false,
     staleTime: 30 * 1000, // 30 segundos
@@ -126,7 +126,7 @@ export default function ThreeDailyScratchCards() {
   const cards = cardsData?.cards || [];
 
   // Mutation para raspar uma carta
-  const scratchMutation = useMutation({
+  const scratchMutation = useMutation<{ success: boolean; won: boolean; message: string; card: DailyScratchCard }, Error, string>({
     mutationFn: async (cardId: string) => {
       return await apiRequest(`/api/daily-scratch/cards/${cardId}/scratch`, 'POST');
     },
