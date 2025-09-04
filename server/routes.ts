@@ -2932,8 +2932,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Teste interno da raspadinha (Super Admin)
+  app.post('/api/admin/daily-scratch/test', isAuthenticatedCustom, isSuperAdmin, async (req: any, res) => {
+    try {
+      // Criar usuário teste simulado para o super admin
+      const testUserId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
+      const today = new Date().toISOString().split('T')[0];
+
+      // Buscar configuração do sistema
+      const config = await storage.getScratchSystemConfig();
+      if (!config) {
+        return res.status(500).json({ message: "Sistema não configurado" });
+      }
+
+      // Simular tentativa (sempre ganhar para teste)
+      const won = true;
+      
+      // Selecionar prêmio aleatório ativo
+      const availablePrizes = await storage.getActiveDailyPrizes();
+      let prizeWon = null;
+      
+      if (availablePrizes.length > 0) {
+        const randomIndex = Math.floor(Math.random() * availablePrizes.length);
+        prizeWon = availablePrizes[randomIndex];
+      }
+
+      res.json({
+        success: true,
+        won,
+        prize: prizeWon,
+        message: won 
+          ? `🎉 TESTE: Parabéns! Você ganhou: ${prizeWon?.name}!` 
+          : "😔 TESTE: Não foi dessa vez! Sistema funcionando.",
+        systemStatus: "Sistema operacional",
+        availablePrizes: availablePrizes.length,
+        configLoaded: true
+      });
+
+    } catch (error) {
+      console.error("Error testing daily scratch:", error);
+      res.status(500).json({ message: "Failed to test system", error: error.message });
+    }
+  });
+
   // Gerar sugestões do algoritmo (Super Admin)
-  app.post('/api/admin/algorithm-suggestions/generate', isSuperAdmin, async (req: any, res) => {
+  app.post('/api/admin/algorithm-suggestions/generate', isAuthenticatedCustom, isSuperAdmin, async (req: any, res) => {
     try {
       const suggestions = await intelligentScratchAlgorithm.generateProductSuggestions();
       res.json({ 

@@ -1000,9 +1000,34 @@ export default function SuperAdmin() {
                     <Input type="number" defaultValue="25" max="100" className="max-w-20" />
                   </div>
                   
-                  <Button className="w-full">
-                    Salvar Configurações
-                  </Button>
+                  <div className="space-y-2">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={async () => {
+                        try {
+                          const response = await apiRequest('/api/admin/daily-scratch/test', 'POST');
+                          toast({
+                            title: "Sistema Testado!",
+                            description: response.message,
+                            variant: response.won ? "default" : "destructive",
+                          });
+                        } catch (error) {
+                          toast({
+                            title: "Erro no Teste",
+                            description: "Falha ao testar o sistema",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    >
+                      <Dice6 className="w-4 h-4 mr-2" />
+                      Testar Sistema
+                    </Button>
+                    <Button className="w-full">
+                      Salvar Configurações
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
 
