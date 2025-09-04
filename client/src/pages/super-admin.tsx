@@ -16,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Trash2, Eye, LogOut } from 'lucide-react';
+import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Trash2, Eye, LogOut, Gift, Dice6, Target } from 'lucide-react';
 import { isUnauthorizedError } from '@/lib/authUtils';
 
 const bannerSchema = z.object({
@@ -413,7 +413,7 @@ export default function SuperAdmin() {
         </div>
 
         <Tabs defaultValue="banners" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="banners" className="flex items-center gap-2">
               <Image className="w-4 h-4" />
               Banners
@@ -425,6 +425,10 @@ export default function SuperAdmin() {
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               Usuários
+            </TabsTrigger>
+            <TabsTrigger value="daily-scratch" className="flex items-center gap-2">
+              <Gift className="w-4 h-4" />
+              Raspadinha
             </TabsTrigger>
             <TabsTrigger value="stats" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
@@ -954,6 +958,270 @@ export default function SuperAdmin() {
                 </Card>
               )}
             </div>
+          </TabsContent>
+
+          {/* ABA DE RASPADINHA DIÁRIA */}
+          <TabsContent value="daily-scratch" className="space-y-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <Gift className="w-6 h-6 text-purple-600" />
+                Sistema de Raspadinha Diária
+              </h2>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Configurações do Sistema */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="w-5 h-5 text-blue-600" />
+                    Configurações
+                  </CardTitle>
+                  <CardDescription>
+                    Configure como o sistema funciona
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Modo de Operação</p>
+                      <p className="text-sm text-gray-600">Manual ou Automático</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Produtos por Dia</label>
+                    <Input type="number" defaultValue="5" className="max-w-20" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Chance de Ganhar (%)</label>
+                    <Input type="number" defaultValue="25" max="100" className="max-w-20" />
+                  </div>
+                  
+                  <Button className="w-full">
+                    Salvar Configurações
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Estatísticas Rápidas */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-green-600" />
+                    Estatísticas Hoje
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-3 bg-blue-50 rounded-lg">
+                      <p className="text-2xl font-bold text-blue-600">127</p>
+                      <p className="text-sm text-gray-600">Tentativas</p>
+                    </div>
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                      <p className="text-2xl font-bold text-green-600">32</p>
+                      <p className="text-sm text-gray-600">Prêmios</p>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center p-3 bg-purple-50 rounded-lg">
+                    <p className="text-2xl font-bold text-purple-600">25%</p>
+                    <p className="text-sm text-gray-600">Taxa de Sucesso</p>
+                  </div>
+                  
+                  <Button variant="outline" className="w-full">
+                    <Eye className="w-4 h-4 mr-2" />
+                    Ver Relatório Detalhado
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Gestão de Produtos */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="w-5 h-5 text-orange-600" />
+                  Produtos Selecionados para Raspadinha
+                </CardTitle>
+                <CardDescription>
+                  Produtos que podem aparecer nas rapadinhas diárias
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-sm text-gray-600">5 produtos selecionados para hoje</p>
+                  <div className="space-x-2">
+                    <Button variant="outline" size="sm">
+                      <Dice6 className="w-4 h-4 mr-2" />
+                      Gerar Automático
+                    </Button>
+                    <Button size="sm">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Selecionar Produtos
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="grid gap-3 max-h-60 overflow-y-auto">
+                  {/* Produtos selecionados - Mock */}
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded"></div>
+                      <div>
+                        <p className="font-medium">iPhone 15 Pro Max</p>
+                        <p className="text-sm text-gray-600">Loja: TechStore PY</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">50% DESC</Badge>
+                      <Button variant="ghost" size="sm">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded"></div>
+                      <div>
+                        <p className="font-medium">Smart TV Samsung 65"</p>
+                        <p className="text-sm text-gray-600">Loja: ElectroMax</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">R$ 200 OFF</Badge>
+                      <Button variant="ghost" size="sm">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded"></div>
+                      <div>
+                        <p className="font-medium">Nike Air Max</p>
+                        <p className="text-sm text-gray-600">Loja: SportCenter</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">30% DESC</Badge>
+                      <Button variant="ghost" size="sm">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Gestão de Prêmios */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Gift className="w-5 h-5 text-purple-600" />
+                  Prêmios Disponíveis
+                </CardTitle>
+                <CardDescription>
+                  Configure os tipos de prêmios que podem ser ganhos
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-sm text-gray-600">3 tipos de prêmios configurados</p>
+                  <Button size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo Prêmio
+                  </Button>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-green-50 to-green-100">
+                    <div>
+                      <p className="font-medium">Desconto Percentual</p>
+                      <p className="text-sm text-gray-600">50% de desconto no produto</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-green-600">Ativo</Badge>
+                      <Button variant="ghost" size="sm">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-blue-100">
+                    <div>
+                      <p className="font-medium">Desconto Fixo</p>
+                      <p className="text-sm text-gray-600">R$ 25 de desconto</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-blue-600">Ativo</Badge>
+                      <Button variant="ghost" size="sm">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-purple-50 to-purple-100">
+                    <div>
+                      <p className="font-medium">Desconto Especial</p>
+                      <p className="text-sm text-gray-600">30% de desconto</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-purple-600">Ativo</Badge>
+                      <Button variant="ghost" size="sm">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Algoritmo Inteligente */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Dice6 className="w-5 h-5 text-indigo-600" />
+                  Algoritmo Inteligente
+                </CardTitle>
+                <CardDescription>
+                  Sistema automático de seleção de produtos
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <p className="text-lg font-bold text-blue-600">30%</p>
+                    <p className="text-xs text-gray-600">Popularidade</p>
+                  </div>
+                  <div className="p-3 bg-green-50 rounded-lg">
+                    <p className="text-lg font-bold text-green-600">20%</p>
+                    <p className="text-xs text-gray-600">Análise de Preço</p>
+                  </div>
+                  <div className="p-3 bg-yellow-50 rounded-lg">
+                    <p className="text-lg font-bold text-yellow-600">20%</p>
+                    <p className="text-xs text-gray-600">Margem Loja</p>
+                  </div>
+                  <div className="p-3 bg-purple-50 rounded-lg">
+                    <p className="text-lg font-bold text-purple-600">30%</p>
+                    <p className="text-xs text-gray-600">Novidade + Cat.</p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1">
+                    Gerar Sugestões
+                  </Button>
+                  <Button className="flex-1">
+                    Aplicar Automático
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-6">

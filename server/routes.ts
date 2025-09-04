@@ -7,13 +7,13 @@ import { getUserId } from "./utils/auth";
 // Middleware para verificar autenticação (sessão manual ou Replit Auth)
 const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
   try {
-    // Verificar sessão manual primeiro
-    if (req.session?.user) {
+    // Verificar sessão manual primeiro (usuários registrados via formulário)
+    if (req.session?.user?.id) {
       return next();
     }
     
     // Verificar autenticação Replit como fallback
-    if (req.session?.user?.id) {
+    if (req.user?.claims?.sub || req.user?.id) {
       return next();
     }
     
@@ -1756,6 +1756,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Criar snapshot do produto para os clones
       const product = await storage.getProductById(campaign.productId);
+      if (!product) {
+        return res.status(404).json({ message: "Produto não encontrado" });
+      }
+      
       const productSnapshot = {
         id: product.id,
         storeId: product.storeId,
