@@ -1,0 +1,314 @@
+ANÁLISE DO SISTEMA DE 3 RAPADINHAS DIÁRIAS - CÓDIGO COMPLETO
+================================================================
+
+PROBLEMA ATUAL: 
+- Erro SQL: column "valid_from" does not exist
+- API /api/daily-scratch/cards retorna erro 500
+- Rapadinhas não aparecem no frontend
+
+---
+
+1. SCHEMA DEFINIDO (shared/schema.ts):
+==========================================
+
+export const dailyPrizes = pgTable("daily_prizes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Tipo de prêmio
+  prizeType: varchar("prize_type").notNull(), // 'product', 'discount', 'cashback'
+  
+  // Dados do produto (quando prizeType = 'product')
+  productId: varchar("product_id").references(() => products.id, { onDelete: "cascade" }),
+  
+  // Dados de desconto/cashback (quando prizeType != 'product')
+  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }),
+  discountValue: decimal("discount_value", { precision: 12, scale: 2 }),
+  maxDiscountAmount: decimal("max_discount_amount", { precision: 12, scale: 2 }),
+  
+  // Configurações do prêmio
+  name: text("name").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  
+  // Controle de probabilidade e uso
+  probability: decimal("probability", { precision: 5, scale: 4 }).notNull().default("0.001"), // 0.1% por padrão
+  maxDailyWins: varchar("max_daily_wins").default("1"), // Máximo de vitórias por dia
+  totalWinsToday: varchar("total_wins_today").default("0"), // Contador diário
+  totalWinsAllTime: varchar("total_wins_all_time").default("0"), // Contador total
+  
+  // Status
+  isActive: boolean("is_active").default(true),
+  
+  // Validade
+  validFrom: timestamp("valid_from").defaultNow(),
+  validUntil: timestamp("valid_until"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+---
+
+2. TABELA REAL NO BANCO (consultada via SQL):
+=============================================
+
+Colunas existentes na tabela daily_prizes:
+- id (character varying)
+- name (character varying)  
+- description (text)
+- prize_type (character varying)
+- discount_percentage (numeric)
+- discount_value (numeric)
+- min_purchase_amount (numeric)
+- max_discount_amount (numeric)
+- product_id (character varying)
+- coupon_code (character varying)
+- coupon_code_prefix (character varying)
+- total_wins_limit (character varying)
+- current_wins (character varying)
+- is_active (boolean)
+- starts_at (timestamp without time zone)  ← EXISTE
+- expires_at (timestamp without time zone) ← EXISTE
+- created_at (timestamp without time zone)
+- updated_at (timestamp without time zone)
+- image_url (character varying)
+- probability (character varying)
+- max_daily_wins (character varying)
+- total_wins_all_time (character varying)
+- total_wins_today (character varying)
+
+---
+
+3. CÓDIGO DO STORAGE (server/storage.ts):
+=========================================
+
+async getActiveDailyPrizes(): Promise<DailyPrize[]> {
+  // Consulta simples apenas para prêmios ativos (sem comparação de limites por enquanto)
+  return await db.select()
+    .from(dailyPrizes)
+    .where(eq(dailyPrizes.isActive, true))
+    .orderBy(desc(dailyPrizes.createdAt));
+}
+
+// Criar as 3 cartas diárias para um usuário
+async createUserDailyScratchCards(userId: string, date: string): Promise<DailyScratchCard[]> {
+  const cards: InsertDailyScratchCard[] = [];
+  const availablePrizes = await this.getActiveDailyPrizes(); // AQUI ESTÁ O ERRO!
+  
+  // Gerar 3 cartas com algoritmo inteligente de distribuição de prêmios
+  for (let cardNumber = 1; cardNumber <= 3; cardNumber++) {
+    let won = false;
+    let prizeId = null;
+    let prizeType = null;
+    let prizeValue = null;
+    let prizeDescription = null;
+
+    // Algoritmo simples: 25% de chance de ganhar em cada carta
+    // Pelo menos 1 das 3 cartas deve ter prêmio
+    const winChance = Math.random();
+    const shouldWin = winChance < 0.25 || (cardNumber === 3 && !cards.some(c => c.won));
+    
+    if (shouldWin && availablePrizes.length > 0) {
+      won = true;
+      const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
+      prizeId = randomPrize.id;
+      prizeType = randomPrize.prizeType;
+      prizeValue = randomPrize.discountValue || randomPrize.discountPercentage?.toString() || "0";
+      prizeDescription = randomPrize.description;
+    }
+
+    cards.push({
+      userId,
+      cardDate: date,
+      cardNumber: cardNumber.toString(),
+      won,
+      prizeId,
+      prizeType,
+      prizeValue,
+      prizeDescription,
+      isScratched: false
+    });
+  }
+
+  // Inserir todas as 3 cartas no banco
+  const createdCards = await db.insert(dailyScratchCards)
+    .values(cards)
+    .returning();
+
+  return createdCards;
+}
+
+---
+
+4. API ROUTE (server/routes.ts):
+=================================
+
+// Buscar as 3 cartas diárias do usuário
+app.get('/api/daily-scratch/cards', isAuthenticatedCustom, async (req: any, res) => {
+  try {
+    const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
+    
+    // Garantir que o usuário tem as 3 cartas para hoje
+    const cards = await storage.ensureUserDailyScratchCards(userId);
+    
+    res.json({
+      success: true,
+      cards,
+      count: cards.length,
+    });
+    
+  } catch (error) {
+    console.error("Error fetching daily scratch cards:", error);
+    res.status(500).json({ message: "Failed to fetch cards" });
+  }
+});
+
+---
+
+5. COMPONENTE FRONTEND (client/src/components/ThreeDailyScratchCards.tsx):
+==========================================================================
+
+export default function ThreeDailyScratchCards() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Buscar as 3 cartas diárias
+  const { data: cardsData, isLoading } = useQuery<{ success: boolean; cards: DailyScratchCard[]; count: number }>({
+    queryKey: ['/api/daily-scratch/cards'],
+    refetchOnWindowFocus: false,
+    staleTime: 30 * 1000, // 30 segundos
+  });
+
+  const cards = cardsData?.cards || [];
+
+  // Mutation para raspar uma carta
+  const scratchMutation = useMutation<{ success: boolean; won: boolean; message: string; card: DailyScratchCard }, Error, string>({
+    mutationFn: async (cardId: string) => {
+      return await apiRequest(`/api/daily-scratch/cards/${cardId}/scratch`, 'POST');
+    },
+    onSuccess: (data) => {
+      // Invalidar queries para atualizar estado
+      queryClient.invalidateQueries({ queryKey: ['/api/daily-scratch/cards'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/daily-scratch/stats'] });
+      
+      // Mostrar resultado
+      toast({
+        title: data.won ? "🎉 Parabéns!" : "😔 Não foi dessa vez!",
+        description: data.message,
+        variant: data.won ? "default" : "destructive",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao raspar",
+        description: error.message || "Tente novamente",
+        variant: "destructive",
+      });
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-[5px]">
+        {[1, 2].map((i) => (
+          <div key={i} className="w-[400px] h-[110px] bg-gray-200 animate-pulse rounded-lg" />
+        ))}
+      </div>
+    );
+  }
+
+  if (cards.length === 0) {
+    return null;
+  }
+
+  // Organizar as 3 cartas em layout 2x2 (onde a terceira fica embaixo das duas primeiras)
+  const card1 = cards.find((c: DailyScratchCard) => c.cardNumber === '1');
+  const card2 = cards.find((c: DailyScratchCard) => c.cardNumber === '2');
+  const card3 = cards.find((c: DailyScratchCard) => c.cardNumber === '3');
+
+  return (
+    <div className="space-y-[5px]">
+      {/* Linha superior: 2 cartas lado a lado */}
+      <div className="grid grid-cols-2 gap-[5px] w-[400px] h-[110px]">
+        {card1 && (
+          <MiniScratchCard
+            card={card1}
+            onScratch={scratchMutation.mutate}
+            isScratching={scratchMutation.isPending}
+          />
+        )}
+        {card2 && (
+          <MiniScratchCard
+            card={card2}
+            onScratch={scratchMutation.mutate}
+            isScratching={scratchMutation.isPending}
+          />
+        )}
+      </div>
+      
+      {/* Linha inferior: 1 carta centralizada */}
+      <div className="flex justify-center w-[400px] h-[110px]">
+        {card3 && (
+          <div className="w-[195px]">
+            <MiniScratchCard
+              card={card3}
+              onScratch={scratchMutation.mutate}
+              isScratching={scratchMutation.isPending}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+---
+
+6. INTEGRAÇÃO NO LAYOUT (client/src/components/BannerSection.tsx):
+==================================================================
+
+{/* 3 Rapadinhas diárias para usuários autenticados */}
+<div className="space-y-[5px]">
+  {isAuthenticated && <ThreeDailyScratchCards />}
+</div>
+
+---
+
+PROBLEMA IDENTIFICADO:
+=======================
+
+❌ SCHEMA vs REALIDADE - INCOMPATIBILIDADE CRÍTICA:
+
+Schema define (shared/schema.ts):
+- validFrom: timestamp("valid_from").defaultNow()  ← NÃO EXISTE NA TABELA
+- validUntil: timestamp("valid_until")             ← NÃO EXISTE NA TABELA
+
+Tabela real possui:
+- starts_at (timestamp without time zone)          ← EXISTE MAS SCHEMA NÃO MAPEIA
+- expires_at (timestamp without time zone)         ← EXISTE MAS SCHEMA NÃO MAPEIA
+
+Quando o Drizzle faz db.select().from(dailyPrizes), ele tenta buscar as colunas
+"valid_from" e "valid_until" que NÃO EXISTEM na tabela, causando erro SQL.
+
+SOLUÇÃO NECESSÁRIA:
+===================
+
+OPÇÃO 1 - CORRIGIR SCHEMA (RECOMENDADO):
+Alterar shared/schema.ts linhas 1086-1087:
+
+  // SUBSTITUIR:
+  validFrom: timestamp("valid_from").defaultNow(),
+  validUntil: timestamp("valid_until"),
+  
+  // POR:
+  validFrom: timestamp("starts_at").defaultNow(),
+  validUntil: timestamp("expires_at"),
+
+OPÇÃO 2 - ADICIONAR COLUNAS NA TABELA:
+ALTER TABLE daily_prizes ADD COLUMN valid_from TIMESTAMP DEFAULT now();
+ALTER TABLE daily_prizes ADD COLUMN valid_until TIMESTAMP;
+
+OPÇÃO 3 - CONSULTA ESPECÍFICA:
+Fazer select apenas das colunas que existem, sem usar db.select().from()
+
+RECOMENDAÇÃO: Usar OPÇÃO 1 para manter consistência com dados existentes.
