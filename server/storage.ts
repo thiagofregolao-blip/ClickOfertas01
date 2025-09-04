@@ -2631,8 +2631,8 @@ export class DatabaseStorage implements IStorage {
       .from(dailyPrizes)
       .where(and(
         eq(dailyPrizes.isActive, true),
-        gte(dailyPrizes.totalWinsLimit, sql`CAST(${dailyPrizes.currentWins} AS INTEGER)`),
-        gte(dailyPrizes.expiresAt, new Date())
+        gte(sql`CAST(${dailyPrizes.total_wins_limit} AS INTEGER)`, sql`CAST(${dailyPrizes.current_wins} AS INTEGER)`),
+        gte(dailyPrizes.expires_at, new Date())
       ))
       .orderBy(desc(dailyPrizes.createdAt));
   }
@@ -2662,7 +2662,7 @@ export class DatabaseStorage implements IStorage {
   async incrementPrizeWins(prizeId: string): Promise<void> {
     await db.update(dailyPrizes)
       .set({
-        currentWins: sql`CAST(${dailyPrizes.currentWins} AS INTEGER) + 1`,
+        current_wins: sql`CAST(${dailyPrizes.current_wins} AS INTEGER) + 1`,
         updatedAt: new Date(),
       })
       .where(eq(dailyPrizes.id, prizeId));
