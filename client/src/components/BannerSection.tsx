@@ -90,29 +90,9 @@ export function BannerSection() {
             </div>
           )}
 
-          {/* Rapadinhas diárias (para usuários autenticados) ou Banners estáticos */}
+          {/* 3 Rapadinhas diárias para usuários autenticados */}
           <div className="space-y-[5px]">
-            {isAuthenticated ? (
-              /* 3 Rapadinhas Diárias - Usuários Logados */
-              <ThreeDailyScratchCards />
-            ) : (
-              /* Banners Estáticos - Usuários não logados */
-              <>
-                {staticLeftBanners[0] && (
-                  <StaticBanner 
-                    banner={staticLeftBanners[0]} 
-                    className="" 
-                  />
-                )}
-                
-                {staticRightBanners[0] && (
-                  <StaticBanner 
-                    banner={staticRightBanners[0]} 
-                    className="" 
-                  />
-                )}
-              </>
-            )}
+            {isAuthenticated && <ThreeDailyScratchCards />}
           </div>
         </div>
 
@@ -123,15 +103,10 @@ export function BannerSection() {
             <BannerCarousel banners={rotatingBanners} />
           )}
 
-          {/* Banners estáticos em grid 2x1 */}
-          {(staticLeftBanners[0] || staticRightBanners[0]) && (
-            <div className="grid grid-cols-2 gap-4 px-4 mt-4">
-              {staticLeftBanners[0] && (
-                <StaticBanner banner={staticLeftBanners[0]} />
-              )}
-              {staticRightBanners[0] && (
-                <StaticBanner banner={staticRightBanners[0]} />
-              )}
+          {/* Rapadinhas diárias em mobile para usuários autenticados */}
+          {isAuthenticated && (
+            <div className="px-4 mt-4">
+              <ThreeDailyScratchCards />
             </div>
           )}
         </div>
