@@ -1048,6 +1048,251 @@ export const bannerClicksRelations = relations(bannerClicks, ({ one }) => ({
   }),
 }));
 
+// ==========================================
+// SISTEMA DE RASPADINHA DIÁRIA INTELIGENTE
+// ==========================================
+
+// Prêmios configuráveis pelo Super Admin
+export const dailyPrizes = pgTable("daily_prizes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Tipo de prêmio
+  prizeType: varchar("prize_type").notNull(), // 'product', 'discount', 'cashback'
+  
+  // Dados do produto (quando prizeType = 'product')
+  productId: varchar("product_id").references(() => products.id, { onDelete: "cascade" }),
+  
+  // Dados de desconto/cashback (quando prizeType != 'product')
+  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }),
+  discountValue: decimal("discount_value", { precision: 12, scale: 2 }),
+  maxDiscountAmount: decimal("max_discount_amount", { precision: 12, scale: 2 }),
+  
+  // Configurações do prêmio
+  name: text("name").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  
+  // Controle de probabilidade e uso
+  probability: decimal("probability", { precision: 5, scale: 4 }).notNull().default("0.001"), // 0.1% por padrão
+  maxDailyWins: varchar("max_daily_wins").default("1"), // Máximo de vitórias por dia
+  totalWinsToday: varchar("total_wins_today").default("0"), // Contador diário
+  totalWinsAllTime: varchar("total_wins_all_time").default("0"), // Contador total
+  
+  // Status
+  isActive: boolean("is_active").default(true),
+  
+  // Validade
+  validFrom: timestamp("valid_from").defaultNow(),
+  validUntil: timestamp("valid_until"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tentativas diárias dos usuários
+export const userDailyAttempts = pgTable("user_daily_attempts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Controle diário
+  attemptDate: varchar("attempt_date").notNull(), // 'YYYY-MM-DD'
+  hasAttempted: boolean("has_attempted").default(false),
+  attemptedAt: timestamp("attempted_at"),
+  
+  // Resultado
+  won: boolean("won").default(false),
+  prizeWonId: varchar("prize_won_id").references(() => dailyPrizes.id),
+  
+  // Dados da tentativa
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Configurações do sistema de raspadinha
+export const scratchSystemConfig = pgTable("scratch_system_config", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Configurações de algoritmo
+  algorithmType: varchar("algorithm_type").notNull().default("weighted_random"), // 'weighted_random', 'guaranteed_win', 'time_based'
+  guaranteedWinEvery: varchar("guaranteed_win_every").default("1000"), // 1 prêmio a cada X tentativas
+  currentAttemptCount: varchar("current_attempt_count").default("0"), // Contador atual
+  
+  // Configurações de seleção de produtos
+  enableAutoProductSuggestion: boolean("enable_auto_product_suggestion").default(true),
+  suggestionRefreshHours: varchar("suggestion_refresh_hours").default("24"), // A cada quantas horas atualizar sugestões
+  
+  // Pesos do algoritmo de seleção
+  popularityWeight: decimal("popularity_weight", { precision: 3, scale: 2 }).default("0.30"),
+  priceWeight: decimal("price_weight", { precision: 3, scale: 2 }).default("0.20"),
+  marginWeight: decimal("margin_weight", { precision: 3, scale: 2 }).default("0.20"),
+  noveltynWeight: decimal("novelty_weight", { precision: 3, scale: 2 }).default("0.15"),
+  categoryWeight: decimal("category_weight", { precision: 3, scale: 2 }).default("0.15"),
+  
+  // Configurações de prêmios
+  minPrizeValue: decimal("min_prize_value", { precision: 12, scale: 2 }).default("10.00"),
+  maxPrizeValue: decimal("max_prize_value", { precision: 12, scale: 2 }).default("500.00"),
+  
+  // Status
+  isActive: boolean("is_active").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Sugestões do algoritmo para o Super Admin
+export const algorithmSuggestions = pgTable("algorithm_suggestions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Produto sugerido
+  suggestedProductId: varchar("suggested_product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  
+  // Análise do algoritmo
+  algorithmScore: decimal("algorithm_score", { precision: 5, scale: 2 }).notNull(),
+  popularityScore: decimal("popularity_score", { precision: 5, scale: 2 }).default("0.00"),
+  priceScore: decimal("price_score", { precision: 5, scale: 2 }).default("0.00"),
+  marginScore: decimal("margin_score", { precision: 5, scale: 2 }).default("0.00"),
+  noveltyScore: decimal("novelty_score", { precision: 5, scale: 2 }).default("0.00"),
+  categoryScore: decimal("category_score", { precision: 5, scale: 2 }).default("0.00"),
+  
+  // Recomendações
+  suggestedPrizeType: varchar("suggested_prize_type").notNull(), // 'product', 'discount_50', 'discount_30', etc
+  suggestedDiscountPercentage: decimal("suggested_discount_percentage", { precision: 5, scale: 2 }),
+  estimatedCost: decimal("estimated_cost", { precision: 12, scale: 2 }),
+  
+  // Status da sugestão
+  status: varchar("status").notNull().default("pending"), // 'pending', 'approved', 'rejected', 'used'
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedByUserId: varchar("reviewed_by_user_id").references(() => users.id),
+  reviewNotes: text("review_notes"),
+  
+  // Dados de criação
+  generatedAt: timestamp("generated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Resultados das raspadinhas diárias
+export const dailyScratchResults = pgTable("daily_scratch_results", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Data e resultado
+  scratchDate: varchar("scratch_date").notNull(), // 'YYYY-MM-DD'
+  won: boolean("won").default(false),
+  
+  // Prêmio (se ganhou)
+  prizeId: varchar("prize_id").references(() => dailyPrizes.id),
+  prizeType: varchar("prize_type"), // 'product', 'discount', 'cashback'
+  prizeDescription: text("prize_description"),
+  prizeValue: decimal("prize_value", { precision: 12, scale: 2 }),
+  
+  // Cupom gerado (se aplicável)
+  couponCode: varchar("coupon_code"),
+  couponExpiresAt: timestamp("coupon_expires_at"),
+  
+  // Status do prêmio
+  isRedeemed: boolean("is_redeemed").default(false),
+  redeemedAt: timestamp("redeemed_at"),
+  
+  // Dados da sessão
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Relations para o sistema de raspadinha diária
+export const dailyPrizesRelations = relations(dailyPrizes, ({ one, many }) => ({
+  product: one(products, {
+    fields: [dailyPrizes.productId],
+    references: [products.id],
+  }),
+  userAttempts: many(userDailyAttempts),
+  scratchResults: many(dailyScratchResults),
+}));
+
+export const userDailyAttemptsRelations = relations(userDailyAttempts, ({ one }) => ({
+  user: one(users, {
+    fields: [userDailyAttempts.userId],
+    references: [users.id],
+  }),
+  prizeWon: one(dailyPrizes, {
+    fields: [userDailyAttempts.prizeWonId],
+    references: [dailyPrizes.id],
+  }),
+}));
+
+export const algorithmSuggestionsRelations = relations(algorithmSuggestions, ({ one }) => ({
+  suggestedProduct: one(products, {
+    fields: [algorithmSuggestions.suggestedProductId],
+    references: [products.id],
+  }),
+  reviewedByUser: one(users, {
+    fields: [algorithmSuggestions.reviewedByUserId],
+    references: [users.id],
+  }),
+}));
+
+export const dailyScratchResultsRelations = relations(dailyScratchResults, ({ one }) => ({
+  user: one(users, {
+    fields: [dailyScratchResults.userId],
+    references: [users.id],
+  }),
+  prize: one(dailyPrizes, {
+    fields: [dailyScratchResults.prizeId],
+    references: [dailyPrizes.id],
+  }),
+}));
+
+// Schemas Zod para o sistema de raspadinha
+export const insertDailyPrizeSchema = createInsertSchema(dailyPrizes).omit({
+  id: true,
+  totalWinsToday: true,
+  totalWinsAllTime: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserDailyAttemptSchema = createInsertSchema(userDailyAttempts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertScratchSystemConfigSchema = createInsertSchema(scratchSystemConfig).omit({
+  id: true,
+  currentAttemptCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAlgorithmSuggestionSchema = createInsertSchema(algorithmSuggestions).omit({
+  id: true,
+  generatedAt: true,
+  createdAt: true,
+});
+
+export const insertDailyScratchResultSchema = createInsertSchema(dailyScratchResults).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types para o sistema de raspadinha
+export type DailyPrize = typeof dailyPrizes.$inferSelect;
+export type InsertDailyPrize = z.infer<typeof insertDailyPrizeSchema>;
+export type UserDailyAttempt = typeof userDailyAttempts.$inferSelect;
+export type InsertUserDailyAttempt = z.infer<typeof insertUserDailyAttemptSchema>;
+export type ScratchSystemConfig = typeof scratchSystemConfig.$inferSelect;
+export type InsertScratchSystemConfig = z.infer<typeof insertScratchSystemConfigSchema>;
+export type AlgorithmSuggestion = typeof algorithmSuggestions.$inferSelect;
+export type InsertAlgorithmSuggestion = z.infer<typeof insertAlgorithmSuggestionSchema>;
+export type DailyScratchResult = typeof dailyScratchResults.$inferSelect;
+export type InsertDailyScratchResult = z.infer<typeof insertDailyScratchResultSchema>;
+
+// ==========================================
+// FIM DO SISTEMA DE RASPADINHA DIÁRIA
+// ==========================================
+
 // Banner schemas
 export const insertBannerSchema = createInsertSchema(banners).omit({
   id: true,

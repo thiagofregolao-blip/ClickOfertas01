@@ -2812,6 +2812,232 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ==========================================
+  // SISTEMA DE RASPADINHA DIÁRIA INTELIGENTE
+  // ==========================================
+
+  // Importar serviços necessários
+  const { intelligentScratchAlgorithm } = await import('./services/intelligentScratchAlgorithm');
+
+  // Verificar tentativa diária do usuário
+  app.get('/api/daily-scratch/attempt', isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+      // Verificar se já tentou hoje
+      const [attempt] = await storage.getUserDailyAttempt(userId, today);
+      
+      res.json({
+        canAttempt: !attempt?.hasAttempted,
+        hasWon: attempt?.won || false,
+        prizeWon: attempt?.prizeWonId ? await storage.getDailyPrize(attempt.prizeWonId) : null,
+        lastAttemptDate: attempt?.attemptDate || null,
+      });
+      
+    } catch (error) {
+      console.error("Error checking daily attempt:", error);
+      res.status(500).json({ message: "Failed to check attempt" });
+    }
+  });
+
+  // Fazer tentativa diária de raspadinha
+  app.post('/api/daily-scratch/attempt', isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
+      const today = new Date().toISOString().split('T')[0];
+
+      // Verificar se já tentou hoje
+      const [existingAttempt] = await storage.getUserDailyAttempt(userId, today);
+      if (existingAttempt?.hasAttempted) {
+        return res.status(400).json({ message: "Já tentou hoje! Volte amanhã." });
+      }
+
+      // Buscar configuração do sistema
+      const config = await storage.getScratchSystemConfig();
+      if (!config) {
+        return res.status(500).json({ message: "Sistema não configurado" });
+      }
+
+      // Incrementar contador de tentativas
+      const currentCount = parseInt(config.currentAttemptCount || "0") + 1;
+      const guaranteedWinEvery = parseInt(config.guaranteedWinEvery || "1000");
+
+      // Determinar se ganhou (algoritmo simples por agora)
+      const won = currentCount >= guaranteedWinEvery;
+      
+      let prizeWon = null;
+      if (won) {
+        // Selecionar prêmio aleatório ativo
+        const availablePrizes = await storage.getActiveDailyPrizes();
+        if (availablePrizes.length > 0) {
+          const randomIndex = Math.floor(Math.random() * availablePrizes.length);
+          prizeWon = availablePrizes[randomIndex];
+          
+          // Atualizar contadores do prêmio
+          await storage.incrementPrizeWins(prizeWon.id);
+          
+          // Resetar contador global
+          await storage.updateScratchSystemConfig({ currentAttemptCount: "0" });
+        }
+      } else {
+        // Atualizar contador
+        await storage.updateScratchSystemConfig({ currentAttemptCount: currentCount.toString() });
+      }
+
+      // Registrar tentativa
+      await storage.createUserDailyAttempt({
+        userId,
+        attemptDate: today,
+        hasAttempted: true,
+        attemptedAt: new Date(),
+        won,
+        prizeWonId: prizeWon?.id || null,
+        userAgent: req.get('User-Agent'),
+        ipAddress: req.ip,
+      });
+
+      // Registrar resultado detalhado
+      await storage.createDailyScratchResult({
+        userId,
+        scratchDate: today,
+        won,
+        prizeId: prizeWon?.id || null,
+        prizeType: prizeWon?.prizeType || null,
+        prizeDescription: prizeWon?.description || null,
+        prizeValue: prizeWon?.discountValue || prizeWon?.maxDiscountAmount || "0",
+        couponCode: won ? `DAILY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` : null,
+        couponExpiresAt: won ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null, // 30 dias
+        userAgent: req.get('User-Agent'),
+        ipAddress: req.ip,
+      });
+
+      res.json({
+        success: true,
+        won,
+        prize: prizeWon,
+        message: won 
+          ? `🎉 Parabéns! Você ganhou: ${prizeWon?.name}!` 
+          : "😔 Não foi dessa vez! Volte amanhã para tentar novamente.",
+        nextAttemptIn: "24h",
+      });
+
+    } catch (error) {
+      console.error("Error processing daily scratch:", error);
+      res.status(500).json({ message: "Failed to process attempt" });
+    }
+  });
+
+  // Gerar sugestões do algoritmo (Super Admin)
+  app.post('/api/admin/algorithm-suggestions/generate', isSuperAdmin, async (req: any, res) => {
+    try {
+      const suggestions = await intelligentScratchAlgorithm.generateProductSuggestions();
+      res.json({ 
+        success: true, 
+        count: suggestions.length,
+        suggestions 
+      });
+    } catch (error) {
+      console.error("Error generating suggestions:", error);
+      res.status(500).json({ message: "Failed to generate suggestions" });
+    }
+  });
+
+  // Listar sugestões pendentes (Super Admin)
+  app.get('/api/admin/algorithm-suggestions', isSuperAdmin, async (req: any, res) => {
+    try {
+      const suggestions = await storage.getAlgorithmSuggestions();
+      res.json(suggestions);
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
+      res.status(500).json({ message: "Failed to fetch suggestions" });
+    }
+  });
+
+  // Revisar sugestão (Super Admin)
+  app.put('/api/admin/algorithm-suggestions/:id', isSuperAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status, reviewNotes } = req.body;
+      const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
+
+      const updatedSuggestion = await storage.updateAlgorithmSuggestion(id, {
+        status,
+        reviewNotes,
+        reviewedByUserId: userId,
+        reviewedAt: new Date(),
+      });
+
+      res.json(updatedSuggestion);
+    } catch (error) {
+      console.error("Error updating suggestion:", error);
+      res.status(500).json({ message: "Failed to update suggestion" });
+    }
+  });
+
+  // Listar prêmios diários (Super Admin)
+  app.get('/api/admin/daily-prizes', isSuperAdmin, async (req: any, res) => {
+    try {
+      const prizes = await storage.getDailyPrizes();
+      res.json(prizes);
+    } catch (error) {
+      console.error("Error fetching daily prizes:", error);
+      res.status(500).json({ message: "Failed to fetch prizes" });
+    }
+  });
+
+  // Criar prêmio diário (Super Admin)
+  app.post('/api/admin/daily-prizes', isSuperAdmin, async (req: any, res) => {
+    try {
+      const prizeData = req.body;
+      const newPrize = await storage.createDailyPrize(prizeData);
+      res.status(201).json(newPrize);
+    } catch (error) {
+      console.error("Error creating daily prize:", error);
+      res.status(500).json({ message: "Failed to create prize" });
+    }
+  });
+
+  // Atualizar prêmio diário (Super Admin)
+  app.put('/api/admin/daily-prizes/:id', isSuperAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const prizeData = req.body;
+      const updatedPrize = await storage.updateDailyPrize(id, prizeData);
+      res.json(updatedPrize);
+    } catch (error) {
+      console.error("Error updating daily prize:", error);
+      res.status(500).json({ message: "Failed to update prize" });
+    }
+  });
+
+  // Buscar configuração do sistema (Super Admin)
+  app.get('/api/admin/scratch-config', isSuperAdmin, async (req: any, res) => {
+    try {
+      const config = await storage.getScratchSystemConfig();
+      res.json(config);
+    } catch (error) {
+      console.error("Error fetching scratch config:", error);
+      res.status(500).json({ message: "Failed to fetch config" });
+    }
+  });
+
+  // Atualizar configuração do sistema (Super Admin)
+  app.put('/api/admin/scratch-config', isSuperAdmin, async (req: any, res) => {
+    try {
+      const configData = req.body;
+      const updatedConfig = await storage.updateScratchSystemConfig(configData);
+      res.json(updatedConfig);
+    } catch (error) {
+      console.error("Error updating scratch config:", error);
+      res.status(500).json({ message: "Failed to update config" });
+    }
+  });
+
+  // ==========================================
+  // FIM DO SISTEMA DE RASPADINHA DIÁRIA
+  // ==========================================
+
   const httpServer = createServer(app);
   return httpServer;
 }

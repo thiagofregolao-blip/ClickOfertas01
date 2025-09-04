@@ -24,6 +24,12 @@ import {
   banners,
   bannerViews,
   bannerClicks,
+  // Sistema de raspadinha diária
+  dailyPrizes,
+  userDailyAttempts,
+  scratchSystemConfig,
+  algorithmSuggestions,
+  dailyScratchResults,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -84,6 +90,17 @@ import {
   type InsertPriceAlert,
   type Banner,
   type InsertBanner,
+  // Tipos do sistema de raspadinha diária
+  type DailyPrize,
+  type InsertDailyPrize,
+  type UserDailyAttempt,
+  type InsertUserDailyAttempt,
+  type ScratchSystemConfig,
+  type InsertScratchSystemConfig,
+  type AlgorithmSuggestion,
+  type InsertAlgorithmSuggestion,
+  type DailyScratchResult,
+  type InsertDailyScratchResult,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, gte, lte, sql, inArray } from "drizzle-orm";
@@ -222,6 +239,25 @@ export interface IStorage {
   getUserPriceAlerts(userId: string): Promise<PriceAlert[]>;
   getPriceAlert(alertId: string): Promise<PriceAlert | undefined>;
   deletePriceAlert(alertId: string): Promise<void>;
+
+  // Daily Scratch System operations
+  getDailyPrizes(): Promise<DailyPrize[]>;
+  getActiveDailyPrizes(): Promise<DailyPrize[]>;
+  getDailyPrize(prizeId: string): Promise<DailyPrize | undefined>;
+  createDailyPrize(prize: InsertDailyPrize): Promise<DailyPrize>;
+  updateDailyPrize(prizeId: string, updates: Partial<DailyPrize>): Promise<DailyPrize>;
+  incrementPrizeWins(prizeId: string): Promise<void>;
+
+  getUserDailyAttempt(userId: string, date: string): Promise<UserDailyAttempt[]>;
+  createUserDailyAttempt(attempt: InsertUserDailyAttempt): Promise<UserDailyAttempt>;
+
+  getScratchSystemConfig(): Promise<ScratchSystemConfig | undefined>;
+  updateScratchSystemConfig(updates: Partial<ScratchSystemConfig>): Promise<ScratchSystemConfig>;
+
+  getAlgorithmSuggestions(): Promise<AlgorithmSuggestion[]>;
+  updateAlgorithmSuggestion(suggestionId: string, updates: Partial<AlgorithmSuggestion>): Promise<AlgorithmSuggestion>;
+
+  createDailyScratchResult(result: InsertDailyScratchResult): Promise<DailyScratchResult>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2578,6 +2614,130 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(banners.id, bannerId));
   }
+
+  // ==========================================
+  // SISTEMA DE RASPADINHA DIÁRIA INTELIGENTE
+  // ==========================================
+
+  async getDailyPrizes(): Promise<DailyPrize[]> {
+    return await db.select().from(dailyPrizes).orderBy(desc(dailyPrizes.createdAt));
+  }
+
+  async getActiveDailyPrizes(): Promise<DailyPrize[]> {
+    return await db.select()
+      .from(dailyPrizes)
+      .where(and(
+        eq(dailyPrizes.isActive, true),
+        gte(dailyPrizes.totalWinsLimit, sql`CAST(${dailyPrizes.currentWins} AS INTEGER)`),
+        gte(dailyPrizes.expiresAt, new Date())
+      ))
+      .orderBy(desc(dailyPrizes.createdAt));
+  }
+
+  async getDailyPrize(prizeId: string): Promise<DailyPrize | undefined> {
+    const [prize] = await db.select()
+      .from(dailyPrizes)
+      .where(eq(dailyPrizes.id, prizeId));
+    return prize;
+  }
+
+  async createDailyPrize(prize: InsertDailyPrize): Promise<DailyPrize> {
+    const [newPrize] = await db.insert(dailyPrizes)
+      .values(prize)
+      .returning();
+    return newPrize;
+  }
+
+  async updateDailyPrize(prizeId: string, updates: Partial<DailyPrize>): Promise<DailyPrize> {
+    const [updatedPrize] = await db.update(dailyPrizes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(dailyPrizes.id, prizeId))
+      .returning();
+    return updatedPrize;
+  }
+
+  async incrementPrizeWins(prizeId: string): Promise<void> {
+    await db.update(dailyPrizes)
+      .set({
+        currentWins: sql`CAST(${dailyPrizes.currentWins} AS INTEGER) + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(dailyPrizes.id, prizeId));
+  }
+
+  async getUserDailyAttempt(userId: string, date: string): Promise<UserDailyAttempt[]> {
+    return await db.select()
+      .from(userDailyAttempts)
+      .where(and(
+        eq(userDailyAttempts.userId, userId),
+        eq(userDailyAttempts.attemptDate, date)
+      ))
+      .orderBy(desc(userDailyAttempts.attemptedAt));
+  }
+
+  async createUserDailyAttempt(attempt: InsertUserDailyAttempt): Promise<UserDailyAttempt> {
+    const [newAttempt] = await db.insert(userDailyAttempts)
+      .values(attempt)
+      .returning();
+    return newAttempt;
+  }
+
+  async getScratchSystemConfig(): Promise<ScratchSystemConfig | undefined> {
+    const [config] = await db.select()
+      .from(scratchSystemConfig)
+      .orderBy(desc(scratchSystemConfig.updatedAt))
+      .limit(1);
+    return config;
+  }
+
+  async updateScratchSystemConfig(updates: Partial<ScratchSystemConfig>): Promise<ScratchSystemConfig> {
+    // Verificar se existe alguma configuração
+    const existingConfig = await this.getScratchSystemConfig();
+    
+    if (existingConfig) {
+      // Atualizar configuração existente
+      const [updatedConfig] = await db.update(scratchSystemConfig)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(scratchSystemConfig.id, existingConfig.id))
+        .returning();
+      return updatedConfig;
+    } else {
+      // Criar nova configuração
+      const [newConfig] = await db.insert(scratchSystemConfig)
+        .values({
+          ...updates,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as any)
+        .returning();
+      return newConfig;
+    }
+  }
+
+  async getAlgorithmSuggestions(): Promise<AlgorithmSuggestion[]> {
+    return await db.select()
+      .from(algorithmSuggestions)
+      .orderBy(desc(algorithmSuggestions.generatedAt));
+  }
+
+  async updateAlgorithmSuggestion(suggestionId: string, updates: Partial<AlgorithmSuggestion>): Promise<AlgorithmSuggestion> {
+    const [updatedSuggestion] = await db.update(algorithmSuggestions)
+      .set(updates)
+      .where(eq(algorithmSuggestions.id, suggestionId))
+      .returning();
+    return updatedSuggestion;
+  }
+
+  async createDailyScratchResult(result: InsertDailyScratchResult): Promise<DailyScratchResult> {
+    const [newResult] = await db.insert(dailyScratchResults)
+      .values(result)
+      .returning();
+    return newResult;
+  }
+
+  // ==========================================
+  // FIM DO SISTEMA DE RASPADINHA DIÁRIA
+  // ==========================================
 }
 
 export const storage = new DatabaseStorage();

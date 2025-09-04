@@ -23,6 +23,7 @@ import PriceComparison from "@/pages/price-comparison";
 import SignupPage from "@/pages/signup";
 import SuperAdmin from "@/pages/super-admin";
 import SuperAdminLogin from "@/pages/super-admin-login";
+import DailyScratchPage from "@/pages/daily-scratch";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -46,6 +47,7 @@ function Router() {
         <Route path="/stories-feed" component={LoadingComponent} />
         <Route path="/create-story" component={LoadingComponent} />
         <Route path="/price-comparison" component={LoadingComponent} />
+        <Route path="/daily-scratch" component={LoadingComponent} />
         <Route path="/flyer/:slug" component={PublicFlyer} />
         <Route path="/stores/:slug" component={PublicFlyer} />
         <Route path="/super-admin" component={SuperAdminLogin} />
@@ -73,6 +75,7 @@ function Router() {
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
           <Route path="/price-comparison" component={PriceComparison} />
+          <Route path="/daily-scratch" component={DailyScratchPage} />
           <Route path="/super-admin-login" component={SuperAdminLogin} />
           <Route path="/super-admin" component={SuperAdminLogin} />
           <Route path="/admin-panel" component={SuperAdmin} />
@@ -97,6 +100,7 @@ function Router() {
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
           <Route path="/price-comparison" component={PriceComparison} />
+          <Route path="/daily-scratch" component={DailyScratchPage} />
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/my-coupons" component={MyCoupons} />
@@ -113,6 +117,7 @@ function Router() {
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
           <Route path="/price-comparison" component={PriceComparison} />
+          <Route path="/daily-scratch" component={DailyScratchPage} />
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/my-coupons" component={MyCoupons} />
