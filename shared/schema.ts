@@ -1083,8 +1083,8 @@ export const dailyPrizes = pgTable("daily_prizes", {
   isActive: boolean("is_active").default(true),
   
   // Validade
-  validFrom: timestamp("valid_from").defaultNow(),
-  validUntil: timestamp("valid_until"),
+  validFrom: timestamp("starts_at").defaultNow(),
+  validUntil: timestamp("expires_at"),
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

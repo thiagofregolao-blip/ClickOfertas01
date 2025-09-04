@@ -1,0 +1,98 @@
+Vamos direto ao ponto: o frontend não mostra as raspadinhas porque a rota GET /api/daily-scratch/cards está estourando 500 devido a um mismatch de colunas entre o schema Drizzle e a tabela real do banco. O schema usa valid_from/valid_until, mas a tabela tem starts_at/expires_at. Quando o db.select().from(dailyPrizes) roda, o SQL quebra e nada chega ao frontend. 
+
+Como corrigir (passo a passo)
+
+Consertar o schema (recomendado)
+
+Em shared/schema.ts, troque:
+
+validFrom: timestamp("valid_from").defaultNow(),
+validUntil: timestamp("valid_until"),
+
+
+por:
+
+validFrom: timestamp("starts_at").defaultNow(),
+validUntil: timestamp("expires_at"),
+
+
+Rebuild da API e suba novamente.
+
+(Opcional) Reforçar o filtro de vigência na consulta
+
+Em server/storage.ts (método getActiveDailyPrizes()), além de isActive = true, filtre por vigência:
+
+import { and, eq, or, isNull, gte, lte } from "drizzle-orm";
+import { sql } from "drizzle-orm";
+
+async getActiveDailyPrizes(): Promise<DailyPrize[]> {
+  const now = sql`now()`;
+  return await db.select()
+    .from(dailyPrizes)
+    .where(and(
+      eq(dailyPrizes.isActive, true),
+      or(isNull(dailyPrizes.validFrom), lte(dailyPrizes.validFrom, now)),
+      or(isNull(dailyPrizes.validUntil), gte(dailyPrizes.validUntil, now)),
+    ))
+    .orderBy(desc(dailyPrizes.createdAt));
+}
+
+
+(Ajuste os operadores conforme a lib que estiver usando.)
+
+Verifique a criação das 3 cartas
+
+O método createUserDailyScratchCards depende de getActiveDailyPrizes(). Com a query funcionando, ele volta a sortear um prêmio válido.
+
+Garanta que ensureUserDailyScratchCards(userId) (chamado na rota) crie as cartas do dia se não existirem. Se não existir, implemente algo como:
+
+async ensureUserDailyScratchCards(userId: string) {
+  const today = new Date().toISOString().slice(0,10); // "YYYY-MM-DD"
+  const existing = await db.select().from(dailyScratchCards)
+    .where(and(eq(dailyScratchCards.userId, userId), eq(dailyScratchCards.cardDate, today)));
+
+  if (existing.length === 0) {
+    return await this.createUserDailyScratchCards(userId, today);
+  }
+  return existing;
+}
+
+
+Frontend: garanta que a query realmente busque a API
+
+No seu ThreeDailyScratchCards.tsx, você usa useQuery apenas com queryKey. Isso só funciona se você tiver configurado um defaultQueryFn global no QueryClient. Para evitar depender disso, adicione um queryFn explícito:
+
+const { data: cardsData, isLoading, isError, error } = useQuery({
+  queryKey: ['/api/daily-scratch/cards'],
+  queryFn: () => apiRequest('/api/daily-scratch/cards', 'GET'),
+  refetchOnWindowFocus: false,
+  staleTime: 30 * 1000,
+});
+
+
+Mostre algo quando der erro (senão o componente volta null e “some” da tela):
+
+if (isError) {
+  return <div className="text-sm text-red-600">Falha ao carregar as raspadinhas: {(error as any)?.message || 'erro'}</div>;
+}
+
+
+Só retornar null quando não houver cartas mesmo.
+
+Melhorar DX (opcional mas útil)
+
+Logue o erro no cliente quando cardsData vier undefined e isError for true.
+
+Na API, além do log no servidor, retorne JSON com mais contexto (sem vazar dados sensíveis) para facilitar debug no cliente.
+
+Teste rápido pós-fix
+
+Após corrigir o schema e subir:
+
+Faça GET /api/daily-scratch/cards autenticado (Postman/Insomnia). Deve retornar 200 com cards.length === 3.
+
+Abra a página. As três mini-cards devem renderizar.
+
+Clique para raspar e confirme que a mutation invalida e atualiza (/api/daily-scratch/stats também).
+
+Se preferir manter as colunas valid_from/valid_until, dá para criar no banco via ALTER TABLE (opção 2), mas o caminho mais limpo é alinhar o schema às colunas reais (opção 1)

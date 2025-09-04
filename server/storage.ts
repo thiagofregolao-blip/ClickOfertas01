@@ -106,7 +106,7 @@ import {
   type InsertDailyScratchCard,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, count, gte, lte, sql, inArray } from "drizzle-orm";
+import { eq, and, desc, asc, count, gte, lte, sql, inArray, or, isNull } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -2630,10 +2630,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveDailyPrizes(): Promise<DailyPrize[]> {
-    // Consulta simples apenas para prêmios ativos (sem comparação de limites por enquanto)
+    // Consulta com filtros de vigência para prêmios ativos e válidos
+    const now = sql`now()`;
     return await db.select()
       .from(dailyPrizes)
-      .where(eq(dailyPrizes.isActive, true))
+      .where(and(
+        eq(dailyPrizes.isActive, true),
+        or(isNull(dailyPrizes.validFrom), lte(dailyPrizes.validFrom, now)),
+        or(isNull(dailyPrizes.validUntil), gte(dailyPrizes.validUntil, now)),
+      ))
       .orderBy(desc(dailyPrizes.createdAt));
   }
 

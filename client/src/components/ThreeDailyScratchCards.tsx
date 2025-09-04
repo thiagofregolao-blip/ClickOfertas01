@@ -117,7 +117,7 @@ export default function ThreeDailyScratchCards() {
   const queryClient = useQueryClient();
 
   // Buscar as 3 cartas diárias
-  const { data: cardsData, isLoading } = useQuery<{ success: boolean; cards: DailyScratchCard[]; count: number }>({
+  const { data: cardsData, isLoading, isError, error } = useQuery({
     queryKey: ['/api/daily-scratch/cards'],
     refetchOnWindowFocus: false,
     staleTime: 30 * 1000, // 30 segundos
@@ -126,11 +126,12 @@ export default function ThreeDailyScratchCards() {
   const cards = cardsData?.cards || [];
 
   // Mutation para raspar uma carta
-  const scratchMutation = useMutation<{ success: boolean; won: boolean; message: string; card: DailyScratchCard }, Error, string>({
+  const scratchMutation = useMutation({
     mutationFn: async (cardId: string) => {
-      return await apiRequest(`/api/daily-scratch/cards/${cardId}/scratch`, 'POST');
+      const res = await apiRequest('POST', `/api/daily-scratch/cards/${cardId}/scratch`);
+      return await res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       // Invalidar queries para atualizar estado
       queryClient.invalidateQueries({ queryKey: ['/api/daily-scratch/cards'] });
       queryClient.invalidateQueries({ queryKey: ['/api/daily-scratch/stats'] });
@@ -157,6 +158,14 @@ export default function ThreeDailyScratchCards() {
         {[1, 2].map((i) => (
           <div key={i} className="w-[400px] h-[110px] bg-gray-200 animate-pulse rounded-lg" />
         ))}
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="text-sm text-red-600 p-4 bg-red-50 rounded-lg">
+        Falha ao carregar as raspadinhas: {(error as any)?.message || 'erro desconhecido'}
       </div>
     );
   }
