@@ -2975,6 +2975,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ==========================================
+  // SISTEMA DE 3 CARTAS DIÁRIAS
+  // ==========================================
+
+  // Buscar as 3 cartas diárias do usuário
+  app.get('/api/daily-scratch/cards', isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
+      
+      // Garantir que o usuário tem as 3 cartas para hoje
+      const cards = await storage.ensureUserDailyScratchCards(userId);
+      
+      res.json({
+        success: true,
+        cards,
+        count: cards.length,
+      });
+      
+    } catch (error) {
+      console.error("Error fetching daily scratch cards:", error);
+      res.status(500).json({ message: "Failed to fetch cards" });
+    }
+  });
+
+  // Raspar uma carta específica
+  app.post('/api/daily-scratch/cards/:cardId/scratch', isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
+      const { cardId } = req.params;
+      
+      // Verificar se a carta pertence ao usuário e se não foi raspada
+      const card = await storage.getDailyScratchCard(cardId);
+      if (!card) {
+        return res.status(404).json({ message: "Carta não encontrada" });
+      }
+      
+      if (card.userId !== userId) {
+        return res.status(403).json({ message: "Carta não pertence ao usuário" });
+      }
+      
+      if (card.isScratched) {
+        return res.status(400).json({ message: "Carta já foi raspada" });
+      }
+      
+      // Raspar a carta
+      const scratchedCard = await storage.scratchCard(
+        cardId, 
+        req.get('User-Agent'), 
+        req.ip
+      );
+      
+      // Se ganhou, incrementar o contador do prêmio
+      if (scratchedCard.won && scratchedCard.prizeId) {
+        await storage.incrementPrizeWins(scratchedCard.prizeId);
+      }
+      
+      res.json({
+        success: true,
+        card: scratchedCard,
+        won: scratchedCard.won,
+        message: scratchedCard.won 
+          ? `🎉 Parabéns! Você ganhou: ${scratchedCard.prizeDescription}!` 
+          : "😔 Não foi dessa vez! Tente as outras cartas.",
+      });
+      
+    } catch (error) {
+      console.error("Error scratching card:", error);
+      res.status(500).json({ message: "Failed to scratch card" });
+    }
+  });
+
+  // Estatísticas das cartas do usuário
+  app.get('/api/daily-scratch/stats', isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
+      
+      const stats = await storage.getUserScratchCardsStats(userId);
+      
+      res.json({
+        success: true,
+        stats,
+      });
+      
+    } catch (error) {
+      console.error("Error fetching scratch stats:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
   // Gerar sugestões do algoritmo (Super Admin)
   app.post('/api/admin/algorithm-suggestions/generate', isAuthenticatedCustom, isSuperAdmin, async (req: any, res) => {
     try {

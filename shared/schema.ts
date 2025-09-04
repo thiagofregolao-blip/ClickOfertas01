@@ -8,6 +8,7 @@ import {
   timestamp,
   varchar,
   decimal,
+  unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -1089,7 +1090,42 @@ export const dailyPrizes = pgTable("daily_prizes", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Tentativas diárias dos usuários
+// Cartas diárias de raspadinha (3 cartas por usuário por dia)
+export const dailyScratchCards = pgTable("daily_scratch_cards", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Controle diário
+  cardDate: varchar("card_date").notNull(), // 'YYYY-MM-DD'
+  cardNumber: varchar("card_number").notNull(), // '1', '2', '3'
+  
+  // Estado da carta
+  isScratched: boolean("is_scratched").default(false),
+  scratchedAt: timestamp("scratched_at"),
+  
+  // Resultado
+  won: boolean("won").default(false),
+  prizeId: varchar("prize_id").references(() => dailyPrizes.id),
+  prizeType: varchar("prize_type"), // 'discount', 'cashback', etc.
+  prizeValue: varchar("prize_value"), // Valor do prêmio
+  prizeDescription: text("prize_description"), // Descrição do prêmio
+  
+  // Cupom gerado (se ganhou)
+  couponCode: varchar("coupon_code"),
+  couponExpiresAt: timestamp("coupon_expires_at"),
+  
+  // Metadados
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  // Garantir que cada usuário tenha no máximo 3 cartas por dia
+  uniqueUserDateCard: unique().on(table.userId, table.cardDate, table.cardNumber),
+}));
+
+// Tentativas diárias dos usuários (mantida para compatibilidade)
 export const userDailyAttempts = pgTable("user_daily_attempts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
@@ -1212,6 +1248,17 @@ export const dailyPrizesRelations = relations(dailyPrizes, ({ one, many }) => ({
   scratchResults: many(dailyScratchResults),
 }));
 
+export const dailyScratchCardsRelations = relations(dailyScratchCards, ({ one }) => ({
+  user: one(users, {
+    fields: [dailyScratchCards.userId],
+    references: [users.id],
+  }),
+  prize: one(dailyPrizes, {
+    fields: [dailyScratchCards.prizeId],
+    references: [dailyPrizes.id],
+  }),
+}));
+
 export const userDailyAttemptsRelations = relations(userDailyAttempts, ({ one }) => ({
   user: one(users, {
     fields: [userDailyAttempts.userId],
@@ -1254,6 +1301,12 @@ export const insertDailyPrizeSchema = createInsertSchema(dailyPrizes).omit({
   updatedAt: true,
 });
 
+export const insertDailyScratchCardSchema = createInsertSchema(dailyScratchCards).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertUserDailyAttemptSchema = createInsertSchema(userDailyAttempts).omit({
   id: true,
   createdAt: true,
@@ -1280,6 +1333,8 @@ export const insertDailyScratchResultSchema = createInsertSchema(dailyScratchRes
 // Types para o sistema de raspadinha
 export type DailyPrize = typeof dailyPrizes.$inferSelect;
 export type InsertDailyPrize = z.infer<typeof insertDailyPrizeSchema>;
+export type DailyScratchCard = typeof dailyScratchCards.$inferSelect;
+export type InsertDailyScratchCard = z.infer<typeof insertDailyScratchCardSchema>;
 export type UserDailyAttempt = typeof userDailyAttempts.$inferSelect;
 export type InsertUserDailyAttempt = z.infer<typeof insertUserDailyAttemptSchema>;
 export type ScratchSystemConfig = typeof scratchSystemConfig.$inferSelect;

@@ -2736,6 +2736,141 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ==========================================
+  // SISTEMA DE 3 CARTAS DIÁRIAS
+  // ==========================================
+
+  // Buscar as 3 cartas do usuário para o dia
+  async getUserDailyScratchCards(userId: string, date: string): Promise<DailyScratchCard[]> {
+    return await db.select()
+      .from(dailyScratchCards)
+      .where(and(
+        eq(dailyScratchCards.userId, userId),
+        eq(dailyScratchCards.cardDate, date)
+      ))
+      .orderBy(asc(dailyScratchCards.cardNumber));
+  }
+
+  // Criar as 3 cartas diárias para um usuário
+  async createUserDailyScratchCards(userId: string, date: string): Promise<DailyScratchCard[]> {
+    const cards: InsertDailyScratchCard[] = [];
+    const availablePrizes = await this.getActiveDailyPrizes();
+    
+    // Gerar 3 cartas com algoritmo inteligente de distribuição de prêmios
+    for (let cardNumber = 1; cardNumber <= 3; cardNumber++) {
+      let won = false;
+      let prizeId = null;
+      let prizeType = null;
+      let prizeValue = null;
+      let prizeDescription = null;
+
+      // Algoritmo simples: 25% de chance de ganhar em cada carta
+      // Pelo menos 1 das 3 cartas deve ter prêmio
+      const winChance = Math.random();
+      const shouldWin = winChance < 0.25 || (cardNumber === 3 && !cards.some(c => c.won));
+      
+      if (shouldWin && availablePrizes.length > 0) {
+        won = true;
+        const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
+        prizeId = randomPrize.id;
+        prizeType = randomPrize.prizeType;
+        prizeValue = randomPrize.discountValue || randomPrize.discountPercentage?.toString() || "0";
+        prizeDescription = randomPrize.description;
+      }
+
+      cards.push({
+        userId,
+        cardDate: date,
+        cardNumber: cardNumber.toString(),
+        won,
+        prizeId,
+        prizeType,
+        prizeValue,
+        prizeDescription,
+        isScratched: false
+      });
+    }
+
+    // Inserir todas as 3 cartas no banco
+    const createdCards = await db.insert(dailyScratchCards)
+      .values(cards)
+      .returning();
+
+    return createdCards;
+  }
+
+  // Raspar uma carta específica
+  async scratchCard(cardId: string, userAgent?: string, ipAddress?: string): Promise<DailyScratchCard> {
+    const [scratchedCard] = await db.update(dailyScratchCards)
+      .set({
+        isScratched: true,
+        scratchedAt: new Date(),
+        userAgent,
+        ipAddress,
+        updatedAt: new Date(),
+      })
+      .where(eq(dailyScratchCards.id, cardId))
+      .returning();
+
+    return scratchedCard;
+  }
+
+  // Buscar uma carta específica por ID
+  async getDailyScratchCard(cardId: string): Promise<DailyScratchCard | undefined> {
+    const [card] = await db.select()
+      .from(dailyScratchCards)
+      .where(eq(dailyScratchCards.id, cardId));
+    return card;
+  }
+
+  // Verificar se o usuário já tem cartas para hoje, senão criar
+  async ensureUserDailyScratchCards(userId: string): Promise<DailyScratchCard[]> {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    
+    // Verificar se já existem cartas para hoje
+    const existingCards = await this.getUserDailyScratchCards(userId, today);
+    
+    if (existingCards.length === 3) {
+      return existingCards;
+    }
+    
+    // Se não existem ou estão incompletas, criar novas (limpar existentes primeiro)
+    if (existingCards.length > 0) {
+      await db.delete(dailyScratchCards)
+        .where(and(
+          eq(dailyScratchCards.userId, userId),
+          eq(dailyScratchCards.cardDate, today)
+        ));
+    }
+    
+    return await this.createUserDailyScratchCards(userId, today);
+  }
+
+  // Estatísticas das cartas do usuário
+  async getUserScratchCardsStats(userId: string): Promise<{
+    totalCards: number;
+    scratchedCards: number;
+    wonCards: number;
+    successRate: number;
+  }> {
+    const [stats] = await db.select({
+      totalCards: sql<number>`COUNT(*)`,
+      scratchedCards: sql<number>`COUNT(CASE WHEN ${dailyScratchCards.isScratched} THEN 1 END)`,
+      wonCards: sql<number>`COUNT(CASE WHEN ${dailyScratchCards.won} THEN 1 END)`,
+    })
+    .from(dailyScratchCards)
+    .where(eq(dailyScratchCards.userId, userId));
+
+    const successRate = stats.totalCards > 0 ? (stats.wonCards / stats.totalCards) * 100 : 0;
+
+    return {
+      totalCards: stats.totalCards,
+      scratchedCards: stats.scratchedCards,
+      wonCards: stats.wonCards,
+      successRate: Math.round(successRate),
+    };
+  }
+
+  // ==========================================
   // FIM DO SISTEMA DE RASPADINHA DIÁRIA
   // ==========================================
 }

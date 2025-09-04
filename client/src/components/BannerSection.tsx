@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { BannerCarousel } from './BannerCarousel';
 import { StaticBanner } from './StaticBanner';
+import ThreeDailyScratchCards from './ThreeDailyScratchCards';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Banner {
   id: string;
@@ -17,6 +19,7 @@ interface Banner {
 }
 
 export function BannerSection() {
+  const { isAuthenticated } = useAuth();
   const { data: banners = [] } = useQuery<Banner[]>({
     queryKey: ['/api/banners/active'],
     refetchOnWindowFocus: false,
@@ -87,22 +90,28 @@ export function BannerSection() {
             </div>
           )}
 
-          {/* Banners estáticos (400x110px cada) */}
+          {/* Rapadinhas diárias (para usuários autenticados) ou Banners estáticos */}
           <div className="space-y-[5px]">
-            {/* Banner estático esquerdo (topo direito) */}
-            {staticLeftBanners[0] && (
-              <StaticBanner 
-                banner={staticLeftBanners[0]} 
-                className="" 
-              />
-            )}
-            
-            {/* Banner estático direito (base direita) */}
-            {staticRightBanners[0] && (
-              <StaticBanner 
-                banner={staticRightBanners[0]} 
-                className="" 
-              />
+            {isAuthenticated ? (
+              /* 3 Rapadinhas Diárias - Usuários Logados */
+              <ThreeDailyScratchCards />
+            ) : (
+              /* Banners Estáticos - Usuários não logados */
+              <>
+                {staticLeftBanners[0] && (
+                  <StaticBanner 
+                    banner={staticLeftBanners[0]} 
+                    className="" 
+                  />
+                )}
+                
+                {staticRightBanners[0] && (
+                  <StaticBanner 
+                    banner={staticRightBanners[0]} 
+                    className="" 
+                  />
+                )}
+              </>
             )}
           </div>
         </div>
