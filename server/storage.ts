@@ -30,6 +30,7 @@ import {
   scratchSystemConfig,
   algorithmSuggestions,
   dailyScratchResults,
+  dailyScratchCards,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -101,9 +102,11 @@ import {
   type InsertAlgorithmSuggestion,
   type DailyScratchResult,
   type InsertDailyScratchResult,
+  type DailyScratchCard,
+  type InsertDailyScratchCard,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, count, gte, lte, sql, inArray } from "drizzle-orm";
+import { eq, and, desc, asc, count, gte, lte, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
