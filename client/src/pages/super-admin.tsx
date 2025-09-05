@@ -2459,7 +2459,7 @@ export default function SuperAdmin() {
                                         <SelectValue placeholder="Selecione um produto da base de dados" />
                                       </SelectTrigger>
                                     </FormControl>
-                                    <SelectContent>
+                                    <SelectContent className="max-h-60 overflow-y-auto">
                                       {availableProducts.length === 0 ? (
                                         <div className="p-4 text-center text-gray-500">
                                           <Package className="w-8 h-8 mx-auto mb-2 text-gray-300" />
@@ -2468,20 +2468,30 @@ export default function SuperAdmin() {
                                         </div>
                                       ) : (
                                         availableProducts.map((product: any) => (
-                                          <SelectItem key={product.id} value={product.id}>
-                                            <div className="flex items-center gap-3">
+                                          <SelectItem key={product.id} value={product.id} className="p-3">
+                                            <div className="flex items-start gap-3 w-full">
                                               {product.imageUrl && (
                                                 <img 
                                                   src={product.imageUrl} 
                                                   alt={product.name}
-                                                  className="w-8 h-8 rounded object-cover"
+                                                  className="w-10 h-10 rounded object-cover flex-shrink-0"
                                                 />
                                               )}
-                                              <div>
-                                                <p className="font-medium">{product.name}</p>
-                                                <p className="text-xs text-gray-500">
-                                                  {product.stores?.name} - R$ {product.price}
+                                              <div className="flex-1 min-w-0">
+                                                <p className="font-medium text-sm truncate">{product.name}</p>
+                                                <p className="text-xs text-gray-500 truncate">
+                                                  {product.storeName}
                                                 </p>
+                                                <div className="flex items-center justify-between mt-1">
+                                                  <span className="text-xs font-semibold text-green-600">
+                                                    ${product.price}
+                                                  </span>
+                                                  {product.category && (
+                                                    <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                                                      {product.category}
+                                                    </span>
+                                                  )}
+                                                </div>
                                               </div>
                                             </div>
                                           </SelectItem>

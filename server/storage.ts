@@ -3153,9 +3153,18 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getAvailableProductsForPrizes(): Promise<Product[]> {
+  async getAvailableProductsForPrizes(): Promise<any[]> {
     // Buscar produtos ativos de todas as lojas para uso como prêmios
-    return await db.select()
+    const results = await db.select({
+      id: products.id,
+      name: products.name,
+      imageUrl: products.imageUrl,
+      price: products.price,
+      category: products.category,
+      storeId: products.storeId,
+      storeName: stores.name,
+      storeLogoUrl: stores.logoUrl,
+    })
       .from(products)
       .innerJoin(stores, eq(products.storeId, stores.id))
       .where(and(
@@ -3164,6 +3173,8 @@ export class DatabaseStorage implements IStorage {
       ))
       .orderBy(asc(products.name))
       .limit(50); // Limitar para performance
+    
+    return results;
   }
 
   // ==========================================

@@ -1,0 +1,123 @@
+já dá pra ver avanço claro (orçamento, seleção de produtos e métricas). Dito isso, ainda tem alguns ajustes importantes pra ficar “redondo” e coerente com o motor de sorteios.
+
+O que está ok
+
+Tabela/config de orçamento + endpoints e UI com métricas e alertas (diário/mensal). 
+
+sistema-orcamento-promocoes-com…
+
+Query/endpoint para “produtos disponíveis” e o campo productId no schema de prêmios. 
+
+sistema-orcamento-promocoes-com…
+
+Ajustes que eu recomendo (prioridade alta → baixa)
+
+Tipos numéricos no banco (evitar varchar)
+Hoje dailyBudget, monthlyBudget, dailySpent, monthlySpent são varchar e você usa parseFloat no backend/UI. Isso é frágil para soma, comparação e concorrência. Troque para NUMERIC(12,2) (ou BIGINT em centavos) e remova parsing no servidor/cliente. Também facilitará “update atômico” de orçamento no ato de premiar. 
+
+sistema-orcamento-promocoes-com…
+
+Moeda e localização
+O front exibe “R$ …” e os comentários falam em “reais”, mas seu negócio opera em USD (como combinamos). Parametrize moeda/símbolo e formatação (ex.: USD), e guarde a moeda no banco para não “vazar” BRL em telas/relatórios. 
+
+sistema-orcamento-promocoes-com…
+
+Reset diário/mensal baseado em America/Asuncion
+Vejo lastResetDate, mas não há rotina de reset. Implemente:
+
+Diário: zere dailySpent na virada de dia em America/Asuncion (não use toISOString().split('T')[0], isso é UTC e pode estourar o dia errado).
+
+Mensal: zere monthlySpent no 1º dia do mês (também no fuso local).
+Guarde também uma coluna local_date para ancorar relatórios por dia local. 
+
+sistema-orcamento-promocoes-com…
+
+Custo estimado diário: fórmula e fontes
+O cálculo atual usa probability × valor × maxDailyWins, com valor fixo de 25 para produtos. Isso não reflete a realidade:
+
+Valor do prêmio do tipo “produto” deve vir do productId selecionado (preço real), não de um “25” fixo. Você já tem o endpoint de produtos — só encadeie isso na estimativa. 
+
+sistema-orcamento-promocoes-com…
+
+EV correto precisa da quantidade de tentativas/dia (ou usuários/dia × cartas/usuário). Sugestão: winsEsperadas = min( tentativasDia × p, maxDailyWins ) × redemptionRate. Para desconto/cashback, inclua taxa de resgate; não é todo ganho que vira custo. 
+
+sistema-orcamento-promocoes-com…
+
+Aplicar orçamento no ato de premiar (teto duro)
+Hoje você mostra alertas, mas não vi (neste arquivo) o bloqueio de premiação quando dailyRemaining < custoDoPrêmio. Garanta atomicamente no DB:
+
+UPDATE budget_config SET daily_spent = daily_spent + :custo WHERE id=:id AND daily_spent + :custo <= daily_budget RETURNING *;
+Se não retornar linha, não conceda o prêmio (e informe “orçamento diário esgotado”). Para isso, os campos precisam ser NUMERIC, não varchar. 
+
+sistema-orcamento-promocoes-com…
+
+Shape do retorno de “produtos para prêmios”
+O innerJoin normalmente retorna [products, stores] ou { products, stores }. Na UI você acessa product.stores?.name e product.id direto. Padronize o payload da rota para algo plano, por exemplo:
+
+// no storage/rota
+SELECT p.id, p.name, p.imageUrl, p.price, s.name AS storeName
+// …e no handler mapeie para { id, name, imageUrl, price, storeName }
+
+
+Daí, no front, use product.storeName. Assim você evita quebras por shape de join. 
+
+sistema-orcamento-promocoes-com…
+
+“today” não usado e limpeza
+Em getBudgetStats você cria today mas não usa. Remova ou use para agrupar métricas por data local (ver item 3). 
+
+sistema-orcamento-promocoes-com…
+
+Consistência com o motor de sorteios
+Neste arquivo não vi a parte do RNG seguro, pity rule revisada, máx. 1 prêmio/dia e débito de estoque atômico. Se eles já foram aplicados noutro módulo, perfeito — só garanta que a pipeline de concessão faça: (a) escolher prêmio ponderado por probability, (b) debitar estoque com UPDATE … WHERE stock>0 RETURNING, (c) checar e debitar orçamento (item 5), e só então confirmar a vitória.
+
+Snippets que ajudam a fechar as pontas
+
+Drizzle (exemplo) – NUMERIC e migração
+
+// schema.ts
+export const budgetConfig = pgTable("budget_config", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  dailyBudget: numeric("daily_budget", { precision: 12, scale: 2 }).default("0"),
+  monthlyBudget: numeric("monthly_budget", { precision: 12, scale: 2 }).default("0"),
+  dailySpent: numeric("daily_spent", { precision: 12, scale: 2 }).default("0"),
+  monthlySpent: numeric("monthly_spent", { precision: 12, scale: 2 }).default("0"),
+  lastResetDate: timestamp("last_reset_date").defaultNow(),
+  // …
+});
+
+
+Cheque de orçamento atômico na concessão
+
+// dentro de uma transação
+const updated = await db.execute(sql`
+  UPDATE budget_config
+  SET daily_spent = daily_spent + ${prizeCost},
+      monthly_spent = monthly_spent + ${prizeCost},
+      updated_at = now()
+  WHERE id = ${cfgId}
+    AND daily_spent + ${prizeCost} <= daily_budget
+    AND monthly_spent + ${prizeCost} <= monthly_budget
+  RETURNING *;
+`);
+if (!updated.rowCount) {
+  // Sem orçamento → não conceder
+}
+
+
+Preço real do produto na estimativa
+
+// ao calcular EV do prêmio "product"
+const price = selectedProduct?.price ?? 0;
+estimatedValue = price; // ou preço de custo/margem, se preferir prudência
+
+
+Fuso “America/Asuncion”
+Use uma lib de timezone (ex.: date-fns-tz) para calcular o “dia local” de resets e relatórios, evitando UTC.
+
+Veredito
+
+Direção certa ✅: orçamento, UI, seleção de produto e estatísticas.
+
+Faltam amarrações 🔧: tipos numéricos, enforcement atômico do orçamento, uso do preço real do produto, resets no fuso local e integrar essa camada com a pipeline de concessão (estoque + orçamento).
+Acertando esses pontos, você fecha o loop financeiro/operacional de ponta a ponta.
