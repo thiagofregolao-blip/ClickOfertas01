@@ -28,25 +28,32 @@ const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
 const isSuperAdmin = async (req: any, res: any, next: any) => {
   try {
     let user = null;
+    console.log('🔍 isSuperAdmin middleware - verificando autenticação...');
     
-    // Verificar sessão manual primeiro
+    // Verificar sessão manual primeiro (usuários registrados via formulário)
     if (req.session?.user) {
       user = req.session.user;
+      console.log('✅ Usuário encontrado via sessão manual:', { id: user.id, email: user.email, isSuperAdmin: user.isSuperAdmin });
     }
     // Verificar autenticação Replit como fallback
-    else if (req.session?.user?.id) {
-      const userId = req.session.user.id;
+    else if (req.user?.claims?.sub || req.user?.id) {
+      const userId = req.user?.claims?.sub || req.user?.id;
+      console.log('🔍 Verificando via Replit Auth, userId:', userId);
       user = await storage.getUser(userId);
+      console.log('✅ Usuário encontrado via Replit Auth:', user ? { id: user.id, email: user.email, isSuperAdmin: user.isSuperAdmin } : 'não encontrado');
     }
     
     if (!user) {
+      console.log('❌ Nenhum usuário encontrado');
       return res.status(401).json({ message: "Unauthorized" });
     }
     
     if (!user?.isSuperAdmin) {
+      console.log('❌ Usuário não é super admin:', { id: user.id, isSuperAdmin: user.isSuperAdmin });
       return res.status(403).json({ message: "Access denied - Super Admin required" });
     }
 
+    console.log('✅ Super admin verificado com sucesso:', user.id);
     next();
   } catch (error) {
     console.error("Error checking super admin:", error);
