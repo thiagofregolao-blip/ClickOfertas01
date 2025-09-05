@@ -2751,10 +2751,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ==========================================
-  // SISTEMA DE 3 CARTAS DIÁRIAS
+  // SISTEMA DE 6 CARTAS DIÁRIAS
   // ==========================================
 
-  // Buscar as 3 cartas do usuário para o dia
+  // Buscar as 6 cartas do usuário para o dia
   async getUserDailyScratchCards(userId: string, date: string): Promise<DailyScratchCard[]> {
     return await db.select()
       .from(dailyScratchCards)
@@ -2765,23 +2765,23 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(dailyScratchCards.cardNumber));
   }
 
-  // Criar as 3 cartas diárias para um usuário
+  // Criar as 6 cartas diárias para um usuário
   async createUserDailyScratchCards(userId: string, date: string): Promise<DailyScratchCard[]> {
     const cards: InsertDailyScratchCard[] = [];
     const availablePrizes = await this.getActiveDailyPrizes();
     
-    // Gerar 3 cartas com algoritmo inteligente de distribuição de prêmios
-    for (let cardNumber = 1; cardNumber <= 3; cardNumber++) {
+    // Gerar 6 cartas com algoritmo inteligente de distribuição de prêmios
+    for (let cardNumber = 1; cardNumber <= 6; cardNumber++) {
       let won = false;
       let prizeId = null;
       let prizeType = null;
       let prizeValue = null;
       let prizeDescription = null;
 
-      // Algoritmo simples: 25% de chance de ganhar em cada carta
-      // Pelo menos 1 das 3 cartas deve ter prêmio
+      // Algoritmo simples: 20% de chance de ganhar em cada carta
+      // Pelo menos 1 das 6 cartas deve ter prêmio
       const winChance = Math.random();
-      const shouldWin = winChance < 0.25 || (cardNumber === 3 && !cards.some(c => c.won));
+      const shouldWin = winChance < 0.20 || (cardNumber === 6 && !cards.some(c => c.won));
       
       if (shouldWin && availablePrizes.length > 0) {
         won = true;
@@ -2805,7 +2805,7 @@ export class DatabaseStorage implements IStorage {
       });
     }
 
-    // Inserir todas as 3 cartas no banco
+    // Inserir todas as 6 cartas no banco
     const createdCards = await db.insert(dailyScratchCards)
       .values(cards)
       .returning();
@@ -2844,7 +2844,7 @@ export class DatabaseStorage implements IStorage {
     // Verificar se já existem cartas para hoje
     const existingCards = await this.getUserDailyScratchCards(userId, today);
     
-    if (existingCards.length === 3) {
+    if (existingCards.length === 6) {
       return existingCards;
     }
     

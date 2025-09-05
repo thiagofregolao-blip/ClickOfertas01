@@ -372,9 +372,16 @@ export default function ThreeDailyScratchCards() {
 
   if (isLoading) {
     return (
-      <div className="w-full">
+      <div className="w-full space-y-[5px]">
+        {/* Primeira linha skeleton */}
         <div className="grid grid-cols-3 gap-[5px] h-[110px]">
           {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-gray-200 animate-pulse rounded-lg" />
+          ))}
+        </div>
+        {/* Segunda linha skeleton */}
+        <div className="grid grid-cols-3 gap-[5px] h-[110px]">
+          {[4, 5, 6].map((i) => (
             <div key={i} className="bg-gray-200 animate-pulse rounded-lg" />
           ))}
         </div>
@@ -394,14 +401,17 @@ export default function ThreeDailyScratchCards() {
     return null;
   }
 
-  // Organizar as 3 cartas em uma linha horizontal
+  // Organizar as 6 cartas em duas linhas horizontais de 3 cada
   const card1 = cards.find((c: DailyScratchCard) => c.cardNumber === '1');
   const card2 = cards.find((c: DailyScratchCard) => c.cardNumber === '2');
   const card3 = cards.find((c: DailyScratchCard) => c.cardNumber === '3');
+  const card4 = cards.find((c: DailyScratchCard) => c.cardNumber === '4');
+  const card5 = cards.find((c: DailyScratchCard) => c.cardNumber === '5');
+  const card6 = cards.find((c: DailyScratchCard) => c.cardNumber === '6');
 
   return (
-    <div className="w-full">
-      {/* 3 cartas em linha horizontal com mesma largura do banner */}
+    <div className="w-full space-y-[5px]">
+      {/* Primeira linha: cartas 1, 2, 3 */}
       <div className="grid grid-cols-3 gap-[5px] w-full h-[110px]">
         {card1 && (
           <MiniScratchCard
@@ -420,6 +430,31 @@ export default function ThreeDailyScratchCards() {
         {card3 && (
           <MiniScratchCard
             card={card3}
+            onScratch={scratchMutation.mutate}
+            isScratching={scratchMutation.isPending}
+          />
+        )}
+      </div>
+      
+      {/* Segunda linha: cartas 4, 5, 6 */}
+      <div className="grid grid-cols-3 gap-[5px] w-full h-[110px]">
+        {card4 && (
+          <MiniScratchCard
+            card={card4}
+            onScratch={scratchMutation.mutate}
+            isScratching={scratchMutation.isPending}
+          />
+        )}
+        {card5 && (
+          <MiniScratchCard
+            card={card5}
+            onScratch={scratchMutation.mutate}
+            isScratching={scratchMutation.isPending}
+          />
+        )}
+        {card6 && (
+          <MiniScratchCard
+            card={card6}
             onScratch={scratchMutation.mutate}
             isScratching={scratchMutation.isPending}
           />
