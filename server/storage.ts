@@ -2029,7 +2029,7 @@ export class DatabaseStorage implements IStorage {
     if (existingResults.length === 0) {
       console.log('🎲 Não há promoções atribuídas, iniciando distribuição automática...');
       
-      // Buscar promoções ativas da loja que ainda têm vagas disponíveis
+      // Buscar promoções ativas da loja que ainda têm vagas disponíveis (com ordem aleatória)
       const availablePromotions = await db
         .select({
           promotion: promotions,
@@ -2041,40 +2041,48 @@ export class DatabaseStorage implements IStorage {
           eq(promotions.storeId, storeId),
           eq(promotions.isActive, true),
           sql`CAST(${promotions.usedCount} AS INTEGER) < CAST(${promotions.maxClients} AS INTEGER)` // Ainda tem vagas
-        ));
+        ))
+        .orderBy(sql`RANDOM()`) // ✅ Correção: Ordenação aleatória para variar os produtos
 
       console.log(`🏪 Promoções disponíveis na loja:`, availablePromotions.length);
 
-      // Filtrar promoções que o usuário ainda não tem assignments
+      // ✅ Correção: Filtrar promoções que o usuário ainda não tem assignments (incluindo generated/redeemed)
       const userAssignments = await db
-        .select()
+        .select({
+          promotionId: promotionAssignments.promotionId,
+          status: promotionAssignments.status
+        })
         .from(promotionAssignments)
         .where(and(
           eq(promotionAssignments.userId, userId),
           inArray(promotionAssignments.promotionId, availablePromotions.map(p => p.promotion.id))
         ));
 
+      console.log(`🔍 User assignments encontrados:`, userAssignments.map(a => ({ id: a.promotionId, status: a.status })));
+
+      // Excluir promoções que já têm assignment (qualquer status)
       const assignedPromotionIds = new Set(userAssignments.map(a => a.promotionId));
       const newPromotions = availablePromotions.filter(p => !assignedPromotionIds.has(p.promotion.id));
 
       console.log(`✨ Novas promoções para atribuir:`, newPromotions.length);
 
-      // Criar assignments automáticos para promoções disponíveis
+      // ✅ Correção: Criar assignment para apenas UMA promoção por vez
       if (newPromotions.length > 0) {
-        const newAssignments = newPromotions.map(p => ({
-          promotionId: p.promotion.id,
+        const selectedPromotion = newPromotions[0]; // Pega apenas a primeira (já está em ordem aleatória)
+        
+        const newAssignment = {
+          promotionId: selectedPromotion.promotion.id,
           userId: userId,
           status: 'assigned' as const,
-        }));
+        };
 
-        await db.insert(promotionAssignments).values(newAssignments);
-        console.log(`🎉 Criados ${newAssignments.length} assignments automáticos para usuário ${userId}`);
+        await db.insert(promotionAssignments).values([newAssignment]);
+        console.log(`🎉 Criado 1 assignment automático para usuário ${userId}: ${selectedPromotion.promotion.name}`);
 
-        // Retornar as novas promoções atribuídas
-        return newPromotions.map(r => ({
-          ...r.promotion,
-          store: r.store
-        }));
+        return [{
+          ...selectedPromotion.promotion,
+          store: selectedPromotion.store
+        }];
       }
     }
 
@@ -2085,17 +2093,35 @@ export class DatabaseStorage implements IStorage {
       return usedCount < maxClients; // Apenas promoções que ainda têm vagas
     });
 
-    // NOVA VERIFICAÇÃO: Filtrar promoções onde o usuário já gerou cupom
+    // ✅ Correção: Dupla verificação para garantir que produtos já raspados não apareçam
     const finalPromotions = [];
     for (const r of validPromotions) {
+      // Verificação 1: Status no promotionAssignments
+      const [statusCheck] = await db
+        .select({ status: promotionAssignments.status })
+        .from(promotionAssignments)
+        .where(and(
+          eq(promotionAssignments.promotionId, r.promotion.id),
+          eq(promotionAssignments.userId, userId)
+        ))
+        .limit(1);
+
+      if (statusCheck?.status === 'generated' || statusCheck?.status === 'redeemed') {
+        console.log(`🚫 Promoção ${r.promotion.name} excluída - status: ${statusCheck.status}`);
+        continue;
+      }
+
+      // Verificação 2: Cupom já existe
       const alreadyGenerated = await this.hasUserGeneratedCoupon(r.promotion.id, userId);
       if (!alreadyGenerated) {
         finalPromotions.push(r);
+        console.log(`✅ Promoção ${r.promotion.name} aprovada para usuário ${userId}`);
       } else {
         console.log(`🚫 Promoção ${r.promotion.name} excluída - usuário ${userId} já possui cupom`);
       }
     }
 
+    console.log(`🎯 Promoções finais retornadas: ${finalPromotions.length}`);
     return finalPromotions.map(r => ({
       ...r.promotion,
       store: r.store
