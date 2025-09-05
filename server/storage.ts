@@ -2732,26 +2732,46 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateScratchSystemConfig(updates: Partial<ScratchSystemConfig>): Promise<ScratchSystemConfig> {
+    console.log('🔧 updateScratchSystemConfig - Updates recebidos:', JSON.stringify(updates, null, 2));
+    
     // Verificar se existe alguma configuração
     const existingConfig = await this.getScratchSystemConfig();
+    console.log('🔍 Configuração existente:', existingConfig ? { id: existingConfig.id, updatedAt: existingConfig.updatedAt } : 'Nenhuma encontrada');
     
     if (existingConfig) {
       // Atualizar configuração existente
-      const [updatedConfig] = await db.update(scratchSystemConfig)
-        .set({ ...updates, updatedAt: new Date() })
-        .where(eq(scratchSystemConfig.id, existingConfig.id))
-        .returning();
-      return updatedConfig;
+      console.log('🔄 Atualizando configuração existente...');
+      try {
+        const [updatedConfig] = await db.update(scratchSystemConfig)
+          .set({ ...updates, updatedAt: new Date() })
+          .where(eq(scratchSystemConfig.id, existingConfig.id))
+          .returning();
+        console.log('✅ Configuração atualizada com sucesso:', updatedConfig.id);
+        return updatedConfig;
+      } catch (updateError) {
+        console.error('❌ Erro ao atualizar configuração:', updateError);
+        throw updateError;
+      }
     } else {
       // Criar nova configuração
-      const [newConfig] = await db.insert(scratchSystemConfig)
-        .values({
+      console.log('🆕 Criando nova configuração...');
+      try {
+        const configToInsert = {
           ...updates,
           createdAt: new Date(),
           updatedAt: new Date(),
-        } as any)
-        .returning();
-      return newConfig;
+        };
+        console.log('🔧 Config a ser inserida:', JSON.stringify(configToInsert, null, 2));
+        
+        const [newConfig] = await db.insert(scratchSystemConfig)
+          .values(configToInsert)
+          .returning();
+        console.log('✅ Nova configuração criada com sucesso:', newConfig.id);
+        return newConfig;
+      } catch (insertError) {
+        console.error('❌ Erro ao criar nova configuração:', insertError);
+        throw insertError;
+      }
     }
   }
 

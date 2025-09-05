@@ -3179,12 +3179,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Atualizar configuração do sistema (Super Admin)
   app.put('/api/admin/scratch-config', isSuperAdmin, async (req: any, res) => {
     try {
+      console.log('🔧 PUT /api/admin/scratch-config - Dados recebidos:', JSON.stringify(req.body, null, 2));
+      
       const configData = req.body;
+      
+      // Validação básica dos dados
+      if (!configData || typeof configData !== 'object') {
+        console.log('❌ Dados inválidos recebidos');
+        return res.status(400).json({ message: "Dados de configuração inválidos" });
+      }
+
+      console.log('✅ Chamando storage.updateScratchSystemConfig...');
       const updatedConfig = await storage.updateScratchSystemConfig(configData);
+      console.log('✅ Configuração atualizada com sucesso:', updatedConfig.id);
+      
       res.json(updatedConfig);
     } catch (error) {
-      console.error("Error updating scratch config:", error);
-      res.status(500).json({ message: "Failed to update config" });
+      console.error("❌ Error updating scratch config:", error);
+      console.error("❌ Stack trace:", error instanceof Error ? error.stack : 'No stack trace');
+      res.status(500).json({ 
+        message: "Failed to update config", 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
     }
   });
 
