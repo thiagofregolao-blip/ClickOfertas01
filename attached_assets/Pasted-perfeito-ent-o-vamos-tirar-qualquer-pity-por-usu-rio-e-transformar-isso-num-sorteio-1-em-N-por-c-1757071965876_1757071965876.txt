@@ -1,0 +1,263 @@
+perfeito — então vamos tirar qualquer “pity por usuário” e transformar isso num sorteio 1-em-N por campanha, com 6 raspadinhas/dia por usuário e N definido no painel (ex.: “a cada 1000 raspadas totais, 1 ganha”). Também vamos focar só em descontos (sem “grátis”). Abaixo te entrego:
+
+O que muda (conceito)
+
+Regra central: para cada campanha, existe um N configurável (“1 em N”). Cada raspada global (de qualquer usuário) incrementa um contador atômico da campanha; quando contador % N == 0 → vitória.
+
+Justificativa: isso garante a média de 1 vencedor a cada N raspadas, distribuído entre todos os usuários (cada um ainda tem 6 chances/dia, mas o sorteio é global e imparcial).
+
+Sem “pity” por usuário. O sistema não força vitória individual; a probabilidade é puramente frequência global.
+
+Somente descontos: removemos o tier “produto grátis” e mantemos faixas de desconto (20%, 30%, 50%, 70% etc.). A escolha do desconto pode ter pesos (configuráveis) depois que o usuário “caiu” no evento de vitória.
+
+Painel Admin — novo cadastro/edição de campanha (UX)
+
+Campos (seções claras):
+
+Dados da campanha
+
+Nome da campanha
+
+Status: Ativa / Pausada
+
+Período: Início / Fim
+
+Fuso da campanha: America/Asuncion (para reset diário das 6 raspadinhas)
+
+Regras de sorteio
+
+Modelo de probabilidade:
+
+(•) 1 em N (padrão)
+
+N (raspadas por vitória): [ input numérico ] (ex.: 1000)
+
+Raspadinhas por usuário/dia: [ input numérico ] (ex.: 6)
+
+(opcional) Limite de vitórias/dia por campanha: [ input ] (ex.: 50)
+
+(opcional) Limite de vitórias/dia por usuário: [ input ] (ex.: 1)
+
+Tipos de desconto (somente descontos)
+
+Lista editável (pode ser tabela):
+
+Faixa: 20% | 30% | 50% | 70%
+
+Peso: número (ex.: 10, 6, 3, 1) → define chance relativa entre faixas quando há vitória
+
+Estoque diário (opcional): limite por faixa (ex.: 20% ilimitado; 70% máx. 5/dia)
+
+Botões: + Adicionar faixa, Remover
+
+Catálogo elegível (opcional)
+
+Filtros para quais produtos podem ser sorteados para cada faixa (categorias, margem mínima, novidade, etc.).
+
+Se quiser manter teu algoritmo de seleção por score, ele entra após definida a faixa de desconto para escolher um produto compatível.
+
+Operação e segurança
+
+Reset diário de cartas: horário local (mostrar a hora calculada)
+
+Anti-fraude: rate limit por IP/conta, device fingerprint (toggle), verificação de duplicidade de sessão (toggle)
+
+Observabilidade
+
+Cards/charts:
+
+Raspadas hoje (contagem)
+
+Vitórias hoje / previstas (≈ total raspadas ÷ N)
+
+Distribuição por faixa de desconto
+
+EV do dia (custo estimado dos descontos concedidos)
+
+Backend — como implementar o “1 em N”
+1) Estruturas de dados
+
+Tabela campaign (se já não existir):
+
+id, name, status, starts_at, ends_at, timezone
+
+one_in_n (INT, ex.: 1000)
+
+cards_per_user_per_day (INT, ex.: 6)
+
+limites opcionais: max_wins_per_day, max_wins_per_user_per_day
+
+Tabela campaign_prize_tier (somente descontos):
+
+id, campaign_id
+
+discount_percent (INT: 20, 30, 50, 70)
+
+weight (INT)
+
+daily_quota (INT NULL = ilimitado)
+
+Tabela campaign_counters (por campanha e por dia):
+
+id, campaign_id, date (YYYY-MM-DD no fuso da campanha),
+
+global_scratches (BIGINT),
+
+wins_today (INT),
+
+por faixa: wins_20, wins_30, etc. (opcional)
+
+Tabela user_daily_cards:
+
+user_id, campaign_id, date, cards_granted (ex.: 6), cards_used
+
+Observação: se você já tem estruturas similares, pode só acrescentar one_in_n e a camada de contadores.
+
+2) Checagem de vitória (transação atômica)
+
+Pseudo TypeScript (Node):
+
+async function scratchCard({ userId, campaignId }: { userId: string; campaignId: string; }) {
+  return db.transaction(async (tx) => {
+    const campaign = await tx.getCampaignForUpdate(campaignId); // SELECT ... FOR UPDATE
+    assertCampaignActive(campaign);
+
+    const today = nowInTimezone(campaign.timezone).format('YYYY-MM-DD');
+
+    // 1) Verifica e debita carta do usuário no dia
+    const daily = await tx.getOrCreateUserDaily(userId, campaignId, today);
+    if (daily.cards_used >= campaign.cards_per_user_per_day) {
+      return { allowed: false, reason: 'NO_CARDS_LEFT' };
+    }
+    await tx.updateUserDailyUsed(daily.id, daily.cards_used + 1);
+
+    // 2) Incrementa contador global de raspadas da campanha no dia (ATÔMICO)
+    const counters = await tx.getOrCreateCountersForUpdate(campaignId, today);
+    const nextScratchCount = counters.global_scratches + 1;
+    await tx.updateCounters(counters.id, { global_scratches: nextScratchCount });
+
+    // 3) Regra 1 em N
+    const isWinner = (nextScratchCount % campaign.one_in_n) === 0;
+
+    if (!isWinner) {
+      return { allowed: true, won: false };
+    }
+
+    // 4) Limites operacionais
+    if (campaign.max_wins_per_day && counters.wins_today >= campaign.max_wins_per_day) {
+      return { allowed: true, won: false }; // venceu “tecnicamente”, mas quota diária esgotada → trata como não ganhou
+    }
+    const winsByUserToday = await tx.countWinsByUser(userId, campaignId, today);
+    if (campaign.max_wins_per_user_per_day && winsByUserToday >= campaign.max_wins_per_user_per_day) {
+      return { allowed: true, won: false };
+    }
+
+    // 5) Seleciona faixa de desconto por peso, respeitando daily_quota
+    const tier = await pickWeightedTierRespectingQuota(tx, campaignId, today);
+
+    if (!tier) {
+      // fallback se todas as quotas esgotarem: trata como derrota OU rebaixa p/ menor desconto se quiser
+      return { allowed: true, won: false };
+    }
+
+    // 6) Escolhe o produto elegível (opcional: teu algoritmo inteligente, mas agora apenas p/ selecionar item)
+    const product = await pickEligibleProduct(tx, campaignId, tier);
+
+    // 7) Emite o prêmio (gera cupom, registra vitória)
+    const prize = await tx.createPrizeRedemption({
+      userId, campaignId, date: today, discountPercent: tier.discount_percent, productId: product?.id ?? null,
+    });
+    await tx.updateCounters(counters.id, { wins_today: counters.wins_today + 1 });
+    await tx.bumpTierWinCounter(campaignId, today, tier.id);
+
+    return {
+      allowed: true,
+      won: true,
+      prize: { discountPercent: tier.discount_percent, couponCode: prize.couponCode, product },
+    };
+  });
+}
+
+
+Pontos críticos
+
+Use SELECT ... FOR UPDATE / transações para que dois servidores não “saltem” o mesmo número.
+
+O cálculo nextScratchCount % N == 0 é simples e justo.
+
+Se quiser mais imprevisibilidade, você pode substituir por hash imparcial:
+
+hash = sha256(campaign.seed + nextScratchCount), vence se hash mod N == 0. (Troque o seed por período para evitar predição; isso é opcional.)
+
+3) Escolha da faixa de desconto
+
+Weighted random com checagem de quota diária por faixa:
+
+Monte um vetor de pesos apenas das faixas com quota disponível (ou ilimitadas).
+
+Sorteie a faixa; se a faixa sorteada estiver sem quota (corrida condicional), remova-a e re-sorteie.
+
+Se todas sem quota, trata como “não ganhou” ou rebaixa p/ menor desconto (decisão de produto).
+
+Front & API — o que muda
+
+Endpoint de scratch não muda a assinatura, mas a resposta nunca depende da “raspagem 70%” para decidir; o 70% é só UI. A decisão é no servidor conforme o contador global/N.
+
+Endpoint de config/campanha agora entrega: one_in_n, cards_per_user_per_day, lista de faixas (percent + peso + quota), limites e timezone.
+
+Observabilidade no painel (muito útil pra ti)
+
+Hoje: raspadas, vitórias, taxa real (vitórias/raspadas), “esperado” (≈ raspadas/N), desvio vs esperado.
+
+Por faixa: vitórias por faixa, % uso das quotas.
+
+Por usuário: top raspadores (para detectar abuso).
+
+Alertas: se vitórias do dia << esperado (talvez tráfego baixo) ou >> esperado (bug/abuso).
+
+Migração mínima (SQL sugestivo)
+ALTER TABLE campaign ADD COLUMN one_in_n INT NOT NULL DEFAULT 1000;
+ALTER TABLE campaign ADD COLUMN cards_per_user_per_day INT NOT NULL DEFAULT 6;
+ALTER TABLE campaign ADD COLUMN timezone TEXT NOT NULL DEFAULT 'America/Asuncion';
+ALTER TABLE campaign ADD COLUMN max_wins_per_day INT NULL;
+ALTER TABLE campaign ADD COLUMN max_wins_per_user_per_day INT NULL;
+
+CREATE TABLE IF NOT EXISTS campaign_prize_tier (
+  id SERIAL PRIMARY KEY,
+  campaign_id BIGINT NOT NULL REFERENCES campaign(id),
+  discount_percent INT NOT NULL,     -- 20, 30, 50, 70
+  weight INT NOT NULL DEFAULT 1,
+  daily_quota INT NULL               -- NULL = ilimitado
+);
+
+CREATE TABLE IF NOT EXISTS campaign_counters (
+  id SERIAL PRIMARY KEY,
+  campaign_id BIGINT NOT NULL REFERENCES campaign(id),
+  date DATE NOT NULL,
+  global_scratches BIGINT NOT NULL DEFAULT 0,
+  wins_today INT NOT NULL DEFAULT 0,
+  UNIQUE (campaign_id, date)
+);
+
+CREATE TABLE IF NOT EXISTS user_daily_cards (
+  user_id BIGINT NOT NULL,
+  campaign_id BIGINT NOT NULL,
+  date DATE NOT NULL,
+  cards_granted INT NOT NULL DEFAULT 6,
+  cards_used INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (user_id, campaign_id, date)
+);
+
+O que fazer com teu “algoritmo inteligente”
+
+Mantém ele, mas depois da vitória e da faixa de desconto definida. Ele serve só para escolher o produto mais oportuno para aplicar o desconto (pop/ margem/ novidade/ categoria), nunca mais para decidir se ganhou ou qual faixa.
+
+Anti-fraude (bem direto)
+
+Rate limit por IP/usuário.
+
+Device fingerprint leve para coibir multi-contas básicas.
+
+Idempotência do endpoint (não permitir raspar duas vezes a mesma carta).
+
+Auditoria de global_scratches (não deixar decrementar), logar userId, scratchCount, winnerFlag, tier.

@@ -3006,52 +3006,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Raspar uma carta específica
+  // ✅ NOVO ENDPOINT DE RASPAGEM ATÔMICA "1 EM N"
   app.post('/api/daily-scratch/cards/:cardId/scratch', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const userId = req.session?.user?.id || req.user?.claims?.sub || req.user?.id;
       const { cardId } = req.params;
       
-      // Verificar se a carta pertence ao usuário e se não foi raspada
-      const card = await storage.getDailyScratchCard(cardId);
-      if (!card) {
-        return res.status(404).json({ message: "Carta não encontrada" });
-      }
+      console.log('🎯 Requisição de raspagem:', { userId, cardId });
       
-      if (card.userId !== userId) {
-        return res.status(403).json({ message: "Carta não pertence ao usuário" });
-      }
+      // ✅ USAR NOVA FUNÇÃO ATÔMICA "1 EM N"
+      const result = await storage.scratchCardAtomic(userId, cardId);
       
-      if (card.isScratched) {
-        return res.status(400).json({ message: "Carta já foi raspada" });
-      }
-      
-      // Raspar a carta
-      const scratchedCard = await storage.scratchCard(
-        cardId, 
-        req.get('User-Agent'), 
-        req.ip
-      );
-      
-      // Se ganhou, incrementar o contador do prêmio
-      if (scratchedCard.won && scratchedCard.prizeId) {
-        await storage.incrementPrizeWins(scratchedCard.prizeId);
+      if (!result.allowed) {
+        return res.status(400).json({ 
+          message: getErrorMessage(result.reason || 'UNKNOWN_ERROR'),
+          reason: result.reason
+        });
       }
       
       res.json({
         success: true,
-        card: scratchedCard,
-        won: scratchedCard.won,
-        message: scratchedCard.won 
-          ? `🎉 Parabéns! Você ganhou: ${scratchedCard.prizeDescription}!` 
-          : "😔 Não foi dessa vez! Tente as outras cartas.",
+        won: result.won,
+        prize: result.prize ? {
+          type: `discount_${result.prize.discountPercent}`,
+          value: result.prize.discountPercent.toString(),
+          description: `${result.prize.discountPercent}% de desconto`,
+          couponCode: result.prize.couponCode,
+          discountPercent: result.prize.discountPercent
+        } : null,
+        message: result.won 
+          ? `🎉 Parabéns! Você ganhou ${result.prize?.discountPercent}% de desconto!`
+          : "😔 Não foi dessa vez! Tente novamente amanhã."
       });
       
     } catch (error) {
-      console.error("Error scratching card:", error);
-      res.status(500).json({ message: "Failed to scratch card" });
+      console.error("❌ Error scratching daily card:", error);
+      res.status(500).json({ message: "Erro ao raspar carta" });
     }
   });
+
+  // Helper para mensagens de erro
+  function getErrorMessage(reason: string): string {
+    switch (reason) {
+      case 'SYSTEM_NOT_CONFIGURED': return 'Sistema não configurado';
+      case 'CARD_NOT_FOUND_OR_ALREADY_SCRATCHED': return 'Carta não encontrada ou já foi raspada';
+      case 'NO_CARDS_LEFT': return 'Você já usou todas as suas cartas hoje';
+      default: return 'Erro desconhecido';
+    }
+  }
 
   // Estatísticas das cartas do usuário
   app.get('/api/daily-scratch/stats', isAuthenticatedCustom, async (req: any, res) => {

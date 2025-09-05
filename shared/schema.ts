@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   boolean,
   index,
+  integer,
   jsonb,
   pgTable,
   text,
@@ -1151,9 +1152,16 @@ export const scratchSystemConfig = pgTable("scratch_system_config", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   
   // Configurações de algoritmo
-  algorithmType: varchar("algorithm_type").notNull().default("weighted_random"), // 'weighted_random', 'guaranteed_win', 'time_based'
-  guaranteedWinEvery: varchar("guaranteed_win_every").default("1000"), // 1 prêmio a cada X tentativas
-  currentAttemptCount: varchar("current_attempt_count").default("0"), // Contador atual
+  algorithmType: varchar("algorithm_type").notNull().default("one_in_n"), // 'one_in_n', 'weighted_random', 'guaranteed_win'
+  guaranteedWinEvery: varchar("guaranteed_win_every").default("1000"), // DEPRECATED: usar oneInN
+  currentAttemptCount: varchar("current_attempt_count").default("0"), // DEPRECATED: usar campaign_counters
+  
+  // ✅ NOVO SISTEMA "1 EM N"
+  oneInN: integer("one_in_n").notNull().default(1000), // 1 vitória a cada N raspadas globais
+  cardsPerUserPerDay: integer("cards_per_user_per_day").notNull().default(6), // 6 cartas por usuário/dia
+  maxWinsPerDay: integer("max_wins_per_day").default(50), // Limite global de vitórias/dia
+  maxWinsPerUserPerDay: integer("max_wins_per_user_per_day").default(1), // Limite por usuário/dia
+  timezone: varchar("timezone").notNull().default("America/Asuncion"), // Fuso horário da campanha
   
   // Configurações de seleção de produtos
   enableAutoProductSuggestion: boolean("enable_auto_product_suggestion").default(true),
@@ -1207,6 +1215,71 @@ export const algorithmSuggestions = pgTable("algorithm_suggestions", {
   generatedAt: timestamp("generated_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// ✅ NOVA TABELA: Faixas de desconto com pesos (substituindo prêmios fixos)
+export const campaignPrizeTier = pgTable("campaign_prize_tier", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Faixa de desconto
+  discountPercent: integer("discount_percent").notNull(), // 20, 30, 50, 70
+  weight: integer("weight").notNull().default(1), // Peso para weighted random
+  dailyQuota: integer("daily_quota").default(null), // NULL = ilimitado
+  
+  // Metadados
+  name: varchar("name").notNull(), // "Desconto 20%", "Desconto 50%", etc.
+  description: text("description"),
+  
+  // Status
+  isActive: boolean("is_active").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ✅ NOVA TABELA: Contadores globais atômicos por dia
+export const campaignCounters = pgTable("campaign_counters", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Data (YYYY-MM-DD no fuso da campanha)
+  date: varchar("date").notNull(),
+  
+  // Contadores atômicos
+  globalScratches: integer("global_scratches").notNull().default(0), // Raspadas totais no dia
+  winsToday: integer("wins_today").notNull().default(0), // Vitórias totais no dia
+  
+  // Contadores por faixa (para estatísticas)
+  wins20: integer("wins_20").notNull().default(0), // Vitórias desconto 20%
+  wins30: integer("wins_30").notNull().default(0), // Vitórias desconto 30%
+  wins50: integer("wins_50").notNull().default(0), // Vitórias desconto 50%
+  wins70: integer("wins_70").notNull().default(0), // Vitórias desconto 70%
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  // Garantir um registro por dia
+  uniqueDate: unique().on(table.date),
+}));
+
+// ✅ NOVA TABELA: Controle de cartas por usuário/dia
+export const userDailyCards = pgTable("user_daily_cards", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  date: varchar("date").notNull(), // YYYY-MM-DD
+  
+  // Controle de cartas
+  cardsGranted: integer("cards_granted").notNull().default(6), // Cartas concedidas no dia
+  cardsUsed: integer("cards_used").notNull().default(0), // Cartas já raspadas
+  
+  // Controle de vitórias
+  winsToday: integer("wins_today").notNull().default(0), // Vitórias do usuário no dia
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  // Garantir um registro por usuário por dia
+  uniqueUserDate: unique().on(table.userId, table.date),
+}));
 
 // Resultados das raspadinhas diárias
 export const dailyScratchResults = pgTable("daily_scratch_results", {
@@ -1330,6 +1403,25 @@ export const insertDailyScratchResultSchema = createInsertSchema(dailyScratchRes
   createdAt: true,
 });
 
+// ✅ NOVOS SCHEMAS ZOD PARA AS TABELAS ADICIONADAS
+export const insertCampaignPrizeTierSchema = createInsertSchema(campaignPrizeTier).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCampaignCountersSchema = createInsertSchema(campaignCounters).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserDailyCardsSchema = createInsertSchema(userDailyCards).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types para o sistema de raspadinha
 export type DailyPrize = typeof dailyPrizes.$inferSelect;
 export type InsertDailyPrize = z.infer<typeof insertDailyPrizeSchema>;
@@ -1343,6 +1435,14 @@ export type AlgorithmSuggestion = typeof algorithmSuggestions.$inferSelect;
 export type InsertAlgorithmSuggestion = z.infer<typeof insertAlgorithmSuggestionSchema>;
 export type DailyScratchResult = typeof dailyScratchResults.$inferSelect;
 export type InsertDailyScratchResult = z.infer<typeof insertDailyScratchResultSchema>;
+
+// ✅ NOVOS TIPOS PARA AS TABELAS ADICIONADAS
+export type CampaignPrizeTier = typeof campaignPrizeTier.$inferSelect;
+export type InsertCampaignPrizeTier = z.infer<typeof insertCampaignPrizeTierSchema>;
+export type CampaignCounters = typeof campaignCounters.$inferSelect;
+export type InsertCampaignCounters = z.infer<typeof insertCampaignCountersSchema>;
+export type UserDailyCards = typeof userDailyCards.$inferSelect;
+export type InsertUserDailyCards = z.infer<typeof insertUserDailyCardsSchema>;
 
 // ==========================================
 // FIM DO SISTEMA DE RASPADINHA DIÁRIA
