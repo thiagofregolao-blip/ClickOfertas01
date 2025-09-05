@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Gift, Star, Sparkles } from 'lucide-react';
+import mascoteImage from '@/assets/mascote-click.png';
 
 interface DailyScratchCard {
   id: string;
@@ -24,92 +25,189 @@ interface MiniScratchCardProps {
 function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniScratchCardProps) {
   const [isRevealing, setIsRevealing] = useState(false);
   const [isScratching, setIsScratching] = useState(false);
-  const [scratchPercentage, setScratchPercentage] = useState(0);
+  const [scratchProgress, setScratchProgress] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const lastPoint = useRef<{ x: number; y: number } | null>(null);
+  const rafId = useRef<number | null>(null);
+  const needsProgressCalc = useRef<boolean>(false);
+  const lastScratchTime = useRef<number>(0);
+  const revelationStarted = useRef<boolean>(false);
 
-  // Inicializar canvas quando componente monta
+  const SCRATCH_THROTTLE = 16; // ~60fps
+  
+  // Inicializar canvas com mascote (adaptado do scratch-card.tsx)
   useEffect(() => {
-    if (card.isScratched) return;
+    if (card.isScratched || revelationStarted.current) return;
+    
+    setTimeout(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      const actualWidth = rect.width || 200;
+      const actualHeight = rect.height || 110;
+      
+      canvas.width = Math.round(actualWidth * dpr);
+      canvas.height = Math.round(actualHeight * dpr);
+      ctx.scale(dpr, dpr);
+      
+      canvas.style.width = actualWidth + 'px';
+      canvas.style.height = actualHeight + 'px';
+      
+      const cssWidth = actualWidth;
+      const cssHeight = actualHeight;
+
+      // Desenhar mascote como fundo
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, cssWidth, cssHeight);
+        
+        // Texto "RASPE AQUI" com contorno para contraste
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        
+        // Contorno preto para destacar sobre o mascote
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 3;
+        ctx.lineJoin = 'round';
+        ctx.strokeText('RASPE AQUI', cssWidth / 2, cssHeight / 2);
+        
+        // Texto branco por cima
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText('RASPE AQUI', cssWidth / 2, cssHeight / 2);
+      };
+      img.src = mascoteImage;
+      
+      startProgressLoop();
+    }, 100);
+  }, [card.id, card.isScratched]);
+
+  // Medir progresso real por alpha (adaptado do scratch-card.tsx)
+  const measureRealProgress = () => {
+    if (!canvasRef.current || !needsProgressCalc.current) return;
     
     const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    
-    setCanvasSize({ width, height });
-    canvas.width = width;
-    canvas.height = height;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
-    // Criar overlay de raspadinha (cor prata/cinza)
-    ctx.fillStyle = '#C0C0C0';
-    ctx.fillRect(0, 0, width, height);
     
-    // Adicionar padrão de raspadinha
-    ctx.fillStyle = '#A0A0A0';
-    for (let i = 0; i < width; i += 10) {
-      for (let j = 0; j < height; j += 10) {
-        if ((i + j) % 20 === 0) {
-          ctx.fillRect(i, j, 5, 5);
-        }
+    try {
+      needsProgressCalc.current = false;
+      const step = 6;
+      
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      
+      let transparent = 0;
+      let total = 0;
+      
+      for (let i = 3; i < data.length; i += 4 * step) {
+        total++;
+        if (data[i] === 0) transparent++;
       }
+      
+      const progress = total > 0 ? transparent / total : 0;
+      setScratchProgress(progress);
+      
+      // Revelar quando raspou 50% (ajustado para mini-cartas)
+      if (progress >= 0.5 && !card.isScratched && !isRevealing && !revelationStarted.current) {
+        revelationStarted.current = true;
+        setIsRevealing(true);
+        
+        if (rafId.current) {
+          cancelAnimationFrame(rafId.current);
+          rafId.current = null;
+        }
+        
+        setTimeout(() => {
+          onScratch(card.id);
+          setIsRevealing(false);
+        }, 300);
+      }
+    } catch (e) {
+      // Fallback silencioso
     }
+  };
+  
+  // Loop de RAF para medição
+  const startProgressLoop = () => {
+    if (rafId.current) return;
     
-    // Texto "RASPE AQUI"
-    ctx.fillStyle = '#666';
-    ctx.font = 'bold 12px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('RASPE AQUI', width / 2, height / 2);
-  }, [card.isScratched, canvasSize.width]);
+    const loop = () => {
+      measureRealProgress();
+      rafId.current = requestAnimationFrame(loop);
+    };
+    
+    rafId.current = requestAnimationFrame(loop);
+  };
+  
+  // Cleanup do RAF
+  useEffect(() => {
+    return () => {
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = null;
+      }
+    };
+  }, []);
 
+  // Função de scratch (adaptada do scratch-card.tsx)
   const handleScratch = (clientX: number, clientY: number) => {
-    if (card.isScratched || isProcessing) return;
-    
+    if (!canvasRef.current || card.isScratched || isProcessing || revelationStarted.current) return;
+
+    const now = Date.now();
+    if (now - lastScratchTime.current < SCRATCH_THROTTLE) return;
+    lastScratchTime.current = now;
+
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    
+
     const rect = canvas.getBoundingClientRect();
     const x = clientX - rect.left;
     const y = clientY - rect.top;
-    
-    // Configurar modo de "apagamento"
+
+    const scratchRadius = 15; // Menor para mini-cartas
+
     ctx.globalCompositeOperation = 'destination-out';
-    ctx.beginPath();
-    ctx.arc(x, y, 15, 0, 2 * Math.PI);
-    ctx.fill();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = scratchRadius * 2;
     
-    // Calcular porcentagem raspada
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const pixels = imageData.data;
-    let transparentPixels = 0;
-    
-    for (let i = 3; i < pixels.length; i += 4) {
-      if (pixels[i] < 255) transparentPixels++;
+    if (lastPoint.current) {
+      // Desenhar linha contínua
+      ctx.beginPath();
+      ctx.moveTo(lastPoint.current.x, lastPoint.current.y);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    } else {
+      // Primeiro ponto - desenhar círculo
+      ctx.fillStyle = 'rgba(0,0,0,1)';
+      ctx.beginPath();
+      ctx.arc(x, y, scratchRadius, 0, Math.PI * 2);
+      ctx.fill();
     }
     
-    const percentage = (transparentPixels / (pixels.length / 4)) * 100;
-    setScratchPercentage(percentage);
-    
-    // Se raspou mais de 40%, revelar automaticamente
-    if (percentage > 40 && !isRevealing) {
-      setIsRevealing(true);
-      setTimeout(() => {
-        onScratch(card.id);
-        setIsRevealing(false);
-      }, 300);
-    }
+    lastPoint.current = { x, y };
+    needsProgressCalc.current = true;
+    startProgressLoop();
   };
 
-  const handleMouseDown = () => setIsScratching(true);
-  const handleMouseUp = () => setIsScratching(false);
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (card.isScratched || isProcessing) return;
+    setIsScratching(true);
+    lastPoint.current = null;
+    handleScratch(e.clientX, e.clientY);
+  };
+
+  const handleMouseUp = () => {
+    setIsScratching(false);
+    lastPoint.current = null;
+  };
   
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isScratching) {
@@ -117,8 +215,19 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
     }
   };
 
-  const handleTouchStart = () => setIsScratching(true);
-  const handleTouchEnd = () => setIsScratching(false);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (card.isScratched || isProcessing) return;
+    setIsScratching(true);
+    lastPoint.current = null;
+    if (e.touches[0]) {
+      handleScratch(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsScratching(false);
+    lastPoint.current = null;
+  };
   
   const handleTouchMove = (e: React.TouchEvent) => {
     if (isScratching && e.touches[0]) {
