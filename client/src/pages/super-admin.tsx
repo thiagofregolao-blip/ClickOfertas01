@@ -127,7 +127,7 @@ interface ScratchStats {
   successRate: number;
 }
 
-export default function SuperAdmin() {
+function SuperAdminPage() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1178,450 +1178,33 @@ export default function SuperAdmin() {
               </h2>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Configurações do Sistema */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="w-5 h-5 text-blue-600" />
-                    Configurações
-                  </CardTitle>
-                  <CardDescription>
-                    Configure como o sistema funciona
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Modo de Operação</p>
-                      <p className="text-sm text-gray-600">Manual ou Automático</p>
-                    </div>
-                    <Switch defaultChecked />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Produtos por Dia</label>
-                    <Input type="number" defaultValue="5" className="max-w-20" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Chance de Ganhar (%)</label>
-                    <Input type="number" defaultValue="25" max="100" className="max-w-20" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={async () => {
-                        try {
-                          const response = await apiRequest('/api/admin/daily-scratch/test', 'POST');
-                          toast({
-                            title: "Sistema Testado!",
-                            description: response.message,
-                            variant: response.won ? "default" : "destructive",
-                          });
-                        } catch (error) {
-                          toast({
-                            title: "Erro no Teste",
-                            description: "Falha ao testar o sistema",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                    >
-                      <Dice6 className="w-4 h-4 mr-2" />
-                      Testar Sistema
-                    </Button>
-                    <Button className="w-full">
-                      Salvar Configurações
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            <AtomicScratchSystem />
+          </TabsContent>
 
-              {/* Estatísticas Reais */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-green-600" />
-                    Estatísticas Hoje
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-3 bg-blue-50 rounded-lg">
-                      <p className="text-2xl font-bold text-blue-600">{scratchStats?.cardsScratched || 0}</p>
-                      <p className="text-sm text-gray-600">Cartas Raspadas</p>
-                    </div>
-                    <div className="text-center p-3 bg-green-50 rounded-lg">
-                      <p className="text-2xl font-bold text-green-600">{scratchStats?.prizesWon || 0}</p>
-                      <p className="text-sm text-gray-600">Prêmios Ganhos</p>
-                    </div>
-                  </div>
-                  
-                  <div className="text-center p-3 bg-purple-50 rounded-lg">
-                    <p className="text-2xl font-bold text-purple-600">{scratchStats?.successRate?.toFixed(1) || 0}%</p>
-                    <p className="text-sm text-gray-600">Taxa de Sucesso</p>
-                  </div>
-                  
-                  <div className="text-center p-3 bg-orange-50 rounded-lg">
-                    <p className="text-2xl font-bold text-orange-600">{scratchStats?.totalCardsToday || 0}</p>
-                    <p className="text-sm text-gray-600">Total de Cartas</p>
-                  </div>
-                </CardContent>
-              </Card>
+          {/* ABA DE INTELIGÊNCIA */}
+          <TabsContent value="intelligence" className="space-y-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <Brain className="w-6 h-6 text-indigo-600" />
+                Inteligência de Preços
+              </h2>
             </div>
 
-            {/* Gestão de Produtos */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5 text-orange-600" />
-                  Produtos Selecionados para Raspadinha
+                  <TrendingUp className="w-5 h-5 text-indigo-600" />
+                  Algoritmo de Recomendação
                 </CardTitle>
                 <CardDescription>
-                  Produtos que podem aparecer nas rapadinhas diárias
+                  Como o sistema sugere produtos para raspadinha baseado em dados
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="flex justify-between items-center mb-4">
-                  <p className="text-sm text-gray-600">5 produtos selecionados para hoje</p>
-                  <div className="space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Dice6 className="w-4 h-4 mr-2" />
-                      Gerar Automático
-                    </Button>
-                    <Button size="sm">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Selecionar Produtos
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="grid gap-3 max-h-60 overflow-y-auto">
-                  {/* Produtos selecionados - Mock */}
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gray-200 rounded"></div>
-                      <div>
-                        <p className="font-medium">iPhone 15 Pro Max</p>
-                        <p className="text-sm text-gray-600">Loja: TechStore PY</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">50% DESC</Badge>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gray-200 rounded"></div>
-                      <div>
-                        <p className="font-medium">Smart TV Samsung 65"</p>
-                        <p className="text-sm text-gray-600">Loja: ElectroMax</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">R$ 200 OFF</Badge>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gray-200 rounded"></div>
-                      <div>
-                        <p className="font-medium">Nike Air Max</p>
-                        <p className="text-sm text-gray-600">Loja: SportCenter</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">30% DESC</Badge>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Gestão Real de Prêmios */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Gift className="w-5 h-5 text-purple-600" />
-                  Prêmios Disponíveis
-                </CardTitle>
-                <CardDescription>
-                  Configure os tipos de prêmios que podem ser ganhos
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-between items-center mb-4">
-                  <p className="text-sm text-gray-600">{dailyPrizes.length} prêmios configurados</p>
-                  
-                  <Dialog open={isCreatePrizeOpen || !!editingPrize} onOpenChange={(open) => {
-                    if (!open) {
-                      setIsCreatePrizeOpen(false);
-                      setEditingPrize(null);
-                      prizeForm.reset();
-                    }
-                  }}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        size="sm"
-                        onClick={() => setIsCreatePrizeOpen(true)}
-                        data-testid="button-create-prize"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Novo Prêmio
-                      </Button>
-                    </DialogTrigger>
-                    
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingPrize ? 'Editar Prêmio' : 'Criar Novo Prêmio'}
-                        </DialogTitle>
-                        <DialogDescription>
-                          {editingPrize 
-                            ? 'Atualize as informações do prêmio.' 
-                            : 'Crie um novo prêmio para as raspadinhas diárias.'
-                          }
-                        </DialogDescription>
-                      </DialogHeader>
-
-                      <Form {...prizeForm}>
-                        <form onSubmit={prizeForm.handleSubmit(onSubmitPrize)} className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                              control={prizeForm.control}
-                              name="name"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Nome do Prêmio</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="Ex: Desconto Especial" {...field} data-testid="input-prize-name" />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={prizeForm.control}
-                              name="prizeType"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Tipo do Prêmio</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value} data-testid="select-prize-type">
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Selecione o tipo" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="discount">Desconto</SelectItem>
-                                      <SelectItem value="cashback">Cashback</SelectItem>
-                                      <SelectItem value="product">Produto Específico</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-
-                          <FormField
-                            control={prizeForm.control}
-                            name="description"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Descrição (Opcional)</FormLabel>
-                                <FormControl>
-                                  <Textarea placeholder="Descreva o prêmio..." {...field} data-testid="input-prize-description" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <div className="grid grid-cols-3 gap-4">
-                            <FormField
-                              control={prizeForm.control}
-                              name="discountPercentage"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Desconto (%)</FormLabel>
-                                  <FormControl>
-                                    <Input 
-                                      placeholder="20" 
-                                      type="number" 
-                                      {...field} 
-                                      data-testid="input-prize-discount-percentage" 
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={prizeForm.control}
-                              name="discountValue"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Valor Fixo</FormLabel>
-                                  <FormControl>
-                                    <Input 
-                                      placeholder="25.00" 
-                                      type="number" 
-                                      step="0.01" 
-                                      {...field} 
-                                      data-testid="input-prize-discount-value" 
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={prizeForm.control}
-                              name="probability"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Probabilidade</FormLabel>
-                                  <FormControl>
-                                    <Input 
-                                      placeholder="0.2" 
-                                      type="number" 
-                                      step="0.01"
-                                      max="1"
-                                      min="0"
-                                      {...field} 
-                                      data-testid="input-prize-probability" 
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              type="button" 
-                              variant="outline" 
-                              onClick={() => {
-                                setIsCreatePrizeOpen(false);
-                                setEditingPrize(null);
-                                prizeForm.reset();
-                              }}
-                            >
-                              Cancelar
-                            </Button>
-                            <Button 
-                              type="submit"
-                              disabled={createPrizeMutation.isPending || updatePrizeMutation.isPending}
-                              data-testid="button-save-prize"
-                            >
-                              {editingPrize ? 'Atualizar' : 'Criar'} Prêmio
-                            </Button>
-                          </div>
-                        </form>
-                      </Form>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-                
-                <div className="space-y-3 max-h-60 overflow-y-auto">
-                  {dailyPrizes.map((prize) => (
-                    <div 
-                      key={prize.id} 
-                      className={`flex items-center justify-between p-4 border rounded-lg ${
-                        prize.prizeType === 'discount' 
-                          ? 'bg-gradient-to-r from-green-50 to-green-100' 
-                          : prize.prizeType === 'cashback'
-                          ? 'bg-gradient-to-r from-blue-50 to-blue-100'
-                          : 'bg-gradient-to-r from-purple-50 to-purple-100'
-                      }`}
-                    >
-                      <div>
-                        <p className="font-medium">{prize.name}</p>
-                        <p className="text-sm text-gray-600">
-                          {prize.description || `${getPrizeTypeLabel(prize.prizeType)}`}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Ganhos hoje: {prize.totalWinsToday} | Total: {prize.totalWinsAllTime}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={prize.isActive ? "bg-green-600" : "bg-gray-400"}>
-                          {prize.isActive ? 'Ativo' : 'Inativo'}
-                        </Badge>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleTogglePrizeActive(prize)}
-                          data-testid={`button-toggle-prize-${prize.id}`}
-                        >
-                          <Award className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleEditPrize(prize)}
-                          data-testid={`button-edit-prize-${prize.id}`}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleDeletePrize(prize.id)}
-                          data-testid={`button-delete-prize-${prize.id}`}
-                        >
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {dailyPrizes.length === 0 && (
-                    <div className="text-center py-8">
-                      <Gift className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                      <p className="text-gray-500">Nenhum prêmio configurado</p>
-                      <p className="text-sm text-gray-400">Clique em "Novo Prêmio" para começar</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Algoritmo Inteligente */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Dice6 className="w-5 h-5 text-indigo-600" />
-                  Algoritmo Inteligente
-                </CardTitle>
-                <CardDescription>
-                  Sistema automático de seleção de produtos
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <p className="text-lg font-bold text-blue-600">30%</p>
-                    <p className="text-xs text-gray-600">Popularidade</p>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-4">
+                  <div className="p-3 bg-red-50 rounded-lg">
+                    <p className="text-lg font-bold text-red-600">30%</p>
+                    <p className="text-xs text-gray-600">Saída de Estoque</p>
                   </div>
                   <div className="p-3 bg-green-50 rounded-lg">
                     <p className="text-lg font-bold text-green-600">20%</p>
@@ -1661,3 +1244,322 @@ export default function SuperAdmin() {
     </div>
   );
 }
+
+// ✅ COMPONENTE PARA SISTEMA ATÔMICO "1 EM N"
+function AtomicScratchSystem() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Queries para dados do sistema atômico
+  const { data: atomicStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['/api/admin/atomic-stats'],
+    refetchInterval: 5000, // Atualizar a cada 5 segundos
+  });
+
+  const { data: campaignTiers, isLoading: tiersLoading } = useQuery({
+    queryKey: ['/api/admin/campaign-tiers'],
+  });
+
+  // Mutation para atualizar configuração
+  const updateConfigMutation = useMutation({
+    mutationFn: async (config: any) => {
+      return await apiRequest('/api/admin/atomic-config', 'PUT', config);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Configuração Atualizada",
+        description: "Sistema atômico configurado com sucesso!",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/atomic-stats'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar configuração",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation para atualizar faixas
+  const updateTierMutation = useMutation({
+    mutationFn: async ({ tierId, data }: { tierId: string; data: any }) => {
+      return await apiRequest(`/api/admin/campaign-tiers/${tierId}`, 'PUT', data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Faixa Atualizada",
+        description: "Faixa de desconto atualizada com sucesso!",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/campaign-tiers'] });
+    },
+  });
+
+  // Mutation para resetar contadores
+  const resetCountersMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/admin/reset-counters', 'POST');
+    },
+    onSuccess: () => {
+      toast({
+        title: "Contadores Resetados",
+        description: "Contadores diários resetados para teste!",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/atomic-stats'] });
+    },
+  });
+
+  if (statsLoading || tiersLoading) {
+    return <div>Carregando sistema atômico...</div>;
+  }
+
+  const { counters, config, tiers, nextWin, winRate } = atomicStats || {};
+
+  return (
+    <div className="space-y-6">
+      {/* Estatísticas Gerais */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-blue-600">{counters?.globalScratches || 0}</p>
+              <p className="text-sm text-gray-600">Raspadas Globais</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-green-600">{counters?.winsToday || 0}</p>
+              <p className="text-sm text-gray-600">Vitórias Hoje</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-purple-600">{nextWin || 0}</p>
+              <p className="text-sm text-gray-600">Próxima Vitória</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-orange-600">{winRate || 0}%</p>
+              <p className="text-sm text-gray-600">Taxa de Vitória</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Configuração do Sistema "1 em N" */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="w-5 h-5 text-blue-600" />
+              Configuração "1 em N"
+            </CardTitle>
+            <CardDescription>
+              Configure o algoritmo atômico de vitórias
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">1 vitória a cada N raspadas</label>
+              <Input
+                type="number"
+                value={config?.oneInN || 1000}
+                onChange={(e) => {
+                  updateConfigMutation.mutate({
+                    ...config,
+                    oneInN: parseInt(e.target.value)
+                  });
+                }}
+                className="max-w-24"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Cartas por usuário/dia</label>
+              <Input
+                type="number"
+                value={config?.cardsPerUserPerDay || 3}
+                onChange={(e) => {
+                  updateConfigMutation.mutate({
+                    ...config,
+                    cardsPerUserPerDay: parseInt(e.target.value)
+                  });
+                }}
+                className="max-w-24"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Max vitórias por usuário/dia</label>
+              <Input
+                type="number"
+                value={config?.maxWinsPerUserPerDay || 1}
+                onChange={(e) => {
+                  updateConfigMutation.mutate({
+                    ...config,
+                    maxWinsPerUserPerDay: parseInt(e.target.value)
+                  });
+                }}
+                className="max-w-24"
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Sistema Ativo</p>
+                <p className="text-sm text-gray-600">Ativar/desativar sistema</p>
+              </div>
+              <Switch
+                checked={config?.isActive || false}
+                onCheckedChange={(checked) => {
+                  updateConfigMutation.mutate({
+                    ...config,
+                    isActive: checked
+                  });
+                }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Faixas de Desconto */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="w-5 h-5 text-yellow-600" />
+              Faixas de Desconto
+            </CardTitle>
+            <CardDescription>
+              Gerencie pesos e quotas das faixas
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {tiers?.map((tier: any) => (
+              <div key={tier.id} className="p-3 border rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{tier.discountPercent}% desconto</span>
+                  <Badge variant={tier.isActive ? "default" : "secondary"}>
+                    {tier.isActive ? "Ativo" : "Inativo"}
+                  </Badge>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div>
+                    <label className="text-xs text-gray-600">Peso</label>
+                    <Input
+                      type="number"
+                      value={tier.weight}
+                      onChange={(e) => {
+                        updateTierMutation.mutate({
+                          tierId: tier.id,
+                          data: {
+                            weight: parseInt(e.target.value),
+                            dailyQuota: tier.dailyQuota,
+                            isActive: tier.isActive
+                          }
+                        });
+                      }}
+                      className="h-8"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs text-gray-600">Quota Diária</label>
+                    <Input
+                      type="number"
+                      value={tier.dailyQuota || ''}
+                      placeholder="Ilimitado"
+                      onChange={(e) => {
+                        updateTierMutation.mutate({
+                          tierId: tier.id,
+                          data: {
+                            weight: tier.weight,
+                            dailyQuota: e.target.value ? parseInt(e.target.value) : null,
+                            isActive: tier.isActive
+                          }
+                        });
+                      }}
+                      className="h-8"
+                    />
+                  </div>
+                  
+                  <div className="flex items-end">
+                    <Button
+                      size="sm"
+                      variant={tier.isActive ? "destructive" : "default"}
+                      onClick={() => {
+                        updateTierMutation.mutate({
+                          tierId: tier.id,
+                          data: {
+                            weight: tier.weight,
+                            dailyQuota: tier.dailyQuota,
+                            isActive: !tier.isActive
+                          }
+                        });
+                      }}
+                      className="h-8 w-full"
+                    >
+                      {tier.isActive ? "Desativar" : "Ativar"}
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="text-xs text-gray-600">
+                  Usado hoje: {counters?.[`wins${tier.discountPercent}`] || 0}
+                  {tier.dailyQuota && ` / ${tier.dailyQuota}`}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Controles de Teste */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Dice6 className="w-5 h-5 text-red-600" />
+            Controles de Teste
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              onClick={() => resetCountersMutation.mutate()}
+              disabled={resetCountersMutation.isPending}
+            >
+              <Target className="w-4 h-4 mr-2" />
+              Resetar Contadores
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => {
+                queryClient.invalidateQueries({ queryKey: ['/api/admin/atomic-stats'] });
+                toast({
+                  title: "Dados Atualizados",
+                  description: "Estatísticas recarregadas!",
+                });
+              }}
+            >
+              Atualizar Dados
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export default SuperAdminPage;

@@ -3,6 +3,9 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { getUserId } from "./utils/auth";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
+import { campaignCounters, campaignPrizeTier } from "@shared/schema";
 
 // Middleware para verificar autenticação (sessão manual ou Replit Auth)
 const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
@@ -3151,6 +3154,161 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating daily prize:", error);
       res.status(500).json({ message: "Failed to create prize" });
+    }
+  });
+
+  // ==========================================
+  // ✅ ENDPOINTS PARA SISTEMA ATÔMICO "1 EM N"  
+  // ==========================================
+
+  // Buscar estatísticas do sistema atômico
+  app.get('/api/admin/atomic-stats', isSuperAdmin, async (req: any, res) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Buscar contadores do dia
+      const counters = await storage.getOrCreateCampaignCounters(today);
+      
+      // Buscar configuração do sistema
+      const config = await storage.getScratchSystemConfig();
+      
+      // Buscar faixas de desconto
+      const tiers = await storage.getCampaignPrizeTiers();
+      
+      // Calcular próxima vitória
+      const nextWin = config?.oneInN ? 
+        config.oneInN - (counters.globalScratches % config.oneInN) : 0;
+      
+      res.json({
+        success: true,
+        counters: {
+          globalScratches: counters.globalScratches,
+          winsToday: counters.winsToday,
+          wins20: counters.wins20,
+          wins30: counters.wins30,
+          wins50: counters.wins50,
+          wins70: counters.wins70,
+          date: counters.date
+        },
+        config: {
+          oneInN: config?.oneInN || 1000,
+          cardsPerUserPerDay: config?.cardsPerUserPerDay || 3,
+          maxWinsPerDay: config?.maxWinsPerDay || null,
+          maxWinsPerUserPerDay: config?.maxWinsPerUserPerDay || 1,
+          isActive: config?.isActive || false
+        },
+        tiers,
+        nextWin,
+        winRate: counters.globalScratches > 0 ? 
+          ((counters.winsToday / counters.globalScratches) * 100).toFixed(2) : '0.00'
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro ao buscar estatísticas atômicas:', error);
+      res.status(500).json({ message: 'Erro ao buscar estatísticas' });
+    }
+  });
+
+  // Atualizar configuração do sistema atômico
+  app.put('/api/admin/atomic-config', isSuperAdmin, async (req: any, res) => {
+    try {
+      const { oneInN, cardsPerUserPerDay, maxWinsPerDay, maxWinsPerUserPerDay, isActive } = req.body;
+      
+      console.log('🔧 Atualizando configuração atômica:', req.body);
+      
+      const updatedConfig = await storage.updateScratchSystemConfig({
+        oneInN: parseInt(oneInN),
+        cardsPerUserPerDay: parseInt(cardsPerUserPerDay),
+        maxWinsPerDay: maxWinsPerDay ? parseInt(maxWinsPerDay) : null,
+        maxWinsPerUserPerDay: parseInt(maxWinsPerUserPerDay),
+        isActive: Boolean(isActive)
+      });
+      
+      res.json({
+        success: true,
+        config: updatedConfig,
+        message: 'Configuração atualizada com sucesso'
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro ao atualizar configuração:', error);
+      res.status(500).json({ message: 'Erro ao atualizar configuração' });
+    }
+  });
+
+  // Buscar faixas de desconto
+  app.get('/api/admin/campaign-tiers', isSuperAdmin, async (req: any, res) => {
+    try {
+      const tiers = await storage.getCampaignPrizeTiers();
+      res.json({
+        success: true,
+        tiers
+      });
+    } catch (error) {
+      console.error('❌ Erro ao buscar faixas:', error);
+      res.status(500).json({ message: 'Erro ao buscar faixas' });
+    }
+  });
+
+  // Atualizar faixa de desconto
+  app.put('/api/admin/campaign-tiers/:tierId', isSuperAdmin, async (req: any, res) => {
+    try {
+      const { tierId } = req.params;
+      const { weight, dailyQuota, isActive } = req.body;
+      
+      console.log('🎯 Atualizando faixa:', tierId, req.body);
+      
+      const [updated] = await db
+        .update(campaignPrizeTier)
+        .set({
+          weight: parseInt(weight),
+          dailyQuota: dailyQuota ? parseInt(dailyQuota) : null,
+          isActive: Boolean(isActive),
+          updatedAt: new Date()
+        })
+        .where(eq(campaignPrizeTier.id, tierId))
+        .returning();
+      
+      res.json({
+        success: true,
+        tier: updated,
+        message: 'Faixa atualizada com sucesso'
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro ao atualizar faixa:', error);
+      res.status(500).json({ message: 'Erro ao atualizar faixa' });
+    }
+  });
+
+  // Reset contadores diários (apenas para teste)
+  app.post('/api/admin/reset-counters', isSuperAdmin, async (req: any, res) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      const [reset] = await db
+        .update(campaignCounters)
+        .set({
+          globalScratches: 0,
+          winsToday: 0,
+          wins20: 0,
+          wins30: 0,
+          wins50: 0,
+          wins70: 0,
+          updatedAt: new Date()
+        })
+        .where(eq(campaignCounters.date, today))
+        .returning();
+      
+      res.json({
+        success: true,
+        counters: reset,
+        message: 'Contadores resetados para teste'
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro ao resetar contadores:', error);
+      res.status(500).json({ message: 'Erro ao resetar contadores' });
     }
   });
 
