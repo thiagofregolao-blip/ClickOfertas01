@@ -102,14 +102,8 @@ export default function ProductCard({
             </div>
           )}
           
-          {/* Overlay com preço */}
+          {/* Overlay limpo */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all">
-            {/* Preço sobreposto - Hidden on mobile */}
-            <div className="absolute bottom-2 right-2 bg-black/80 text-yellow-400 text-xs px-2 py-1 rounded font-semibold hidden sm:block">
-              {currency} {formatBrazilianPrice(product.price || '0')}
-            </div>
-            
-            
             {/* Price comparison button - Hidden on mobile */}
             <div className="absolute top-2 right-2 hidden sm:block">
               <button

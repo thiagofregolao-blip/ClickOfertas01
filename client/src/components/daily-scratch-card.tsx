@@ -391,19 +391,6 @@ export default function DailyScratchCard() {
   return (
     <div className="w-full max-w-md mx-auto">
       <Card className="relative overflow-hidden border-2 border-gradient-to-r from-yellow-400 to-orange-500">
-        <div className="absolute top-4 left-4 z-10">
-          <Badge variant="secondary" className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold">
-            <Calendar className="w-4 h-4 mr-1" />
-            DIÁRIA
-          </Badge>
-        </div>
-        
-        <div className="absolute top-4 right-4 z-10">
-          <Badge variant="outline" className="bg-white/90 backdrop-blur-sm">
-            <Clock className="w-4 h-4 mr-1" />
-            {attemptStatus?.canAttempt ? "Disponível" : `${getNextAttemptTime()}`}
-          </Badge>
-        </div>
 
         <CardContent className="p-0 relative">
           {!attemptStatus?.canAttempt ? (
