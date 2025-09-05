@@ -572,34 +572,6 @@ export default function PublicFlyer() {
         ) : (
           /* YouTube-Style Channel Layout */
           <>
-            {/* YouTube-Style Banner */}
-            <div className="relative h-36 md:h-48 bg-gradient-to-br from-purple-600 via-pink-600 to-red-500 overflow-hidden">
-              {/* Banner Background Image (if available) */}
-              {store.bannerUrl && (
-                <div 
-                  className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
-                  style={{ backgroundImage: `url(${store.bannerUrl})` }}
-                />
-              )}
-              
-              {/* Banner Content */}
-              <div className="relative z-10 h-full flex items-start justify-center p-8 pt-16">
-                <div className="text-center">
-                  <h1 className="text-4xl md:text-6xl font-black text-white drop-shadow-2xl tracking-wider transform -rotate-2">
-                    {store.bannerText || store.name.toUpperCase()}
-                  </h1>
-                  {store.bannerSubtext && (
-                    <p className="text-lg md:text-xl text-white/90 mt-2 font-semibold drop-shadow-lg">
-                      {store.bannerSubtext}
-                    </p>
-                  )}
-                </div>
-              </div>
-              
-              {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/30"></div>
-            </div>
-
             {/* Channel Info Section */}
             <div className="bg-white border-b">
               <div className="px-3 py-6">
