@@ -161,10 +161,12 @@ export default function ThreeDailyScratchCards() {
 
   if (isLoading) {
     return (
-      <div className="space-y-[5px]">
-        {[1, 2].map((i) => (
-          <div key={i} className="w-[400px] h-[110px] bg-gray-200 animate-pulse rounded-lg" />
-        ))}
+      <div className="w-full">
+        <div className="grid grid-cols-3 gap-[5px] h-[110px]">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-gray-200 animate-pulse rounded-lg" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -181,15 +183,15 @@ export default function ThreeDailyScratchCards() {
     return null;
   }
 
-  // Organizar as 3 cartas em layout 2x2 (onde a terceira fica embaixo das duas primeiras)
+  // Organizar as 3 cartas em uma linha horizontal
   const card1 = cards.find((c: DailyScratchCard) => c.cardNumber === '1');
   const card2 = cards.find((c: DailyScratchCard) => c.cardNumber === '2');
   const card3 = cards.find((c: DailyScratchCard) => c.cardNumber === '3');
 
   return (
-    <div className="space-y-[5px]">
-      {/* Linha superior: 2 cartas lado a lado */}
-      <div className="grid grid-cols-2 gap-[5px] w-[400px] h-[110px]">
+    <div className="w-full">
+      {/* 3 cartas em linha horizontal com mesma largura do banner */}
+      <div className="grid grid-cols-3 gap-[5px] w-full h-[110px]">
         {card1 && (
           <MiniScratchCard
             card={card1}
@@ -204,18 +206,12 @@ export default function ThreeDailyScratchCards() {
             isScratching={scratchMutation.isPending}
           />
         )}
-      </div>
-      
-      {/* Linha inferior: 1 carta centralizada */}
-      <div className="flex justify-center w-[400px] h-[110px]">
         {card3 && (
-          <div className="w-[195px]">
-            <MiniScratchCard
-              card={card3}
-              onScratch={scratchMutation.mutate}
-              isScratching={scratchMutation.isPending}
-            />
-          </div>
+          <MiniScratchCard
+            card={card3}
+            onScratch={scratchMutation.mutate}
+            isScratching={scratchMutation.isPending}
+          />
         )}
       </div>
     </div>
