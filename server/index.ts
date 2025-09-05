@@ -2,7 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { startCleanupJobs } from "./cleanupJobs";
-import { storage } from "./storage";
 import path from "path";
 
 const app = express();
@@ -77,11 +76,5 @@ app.use((req, res, next) => {
     
     // Iniciar jobs de limpeza automática após o servidor estar rodando
     startCleanupJobs();
-    
-    // ✅ INICIALIZAR SISTEMA ATÔMICO "1 EM N"
-    console.log('🎯 Inicializando sistema atômico "1 em N"...');
-    storage.initializeAtomicSystem()
-      .then(() => console.log('✅ Sistema atômico inicializado'))
-      .catch(err => console.error('❌ Erro ao inicializar sistema atômico:', err));
   });
 })();
