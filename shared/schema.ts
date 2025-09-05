@@ -1336,6 +1336,51 @@ export const insertDailyScratchResultSchema = createInsertSchema(dailyScratchRes
   createdAt: true,
 });
 
+// Configurações de orçamento para o sistema de prêmios
+export const budgetConfig = pgTable("budget_config", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Orçamentos configurados
+  dailyBudget: decimal("daily_budget", { precision: 12, scale: 2 }).default("100.00"),
+  monthlyBudget: decimal("monthly_budget", { precision: 12, scale: 2 }).default("3000.00"),
+  
+  // Gastos atuais
+  dailySpent: decimal("daily_spent", { precision: 12, scale: 2 }).default("0.00"),
+  monthlySpent: decimal("monthly_spent", { precision: 12, scale: 2 }).default("0.00"),
+  
+  // Data do último reset
+  lastDailyReset: varchar("last_daily_reset"), // 'YYYY-MM-DD'
+  lastMonthlyReset: varchar("last_monthly_reset"), // 'YYYY-MM'
+  
+  // Alertas de orçamento
+  dailyAlertThreshold: decimal("daily_alert_threshold", { precision: 3, scale: 2 }).default("0.80"), // 80%
+  monthlyAlertThreshold: decimal("monthly_alert_threshold", { precision: 3, scale: 2 }).default("0.85"), // 85%
+  
+  // Estado dos alertas
+  dailyAlertSent: boolean("daily_alert_sent").default(false),
+  monthlyAlertSent: boolean("monthly_alert_sent").default(false),
+  
+  // Configurações
+  isActive: boolean("is_active").default(true),
+  autoResetDaily: boolean("auto_reset_daily").default(true),
+  autoResetMonthly: boolean("auto_reset_monthly").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertBudgetConfigSchema = createInsertSchema(budgetConfig).omit({
+  id: true,
+  dailySpent: true,
+  monthlySpent: true,
+  lastDailyReset: true,
+  lastMonthlyReset: true,
+  dailyAlertSent: true,
+  monthlyAlertSent: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types para o sistema de raspadinha
 export type DailyPrize = typeof dailyPrizes.$inferSelect;
 export type InsertDailyPrize = z.infer<typeof insertDailyPrizeSchema>;
@@ -1349,6 +1394,8 @@ export type AlgorithmSuggestion = typeof algorithmSuggestions.$inferSelect;
 export type InsertAlgorithmSuggestion = z.infer<typeof insertAlgorithmSuggestionSchema>;
 export type DailyScratchResult = typeof dailyScratchResults.$inferSelect;
 export type InsertDailyScratchResult = z.infer<typeof insertDailyScratchResultSchema>;
+export type BudgetConfig = typeof budgetConfig.$inferSelect;
+export type InsertBudgetConfig = z.infer<typeof insertBudgetConfigSchema>;
 
 // ==========================================
 // FIM DO SISTEMA DE RASPADINHA DIÁRIA

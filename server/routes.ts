@@ -62,7 +62,7 @@ const isSuperAdmin = async (req: any, res: any, next: any) => {
 };
 import { getCurrentExchangeRate, convertUsdToBrl, formatBRL, formatUSD, clearExchangeRateCache } from "./exchange-rate";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema, insertBudgetConfigSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
@@ -3176,6 +3176,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Buscar produtos disponíveis para prêmios (Super Admin)
+  app.get('/api/admin/products-for-prizes', isSuperAdmin, async (req: any, res) => {
+    try {
+      const products = await storage.getAvailableProductsForPrizes();
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching products for prizes:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
+  // Buscar estatísticas de orçamento (Super Admin)
+  app.get('/api/admin/budget-stats', isSuperAdmin, async (req: any, res) => {
+    try {
+      const stats = await storage.getBudgetStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching budget stats:", error);
+      res.status(500).json({ message: "Failed to fetch budget stats" });
+    }
+  });
+
   // Buscar configuração do sistema (Super Admin)
   app.get('/api/admin/scratch-config', isSuperAdmin, async (req: any, res) => {
     try {
@@ -3212,6 +3234,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Failed to update config", 
         error: error instanceof Error ? error.message : 'Unknown error' 
       });
+    }
+  });
+
+  // ==========================================
+  // SISTEMA DE ORÇAMENTO E CONTROLE DE CUSTOS
+  // ==========================================
+
+  // Buscar configuração de orçamento (Super Admin)
+  app.get('/api/admin/budget-config', isSuperAdmin, async (req: any, res) => {
+    try {
+      const budgetConfig = await storage.getBudgetConfig();
+      res.json(budgetConfig);
+    } catch (error) {
+      console.error("Error fetching budget config:", error);
+      res.status(500).json({ message: "Failed to fetch budget config" });
+    }
+  });
+
+  // Atualizar configuração de orçamento (Super Admin)
+  app.put('/api/admin/budget-config', isSuperAdmin, async (req: any, res) => {
+    try {
+      const budgetData = insertBudgetConfigSchema.parse(req.body);
+      const updatedBudget = await storage.updateBudgetConfig(budgetData);
+      res.json(updatedBudget);
+    } catch (error) {
+      console.error("Error updating budget config:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid budget data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update budget config" });
+    }
+  });
+
+  // Buscar estatísticas de orçamento e cálculos de custos (Super Admin)
+  app.get('/api/admin/budget-stats', isSuperAdmin, async (req: any, res) => {
+    try {
+      const stats = await storage.getBudgetStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching budget stats:", error);
+      res.status(500).json({ message: "Failed to fetch budget stats" });
+    }
+  });
+
+  // Buscar produtos disponíveis para prêmios (Super Admin)
+  app.get('/api/admin/available-products', isSuperAdmin, async (req: any, res) => {
+    try {
+      const products = await storage.getAvailableProductsForPrizes();
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching available products:", error);
+      res.status(500).json({ message: "Failed to fetch available products" });
     }
   });
 

@@ -16,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Trash2, Eye, LogOut, Gift, Dice6, Target, Award, Save, Package, Percent, DollarSign, Trophy, RotateCcw, Download } from 'lucide-react';
+import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Trash2, Eye, LogOut, Gift, Dice6, Target, Award, Save, Package, Percent, DollarSign, Trophy, RotateCcw, Download, HelpCircle, Calculator, AlertTriangle, AlertCircle, TrendingUp } from 'lucide-react';
 import { isUnauthorizedError } from '@/lib/authUtils';
 
 const bannerSchema = z.object({
@@ -38,6 +38,7 @@ const prizeSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().optional(),
   prizeType: z.enum(['product', 'discount', 'cashback']),
+  productId: z.string().optional(),
   discountPercentage: z.string().optional(),
   discountValue: z.string().optional(),
   maxDiscountAmount: z.string().optional(),
@@ -143,6 +144,7 @@ export default function SuperAdmin() {
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [isCreatePrizeOpen, setIsCreatePrizeOpen] = useState(false);
   const [editingPrize, setEditingPrize] = useState<DailyPrize | null>(null);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   // Redirect if not super admin
   useEffect(() => {
@@ -504,6 +506,18 @@ export default function SuperAdmin() {
     },
   });
 
+  // Query para buscar produtos disponíveis para prêmios
+  const { data: availableProducts = [] } = useQuery({
+    queryKey: ['/api/admin/products-for-prizes'],
+    enabled: isLoggedIn,
+  });
+
+  // Query para buscar estatísticas de orçamento
+  const { data: budgetStats } = useQuery({
+    queryKey: ['/api/admin/budget-stats'],
+    enabled: isLoggedIn,
+  });
+
   const handleDeleteStore = (storeId: string) => {
     if (confirm("Tem certeza que deseja deletar esta loja? Todos os produtos serão removidos.")) {
       deleteStoreMutation.mutate(storeId);
@@ -545,6 +559,7 @@ export default function SuperAdmin() {
       name: prize.name,
       description: prize.description || "",
       prizeType: prize.prizeType,
+      productId: prize.productId || "",
       discountPercentage: prize.discountPercentage || "",
       discountValue: prize.discountValue || "",
       maxDiscountAmount: prize.maxDiscountAmount || "",
@@ -1731,6 +1746,7 @@ export default function SuperAdmin() {
                                     name: prize.name,
                                     description: prize.description || '',
                                     prizeType: prize.prizeType as 'product' | 'discount' | 'cashback',
+                                    productId: prize.productId || '',
                                     discountValue: prize.discountValue || '',
                                     discountPercentage: prize.discountPercentage?.toString() || '',
                                     maxDailyWins: prize.maxDailyWins || '1',
@@ -1832,6 +1848,237 @@ export default function SuperAdmin() {
                 <Trophy className="w-6 h-6 text-yellow-600" />
                 Sistema de Promoções - Interface Redesenhada
               </h2>
+              
+              <Dialog open={isHelpOpen} onOpenChange={setIsHelpOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                    data-testid="button-help-promotions"
+                  >
+                    <HelpCircle className="w-4 h-4 mr-2" />
+                    Como Funciona?
+                  </Button>
+                </DialogTrigger>
+                
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2 text-2xl">
+                      <Trophy className="w-6 h-6 text-yellow-600" />
+                      Sistema de Promoções - Guia Completo
+                    </DialogTitle>
+                    <DialogDescription>
+                      Entenda como funciona todo o sistema de prêmios e raspadinhas
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-6">
+                    {/* Como Funciona */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Gift className="w-5 h-5 text-purple-600" />
+                          1. Como Funciona o Sistema
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
+                          <div>
+                            <p className="font-medium">Dashboard Inteligente</p>
+                            <p className="text-sm text-gray-600">Métricas em tempo real dos prêmios ativos, estoque disponível e probabilidades</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 rounded-full bg-green-500 mt-2"></div>
+                          <div>
+                            <p className="font-medium">6 Cartas Diárias</p>
+                            <p className="text-sm text-gray-600">Sistema gera automaticamente 6 cartas por dia para cada usuário</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 rounded-full bg-orange-500 mt-2"></div>
+                          <div>
+                            <p className="font-medium">1 Tentativa por Dia</p>
+                            <p className="text-sm text-gray-600">Cada usuário raspa apenas 1 carta por dia, criando expectativa</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Configuração de Prêmios */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Target className="w-5 h-5 text-green-600" />
+                          2. Configuração de Prêmios
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="p-3 border rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Percent className="w-4 h-4 text-blue-500" />
+                              <span className="font-medium">Desconto (%)</span>
+                            </div>
+                            <p className="text-xs text-gray-600">Ex: 50% off com limite máximo de R$ 100</p>
+                          </div>
+                          <div className="p-3 border rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <DollarSign className="w-4 h-4 text-green-500" />
+                              <span className="font-medium">Cashback (R$)</span>
+                            </div>
+                            <p className="text-xs text-gray-600">Ex: R$ 25 de volta na próxima compra</p>
+                          </div>
+                          <div className="p-3 border rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Package className="w-4 h-4 text-purple-500" />
+                              <span className="font-medium">Produto Grátis</span>
+                            </div>
+                            <p className="text-xs text-gray-600">Ex: Item específico gratuito</p>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <h4 className="font-medium text-yellow-800 mb-2">Configurações Importantes:</h4>
+                          <ul className="text-sm text-yellow-700 space-y-1">
+                            <li>• <strong>Probabilidade:</strong> Chance real de ganhar (ex: 5.2%)</li>
+                            <li>• <strong>Limite diário:</strong> Quantos podem ganhar por dia</li>
+                            <li>• <strong>Status ativo/inativo:</strong> Liga ou desliga o prêmio</li>
+                          </ul>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Sistema Inteligente */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Award className="w-5 h-5 text-red-600" />
+                          3. Sistema Inteligente de Distribuição
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 rounded-full bg-red-500 mt-2"></div>
+                          <div>
+                            <p className="font-medium">Algoritmo Probabilístico</p>
+                            <p className="text-sm text-gray-600">Não é sorteio simples, usa criptografia segura baseada nas suas configurações</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 rounded-full bg-green-500 mt-2"></div>
+                          <div>
+                            <p className="font-medium">Controle de Estoque</p>
+                            <p className="text-sm text-gray-600">Para automaticamente quando atinge o limite diário</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
+                          <div>
+                            <p className="font-medium">Reset às 00:00</p>
+                            <p className="text-sm text-gray-600">Sistema reinicia automaticamente no fuso horário do Paraguai</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 rounded-full bg-purple-500 mt-2"></div>
+                          <div>
+                            <p className="font-medium">Prevenção de Fraudes</p>
+                            <p className="text-sm text-gray-600">Sistema atômico que evita duplos prêmios e tentativas múltiplas</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Experiência do Usuário */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="w-5 h-5 text-blue-600" />
+                          4. Como os Usuários Ganham
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <h4 className="font-medium text-blue-800 mb-3">Fluxo da Experiência:</h4>
+                          <div className="space-y-2 text-sm text-blue-700">
+                            <div className="flex items-center gap-2">
+                              <span className="bg-blue-200 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">1</span>
+                              <span>Usuário visita o site uma vez por dia</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="bg-blue-200 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">2</span>
+                              <span>Vê 6 cartas de raspadinha geradas automaticamente</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="bg-blue-200 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">3</span>
+                              <span>Escolhe 1 carta para raspar (som realista incluído)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="bg-blue-200 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">4</span>
+                              <span>Algoritmo decide baseado nas suas probabilidades</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="bg-blue-200 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">5</span>
+                              <span>Prêmio é aplicado automaticamente no carrinho</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Monitoramento */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <BarChart3 className="w-5 h-5 text-green-600" />
+                          5. Monitoramento e Controle
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="border rounded-lg p-3">
+                            <h4 className="font-medium mb-2">Dashboard em Tempo Real</h4>
+                            <ul className="text-sm text-gray-600 space-y-1">
+                              <li>• Prêmios ativos e inativos</li>
+                              <li>• Estoque disponível</li>
+                              <li>• Total distribuído hoje</li>
+                              <li>• Probabilidade total</li>
+                            </ul>
+                          </div>
+                          <div className="border rounded-lg p-3">
+                            <h4 className="font-medium mb-2">Controles Administrativos</h4>
+                            <ul className="text-sm text-gray-600 space-y-1">
+                              <li>• Reset diário manual</li>
+                              <li>• Exportar relatórios</li>
+                              <li>• Ligar/desligar prêmios</li>
+                              <li>• Ajustar probabilidades</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
+                        <Award className="w-4 h-4" />
+                        Resultado Final
+                      </h4>
+                      <p className="text-sm text-green-700">
+                        Sistema completo de gamificação que aumenta engajamento, tempo no site e conversões em vendas. 
+                        Os usuários voltam diariamente para tentar a sorte, criando hábito e fidelização natural. 🚀
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <DialogFooter className="mt-6">
+                    <Button onClick={() => setIsHelpOpen(false)} className="w-full">
+                      Entendi! Vamos Começar
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
 
             {/* 📊 DASHBOARD DE MÉTRICAS PRINCIPAIS */}
@@ -1881,6 +2128,174 @@ export default function SuperAdmin() {
                     Exportar Relatório
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* 💰 SISTEMA DE ORÇAMENTO E CONTROLE DE CUSTOS */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-green-600" />
+                  Sistema de Orçamento
+                </CardTitle>
+                <CardDescription>
+                  Controle de custos e projeções financeiras do sistema de prêmios
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {budgetStats ? (
+                  <div className="space-y-6">
+                    {/* Métricas de Orçamento */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {budgetStats.budget ? (
+                        <>
+                          <div className="space-y-3">
+                            <h4 className="font-medium text-gray-900">Orçamento Diário</h4>
+                            <div className="bg-blue-50 rounded-lg p-4">
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm text-gray-600">Disponível</span>
+                                <span className="font-bold text-blue-600">
+                                  R$ {budgetStats.budget.dailyBudget.toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm text-gray-600">Gasto Hoje</span>
+                                <span className={`font-medium ${budgetStats.budget.dailySpent > budgetStats.budget.dailyBudget ? 'text-red-600' : 'text-gray-900'}`}>
+                                  R$ {budgetStats.budget.dailySpent.toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">Restante</span>
+                                <span className={`font-bold ${budgetStats.budget.dailyRemaining < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                  R$ {budgetStats.budget.dailyRemaining.toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className={`h-2 rounded-full ${budgetStats.budget.dailySpent > budgetStats.budget.dailyBudget ? 'bg-red-500' : 'bg-blue-500'}`}
+                                  style={{ width: `${Math.min((budgetStats.budget.dailySpent / budgetStats.budget.dailyBudget) * 100, 100)}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <h4 className="font-medium text-gray-900">Orçamento Mensal</h4>
+                            <div className="bg-purple-50 rounded-lg p-4">
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm text-gray-600">Disponível</span>
+                                <span className="font-bold text-purple-600">
+                                  R$ {budgetStats.budget.monthlyBudget.toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm text-gray-600">Gasto Este Mês</span>
+                                <span className={`font-medium ${budgetStats.budget.monthlySpent > budgetStats.budget.monthlyBudget ? 'text-red-600' : 'text-gray-900'}`}>
+                                  R$ {budgetStats.budget.monthlySpent.toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">Restante</span>
+                                <span className={`font-bold ${budgetStats.budget.monthlyRemaining < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                  R$ {budgetStats.budget.monthlyRemaining.toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className={`h-2 rounded-full ${budgetStats.budget.monthlySpent > budgetStats.budget.monthlyBudget ? 'bg-red-500' : 'bg-purple-500'}`}
+                                  style={{ width: `${Math.min((budgetStats.budget.monthlySpent / budgetStats.budget.monthlyBudget) * 100, 100)}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="col-span-2 text-center py-8 text-gray-500">
+                          <DollarSign className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                          <p>Nenhum orçamento configurado</p>
+                          <p className="text-sm">Configure limites de orçamento para controle de custos</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Calculadora de Custos */}
+                    <div className="border rounded-lg p-4 bg-orange-50">
+                      <h4 className="font-medium text-orange-800 mb-3 flex items-center gap-2">
+                        <Calculator className="w-4 h-4" />
+                        Calculadora de Custos Estimados
+                      </h4>
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-orange-600">
+                            R$ {budgetStats.estimatedCosts.dailyEstimated}
+                          </p>
+                          <p className="text-gray-600">Custo Estimado/Dia</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-blue-600">
+                            {budgetStats.estimatedCosts.activePrizes}
+                          </p>
+                          <p className="text-gray-600">Prêmios Ativos</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-gray-600">
+                            {budgetStats.estimatedCosts.totalPrizes}
+                          </p>
+                          <p className="text-gray-600">Total de Prêmios</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Alertas de Orçamento */}
+                    {(budgetStats.alerts.dailyBudgetExceeded || budgetStats.alerts.monthlyBudgetExceeded || budgetStats.alerts.estimatedExceedsDailyBudget) && (
+                      <div className="space-y-2">
+                        {budgetStats.alerts.dailyBudgetExceeded && (
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <div className="flex items-center gap-2">
+                              <AlertCircle className="w-4 h-4 text-red-600" />
+                              <span className="font-medium text-red-800">Orçamento diário excedido!</span>
+                            </div>
+                            <p className="text-sm text-red-700 mt-1">O gasto de hoje superou o limite diário configurado.</p>
+                          </div>
+                        )}
+                        {budgetStats.alerts.monthlyBudgetExceeded && (
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <div className="flex items-center gap-2">
+                              <AlertCircle className="w-4 h-4 text-red-600" />
+                              <span className="font-medium text-red-800">Orçamento mensal excedido!</span>
+                            </div>
+                            <p className="text-sm text-red-700 mt-1">O gasto deste mês superou o limite mensal configurado.</p>
+                          </div>
+                        )}
+                        {budgetStats.alerts.estimatedExceedsDailyBudget && (
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <div className="flex items-center gap-2">
+                              <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                              <span className="font-medium text-yellow-800">Custo estimado alto!</span>
+                            </div>
+                            <p className="text-sm text-yellow-700 mt-1">O custo estimado diário pode exceder o orçamento configurado.</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Configurar Orçamento
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <TrendingUp className="w-4 h-4 mr-2" />
+                        Relatório Financeiro
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-300 mx-auto mb-3"></div>
+                    <p>Carregando dados de orçamento...</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -2030,6 +2445,60 @@ export default function SuperAdmin() {
                               )}
                             />
                           )}
+
+                          {prizeForm.watch("prizeType") === "product" && (
+                            <FormField
+                              control={prizeForm.control}
+                              name="productId"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Produto a ser Oferecido</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-product">
+                                        <SelectValue placeholder="Selecione um produto da base de dados" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {availableProducts.length === 0 ? (
+                                        <div className="p-4 text-center text-gray-500">
+                                          <Package className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                                          <p className="text-sm">Nenhum produto disponível</p>
+                                          <p className="text-xs">Cadastre produtos nas lojas primeiro</p>
+                                        </div>
+                                      ) : (
+                                        availableProducts.map((product: any) => (
+                                          <SelectItem key={product.id} value={product.id}>
+                                            <div className="flex items-center gap-3">
+                                              {product.imageUrl && (
+                                                <img 
+                                                  src={product.imageUrl} 
+                                                  alt={product.name}
+                                                  className="w-8 h-8 rounded object-cover"
+                                                />
+                                              )}
+                                              <div>
+                                                <p className="font-medium">{product.name}</p>
+                                                <p className="text-xs text-gray-500">
+                                                  {product.stores?.name} - R$ {product.price}
+                                                </p>
+                                              </div>
+                                            </div>
+                                          </SelectItem>
+                                        ))
+                                      )}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                  {availableProducts.length > 0 && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      {availableProducts.length} produtos disponíveis das lojas cadastradas
+                                    </p>
+                                  )}
+                                </FormItem>
+                              )}
+                            />
+                          )}
                           
                           <div className="grid grid-cols-2 gap-4">
                             <FormField
@@ -2146,6 +2615,7 @@ export default function SuperAdmin() {
                                     name: prize.name,
                                     description: prize.description || '',
                                     prizeType: prize.prizeType as 'product' | 'discount' | 'cashback',
+                                    productId: prize.productId || '',
                                     discountValue: prize.discountValue || '',
                                     discountPercentage: prize.discountPercentage?.toString() || '',
                                     maxDailyWins: prize.maxDailyWins || '1',

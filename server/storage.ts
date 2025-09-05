@@ -31,6 +31,7 @@ import {
   algorithmSuggestions,
   dailyScratchResults,
   dailyScratchCards,
+  budgetConfig,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -104,6 +105,8 @@ import {
   type InsertDailyScratchResult,
   type DailyScratchCard,
   type InsertDailyScratchCard,
+  type BudgetConfig,
+  type InsertBudgetConfig,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, gte, lte, sql, inArray, or, isNull } from "drizzle-orm";
@@ -261,6 +264,12 @@ export interface IStorage {
   updateAlgorithmSuggestion(suggestionId: string, updates: Partial<AlgorithmSuggestion>): Promise<AlgorithmSuggestion>;
 
   createDailyScratchResult(result: InsertDailyScratchResult): Promise<DailyScratchResult>;
+
+  // Budget operations
+  getBudgetConfig(): Promise<BudgetConfig | undefined>;
+  updateBudgetConfig(updates: Partial<BudgetConfig>): Promise<BudgetConfig>;
+  getBudgetStats(): Promise<any>;
+  getAvailableProductsForPrizes(): Promise<Product[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3054,6 +3063,107 @@ export class DatabaseStorage implements IStorage {
       prizesWon: stats.prizesWon,
       successRate: Math.round(successRate * 10) / 10, // Arredondar para 1 casa decimal
     };
+  }
+
+  // ==========================================
+  // SISTEMA DE ORÇAMENTO E CONTROLE DE CUSTOS
+  // ==========================================
+
+  async getBudgetConfig(): Promise<BudgetConfig | undefined> {
+    const [config] = await db.select().from(budgetConfig).limit(1);
+    return config;
+  }
+
+  async updateBudgetConfig(updates: Partial<BudgetConfig>): Promise<BudgetConfig> {
+    // Verificar se já existe uma configuração
+    const existingConfig = await this.getBudgetConfig();
+    
+    if (existingConfig) {
+      // Atualizar configuração existente
+      const [updatedConfig] = await db
+        .update(budgetConfig)
+        .set({
+          ...updates,
+          updatedAt: new Date(),
+        })
+        .where(eq(budgetConfig.id, existingConfig.id))
+        .returning();
+      return updatedConfig;
+    } else {
+      // Criar nova configuração
+      const [newConfig] = await db
+        .insert(budgetConfig)
+        .values(updates)
+        .returning();
+      return newConfig;
+    }
+  }
+
+  async getBudgetStats(): Promise<any> {
+    const config = await this.getBudgetConfig();
+    const prizes = await this.getDailyPrizes();
+    
+    // Calcular custo estimado diário baseado nas probabilidades
+    const dailyEstimatedCost = prizes.reduce((total, prize) => {
+      if (!prize.isActive) return total;
+      
+      const probability = parseFloat(prize.probability);
+      const maxDaily = parseInt(prize.maxDailyWins || '1');
+      
+      let estimatedValue = 0;
+      
+      if (prize.prizeType === 'discount') {
+        // Para desconto percentual, usar valor médio baseado no máximo
+        const maxDiscount = parseFloat(prize.maxDiscountAmount || '50');
+        estimatedValue = maxDiscount;
+      } else if (prize.prizeType === 'cashback') {
+        // Para cashback, usar o valor fixo
+        estimatedValue = parseFloat(prize.discountValue || '0');
+      } else if (prize.prizeType === 'product') {
+        // Para produtos, assumir um valor médio (pode ser melhorado com preços reais)
+        estimatedValue = 25; // Valor base estimado
+      }
+      
+      // Custo estimado = probabilidade × valor × limite diário
+      const prizeCost = probability * estimatedValue * maxDaily;
+      return total + prizeCost;
+    }, 0);
+
+    const today = new Date().toISOString().split('T')[0];
+    
+    return {
+      budget: config ? {
+        dailyBudget: parseFloat(config.dailyBudget || '0'),
+        monthlyBudget: parseFloat(config.monthlyBudget || '0'),
+        dailySpent: parseFloat(config.dailySpent || '0'),
+        monthlySpent: parseFloat(config.monthlySpent || '0'),
+        dailyRemaining: parseFloat(config.dailyBudget || '0') - parseFloat(config.dailySpent || '0'),
+        monthlyRemaining: parseFloat(config.monthlyBudget || '0') - parseFloat(config.monthlySpent || '0'),
+      } : null,
+      estimatedCosts: {
+        dailyEstimated: Math.round(dailyEstimatedCost * 100) / 100,
+        activePrizes: prizes.filter(p => p.isActive).length,
+        totalPrizes: prizes.length,
+      },
+      alerts: {
+        dailyBudgetExceeded: config ? parseFloat(config.dailySpent || '0') >= parseFloat(config.dailyBudget || '0') : false,
+        monthlyBudgetExceeded: config ? parseFloat(config.monthlySpent || '0') >= parseFloat(config.monthlyBudget || '0') : false,
+        estimatedExceedsDailyBudget: config ? dailyEstimatedCost > parseFloat(config.dailyBudget || '0') : false,
+      }
+    };
+  }
+
+  async getAvailableProductsForPrizes(): Promise<Product[]> {
+    // Buscar produtos ativos de todas as lojas para uso como prêmios
+    return await db.select()
+      .from(products)
+      .innerJoin(stores, eq(products.storeId, stores.id))
+      .where(and(
+        eq(products.isActive, true),
+        eq(stores.isActive, true)
+      ))
+      .orderBy(asc(products.name))
+      .limit(50); // Limitar para performance
   }
 
   // ==========================================
