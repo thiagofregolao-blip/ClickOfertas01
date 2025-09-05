@@ -32,8 +32,11 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
   const needsProgressCalc = useRef<boolean>(false);
   const lastScratchTime = useRef<number>(0);
   const revelationStarted = useRef<boolean>(false);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const lastSoundTime = useRef<number>(0);
 
   const SCRATCH_THROTTLE = 16; // ~60fps
+  const SOUND_COOLDOWN = 120; // ms entre sons
   
   // Inicializar canvas com mascote (adaptado do scratch-card.tsx)
   useEffect(() => {
@@ -97,7 +100,7 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
     
     try {
       needsProgressCalc.current = false;
-      const step = 6;
+      const step = 10; // Progresso mais lento (era 6)
       
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
@@ -113,8 +116,8 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
       const progress = total > 0 ? transparent / total : 0;
       setScratchProgress(progress);
       
-      // Revelar quando raspou 50% (ajustado para mini-cartas)
-      if (progress >= 0.5 && !card.isScratched && !isRevealing && !revelationStarted.current) {
+      // Revelar quando raspou 70% (aumentado de 50% para mais trabalho)
+      if (progress >= 0.7 && !card.isScratched && !isRevealing && !revelationStarted.current) {
         revelationStarted.current = true;
         setIsRevealing(true);
         
@@ -126,7 +129,7 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
         setTimeout(() => {
           onScratch(card.id);
           setIsRevealing(false);
-        }, 300);
+        }, 500); // Mais suspense (era 300ms)
       }
     } catch (e) {
       // Fallback silencioso
@@ -171,7 +174,38 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
-    const scratchRadius = 15; // Menor para mini-cartas
+    const scratchRadius = 10; // Menor raio = mais trabalho (era 15)
+
+    // Som de raspagem realista
+    const soundNow = Date.now();
+    if (soundNow - lastSoundTime.current >= SOUND_COOLDOWN) {
+      try {
+        // Criar AudioContext apenas uma vez
+        if (!audioCtxRef.current) {
+          audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        
+        const audioCtx = audioCtxRef.current;
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        // Som tipo raspagem/serragem
+        oscillator.frequency.setValueAtTime(120 + Math.random() * 80, audioCtx.currentTime);
+        oscillator.type = 'sawtooth';
+        gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+        
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.15);
+        
+        lastSoundTime.current = soundNow;
+      } catch (e) {
+        // Som não disponível no navegador
+      }
+    }
 
     ctx.globalCompositeOperation = 'destination-out';
     ctx.lineCap = 'round';
