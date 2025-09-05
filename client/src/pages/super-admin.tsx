@@ -44,6 +44,7 @@ const prizeSchema = z.object({
   imageUrl: z.string().optional(),
   probability: z.string().min(1, "Probabilidade é obrigatória"),
   maxDailyWins: z.string().default("1"),
+  isActive: z.boolean().default(true),
 });
 
 type PrizeFormData = z.infer<typeof prizeSchema>;
