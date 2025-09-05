@@ -231,7 +231,7 @@ export default function GlobalHeader({
 
   return (
     <div className="relative">
-      <header className="bg-gradient-to-r from-red-500 to-orange-500 shadow-md">
+      <header className="bg-gradient-to-r from-red-500 to-orange-500 shadow-md fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-3 py-3">
           <div className="flex items-center gap-4">
             {/* Logo/Nome do App - Oculto no mobile */}

@@ -405,6 +405,9 @@ export default function PublicFlyer() {
       {/* Global Header */}
       <GlobalHeader showPriceComparison={true} />
       
+      {/* Spacer for fixed header */}
+      <div className="h-16"></div>
+      
       {/* Action Buttons - Hidden on print */}
       <div className="fixed top-4 right-4 z-50 no-print">
         <div className="relative" ref={menuRef}>
