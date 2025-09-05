@@ -192,14 +192,19 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
         oscillator.connect(gainNode);
         gainNode.connect(audioCtx.destination);
         
-        // Som tipo raspagem/serragem
-        oscillator.frequency.setValueAtTime(120 + Math.random() * 80, audioCtx.currentTime);
-        oscillator.type = 'sawtooth';
-        gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+        // Som tipo "chi chi chi" raspagem realista
+        const baseFreq = 800 + Math.random() * 600; // Frequência mais aguda (800-1400Hz)
+        oscillator.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(baseFreq * 0.7, audioCtx.currentTime + 0.08);
+        oscillator.type = 'sawtooth'; // Mantém o som áspero
+        
+        // Volume com ataque rápido e decay mais longo para "chiiii"
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.01); // Ataque rápido
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12); // Decay longo
         
         oscillator.start(audioCtx.currentTime);
-        oscillator.stop(audioCtx.currentTime + 0.15);
+        oscillator.stop(audioCtx.currentTime + 0.12);
         
         lastSoundTime.current = soundNow;
       } catch (e) {
