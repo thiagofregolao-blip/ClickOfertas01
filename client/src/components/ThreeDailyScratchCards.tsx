@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -21,17 +21,110 @@ interface MiniScratchCardProps {
   isScratching: boolean;
 }
 
-function MiniScratchCard({ card, onScratch, isScratching }: MiniScratchCardProps) {
+function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniScratchCardProps) {
   const [isRevealing, setIsRevealing] = useState(false);
+  const [isScratching, setIsScratching] = useState(false);
+  const [scratchPercentage, setScratchPercentage] = useState(0);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
-  const handleScratch = () => {
-    if (card.isScratched || isScratching) return;
+  // Inicializar canvas quando componente monta
+  useEffect(() => {
+    if (card.isScratched) return;
     
-    setIsRevealing(true);
-    setTimeout(() => {
-      onScratch(card.id);
-      setIsRevealing(false);
-    }, 500);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    
+    setCanvasSize({ width, height });
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Criar overlay de raspadinha (cor prata/cinza)
+    ctx.fillStyle = '#C0C0C0';
+    ctx.fillRect(0, 0, width, height);
+    
+    // Adicionar padrão de raspadinha
+    ctx.fillStyle = '#A0A0A0';
+    for (let i = 0; i < width; i += 10) {
+      for (let j = 0; j < height; j += 10) {
+        if ((i + j) % 20 === 0) {
+          ctx.fillRect(i, j, 5, 5);
+        }
+      }
+    }
+    
+    // Texto "RASPE AQUI"
+    ctx.fillStyle = '#666';
+    ctx.font = 'bold 12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('RASPE AQUI', width / 2, height / 2);
+  }, [card.isScratched, canvasSize.width]);
+
+  const handleScratch = (clientX: number, clientY: number) => {
+    if (card.isScratched || isProcessing) return;
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    
+    // Configurar modo de "apagamento"
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, 15, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // Calcular porcentagem raspada
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imageData.data;
+    let transparentPixels = 0;
+    
+    for (let i = 3; i < pixels.length; i += 4) {
+      if (pixels[i] < 255) transparentPixels++;
+    }
+    
+    const percentage = (transparentPixels / (pixels.length / 4)) * 100;
+    setScratchPercentage(percentage);
+    
+    // Se raspou mais de 40%, revelar automaticamente
+    if (percentage > 40 && !isRevealing) {
+      setIsRevealing(true);
+      setTimeout(() => {
+        onScratch(card.id);
+        setIsRevealing(false);
+      }, 300);
+    }
+  };
+
+  const handleMouseDown = () => setIsScratching(true);
+  const handleMouseUp = () => setIsScratching(false);
+  
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isScratching) {
+      handleScratch(e.clientX, e.clientY);
+    }
+  };
+
+  const handleTouchStart = () => setIsScratching(true);
+  const handleTouchEnd = () => setIsScratching(false);
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (isScratching && e.touches[0]) {
+      e.preventDefault();
+      handleScratch(e.touches[0].clientX, e.touches[0].clientY);
+    }
   };
 
   const getCardStyle = () => {
@@ -62,7 +155,6 @@ function MiniScratchCard({ card, onScratch, isScratching }: MiniScratchCardProps
         ${isRevealing ? 'animate-pulse' : ''}
         ${!card.isScratched ? 'shadow-md hover:shadow-xl' : 'shadow-sm'}
       `}
-      onClick={handleScratch}
       data-testid={`scratch-card-${card.cardNumber}`}
     >
       {/* Número da carta */}
@@ -104,9 +196,25 @@ function MiniScratchCard({ card, onScratch, isScratching }: MiniScratchCardProps
         <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 opacity-50 rounded-lg animate-pulse" />
       )}
 
+      {/* Canvas de raspadinha para cartas não raspadas */}
+      {!card.isScratched && (
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full rounded-lg cursor-pointer"
+          style={{ touchAction: 'none' }}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchMove={handleTouchMove}
+        />
+      )}
+      
       {/* Efeito sparkle para cartas não raspadas */}
       {!card.isScratched && (
-        <Sparkles className="absolute top-2 right-2 w-3 h-3 text-purple-400 animate-pulse" />
+        <Sparkles className="absolute top-2 right-2 w-3 h-3 text-purple-400 animate-pulse pointer-events-none" />
       )}
     </div>
   );
