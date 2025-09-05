@@ -2885,6 +2885,33 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  // Estatísticas gerais para admin (hoje apenas)
+  async getScratchStatsForAdmin(): Promise<{
+    totalCardsToday: number;
+    cardsScratched: number;
+    prizesWon: number;
+    successRate: number;
+  }> {
+    const today = new Date().toISOString().split('T')[0]; // 'YYYY-MM-DD'
+    
+    const [stats] = await db.select({
+      totalCardsToday: sql<number>`COUNT(*)`,
+      cardsScratched: sql<number>`COUNT(CASE WHEN ${dailyScratchCards.isScratched} THEN 1 END)`,
+      prizesWon: sql<number>`COUNT(CASE WHEN ${dailyScratchCards.won} THEN 1 END)`,
+    })
+    .from(dailyScratchCards)
+    .where(eq(dailyScratchCards.cardDate, today));
+
+    const successRate = stats.cardsScratched > 0 ? (stats.prizesWon / stats.cardsScratched) * 100 : 0;
+
+    return {
+      totalCardsToday: stats.totalCardsToday,
+      cardsScratched: stats.cardsScratched,
+      prizesWon: stats.prizesWon,
+      successRate: Math.round(successRate * 10) / 10, // Arredondar para 1 casa decimal
+    };
+  }
+
   // ==========================================
   // FIM DO SISTEMA DE RASPADINHA DIÁRIA
   // ==========================================

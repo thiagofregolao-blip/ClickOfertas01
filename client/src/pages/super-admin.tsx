@@ -16,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Trash2, Eye, LogOut, Gift, Dice6, Target } from 'lucide-react';
+import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Trash2, Eye, LogOut, Gift, Dice6, Target, Award } from 'lucide-react';
 import { isUnauthorizedError } from '@/lib/authUtils';
 
 const bannerSchema = z.object({
@@ -33,6 +33,20 @@ const bannerSchema = z.object({
 });
 
 type BannerFormData = z.infer<typeof bannerSchema>;
+
+const prizeSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  description: z.string().optional(),
+  prizeType: z.enum(['product', 'discount', 'cashback']),
+  discountPercentage: z.string().optional(),
+  discountValue: z.string().optional(),
+  maxDiscountAmount: z.string().optional(),
+  imageUrl: z.string().optional(),
+  probability: z.string().min(1, "Probabilidade é obrigatória"),
+  maxDailyWins: z.string().default("1"),
+});
+
+type PrizeFormData = z.infer<typeof prizeSchema>;
 
 interface Banner {
   id: string;
@@ -85,6 +99,34 @@ interface UserData {
   updatedAt: string;
 }
 
+interface DailyPrize {
+  id: string;
+  prizeType: 'product' | 'discount' | 'cashback';
+  productId?: string;
+  discountPercentage?: string;
+  discountValue?: string;
+  maxDiscountAmount?: string;
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  probability: string;
+  maxDailyWins: string;
+  totalWinsToday: string;
+  totalWinsAllTime: string;
+  isActive: boolean;
+  validFrom: string;
+  validUntil?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ScratchStats {
+  totalCardsToday: number;
+  cardsScratched: number;
+  prizesWon: number;
+  successRate: number;
+}
+
 export default function SuperAdmin() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
@@ -93,6 +135,8 @@ export default function SuperAdmin() {
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [editingStore, setEditingStore] = useState<StoreData | null>(null);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
+  const [isCreatePrizeOpen, setIsCreatePrizeOpen] = useState(false);
+  const [editingPrize, setEditingPrize] = useState<DailyPrize | null>(null);
 
   // Redirect if not super admin
   useEffect(() => {
@@ -122,6 +166,20 @@ export default function SuperAdmin() {
     retry: (failureCount, error) => !isUnauthorizedError(error),
   });
 
+  // Buscar prêmios diários
+  const { data: dailyPrizes = [] } = useQuery<DailyPrize[]>({
+    queryKey: ['/api/admin/daily-prizes'],
+    enabled: !!user?.isSuperAdmin,
+    retry: (failureCount, error) => !isUnauthorizedError(error),
+  });
+
+  // Buscar estatísticas das raspadinhas
+  const { data: scratchStats } = useQuery<ScratchStats>({
+    queryKey: ['/api/admin/scratch-stats'],
+    enabled: !!user?.isSuperAdmin,
+    retry: (failureCount, error) => !isUnauthorizedError(error),
+  });
+
   // Form para criar/editar banner
   const form = useForm<BannerFormData>({
     resolver: zodResolver(bannerSchema),
@@ -134,6 +192,22 @@ export default function SuperAdmin() {
       priority: "0",
       backgroundColor: "#ffffff",
       textColor: "#000000",
+    },
+  });
+
+  // Form para criar/editar prêmio
+  const prizeForm = useForm<PrizeFormData>({
+    resolver: zodResolver(prizeSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      prizeType: "discount",
+      discountPercentage: "",
+      discountValue: "",
+      maxDiscountAmount: "",
+      imageUrl: "",
+      probability: "0.2",
+      maxDailyWins: "1",
     },
   });
 
@@ -335,6 +409,95 @@ export default function SuperAdmin() {
     },
   });
 
+  // Mutations para prêmios diários
+  const createPrizeMutation = useMutation({
+    mutationFn: async (data: PrizeFormData) => {
+      return await apiRequest('POST', '/api/admin/daily-prizes', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/daily-prizes'] });
+      setIsCreatePrizeOpen(false);
+      prizeForm.reset();
+      toast({
+        title: "Prêmio criado",
+        description: "Prêmio criado com sucesso!",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Acesso negado",
+          description: "Você não tem permissão para criar prêmios.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Erro ao criar prêmio. Tente novamente.",
+          variant: "destructive",
+        });
+      }
+    },
+  });
+
+  const updatePrizeMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<PrizeFormData> & { isActive?: boolean } }) => {
+      return await apiRequest('PUT', `/api/admin/daily-prizes/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/daily-prizes'] });
+      setEditingPrize(null);
+      prizeForm.reset();
+      toast({
+        title: "Prêmio atualizado",
+        description: "Prêmio atualizado com sucesso!",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Acesso negado",
+          description: "Você não tem permissão para atualizar prêmios.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Erro ao atualizar prêmio. Tente novamente.",
+          variant: "destructive",
+        });
+      }
+    },
+  });
+
+  const deletePrizeMutation = useMutation({
+    mutationFn: async (prizeId: string) => {
+      return await apiRequest('DELETE', `/api/admin/daily-prizes/${prizeId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/daily-prizes'] });
+      toast({
+        title: "Prêmio deletado",
+        description: "Prêmio deletado com sucesso!",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Acesso negado",
+          description: "Você não tem permissão para deletar prêmios.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Erro ao deletar prêmio. Tente novamente.",
+          variant: "destructive",
+        });
+      }
+    },
+  });
+
   const handleDeleteStore = (storeId: string) => {
     if (confirm("Tem certeza que deseja deletar esta loja? Todos os produtos serão removidos.")) {
       deleteStoreMutation.mutate(storeId);
@@ -359,6 +522,52 @@ export default function SuperAdmin() {
       id: userData.id,
       data: { isSuperAdmin: !userData.isSuperAdmin }
     });
+  };
+
+  // Handlers para prêmios
+  const onSubmitPrize = (data: PrizeFormData) => {
+    if (editingPrize) {
+      updatePrizeMutation.mutate({ id: editingPrize.id, data });
+    } else {
+      createPrizeMutation.mutate(data);
+    }
+  };
+
+  const handleEditPrize = (prize: DailyPrize) => {
+    setEditingPrize(prize);
+    prizeForm.reset({
+      name: prize.name,
+      description: prize.description || "",
+      prizeType: prize.prizeType,
+      discountPercentage: prize.discountPercentage || "",
+      discountValue: prize.discountValue || "",
+      maxDiscountAmount: prize.maxDiscountAmount || "",
+      imageUrl: prize.imageUrl || "",
+      probability: prize.probability,
+      maxDailyWins: prize.maxDailyWins,
+    });
+  };
+
+  const handleTogglePrizeActive = (prize: DailyPrize) => {
+    updatePrizeMutation.mutate({
+      id: prize.id,
+      data: { isActive: !prize.isActive }
+    });
+  };
+
+  const handleDeletePrize = (prizeId: string) => {
+    if (confirm("Tem certeza que deseja deletar este prêmio?")) {
+      deletePrizeMutation.mutate(prizeId);
+    }
+  };
+
+  const getPrizeTypeLabel = (type: string) => {
+    const types = {
+      product: "Produto",
+      discount: "Desconto",
+      cashback: "Cashback"
+    };
+    return types[type as keyof typeof types] || type;
   };
 
   const getBannerTypeLabel = (type: string) => {
@@ -1031,7 +1240,7 @@ export default function SuperAdmin() {
                 </CardContent>
               </Card>
 
-              {/* Estatísticas Rápidas */}
+              {/* Estatísticas Reais */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -1042,24 +1251,24 @@ export default function SuperAdmin() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-3 bg-blue-50 rounded-lg">
-                      <p className="text-2xl font-bold text-blue-600">127</p>
-                      <p className="text-sm text-gray-600">Tentativas</p>
+                      <p className="text-2xl font-bold text-blue-600">{scratchStats?.cardsScratched || 0}</p>
+                      <p className="text-sm text-gray-600">Cartas Raspadas</p>
                     </div>
                     <div className="text-center p-3 bg-green-50 rounded-lg">
-                      <p className="text-2xl font-bold text-green-600">32</p>
-                      <p className="text-sm text-gray-600">Prêmios</p>
+                      <p className="text-2xl font-bold text-green-600">{scratchStats?.prizesWon || 0}</p>
+                      <p className="text-sm text-gray-600">Prêmios Ganhos</p>
                     </div>
                   </div>
                   
                   <div className="text-center p-3 bg-purple-50 rounded-lg">
-                    <p className="text-2xl font-bold text-purple-600">25%</p>
+                    <p className="text-2xl font-bold text-purple-600">{scratchStats?.successRate?.toFixed(1) || 0}%</p>
                     <p className="text-sm text-gray-600">Taxa de Sucesso</p>
                   </div>
                   
-                  <Button variant="outline" className="w-full">
-                    <Eye className="w-4 h-4 mr-2" />
-                    Ver Relatório Detalhado
-                  </Button>
+                  <div className="text-center p-3 bg-orange-50 rounded-lg">
+                    <p className="text-2xl font-bold text-orange-600">{scratchStats?.totalCardsToday || 0}</p>
+                    <p className="text-sm text-gray-600">Total de Cartas</p>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -1143,7 +1352,7 @@ export default function SuperAdmin() {
               </CardContent>
             </Card>
 
-            {/* Gestão de Prêmios */}
+            {/* Gestão Real de Prêmios */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1156,52 +1365,243 @@ export default function SuperAdmin() {
               </CardHeader>
               <CardContent>
                 <div className="flex justify-between items-center mb-4">
-                  <p className="text-sm text-gray-600">3 tipos de prêmios configurados</p>
-                  <Button size="sm">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Novo Prêmio
-                  </Button>
+                  <p className="text-sm text-gray-600">{dailyPrizes.length} prêmios configurados</p>
+                  
+                  <Dialog open={isCreatePrizeOpen || !!editingPrize} onOpenChange={(open) => {
+                    if (!open) {
+                      setIsCreatePrizeOpen(false);
+                      setEditingPrize(null);
+                      prizeForm.reset();
+                    }
+                  }}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        size="sm"
+                        onClick={() => setIsCreatePrizeOpen(true)}
+                        data-testid="button-create-prize"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Novo Prêmio
+                      </Button>
+                    </DialogTrigger>
+                    
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>
+                          {editingPrize ? 'Editar Prêmio' : 'Criar Novo Prêmio'}
+                        </DialogTitle>
+                        <DialogDescription>
+                          {editingPrize 
+                            ? 'Atualize as informações do prêmio.' 
+                            : 'Crie um novo prêmio para as raspadinhas diárias.'
+                          }
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <Form {...prizeForm}>
+                        <form onSubmit={prizeForm.handleSubmit(onSubmitPrize)} className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={prizeForm.control}
+                              name="name"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Nome do Prêmio</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Ex: Desconto Especial" {...field} data-testid="input-prize-name" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={prizeForm.control}
+                              name="prizeType"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Tipo do Prêmio</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value} data-testid="select-prize-type">
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Selecione o tipo" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="discount">Desconto</SelectItem>
+                                      <SelectItem value="cashback">Cashback</SelectItem>
+                                      <SelectItem value="product">Produto Específico</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={prizeForm.control}
+                            name="description"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Descrição (Opcional)</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder="Descreva o prêmio..." {...field} data-testid="input-prize-description" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className="grid grid-cols-3 gap-4">
+                            <FormField
+                              control={prizeForm.control}
+                              name="discountPercentage"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Desconto (%)</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      placeholder="20" 
+                                      type="number" 
+                                      {...field} 
+                                      data-testid="input-prize-discount-percentage" 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={prizeForm.control}
+                              name="discountValue"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Valor Fixo</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      placeholder="25.00" 
+                                      type="number" 
+                                      step="0.01" 
+                                      {...field} 
+                                      data-testid="input-prize-discount-value" 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={prizeForm.control}
+                              name="probability"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Probabilidade</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      placeholder="0.2" 
+                                      type="number" 
+                                      step="0.01"
+                                      max="1"
+                                      min="0"
+                                      {...field} 
+                                      data-testid="input-prize-probability" 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              onClick={() => {
+                                setIsCreatePrizeOpen(false);
+                                setEditingPrize(null);
+                                prizeForm.reset();
+                              }}
+                            >
+                              Cancelar
+                            </Button>
+                            <Button 
+                              type="submit"
+                              disabled={createPrizeMutation.isPending || updatePrizeMutation.isPending}
+                              data-testid="button-save-prize"
+                            >
+                              {editingPrize ? 'Atualizar' : 'Criar'} Prêmio
+                            </Button>
+                          </div>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-green-50 to-green-100">
-                    <div>
-                      <p className="font-medium">Desconto Percentual</p>
-                      <p className="text-sm text-gray-600">50% de desconto no produto</p>
+                <div className="space-y-3 max-h-60 overflow-y-auto">
+                  {dailyPrizes.map((prize) => (
+                    <div 
+                      key={prize.id} 
+                      className={`flex items-center justify-between p-4 border rounded-lg ${
+                        prize.prizeType === 'discount' 
+                          ? 'bg-gradient-to-r from-green-50 to-green-100' 
+                          : prize.prizeType === 'cashback'
+                          ? 'bg-gradient-to-r from-blue-50 to-blue-100'
+                          : 'bg-gradient-to-r from-purple-50 to-purple-100'
+                      }`}
+                    >
+                      <div>
+                        <p className="font-medium">{prize.name}</p>
+                        <p className="text-sm text-gray-600">
+                          {prize.description || `${getPrizeTypeLabel(prize.prizeType)}`}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Ganhos hoje: {prize.totalWinsToday} | Total: {prize.totalWinsAllTime}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className={prize.isActive ? "bg-green-600" : "bg-gray-400"}>
+                          {prize.isActive ? 'Ativo' : 'Inativo'}
+                        </Badge>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleTogglePrizeActive(prize)}
+                          data-testid={`button-toggle-prize-${prize.id}`}
+                        >
+                          <Award className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleEditPrize(prize)}
+                          data-testid={`button-edit-prize-${prize.id}`}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDeletePrize(prize.id)}
+                          data-testid={`button-delete-prize-${prize.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-green-600">Ativo</Badge>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
+                  ))}
                   
-                  <div className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-blue-100">
-                    <div>
-                      <p className="font-medium">Desconto Fixo</p>
-                      <p className="text-sm text-gray-600">R$ 25 de desconto</p>
+                  {dailyPrizes.length === 0 && (
+                    <div className="text-center py-8">
+                      <Gift className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+                      <p className="text-gray-500">Nenhum prêmio configurado</p>
+                      <p className="text-sm text-gray-400">Clique em "Novo Prêmio" para começar</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-blue-600">Ativo</Badge>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-purple-50 to-purple-100">
-                    <div>
-                      <p className="font-medium">Desconto Especial</p>
-                      <p className="text-sm text-gray-600">30% de desconto</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-purple-600">Ativo</Badge>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

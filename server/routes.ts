@@ -3064,6 +3064,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Estatísticas gerais para Super Admin
+  app.get('/api/admin/scratch-stats', isSuperAdmin, async (req: any, res) => {
+    try {
+      const stats = await storage.getScratchStatsForAdmin();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching admin scratch stats:", error);
+      res.status(500).json({ message: "Failed to fetch admin stats" });
+    }
+  });
+
   // Gerar sugestões do algoritmo (Super Admin)
   app.post('/api/admin/algorithm-suggestions/generate', isAuthenticatedCustom, isSuperAdmin, async (req: any, res) => {
     try {
