@@ -1150,6 +1150,12 @@ export const userDailyAttempts = pgTable("user_daily_attempts", {
 export const scratchSystemConfig = pgTable("scratch_system_config", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   
+  // 🎯 Configurações do Super Admin (campos adicionados)
+  mode: varchar("mode").default("automatic"), // 'automatic' | 'manual'
+  winChance: varchar("win_chance").default("25"), // Porcentagem de chance (0-100)
+  productsPerDay: varchar("products_per_day").default("5"), // Máximo de produtos/prêmios por dia
+  isEnabled: boolean("is_enabled").default(true), // Sistema ativo/inativo
+  
   // Configurações de algoritmo
   algorithmType: varchar("algorithm_type").notNull().default("weighted_random"), // 'weighted_random', 'guaranteed_win', 'time_based'
   guaranteedWinEvery: varchar("guaranteed_win_every").default("1000"), // 1 prêmio a cada X tentativas

@@ -1633,66 +1633,146 @@ export default function SuperAdmin() {
                   </Dialog>
                 </div>
                 
-                <div className="space-y-3 max-h-60 overflow-y-auto">
-                  {dailyPrizes.map((prize) => (
-                    <div 
-                      key={prize.id} 
-                      className={`flex items-center justify-between p-4 border rounded-lg ${
-                        prize.prizeType === 'discount' 
-                          ? 'bg-gradient-to-r from-green-50 to-green-100' 
-                          : prize.prizeType === 'cashback'
-                          ? 'bg-gradient-to-r from-blue-50 to-blue-100'
-                          : 'bg-gradient-to-r from-purple-50 to-purple-100'
-                      }`}
-                    >
-                      <div>
-                        <p className="font-medium">{prize.name}</p>
-                        <p className="text-sm text-gray-600">
-                          {prize.description || `${getPrizeTypeLabel(prize.prizeType)}`}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Ganhos hoje: {prize.totalWinsToday} | Total: {prize.totalWinsAllTime}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={prize.isActive ? "bg-green-600" : "bg-gray-400"}>
-                          {prize.isActive ? 'Ativo' : 'Inativo'}
-                        </Badge>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleTogglePrizeActive(prize)}
-                          data-testid={`button-toggle-prize-${prize.id}`}
-                        >
-                          <Award className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleEditPrize(prize)}
-                          data-testid={`button-edit-prize-${prize.id}`}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleDeletePrize(prize.id)}
-                          data-testid={`button-delete-prize-${prize.id}`}
-                        >
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                {/* 🎯 NOVA TABELA DE PRÊMIOS FUNCIONAL */}
+                <div className="border rounded-lg">
+                  {/* Header da tabela */}
+                  <div className="grid grid-cols-7 gap-4 p-3 bg-gray-50 text-sm font-medium text-gray-700 border-b">
+                    <div className="col-span-2">Prêmio</div>
+                    <div>Tipo</div>
+                    <div>Probabilidade</div>
+                    <div>Estoque</div>
+                    <div>Status</div>
+                    <div>Ações</div>
+                  </div>
                   
-                  {dailyPrizes.length === 0 && (
-                    <div className="text-center py-8">
-                      <Gift className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                      <p className="text-gray-500">Nenhum prêmio configurado</p>
-                      <p className="text-sm text-gray-400">Clique em "Novo Prêmio" para começar</p>
-                    </div>
-                  )}
+                  {/* Dados dos prêmios */}
+                  <div className="divide-y max-h-96 overflow-y-auto">
+                    {dailyPrizes.length === 0 ? (
+                      <div className="p-8 text-center text-gray-500">
+                        <Gift className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                        <p className="text-lg font-medium">Nenhum prêmio cadastrado</p>
+                        <p className="text-sm">Clique em "Novo Prêmio" para começar</p>
+                      </div>
+                    ) : (
+                      dailyPrizes.map((prize) => {
+                        const stockLeft = parseInt(prize.maxDailyWins || '0') - parseInt(prize.totalWinsToday || '0');
+                        const stockPercentage = stockLeft > 0 ? (stockLeft / parseInt(prize.maxDailyWins || '1')) * 100 : 0;
+                        
+                        return (
+                          <div key={prize.id} className="grid grid-cols-7 gap-4 p-4 hover:bg-gray-50">
+                            {/* Coluna 1-2: Info do Prêmio */}
+                            <div className="col-span-2">
+                              <div className="flex items-center gap-3">
+                                <div className="flex-shrink-0">
+                                  {prize.prizeType === 'product' ? (
+                                    <Package className="w-8 h-8 p-1.5 bg-blue-100 text-blue-600 rounded-lg" />
+                                  ) : prize.prizeType === 'discount' ? (
+                                    <Percent className="w-8 h-8 p-1.5 bg-green-100 text-green-600 rounded-lg" />
+                                  ) : (
+                                    <DollarSign className="w-8 h-8 p-1.5 bg-purple-100 text-purple-600 rounded-lg" />
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <h4 className="font-medium text-gray-900 truncate">{prize.name}</h4>
+                                  <p className="text-sm text-gray-600 truncate">{prize.description}</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Coluna 3: Tipo */}
+                            <div className="flex items-center">
+                              <Badge variant="outline">
+                                {prize.prizeType === 'product' ? 'PRODUTO' :
+                                 prize.prizeType === 'discount' ? `${prize.discountPercentage}% OFF` :
+                                 `R$ ${prize.discountValue}`}
+                              </Badge>
+                            </div>
+                            
+                            {/* Coluna 4: Probabilidade */}
+                            <div className="flex items-center">
+                              <div className="text-center">
+                                <p className="font-medium">{(parseFloat(prize.probability) * 100).toFixed(1)}%</p>
+                              </div>
+                            </div>
+                            
+                            {/* Coluna 5: Estoque */}
+                            <div className="flex items-center">
+                              <div className="text-center">
+                                <p className="font-medium">{stockLeft}/{prize.maxDailyWins}</p>
+                              </div>
+                            </div>
+                            
+                            {/* Coluna 6: Status */}
+                            <div className="flex items-center">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-3 h-3 rounded-full ${
+                                  prize.isActive && stockLeft > 0 ? 'bg-green-500' :
+                                  prize.isActive && stockLeft === 0 ? 'bg-yellow-500' : 'bg-red-500'
+                                }`} />
+                                <span className="text-sm">
+                                  {prize.isActive ? (stockLeft > 0 ? 'Ativo' : 'Esgotado') : 'Inativo'}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {/* Coluna 7: Ações */}
+                            <div className="flex items-center gap-1">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => {
+                                  setEditingPrize(prize);
+                                  prizeForm.reset({
+                                    name: prize.name,
+                                    description: prize.description || '',
+                                    prizeType: prize.prizeType as 'product' | 'discount' | 'cashback',
+                                    discountValue: prize.discountValue || '',
+                                    discountPercentage: prize.discountPercentage?.toString() || '',
+                                    maxDailyWins: prize.maxDailyWins || '1',
+                                    maxDiscountAmount: prize.maxDiscountAmount || '',
+                                    probability: (parseFloat(prize.probability) * 100).toString(),
+                                    isActive: prize.isActive
+                                  });
+                                }}
+                                data-testid={`button-edit-prize-${prize.id}`}
+                                title="Editar prêmio"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={async () => {
+                                  if (window.confirm(`Tem certeza que deseja excluir o prêmio "${prize.name}"?`)) {
+                                    try {
+                                      await apiRequest('DELETE', `/api/admin/daily-prizes/${prize.id}`);
+                                      toast({
+                                        title: "Prêmio removido!",
+                                        description: "O prêmio foi excluído com sucesso.",
+                                        variant: "default",
+                                      });
+                                      queryClient.invalidateQueries({ queryKey: ['/api/admin/daily-prizes'] });
+                                    } catch (error: any) {
+                                      toast({
+                                        title: "Erro ao remover",
+                                        description: error.message || "Não foi possível remover o prêmio.",
+                                        variant: "destructive",
+                                      });
+                                    }
+                                  }
+                                }}
+                                data-testid={`button-delete-prize-${prize.id}`}
+                                title="Excluir prêmio"
+                              >
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

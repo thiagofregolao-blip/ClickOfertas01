@@ -2811,12 +2811,20 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(dailyScratchCards.cardNumber));
   }
 
-  // Criar as 6 cartas diárias para um usuário
+  // 🎯 NOVO: Criar as 6 cartas diárias com algoritmo corrigido
   async createUserDailyScratchCards(userId: string, date: string): Promise<DailyScratchCard[]> {
     const cards: InsertDailyScratchCard[] = [];
-    const availablePrizes = await this.getActiveDailyPrizes();
     
-    // Gerar 6 cartas com algoritmo inteligente de distribuição de prêmios
+    // 📊 Buscar configuração do sistema para usar configurações do super admin
+    const config = await this.getScratchSystemConfig();
+    const winChancePercent = parseFloat((config as any)?.winChance || (config as any)?.win_chance || "25") / 100; // Default 25%
+    
+    // 🎲 Usar crypto.randomBytes para aleatoriedade criptograficamente forte
+    const crypto = await import('crypto');
+    
+    let hasWon = false; // 🔒 Garantir máximo 1 prêmio por dia
+    
+    // Gerar 6 cartas com algoritmo corrigido
     for (let cardNumber = 1; cardNumber <= 6; cardNumber++) {
       let won = false;
       let prizeId = null;
@@ -2824,18 +2832,32 @@ export class DatabaseStorage implements IStorage {
       let prizeValue = null;
       let prizeDescription = null;
 
-      // Algoritmo simples: 20% de chance de ganhar em cada carta
-      // Pelo menos 1 das 6 cartas deve ter prêmio
-      const winChance = Math.random();
-      const shouldWin = winChance < 0.20 || (cardNumber === 6 && !cards.some(c => c.won));
+      // 🎯 Algoritmo corrigido: usar configuração do admin + máximo 1 prêmio
+      let shouldWin = false;
       
-      if (shouldWin && availablePrizes.length > 0) {
-        won = true;
-        const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
-        prizeId = randomPrize.id;
-        prizeType = randomPrize.prizeType;
-        prizeValue = randomPrize.discountValue || randomPrize.discountPercentage?.toString() || "0";
-        prizeDescription = randomPrize.description;
+      if (!hasWon) {
+        if (cardNumber < 6) {
+          // Cartas 1-5: usar probabilidade configurada
+          const randomValue = crypto.randomInt(0, 10000) / 10000; // 0.0000 a 0.9999
+          shouldWin = randomValue < winChancePercent;
+        } else {
+          // Carta 6: garantir prêmio se nenhuma anterior ganhou (se houver estoque)
+          const availablePrizes = await this.getActiveDailyPrizesWithStock();
+          shouldWin = availablePrizes.length > 0;
+        }
+      }
+      
+      // 🏆 Tentar conceder prêmio atomicamente (exactly-once awarding)
+      if (shouldWin) {
+        const prizeResult = await this.awardPrizeAtomically(userId, date);
+        if (prizeResult) {
+          won = true;
+          hasWon = true;
+          prizeId = prizeResult.id;
+          prizeType = prizeResult.prizeType;
+          prizeValue = prizeResult.discountValue || prizeResult.discountPercentage?.toString() || "0";
+          prizeDescription = prizeResult.description;
+        }
       }
 
       cards.push({
@@ -2885,7 +2907,10 @@ export class DatabaseStorage implements IStorage {
 
   // Verificar se o usuário já tem cartas para hoje, senão criar
   async ensureUserDailyScratchCards(userId: string): Promise<DailyScratchCard[]> {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    // 🌍 FIX: Usar timezone correto do Paraguai
+    const today = new Date().toLocaleDateString('sv-SE', { 
+      timeZone: 'America/Asuncion' 
+    }); // YYYY-MM-DD em timezone local
     
     // Verificar se já existem cartas para hoje
     const existingCards = await this.getUserDailyScratchCards(userId, today);
@@ -2929,6 +2954,79 @@ export class DatabaseStorage implements IStorage {
       wonCards: stats.wonCards,
       successRate: Math.round(successRate),
     };
+  }
+
+  // 🔒 NOVO: Função para conceder prêmio atomicamente (exactly-once awarding)
+  async awardPrizeAtomically(userId: string, date: string): Promise<DailyPrize | null> {
+    return await db.transaction(async (tx) => {
+      // Buscar prêmios disponíveis COM estoque
+      const availablePrizes = await tx.select()
+        .from(dailyPrizes)
+        .where(and(
+          eq(dailyPrizes.isActive, true),
+          sql`CAST(${dailyPrizes.maxDailyWins} AS INTEGER) > CAST(${dailyPrizes.totalWinsToday} AS INTEGER)`
+        ));
+      
+      if (availablePrizes.length === 0) {
+        return null; // Sem estoque disponível
+      }
+      
+      // 🎲 Seleção ponderada baseada em probabilidade individual
+      const totalProbability = availablePrizes.reduce((sum, prize) => 
+        sum + parseFloat(prize.probability), 0
+      );
+      
+      if (totalProbability === 0) {
+        return null; // Nenhum prêmio tem probabilidade > 0
+      }
+      
+      const crypto = await import('crypto');
+      const randomValue = crypto.randomInt(0, Math.floor(totalProbability * 10000)) / 10000;
+      
+      let accumulator = 0;
+      let selectedPrize = availablePrizes[0]; // fallback
+      
+      for (const prize of availablePrizes) {
+        accumulator += parseFloat(prize.probability);
+        if (randomValue <= accumulator) {
+          selectedPrize = prize;
+          break;
+        }
+      }
+      
+      // ⚡ Debitar estoque atomicamente
+      const [updatedPrize] = await tx
+        .update(dailyPrizes)
+        .set({
+          totalWinsToday: sql`CAST(${dailyPrizes.totalWinsToday} AS INTEGER) + 1`,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(dailyPrizes.id, selectedPrize.id),
+          sql`CAST(${dailyPrizes.maxDailyWins} AS INTEGER) > CAST(${dailyPrizes.totalWinsToday} AS INTEGER)`
+        ))
+        .returning();
+      
+      if (!updatedPrize) {
+        // Estoque esgotado durante a transação, tentar outro
+        throw new Error('Stock depleted during transaction');
+      }
+      
+      return updatedPrize;
+    }).catch(() => {
+      // Em caso de erro/conflito, retornar null (sem prêmio)
+      return null;
+    });
+  }
+
+  // 🎯 NOVO: Buscar prêmios ativos COM verificação de estoque
+  async getActiveDailyPrizesWithStock(): Promise<DailyPrize[]> {
+    return await db.select()
+      .from(dailyPrizes)
+      .where(and(
+        eq(dailyPrizes.isActive, true),
+        sql`CAST(${dailyPrizes.maxDailyWins} AS INTEGER) > CAST(${dailyPrizes.totalWinsToday} AS INTEGER)`
+      ));
   }
 
   // Estatísticas gerais para admin (hoje apenas)

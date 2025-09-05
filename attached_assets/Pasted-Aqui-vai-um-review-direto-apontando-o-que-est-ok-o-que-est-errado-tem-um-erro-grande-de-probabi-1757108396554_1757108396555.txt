@@ -1,0 +1,228 @@
+Aqui vai um review direto, apontando o que está ok, o que está errado (tem um erro grande de probabilidade), riscos técnicos e como eu arrumaria.
+
+Resumo em 20s
+
+O “6 cards” como está hoje garante pelo menos 1 prêmio por dia (se houver estoque) e ainda pode dar vários prêmios no mesmo dia.
+
+A conta “67% de chance de ganhar ao menos 1” está errada para o código atual.
+
+O “tentativa única diária” é determinístico e previsível (risco de abuso) e tem risco de condição de corrida no limiar da vitória.
+
+Configurações de super admin e probabilidades por prêmio não são usadas → incoerência entre painel e motor real.
+
+Falta controle de estoque/limites e atomicidade ao distribuir prêmios → risco de “duplicar” prêmios.
+
+Pontos cirúrgicos
+1) Erro de probabilidade no “6 cards”
+
+No código:
+
+const shouldWin = winChance < 0.20 || (cardNumber === 6 && !cards.some(c => c.won));
+
+
+Cartas 1–5: 20% cada (independentes).
+
+Carta 6: 20% OU vitória forçada se nenhuma anterior ganhou.
+
+👉 Isso significa que, se houver prêmios disponíveis, sempre sai pelo menos 1 prêmio por dia (a 6ª força a vitória caso ninguém tenha ganho antes). Logo, a afirmação “~67% de chance de ganhar ao menos 1” está errada — na prática é 100% (com estoque > 0).
+
+Além disso, pode haver múltiplas vitórias no mesmo dia: as cartas 1–5 podem ganhar (cada uma com 20%), e a 6ª ainda tem 20% extra quando já houve vitória antes.
+Distribuição exata do nº de prêmios por dia (assumindo estoque):
+
+1 prêmio: 65,536%
+
+2 prêmios: 24,576%
+
+3 prêmios: 8,192%
+
+4 prêmios: 1,536%
+
+5 prêmios: 0,1536%
+
+6 prêmios: 0,0064%
+Valor esperado ≈ 1,462 prêmios/dia/usuário. Isso é muito alto para a maioria dos cases comerciais.
+
+Como corrigir (se a intenção for no máx. 1 prêmio/dia)
+
+Trave um hasWon e não permita novas vitórias depois da primeira:
+
+let hasWon = false;
+const p = 0.20; // ou da config
+for (let card = 1; card <= 6; card++) {
+  let shouldWin = false;
+  if (!hasWon) {
+    if (card < 6) shouldWin = Math.random() < p;
+    else          shouldWin = true; // “pity” na 6ª se ninguém ganhou
+  }
+  if (shouldWin && availablePrizes.length > 0) {
+    awardPrize();
+    hasWon = true;
+  }
+}
+
+
+Se você não quer garantir 100% no dia, troque a 6ª carta para “pity” condicional (ex.: só garante a cada X dias sem prêmio) ou remova a garantia e use apenas p.
+
+Se quiser manter “vários prêmios/dia”
+
+Tudo bem — mas assuma o custo: ~1,46 prêmios por usuário/dia é muito. Para calibrar o payout, reduza p (por exemplo, 5% nas cartas 1–5).
+
+2) “Tentativa única diária” (1 em 1000) — riscos
+
+Hoje:
+
+const won = currentCount >= guaranteedWinEvery; // deterministic
+
+
+Determinístico e previsível: o N-ésimo usuário ganha. Isso pode ser explorado por quem cria contas ou tenta sincronizar tentativas.
+
+Condição de corrida: no exato limiar (p.ex. contagem 1000), múltiplas instâncias podem ler valores próximos e conceder mais de um prêmio sem um lock/transaction.
+
+Como corrigir
+
+Use probabilidade ao invés de contador determinístico:
+
+const p = 1 / guaranteedWinEvery; // ex.: 0.001
+const won = Math.random() < p;
+
+
+Se quiser “pity” global, use um contador atômico (Redis INCR/DB com UPDATE ... RETURNING) e resgate na transação.
+
+Ou ainda, use sorteio imprevisível:
+
+Gere um secretSeed diário (servidor).
+
+won = hash(secretSeed + attemptId) % guaranteedWinEvery === 0;
+
+Imprevisível e auditável.
+
+3) Configurações do Super Admin (não usadas)
+
+Você tem:
+
+mode, productsPerDay, winChance, isEnabled
+
+
+…mas o motor ignora. Resultado: o painel promete algo que o código não entrega.
+
+Proposta
+
+Fonte única da verdade: todo cálculo lê dessas configs.
+
+winChance alimenta p das cartas ou do modo tentativa única.
+
+productsPerDay controla orçamento diário de prêmios (hard cap).
+
+mode:
+
+automatic: motor decide prêmios via algoritmo inteligente + pesos.
+
+manual: operadores escolhem prêmios e limites.
+
+4) Probabilidade por prêmio (coluna probability) & estoque
+
+Hoje há daily_prizes.probability, mas não é usada.
+
+Implementar seleção ponderada + estoque atômico
+
+Sorteio ponderado:
+
+const total = prizes.reduce((s,p)=> s + p.probability, 0);
+let r = Math.random() * total;
+let picked;
+for (const p of prizes) { r -= p.probability; if (r <= 0) { picked = p; break; } }
+
+
+Debitar estoque de forma atômica (evita duplos):
+
+SQL: UPDATE prizes SET stock = stock - 1 WHERE id = ? AND stock > 0 RETURNING *;
+
+Use transação. Se não retornar linha, tente outro prêmio ou retorne “sem estoque”.
+
+Limites:
+
+daily_limit por prêmio.
+
+per_user_limit total e por período (dia/mês).
+
+Orçamento:
+
+Pare de conceder prêmios quando productsPerDay atingir o teto → “Sem prêmios por hoje, volte amanhã”.
+
+5) Concurrência, integridade e “dia” correto
+
+Dia: defina “dia” em America/Asuncion (00:00–23:59:59) para resets e relatórios.
+
+Transações:
+
+Ao gerar as 6 cartas, determine resultados no servidor e persista antes de mostrar (evita manipulação de front).
+
+Ao conceder prêmio, lock a linha do prêmio.
+
+Multi-instância:
+
+Nada em memória. Use DB/Redis para contadores/locks.
+
+Idempotência:
+
+Se o cliente repetir request, retorne o mesmo resultado do dia.
+
+6) Anti-fraude e UX
+
+Anti-abuso: rate limit por IP/dispositivo, CAPTCHA onde fizer sentido, device fingerprint, bloqueio de VPNs suspeitas, verificação de telefone/e-mail para resgate.
+
+UX justa: se prêmios acabaram, não prometa garantia; mostre aviso antes de jogar.
+
+Auditoria: logue todos os eventos (geração, revelação, concessão, resgate).
+
+7) Recomendações práticas (prontas para aplicar)
+A) “6 cards” com no máximo 1 prêmio/dia e p da config
+const p = config.winChance ?? 0.20; // 0–1
+const guaranteeOn6th = true;        // ou da config
+let hasWon = false;
+
+for (let card = 1; card <= 6; card++) {
+  let shouldWin = false;
+
+  if (!hasWon) {
+    if (card < 6) {
+      shouldWin = Math.random() < p;
+    } else {
+      shouldWin = guaranteeOn6th ? true : Math.random() < p;
+    }
+  }
+
+  if (shouldWin) {
+    const prize = pickWeightedPrizeWithAtomicStock(); // usa probability + UPDATE ... RETURNING
+    if (prize) {
+      assignPrizeToUser(prize);
+      hasWon = true;
+    } else {
+      // sem estoque → não marcar vitória; opcional: fallback/aviso
+    }
+  }
+
+  persistCardOutcome(userId, dayKey, card, shouldWin, prizeId ?? null);
+}
+
+B) “Tentativa única diária” probabilística e imprevisível
+const perAttemptChance = 1 / (config.guaranteedWinEvery ?? 1000);
+const won = Math.random() < perAttemptChance;
+// ou a versão com seed/Hash explicado acima
+if (won) awardPrizeAtomically();
+
+C) Respeitar productsPerDay
+
+Antes de conceder: cheque awarded_today < productsPerDay.
+
+Atualize contador com UPDATE ... SET awarded_today = awarded_today + 1 ... RETURNING.
+
+D) Telemetria e simulação
+
+Adicione uma rotina de simulação Monte Carlo offline para calibrar p, productsPerDay e custos esperados.
+
+8) O que manter e o que ajustar
+
+✅ Manter: “algoritmo inteligente” para sugerir prêmios (é ótimo como insumo, sem interferir na chance).
+
+⚠️ Ajustar: unificar motor de probabilidade, usar configs do painel, implementar pesos e estoque atômico, corrigir a garantia da 6ª carta conforme objetivo de payout, e tornar o “tentativa única” imprevisível e sem race condition.

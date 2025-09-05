@@ -1,0 +1,81 @@
+Tenho sim — alguns pontos extras (rápidos e bem práticos) que não comentei antes:
+
+Aleatoriedade & “provably fair”
+
+Evite Math.random() (não é criptograficamente forte). Use crypto.randomInt()/crypto.getRandomValues() no Node/Edge.
+
+Se quiser transparência: commit-reveal diário (serverSeed secreta + nonce do cliente). Guarde hash(serverSeed) antes; no fim do dia revele a seed. Resultado = HMAC_SHA256(serverSeed, userId|day|card|nonce) → imprevisível e auditável.
+
+Garantia × estoque (ponto crítico)
+
+Hoje a 6ª carta “garante” vitória mesmo se availablePrizes.length === 0. Defina regra clara:
+
+a) Sem estoque ⇒ não força vitória e mostre aviso “prêmios de hoje esgotados”; ou
+
+b) Tenha “fallback” (ex.: pontos/cupom genérico) com estoque infinito.
+
+Padronize: qualquer vitória só é confirmada após debitar estoque de forma atômica.
+
+Idempotência e unicidade
+
+Dê idempotency key por (userId, day, cardIndex) e unique index no DB para impedir duplicidade sob retries.
+
+Para “tentativa única”, chaveie por (userId, day).
+
+Exactly-once awarding
+
+Use transação ou UPDATE ... SET stock = stock - 1 WHERE id=? AND stock>0 RETURNING *.
+
+Se o débito falhar, não marque vitória.
+
+Tenha estados claros: generated → revealed → awarding → awarded/failed e retentativa só no estado awarding.
+
+Segurança de front
+
+O front não decide resultado; só revela.
+
+Assine no server um payload por carta (ex.: JWT(result, prizeId, exp)) e valide na revelação.
+
+Rate-limit por IP/dispositivo, CAPTCHA/Turnstile para endpoints de tentativa; fingerprint (com privacidade).
+
+Observabilidade & alarms
+
+Métricas por dia: win_rate, avg_prizes_per_user, awarded_today, stock_by_prize, fail_award_rate.
+
+Alertas: esgotamento precoce, pico anômalo de vitórias, taxa de erro de awarding > X%.
+
+Log imutável (append-only) de sorteios e concessões.
+
+Governança de payout
+
+Unifique os dois modos numa única pipeline de concessão, com productsPerDay como teto duro (feature flag de “pity” on/off).
+
+Limites: per_user_per_day, per_user_per_month e per_prize_per_day.
+
+Se atingir o teto diário, pare de gerar vitórias antes da experiência (mensagem clara no UI).
+
+Tempo & resets
+
+Use sempre America/Asuncion no servidor/DB para fechar o “dia”.
+
+Prepare para mudanças de horário de verão: defina o “dia” por calendário local (IANA) e use timestamps em UTC + coluna local_date.
+
+Legal & compliance (vale um check)
+
+Diferenciar “promoção” de “jogo de azar” localmente; termos & condições, idade mínima, regras publicadas, tributação de prêmios, auditoria mínima.
+
+Privacidade: colete só o necessário; retenção de logs; política de dados.
+
+Performance & escolha de prêmio
+
+Seleção ponderada pode ficar O(n). Se a lista crescer, use prefix sums/alias method e invalide cache quando o estoque mudar.
+
+Evite N+1 queries na geração das 6 cartas (pré-carregue prêmios ativos).
+
+Testes
+
+Monte-Carlo para calibrar winChance × custo esperado.
+
+Testes de concorrência (stress/chaos) justamente no limiar de “pity” e no débito de estoque.
+
+Property-based: “nunca premiar sem estoque”, “nunca premiar 2x a mesma carta”.
