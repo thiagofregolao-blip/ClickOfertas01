@@ -1175,14 +1175,64 @@ export default function SuperAdmin() {
             </div>
           </TabsContent>
 
-          {/* ABA DE RASPADINHA DIÁRIA */}
+          {/* ABA DE RASPADINHA DIÁRIA - REDESENHADA */}
           <TabsContent value="daily-scratch" className="space-y-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                <Gift className="w-6 h-6 text-purple-600" />
-                Sistema de Raspadinha Diária
+                <Trophy className="w-6 h-6 text-yellow-600" />
+                Dashboard de Raspadinhas - NOVA INTERFACE
               </h2>
             </div>
+
+            {/* 📊 DASHBOARD DE MÉTRICAS */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-yellow-600" />
+                  Visão Geral do Sistema
+                </CardTitle>
+                <CardDescription>
+                  Métricas em tempo real do sistema de raspadinhas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <p className="text-3xl font-bold text-blue-600">{dailyPrizes.length}</p>
+                    <p className="text-sm text-gray-600">Prêmios Ativos</p>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <p className="text-3xl font-bold text-green-600">
+                      {dailyPrizes.filter(p => parseInt(p.totalWinsToday || '0') < parseInt(p.maxDailyWins || '0')).length}
+                    </p>
+                    <p className="text-sm text-gray-600">Com Estoque</p>
+                  </div>
+                  <div className="text-center p-4 bg-purple-50 rounded-lg">
+                    <p className="text-3xl font-bold text-purple-600">
+                      {dailyPrizes.reduce((sum, p) => sum + parseInt(p.totalWinsToday || '0'), 0)}
+                    </p>
+                    <p className="text-sm text-gray-600">Concedidos Hoje</p>
+                  </div>
+                  <div className="text-center p-4 bg-orange-50 rounded-lg">
+                    <p className="text-3xl font-bold text-orange-600">
+                      {(dailyPrizes.reduce((sum, p) => sum + parseFloat(p.probability || '0'), 0) * 100).toFixed(1)}%
+                    </p>
+                    <p className="text-sm text-gray-600">Prob. Total</p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Reset Diário
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Download className="w-4 h-4 mr-2" />
+                    Exportar Relatório
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
             <div className="grid gap-6 md:grid-cols-2">
               {/* Configurações do Sistema */}
