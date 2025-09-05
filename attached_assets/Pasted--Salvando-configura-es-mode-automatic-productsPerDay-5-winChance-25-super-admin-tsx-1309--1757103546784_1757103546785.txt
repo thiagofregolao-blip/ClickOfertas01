@@ -1,0 +1,33 @@
+ Salvando configurações: {mode: 'automatic', productsPerDay: 5, winChance: 25}
+super-admin.tsx:1309 ❌ Erro ao salvar configurações: TypeError: Failed to execute 'fetch' on 'Window': '/api/admin/scratch-config' is not a valid HTTP method.
+    at apiRequest (queryClient.ts:27:21)
+    at onClick (super-admin.tsx:1294:50)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=85f22bd5:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=85f22bd5:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=85f22bd5:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-RPCDYKBN.js?v=85f22bd5:3736:33)
+    at executeDispatch (chunk-RPCDYKBN.js?v=85f22bd5:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-RPCDYKBN.js?v=85f22bd5:7034:15)
+    at processDispatchQueue (chunk-RPCDYKBN.js?v=85f22bd5:7043:13)
+    at dispatchEventsForPlugins (chunk-RPCDYKBN.js?v=85f22bd5:7051:11)
+onClick @ super-admin.tsx:1309
+await in onClick
+callCallback2 @ chunk-RPCDYKBN.js?v=85f22bd5:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=85f22bd5:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=85f22bd5:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=85f22bd5:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=85f22bd5:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=85f22bd5:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=85f22bd5:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=85f22bd5:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=85f22bd5:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=85f22bd5:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=85f22bd5:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=85f22bd5:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=85f22bd5:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=85f22bd5:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=85f22bd5:5449Understand this error
+super-admin.tsx:1287 🎯 Salvando configurações: {mode: 'automatic', productsPerDay: 5, winChance: 25}
+super-admin.tsx:1309 ❌ Erro ao salvar configurações: TypeError: Failed to execute 'fetch' on 'Window': '/api/admin/scratch-config' is not a valid HTTP method.
+    at apiRequest (queryClient.ts:27:21)
+    at onClick (super-admin.tsx:1294:50)

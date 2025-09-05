@@ -1220,7 +1220,7 @@ export default function SuperAdmin() {
                       className="w-full"
                       onClick={async () => {
                         try {
-                          const response = await apiRequest('/api/admin/daily-scratch/test', 'POST') as any;
+                          const response = await apiRequest('POST', '/api/admin/daily-scratch/test') as any;
                           
                           if (response.success) {
                             toast({
@@ -1291,7 +1291,7 @@ export default function SuperAdmin() {
                           });
                           
                           // Enviar para API
-                          const response = await apiRequest('/api/admin/scratch-config', 'PUT', {
+                          const response = await apiRequest('PUT', '/api/admin/scratch-config', {
                             mode: isAutomatic ? 'automatic' : 'manual',
                             productsPerDay,
                             winChance,
