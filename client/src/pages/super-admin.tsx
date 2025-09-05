@@ -1220,7 +1220,8 @@ export default function SuperAdmin() {
                       className="w-full"
                       onClick={async () => {
                         try {
-                          const response = await apiRequest('POST', '/api/admin/daily-scratch/test') as any;
+                          const res = await apiRequest('POST', '/api/admin/daily-scratch/test');
+                          const response = await res.json();
                           
                           if (response.success) {
                             toast({
@@ -1291,12 +1292,13 @@ export default function SuperAdmin() {
                           });
                           
                           // Enviar para API
-                          const response = await apiRequest('PUT', '/api/admin/scratch-config', {
+                          const res = await apiRequest('PUT', '/api/admin/scratch-config', {
                             mode: isAutomatic ? 'automatic' : 'manual',
                             productsPerDay,
                             winChance,
                             isEnabled: true
-                          }) as any;
+                          });
+                          const response = await res.json();
                           
                           toast({
                             title: "Configurações Salvas!",
