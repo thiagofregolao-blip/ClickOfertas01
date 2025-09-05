@@ -432,19 +432,39 @@ export default function ScratchCard({ product, currency, themeColor, logoUrl, on
         }
         
         const audioCtx = audioCtxRef.current;
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
         
-        oscillator.connect(gainNode);
+        // Criar ruído branco filtrado para som "xiiii" sibilante
+        const bufferSize = audioCtx.sampleRate * 0.15; // 150ms de áudio
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        
+        // Gerar ruído branco
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+        
+        const noiseSource = audioCtx.createBufferSource();
+        noiseSource.buffer = noiseBuffer;
+        
+        // Filtro passa-alta para enfatizar frequências sibilantes (xiiii)
+        const highPassFilter = audioCtx.createBiquadFilter();
+        highPassFilter.type = 'highpass';
+        highPassFilter.frequency.setValueAtTime(2000 + Math.random() * 1000, audioCtx.currentTime); // 2-3kHz
+        highPassFilter.Q.setValueAtTime(3, audioCtx.currentTime);
+        
+        // Gain para controlar volume
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.01); // Ataque rápido
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15); // Decay "xiiii"
+        
+        // Conectar: ruído -> filtro -> gain -> destino
+        noiseSource.connect(highPassFilter);
+        highPassFilter.connect(gainNode);
         gainNode.connect(audioCtx.destination);
         
-        oscillator.frequency.setValueAtTime(150 + Math.random() * 50, audioCtx.currentTime);
-        oscillator.type = 'sawtooth';
-        gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-        
-        oscillator.start(audioCtx.currentTime);
-        oscillator.stop(audioCtx.currentTime + 0.1);
+        noiseSource.start(audioCtx.currentTime);
+        noiseSource.stop(audioCtx.currentTime + 0.15);
         
         lastSoundTime.current = soundNow;
       } catch (e) {
