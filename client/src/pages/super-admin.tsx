@@ -1495,7 +1495,7 @@ export default function SuperAdmin() {
                       </DialogHeader>
 
                       <Form {...prizeForm}>
-                        <form onSubmit={prizeForm.handleSubmit(onPrizeSubmit)} className="space-y-4">
+                        <form onSubmit={prizeForm.handleSubmit(onSubmitPrize)} className="space-y-4">
                           <div className="grid grid-cols-2 gap-4">
                             <FormField
                               control={prizeForm.control}
@@ -1929,7 +1929,7 @@ export default function SuperAdmin() {
                       </DialogHeader>
                       
                       <Form {...prizeForm}>
-                        <form onSubmit={prizeForm.handleSubmit(onPrizeSubmit)} className="space-y-4">
+                        <form onSubmit={prizeForm.handleSubmit(onSubmitPrize)} className="space-y-4">
                           <div className="grid grid-cols-2 gap-4">
                             <FormField
                               control={prizeForm.control}
