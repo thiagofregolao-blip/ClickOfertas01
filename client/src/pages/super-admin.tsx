@@ -5,8 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -628,7 +628,7 @@ export default function SuperAdmin() {
         </div>
 
         <Tabs defaultValue="banners" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="banners" className="flex items-center gap-2">
               <Image className="w-4 h-4" />
               Banners
@@ -644,6 +644,10 @@ export default function SuperAdmin() {
             <TabsTrigger value="daily-scratch" className="flex items-center gap-2">
               <Gift className="w-4 h-4" />
               Raspadinha
+            </TabsTrigger>
+            <TabsTrigger value="promotions" className="flex items-center gap-2">
+              <Trophy className="w-4 h-4" />
+              Promoções
             </TabsTrigger>
             <TabsTrigger value="stats" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
@@ -1175,64 +1179,14 @@ export default function SuperAdmin() {
             </div>
           </TabsContent>
 
-          {/* ABA DE RASPADINHA DIÁRIA - REDESENHADA */}
+          {/* ABA DE RASPADINHA DIÁRIA */}
           <TabsContent value="daily-scratch" className="space-y-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                <Trophy className="w-6 h-6 text-yellow-600" />
-                Dashboard de Raspadinhas - NOVA INTERFACE
+                <Gift className="w-6 h-6 text-purple-600" />
+                Sistema de Raspadinha Diária
               </h2>
             </div>
-
-            {/* 📊 DASHBOARD DE MÉTRICAS */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-yellow-600" />
-                  Visão Geral do Sistema
-                </CardTitle>
-                <CardDescription>
-                  Métricas em tempo real do sistema de raspadinhas
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <p className="text-3xl font-bold text-blue-600">{dailyPrizes.length}</p>
-                    <p className="text-sm text-gray-600">Prêmios Ativos</p>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <p className="text-3xl font-bold text-green-600">
-                      {dailyPrizes.filter(p => parseInt(p.totalWinsToday || '0') < parseInt(p.maxDailyWins || '0')).length}
-                    </p>
-                    <p className="text-sm text-gray-600">Com Estoque</p>
-                  </div>
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <p className="text-3xl font-bold text-purple-600">
-                      {dailyPrizes.reduce((sum, p) => sum + parseInt(p.totalWinsToday || '0'), 0)}
-                    </p>
-                    <p className="text-sm text-gray-600">Concedidos Hoje</p>
-                  </div>
-                  <div className="text-center p-4 bg-orange-50 rounded-lg">
-                    <p className="text-3xl font-bold text-orange-600">
-                      {(dailyPrizes.reduce((sum, p) => sum + parseFloat(p.probability || '0'), 0) * 100).toFixed(1)}%
-                    </p>
-                    <p className="text-sm text-gray-600">Prob. Total</p>
-                  </div>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                    Reset Diário
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="w-4 h-4 mr-2" />
-                    Exportar Relatório
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
 
             <div className="grid gap-6 md:grid-cols-2">
               {/* Configurações do Sistema */}
@@ -1494,70 +1448,17 @@ export default function SuperAdmin() {
               </CardContent>
             </Card>
 
-            {/* 🏆 DASHBOARD COMPLETO DE RASPADINHAS REDESENHADO */}
-            <div className="space-y-6">
-              
-              {/* 📊 DASHBOARD DE MÉTRICAS */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-yellow-600" />
-                    Dashboard de Prêmios
-                  </CardTitle>
-                  <CardDescription>
-                    Visão geral dos prêmios e performance do sistema
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-4 gap-4 mb-6">
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <p className="text-3xl font-bold text-blue-600">{dailyPrizes.length}</p>
-                      <p className="text-sm text-gray-600">Prêmios Ativos</p>
-                    </div>
-                    <div className="text-center p-4 bg-green-50 rounded-lg">
-                      <p className="text-3xl font-bold text-green-600">
-                        {dailyPrizes.filter(p => parseInt(p.totalWinsToday || '0') < parseInt(p.maxDailyWins || '0')).length}
-                      </p>
-                      <p className="text-sm text-gray-600">Com Estoque</p>
-                    </div>
-                    <div className="text-center p-4 bg-purple-50 rounded-lg">
-                      <p className="text-3xl font-bold text-purple-600">
-                        {dailyPrizes.reduce((sum, p) => sum + parseInt(p.totalWinsToday || '0'), 0)}
-                      </p>
-                      <p className="text-sm text-gray-600">Concedidos Hoje</p>
-                    </div>
-                    <div className="text-center p-4 bg-orange-50 rounded-lg">
-                      <p className="text-3xl font-bold text-orange-600">
-                        {(dailyPrizes.reduce((sum, p) => sum + parseFloat(p.probability || '0'), 0) * 100).toFixed(1)}%
-                      </p>
-                      <p className="text-sm text-gray-600">Prob. Total</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <RotateCcw className="w-4 h-4 mr-2" />
-                      Reset Diário
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Download className="w-4 h-4 mr-2" />
-                      Exportar Relatório
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* 🎁 GERENCIAMENTO DE PRÊMIOS REDESENHADO */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Gift className="w-5 h-5 text-purple-600" />
-                    Prêmios Disponíveis (NOVA INTERFACE)
-                  </CardTitle>
-                  <CardDescription>
-                    Configure prêmios, probabilidades e estoque - Interface redesenhada
-                  </CardDescription>
-                </CardHeader>
+            {/* Gestão Real de Prêmios */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Gift className="w-5 h-5 text-purple-600" />
+                  Prêmios Disponíveis
+                </CardTitle>
+                <CardDescription>
+                  Configure os tipos de prêmios que podem ser ganhos
+                </CardDescription>
+              </CardHeader>
               <CardContent>
                 <div className="flex justify-between items-center mb-4">
                   <p className="text-sm text-gray-600">{dailyPrizes.length} prêmios configurados</p>
@@ -1594,7 +1495,7 @@ export default function SuperAdmin() {
                       </DialogHeader>
 
                       <Form {...prizeForm}>
-                        <form onSubmit={prizeForm.handleSubmit(onSubmitPrize)} className="space-y-4">
+                        <form onSubmit={prizeForm.handleSubmit(onPrizeSubmit)} className="space-y-4">
                           <div className="grid grid-cols-2 gap-4">
                             <FormField
                               control={prizeForm.control}
@@ -1880,7 +1781,6 @@ export default function SuperAdmin() {
                 </div>
               </CardContent>
             </Card>
-            </div>
 
             {/* Algoritmo Inteligente */}
             <Card>
@@ -1920,6 +1820,379 @@ export default function SuperAdmin() {
                   <Button className="flex-1">
                     Aplicar Automático
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* 🏆 NOVA ABA DE PROMOÇÕES COM INTERFACE REDESENHADA */}
+          <TabsContent value="promotions" className="space-y-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <Trophy className="w-6 h-6 text-yellow-600" />
+                Sistema de Promoções - Interface Redesenhada
+              </h2>
+            </div>
+
+            {/* 📊 DASHBOARD DE MÉTRICAS PRINCIPAIS */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-yellow-600" />
+                  Dashboard de Prêmios
+                </CardTitle>
+                <CardDescription>
+                  Visão geral dos prêmios e performance do sistema
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <p className="text-3xl font-bold text-blue-600">{dailyPrizes.length}</p>
+                    <p className="text-sm text-gray-600">Prêmios Ativos</p>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <p className="text-3xl font-bold text-green-600">
+                      {dailyPrizes.filter(p => parseInt(p.totalWinsToday || '0') < parseInt(p.maxDailyWins || '0')).length}
+                    </p>
+                    <p className="text-sm text-gray-600">Com Estoque</p>
+                  </div>
+                  <div className="text-center p-4 bg-purple-50 rounded-lg">
+                    <p className="text-3xl font-bold text-purple-600">
+                      {dailyPrizes.reduce((sum, p) => sum + parseInt(p.totalWinsToday || '0'), 0)}
+                    </p>
+                    <p className="text-sm text-gray-600">Concedidos Hoje</p>
+                  </div>
+                  <div className="text-center p-4 bg-orange-50 rounded-lg">
+                    <p className="text-3xl font-bold text-orange-600">
+                      {(dailyPrizes.reduce((sum, p) => sum + parseFloat(p.probability || '0'), 0) * 100).toFixed(1)}%
+                    </p>
+                    <p className="text-sm text-gray-600">Prob. Total</p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Reset Diário
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Download className="w-4 h-4 mr-2" />
+                    Exportar Relatório
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 🎁 GERENCIAMENTO DE PRÊMIOS COM TABELA PROFISSIONAL */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Gift className="w-5 h-5 text-purple-600" />
+                  Gerenciamento de Prêmios
+                </CardTitle>
+                <CardDescription>
+                  Configure prêmios, probabilidades e estoque - Interface redesenhada
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-sm text-gray-600">{dailyPrizes.length} prêmios configurados</p>
+                  
+                  <Dialog open={isCreatePrizeOpen || !!editingPrize} onOpenChange={(open) => {
+                    if (!open) {
+                      setIsCreatePrizeOpen(false);
+                      setEditingPrize(null);
+                      prizeForm.reset();
+                    }
+                  }}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        size="sm"
+                        onClick={() => setIsCreatePrizeOpen(true)}
+                        data-testid="button-create-prize"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Novo Prêmio
+                      </Button>
+                    </DialogTrigger>
+                    
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Gift className="w-5 h-5 text-purple-600" />
+                          {editingPrize ? "Editar Prêmio" : "Criar Novo Prêmio"}
+                        </DialogTitle>
+                        <DialogDescription>
+                          Configure os detalhes do prêmio para o sistema de raspadinha diária.
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <Form {...prizeForm}>
+                        <form onSubmit={prizeForm.handleSubmit(onPrizeSubmit)} className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={prizeForm.control}
+                              name="name"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Nome do Prêmio</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Ex: 50% de Desconto" {...field} data-testid="input-prize-name" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={prizeForm.control}
+                              name="prizeType"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Tipo do Prêmio</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-prize-type">
+                                        <SelectValue placeholder="Selecione o tipo" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="discount">Desconto (%)</SelectItem>
+                                      <SelectItem value="cashback">Cashback (R$)</SelectItem>
+                                      <SelectItem value="product">Produto Grátis</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          <FormField
+                            control={prizeForm.control}
+                            name="description"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Descrição</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Descrição opcional do prêmio" {...field} data-testid="input-prize-description" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          {prizeForm.watch("prizeType") === "discount" && (
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={prizeForm.control}
+                                name="discountPercentage"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Desconto (%)</FormLabel>
+                                    <FormControl>
+                                      <Input type="number" min="1" max="100" placeholder="10" {...field} data-testid="input-discount-percentage" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={prizeForm.control}
+                                name="maxDiscountAmount"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Desconto Máximo (R$)</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="100.00" {...field} data-testid="input-max-discount" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          )}
+                          
+                          {prizeForm.watch("prizeType") === "cashback" && (
+                            <FormField
+                              control={prizeForm.control}
+                              name="discountValue"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Valor do Cashback (R$)</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="25.00" {...field} data-testid="input-cashback-value" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={prizeForm.control}
+                              name="probability"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Probabilidade (%)</FormLabel>
+                                  <FormControl>
+                                    <Input type="number" min="0.1" max="100" step="0.1" placeholder="5.0" {...field} data-testid="input-probability" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={prizeForm.control}
+                              name="maxDailyWins"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Limite Diário</FormLabel>
+                                  <FormControl>
+                                    <Input type="number" min="1" placeholder="1" {...field} data-testid="input-max-daily-wins" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          <FormField
+                            control={prizeForm.control}
+                            name="isActive"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                <div className="space-y-0.5">
+                                  <FormLabel className="text-base">Prêmio Ativo</FormLabel>
+                                  <FormDescription>
+                                    Prêmio pode ser sorteado nas raspadinhas
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    data-testid="switch-prize-active"
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <DialogFooter>
+                            <Button type="submit" disabled={createPrizeMutation.isPending || updatePrizeMutation.isPending}>
+                              {editingPrize ? "Atualizar" : "Criar"} Prêmio
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                <div className="space-y-3">
+                  {dailyPrizes.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <Gift className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p>Nenhum prêmio configurado</p>
+                      <p className="text-sm">Clique em "Novo Prêmio" para começar</p>
+                    </div>
+                  ) : (
+                    dailyPrizes.map((prize) => {
+                      const isOutOfStock = parseInt(prize.totalWinsToday || '0') >= parseInt(prize.maxDailyWins || '0');
+                      
+                      return (
+                        <div key={prize.id} className={`p-4 border rounded-lg ${isOutOfStock ? 'bg-gray-50' : 'bg-white'}`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className={`w-3 h-3 rounded-full ${prize.isActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                                <h3 className="font-semibold text-gray-900">{prize.name}</h3>
+                                {isOutOfStock && <Badge variant="destructive">Esgotado</Badge>}
+                                {!prize.isActive && <Badge variant="secondary">Inativo</Badge>}
+                              </div>
+                              
+                              <div className="grid grid-cols-4 gap-4 text-sm text-gray-600">
+                                <div>
+                                  <span className="font-medium">Tipo:</span>
+                                  <p className="capitalize">{prize.prizeType === 'discount' ? 'Desconto' : prize.prizeType === 'cashback' ? 'Cashback' : 'Produto'}</p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Probabilidade:</span>
+                                  <p>{(parseFloat(prize.probability) * 100).toFixed(1)}%</p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Hoje:</span>
+                                  <p>{prize.totalWinsToday || 0}/{prize.maxDailyWins || 1}</p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Total:</span>
+                                  <p>{prize.totalWinsAllTime || 0}</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 ml-4">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => {
+                                  setEditingPrize(prize);
+                                  prizeForm.reset({
+                                    name: prize.name,
+                                    description: prize.description || '',
+                                    prizeType: prize.prizeType as 'product' | 'discount' | 'cashback',
+                                    discountValue: prize.discountValue || '',
+                                    discountPercentage: prize.discountPercentage?.toString() || '',
+                                    maxDailyWins: prize.maxDailyWins || '1',
+                                    maxDiscountAmount: prize.maxDiscountAmount || '',
+                                    probability: (parseFloat(prize.probability) * 100).toString(),
+                                    isActive: prize.isActive
+                                  });
+                                }}
+                                data-testid={`button-edit-prize-${prize.id}`}
+                                title="Editar prêmio"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={async () => {
+                                  if (window.confirm(`Tem certeza que deseja excluir o prêmio "${prize.name}"?`)) {
+                                    try {
+                                      await apiRequest('DELETE', `/api/admin/daily-prizes/${prize.id}`);
+                                      toast({
+                                        title: "Prêmio removido!",
+                                        description: "O prêmio foi excluído com sucesso.",
+                                        variant: "default",
+                                      });
+                                      queryClient.invalidateQueries({ queryKey: ['/api/admin/daily-prizes'] });
+                                    } catch (error: any) {
+                                      toast({
+                                        title: "Erro ao remover",
+                                        description: error.message || "Não foi possível remover o prêmio.",
+                                        variant: "destructive",
+                                      });
+                                    }
+                                  }
+                                }}
+                                data-testid={`button-delete-prize-${prize.id}`}
+                                title="Excluir prêmio"
+                              >
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </CardContent>
             </Card>
