@@ -509,13 +509,13 @@ export default function SuperAdmin() {
   // Query para buscar produtos disponíveis para prêmios
   const { data: availableProducts = [] } = useQuery({
     queryKey: ['/api/admin/products-for-prizes'],
-    enabled: isLoggedIn,
+    enabled: !!user,
   });
 
   // Query para buscar estatísticas de orçamento
   const { data: budgetStats } = useQuery({
     queryKey: ['/api/admin/budget-stats'],
-    enabled: isLoggedIn,
+    enabled: !!user,
   });
 
   const handleDeleteStore = (storeId: string) => {
