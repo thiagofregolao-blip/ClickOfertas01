@@ -25,12 +25,10 @@ function MiniScratchCard({ card, onScratch, isScratching }: MiniScratchCardProps
   const [isRevealing, setIsRevealing] = useState(false);
 
   const handleScratch = () => {
-    console.log('Clicou na carta:', card.id, 'isScratched:', card.isScratched, 'isScratching:', isScratching);
     if (card.isScratched || isScratching) return;
     
     setIsRevealing(true);
     setTimeout(() => {
-      console.log('Chamando onScratch para carta:', card.id);
       onScratch(card.id);
       setIsRevealing(false);
     }, 500);
@@ -130,14 +128,11 @@ export default function ThreeDailyScratchCards() {
   // Mutation para raspar uma carta
   const scratchMutation = useMutation({
     mutationFn: async (cardId: string) => {
-      console.log('🎯 Iniciando scratch da carta:', cardId);
       const res = await apiRequest('POST', `/api/daily-scratch/cards/${cardId}/scratch`);
       const data = await res.json();
-      console.log('✅ Resposta da API:', data);
       return data;
     },
     onSuccess: (data: any) => {
-      console.log('🎉 Scratch bem-sucedido:', data);
       // Invalidar queries para atualizar estado
       queryClient.invalidateQueries({ queryKey: ['/api/daily-scratch/cards'] });
       queryClient.invalidateQueries({ queryKey: ['/api/daily-scratch/stats'] });
@@ -150,7 +145,6 @@ export default function ThreeDailyScratchCards() {
       });
     },
     onError: (error: any) => {
-      console.error('❌ Erro ao raspar carta:', error);
       toast({
         title: "Erro ao raspar",
         description: error.message || "Tente novamente",
