@@ -340,7 +340,7 @@ export default function ThreeDailyScratchCards() {
     staleTime: 30 * 1000, // 30 segundos
   });
 
-  const cards = cardsData?.cards || [];
+  const cards = (cardsData as any)?.cards || [];
 
   // Mutation para raspar uma carta
   const scratchMutation = useMutation({
