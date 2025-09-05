@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Trash2, Eye, LogOut, Gift, Dice6, Target, Award } from 'lucide-react';
+import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Trash2, Eye, LogOut, Gift, Dice6, Target, Award, Save } from 'lucide-react';
 import { isUnauthorizedError } from '@/lib/authUtils';
 
 const bannerSchema = z.object({
@@ -131,6 +131,11 @@ export default function SuperAdmin() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Refs para controles de raspadinha
+  const operationModeRef = useRef<HTMLButtonElement>(null);
+  const productsPerDayRef = useRef<HTMLInputElement>(null);
+  const winChanceRef = useRef<HTMLInputElement>(null);
   const [isCreateBannerOpen, setIsCreateBannerOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [editingStore, setEditingStore] = useState<StoreData | null>(null);
@@ -1196,17 +1201,17 @@ export default function SuperAdmin() {
                       <p className="font-medium">Modo de Operação</p>
                       <p className="text-sm text-gray-600">Manual ou Automático</p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch ref={operationModeRef} defaultChecked data-testid="switch-operation-mode" />
                   </div>
                   
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Produtos por Dia</label>
-                    <Input type="number" defaultValue="5" className="max-w-20" />
+                    <Input ref={productsPerDayRef} type="number" defaultValue="5" min="1" max="10" className="max-w-20" data-testid="input-products-per-day" />
                   </div>
                   
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Chance de Ganhar (%)</label>
-                    <Input type="number" defaultValue="25" max="100" className="max-w-20" />
+                    <Input ref={winChanceRef} type="number" defaultValue="25" min="1" max="100" className="max-w-20" data-testid="input-win-chance" />
                   </div>
                   
                   <div className="space-y-2">
@@ -1215,16 +1220,34 @@ export default function SuperAdmin() {
                       className="w-full"
                       onClick={async () => {
                         try {
-                          const response = await apiRequest('/api/admin/daily-scratch/test', 'POST');
-                          toast({
-                            title: "Sistema Testado!",
-                            description: response.message,
-                            variant: response.won ? "default" : "destructive",
-                          });
-                        } catch (error) {
+                          const response = await apiRequest('/api/admin/daily-scratch/test', 'POST') as any;
+                          
+                          if (response.success) {
+                            toast({
+                              title: "Sistema Testado!",
+                              description: response.message || "Sistema funcionando normalmente",
+                              variant: "default",
+                            });
+                          } else {
+                            toast({
+                              title: "Problema no Sistema",
+                              description: response.message || response.suggestion || "Sistema não está funcionando corretamente",
+                              variant: "destructive",
+                            });
+                          }
+                        } catch (error: any) {
+                          console.error('Erro no teste:', error);
+                          let errorMessage = "Falha ao testar o sistema";
+                          
+                          if (error.message?.includes('Sistema não configurado')) {
+                            errorMessage = "Sistema ainda não foi configurado";
+                          } else if (error.message?.includes('No prizes') || error.message?.includes('prêmios')) {
+                            errorMessage = "Não há prêmios ativos cadastrados. Configure prêmios primeiro!";
+                          }
+                          
                           toast({
                             title: "Erro no Teste",
-                            description: "Falha ao testar o sistema",
+                            description: errorMessage,
                             variant: "destructive",
                           });
                         }
@@ -1233,7 +1256,73 @@ export default function SuperAdmin() {
                       <Dice6 className="w-4 h-4 mr-2" />
                       Testar Sistema
                     </Button>
-                    <Button className="w-full">
+                    <Button 
+                      className="w-full"
+                      onClick={async () => {
+                        try {
+                          // Coletar valores dos inputs
+                          const isAutomatic = operationModeRef.current?.getAttribute('data-state') === 'checked';
+                          const productsPerDay = parseInt(productsPerDayRef.current?.value || '5');
+                          const winChance = parseInt(winChanceRef.current?.value || '25');
+                          
+                          // Validações básicas
+                          if (productsPerDay < 1 || productsPerDay > 10) {
+                            toast({
+                              title: "Erro de Validação",
+                              description: "Produtos por dia deve ser entre 1 e 10",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          
+                          if (winChance < 1 || winChance > 100) {
+                            toast({
+                              title: "Erro de Validação",
+                              description: "Chance de ganhar deve ser entre 1% e 100%",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          
+                          console.log('🎯 Salvando configurações:', {
+                            mode: isAutomatic ? 'automatic' : 'manual',
+                            productsPerDay,
+                            winChance
+                          });
+                          
+                          // Enviar para API
+                          const response = await apiRequest('/api/admin/scratch-config', 'PUT', {
+                            mode: isAutomatic ? 'automatic' : 'manual',
+                            productsPerDay,
+                            winChance,
+                            isEnabled: true
+                          }) as any;
+                          
+                          toast({
+                            title: "Configurações Salvas!",
+                            description: `Sistema configurado: ${productsPerDay} produtos/dia, ${winChance}% chance de ganhar`,
+                            variant: "default",
+                          });
+                          
+                          console.log('✅ Configurações salvas:', response);
+                        } catch (error: any) {
+                          console.error('❌ Erro ao salvar configurações:', error);
+                          
+                          let errorMessage = "Não foi possível salvar as configurações";
+                          if (error.message?.includes('Failed to update config')) {
+                            errorMessage = "Erro interno do servidor. Tente novamente.";
+                          }
+                          
+                          toast({
+                            title: "Erro ao Salvar",
+                            description: errorMessage,
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      data-testid="button-save-config"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
                       Salvar Configurações
                     </Button>
                   </div>

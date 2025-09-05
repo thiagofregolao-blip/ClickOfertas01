@@ -2962,19 +2962,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (availablePrizes.length > 0) {
         const randomIndex = Math.floor(Math.random() * availablePrizes.length);
         prizeWon = availablePrizes[randomIndex];
+        
+        res.json({
+          success: true,
+          won,
+          prize: prizeWon,
+          message: `🎉 TESTE: Parabéns! Você ganhou: ${prizeWon.name}!`,
+          systemStatus: "Sistema operacional",
+          availablePrizes: availablePrizes.length,
+          configLoaded: true
+        });
+      } else {
+        // Retornar erro específico quando não há prêmios
+        res.status(400).json({
+          success: false,
+          won: false,
+          prize: null,
+          message: "❌ TESTE FALHOU: Não há prêmios ativos cadastrados",
+          systemStatus: "Erro: Sem prêmios disponíveis",
+          availablePrizes: 0,
+          configLoaded: true,
+          error: "NO_PRIZES_AVAILABLE",
+          suggestion: "Configure pelo menos um prêmio ativo na seção 'Produtos Selecionados para Raspadinha'"
+        });
       }
-
-      res.json({
-        success: true,
-        won,
-        prize: prizeWon,
-        message: won 
-          ? `🎉 TESTE: Parabéns! Você ganhou: ${prizeWon?.name}!` 
-          : "😔 TESTE: Não foi dessa vez! Sistema funcionando.",
-        systemStatus: "Sistema operacional",
-        availablePrizes: availablePrizes.length,
-        configLoaded: true
-      });
 
     } catch (error) {
       console.error("Error testing daily scratch:", error);
