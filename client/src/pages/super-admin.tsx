@@ -16,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Trash2, Eye, LogOut, Gift, Dice6, Target, Award, Save, Package, Percent, DollarSign, Trophy, RotateCcw, Download, HelpCircle, Calculator, AlertTriangle, AlertCircle, TrendingUp } from 'lucide-react';
+import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Trash2, Eye, LogOut, Gift, Dice6, Target, Award, Save, Package, Percent, DollarSign, Trophy, RotateCcw, Download, HelpCircle, Calculator, AlertTriangle, AlertCircle, TrendingUp, Search } from 'lucide-react';
 import { isUnauthorizedError } from '@/lib/authUtils';
 
 const bannerSchema = z.object({
@@ -129,6 +129,115 @@ interface ScratchStats {
   successRate: number;
 }
 
+// Componente para lista de produtos
+const ProductList = ({ availableProducts, productSearchTerm, onSelectProduct }: {
+  availableProducts: any[];
+  productSearchTerm: string;
+  onSelectProduct: (product: any) => void;
+}) => {
+  const filteredProducts = availableProducts.filter((product: any) =>
+    product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+    product.storeName.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+    (product.category && product.category.toLowerCase().includes(productSearchTerm.toLowerCase()))
+  );
+
+  if (availableProducts.length === 0) {
+    return (
+      <div className="flex-1 overflow-y-auto pr-2">
+        <div className="text-center py-12 text-gray-500">
+          <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+          <h3 className="text-lg font-medium mb-2">Nenhum produto disponível</h3>
+          <p className="text-sm">Cadastre produtos nas lojas antes de criar prêmios de produto.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (filteredProducts.length === 0) {
+    return (
+      <div className="flex-1 overflow-y-auto pr-2">
+        <div className="text-center py-12 text-gray-500">
+          <Search className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+          <h3 className="text-lg font-medium mb-2">Nenhum produto encontrado</h3>
+          <p className="text-sm">Tente usar termos diferentes na busca.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto pr-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
+        {filteredProducts.map((product: any) => (
+          <div
+            key={product.id}
+            onClick={() => onSelectProduct(product)}
+            className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors group"
+            data-testid={`product-option-${product.id}`}
+          >
+            <div className="flex items-start gap-4">
+              {product.imageUrl ? (
+                <img 
+                  src={product.imageUrl} 
+                  alt={product.name}
+                  className="w-16 h-16 rounded-lg object-cover flex-shrink-0 group-hover:scale-105 transition-transform"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0">
+                  <Package className="w-8 h-8 text-gray-400" />
+                </div>
+              )}
+              
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                  {product.name}
+                </h3>
+                
+                <div className="flex items-center gap-2 mt-1">
+                  {product.storeLogoUrl && (
+                    <img 
+                      src={product.storeLogoUrl} 
+                      alt={product.storeName}
+                      className="w-4 h-4 rounded object-cover"
+                    />
+                  )}
+                  <p className="text-sm text-gray-600 truncate">
+                    {product.storeName}
+                  </p>
+                </div>
+                
+                <div className="flex items-center justify-between mt-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold text-green-600">
+                      ${product.price}
+                    </span>
+                    {product.category && (
+                      <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                        {product.category}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <Button
+                    size="sm"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectProduct(product);
+                    }}
+                  >
+                    Selecionar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export default function SuperAdmin() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
@@ -149,6 +258,7 @@ export default function SuperAdmin() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isBudgetConfigOpen, setIsBudgetConfigOpen] = useState(false);
   const [isFinancialReportOpen, setIsFinancialReportOpen] = useState(false);
+  const [productSearchTerm, setProductSearchTerm] = useState("");
 
   // Redirect if not super admin
   useEffect(() => {
@@ -2617,8 +2727,13 @@ export default function SuperAdmin() {
                   </Dialog>
 
                   {/* Modal de Seleção de Produtos */}
-                  <Dialog open={isProductSelectorOpen} onOpenChange={setIsProductSelectorOpen}>
-                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+                  <Dialog open={isProductSelectorOpen} onOpenChange={(open) => {
+                    setIsProductSelectorOpen(open);
+                    if (!open) {
+                      setProductSearchTerm("");
+                    }
+                  }}>
+                    <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
                       <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                           <Package className="w-5 h-5 text-blue-600" />
@@ -2629,87 +2744,33 @@ export default function SuperAdmin() {
                         </DialogDescription>
                       </DialogHeader>
                       
-                      <div className="flex-1 overflow-y-auto">
-                        {availableProducts.length === 0 ? (
-                          <div className="text-center py-12 text-gray-500">
-                            <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                            <h3 className="text-lg font-medium mb-2">Nenhum produto disponível</h3>
-                            <p className="text-sm">Cadastre produtos nas lojas antes de criar prêmios de produto.</p>
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {availableProducts.map((product: any) => (
-                              <div
-                                key={product.id}
-                                onClick={() => handleProductSelect(product)}
-                                className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors group"
-                                data-testid={`product-option-${product.id}`}
-                              >
-                                <div className="flex items-start gap-4">
-                                  {product.imageUrl ? (
-                                    <img 
-                                      src={product.imageUrl} 
-                                      alt={product.name}
-                                      className="w-16 h-16 rounded-lg object-cover flex-shrink-0 group-hover:scale-105 transition-transform"
-                                    />
-                                  ) : (
-                                    <div className="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0">
-                                      <Package className="w-8 h-8 text-gray-400" />
-                                    </div>
-                                  )}
-                                  
-                                  <div className="flex-1 min-w-0">
-                                    <h3 className="font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-                                      {product.name}
-                                    </h3>
-                                    
-                                    <div className="flex items-center gap-2 mt-1">
-                                      {product.storeLogoUrl && (
-                                        <img 
-                                          src={product.storeLogoUrl} 
-                                          alt={product.storeName}
-                                          className="w-4 h-4 rounded object-cover"
-                                        />
-                                      )}
-                                      <p className="text-sm text-gray-600 truncate">
-                                        {product.storeName}
-                                      </p>
-                                    </div>
-                                    
-                                    <div className="flex items-center justify-between mt-3">
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-lg font-bold text-green-600">
-                                          ${product.price}
-                                        </span>
-                                        {product.category && (
-                                          <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
-                                            {product.category}
-                                          </span>
-                                        )}
-                                      </div>
-                                      
-                                      <Button
-                                        size="sm"
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleProductSelect(product);
-                                        }}
-                                      >
-                                        Selecionar
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                      {/* Campo de Busca */}
+                      <div className="px-1 pb-4">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                          <Input
+                            placeholder="Buscar produtos por nome, loja ou categoria..."
+                            value={productSearchTerm}
+                            onChange={(e) => setProductSearchTerm(e.target.value)}
+                            className="pl-10"
+                            data-testid="input-product-search"
+                          />
+                        </div>
                       </div>
+                      
+                      <ProductList 
+                        availableProducts={availableProducts}
+                        productSearchTerm={productSearchTerm}
+                        onSelectProduct={handleProductSelect}
+                      />
                       
                       <div className="flex justify-between items-center pt-4 border-t">
                         <p className="text-sm text-gray-500">
-                          {availableProducts.length} produtos disponíveis das lojas ativas
+                          {availableProducts.filter((product: any) =>
+                            product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                            product.storeName.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                            (product.category && product.category.toLowerCase().includes(productSearchTerm.toLowerCase()))
+                          ).length} produtos encontrados
                         </p>
                         <Button
                           variant="outline"
