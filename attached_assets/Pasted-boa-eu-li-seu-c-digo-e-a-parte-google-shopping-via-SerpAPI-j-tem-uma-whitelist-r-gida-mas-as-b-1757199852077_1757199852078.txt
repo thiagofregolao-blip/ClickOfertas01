@@ -1,0 +1,205 @@
+boa! eu li seu código e a parte “google shopping via SerpAPI” já tem uma whitelist rígida — mas as buscas da Apify (Amazon / Google Shopping internacional / eBay) ainda retornam qualquer loja sem filtrar. Abaixo te passo um ajuste simples e seguro: centralizar a whitelist e aplicá-la em todas as respostas da Apify antes de devolver para o cliente. 
+
+sistema-busca-precos-completo
+
+O que vamos fazer
+
+Criar um módulo server/whitelist.ts (lista única + helpers).
+
+Reutilizar (ou ampliar) essa lista nas funções do ApifyService.
+
+Cortar resultados cuja seller/merchantName ou domínio do url não estejam aprovados.
+
+(Opcional) Permitir passar uma whitelist extra por parâmetro, se quiser ter listas por categoria.
+
+1) Novo módulo centralizado
+
+server/whitelist.ts
+
+// Lista única para o projeto (pode ampliar à vontade)
+export const APPROVED_STORES_WHITELIST = [
+  'mercado livre','mercadolivre',
+  'amazon.com.br','amazon brasil','amazon',
+  'magazine luiza','magazine','magazineluiza',
+  'americanas',
+  'casas bahia','casasbahia',
+  'extra',
+  'carrefour',
+  'submarino',
+  'kabum',
+  'shopee','shopee brasil',
+  'ponto frio','pontofrio',
+  'fast shop','fastshop',
+  'claro','vivo','tim',
+  'walmart',
+  'iplace',
+  'smiles',
+  'apple store','apple',
+  'samsung'
+];
+
+// (opcional) domínios conhecidos — útil quando o "seller" vem estranho
+export const APPROVED_DOMAINS = [
+  'amazon.com.br','amazon.com',
+  'magazineluiza.com.br','americanas.com.br','casasbahia.com.br','extra.com.br',
+  'carrefour.com.br','submarino.com.br','kabum.com.br','shopee.com.br',
+  'pontofrio.com.br','fastshop.com.br','iplace.com.br','smiles.com.br',
+  'apple.com','apple.com/br','samsung.com','samsung.com/br'
+];
+
+export function normalize(text?: string) {
+  return (text || '').toLowerCase().trim();
+}
+
+export function isApprovedStore(storeName?: string) {
+  const s = normalize(storeName);
+  if (!s) return false;
+  return APPROVED_STORES_WHITELIST.some(ap => {
+    const a = normalize(ap);
+    return s.includes(a) || a.includes(s);
+  });
+}
+
+export function hostnameFromUrl(url?: string) {
+  try { return new URL(url || '').hostname.toLowerCase(); } catch { return ''; }
+}
+
+export function isApprovedDomain(url?: string) {
+  const host = hostnameFromUrl(url);
+  if (!host) return false;
+  return APPROVED_DOMAINS.some(d => host === d || host.endsWith(`.${d}`));
+}
+
+// Regra única: passa se nome OU domínio forem aprovados
+export function passesWhitelist(opts: { seller?: string; source?: string; url?: string }) {
+  const byName = isApprovedStore(opts.seller) || isApprovedStore(opts.source);
+  const byDomain = isApprovedDomain(opts.url);
+  return byName || byDomain;
+}
+
+
+Dica: você pode mover a lista que já existe em new-price-scraper.ts para cá e importar de volta, evitando duplicação.
+
+2) Aplicar o filtro nas buscas da Apify
+server/apifyService.ts
+
+Importe os helpers e filtre antes do retorno.
+
+import { passesWhitelist, normalize } from './whitelist';
+
+a) Amazon
+
+Dentro de searchAmazonPrices, depois do listItems():
+
+const mapped = items.map((item: any) => ({
+  title: item.title || 'N/A',
+  price: item.price?.value?.toString() || item.price || 'N/A',
+  originalPrice: item.previousPrice?.value?.toString() || item.previousPrice,
+  currency: item.price?.currency || 'USD',
+  url: item.url || item.detailUrl || '',
+  imageUrl: item.thumbnailImage || item.image,
+  availability: item.availability || item.inStock ? 'Disponível' : 'Indisponível',
+  seller: item.seller || 'Amazon',
+  rating: item.stars?.toString() || item.rating?.toString(),
+  source: 'Amazon',
+  scrapedAt: new Date().toISOString()
+}));
+
+const filtered = mapped.filter(p =>
+  passesWhitelist({ seller: p.seller, source: p.source, url: p.url })
+);
+
+return filtered;
+
+b) Google Shopping (Apify)
+const mapped = items.map((item: any) => ({
+  title: item.title || 'N/A',
+  price: item.price || 'N/A',
+  originalPrice: item.originalPrice,
+  currency: item.currency || 'USD',
+  url: item.productUrl || item.url || '',
+  imageUrl: item.imageUrl,
+  availability: item.availability || 'N/A',
+  seller: item.merchantName || item.seller || 'N/A',
+  rating: item.rating?.toString(),
+  source: 'Google Shopping',
+  scrapedAt: new Date().toISOString()
+}));
+
+const filtered = mapped.filter(p =>
+  passesWhitelist({ seller: p.seller, source: p.source, url: p.url })
+);
+
+return filtered;
+
+c) eBay
+const mapped = items.map((item: any) => ({
+  title: item.title || 'N/A',
+  price: item.price?.value?.toString() || item.price || 'N/A',
+  originalPrice: item.originalPrice,
+  currency: item.price?.currency || 'USD',
+  url: item.itemUrl || item.url || '',
+  imageUrl: item.image || item.galleryURL,
+  availability: item.condition || 'N/A',
+  seller: item.seller || 'eBay',
+  rating: undefined,
+  source: 'eBay',
+  scrapedAt: new Date().toISOString()
+}));
+
+// eBay geralmente é marketplace com vendedores terceiros — whitelist vai cortar quase tudo
+const filtered = mapped.filter(p =>
+  passesWhitelist({ seller: p.seller, source: p.source, url: p.url })
+);
+
+return filtered;
+
+d) Busca combinada
+
+Como cada método já filtra, quase nada a fazer; só garanta que o cálculo use allResults já validados.
+
+3) (Opcional) Expor whitelist por request
+
+Se quiser permitir listas por categoria ou “ad-hoc” via request:
+
+Adapte ApifySearchParams:
+
+interface ApifySearchParams {
+  searchQuery: string;
+  maxItems?: number;
+  country?: string;
+  currency?: string;
+  approvedStores?: string[];   // extra
+  approvedDomains?: string[];  // extra
+}
+
+
+E mude passesWhitelist para aceitar overrides:
+
+export function passesWhitelist(
+  opts: { seller?: string; source?: string; url?: string },
+  overrides?: { stores?: string[]; domains?: string[] }
+) {
+  const byName = isApprovedStore(opts.seller) || isApprovedStore(opts.source)
+    || (overrides?.stores ?? []).some(ap => normalize(opts.seller).includes(normalize(ap)) || normalize(ap).includes(normalize(opts.seller)));
+  const byDomain = isApprovedDomain(opts.url)
+    || (overrides?.domains ?? []).some(d => hostnameFromUrl(opts.url) === d || hostnameFromUrl(opts.url).endsWith(`.${d}`));
+  return byName || byDomain;
+}
+
+
+Dentro dos métodos do ApifyService, passe esses overrides ao filtrar.
+
+Nos endpoints, aceite query approved=amazon.com.br,magazineluiza.com.br e desdobre para arrays.
+
+4) Por que filtrar por nome e por domínio?
+
+Alguns scrapers retornam seller pouco confiável (ex.: “eBay”).
+
+Já o domínio do url é mais objetivo.
+
+Usar ambos reduz falsos positivos (ex.: vendedor “Apple Store” mas URL de “olx.com…” não passa).
+
+5) UI (página demo) — sem mudanças obrigatórias
+
+Como os endpoints já vão entregar somente resultados aprovados, a UI não precisa mudar. Se quiser, adicione um badge “Fonte aprovada” quando passesWhitelist for true (mas isso já estará garantido no backend).
