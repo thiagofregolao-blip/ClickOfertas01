@@ -1,0 +1,388 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/3d28db56-5385-49cb-9e2e-d2f57d882f54:1 Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/3d28db56-5385-49cb-9e2e-d2f57d882f54:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+main.tsx:13 Falha no registro do Service Worker: SecurityError: Failed to register a ServiceWorker for scope ('https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/') with script ('https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/sw.js'): The script has an unsupported MIME type ('text/html').
+public-flyer.tsx:101 📱 Executando: Click Ofertas Paraguai Desktop - Modo: Panfleto
+@radix-ui_react-dialog.js?v=85f22bd5:339 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ @radix-ui_react-dialog.js?v=85f22bd5:339Understand this warning
+api/public/stores/cards:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+api/stores/cards/my-available-promotions:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+public-flyer.tsx:185 📝 Erro na busca de promoções personalizadas, usando fallback
+public-flyer.tsx:101 📱 Executando: Click Ofertas Paraguai Desktop - Modo: Panfleto
+@radix-ui_react-dialog.js?v=85f22bd5:339 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ @radix-ui_react-dialog.js?v=85f22bd5:339Understand this warning
+api/public/stores/cards:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+ Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently
+measureRealProgress @ src/components/Three…?t=1757194495902:87
+loop @ src/components/Three…t=1757194495902:116
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117Understand this warning
+ Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently
+measureRealProgress @ src/components/Three…?t=1757194495902:87
+loop @ src/components/Three…t=1757194495902:116
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117
+requestAnimationFrame
+loop @ src/components/Three…t=1757194495902:117Understand this warning
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
+ FunnyMessage for card 2b52d58a-b491-4f47-99a6-6f5e2b7ad471 : {id: '9c5edea9-8304-40d0-974c-33867f04781b', message: 'Nunca é hoje.', emoji: '🏆🚫', category: 'lose', createdAt: '2025-09-06T21:24:29.047Z'}
