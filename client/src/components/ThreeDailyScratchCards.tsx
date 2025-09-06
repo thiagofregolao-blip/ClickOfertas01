@@ -292,8 +292,14 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
   const getCardStyle = () => {
     if (card.isScratched) {
       return card.won 
-        ? 'bg-gradient-to-br from-yellow-100 via-yellow-50 to-amber-100 border-yellow-300 shadow-yellow-200/50' 
-        : 'bg-gradient-to-br from-gray-100 via-gray-50 to-slate-100 border-gray-300';
+        ? 'bg-gradient-to-br from-yellow-100 via-yellow-50 to-amber-100 border-yellow-300 shadow-yellow-200/50 shadow-lg transform scale-105' 
+        : 'bg-gradient-to-br from-gray-100 via-gray-50 to-slate-100 border-gray-300 shadow-sm';
+    }
+    if (isRevealing) {
+      return 'bg-gradient-to-br from-blue-100 via-purple-50 to-pink-100 border-blue-300 shadow-lg';
+    }
+    if (isProcessing) {
+      return 'bg-gradient-to-br from-orange-100 via-yellow-50 to-orange-100 border-orange-300 shadow-md';
     }
     return 'bg-gradient-to-br from-purple-100 via-indigo-50 to-blue-100 border-purple-300 cursor-pointer hover:shadow-lg transform hover:scale-105';
   };
@@ -330,7 +336,7 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
         
         {card.isScratched ? (
           card.won ? (
-            <div className="text-center">
+            <div className="text-center animate-bounce-once">
               <div className="text-xs font-bold text-yellow-700 mb-1">🎉 GANHOU!</div>
               <div className="text-xs text-yellow-600 font-medium">
                 {card.prizeValue?.includes('%') 
@@ -338,13 +344,25 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
                   : `R$ ${card.prizeValue}`
                 }
               </div>
+              <div className="text-xs text-yellow-500 mt-1 font-semibold">✨ Parabéns! ✨</div>
             </div>
           ) : (
             <div className="text-center">
-              <div className="text-xs font-medium text-gray-500">Tente Novamente</div>
+              <div className="text-xs font-medium text-gray-500">😔 Não foi dessa vez</div>
+              <div className="text-xs text-gray-400">Tente Novamente</div>
               <div className="text-xs text-gray-400">Amanhã</div>
             </div>
           )
+        ) : isRevealing ? (
+          <div className="text-center animate-pulse">
+            <div className="text-xs font-medium text-blue-700">✨ Revelando...</div>
+            <div className="text-xs font-bold text-blue-600">PRÊMIO</div>
+          </div>
+        ) : isProcessing ? (
+          <div className="text-center">
+            <div className="text-xs font-medium text-orange-700">⏳ Processando...</div>
+            <div className="text-xs font-bold text-orange-600">AGUARDE</div>
+          </div>
         ) : (
           <div className="text-center">
             <div className="text-xs font-medium text-purple-700">Clique para</div>
@@ -353,9 +371,33 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
         )}
       </div>
 
-      {/* Animação de raspagem */}
+      {/* Animação de raspagem aprimorada */}
       {isRevealing && (
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 opacity-50 rounded-lg animate-pulse" />
+        <>
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 opacity-60 rounded-lg animate-pulse" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
+          </div>
+        </>
+      )}
+
+      {/* Animação de confete para prêmios ganhos */}
+      {card.isScratched && card.won && !isRevealing && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg">
+          {[...Array(8)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 rounded-full animate-bounce"
+              style={{
+                left: `${20 + (i * 10)}%`,
+                top: `${10 + (i % 3) * 20}%`,
+                backgroundColor: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'][i % 6],
+                animationDelay: `${i * 100}ms`,
+                animationDuration: '1.5s'
+              }}
+            />
+          ))}
+        </div>
       )}
 
       {/* Canvas de raspadinha para cartas não raspadas */}

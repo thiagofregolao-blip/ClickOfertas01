@@ -351,3 +351,23 @@ html {
   animation-play-state: running;
 }
 
+/* Animação personalizada para cartas de prêmio */
+@keyframes bounce-once {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -15px, 0);
+  }
+  70% {
+    transform: translate3d(0, -5px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+.animate-bounce-once {
+  animation: bounce-once 1.2s ease-out;
+}
+
