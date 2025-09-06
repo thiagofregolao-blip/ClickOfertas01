@@ -330,19 +330,13 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
         {card.cardNumber}
       </div>
 
-      {/* Debug temporário */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="absolute top-0 right-0 text-xs bg-red-100 p-1 rounded z-50">
-          {card.isScratched ? 'RASPADA' : 'NOVA'}
-        </div>
-      )}
 
       {/* Conteúdo principal */}
       <div className="h-full flex flex-col items-center justify-center space-y-2 relative z-0">
         {getIcon()}
         
-        {card.isScratched ? (
-          card.won ? (
+        {card.isScratched === true ? (
+          card.won === true ? (
             <div className="text-center animate-bounce-once">
               <div className="text-xs font-bold text-yellow-700 mb-1">🎉 GANHOU!</div>
               <div className="text-xs text-yellow-600 font-medium">
@@ -360,12 +354,12 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
               <div className="text-xs text-gray-400">Amanhã</div>
             </div>
           )
-        ) : isRevealing ? (
+        ) : isRevealing === true ? (
           <div className="text-center animate-pulse">
             <div className="text-xs font-medium text-blue-700">✨ Revelando...</div>
             <div className="text-xs font-bold text-blue-600">PRÊMIO</div>
           </div>
-        ) : isProcessing ? (
+        ) : isProcessing === true ? (
           <div className="text-center">
             <div className="text-xs font-medium text-orange-700">⏳ Processando...</div>
             <div className="text-xs font-bold text-orange-600">AGUARDE</div>
@@ -408,7 +402,7 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
       )}
 
       {/* Canvas de raspadinha APENAS para cartas não raspadas */}
-      {!card.isScratched && !isRevealing && !isProcessing && (
+      {card.isScratched !== true && isRevealing !== true && isProcessing !== true && (
         <canvas
           ref={canvasRef}
           className="absolute inset-0 w-full h-full rounded-lg cursor-pointer z-30"
@@ -424,7 +418,7 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
       )}
       
       {/* Efeito sparkle para cartas não raspadas */}
-      {!card.isScratched && !isRevealing && !isProcessing && (
+      {card.isScratched !== true && isRevealing !== true && isProcessing !== true && (
         <Sparkles className="absolute top-2 right-2 w-3 h-3 text-purple-400 animate-pulse pointer-events-none z-20" />
       )}
     </div>
