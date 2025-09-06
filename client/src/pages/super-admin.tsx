@@ -144,6 +144,8 @@ export default function SuperAdmin() {
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [isCreatePrizeOpen, setIsCreatePrizeOpen] = useState(false);
   const [editingPrize, setEditingPrize] = useState<DailyPrize | null>(null);
+  const [isProductSelectorOpen, setIsProductSelectorOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   // Redirect if not super admin
@@ -551,6 +553,26 @@ export default function SuperAdmin() {
     } else {
       createPrizeMutation.mutate(data);
     }
+  };
+
+  // Handlers para seleção de produtos
+  const handleProductSelect = (product: any) => {
+    setSelectedProduct(product);
+    prizeForm.setValue('productId', product.id);
+    prizeForm.setValue('name', `${product.name} - Grátis`);
+    setIsProductSelectorOpen(false);
+  };
+
+  const handleOpenProductSelector = () => {
+    if (availableProducts.length === 0) {
+      toast({
+        title: "Nenhum produto disponível",
+        description: "Cadastre produtos nas lojas antes de criar prêmios de produto.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsProductSelectorOpen(true);
   };
 
   const handleEditPrize = (prize: DailyPrize) => {
@@ -2447,67 +2469,67 @@ export default function SuperAdmin() {
                           )}
 
                           {prizeForm.watch("prizeType") === "product" && (
-                            <FormField
-                              control={prizeForm.control}
-                              name="productId"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Produto a ser Oferecido</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                      <SelectTrigger data-testid="select-product">
-                                        <SelectValue placeholder="Selecione um produto da base de dados" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent className="max-h-60 overflow-y-auto">
-                                      {availableProducts.length === 0 ? (
-                                        <div className="p-4 text-center text-gray-500">
-                                          <Package className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                                          <p className="text-sm">Nenhum produto disponível</p>
-                                          <p className="text-xs">Cadastre produtos nas lojas primeiro</p>
+                            <div className="space-y-4">
+                              <FormField
+                                control={prizeForm.control}
+                                name="productId"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Produto a ser Oferecido</FormLabel>
+                                    <div className="space-y-3">
+                                      {selectedProduct ? (
+                                        <div className="border rounded-lg p-4 bg-green-50">
+                                          <div className="flex items-center gap-3">
+                                            {selectedProduct.imageUrl && (
+                                              <img 
+                                                src={selectedProduct.imageUrl} 
+                                                alt={selectedProduct.name}
+                                                className="w-12 h-12 rounded object-cover flex-shrink-0"
+                                              />
+                                            )}
+                                            <div className="flex-1">
+                                              <p className="font-medium text-sm">{selectedProduct.name}</p>
+                                              <p className="text-xs text-gray-600">{selectedProduct.storeName}</p>
+                                              <p className="text-sm font-semibold text-green-600">
+                                                ${selectedProduct.price}
+                                              </p>
+                                            </div>
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => {
+                                                setSelectedProduct(null);
+                                                prizeForm.setValue('productId', '');
+                                              }}
+                                            >
+                                              Trocar
+                                            </Button>
+                                          </div>
                                         </div>
                                       ) : (
-                                        availableProducts.map((product: any) => (
-                                          <SelectItem key={product.id} value={product.id} className="p-3">
-                                            <div className="flex items-start gap-3 w-full">
-                                              {product.imageUrl && (
-                                                <img 
-                                                  src={product.imageUrl} 
-                                                  alt={product.name}
-                                                  className="w-10 h-10 rounded object-cover flex-shrink-0"
-                                                />
-                                              )}
-                                              <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-sm truncate">{product.name}</p>
-                                                <p className="text-xs text-gray-500 truncate">
-                                                  {product.storeName}
-                                                </p>
-                                                <div className="flex items-center justify-between mt-1">
-                                                  <span className="text-xs font-semibold text-green-600">
-                                                    ${product.price}
-                                                  </span>
-                                                  {product.category && (
-                                                    <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
-                                                      {product.category}
-                                                    </span>
-                                                  )}
-                                                </div>
-                                              </div>
-                                            </div>
-                                          </SelectItem>
-                                        ))
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          onClick={handleOpenProductSelector}
+                                          className="w-full h-20 border-dashed"
+                                          data-testid="button-select-product"
+                                        >
+                                          <div className="text-center">
+                                            <Package className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                                            <p className="text-sm">Selecionar Produto</p>
+                                            <p className="text-xs text-gray-500">
+                                              {availableProducts.length} produtos disponíveis
+                                            </p>
+                                          </div>
+                                        </Button>
                                       )}
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                  {availableProducts.length > 0 && (
-                                    <p className="text-xs text-gray-500 mt-1">
-                                      {availableProducts.length} produtos disponíveis das lojas cadastradas
-                                    </p>
-                                  )}
-                                </FormItem>
-                              )}
-                            />
+                                    </div>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
                           )}
                           
                           <div className="grid grid-cols-2 gap-4">
@@ -2569,6 +2591,111 @@ export default function SuperAdmin() {
                           </DialogFooter>
                         </form>
                       </Form>
+                    </DialogContent>
+                  </Dialog>
+
+                  {/* Modal de Seleção de Produtos */}
+                  <Dialog open={isProductSelectorOpen} onOpenChange={setIsProductSelectorOpen}>
+                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Package className="w-5 h-5 text-blue-600" />
+                          Selecionar Produto para Prêmio
+                        </DialogTitle>
+                        <DialogDescription>
+                          Escolha um produto das lojas cadastradas para ser oferecido como prêmio grátis.
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <div className="flex-1 overflow-y-auto">
+                        {availableProducts.length === 0 ? (
+                          <div className="text-center py-12 text-gray-500">
+                            <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                            <h3 className="text-lg font-medium mb-2">Nenhum produto disponível</h3>
+                            <p className="text-sm">Cadastre produtos nas lojas antes de criar prêmios de produto.</p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {availableProducts.map((product: any) => (
+                              <div
+                                key={product.id}
+                                onClick={() => handleProductSelect(product)}
+                                className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors group"
+                                data-testid={`product-option-${product.id}`}
+                              >
+                                <div className="flex items-start gap-4">
+                                  {product.imageUrl ? (
+                                    <img 
+                                      src={product.imageUrl} 
+                                      alt={product.name}
+                                      className="w-16 h-16 rounded-lg object-cover flex-shrink-0 group-hover:scale-105 transition-transform"
+                                    />
+                                  ) : (
+                                    <div className="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0">
+                                      <Package className="w-8 h-8 text-gray-400" />
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                                      {product.name}
+                                    </h3>
+                                    
+                                    <div className="flex items-center gap-2 mt-1">
+                                      {product.storeLogoUrl && (
+                                        <img 
+                                          src={product.storeLogoUrl} 
+                                          alt={product.storeName}
+                                          className="w-4 h-4 rounded object-cover"
+                                        />
+                                      )}
+                                      <p className="text-sm text-gray-600 truncate">
+                                        {product.storeName}
+                                      </p>
+                                    </div>
+                                    
+                                    <div className="flex items-center justify-between mt-3">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-lg font-bold text-green-600">
+                                          ${product.price}
+                                        </span>
+                                        {product.category && (
+                                          <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                                            {product.category}
+                                          </span>
+                                        )}
+                                      </div>
+                                      
+                                      <Button
+                                        size="sm"
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleProductSelect(product);
+                                        }}
+                                      >
+                                        Selecionar
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex justify-between items-center pt-4 border-t">
+                        <p className="text-sm text-gray-500">
+                          {availableProducts.length} produtos disponíveis das lojas ativas
+                        </p>
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsProductSelectorOpen(false)}
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
                     </DialogContent>
                   </Dialog>
                 </div>
