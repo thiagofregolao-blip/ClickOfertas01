@@ -169,6 +169,9 @@ export default function PriceComparisonPopup({
                           <p className="text-2xl font-bold text-green-600">
                             R$ {formatBrazilianPrice(Math.min(...comparisonData.brazilianPrices.map(p => parseFloat(p.price))).toFixed(2))}
                           </p>
+                          <p className="text-sm text-green-500">
+                            ≈ US$ {(Math.min(...comparisonData.brazilianPrices.map(p => parseFloat(p.price))) / exchangeRate).toFixed(2)}
+                          </p>
                           <p className="text-xs text-gray-600">
                             {comparisonData.brazilianPrices.find(p => 
                               parseFloat(p.price) === Math.min(...comparisonData.brazilianPrices.map(x => parseFloat(x.price)))
