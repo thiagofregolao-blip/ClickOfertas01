@@ -82,9 +82,11 @@ export default function PriceComparisonPopup({
     },
   });
 
-  // Executar comparação quando o popup abrir
+  // Executar comparação quando o popup abrir ou produto mudar
   useEffect(() => {
-    if (isOpen && !comparePricesMutation.data && !comparePricesMutation.isPending) {
+    if (isOpen) {
+      // Reset dados anteriores e força nova busca
+      comparePricesMutation.reset();
       comparePricesMutation.mutate(productId);
     }
   }, [isOpen, productId]);
