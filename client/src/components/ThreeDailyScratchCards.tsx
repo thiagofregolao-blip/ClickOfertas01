@@ -338,7 +338,7 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
       )}
 
       {/* Conteúdo principal */}
-      <div className="h-full flex flex-col items-center justify-center space-y-2 relative z-20">
+      <div className="h-full flex flex-col items-center justify-center space-y-2 relative z-0">
         {getIcon()}
         
         {card.isScratched ? (
@@ -411,7 +411,7 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
       {!card.isScratched && !isRevealing && !isProcessing && (
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 w-full h-full rounded-lg cursor-pointer z-10"
+          className="absolute inset-0 w-full h-full rounded-lg cursor-pointer z-30"
           style={{ touchAction: 'none' }}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
@@ -424,8 +424,8 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
       )}
       
       {/* Efeito sparkle para cartas não raspadas */}
-      {!card.isScratched && (
-        <Sparkles className="absolute top-2 right-2 w-3 h-3 text-purple-400 animate-pulse pointer-events-none" />
+      {!card.isScratched && !isRevealing && !isProcessing && (
+        <Sparkles className="absolute top-2 right-2 w-3 h-3 text-purple-400 animate-pulse pointer-events-none z-20" />
       )}
     </div>
   );
