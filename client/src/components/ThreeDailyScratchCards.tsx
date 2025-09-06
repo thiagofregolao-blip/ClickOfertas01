@@ -376,7 +376,7 @@ function MiniScratchCard({ card, onScratch, processingCardId, funnyMessage }: Mi
               {funnyMessage ? (
                 <div className="text-xs font-medium text-gray-500">{funnyMessage.emoji} {funnyMessage.message}</div>
               ) : (
-                <div className="text-xs font-medium text-gray-500">😔 Não foi dessa vez</div>
+                <div className="text-xs font-medium text-gray-500">Não foi dessa vez</div>
               )}
             </div>
           )
