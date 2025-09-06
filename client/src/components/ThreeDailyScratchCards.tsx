@@ -161,6 +161,11 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
   // Função de scratch (adaptada do scratch-card.tsx)
   const handleScratch = (clientX: number, clientY: number) => {
     if (!canvasRef.current || card.isScratched || isProcessing || revelationStarted.current) return;
+    
+    // Indicar que começou a raspar na primeira interação
+    if (!isScratching) {
+      setIsScratching(true);
+    }
 
     const now = Date.now();
     if (now - lastScratchTime.current < SCRATCH_THROTTLE) return;
@@ -363,6 +368,11 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
           <div className="text-center">
             <div className="text-xs font-medium text-orange-700">⏳ Processando...</div>
             <div className="text-xs font-bold text-orange-600">AGUARDE</div>
+          </div>
+        ) : isScratching === true ? (
+          <div className="text-center animate-pulse">
+            <div className="text-xs font-medium text-green-700">🔥 Raspando...</div>
+            <div className="text-xs font-bold text-green-600">CONTINUE!</div>
           </div>
         ) : (
           <div className="text-center">
