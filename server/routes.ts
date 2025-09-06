@@ -3319,6 +3319,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint de teste para o novo sistema de filtros
+  app.get('/api/test-filters', async (req: any, res) => {
+    try {
+      const { product } = req.query;
+      if (!product) {
+        return res.status(400).json({ message: "Parâmetro 'product' é obrigatório" });
+      }
+
+      console.log(`🧪 TESTE DE FILTROS: Buscando ${product}`);
+      
+      // Importar a nova função de scraping
+      const { scrapeBrazilianPricesNew } = await import('./new-price-scraper');
+      
+      // Testar o sistema de filtros
+      const results = await scrapeBrazilianPricesNew(product as string);
+      
+      res.json({
+        success: true,
+        productSearched: product,
+        resultsFound: results.length,
+        results: results.map(result => ({
+          productName: result.productName,
+          storeName: result.storeName,
+          price: result.price,
+          currency: result.currency
+        }))
+      });
+    } catch (error) {
+      console.error('Erro no teste de filtros:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro ao testar filtros',
+        error: (error as Error).message
+      });
+    }
+  });
+
   // Buscar preços na Amazon
   app.get('/api/apify/search/amazon', async (req: any, res) => {
     try {
