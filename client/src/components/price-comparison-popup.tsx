@@ -1,13 +1,10 @@
 import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { TrendingDown, TrendingUp, ExternalLink, Loader2, DollarSign, BarChart3 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { formatBrazilianPrice } from "@/lib/priceUtils";
+import { Loader2, DollarSign, BarChart3 } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { PriceComparisonResult } from "@/components/price-comparison-result";
 
 interface BrazilianPrice {
   productName: string;
@@ -16,24 +13,19 @@ interface BrazilianPrice {
   currency: string;
   productUrl: string;
   availability: string;
-  stores_count?: number;
-  price_range?: {
-    min: number;
-    max: number;
-  };
-  stores_details?: Array<{
-    name: string;
-    price: number;
-    link: string;
-  }>;
 }
 
 interface ProductComparison {
   productName: string;
   paraguayPrice: number;
-  paraguayCurrency: string;
-  paraguayStore: string;
+  paraguayCurrency?: string;
+  paraguayStore?: string;
   brazilianPrices: BrazilianPrice[];
+  bestBrazilianPrice: number;
+  bestBrazilianStore: string;
+  savings: number;
+  savingsPercentage: number;
+  cheaperInBrazil: boolean;
   message?: string;
 }
 
@@ -93,22 +85,17 @@ export default function PriceComparisonPopup({
   const isLoading = comparePricesMutation.isPending;
   const error = comparePricesMutation.error?.message;
   
-  const calculateSavings = () => {
-    if (!comparisonData || !exchangeRate) return null;
-    
-    const paraguayPriceBRL = comparisonData.paraguayPrice * exchangeRate;
-    const bestBrazilPrice = Math.min(...comparisonData.brazilianPrices.map(p => parseFloat(p.price)));
-    const savings = bestBrazilPrice - paraguayPriceBRL;
+  // Calcular dados de economia a partir da resposta do backend
+  const getSavingsData = () => {
+    if (!comparisonData) return null;
     
     return {
-      paraguayPriceBRL,
-      bestBrazilPrice,
-      savings,
-      savingsPercentage: ((savings / bestBrazilPrice) * 100)
+      amount: comparisonData.savings,
+      percentage: comparisonData.savingsPercentage,
+      bestStore: comparisonData.bestBrazilianStore,
+      cheaperInBrazil: comparisonData.cheaperInBrazil
     };
   };
-
-  const savings = calculateSavings();
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -137,170 +124,17 @@ export default function PriceComparisonPopup({
 
           {comparisonData && !isLoading && (
             <>
-              {/* Resumo da Comparação */}
-              <div className="grid md:grid-cols-3 gap-4">
-                {/* Preço no Paraguay */}
-                <Card className="border-blue-200 bg-blue-50">
-                  <CardContent className="p-4">
-                    <div className="text-center">
-                      <h4 className="font-semibold text-blue-800 mb-2">Preço no Paraguay</h4>
-                      <div className="space-y-1">
-                        <p className="text-2xl font-bold text-blue-600">
-                          R$ {formatBrazilianPrice((comparisonData.paraguayPrice * exchangeRate).toFixed(2))}
-                        </p>
-                        <p className="text-sm text-blue-500">
-                          ≈ {comparisonData.paraguayCurrency} {formatBrazilianPrice(comparisonData.paraguayPrice)}
-                        </p>
-                        <p className="text-xs text-gray-600">{comparisonData.paraguayStore}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Melhor Preço Brasil */}
-                <Card className="border-green-200 bg-green-50">
-                  <CardContent className="p-4">
-                    <div className="text-center">
-                      <h4 className="font-semibold text-green-800 mb-2">Melhor Preço Brasil</h4>
-                      {comparisonData.brazilianPrices.length > 0 && (
-                        <div className="space-y-1">
-                          <p className="text-2xl font-bold text-green-600">
-                            R$ {formatBrazilianPrice(Math.min(...comparisonData.brazilianPrices.map(p => parseFloat(p.price))).toFixed(2))}
-                          </p>
-                          <p className="text-xs text-gray-600">
-                            {comparisonData.brazilianPrices.find(p => 
-                              parseFloat(p.price) === Math.min(...comparisonData.brazilianPrices.map(x => parseFloat(x.price)))
-                            )?.storeName}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Economia */}
-                <Card className={`border-2 ${savings && savings.savings > 0 ? 'border-orange-200 bg-orange-50' : 'border-gray-200 bg-gray-50'}`}>
-                  <CardContent className="p-4">
-                    <div className="text-center">
-                      <h4 className="font-semibold text-gray-800 mb-2">Economia</h4>
-                      {savings && (
-                        <div className="space-y-1">
-                          {savings.savings > 0 ? (
-                            <>
-                              <div className="flex items-center justify-center gap-1">
-                                <TrendingDown className="w-4 h-4 text-green-600" />
-                                <p className="text-2xl font-bold text-green-600">
-                                  R$ {formatBrazilianPrice(Math.abs(savings.savings).toFixed(2))}
-                                </p>
-                              </div>
-                              <p className="text-sm text-green-600">
-                                {Math.abs(savings.savingsPercentage).toFixed(1)}% mais barato
-                              </p>
-                            </>
-                          ) : (
-                            <>
-                              <div className="flex items-center justify-center gap-1">
-                                <TrendingUp className="w-4 h-4 text-red-600" />
-                                <p className="text-2xl font-bold text-red-600">
-                                  R$ {formatBrazilianPrice(Math.abs(savings.savings).toFixed(2))}
-                                </p>
-                              </div>
-                              <p className="text-sm text-red-600">
-                                {Math.abs(savings.savingsPercentage).toFixed(1)}% mais caro
-                              </p>
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Lista de Preços Brasileiros */}
-              {comparisonData.brazilianPrices.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-semibold text-gray-800">
-                      Preços encontrados no Brasil ({comparisonData.brazilianPrices.length} lojas):
-                    </h4>
-                    <p className="text-sm text-gray-500">
-                      👆 Clique em "Ver no ML" para verificar o produto
-                    </p>
-                  </div>
-                  <div className="grid gap-3 max-h-96 overflow-y-auto">
-                    {comparisonData.brazilianPrices.map((price, index) => (
-                      <Card key={index} className="border-gray-200">
-                        <CardContent className="p-3">
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h5 className="font-medium text-gray-900">{price.storeName}</h5>
-                                  <Badge variant={price.availability === 'in_stock' ? 'default' : 'secondary'}>
-                                    {price.availability === 'in_stock' ? 'Disponível' : 'Consultar'}
-                                  </Badge>
-                                  {price.stores_count && price.stores_count > 1 && (
-                                    <Badge variant="outline" className="text-blue-600 border-blue-600">
-                                      <BarChart3 className="w-3 h-3 mr-1" />
-                                      Média de {price.stores_count} lojas
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="text-sm text-gray-600 line-clamp-1">{price.productName}</p>
-                                
-                                {/* Mostrar faixa de preço se disponível */}
-                                {price.price_range && (
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    Faixa: R$ {formatBrazilianPrice(price.price_range.min.toFixed(2))} - R$ {formatBrazilianPrice(price.price_range.max.toFixed(2))}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="text-right">
-                                <p className="text-xl font-bold text-blue-600">
-                                  R$ {formatBrazilianPrice(price.price)}
-                                </p>
-                                {price.stores_count && price.stores_count > 1 && (
-                                  <p className="text-xs text-gray-500">preço médio</p>
-                                )}
-                                {price.productUrl && (
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="mt-1 text-blue-600 border-blue-600 hover:bg-blue-50"
-                                    onClick={() => window.open(price.productUrl, '_blank')}
-                                    data-testid={`link-product-${index}`}
-                                  >
-                                    <ExternalLink className="w-3 h-3 mr-1" />
-                                    Ver Lojas
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                            
-                            {/* Mostrar detalhes das lojas se disponível */}
-                            {price.stores_details && price.stores_details.length > 0 && (
-                              <div className="bg-gray-50 p-2 rounded border-t">
-                                <p className="text-xs font-medium text-gray-700 mb-1">Lojas pesquisadas:</p>
-                                <div className="grid grid-cols-1 gap-1">
-                                  {price.stores_details.slice(0, 3).map((store, storeIndex) => (
-                                    <div key={storeIndex} className="flex justify-between items-center text-xs">
-                                      <span className="text-gray-600">{store.name}</span>
-                                      <span className="font-medium text-gray-800">
-                                        R$ {formatBrazilianPrice(store.price.toFixed(2))}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Usar o componente padronizado */}
+              <PriceComparisonResult
+                productName={comparisonData.productName}
+                paraguayPrice={comparisonData.paraguayPrice}
+                paraguayCurrency={comparisonData.paraguayCurrency || 'USD'}
+                paraguayStore={comparisonData.paraguayStore || 'Loja do Paraguay'}
+                brazilianPrices={comparisonData.brazilianPrices}
+                exchangeRate={exchangeRate}
+                savings={getSavingsData()}
+                showDetailedResults={true}
+              />
 
               {/* Cotação Atual */}
               <div className="text-center text-sm text-gray-500 border-t pt-4">

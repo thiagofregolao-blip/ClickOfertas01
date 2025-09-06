@@ -4,37 +4,37 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, TrendingDown, TrendingUp, ExternalLink, RefreshCw, AlertCircle, Zap, DollarSign, ChevronDown, ArrowRightLeft, Bell } from "lucide-react";
+import { Search, RefreshCw, AlertCircle, Zap, ChevronDown, ArrowRightLeft, Bell, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatPriceWithCurrency } from "@/lib/priceUtils";
 import { useAuth } from "@/hooks/useAuth";
+import { PriceComparisonResult } from "@/components/price-comparison-result";
 
 interface BrazilianPrice {
-  store: string;
-  price: number;
+  storeName: string;
+  price: string;
   currency: string;
-  url: string;
-  availability: 'in_stock' | 'out_of_stock' | 'limited';
-  lastUpdated: string;
+  productUrl: string;
+  availability: string;
 }
 
 interface ProductComparison {
   productName: string;
   paraguayPrice: number;
-  paraguayCurrency: string;
-  paraguayStore: string;
+  paraguayCurrency?: string;
+  paraguayStore?: string;
   brazilianPrices: BrazilianPrice[];
-  suggestions: {
+  bestBrazilianPrice: number;
+  bestBrazilianStore: string;
+  savings: number;
+  savingsPercentage: number;
+  cheaperInBrazil: boolean;
+  suggestions?: {
     name: string;
     difference: string;
     reason: string;
   }[];
-  savings: {
-    amount: number;
-    percentage: number;
-    bestStore: string;
-  };
   message?: string;
 }
 
@@ -314,102 +314,24 @@ export default function PriceComparison() {
           </Card>
         )}
 
-        {/* Comparison Results */}
+        {/* Comparison Results - Usando componente padronizado */}
         {comparisonData && (
           <div className="mt-8 space-y-6">
-            {/* Summary Card */}
-            <Card className="border-green-200 bg-green-50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-800">
-                  <TrendingDown className="w-5 h-5" />
-                  Resultado da Comparação
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-4 gap-4">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1">Produto</h4>
-                    <p className="text-sm">{comparisonData.productName}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1">Preço no Paraguay</h4>
-                    <div className="space-y-1">
-                      {/* Preço em BRL em cima */}
-                      {exchangeRateData && (
-                        <p className="text-lg font-bold text-green-600">
-                          {formatPriceWithCurrency(
-                            (parseFloat(comparisonData.paraguayPrice.toString()) * exchangeRateData.rate).toFixed(2), 
-                            'R$'
-                          )}
-                        </p>
-                      )}
-                      {/* Preço original USD embaixo */}
-                      <p className="text-sm font-semibold text-green-500">
-                        ≈ {formatPriceWithCurrency(comparisonData.paraguayPrice, comparisonData.paraguayCurrency)}
-                      </p>
-                    </div>
-                    <p className="text-xs text-gray-600">{comparisonData.paraguayStore}</p>
-                  </div>
-                  {/* Menor Preço no Brasil */}
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1">Menor Preço no Brasil</h4>
-                    {(() => {
-                      const minPrice = Math.min(...comparisonData.brazilianPrices.map(p => parseFloat(p.price)));
-                      const bestBrazilianOffer = comparisonData.brazilianPrices.find(p => parseFloat(p.price) === minPrice);
-                      
-                      return (
-                        <div className="space-y-1">
-                          <p className="text-lg font-bold text-blue-600">
-                            {formatPriceWithCurrency(minPrice.toFixed(2), 'R$')}
-                          </p>
-                          {/* Conversão para USD */}
-                          {exchangeRateData && (
-                            <p className="text-sm text-blue-500">
-                              ≈ {formatPriceWithCurrency(
-                                (minPrice / exchangeRateData.rate).toFixed(2), 
-                                'US$'
-                              )}
-                            </p>
-                          )}
-                          <p className="text-xs text-gray-600">{bestBrazilianOffer?.store}</p>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1">Economia Máxima</h4>
-                    {comparisonData.savings.cheaperInBrazil ? (
-                      <div>
-                        <p className="text-lg font-bold text-blue-600">
-                          Mais barato no Brasil
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          Item custa menos em {comparisonData.savings.bestStore}
-                        </p>
-                      </div>
-                    ) : comparisonData.savings.amount > 0 ? (
-                      <div>
-                        <p className="text-lg font-bold text-green-600">
-                          🎉 Economia: {formatPriceWithCurrency(comparisonData.savings.amount, 'R$')}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {comparisonData.savings.percentage}% mais barato que {comparisonData.savings.bestStore}
-                        </p>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="text-lg font-bold text-gray-500">
-                          Preços similares
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          Não há diferença significativa
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <PriceComparisonResult
+              productName={comparisonData.productName}
+              paraguayPrice={comparisonData.paraguayPrice}
+              paraguayCurrency={comparisonData.paraguayCurrency || 'USD'}
+              paraguayStore={comparisonData.paraguayStore || 'Loja do Paraguay'}
+              brazilianPrices={comparisonData.brazilianPrices}
+              exchangeRate={exchangeRateData?.rate || 5.47}
+              savings={{
+                amount: comparisonData.savings,
+                percentage: comparisonData.savingsPercentage,
+                bestStore: comparisonData.bestBrazilianStore,
+                cheaperInBrazil: comparisonData.cheaperInBrazil
+              }}
+              showDetailedResults={true}
+            />
 
             {/* Histórico de Preços */}
             {priceHistory.length > 0 && (
