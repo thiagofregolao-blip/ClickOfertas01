@@ -67,6 +67,7 @@ import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
 import QRCode from "qrcode";
+import { apifyService, type PriceSearchResult } from "./apifyService";
 
 // Helper function to verify store ownership
 async function verifyStoreOwnership(storeId: string, userId: string): Promise<boolean> {
@@ -3297,6 +3298,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching available products:", error);
       res.status(500).json({ message: "Failed to fetch available products" });
+    }
+  });
+
+  // ==========================================
+  // SISTEMA DE BUSCA DE PREÇOS COM APIFY
+  // ==========================================
+
+  // Teste de conectividade com Apify
+  app.get('/api/apify/test', async (req: any, res) => {
+    try {
+      const result = await apifyService.testConnection();
+      res.json(result);
+    } catch (error) {
+      console.error("Error testing Apify connection:", error);
+      res.status(500).json({ 
+        status: 'error', 
+        message: error instanceof Error ? error.message : 'Erro desconhecido' 
+      });
+    }
+  });
+
+  // Buscar preços na Amazon
+  app.get('/api/apify/search/amazon', async (req: any, res) => {
+    try {
+      const { q: searchQuery, maxItems = 5 } = req.query;
+      
+      if (!searchQuery) {
+        return res.status(400).json({ message: "Parâmetro 'q' (busca) é obrigatório" });
+      }
+
+      const results = await apifyService.searchAmazonPrices({
+        searchQuery: searchQuery as string,
+        maxItems: parseInt(maxItems as string) || 5
+      });
+
+      res.json({
+        success: true,
+        source: 'Amazon',
+        query: searchQuery,
+        totalResults: results.length,
+        results
+      });
+
+    } catch (error) {
+      console.error("Error searching Amazon prices:", error);
+      res.status(500).json({ 
+        success: false,
+        message: error instanceof Error ? error.message : 'Erro na busca Amazon' 
+      });
+    }
+  });
+
+  // Buscar preços no Google Shopping
+  app.get('/api/apify/search/google', async (req: any, res) => {
+    try {
+      const { q: searchQuery, maxItems = 5, country = 'US' } = req.query;
+      
+      if (!searchQuery) {
+        return res.status(400).json({ message: "Parâmetro 'q' (busca) é obrigatório" });
+      }
+
+      const results = await apifyService.searchGoogleShopping({
+        searchQuery: searchQuery as string,
+        maxItems: parseInt(maxItems as string) || 5,
+        country: country as string
+      });
+
+      res.json({
+        success: true,
+        source: 'Google Shopping',
+        query: searchQuery,
+        totalResults: results.length,
+        results
+      });
+
+    } catch (error) {
+      console.error("Error searching Google Shopping prices:", error);
+      res.status(500).json({ 
+        success: false,
+        message: error instanceof Error ? error.message : 'Erro na busca Google Shopping' 
+      });
+    }
+  });
+
+  // Buscar preços no eBay
+  app.get('/api/apify/search/ebay', async (req: any, res) => {
+    try {
+      const { q: searchQuery, maxItems = 5 } = req.query;
+      
+      if (!searchQuery) {
+        return res.status(400).json({ message: "Parâmetro 'q' (busca) é obrigatório" });
+      }
+
+      const results = await apifyService.searchEbayPrices({
+        searchQuery: searchQuery as string,
+        maxItems: parseInt(maxItems as string) || 5
+      });
+
+      res.json({
+        success: true,
+        source: 'eBay',
+        query: searchQuery,
+        totalResults: results.length,
+        results
+      });
+
+    } catch (error) {
+      console.error("Error searching eBay prices:", error);
+      res.status(500).json({ 
+        success: false,
+        message: error instanceof Error ? error.message : 'Erro na busca eBay' 
+      });
+    }
+  });
+
+  // Busca combinada em todas as fontes
+  app.get('/api/apify/search/all', async (req: any, res) => {
+    try {
+      const { q: searchQuery, maxItems = 5, country = 'US' } = req.query;
+      
+      if (!searchQuery) {
+        return res.status(400).json({ message: "Parâmetro 'q' (busca) é obrigatório" });
+      }
+
+      console.log(`🔍 Iniciando busca combinada para: "${searchQuery}"`);
+      
+      const results = await apifyService.searchMultipleSources({
+        searchQuery: searchQuery as string,
+        maxItems: parseInt(maxItems as string) || 5,
+        country: country as string
+      });
+
+      res.json({
+        success: true,
+        query: searchQuery,
+        ...results
+      });
+
+    } catch (error) {
+      console.error("Error in combined search:", error);
+      res.status(500).json({ 
+        success: false,
+        message: error instanceof Error ? error.message : 'Erro na busca combinada' 
+      });
+    }
+  });
+
+  // Listar scrapers disponíveis na loja Apify
+  app.get('/api/apify/scrapers', async (req: any, res) => {
+    try {
+      const scrapers = await apifyService.getAvailableScrapers();
+      res.json({
+        success: true,
+        totalScrapers: scrapers.length,
+        scrapers
+      });
+    } catch (error) {
+      console.error("Error listing Apify scrapers:", error);
+      res.status(500).json({ 
+        success: false,
+        message: error instanceof Error ? error.message : 'Erro ao listar scrapers' 
+      });
     }
   });
 

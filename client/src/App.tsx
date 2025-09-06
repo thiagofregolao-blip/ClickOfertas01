@@ -24,6 +24,7 @@ import SignupPage from "@/pages/signup";
 import SuperAdmin from "@/pages/super-admin";
 import SuperAdminLogin from "@/pages/super-admin-login";
 import DailyScratchPage from "@/pages/daily-scratch";
+import ApifyDemo from "@/pages/apify-demo";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -48,6 +49,7 @@ function Router() {
         <Route path="/create-story" component={LoadingComponent} />
         <Route path="/price-comparison" component={LoadingComponent} />
         <Route path="/daily-scratch" component={LoadingComponent} />
+        <Route path="/apify-demo" component={LoadingComponent} />
         <Route path="/flyer/:slug" component={PublicFlyer} />
         <Route path="/stores/:slug" component={PublicFlyer} />
         <Route path="/super-admin" component={SuperAdminLogin} />
@@ -76,6 +78,7 @@ function Router() {
           <Route path="/create-story" component={CreateStory} />
           <Route path="/price-comparison" component={PriceComparison} />
           <Route path="/daily-scratch" component={DailyScratchPage} />
+          <Route path="/apify-demo" component={ApifyDemo} />
           <Route path="/super-admin-login" component={SuperAdminLogin} />
           <Route path="/super-admin" component={SuperAdminLogin} />
           <Route path="/admin-panel" component={SuperAdmin} />
