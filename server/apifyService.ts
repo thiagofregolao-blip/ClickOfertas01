@@ -1,4 +1,5 @@
 import { ApifyClient } from 'apify-client';
+import { passesWhitelist } from './whitelist';
 
 interface PriceSearchResult {
   title: string;
@@ -80,7 +81,7 @@ class ApifyService {
         .dataset(run.defaultDatasetId)
         .listItems();
 
-      return items.map((item: any) => ({
+      const mapped = items.map((item: any) => ({
         title: item.title || 'N/A',
         price: item.price?.value?.toString() || item.price || 'N/A',
         originalPrice: item.previousPrice?.value?.toString() || item.previousPrice,
@@ -93,6 +94,19 @@ class ApifyService {
         source: 'Amazon',
         scrapedAt: new Date().toISOString()
       }));
+
+      const filtered = mapped.filter(p =>
+        passesWhitelist({ seller: p.seller, source: p.source, url: p.url })
+      );
+
+      // Telemetria opcional
+      console.info('[Apify Filter - Amazon]', {
+        total: mapped.length,
+        aprovados: filtered.length,
+        bloqueados: mapped.length - filtered.length
+      });
+
+      return filtered;
 
     } catch (error) {
       console.error('Erro na busca Amazon:', error);
@@ -126,7 +140,7 @@ class ApifyService {
         .dataset(run.defaultDatasetId)
         .listItems();
 
-      return items.map((item: any) => ({
+      const mapped = items.map((item: any) => ({
         title: item.title || 'N/A',
         price: item.price || 'N/A',
         originalPrice: item.originalPrice,
@@ -139,6 +153,19 @@ class ApifyService {
         source: 'Google Shopping',
         scrapedAt: new Date().toISOString()
       }));
+
+      const filtered = mapped.filter(p =>
+        passesWhitelist({ seller: p.seller, source: p.source, url: p.url })
+      );
+
+      // Telemetria opcional
+      console.info('[Apify Filter - Google Shopping]', {
+        total: mapped.length,
+        aprovados: filtered.length,
+        bloqueados: mapped.length - filtered.length
+      });
+
+      return filtered;
 
     } catch (error) {
       console.error('Erro na busca Google Shopping:', error);
@@ -172,7 +199,7 @@ class ApifyService {
         .dataset(run.defaultDatasetId)
         .listItems();
 
-      return items.map((item: any) => ({
+      const mapped = items.map((item: any) => ({
         title: item.title || 'N/A',
         price: item.price?.value?.toString() || item.price || 'N/A',
         originalPrice: item.originalPrice,
@@ -185,6 +212,20 @@ class ApifyService {
         source: 'eBay',
         scrapedAt: new Date().toISOString()
       }));
+
+      // eBay geralmente é marketplace com vendedores terceiros — whitelist vai cortar quase tudo
+      const filtered = mapped.filter(p =>
+        passesWhitelist({ seller: p.seller, source: p.source, url: p.url })
+      );
+
+      // Telemetria opcional
+      console.info('[Apify Filter - eBay]', {
+        total: mapped.length,
+        aprovados: filtered.length,
+        bloqueados: mapped.length - filtered.length
+      });
+
+      return filtered;
 
     } catch (error) {
       console.error('Erro na busca eBay:', error);
