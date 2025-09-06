@@ -330,8 +330,15 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
         {card.cardNumber}
       </div>
 
+      {/* Debug temporário */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="absolute top-0 right-0 text-xs bg-red-100 p-1 rounded z-50">
+          {card.isScratched ? 'RASPADA' : 'NOVA'}
+        </div>
+      )}
+
       {/* Conteúdo principal */}
-      <div className="h-full flex flex-col items-center justify-center space-y-2">
+      <div className="h-full flex flex-col items-center justify-center space-y-2 relative z-20">
         {getIcon()}
         
         {card.isScratched ? (
@@ -400,11 +407,11 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
         </div>
       )}
 
-      {/* Canvas de raspadinha para cartas não raspadas */}
-      {!card.isScratched && (
+      {/* Canvas de raspadinha APENAS para cartas não raspadas */}
+      {!card.isScratched && !isRevealing && !isProcessing && (
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 w-full h-full rounded-lg cursor-pointer"
+          className="absolute inset-0 w-full h-full rounded-lg cursor-pointer z-10"
           style={{ touchAction: 'none' }}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
