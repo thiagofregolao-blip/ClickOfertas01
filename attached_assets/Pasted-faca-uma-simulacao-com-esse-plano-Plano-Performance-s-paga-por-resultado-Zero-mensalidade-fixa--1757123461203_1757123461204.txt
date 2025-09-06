@@ -1,0 +1,534 @@
+faca uma simulacao com esse plano Plano Performance (só paga por resultado)
+
+Zero mensalidade fixa. A loja coloca um saldo de créditos e você cobra por cada resgate.
+
+Preço sugerido
+
+US$1,20 por resgate + 10% sobre o valor do crédito distribuído.
+Ex.: vale de US$10 → taxa = US$1,20 + US$1,00 = US$2,20 por cliente ativado.
+
+Quando vender
+
+Para lojas avessas a fixo e com margem apertada. É “risco quase zero” pra elas. com uma movimentacao de 200 mil dolares em um ano quanto opp poderia faturar
+O ChatGPT disse:
+Pensou por 23s
+
+perfeito — vamos simular quanto a OPP faturaria no Plano Performance com US$200.000 de movimentação/ano.
+
+Como a taxa funciona
+
+Receita da OPP = nº de resgates × (US$1,20 + 10% do valor do crédito)
+E nº de resgates = GMV / ticket médio (AOV)
+
+Cenários por segmento (GMV = US$200.000)
+Segmento (exemplo)	AOV (US$)	Crédito médio (US$)	Resgates (~)	Receita OPP (US$)
+Food/Bebidas	18	5	11.111	18.889
+Varejo/Moda	45	10	4.444	9.778
+Serviços/Beleza	70	15	2.857	7.714
+AOV baixo + crédito alto	15	12	13.333	32.000
+AOV alto + crédito baixo	80	5	2.500	4.250
+
+Intuição: quanto menor o AOV, mais resgates, logo mais receita. Créditos maiores também aumentam a receita por resgate.
+
+Faixa provável (se for muito “food”)
+
+Com AOV ≈ US$18 e crédito US$5–10, a OPP levaria ~US$19k a US$24k/ano.
+
+Outra leitura possível (se “US$200k” for o total de créditos)
+
+Se os US$200.000 forem o valor de créditos resgatados (não vendas), e o crédito médio for US$10:
+
+Resgates = 200.000 / 10 = 20.000
+
+Receita = 10% × 200.000 + US$1,20 × 20.000 = US$44.000
+
+Dicas pra maximizar $$ sem perder atratividade para a loja
+
+Operar em categorias de AOV baixo/médio (R$15–25) e usar créditos de US$5–12 com mínimo de compra (força upsell).
+
+Fracionar créditos (mais gente resgata → mais taxa).
+
+Janelas de validade curtas (giro rápido → mais resgates/mês).
+
+Se me disser o mix de categorias que você pretende (ex.: 60% food, 30% varejo, 10% serviços) e os créditos que quer usar, eu te devolvo a projeção final com o faturamento anual e mensal detalhado.
+
+Você disse:
+vamos calcular um valor de 5 milhoes de dolares por ano, com um vaucher medio de 50 a 60 dolares qual seria nosso faturamento anual 
+O ChatGPT disse:
+Pensou por 21s
+
+perfeito — faço as duas leituras possíveis do “US$5.000.000/ano” e já te dou os números.
+
+1) Se US$5M for GMV (vendas geradas)
+
+Receita OPP = (# resgates) × (US$1,20 + 10% do voucher)
+Com voucher médio entre US$50–60, a receita por resgate fica entre US$6,20 e US$7,20.
+
+AOV (ticket médio)	Resgates (~)	Receita com voucher US$50	Receita com voucher US$60
+US$60	83.333	US$516.667	US$600.000
+US$80	62.500	US$387.500	US$450.000
+US$100	50.000	US$310.000	US$360.000
+US$120	41.667	US$258.333	US$300.000
+
+Regra prática: para cada US$1M de GMV, a receita é ≈ (1.000.000/AOV) × (US$6,20 a US$7,20).
+Ex.: AOV US$100 → US$62k a US$72k por milhão → em US$5M dá US$310k a US$360k.
+
+2) Se US$5M for valor de créditos resgatados (não vendas)
+
+Resgates = US$5.000.000 / voucher médio
+
+Receita OPP = 10% × US$5.000.000 + US$1,20 × resgates
+
+Com voucher médio US$50:
+
+Resgates = 100.000 → Receita = US$500.000 + US$120.000 = US$620.000
+
+Com voucher médio US$60:
+
+Resgates = 83.333 → Receita = US$500.000 + ~US$100.000 = ~US$600.000
+
+Se me disser qual das duas leituras é a correta e qual o AOV médio esperado, eu te devolvo o número fechado (anual e mensal) e ainda um cenário “agressivo” e um “conservador” pra você usar no pitch.
+
+Você disse:
+entao mas eu quero cobrar 10% sobre o valor do vaucher + $1,20 por cupon resgatado
+O ChatGPT disse:
+Pensou por 20s
+
+perfeito — com a sua taxa 10% do valor do voucher + US$1,20 por cupom resgatado, eis os números para US$5.000.000/ano.
+
+1) Se US$5M for o valor de vendas (GMV)
+
+Receita por resgate = US$6,20 (voucher US$50) a US$7,20 (voucher US$60).
+#resgates = GMV / AOV.
+
+AOV (ticket médio)	Receita c/ voucher US$50	US$55	US$60
+US$60	US$516.667	US$558.333	US$600.000
+US$80	US$387.500	US$418.750	US$450.000
+US$100	US$310.000	US$335.000	US$360.000
+US$120	US$258.333	US$279.167	US$300.000
+
+Regra prática: por cada US$1M de GMV, você fatura ≈ (1.000.000/AOV) × (US$6,20 a US$7,20).
+
+2) Se US$5M for o total de vouchers resgatados
+
+Receita = 10% × 5.000.000 + 1,20 × (5.000.000 / valor do voucher)
+
+Voucher US$50 → resgates = 100.000 → US$620.000/ano
+
+Voucher US$55 → resgates ≈ 90.909 → US$609.091/ano
+
+Voucher US$60 → resgates ≈ 83.333 → US$600.000/ano
+
+Se você me confirmar qual das duas leituras é a correta (GMV ou valor de vouchers) e o AOV médio esperado, eu te entrego o número final anual + mensal e um cenário conservador/realista/agressivo para usar no pitch.
+
+Você disse:
+entao eu tambem pensei assim, que para resgatar o cupon o usuario tem que comprar mais alguma coisa na loja, ou a loja aumenta o valor do vaucher nos produtos o que voce acha
+O ChatGPT disse:
+Pensou por 26s
+
+Ótima sacada. Entre “exigir compra adicional” vs “aumentar preços”, eu recomendo fortemente o caminho do mínimo de compra (ou co-pagamento). Subir preço “porque tem cupom” derruba confiança do cliente, pode soar abusivo e, em vários mercados, é arriscado do ponto de vista de defesa do consumidor. Melhor manter preço único e usar regras claras de resgate.
+
+Como definir o mínimo de compra certo (com matemática simples)
+
+Para a loja não perder margem na venda do cupom, use esta regra:
+
+Mínimo de compra (Sₘᵢₙ) = (Valor do voucher + sua taxa) ÷ Margem da loja
+onde taxa = 10% do voucher + US$1,20 e margem é a margem bruta (em decimal).
+
+Assim o lucro bruto da venda m×S − voucher − taxa ≥ 0.
+
+Exemplos prontos (vouchers de US$50 e US$60)
+
+Arredonde o Sₘᵢₙ para múltiplos de US$5/US$10 (fica mais vendável).
+
+Voucher US$50 → taxa = US$6,20 → (voucher + taxa) = US$56,20
+
+Margem da loja	Sₘᵢₙ (cálculo)	Sugestão prática
+60%	56,20 / 0,60 = US$93,67	US$100
+55%	US$102,18	US$110
+50%	US$112,40	US$120
+45%	US$124,89	US$130
+40%	US$140,50	US$150
+35%	US$160,57	US$170
+30%	US$187,33	US$190–200
+
+Voucher US$60 → taxa = US$7,20 → (voucher + taxa) = US$67,20
+
+Margem da loja	Sₘᵢₙ (cálculo)	Sugestão prática
+60%	67,20 / 0,60 = US$112,00	US$120
+55%	US$122,18	US$130
+50%	US$134,40	US$140
+45%	US$149,33	US$150
+40%	US$168,00	US$170
+35%	US$192,00	US$200
+30%	US$224,00	US$225–230
+
+Dica: quer garantir lucro, não só empatar? Multiplique Sₘᵢₙ por 1,1 a 1,3 (10–30% a mais).
+
+Regras que deixam atrativo para a loja e para o cliente
+
+Compra mínima por margem (regra padrão): “Vale US$50 em compras a partir de US$120”.
+
+Cupom fracionado: vários cupons menores (ex.: 5×US$10) → mais gente nova experimenta.
+
+Válido em preço cheio (ou excluir combos já promocionados) → protege a margem.
+
+1 cupom por CPF por mês por loja → evita abuso.
+
+Validade curta (15–30 dias) → gira rápido.
+
+Sem troco e não cumulativo → previsibilidade de custo.
+
+Mínimo por categoria: para categorias de baixa margem (mercado/farmácia), use vouchers menores ou mínimos maiores.
+
+Sobre “aumentar o valor do voucher nos produtos”
+
+Se a ideia é “repassar o custo aumentando preço”, eu evitaria. Em vez disso:
+
+Ajuste valor do voucher por segmento (ex.: food US$5–12; moda US$10–20; serviços US$15–25).
+
+Use mínimos diferentes por categoria conforme a margem (tabela acima).
+
+Ofereça lista de itens elegíveis (SKU com margem melhor) sem alterar o preço público.
+
+Copy pronta para vender isso para as lojas
+
+“Você escolhe o voucher (US$50/US$60); nós definimos um mínimo de compra que protege sua margem. Ex.: US$50 em compras a partir de US$120. Sem mensalidade — você só paga 10% do voucher + US$1,20 por resgate.”
+
+“Relatório mensal com novos clientes, ticket médio e upsell.”
+
+Se me disser a margem média por segmento das suas lojas (ex.: restaurantes 55–60%, moda 50–55%, mercado 30–35%), eu te devolvo uma grade fechada de vouchers e mínimos por categoria — pronta pra colocar no contrato e no material comercial.
+
+Você disse:
+ok utilize essas margens moda 50-55%, eletronicos 20 a 30, mercado 5 a 10, restaurante de 20 a 30
+O ChatGPT disse:
+Pensou por 37s
+
+perfeito — montei a grade de vouchers + mínimo de compra por segmento usando suas margens e já considerando sua taxa (10% do voucher + US$1,20 por resgate).
+Regra usada: mínimo p/ empatar = (voucher + taxa) ÷ margem. Entre parênteses, dou uma sugestão arredondada. Se quiser +10% de lucro na venda do cupom, some ~10% ao mínimo sugerido.
+
+Moda (margem 50–55%)
+Voucher	Mínimo p/ empatar (50–55%)
+US$15	US$35,4–32,2 (US$35–40)
+US$30	US$68,4–62,2 (US$65–70)
+US$50	US$112,4–102,2 (US$105–115)
+
+Oferta padrão recomendada: US$50 em compras a partir de US$115 (ou US$105 se a loja tiver 55% de margem).
+
+Eletrônicos (margem 20–30%)
+Voucher	Mínimo p/ empatar (20–30%)
+US$10	US$61,0–40,7 (US$45–65)
+US$20	US$116,0–77,3 (US$80–120)
+US$50	US$281,0–187,3 (US$190–285)
+
+Oferta padrão recomendada: US$20 a partir de US$120 (20% margem) ou US$80–90 (30% margem).
+
+Evite US$50 aqui (mínimo muito alto).
+
+Mercado/Conveniência (margem 5–10%)
+Voucher	Mínimo p/ empatar (5–10%)
+US$3	US$90–45 (US$45–90)
+US$5	US$134–67 (US$70–135)
+US$10	US$244–122 (US$125–245)
+
+Oferta padrão recomendada: US$3 a partir de US$50 (10% margem) ou US$90 (5% margem).
+
+Use vouchers pequenos aqui; US$10 só com mínimo alto.
+
+Restaurantes (margem 20–30%)
+Voucher	Mínimo p/ empatar (20–30%)
+US$10	US$61,0–40,7 (US$45–65)
+US$15	US$88,5–59,0 (US$60–90)
+US$20	US$116,0–77,3 (US$80–120)
+
+Oferta padrão recomendada: US$15 a partir de US$90 (20% margem) ou US$60–65 (30% margem).
+
+Dicas rápidas (pra fechar com a loja)
+
+Validade curta (15–30 dias) e 1 cupom/CPF/mês/loja → giro sem abuso.
+
+Elegibilidade: válido em preço cheio ou numa lista de SKUs (protege margem).
+
+Fracionar (vários cupons menores) → mais gente experimenta, mais ativações (mais taxa pra você).
+
+Se quiser +10% de lucro em vez de só empatar, aumente o mínimo sugerido ~10–15 (ex.: US$115 → US$125–130).
+
+Se me disser quais vouchers você quer adotar por segmento (ex.: Moda US$50; Eletrônicos US$20; Restaurante US$15; Mercado US$3), eu te devolvo um one-pager pronto com a tabela final (inclui a versão +10% de lucro) e uma copy comercial pra apresentar.
+
+Você disse:
+Oferta padrão recomendada: US$15 a partir de US$90 (20% margem) ou US$60–65 (30% margem). explique porque
+O ChatGPT disse:
+Pensou por 15s
+
+boa — a lógica é simples: queremos que a loja não perca margem quando um cupom é usado. Por isso o mínimo de compra é calculado para “empatar” o custo do voucher + sua taxa.
+
+Fórmula (breakeven)
+
+Mínimo de compra (Sₘᵢₙ) = (Valor do voucher + sua taxa) ÷ margem da loja
+
+Sua taxa = 10% do voucher + US$1,20
+
+Para voucher de US$15: taxa = 10%×15 + 1,20 = 1,50 + 1,20 = US$2,70
+⇒ voucher + taxa = 15 + 2,70 = US$17,70
+
+Restaurantes com 20% de margem
+
+Sₘᵢₙ = US$17,70 ÷ 0,20 = US$88,50 → arredonda para US$90.
+
+Checagem: 20% de US$90 = US$18; US$18 − US$17,70 = US$0,30 (praticamente “zero a zero”).
+
+Restaurantes com 30% de margem
+
+Sₘᵢₙ = US$17,70 ÷ 0,30 = US$59,00 → arredonda para US$60–65.
+
+Checagem em US$60: 30% de 60 = US$18; US$18 − US$17,70 = US$0,30 (empate).
+
+Se usar US$65, a loja já lucra: 30% de 65 = US$19,50; US$19,50 − US$17,70 = US$1,80.
+
+Por que recomendar US$15 de voucher nesse segmento?
+
+Psicológico/adesão: US$15 é percebido como “vale real” sem exigir mínimos proibitivos.
+
+Unit economics: sua receita por resgate é US$2,70, e a loja só entra no cupom quando o tíquete atinge um mínimo que protege a margem.
+
+Upsell natural: qualquer valor acima do mínimo vira lucro bruto adicional (margem × gasto extra).
+
+Se quiser garantir lucro (não só empatar), multiplique o mínimo por 1,1:
+20% → 88,5 × 1,1 ≈ US$97,35 (use US$100).
+30% → 59 × 1,1 ≈ US$64,90 (use US$65).
+
+Pronto: “US$15 em compras a partir de US$90” (20% de margem) e “a partir de US$60–65” (30%) vêm direto dessa conta e equilibram custo do voucher + sua taxa com a margem do restaurante.
+
+Você disse:
+ok, uma duvida, a empresa nao pode questionar onde ela ganha, ja que ela quem esta dando os produtos para os clientes
+O ChatGPT disse:
+Pensou por 18s
+
+Ótima pergunta — e é exatamente essa objeção que a gente precisa matar no pitch.
+A resposta curta é: a loja “ganha” em três frentes — (1) não vende no prejuízo (breakeven garantido pelo mínimo), (2) lucra no upsell acima do mínimo, e (3) converte novos clientes que voltam a comprar sem cupom.
+
+1) A conta que protege a margem (sem prejuízo)
+
+Com sua taxa, o custo do cupom para a loja é 1,1×V + US$1,20 (V = valor do voucher).
+Definimos o mínimo de compra:
+Sₘᵢₙ = (1,1V + 1,20) / margem.
+Assim, no pior caso (cliente gasta só o mínimo), a loja empata.
+
+2) Onde aparece o lucro (upsell)
+
+Qualquer real acima do mínimo gera lucro bruto = margem × gasto extra.
+Ex.: Restaurante (m=30%), V=US$15, mínimo ≈ US$60–65.
+Se o cliente gastar US$75 (só +US$10 acima de 65), lucro incremental = 0,30×10 = US$3.
+Se gastar US$85, lucro = 0,30×20 = US$6.
+E a loja só paga a taxa quando vende (risco baixo).
+
+3) Aquisição e recorrência (o “verdadeiro ganho”)
+
+Parte dos resgatantes vira cliente recorrente. Mesmo que 15–25% voltem 1x sem cupom, a margem dessas compras cobre com folga o custo dos cupons usados para trazê-los. Você ainda entrega:
+
+Visibilidade (banner/push/destaque),
+
+Dados (novos vs. recorrentes, ticket, % upsell),
+
+Controle: valor do cupom, mínimo, itens elegíveis, dias/horários e limite de 1 cupom por CPF/mês (evita “caçadores de promoção”).
+
+Mini-cenários (ilustrativos)
+
+Moda (m≈55%): V=US$50, mínimo ~US$105. Se o tíquete fecha em US$130, lucro = 0,55×130 − (55 + 1,20) = US$15,3 por resgate, + cliente novo na base.
+
+Eletrônicos (m≈25%): V=US$20, mínimo ~US$80–120 (depende da margem). Em US$110, lucro = 0,25×110 − (22 + 1,20) = US$4,3.
+
+Mercado (m≈10%): V=US$3, mínimo ~US$50. Em US$60, lucro = 0,10×60 − (3,3 + 1,20) = US$1,5 (ganho pequeno, mas volume e recorrência contam).
+
+Por que não “aumentar o preço”?
+
+Subir preço “por causa do cupom” destrói confiança e pode ser problema regulatório. O mínimo de compra entrega a mesma proteção de margem, com preço transparente.
+
+Frase pronta pro seu pitch
+
+“Você não dá produto de graça: define-se um mínimo que protege sua margem.
+No mínimo você empata; acima do mínimo você lucra. E só paga quando vende — com exposição no app e novos clientes que voltam sem cupom.”
+
+Se quiser, eu adapto essa explicação em um one-pager com os números do seu segmento específico (moda, eletrônicos, etc.) pra você usar nas visitas.
+
+Você disse:
+me diz uma coisa entao,eu sou um cliente que ganhou um vaucher de 50 dolares e fui na loja gastar, cheguei la e gostei de um blusa que custa 60 dolares, ai vou ter que pagar so a diferenca de 10 dolares
+O ChatGPT disse:
+Pensou por 12s
+
+Depende das regras. No modelo que desenhamos (com mínimo de compra para proteger a margem da loja), a resposta é não: com um vale de US$50 você precisa atingir o mínimo da loja; só então o cupom abate US$50 do total.
+
+Exemplo (moda, margem 50–55% — nossa regra sugerida):
+“US$50 em compras a partir de US$105–115”.
+
+Se a blusa custa US$60, não atinge o mínimo → o cupom não aplica ainda.
+
+Se você adicionar mais itens e o carrinho ficar US$120, o cupom entra e você paga US$120 − US$50 = US$70 (não apenas US$10).
+
+Se não houver mínimo (o que não recomendamos), aí sim você pagaria só a diferença (US$10). Mas isso costuma machucar a margem e as lojas questionam o “ganho”.
+
+Quer deixar cristalino nas regras? Use algo como:
+
+“US$50 em compras a partir de US$115; 1 cupom por CPF/mês; válido em preço cheio; sem troco e não cumulativo.”
+Assim o cliente entende que precisa completar a compra até o mínimo e a loja fica protegida.
+
+Você disse:
+ok, agora crie um roterio completo dessa informacao para eu informar no meu app
+O ChatGPT disse:
+Pensou por 11s
+Roteiro completo — “Vouchers no App” (texto pronto para usar)
+1) Card na vitrine / banner
+
+Título: Ganhe vouchers e economize
+Subtítulo: Use no check-out das lojas parceiras.
+Chamada: Toque para ver regras e lojas elegíveis.
+
+2) Tela “Como funciona”
+
+Participe: Entre nos sorteios e coletas do app.
+
+Ganhe um voucher: Ex.: US$50.
+
+Vá à loja parceira: Veja as regras do voucher da loja.
+
+Atinga o mínimo de compra: Ex.: “US$50 em compras a partir de US$115”.
+
+Aplique o voucher no caixa: O valor do voucher é abatido do total.
+
+Importante: O voucher não é dinheiro, não dá troco e não é cumulativo.
+
+3) Regras padrão (mostre em todas as lojas)
+
+Valor do voucher: exibido no app (ex.: US$50).
+
+Mínimo de compra: cada loja define o seu (ex.: “a partir de US$115”).
+
+Validade: até DD/MM/AAAA, 23h59 (horário local).
+
+Uso pessoal: 1 voucher por CPF por mês por loja.
+
+Onde vale: em preço cheio (itens/serviços promocionais podem ficar de fora).
+
+Sem troco e não cumulativo: não soma com outros cupons/descontos.
+
+Itens elegíveis: ver lista no app (a loja pode restringir SKUs).
+
+Como aplicar: apresente o QR code / código do voucher no caixa ou no checkout on-line.
+
+4) Exemplos didáticos (coloque como “Entenda com exemplos”)
+
+Exemplo 1 (atingiu o mínimo):
+Carrinho US$120, voucher US$50, mínimo US$115 → você paga US$70.
+
+Exemplo 2 (não atingiu):
+Item US$60, voucher US$50, mínimo US$115 → o cupom não aplica.
+
+Exemplo 3 (acima do mínimo):
+Carrinho US$185, voucher US$50 → paga US$135.
+
+5) FAQ (curto e direto)
+
+Posso usar o voucher em qualquer compra?
+Não. Você precisa atingir o mínimo definido pela loja parceira.
+
+Por que existe mínimo?
+Para a loja não perder margem. Assim, a parceria se mantém saudável e os vouchers continuam.
+
+Posso usar mais de um voucher na mesma compra?
+Não. 1 por compra e não cumulativo com outras promoções, salvo indicação em contrário no app.
+
+E se meu voucher vencer?
+Vouchers vencidos não podem ser reativados. Fique atento ao prazo no app.
+
+Devolução/troca:
+Se a compra for estornada, o uso do voucher não é devolvido. Trocas seguem política da loja.
+
+6) Tela da loja parceira (bloco fixo)
+
+Voucher disponível: US$XX
+Mínimo da loja: a partir de US$YY
+Validade: DD/MM/AAAA
+Elegível em: preço cheio (salvo itens marcados como “não elegíveis”).
+Limites: 1 voucher por CPF/mês. Sem troco. Não cumulativo.
+Como usar: gere o QR code na tela de pagamento e apresente no caixa.
+
+7) Checkout (comportamento e mensagens)
+
+Antes de aplicar (mínimo não atingido):
+“Você tem US$50 para esta loja. Faltam US$55 para atingir o mínimo (US$115).”
+
+Ao aplicar com sucesso:
+“Voucher US$50 aplicado. Total atualizado: US$120 → US$70.”
+
+Erros comuns (texto pronto):
+
+Mínimo não atingido: “O mínimo desta loja é US$115. Adicione US$55 ao carrinho para usar seu voucher.”
+
+Voucher expirado: “Este voucher venceu em DD/MM/AAAA.”
+
+Limite atingido: “Você já usou 1 voucher nesta loja neste mês.”
+
+Itens inelegíveis: “Há itens não elegíveis no carrinho. Remova-os ou veja a lista de elegíveis.”
+
+8) Push/Email (opcionais)
+
+Push “resgate” (D-7):
+“Seu voucher de US$50 para [Loja] vence em 7 dias. Use em compras a partir de US$115.”
+
+Push “carrinho próximo do mínimo”:
+“Falta pouco! Adicione US$12 e use seu voucher de US$50 em [Loja].”
+
+E-mail resumo semanal:
+“Você tem 2 vouchers ativos: US$50 [Loja A] (mín. US$115) e US$15 [Restaurante B] (mín. US$65). Valem até DD/MM.”
+
+9) Termos essenciais (resumo legal para o app)
+
+Vouchers são intransferíveis, sem valor em dinheiro e sem troco.
+
+Uso único por CPF por mês por loja, salvo regras específicas.
+
+A loja é responsável pelos produtos/serviços.
+
+O app é intermediador de benefícios.
+
+Em caso de cancelamento da compra, o voucher é considerado utilizado e não é restituído.
+
+Regras podem variar por loja e constam na página da loja dentro do app.
+
+10) Blocos prontos por segmento (deixar salvo)
+
+Moda (exemplo padrão):
+“US$50 em compras a partir de US$115. Válido em preço cheio. 1 por CPF/mês. Sem troco. Não cumulativo.”
+
+Restaurante (exemplo padrão):
+“US$15 em consumos a partir de US$60–65. 1 por CPF/mês. Validade 30 dias. Itens promocionais podem não participar.”
+
+Eletrônicos (exemplo padrão):
+“US$20 em compras a partir de US$80–120 (ver página da loja). Válido em produtos elegíveis.”
+
+Mercado (exemplo padrão):
+“US$3 em compras a partir de US$50–90 (depende da loja). Não válido em tabaco/serviços/itens restritos.”
+
+11) Microtextos (UI copy curta)
+
+Botão: “Usar voucher” / “Gerar QR”
+
+Estado aplicado: “Voucher aplicado”
+
+Link de regras: “Ver regras desta loja”
+
+Contador: “Vence em 3 dias”
+
+Tooltip: “Atinga o mínimo para desbloquear o desconto”
+
+12) Observabilidade (para sua equipe)
+
+Eventos sugeridos:
+
+voucher_viewed, voucher_rule_opened, voucher_apply_attempted, voucher_applied_success, voucher_apply_failed (com motivo), voucher_expiring_viewed, checkout_min_gap_shown (valor faltante), store_rules_viewed.
+
+Dica final
+
+Deixe sempre visível (na página da loja e no checkout) o valor do voucher, o mínimo e a data de validade. Isso reduz dúvidas e suporte — e evita a sensação de “pegadinha”.
+
+Se quiser, te mando uma versão compacta desse roteiro para colar diretamente nas telas (títulos + subtítulos + textos de 1–2 linhas), ou adapto para espanhol também.

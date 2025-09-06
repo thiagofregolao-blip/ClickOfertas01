@@ -19,10 +19,10 @@ interface DailyScratchCard {
 interface MiniScratchCardProps {
   card: DailyScratchCard;
   onScratch: (cardId: string) => void;
-  isScratching: boolean;
+  processingCardId?: string;
 }
 
-function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniScratchCardProps) {
+function MiniScratchCard({ card, onScratch, processingCardId }: MiniScratchCardProps) {
   const [isRevealing, setIsRevealing] = useState(false);
   const [isScratching, setIsScratching] = useState(false);
   const [scratchProgress, setScratchProgress] = useState(0);
@@ -166,6 +166,9 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
       }
     };
   }, []);
+
+  // Determinar se esta carta específica está sendo processada
+  const isProcessing = processingCardId === card.id;
 
   // Função de scratch (adaptada do scratch-card.tsx)
   const handleScratch = (clientX: number, clientY: number) => {
@@ -532,21 +535,21 @@ export default function ThreeDailyScratchCards() {
           <MiniScratchCard
             card={card1}
             onScratch={scratchMutation.mutate}
-            isScratching={scratchMutation.isPending}
+            processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
           />
         )}
         {card2 && (
           <MiniScratchCard
             card={card2}
             onScratch={scratchMutation.mutate}
-            isScratching={scratchMutation.isPending}
+            processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
           />
         )}
         {card3 && (
           <MiniScratchCard
             card={card3}
             onScratch={scratchMutation.mutate}
-            isScratching={scratchMutation.isPending}
+            processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
           />
         )}
       </div>
@@ -557,21 +560,21 @@ export default function ThreeDailyScratchCards() {
           <MiniScratchCard
             card={card4}
             onScratch={scratchMutation.mutate}
-            isScratching={scratchMutation.isPending}
+            processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
           />
         )}
         {card5 && (
           <MiniScratchCard
             card={card5}
             onScratch={scratchMutation.mutate}
-            isScratching={scratchMutation.isPending}
+            processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
           />
         )}
         {card6 && (
           <MiniScratchCard
             card={card6}
             onScratch={scratchMutation.mutate}
-            isScratching={scratchMutation.isPending}
+            processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
           />
         )}
       </div>
