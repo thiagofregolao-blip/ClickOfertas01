@@ -38,6 +38,14 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
   const SCRATCH_THROTTLE = 16; // ~60fps
   const SOUND_COOLDOWN = 120; // ms entre sons
   
+  // Reset scratching state when card changes
+  useEffect(() => {
+    if (card.isScratched) {
+      setIsScratching(false);
+      revelationStarted.current = false;
+    }
+  }, [card.isScratched, card.id]);
+
   // Inicializar canvas com mascote (adaptado do scratch-card.tsx)
   useEffect(() => {
     if (card.isScratched || revelationStarted.current) return;
@@ -120,6 +128,7 @@ function MiniScratchCard({ card, onScratch, isScratching: isProcessing }: MiniSc
       if (progress >= 0.7 && !card.isScratched && !isRevealing && !revelationStarted.current) {
         revelationStarted.current = true;
         setIsRevealing(true);
+        setIsScratching(false); // Reset scratching state
         
         if (rafId.current) {
           cancelAnimationFrame(rafId.current);
