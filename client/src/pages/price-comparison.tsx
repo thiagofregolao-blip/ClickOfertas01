@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, RefreshCw, AlertCircle, Zap, ChevronDown, ArrowRightLeft, Bell, TrendingUp } from "lucide-react";
+import { Search, RefreshCw, AlertCircle, Zap, ChevronDown, ArrowRightLeft, Bell, TrendingUp, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatPriceWithCurrency } from "@/lib/priceUtils";
