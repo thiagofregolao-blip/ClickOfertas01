@@ -4,111 +4,59 @@ import { nanoid } from 'nanoid';
 import { db } from './db';
 import { priceHistory } from '@shared/schema';
 
-// Lojas confiáveis brasileiras (prioridade alta)
-const TRUSTED_BRAZILIAN_STORES = [
-  'mercadolivre.com.br', 'mercado livre',
+// LISTA RESTRITA DE LOJAS APROVADAS (WHITELIST)
+// Apenas essas lojas serão aceitas - todo o resto é bloqueado automaticamente
+const APPROVED_STORES_WHITELIST = [
+  // Grandes varejistas brasileiros
+  'mercado livre', 'mercadolivre',
   'amazon.com.br', 'amazon brasil',
-  'magazineluiza.com.br', 'magazine luiza', 'magazine',
-  'americanas.com.br', 'americanas',
-  'casasbahia.com.br', 'casas bahia',
-  'extra.com.br', 'extra',
-  'carrefour.com.br', 'carrefour',
-  'submarino.com.br', 'submarino',
-  'kabum.com.br', 'kabum',
-  'shopee.com.br', 'shopee brasil',
-  'zoom.com.br', 'zoom',
-  'fastshop.com.br', 'fast shop',
-  'pontofrio.com.br', 'ponto frio',
-  'saraiva.com.br', 'saraiva',
-  'walmart.com.br', 'walmart',
-  'netshoes.com.br', 'netshoes',
-  'centauro.com.br', 'centauro',
-  'drogasil.com.br', 'drogasil',
-  'riachuelo.com.br', 'riachuelo',
-  // Lojas especializadas legítimas
-  'iplace', 'rei do celular', 'smiles', 'smiles.com.br',
-  'buscape.com.br', 'buscape', 'buscapé',
-  'terabyteshop.com.br', 'terabyte',
-  'pichau.com.br', 'pichau',
-  'girafa.com.br', 'girafa',
-  'mobly.com.br', 'mobly',
-  'tok&stok', 'tokstok.com.br'
+  'magazine luiza', 'magazine', 'magazineluiza',
+  'americanas',
+  'casas bahia', 'casasbahia',
+  'extra',
+  'carrefour',
+  'submarino',
+  'kabum',
+  'shopee', 'shopee brasil',
+  'ponto frio', 'pontofrio',
+  'fast shop', 'fastshop',
+  
+  // Operadoras e grandes redes
+  'claro', 'vivo', 'tim',
+  'walmart',
+  
+  // Especializadas confiáveis
+  'iplace',
+  'smiles',
+  
+  // Marcas oficiais
+  'apple store', 'apple',
+  'samsung'
 ];
 
-// Lojas internacionais confiáveis (limitadas)
-const TRUSTED_INTERNATIONAL_STORES = [
-  'apple.com', 'apple store',
-  'samsung.com', 'samsung',
-  'sony.com', 'sony',
-  'dell.com', 'dell',
-  'hp.com', 'hp',
-  'lenovo.com', 'lenovo',
-  'microsoft.com', 'microsoft',
-  'nike.com', 'nike',
-  'adidas.com', 'adidas'
-];
-
-// Padrões de vendedores duvidosos para bloquear
-const BLOCKED_SELLER_PATTERNS = [
-  // Vendedores genéricos do eBay
-  /^[a-z0-9_-]+\d+$/i, // padrões como "seller123", "user_456"
-  /wireless/i,
-  /electronics/i,
-  /gadgets/i,
-  /store\d+/i,
-  /shop\d+/i,
-  /outlet/i,
-  /deals/i,
-  /marketplace/i,
-  // Vendedores específicos problemáticos
-  /itsworthmore/i,
-  /amazing-wireless/i,
-  /tech-deals/i,
-  /phone-shop/i,
-  /mobile-store/i
-];
-
-// Função para verificar se uma loja é confiável
-function isTrustedStore(storeName: string): boolean {
-  if (!storeName) return false;
-  
-  const storeNameLower = storeName.toLowerCase().trim();
-  
-  // Verificar se está na lista de lojas brasileiras confiáveis
-  const isBrazilianTrusted = TRUSTED_BRAZILIAN_STORES.some(trusted => 
-    storeNameLower.includes(trusted.toLowerCase()) || 
-    trusted.toLowerCase().includes(storeNameLower)
-  );
-  
-  if (isBrazilianTrusted) {
-    console.log(`✅ LOJA CONFIÁVEL (brasileira): ${storeName}`);
-    return true;
-  }
-  
-  // Verificar se está na lista de lojas internacionais confiáveis
-  const isInternationalTrusted = TRUSTED_INTERNATIONAL_STORES.some(trusted => 
-    storeNameLower.includes(trusted.toLowerCase()) || 
-    trusted.toLowerCase().includes(storeNameLower)
-  );
-  
-  if (isInternationalTrusted) {
-    console.log(`✅ LOJA CONFIÁVEL (internacional): ${storeName}`);
-    return true;
-  }
-  
-  // Verificar se corresponde a padrões de vendedores duvidosos
-  const isBlockedSeller = BLOCKED_SELLER_PATTERNS.some(pattern => 
-    pattern.test(storeNameLower)
-  );
-  
-  if (isBlockedSeller) {
-    console.log(`🚫 VENDEDOR BLOQUEADO: ${storeName}`);
+// Função RESTRITIVA - só aceita lojas da lista aprovada
+function isApprovedStore(storeName: string): boolean {
+  if (!storeName) {
+    console.log(`🚫 REJEITADO: Nome da loja vazio`);
     return false;
   }
   
-  // Se não está nas listas confiáveis nem bloqueadas, é suspeito
-  console.log(`⚠️ LOJA SUSPEITA (não verificada): ${storeName}`);
-  return false; // Bloquear por padrão lojas não verificadas
+  const storeNameLower = storeName.toLowerCase().trim();
+  
+  // Verificar se está na lista de lojas aprovadas
+  const isApproved = APPROVED_STORES_WHITELIST.some(approved => {
+    return storeNameLower.includes(approved.toLowerCase()) || 
+           approved.toLowerCase().includes(storeNameLower);
+  });
+  
+  if (isApproved) {
+    console.log(`✅ LOJA APROVADA: ${storeName}`);
+    return true;
+  }
+  
+  // Qualquer loja não aprovada é automaticamente rejeitada
+  console.log(`🚫 LOJA REJEITADA (não está na lista aprovada): ${storeName}`);
+  return false;
 }
 
 /**
@@ -190,8 +138,8 @@ export async function getAveragePrices(productName: string): Promise<{
                         title.includes('capinha') || title.includes('cover') ||
                         title.includes('carregador') || title.includes('suporte');
       
-      // Verificar se a loja é confiável
-      const isFromTrustedStore = isTrustedStore(item.source || '');
+      // Verificar se a loja está na lista aprovada
+      const isFromApprovedStore = isApprovedStore(item.source || '');
       
       // Verificar preço mínimo por categoria
       const searchLower = q.toLowerCase();
@@ -210,9 +158,9 @@ export async function getAveragePrices(productName: string): Promise<{
       }
 
       const isValidPrice = item.price >= minPrice && item.price <= maxPrice;
-      const isMainProduct = !isAccessory && isValidPrice && isFromTrustedStore;
+      const isMainProduct = !isAccessory && isValidPrice && isFromApprovedStore;
       
-      const status = !isFromTrustedStore ? 'LOJA BLOQUEADA' : 
+      const status = !isFromApprovedStore ? 'LOJA REJEITADA' : 
                     isAccessory ? 'ACESSÓRIO' : 
                     !isValidPrice ? 'PREÇO INVÁLIDO' : 'VÁLIDO';
       
