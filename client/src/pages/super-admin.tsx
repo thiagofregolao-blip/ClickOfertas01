@@ -147,6 +147,8 @@ export default function SuperAdmin() {
   const [isProductSelectorOpen, setIsProductSelectorOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isBudgetConfigOpen, setIsBudgetConfigOpen] = useState(false);
+  const [isFinancialReportOpen, setIsFinancialReportOpen] = useState(false);
 
   // Redirect if not super admin
   useEffect(() => {
@@ -548,10 +550,20 @@ export default function SuperAdmin() {
 
   // Handlers para prêmios
   const onSubmitPrize = (data: PrizeFormData) => {
+    // Limpar campos numéricos vazios para evitar erro no banco
+    const cleanedData = {
+      ...data,
+      discountPercentage: data.discountPercentage === "" ? null : data.discountPercentage,
+      discountValue: data.discountValue === "" ? null : data.discountValue,
+      maxDiscountAmount: data.maxDiscountAmount === "" ? null : data.maxDiscountAmount,
+      probability: data.probability === "" ? "0.001" : data.probability,
+      maxDailyWins: data.maxDailyWins === "" ? "1" : data.maxDailyWins,
+    };
+
     if (editingPrize) {
-      updatePrizeMutation.mutate({ id: editingPrize.id, data });
+      updatePrizeMutation.mutate({ id: editingPrize.id, data: cleanedData });
     } else {
-      createPrizeMutation.mutate(data);
+      createPrizeMutation.mutate(cleanedData);
     }
   };
 
@@ -2302,11 +2314,21 @@ export default function SuperAdmin() {
                     )}
 
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setIsBudgetConfigOpen(true)}
+                        data-testid="button-budget-config"
+                      >
                         <Settings className="w-4 h-4 mr-2" />
                         Configurar Orçamento
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setIsFinancialReportOpen(true)}
+                        data-testid="button-financial-report"
+                      >
                         <TrendingUp className="w-4 h-4 mr-2" />
                         Relatório Financeiro
                       </Button>
@@ -2814,6 +2836,207 @@ export default function SuperAdmin() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal de Configuração de Orçamento */}
+      <Dialog open={isBudgetConfigOpen} onOpenChange={setIsBudgetConfigOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="w-5 h-5 text-blue-600" />
+              Configurar Orçamento de Promoções
+            </DialogTitle>
+            <DialogDescription>
+              Configure os limites de orçamento diário e mensal para o sistema de promoções.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {budgetStats?.budget ? (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Orçamento Diário (USD)</label>
+                    <input 
+                      type="number" 
+                      defaultValue={budgetStats.budget.dailyBudget}
+                      className="w-full mt-1 px-3 py-2 border rounded-md"
+                      min="0"
+                      step="0.01"
+                      data-testid="input-daily-budget"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Orçamento Mensal (USD)</label>
+                    <input 
+                      type="number" 
+                      defaultValue={budgetStats.budget.monthlyBudget}
+                      className="w-full mt-1 px-3 py-2 border rounded-md"
+                      min="0"
+                      step="0.01"
+                      data-testid="input-monthly-budget"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">Status Atual</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Gasto Hoje:</span>
+                        <span className="font-medium">${budgetStats.budget.dailySpent}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Restante Hoje:</span>
+                        <span className="font-medium text-green-600">${budgetStats.budget.dailyRemaining}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Gasto Este Mês:</span>
+                        <span className="font-medium">${budgetStats.budget.monthlySpent}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Restante Este Mês:</span>
+                        <span className="font-medium text-green-600">${budgetStats.budget.monthlyRemaining}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p>Carregando configurações...</p>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsBudgetConfigOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button data-testid="button-save-budget">
+              Salvar Configurações
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Relatório Financeiro */}
+      <Dialog open={isFinancialReportOpen} onOpenChange={setIsFinancialReportOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-green-600" />
+              Relatório Financeiro Detalhado
+            </DialogTitle>
+            <DialogDescription>
+              Análise completa dos gastos e custos do sistema de promoções.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {budgetStats ? (
+              <>
+                {/* Resumo Financeiro */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 className="font-medium text-blue-800 mb-2">Orçamento Diário</h3>
+                    <p className="text-2xl font-bold text-blue-600">${budgetStats.budget?.dailyBudget || 0}</p>
+                    <p className="text-sm text-blue-600 mt-1">
+                      Gasto: ${budgetStats.budget?.dailySpent || 0}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 className="font-medium text-green-800 mb-2">Orçamento Mensal</h3>
+                    <p className="text-2xl font-bold text-green-600">${budgetStats.budget?.monthlyBudget || 0}</p>
+                    <p className="text-sm text-green-600 mt-1">
+                      Gasto: ${budgetStats.budget?.monthlySpent || 0}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h3 className="font-medium text-purple-800 mb-2">Custo Estimado</h3>
+                    <p className="text-2xl font-bold text-purple-600">${budgetStats.estimatedCosts?.dailyEstimated || 0}</p>
+                    <p className="text-sm text-purple-600 mt-1">Por dia (projeção)</p>
+                  </div>
+                </div>
+
+                {/* Estatísticas de Raspadinhas */}
+                {scratchStats && (
+                  <div>
+                    <h3 className="font-medium mb-3">Estatísticas de Hoje</h3>
+                    <div className="grid grid-cols-4 gap-4">
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <p className="text-2xl font-bold">{scratchStats.totalCardsToday}</p>
+                        <p className="text-sm text-gray-600">Cartas Geradas</p>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <p className="text-2xl font-bold">{scratchStats.cardsScratched}</p>
+                        <p className="text-sm text-gray-600">Cartas Raspadas</p>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <p className="text-2xl font-bold">{scratchStats.prizesWon}</p>
+                        <p className="text-sm text-gray-600">Prêmios Ganhos</p>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <p className="text-2xl font-bold">{scratchStats.successRate}%</p>
+                        <p className="text-sm text-gray-600">Taxa de Sucesso</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Lista de Prêmios Ativos */}
+                <div>
+                  <h3 className="font-medium mb-3">Prêmios Ativos e Custos</h3>
+                  <div className="space-y-2">
+                    {dailyPrizes.filter(prize => prize.isActive).map((prize) => (
+                      <div key={prize.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <p className="font-medium">{prize.name}</p>
+                          <p className="text-sm text-gray-600">
+                            Tipo: {prize.prizeType} | Probabilidade: {prize.probability}%
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">
+                            {prize.prizeType === 'discount' && `${prize.discountPercentage}% off`}
+                            {prize.prizeType === 'cashback' && `$${prize.discountValue}`}
+                            {prize.prizeType === 'product' && 'Produto Grátis'}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Máx/dia: {prize.maxDailyWins} | Hoje: {prize.totalWinsToday}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <p>Carregando dados financeiros...</p>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsFinancialReportOpen(false)}
+            >
+              Fechar
+            </Button>
+            <Button data-testid="button-export-report">
+              Exportar Relatório
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
