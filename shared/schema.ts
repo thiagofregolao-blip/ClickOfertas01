@@ -25,6 +25,15 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
+// Funny messages for scratch cards
+export const funnyMessages = pgTable("funny_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  message: text("message").notNull(),
+  emoji: text("emoji").notNull(),
+  category: varchar("category", { length: 10 }).default("lose"), // 'lose', 'win'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // User storage table for Replit Auth
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1412,3 +1421,12 @@ export const insertBannerSchema = createInsertSchema(banners).omit({
 
 export type InsertBanner = z.infer<typeof insertBannerSchema>;
 export type Banner = typeof banners.$inferSelect;
+
+// Funny messages schemas and types
+export const insertFunnyMessageSchema = createInsertSchema(funnyMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type FunnyMessage = typeof funnyMessages.$inferSelect;
+export type InsertFunnyMessage = z.infer<typeof insertFunnyMessageSchema>;

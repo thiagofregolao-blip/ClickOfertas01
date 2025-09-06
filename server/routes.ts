@@ -3064,6 +3064,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Buscar mensagem engraçada aleatória para cartas perdedoras
+  app.get('/api/funny-messages/random', async (req: any, res) => {
+    try {
+      const message = await storage.getRandomFunnyMessage();
+      res.json(message);
+    } catch (error) {
+      console.error("Error fetching random funny message:", error);
+      res.status(500).json({ message: "Failed to fetch funny message" });
+    }
+  });
+
   // Estatísticas das cartas do usuário
   app.get('/api/daily-scratch/stats', isAuthenticatedCustom, async (req: any, res) => {
     try {

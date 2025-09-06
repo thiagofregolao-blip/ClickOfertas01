@@ -32,6 +32,7 @@ import {
   dailyScratchResults,
   dailyScratchCards,
   budgetConfig,
+  funnyMessages,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -3175,6 +3176,20 @@ export class DatabaseStorage implements IStorage {
       .limit(50); // Limitar para performance
     
     return results;
+  }
+
+  // ==========================================
+  // SISTEMA DE MENSAGENS ENGRAÇADAS
+  // ==========================================
+  
+  async getRandomFunnyMessage() {
+    const [result] = await db
+      .select()
+      .from(funnyMessages)
+      .orderBy(sql`RANDOM()`)
+      .limit(1);
+      
+    return result;
   }
 
   // ==========================================

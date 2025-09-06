@@ -22,7 +22,14 @@ interface MiniScratchCardProps {
   processingCardId?: string;
 }
 
-function MiniScratchCard({ card, onScratch, processingCardId }: MiniScratchCardProps) {
+interface MiniScratchCardProps {
+  card: DailyScratchCard;
+  onScratch: (cardId: string) => void;
+  processingCardId?: string;
+  funnyMessage?: FunnyMessage;
+}
+
+function MiniScratchCard({ card, onScratch, processingCardId, funnyMessage }: MiniScratchCardProps) {
   const [isRevealing, setIsRevealing] = useState(false);
   const [isScratching, setIsScratching] = useState(false);
   const [scratchProgress, setScratchProgress] = useState(0);
@@ -366,9 +373,19 @@ function MiniScratchCard({ card, onScratch, processingCardId }: MiniScratchCardP
             </div>
           ) : (
             <div className="text-center">
-              <div className="text-xs font-medium text-gray-500">😔 Não foi dessa vez</div>
-              <div className="text-xs text-gray-400">Tente Novamente</div>
-              <div className="text-xs text-gray-400">Amanhã</div>
+              {funnyMessage ? (
+                <>
+                  <div className="text-xs font-medium text-gray-500">{funnyMessage.emoji} {funnyMessage.message}</div>
+                  <div className="text-xs text-gray-400">Tente Novamente</div>
+                  <div className="text-xs text-gray-400">Amanhã</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-xs font-medium text-gray-500">😔 Não foi dessa vez</div>
+                  <div className="text-xs text-gray-400">Tente Novamente</div>
+                  <div className="text-xs text-gray-400">Amanhã</div>
+                </>
+              )}
             </div>
           )
         ) : isRevealing === true ? (
@@ -447,9 +464,26 @@ function MiniScratchCard({ card, onScratch, processingCardId }: MiniScratchCardP
   );
 }
 
+interface FunnyMessage {
+  id: string;
+  message: string;
+  emoji: string;
+  category: string;
+}
+
 export default function ThreeDailyScratchCards() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [funnyMessages, setFunnyMessages] = useState<{ [cardId: string]: FunnyMessage }>({});
+
+  // Função para buscar mensagem engraçada aleatória
+  const fetchFunnyMessage = async (): Promise<FunnyMessage> => {
+    const response = await fetch('/api/funny-messages/random');
+    if (!response.ok) {
+      throw new Error('Failed to fetch funny message');
+    }
+    return await response.json();
+  };
 
   // Buscar as 3 cartas diárias
   const { data: cardsData, isLoading, isError, error } = useQuery({
@@ -467,14 +501,27 @@ export default function ThreeDailyScratchCards() {
       const data = await res.json();
       return data;
     },
-    onSuccess: (data: any) => {
+    onSuccess: async (data: any, cardId: string) => {
       // Invalidar queries para atualizar estado
       queryClient.invalidateQueries({ queryKey: ['/api/daily-scratch/cards'] });
       queryClient.invalidateQueries({ queryKey: ['/api/daily-scratch/stats'] });
       
+      // Se perdeu, buscar uma mensagem engraçada para esta carta
+      if (!data.won) {
+        try {
+          const funnyMessage = await fetchFunnyMessage();
+          setFunnyMessages(prev => ({
+            ...prev,
+            [cardId]: funnyMessage
+          }));
+        } catch (error) {
+          console.error('Failed to fetch funny message:', error);
+        }
+      }
+      
       // Mostrar resultado
       toast({
-        title: data.won ? "🎉 Parabéns!" : "😔 Não foi dessa vez!",
+        title: data.won ? "🎉 Parabéns!" : "😔 Que azar!",
         description: data.message,
         variant: data.won ? "default" : "destructive",
       });
@@ -536,6 +583,7 @@ export default function ThreeDailyScratchCards() {
             card={card1}
             onScratch={scratchMutation.mutate}
             processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
+            funnyMessage={funnyMessages[card1.id]}
           />
         )}
         {card2 && (
@@ -543,6 +591,7 @@ export default function ThreeDailyScratchCards() {
             card={card2}
             onScratch={scratchMutation.mutate}
             processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
+            funnyMessage={funnyMessages[card2.id]}
           />
         )}
         {card3 && (
@@ -550,6 +599,7 @@ export default function ThreeDailyScratchCards() {
             card={card3}
             onScratch={scratchMutation.mutate}
             processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
+            funnyMessage={funnyMessages[card3.id]}
           />
         )}
       </div>
@@ -561,6 +611,7 @@ export default function ThreeDailyScratchCards() {
             card={card4}
             onScratch={scratchMutation.mutate}
             processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
+            funnyMessage={funnyMessages[card4.id]}
           />
         )}
         {card5 && (
@@ -568,6 +619,7 @@ export default function ThreeDailyScratchCards() {
             card={card5}
             onScratch={scratchMutation.mutate}
             processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
+            funnyMessage={funnyMessages[card5.id]}
           />
         )}
         {card6 && (
@@ -575,6 +627,7 @@ export default function ThreeDailyScratchCards() {
             card={card6}
             onScratch={scratchMutation.mutate}
             processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
+            funnyMessage={funnyMessages[card6.id]}
           />
         )}
       </div>
