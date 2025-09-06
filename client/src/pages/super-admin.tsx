@@ -2085,12 +2085,57 @@ export default function SuperAdmin() {
                         </div>
                         
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                          <h4 className="font-medium text-yellow-800 mb-2">Configurações Importantes:</h4>
-                          <ul className="text-sm text-yellow-700 space-y-1">
-                            <li>• <strong>Probabilidade:</strong> Chance real de ganhar (ex: 5.2%)</li>
-                            <li>• <strong>Limite diário:</strong> Quantos podem ganhar por dia</li>
-                            <li>• <strong>Status ativo/inativo:</strong> Liga ou desliga o prêmio</li>
-                          </ul>
+                          <h4 className="font-medium text-yellow-800 mb-3">Configurações Importantes:</h4>
+                          
+                          {/* Probabilidade */}
+                          <div className="mb-4">
+                            <h5 className="font-semibold text-yellow-800 mb-2">📊 Probabilidade (%)</h5>
+                            <p className="text-sm text-yellow-700 mb-2">
+                              Define a <strong>chance de esse prêmio ser sorteado</strong> quando alguém raspa uma cartela.
+                            </p>
+                            <div className="bg-yellow-100 p-3 rounded border-l-4 border-yellow-400">
+                              <p className="text-sm text-yellow-800">
+                                <strong>Exemplo:</strong> Configurando 20% de probabilidade significa que a cada 100 raspadinhas, 
+                                aproximadamente 20 pessoas ganharão esse prêmio específico.
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Limite Diário */}
+                          <div className="mb-4">
+                            <h5 className="font-semibold text-yellow-800 mb-2">🎯 Limite Diário</h5>
+                            <p className="text-sm text-yellow-700 mb-2">
+                              Define o <strong>número máximo de vezes</strong> que esse prêmio pode ser ganho por dia.
+                            </p>
+                            <div className="bg-yellow-100 p-3 rounded border-l-4 border-yellow-400">
+                              <p className="text-sm text-yellow-800">
+                                <strong>Exemplo:</strong> Limite diário = 1 significa que apenas 1 pessoa pode ganhar esse prêmio por dia. 
+                                Após a primeira vitória, o prêmio fica esgotado até o reset de meia-noite.
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Como Funciona na Prática */}
+                          <div className="bg-orange-100 border border-orange-300 rounded-lg p-3">
+                            <h5 className="font-semibold text-orange-800 mb-2">⚡ Como Funciona na Prática</h5>
+                            <div className="text-sm text-orange-700 space-y-2">
+                              <p><strong>Cenário:</strong> iPhone 15 com 20% de probabilidade e limite diário = 1</p>
+                              <div className="ml-3 space-y-1">
+                                <p>1️⃣ Primeira pessoa raspa → 20% de chance de ganhar o iPhone</p>
+                                <p>2️⃣ Se ela ganhar → prêmio fica <strong>esgotado</strong> para o resto do dia</p>
+                                <p>3️⃣ Outras pessoas que rasparem no mesmo dia não podem mais ganhar esse iPhone</p>
+                              </div>
+                              <p className="mt-2 font-medium">
+                                💡 <strong>Resumo:</strong> A probabilidade controla a frequência, mas o limite diário garante controle de custos.
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="mt-3">
+                            <p className="text-sm text-yellow-700">
+                              • <strong>Status ativo/inativo:</strong> Liga ou desliga o prêmio completamente
+                            </p>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
