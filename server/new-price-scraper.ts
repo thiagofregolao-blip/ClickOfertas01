@@ -3,61 +3,7 @@ import type { InsertBrazilianPrice, InsertPriceHistory } from '@shared/schema';
 import { nanoid } from 'nanoid';
 import { db } from './db';
 import { priceHistory } from '@shared/schema';
-
-// LISTA RESTRITA DE LOJAS APROVADAS (WHITELIST)
-// Apenas essas lojas serão aceitas - todo o resto é bloqueado automaticamente
-const APPROVED_STORES_WHITELIST = [
-  // Grandes varejistas brasileiros
-  'mercado livre', 'mercadolivre',
-  'amazon.com.br', 'amazon brasil',
-  'magazine luiza', 'magazine', 'magazineluiza',
-  'americanas',
-  'casas bahia', 'casasbahia',
-  'extra',
-  'carrefour',
-  'submarino',
-  'kabum',
-  'shopee', 'shopee brasil',
-  'ponto frio', 'pontofrio',
-  'fast shop', 'fastshop',
-  
-  // Operadoras e grandes redes
-  'claro', 'vivo', 'tim',
-  'walmart',
-  
-  // Especializadas confiáveis
-  'iplace',
-  'smiles',
-  
-  // Marcas oficiais
-  'apple store', 'apple',
-  'samsung'
-];
-
-// Função RESTRITIVA - só aceita lojas da lista aprovada
-function isApprovedStore(storeName: string): boolean {
-  if (!storeName) {
-    console.log(`🚫 REJEITADO: Nome da loja vazio`);
-    return false;
-  }
-  
-  const storeNameLower = storeName.toLowerCase().trim();
-  
-  // Verificar se está na lista de lojas aprovadas
-  const isApproved = APPROVED_STORES_WHITELIST.some(approved => {
-    return storeNameLower.includes(approved.toLowerCase()) || 
-           approved.toLowerCase().includes(storeNameLower);
-  });
-  
-  if (isApproved) {
-    console.log(`✅ LOJA APROVADA: ${storeName}`);
-    return true;
-  }
-  
-  // Qualquer loja não aprovada é automaticamente rejeitada
-  console.log(`🚫 LOJA REJEITADA (não está na lista aprovada): ${storeName}`);
-  return false;
-}
+import { isApprovedStore } from './whitelist';
 
 /**
  * Função para buscar preços médios usando SerpAPI Google Shopping
