@@ -4,6 +4,113 @@ import { nanoid } from 'nanoid';
 import { db } from './db';
 import { priceHistory } from '@shared/schema';
 
+// Lojas confiáveis brasileiras (prioridade alta)
+const TRUSTED_BRAZILIAN_STORES = [
+  'mercadolivre.com.br', 'mercado livre',
+  'amazon.com.br', 'amazon brasil',
+  'magazineluiza.com.br', 'magazine luiza', 'magazine',
+  'americanas.com.br', 'americanas',
+  'casasbahia.com.br', 'casas bahia',
+  'extra.com.br', 'extra',
+  'carrefour.com.br', 'carrefour',
+  'submarino.com.br', 'submarino',
+  'kabum.com.br', 'kabum',
+  'shopee.com.br', 'shopee brasil',
+  'zoom.com.br', 'zoom',
+  'fastshop.com.br', 'fast shop',
+  'pontofrio.com.br', 'ponto frio',
+  'saraiva.com.br', 'saraiva',
+  'walmart.com.br', 'walmart',
+  'netshoes.com.br', 'netshoes',
+  'centauro.com.br', 'centauro',
+  'drogasil.com.br', 'drogasil',
+  'riachuelo.com.br', 'riachuelo',
+  // Lojas especializadas legítimas
+  'iplace', 'rei do celular', 'smiles', 'smiles.com.br',
+  'buscape.com.br', 'buscape', 'buscapé',
+  'terabyteshop.com.br', 'terabyte',
+  'pichau.com.br', 'pichau',
+  'girafa.com.br', 'girafa',
+  'mobly.com.br', 'mobly',
+  'tok&stok', 'tokstok.com.br'
+];
+
+// Lojas internacionais confiáveis (limitadas)
+const TRUSTED_INTERNATIONAL_STORES = [
+  'apple.com', 'apple store',
+  'samsung.com', 'samsung',
+  'sony.com', 'sony',
+  'dell.com', 'dell',
+  'hp.com', 'hp',
+  'lenovo.com', 'lenovo',
+  'microsoft.com', 'microsoft',
+  'nike.com', 'nike',
+  'adidas.com', 'adidas'
+];
+
+// Padrões de vendedores duvidosos para bloquear
+const BLOCKED_SELLER_PATTERNS = [
+  // Vendedores genéricos do eBay
+  /^[a-z0-9_-]+\d+$/i, // padrões como "seller123", "user_456"
+  /wireless/i,
+  /electronics/i,
+  /gadgets/i,
+  /store\d+/i,
+  /shop\d+/i,
+  /outlet/i,
+  /deals/i,
+  /marketplace/i,
+  // Vendedores específicos problemáticos
+  /itsworthmore/i,
+  /amazing-wireless/i,
+  /tech-deals/i,
+  /phone-shop/i,
+  /mobile-store/i
+];
+
+// Função para verificar se uma loja é confiável
+function isTrustedStore(storeName: string): boolean {
+  if (!storeName) return false;
+  
+  const storeNameLower = storeName.toLowerCase().trim();
+  
+  // Verificar se está na lista de lojas brasileiras confiáveis
+  const isBrazilianTrusted = TRUSTED_BRAZILIAN_STORES.some(trusted => 
+    storeNameLower.includes(trusted.toLowerCase()) || 
+    trusted.toLowerCase().includes(storeNameLower)
+  );
+  
+  if (isBrazilianTrusted) {
+    console.log(`✅ LOJA CONFIÁVEL (brasileira): ${storeName}`);
+    return true;
+  }
+  
+  // Verificar se está na lista de lojas internacionais confiáveis
+  const isInternationalTrusted = TRUSTED_INTERNATIONAL_STORES.some(trusted => 
+    storeNameLower.includes(trusted.toLowerCase()) || 
+    trusted.toLowerCase().includes(storeNameLower)
+  );
+  
+  if (isInternationalTrusted) {
+    console.log(`✅ LOJA CONFIÁVEL (internacional): ${storeName}`);
+    return true;
+  }
+  
+  // Verificar se corresponde a padrões de vendedores duvidosos
+  const isBlockedSeller = BLOCKED_SELLER_PATTERNS.some(pattern => 
+    pattern.test(storeNameLower)
+  );
+  
+  if (isBlockedSeller) {
+    console.log(`🚫 VENDEDOR BLOQUEADO: ${storeName}`);
+    return false;
+  }
+  
+  // Se não está nas listas confiáveis nem bloqueadas, é suspeito
+  console.log(`⚠️ LOJA SUSPEITA (não verificada): ${storeName}`);
+  return false; // Bloquear por padrão lojas não verificadas
+}
+
 /**
  * Função para buscar preços médios usando SerpAPI Google Shopping
  * Baseada no código limpo fornecido pelo usuário
@@ -74,7 +181,7 @@ export async function getAveragePrices(productName: string): Promise<{
 
     console.log(`📦 Encontrados ${items.length} produtos com preços válidos`);
 
-    // Filtrar apenas produtos principais (não acessórios)
+    // Filtrar apenas produtos principais (não acessórios) E de lojas confiáveis
     const mainProducts = items.filter((item: any) => {
       const title = item.title?.toLowerCase() || '';
       const isAccessory = title.includes('capa') || title.includes('película') || 
@@ -82,6 +189,9 @@ export async function getAveragePrices(productName: string): Promise<{
                         title.includes('adaptador') || title.includes('case') ||
                         title.includes('capinha') || title.includes('cover') ||
                         title.includes('carregador') || title.includes('suporte');
+      
+      // Verificar se a loja é confiável
+      const isFromTrustedStore = isTrustedStore(item.source || '');
       
       // Verificar preço mínimo por categoria
       const searchLower = q.toLowerCase();
@@ -100,9 +210,13 @@ export async function getAveragePrices(productName: string): Promise<{
       }
 
       const isValidPrice = item.price >= minPrice && item.price <= maxPrice;
-      const isMainProduct = !isAccessory && isValidPrice;
+      const isMainProduct = !isAccessory && isValidPrice && isFromTrustedStore;
       
-      console.log(`🔍 ${item.title?.substring(0, 50)}... - R$ ${item.price} - ${isAccessory ? 'ACESSÓRIO' : 'PRINCIPAL'} - ${isMainProduct ? 'VÁLIDO' : 'INVÁLIDO'}`);
+      const status = !isFromTrustedStore ? 'LOJA BLOQUEADA' : 
+                    isAccessory ? 'ACESSÓRIO' : 
+                    !isValidPrice ? 'PREÇO INVÁLIDO' : 'VÁLIDO';
+      
+      console.log(`🔍 ${item.title?.substring(0, 50)}... - R$ ${item.price} - ${item.source} - ${status}`);
       
       return isMainProduct;
     });
