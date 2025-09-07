@@ -1937,6 +1937,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 7. Task de limpeza: marcar promoções expiradas como inativas
+  app.post('/api/maintenance/mark-expired-promotions', async (req, res) => {
+    try {
+      const expiredCount = await storage.markExpiredPromotions();
+      res.json({ 
+        success: true, 
+        message: `${expiredCount} promoções expiradas marcadas como inativas`,
+        expiredCount 
+      });
+    } catch (error) {
+      console.error("Error marking expired promotions:", error);
+      res.status(500).json({ message: "Erro ao marcar promoções expiradas" });
+    }
+  });
+
   // ===== NOVO SISTEMA: PROMOÇÕES DIRETAS E SIMPLIFICADAS =====
 
   // 0. Listar promoções do usuário logado (para admin)
