@@ -1,0 +1,37 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+public-flyer.tsx:101 📱 Executando: Click Ofertas Paraguai Desktop - Modo: Panfleto
+2254973a-d7a7-4855-8710-db1d5e4deb06:1 Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+2254973a-d7a7-4855-8710-db1d5e4deb06:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+main.tsx:13 Falha no registro do Service Worker: SecurityError: Failed to register a ServiceWorker for scope ('https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/') with script ('https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/sw.js'): The script has an unsupported MIME type ('text/html').
+@radix-ui_react-dialog.js?v=834e3656:339 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ @radix-ui_react-dialog.js?v=834e3656:339
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=834e3656:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=834e3656:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=834e3656:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=834e3656:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=834e3656:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=834e3656:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=834e3656:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=834e3656:19416
+commitRoot @ chunk-RPCDYKBN.js?v=834e3656:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=834e3656:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=834e3656:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=834e3656:18627Understand this warning
+cell-shop-importados:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.Understand this error
+cell-shop-importados:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.Understand this error
+bundle.js:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'translations')
+    at t (bundle.js:1:263220)
+    at bundle.js:1:264780
+t @ bundle.js:1
+(anonymous) @ bundle.js:1Understand this error
+bundle.js:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'translations')
+    at e.value (bundle.js:1:622681)
+    at bundle.js:1:622606
+value @ bundle.js:1
+(anonymous) @ bundle.js:1Understand this error
+price-comparison-popup.tsx:172 🔍 DEBUG POPUP - Dados brasileiros: [{…}]
+price-comparison-popup.tsx:173 🔍 DEBUG POPUP - Melhor oferta: {store: 'Amazon.com.br - Seller', price: 500, currency: 'R$', url: 'https://www.google.com/shopping/product/9886655183142140985?gl=br', availability: 'in_stock', …}
+price-comparison-popup.tsx:174 🔍 DEBUG POPUP - storeName: undefined
+price-comparison-popup.tsx:172 🔍 DEBUG POPUP - Dados brasileiros: [{…}]
+price-comparison-popup.tsx:173 🔍 DEBUG POPUP - Melhor oferta: {store: 'Amazon.com.br - Seller', price: 500, currency: 'R$', url: 'https://www.google.com/shopping/product/9886655183142140985?gl=br', availability: 'in_stock', …}
+price-comparison-popup.tsx:174 🔍 DEBUG POPUP - storeName: undefined
