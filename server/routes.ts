@@ -3531,27 +3531,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/maintenance/toggle', async (req: any, res) => {
-    try {
-      // Verificação manual de super admin
-      let user = null;
-      
-      if (req.session?.user) {
-        user = req.session.user;
-      } else if (req.user?.claims?.sub) {
-        const userId = req.user.claims.sub;
-        user = await storage.getUser(userId);
-      }
-      
-      if (!user?.isSuperAdmin) {
-        return res.status(403).json({ message: "Access denied - Super Admin required" });
-      }
+  // Middleware simples para manutenção
+  function requireSuperAdmin(req: any, res: any, next: any) {
+    console.log('🔧 requireSuperAdmin - verificando sessão...', {
+      hasSession: !!req.session,
+      hasUser: !!req.session?.user,
+      user: req.session?.user ? { id: req.session.user.id, isSuperAdmin: req.session.user.isSuperAdmin } : null
+    });
+    
+    const user = req.session?.user;
+    if (!user) return res.status(401).json({ error: 'not_authenticated' });
+    if (!user.isSuperAdmin) return res.status(403).json({ error: 'forbidden' });
+    req.user = user; // Disponibilizar user na req
+    return next();
+  }
 
+  app.post('/api/maintenance/toggle', requireSuperAdmin, async (req: any, res) => {
+    try {
       const { isActive } = req.body;
       
       await storage.updateMaintenanceMode({
         isActive,
-        updatedBy: user.id
+        updatedBy: req.user.id
       });
 
       res.json({ success: true });
@@ -3561,29 +3562,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/maintenance/config', async (req: any, res) => {
+  app.post('/api/maintenance/config', requireSuperAdmin, async (req: any, res) => {
     try {
-      // Verificação manual de super admin
-      let user = null;
-      
-      if (req.session?.user) {
-        user = req.session.user;
-      } else if (req.user?.claims?.sub) {
-        const userId = req.user.claims.sub;
-        user = await storage.getUser(userId);
-      }
-      
-      if (!user?.isSuperAdmin) {
-        return res.status(403).json({ message: "Access denied - Super Admin required" });
-      }
-
       const { title, message, accessPassword } = req.body;
       
       await storage.updateMaintenanceMode({
         title,
         message,
         accessPassword,
-        updatedBy: user.id
+        updatedBy: req.user.id
       });
 
       res.json({ success: true });

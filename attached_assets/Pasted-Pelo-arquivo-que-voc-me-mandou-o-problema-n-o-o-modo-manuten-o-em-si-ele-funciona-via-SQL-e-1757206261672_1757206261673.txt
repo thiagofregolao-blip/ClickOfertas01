@@ -1,0 +1,114 @@
+Pelo arquivo que você me mandou, o problema não é o “modo manutenção” em si — ele funciona via SQL e a interceptação de rotas está OK. O que falha é a interface do Super Admin, porque as rotas POST do painel não conseguem validar sua sessão/permissão: /api/maintenance/toggle e /api/maintenance/config retornam “sem permissão” por causa do middleware de auth. 
+
+controles_manutencao
+
+Por que aparece “sem permissão”
+
+Em geral, isso acontece por (uma ou mais) causas abaixo, típicas quando o front tenta chamar POSTs protegidos:
+
+Sessão/cookie não vai junto no fetch do painel
+— Falta credentials: "include" no fetch (ou Axios não está com withCredentials: true).
+— Cookie com SameSite, domain ou secure mal configurados (ex.: API em subdomínio diferente).
+
+Middleware checa a permissão de forma incompatível com o que está na sessão
+— Ex.: código espera role === "super_admin" mas você grava "super-admin"/"admin".
+— Middleware “isAuthenticatedCustom” usando outra origem de auth (ex.: header/JWT) e ignorando a sessão.
+
+CSRF bloqueando POST
+— Muitas libs de CSRF devolvem 403 (“sem permissão”) quando o token não bate.
+
+CORS sem credenciais
+— Servidor não está com Access-Control-Allow-Credentials: true + origin explícito, então o browser não manda cookie.
+
+Como corrigir (prático e direto)
+1) Middleware de Super Admin (lado servidor)
+
+Garanta uma verificação simples e alinhada com o que você salva na sessão:
+
+// ex.: Express/TypeScript
+function requireSuperAdmin(req, res, next) {
+  const user = req.session?.user;
+  if (!user) return res.status(401).json({ error: 'not_authenticated' });
+
+  const isSuper =
+    user.role === 'super_admin' ||
+    user.permissions?.includes?.('maintenance:write');
+
+  if (!isSuper) return res.status(403).json({ error: 'forbidden' });
+  return next();
+}
+
+// Aplique nas rotas problemáticas:
+app.post('/api/maintenance/toggle', requireSuperAdmin, async (req, res) => {
+  // ... alternar is_active no banco
+});
+app.post('/api/maintenance/config', requireSuperAdmin, async (req, res) => {
+  // ... atualizar title/message/password
+});
+
+
+Dica de diagnóstico rápido: logue req.session?.user e o role dentro do middleware pra ver exatamente o que chega nessas rotas.
+
+2) Cookies/sessão e CORS
+
+Se painel e API estão em domínios/subdomínios diferentes, ajuste:
+
+// sessão
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    sameSite: 'lax',      // ou 'none' se cruzar domínios + HTTPS
+    secure: true,         // true em produção (HTTPS)
+    domain: '.seu-dominio.com' // se usar subdomínios
+  }
+}));
+
+// CORS
+app.use(cors({
+  origin: ['https://admin.seu-dominio.com', 'https://app.seu-dominio.com'],
+  credentials: true
+}));
+
+3) Chamadas do painel (lado cliente)
+
+Inclua credenciais e, se usar CSRF, envie o token:
+
+await fetch('/api/maintenance/toggle', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    // 'X-CSRF-Token': token // se aplicável
+  },
+  body: JSON.stringify({ action: 'enable' }), // ou payload que você usa
+  credentials: 'include'
+});
+
+4) Conferir nomes/valores de papel
+
+Padronize exatamente o que o backend espera: super_admin. Ajuste onde a sessão é criada.
+
+5) Se houver CSRF
+
+Confirme se o painel está pegando o token correto (cookie/meta tag/endpoint) e enviando no header/campo certo. Senão, desabilite CSRF apenas nessas rotas enquanto testa, para isolar o problema.
+
+Hotfix seguro (se precisar “pra ontem”)
+
+Liberar por sessão simples temporariamente nessas 2 rotas (checar apenas req.session?.user), e depois refinar.
+
+Ou aceitar um JWT curto (ex.: somente para maintenance:*) emitido após login de super admin.
+
+Enquanto ajusta o painel
+
+Você pode ativar/desativar pelo banco (foi assim que você testou) usando os comandos SQL indicados no arquivo. 
+
+controles_manutencao
+
+Se quiser, me diga:
+
+Onde estão hospedados painel e API (mesmo domínio ou subdomínios),
+
+Como você grava a sessão (req.session.user) e qual é o role salvo,
+
+Se há CSRF habilitado.

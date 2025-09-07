@@ -282,6 +282,7 @@ function MaintenanceControls() {
   // Mutation para alternar modo manutenção
   const toggleMaintenanceMutation = useMutation({
     mutationFn: async (isActive: boolean) => {
+      console.log('🔧 Tentando alternar modo manutenção:', { isActive });
       return await apiRequest('POST', '/api/maintenance/toggle', { isActive });
     },
     onSuccess: () => {
