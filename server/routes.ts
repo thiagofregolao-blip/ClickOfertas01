@@ -3531,19 +3531,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/maintenance/toggle', isAuthenticated, async (req: any, res) => {
+  app.post('/api/maintenance/toggle', isSuperAdmin, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
-      if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
-      const user = await storage.getUser(userId);
-      if (!user?.isSuperAdmin) {
-        return res.status(403).json({ message: "Access denied. Super admin required." });
-      }
-
+      const userId = req.user.id;
       const { isActive } = req.body;
+      
       await storage.updateMaintenanceMode({
         isActive,
         updatedBy: userId
@@ -3556,19 +3548,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/maintenance/config', isAuthenticated, async (req: any, res) => {
+  app.post('/api/maintenance/config', isSuperAdmin, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
-      if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
-      const user = await storage.getUser(userId);
-      if (!user?.isSuperAdmin) {
-        return res.status(403).json({ message: "Access denied. Super admin required." });
-      }
-
+      const userId = req.user.id;
       const { title, message, accessPassword } = req.body;
+      
       await storage.updateMaintenanceMode({
         title,
         message,
