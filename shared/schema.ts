@@ -529,6 +529,17 @@ export const promotionScratchesRelations = relations(promotionScratches, ({ one 
 
 
 
+// Controle do modo manutenção
+export const maintenanceMode = pgTable("maintenance_mode", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  isActive: boolean("is_active").default(false),
+  title: text("title").default("Em Breve"),
+  message: text("message").default("Estamos preparando as melhores ofertas do Paraguai para você!"),
+  accessPassword: varchar("access_password").default("CLICKOFERTAS2025"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  updatedBy: varchar("updated_by").references(() => users.id),
+});
+
 // Histórico de preços para monitoramento
 export const priceHistory = pgTable("price_history", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

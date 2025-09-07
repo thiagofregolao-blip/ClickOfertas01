@@ -3501,6 +3501,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ==========================================
+  // SISTEMA DE MODO MANUTENÇÃO
+  // ==========================================
+
+  // API routes para modo manutenção
+  app.get('/api/maintenance/status', async (req, res) => {
+    try {
+      const maintenanceStatus = await storage.getMaintenanceStatus();
+      res.json(maintenanceStatus);
+    } catch (error) {
+      console.error("Erro ao buscar status de manutenção:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post('/api/maintenance/verify-access', async (req, res) => {
+    try {
+      const { password } = req.body;
+      const maintenanceStatus = await storage.getMaintenanceStatus();
+      
+      if (password === maintenanceStatus?.accessPassword) {
+        res.json({ success: true });
+      } else {
+        res.status(401).json({ success: false });
+      }
+    } catch (error) {
+      console.error("Erro ao verificar senha de acesso:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post('/api/maintenance/toggle', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ message: "Access denied. Super admin required." });
+      }
+
+      const { isActive, title, message, accessPassword } = req.body;
+      await storage.updateMaintenanceMode({
+        isActive,
+        title,
+        message,
+        accessPassword,
+        updatedBy: userId
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Erro ao atualizar modo manutenção:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ==========================================
   // FIM DO SISTEMA DE RASPADINHA DIÁRIA
   // ==========================================
 

@@ -33,6 +33,7 @@ import {
   dailyScratchCards,
   budgetConfig,
   funnyMessages,
+  maintenanceMode,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -3190,6 +3191,57 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
       
     return result;
+  }
+
+  // ==========================================
+  // SISTEMA DE MODO MANUTENÇÃO
+  // ==========================================
+
+  async getMaintenanceStatus() {
+    const [maintenance] = await db.select().from(maintenanceMode).limit(1);
+    return maintenance || {
+      id: "default",
+      isActive: false,
+      title: "Em Breve",
+      message: "Estamos preparando as melhores ofertas do Paraguai para você!",
+      accessPassword: "CLICKOFERTAS2025",
+      updatedAt: new Date(),
+      updatedBy: null
+    };
+  }
+
+  async updateMaintenanceMode(data: {
+    isActive: boolean;
+    title?: string;
+    message?: string;
+    accessPassword?: string;
+    updatedBy: string;
+  }) {
+    // Verifica se já existe um registro
+    const existing = await db.select().from(maintenanceMode).limit(1);
+    
+    if (existing.length > 0) {
+      // Atualiza o registro existente
+      await db.update(maintenanceMode)
+        .set({
+          isActive: data.isActive,
+          title: data.title || "Em Breve",
+          message: data.message || "Estamos preparando as melhores ofertas do Paraguai para você!",
+          accessPassword: data.accessPassword || "CLICKOFERTAS2025",
+          updatedAt: new Date(),
+          updatedBy: data.updatedBy
+        });
+    } else {
+      // Cria um novo registro
+      await db.insert(maintenanceMode).values({
+        isActive: data.isActive,
+        title: data.title || "Em Breve",
+        message: data.message || "Estamos preparando as melhores ofertas do Paraguai para você!",
+        accessPassword: data.accessPassword || "CLICKOFERTAS2025",
+        updatedAt: new Date(),
+        updatedBy: data.updatedBy
+      });
+    }
   }
 
   // ==========================================
