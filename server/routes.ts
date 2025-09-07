@@ -3531,14 +3531,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/maintenance/toggle', isAuthenticatedCustom, isSuperAdmin, async (req: any, res) => {
+  app.post('/api/maintenance/toggle', async (req: any, res) => {
     try {
-      const userId = req.user.id;
+      // Verificação manual de super admin
+      let user = null;
+      
+      if (req.session?.user) {
+        user = req.session.user;
+      } else if (req.user?.claims?.sub) {
+        const userId = req.user.claims.sub;
+        user = await storage.getUser(userId);
+      }
+      
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ message: "Access denied - Super Admin required" });
+      }
+
       const { isActive } = req.body;
       
       await storage.updateMaintenanceMode({
         isActive,
-        updatedBy: userId
+        updatedBy: user.id
       });
 
       res.json({ success: true });
@@ -3548,16 +3561,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/maintenance/config', isAuthenticatedCustom, isSuperAdmin, async (req: any, res) => {
+  app.post('/api/maintenance/config', async (req: any, res) => {
     try {
-      const userId = req.user.id;
+      // Verificação manual de super admin
+      let user = null;
+      
+      if (req.session?.user) {
+        user = req.session.user;
+      } else if (req.user?.claims?.sub) {
+        const userId = req.user.claims.sub;
+        user = await storage.getUser(userId);
+      }
+      
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ message: "Access denied - Super Admin required" });
+      }
+
       const { title, message, accessPassword } = req.body;
       
       await storage.updateMaintenanceMode({
         title,
         message,
         accessPassword,
-        updatedBy: userId
+        updatedBy: user.id
       });
 
       res.json({ success: true });
