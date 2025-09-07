@@ -168,11 +168,6 @@ export default function PriceComparisonPopup({
                         const minPrice = Math.min(...comparisonData.brazilianPrices.map(p => parseFloat(p.price)));
                         const bestBrazilianOffer = comparisonData.brazilianPrices.find(p => parseFloat(p.price) === minPrice);
                         
-                        // DEBUG: Vamos ver o que realmente está vindo nos dados
-                        console.log("🔍 DEBUG POPUP - Dados brasileiros:", comparisonData.brazilianPrices);
-                        console.log("🔍 DEBUG POPUP - Melhor oferta:", bestBrazilianOffer);
-                        console.log("🔍 DEBUG POPUP - storeName:", bestBrazilianOffer?.storeName);
-                        
                         return (
                           <div className="space-y-1">
                             <p className="text-2xl font-bold text-green-600">
@@ -182,7 +177,7 @@ export default function PriceComparisonPopup({
                               ≈ US$ {(minPrice / exchangeRate).toFixed(2)}
                             </p>
                             <p className="text-sm font-medium text-gray-700">
-                              {bestBrazilianOffer?.storeName || "DEBUG: storeName vazio!"}
+                              {bestBrazilianOffer?.store}
                             </p>
                           </div>
                         );
