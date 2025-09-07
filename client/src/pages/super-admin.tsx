@@ -1046,7 +1046,7 @@ export default function SuperAdmin() {
         </div>
 
         <Tabs defaultValue="banners" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="banners" className="flex items-center gap-2">
               <Image className="w-4 h-4" />
               Banners
@@ -1058,6 +1058,10 @@ export default function SuperAdmin() {
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               Usuários
+            </TabsTrigger>
+            <TabsTrigger value="daily-scratch" className="flex items-center gap-2">
+              <Gift className="w-4 h-4" />
+              Raspadinha
             </TabsTrigger>
             <TabsTrigger value="promotions" className="flex items-center gap-2">
               <Trophy className="w-4 h-4" />
@@ -1596,6 +1600,465 @@ export default function SuperAdmin() {
               )}
             </div>
           </TabsContent>
+
+          {/* ABA DE RASPADINHA DIÁRIA */}
+          <TabsContent value="daily-scratch" className="space-y-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <Gift className="w-6 h-6 text-purple-600" />
+                Sistema de Raspadinha Diária
+              </h2>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Configurações do Sistema */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="w-5 h-5 text-blue-600" />
+                    Configurações
+                  </CardTitle>
+                  <CardDescription>
+                    Configure como o sistema funciona
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Modo de Operação</p>
+                      <p className="text-sm text-gray-600">Manual ou Automático</p>
+                    </div>
+                    <Switch ref={operationModeRef} defaultChecked data-testid="switch-operation-mode" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Produtos por Dia</label>
+                    <Input ref={productsPerDayRef} type="number" defaultValue="5" min="1" max="10" className="max-w-20" data-testid="input-products-per-day" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Chance de Ganhar (%)</label>
+                    <Input ref={winChanceRef} type="number" defaultValue="25" min="1" max="100" className="max-w-20" data-testid="input-win-chance" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={async () => {
+                        try {
+                          const res = await apiRequest('POST', '/api/admin/daily-scratch/test');
+                          const response = await res.json();
+                          
+                          if (response.success) {
+                            toast({
+                              title: "Sistema Testado!",
+                              description: response.message || "Sistema funcionando normalmente",
+                              variant: "default",
+                            });
+                          } else {
+                            toast({
+                              title: "Problema no Sistema",
+                              description: response.message || response.suggestion || "Sistema não está funcionando corretamente",
+                              variant: "destructive",
+                            });
+                          }
+                        } catch (error: any) {
+                          console.error('Erro no teste:', error);
+                          let errorMessage = "Falha ao testar o sistema";
+                          
+                          if (error.message?.includes('Sistema não configurado')) {
+                            errorMessage = "Sistema ainda não foi configurado";
+                          } else if (error.message?.includes('No prizes') || error.message?.includes('prêmios')) {
+                            errorMessage = "Não há prêmios ativos cadastrados. Configure prêmios primeiro!";
+                          }
+                          
+                          toast({
+                            title: "Erro no Teste",
+                            description: errorMessage,
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    >
+                      <Dice6 className="w-4 h-4 mr-2" />
+                      Testar Sistema
+                    </Button>
+                    <Button 
+                      className="w-full"
+                      onClick={async () => {
+                        try {
+                          // Coletar valores dos inputs
+                          const isAutomatic = operationModeRef.current?.getAttribute('data-state') === 'checked';
+                          const productsPerDay = parseInt(productsPerDayRef.current?.value || '5');
+                          const winChance = parseInt(winChanceRef.current?.value || '25');
+                          
+                          // Validações básicas
+                          if (productsPerDay < 1 || productsPerDay > 10) {
+                            toast({
+                              title: "Erro de Validação",
+                              description: "Produtos por dia deve ser entre 1 e 10",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          
+                          if (winChance < 1 || winChance > 100) {
+                            toast({
+                              title: "Erro de Validação",
+                              description: "Chance de ganhar deve ser entre 1% e 100%",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          
+                          console.log('🎯 Salvando configurações:', {
+                            mode: isAutomatic ? 'automatic' : 'manual',
+                            productsPerDay,
+                            winChance
+                          });
+                          
+                          // Enviar para API
+                          const res = await apiRequest('PUT', '/api/admin/scratch-config', {
+                            mode: isAutomatic ? 'automatic' : 'manual',
+                            productsPerDay,
+                            winChance,
+                            isEnabled: true
+                          });
+                          const response = await res.json();
+                          
+                          toast({
+                            title: "Configurações Salvas!",
+                            description: `Sistema configurado: ${productsPerDay} produtos/dia, ${winChance}% chance de ganhar`,
+                            variant: "default",
+                          });
+                          
+                          console.log('✅ Configurações salvas:', response);
+                        } catch (error: any) {
+                          console.error('❌ Erro ao salvar configurações:', error);
+                          
+                          let errorMessage = "Não foi possível salvar as configurações";
+                          if (error.message?.includes('Failed to update config')) {
+                            errorMessage = "Erro interno do servidor. Tente novamente.";
+                          }
+                          
+                          toast({
+                            title: "Erro ao Salvar",
+                            description: errorMessage,
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      data-testid="button-save-config"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Salvar Configurações
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Estatísticas Reais */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-green-600" />
+                    Estatísticas Hoje
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-3 bg-blue-50 rounded-lg">
+                      <p className="text-2xl font-bold text-blue-600">{scratchStats?.cardsScratched || 0}</p>
+                      <p className="text-sm text-gray-600">Cartas Raspadas</p>
+                    </div>
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                      <p className="text-2xl font-bold text-green-600">{scratchStats?.prizesWon || 0}</p>
+                      <p className="text-sm text-gray-600">Prêmios Ganhos</p>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center p-3 bg-purple-50 rounded-lg">
+                    <p className="text-2xl font-bold text-purple-600">{scratchStats?.successRate?.toFixed(1) || 0}%</p>
+                    <p className="text-sm text-gray-600">Taxa de Sucesso</p>
+                  </div>
+                  
+                  <div className="text-center p-3 bg-orange-50 rounded-lg">
+                    <p className="text-2xl font-bold text-orange-600">{scratchStats?.totalCardsToday || 0}</p>
+                    <p className="text-sm text-gray-600">Total de Cartas</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Gestão de Produtos */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="w-5 h-5 text-orange-600" />
+                  Produtos Selecionados para Raspadinha
+                </CardTitle>
+                <CardDescription>
+                  Produtos que podem aparecer nas rapadinhas diárias
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-sm text-gray-600">5 produtos selecionados para hoje</p>
+                  <div className="space-x-2">
+                    <Button variant="outline" size="sm">
+                      <Dice6 className="w-4 h-4 mr-2" />
+                      Gerar Automático
+                    </Button>
+                    <Button size="sm">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Selecionar Produtos
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="grid gap-3 max-h-60 overflow-y-auto">
+                  {/* Produtos selecionados - Mock */}
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded"></div>
+                      <div>
+                        <p className="font-medium">iPhone 15 Pro Max</p>
+                        <p className="text-sm text-gray-600">Loja: TechStore PY</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">50% DESC</Badge>
+                      <Button variant="ghost" size="sm">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded"></div>
+                      <div>
+                        <p className="font-medium">Smart TV Samsung 65"</p>
+                        <p className="text-sm text-gray-600">Loja: ElectroMax</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">R$ 200 OFF</Badge>
+                      <Button variant="ghost" size="sm">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded"></div>
+                      <div>
+                        <p className="font-medium">Nike Air Max</p>
+                        <p className="text-sm text-gray-600">Loja: SportCenter</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">30% DESC</Badge>
+                      <Button variant="ghost" size="sm">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Gestão Real de Prêmios */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Gift className="w-5 h-5 text-purple-600" />
+                  Prêmios Disponíveis
+                </CardTitle>
+                <CardDescription>
+                  Configure os tipos de prêmios que podem ser ganhos
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-sm text-gray-600">{dailyPrizes.length} prêmios configurados</p>
+                  
+                  <Dialog open={isCreatePrizeOpen || !!editingPrize} onOpenChange={(open) => {
+                    if (!open) {
+                      setIsCreatePrizeOpen(false);
+                      setEditingPrize(null);
+                      prizeForm.reset();
+                    }
+                  }}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        size="sm"
+                        onClick={() => setIsCreatePrizeOpen(true)}
+                        data-testid="button-create-prize"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Novo Prêmio
+                      </Button>
+                    </DialogTrigger>
+                    
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>
+                          {editingPrize ? 'Editar Prêmio' : 'Criar Novo Prêmio'}
+                        </DialogTitle>
+                        <DialogDescription>
+                          {editingPrize 
+                            ? 'Atualize as informações do prêmio.' 
+                            : 'Crie um novo prêmio para as raspadinhas diárias.'
+                          }
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <Form {...prizeForm}>
+                        <form onSubmit={prizeForm.handleSubmit(onSubmitPrize)} className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={prizeForm.control}
+                              name="name"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Nome do Prêmio</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Ex: Desconto Especial" {...field} data-testid="input-prize-name" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={prizeForm.control}
+                              name="prizeType"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Tipo do Prêmio</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value} data-testid="select-prize-type">
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Selecione o tipo" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="discount">Desconto</SelectItem>
+                                      <SelectItem value="cashback">Cashback</SelectItem>
+                                      <SelectItem value="product">Produto Específico</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={prizeForm.control}
+                            name="description"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Descrição (Opcional)</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder="Descreva o prêmio..." {...field} data-testid="input-prize-description" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className="grid grid-cols-3 gap-4">
+                            <FormField
+                              control={prizeForm.control}
+                              name="discountPercentage"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Desconto (%)</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      placeholder="20" 
+                                      type="number" 
+                                      {...field} 
+                                      data-testid="input-prize-discount-percentage" 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={prizeForm.control}
+                              name="discountValue"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Valor Fixo</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      placeholder="25.00" 
+                                      type="number" 
+                                      step="0.01" 
+                                      {...field} 
+                                      data-testid="input-prize-discount-value" 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={prizeForm.control}
+                              name="probability"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Probabilidade</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      placeholder="0.2" 
+                                      type="number" 
+                                      step="0.01"
+                                      max="1"
+                                      min="0"
+                                      {...field} 
+                                      data-testid="input-prize-probability" 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              onClick={() => {
+                                setIsCreatePrizeOpen(false);
+                                setEditingPrize(null);
+                                prizeForm.reset();
+                              }}
+                            >
+                              Cancelar
+                            </Button>
+                            <Button 
+                              type="submit"
+                              disabled={createPrizeMutation.isPending || updatePrizeMutation.isPending}
+                              data-testid="button-save-prize"
+                            >
+                              {editingPrize ? 'Atualizar' : 'Criar'} Prêmio
+                            </Button>
+                          </div>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
                 
                 {/* 🎯 NOVA TABELA DE PRÊMIOS FUNCIONAL */}
                 <div className="border rounded-lg">
