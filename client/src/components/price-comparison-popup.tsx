@@ -164,21 +164,27 @@ export default function PriceComparisonPopup({
                   <CardContent className="p-4">
                     <div className="text-center">
                       <h4 className="font-semibold text-green-800 mb-2">Melhor Preço Brasil</h4>
-                      {comparisonData.brazilianPrices.length > 0 && (
-                        <div className="space-y-1">
-                          <p className="text-2xl font-bold text-green-600">
-                            R$ {formatBrazilianPrice(Math.min(...comparisonData.brazilianPrices.map(p => parseFloat(p.price))).toFixed(2))}
-                          </p>
-                          <p className="text-sm text-green-500">
-                            ≈ US$ {(Math.min(...comparisonData.brazilianPrices.map(p => parseFloat(p.price))) / exchangeRate).toFixed(2)}
-                          </p>
-                          <p className="text-sm font-medium text-gray-700">
-                            {comparisonData.brazilianPrices.find(p => 
-                              parseFloat(p.price) === Math.min(...comparisonData.brazilianPrices.map(x => parseFloat(x.price)))
-                            )?.storeName}
-                          </p>
-                        </div>
-                      )}
+                      {comparisonData.brazilianPrices.length > 0 && (() => {
+                        // Encontrar a loja com menor preço de forma mais robusta
+                        const bestPriceItem = comparisonData.brazilianPrices.reduce((min, current) => 
+                          parseFloat(current.price) < parseFloat(min.price) ? current : min
+                        );
+                        const bestPrice = parseFloat(bestPriceItem.price);
+                        
+                        return (
+                          <div className="space-y-1">
+                            <p className="text-2xl font-bold text-green-600">
+                              R$ {formatBrazilianPrice(bestPrice.toFixed(2))}
+                            </p>
+                            <p className="text-sm text-green-500">
+                              ≈ US$ {(bestPrice / exchangeRate).toFixed(2)}
+                            </p>
+                            <p className="text-sm font-medium text-gray-700">
+                              {bestPriceItem.storeName}
+                            </p>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </CardContent>
                 </Card>
