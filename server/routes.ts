@@ -3531,7 +3531,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/maintenance/toggle', isSuperAdmin, async (req: any, res) => {
+  app.post('/api/maintenance/toggle', isAuthenticatedCustom, isSuperAdmin, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { isActive } = req.body;
@@ -3548,7 +3548,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/maintenance/config', isSuperAdmin, async (req: any, res) => {
+  app.post('/api/maintenance/config', isAuthenticatedCustom, isSuperAdmin, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { title, message, accessPassword } = req.body;
