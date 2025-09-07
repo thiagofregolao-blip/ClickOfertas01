@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Lock, Sparkles, ShoppingBag, Globe, Unlock } from "lucide-react";
+import { Clock, Lock, Sparkles, ShoppingBag, Globe, Unlock, Settings, Wrench, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import mascoteImage from "@/assets/mascote-click.png";
 
@@ -20,7 +20,7 @@ export default function MaintenancePage({ onAccessGranted }: MaintenancePageProp
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password.trim()) return;
-
+    
     setIsLoading(true);
     
     try {
@@ -56,153 +56,168 @@ export default function MaintenancePage({ onAccessGranted }: MaintenancePageProp
     }
   };
 
-  // Efeito para animações
-  useEffect(() => {
-    const elements = document.querySelectorAll('.animate-fade-in');
-    elements.forEach((el, index) => {
-      setTimeout(() => {
-        el.classList.add('opacity-100');
-      }, index * 200);
-    });
-  }, []);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 flex items-center justify-center p-4">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-20 h-20 bg-orange-300 rounded-full blur-xl"></div>
-        <div className="absolute top-40 right-20 w-32 h-32 bg-pink-300 rounded-full blur-xl"></div>
-        <div className="absolute bottom-20 left-1/4 w-24 h-24 bg-red-300 rounded-full blur-xl"></div>
-        <div className="absolute bottom-40 right-1/3 w-28 h-28 bg-orange-400 rounded-full blur-xl"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden flex items-center justify-center p-4">
+      {/* Background Effects */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-orange-500/10 via-transparent to-blue-500/10"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500/20 rounded-full blur-2xl animate-pulse delay-500"></div>
       </div>
 
-      <div className="relative z-10 w-full max-w-2xl mx-auto text-center space-y-8">
-        {/* Mascote */}
-        <div className="animate-fade-in opacity-0 transition-opacity duration-1000">
-          <div className="relative mx-auto w-32 h-32 mb-6">
-            <img 
-              src={mascoteImage} 
-              alt="Click Ofertas Mascote" 
-              className="w-full h-full object-contain drop-shadow-2xl animate-bounce"
-            />
-            <div className="absolute -top-2 -right-2">
-              <Sparkles className="w-8 h-8 text-yellow-500 animate-pulse" />
+      {/* Grid Pattern */}
+      <div className="absolute inset-0" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fillRule='evenodd'%3E%3Cg fill='%23ffffff' fillOpacity='0.03'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+      }}></div>
+
+      <div className="relative z-10 w-full max-w-lg space-y-8">
+        {/* Mascote e Header Principal */}
+        <div className="text-center space-y-6">
+          <div className="relative mx-auto w-32 h-32 mb-8">
+            {/* Glow Effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-500 rounded-full blur-xl opacity-50 animate-pulse"></div>
+            
+            {/* Mascote Container */}
+            <div className="relative w-full h-full bg-white/10 backdrop-blur-sm rounded-full border border-white/20 flex items-center justify-center">
+              <img 
+                src={mascoteImage} 
+                alt="Click Ofertas Mascote"
+                className="w-20 h-20 object-contain filter drop-shadow-2xl"
+              />
             </div>
+            
+            {/* Status Icon */}
+            <div className="absolute -top-2 -right-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center animate-bounce">
+                <Wrench className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/30 backdrop-blur-sm">
+              <Clock className="w-4 h-4 mr-2" />
+              Sistema em Manutenção
+            </Badge>
+            
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-orange-200 to-orange-400 bg-clip-text text-transparent">
+              Em Breve
+            </h1>
+            
+            <p className="text-xl text-gray-300 leading-relaxed max-w-md mx-auto">
+              Estamos preparando as <span className="text-orange-400 font-semibold">melhores ofertas</span> do Paraguai para você!
+            </p>
           </div>
         </div>
 
-        {/* Título Principal */}
-        <div className="animate-fade-in opacity-0 transition-opacity duration-1000 delay-200">
-          <Badge 
-            variant="secondary" 
-            className="mb-4 px-4 py-2 text-sm font-medium bg-orange-100 text-orange-800 border-orange-200"
-          >
-            <Clock className="w-4 h-4 mr-2" />
-            Em Breve
-          </Badge>
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent">
-            Click Ofertas
-          </h1>
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-6">
-            Paraguai
-          </h2>
+        {/* Cards de Features */}
+        <div className="grid grid-cols-1 gap-4">
+          <Card className="bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all duration-300 group">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <ShoppingBag className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-lg">Ofertas Exclusivas</h3>
+                  <p className="text-gray-400">Produtos com os melhores preços do mercado</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all duration-300 group">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Globe className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-lg">Comparação Inteligente</h3>
+                  <p className="text-gray-400">Brasil vs Paraguai em tempo real</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all duration-300 group">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-lg">Experiência Premium</h3>
+                  <p className="text-gray-400">Interface moderna e intuitiva</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Mensagem Principal */}
-        <Card className="animate-fade-in opacity-0 transition-opacity duration-1000 delay-400 bg-white/80 backdrop-blur-sm border-orange-200 shadow-xl">
-          <CardContent className="p-8">
-            <div className="space-y-6">
-              <div className="text-center space-y-4">
-                <h3 className="text-2xl font-bold text-gray-800">
-                  🚀 Estamos Chegando!
-                </h3>
-                <p className="text-lg text-gray-600 leading-relaxed">
-                  Estamos preparando as <span className="font-semibold text-orange-600">melhores ofertas do Paraguai</span> para você! 
-                  Em breve você terá acesso a produtos incríveis com os melhores preços da fronteira.
-                </p>
-              </div>
-
-              {/* Features Preview */}
-              <div className="grid md:grid-cols-3 gap-4 py-6">
-                <div className="text-center space-y-2">
-                  <div className="mx-auto w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                    <ShoppingBag className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <h4 className="font-semibold text-gray-800">Produtos Exclusivos</h4>
-                  <p className="text-sm text-gray-600">Perfumes, eletrônicos e muito mais</p>
-                </div>
-                <div className="text-center space-y-2">
-                  <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                    <Globe className="w-6 h-6 text-red-600" />
-                  </div>
-                  <h4 className="font-semibold text-gray-800">Comparação Brasil</h4>
-                  <p className="text-sm text-gray-600">Compare preços em tempo real</p>
-                </div>
-                <div className="text-center space-y-2">
-                  <div className="mx-auto w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-pink-600" />
-                  </div>
-                  <h4 className="font-semibold text-gray-800">Raspadinhas</h4>
-                  <p className="text-sm text-gray-600">Ganhe descontos especiais</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Acesso para Colaboradores */}
-        <div className="animate-fade-in opacity-0 transition-opacity duration-1000 delay-600">
+        {/* Acesso de Emergência */}
+        <div className="text-center space-y-4">
           {!showPasswordField ? (
             <Button
-              onClick={() => setShowPasswordField(true)}
-              variant="outline"
-              className="text-gray-600 hover:text-gray-800 border-gray-300 hover:border-gray-400"
+              variant="ghost"
               size="sm"
+              onClick={() => setShowPasswordField(true)}
+              className="text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-300"
             >
               <Lock className="w-4 h-4 mr-2" />
-              Acesso para Colaboradores
+              Acesso de emergência
             </Button>
           ) : (
-            <Card className="bg-gray-50 border-gray-200 max-w-md mx-auto">
-              <CardContent className="p-6">
+            <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center justify-center space-x-2 text-gray-300">
+                  <Unlock className="w-5 h-5" />
+                  <span className="font-medium">Acesso de Emergência</span>
+                </div>
+                
                 <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                  <div>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                      Digite a senha de acesso:
-                    </label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Senha de acesso"
-                      className="text-center"
-                      disabled={isLoading}
-                      autoFocus
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      type="submit"
-                      disabled={isLoading || !password.trim()}
-                      className="flex-1 bg-orange-600 hover:bg-orange-700"
-                    >
-                      {isLoading ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Unlock className="w-4 h-4 mr-2" />
-                      )}
-                      {isLoading ? "Verificando..." : "Acessar"}
-                    </Button>
+                  <Input
+                    type="password"
+                    placeholder="Digite a senha de acesso"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="text-center bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:bg-white/20 transition-all duration-300"
+                    disabled={isLoading}
+                  />
+                  
+                  <div className="flex space-x-3">
                     <Button
                       type="button"
                       variant="outline"
+                      size="sm"
                       onClick={() => {
                         setShowPasswordField(false);
                         setPassword("");
                       }}
+                      className="flex-1 border-white/20 text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-300"
+                      disabled={isLoading}
                     >
                       Cancelar
+                    </Button>
+                    
+                    <Button
+                      type="submit"
+                      size="sm"
+                      className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 transition-all duration-300 shadow-lg"
+                      disabled={isLoading || !password.trim()}
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Verificando...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-2">
+                          <Unlock className="w-4 h-4" />
+                          <span>Acessar</span>
+                        </div>
+                      )}
                     </Button>
                   </div>
                 </form>
@@ -211,19 +226,29 @@ export default function MaintenancePage({ onAccessGranted }: MaintenancePageProp
           )}
         </div>
 
-        {/* Footer */}
-        <div className="animate-fade-in opacity-0 transition-opacity duration-1000 delay-800 text-center text-gray-500">
-          <p className="text-sm">
-            © 2025 Click Ofertas Paraguai. Todos os direitos reservados.
-          </p>
+        {/* Footer Elegante */}
+        <div className="text-center space-y-6 pt-4">
+          <div className="flex items-center justify-center space-x-3">
+            <div className="flex space-x-1">
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce delay-100"></div>
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce delay-200"></div>
+            </div>
+            <span className="text-gray-300 font-medium">Sistema em atualização</span>
+          </div>
+          
+          <div className="space-y-2">
+            <p className="text-gray-400 flex items-center justify-center space-x-2">
+              <span>Feito com</span>
+              <Heart className="w-4 h-4 text-red-500 animate-pulse" />
+              <span>para você</span>
+            </p>
+            <p className="text-sm text-gray-500">
+              Voltaremos em breve com novidades incríveis!
+            </p>
+          </div>
         </div>
       </div>
-
-      <style jsx>{`
-        .animate-fade-in {
-          transition: opacity 1s ease-in-out;
-        }
-      `}</style>
     </div>
   );
 }
