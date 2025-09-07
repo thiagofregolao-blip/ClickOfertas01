@@ -8,7 +8,7 @@ import { getUserId } from "./utils/auth";
 const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
   try {
     // Verificar sessão manual primeiro (usuários registrados via formulário)
-    if (req.session?.user?.id) {
+    if (req.session?.user) {
       return next();
     }
     
