@@ -50,6 +50,16 @@ const prizeSchema = z.object({
 
 type PrizeFormData = z.infer<typeof prizeSchema>;
 
+interface MaintenanceMode {
+  id: string;
+  isActive: boolean;
+  title: string;
+  message: string;
+  accessPassword: string;
+  updatedAt: string;
+  updatedBy?: string;
+}
+
 interface Banner {
   id: string;
   title: string;
@@ -237,6 +247,254 @@ const ProductList = ({ availableProducts, productSearchTerm, onSelectProduct }: 
     </div>
   );
 };
+
+// Componente para controles de manutenção
+function MaintenanceControls() {
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // Buscar status de manutenção
+  const { data: maintenanceMode, refetch } = useQuery<MaintenanceMode>({
+    queryKey: ['/api/maintenance/status'],
+    retry: (failureCount, error) => !isUnauthorizedError(error),
+  });
+
+  // Form para editar configurações de manutenção
+  const form = useForm({
+    defaultValues: {
+      title: maintenanceMode?.title || 'Em Breve',
+      message: maintenanceMode?.message || 'Estamos preparando as melhores ofertas do Paraguai para você!',
+      accessPassword: maintenanceMode?.accessPassword || 'CLICKOFERTAS2025',
+    },
+  });
+
+  // Reset form quando dados carregam
+  useEffect(() => {
+    if (maintenanceMode) {
+      form.reset({
+        title: maintenanceMode.title,
+        message: maintenanceMode.message,
+        accessPassword: maintenanceMode.accessPassword,
+      });
+    }
+  }, [maintenanceMode, form]);
+
+  // Mutation para alternar modo manutenção
+  const toggleMaintenanceMutation = useMutation({
+    mutationFn: async (isActive: boolean) => {
+      return await apiRequest('POST', '/api/maintenance/toggle', { isActive });
+    },
+    onSuccess: () => {
+      refetch();
+      toast({
+        title: maintenanceMode?.isActive ? "Modo manutenção desativado" : "Modo manutenção ativado",
+        description: maintenanceMode?.isActive 
+          ? "O site voltou ao funcionamento normal." 
+          : "O site está agora em modo manutenção.",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Acesso negado",
+          description: "Você não tem permissão para alterar o modo manutenção.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível alterar o modo manutenção.",
+          variant: "destructive",
+        });
+      }
+    },
+  });
+
+  // Mutation para atualizar configurações
+  const updateConfigMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest('POST', '/api/maintenance/config', data);
+    },
+    onSuccess: () => {
+      refetch();
+      setIsEditing(false);
+      toast({
+        title: "Configurações atualizadas",
+        description: "As configurações de manutenção foram salvas com sucesso.",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Acesso negado",
+          description: "Você não tem permissão para alterar configurações.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível salvar as configurações.",
+          variant: "destructive",
+        });
+      }
+    },
+  });
+
+  const handleToggleMaintenance = () => {
+    toggleMaintenanceMutation.mutate(!maintenanceMode?.isActive);
+  };
+
+  const handleSaveConfig = (data: any) => {
+    updateConfigMutation.mutate(data);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          Controles do Sistema
+        </h2>
+      </div>
+
+      {/* Card de Modo Manutenção */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-orange-600" />
+                Modo Manutenção
+              </CardTitle>
+              <Badge variant={maintenanceMode?.isActive ? "destructive" : "default"}>
+                {maintenanceMode?.isActive ? "ATIVO" : "INATIVO"}
+              </Badge>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditing(!isEditing)}
+                data-testid="button-edit-maintenance"
+              >
+                <Edit2 className="w-4 h-4 mr-2" />
+                {isEditing ? 'Cancelar' : 'Editar'}
+              </Button>
+              
+              <Switch 
+                checked={maintenanceMode?.isActive || false}
+                onCheckedChange={handleToggleMaintenance}
+                disabled={toggleMaintenanceMutation.isPending}
+                data-testid="switch-maintenance-mode"
+              />
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          {isEditing ? (
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSaveConfig)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Título da Página</FormLabel>
+                      <FormControl>
+                        <Input {...field} data-testid="input-maintenance-title" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="message"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mensagem</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} rows={3} data-testid="textarea-maintenance-message" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="accessPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Senha de Acesso</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="password" data-testid="input-maintenance-password" />
+                      </FormControl>
+                      <FormDescription>
+                        Senha para super admins acessarem durante a manutenção
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="bg-orange-600 hover:bg-orange-700"
+                    disabled={updateConfigMutation.isPending}
+                    data-testid="button-save-maintenance"
+                  >
+                    {updateConfigMutation.isPending ? 'Salvando...' : 'Salvar'}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm text-gray-500">Título:</p>
+                <p className="font-medium">{maintenanceMode?.title}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-gray-500">Mensagem:</p>
+                <p className="text-gray-700 dark:text-gray-300">{maintenanceMode?.message}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-gray-500">Última atualização:</p>
+                <p className="text-sm text-gray-600">
+                  {maintenanceMode?.updatedAt ? new Date(maintenanceMode.updatedAt).toLocaleString('pt-BR') : 'N/A'}
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {maintenanceMode?.isActive && (
+            <div className="mt-4 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <AlertTriangle className="w-4 h-4 text-orange-600" />
+                <p className="text-sm text-orange-800 dark:text-orange-200 font-medium">
+                  Atenção: O site está em modo manutenção. Apenas super admins podem acessar.
+                </p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export default function SuperAdmin() {
   const { user, isLoading } = useAuth();
@@ -787,7 +1045,7 @@ export default function SuperAdmin() {
         </div>
 
         <Tabs defaultValue="banners" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="banners" className="flex items-center gap-2">
               <Image className="w-4 h-4" />
               Banners
@@ -811,6 +1069,10 @@ export default function SuperAdmin() {
             <TabsTrigger value="stats" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Estatísticas
+            </TabsTrigger>
+            <TabsTrigger value="system" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Sistema
             </TabsTrigger>
           </TabsList>
 
@@ -2939,6 +3201,11 @@ export default function SuperAdmin() {
               <h3 className="text-xl font-semibold text-gray-600 mb-2">Estatísticas do Sistema</h3>
               <p className="text-gray-500">Em desenvolvimento...</p>
             </div>
+          </TabsContent>
+
+          {/* ABA DE SISTEMA */}
+          <TabsContent value="system" className="space-y-6">
+            <MaintenanceControls />
           </TabsContent>
         </Tabs>
       </div>

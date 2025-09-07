@@ -3543,9 +3543,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied. Super admin required." });
       }
 
-      const { isActive, title, message, accessPassword } = req.body;
+      const { isActive } = req.body;
       await storage.updateMaintenanceMode({
         isActive,
+        updatedBy: userId
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Erro ao atualizar modo manutenção:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post('/api/maintenance/config', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ message: "Access denied. Super admin required." });
+      }
+
+      const { title, message, accessPassword } = req.body;
+      await storage.updateMaintenanceMode({
         title,
         message,
         accessPassword,
@@ -3554,7 +3578,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ success: true });
     } catch (error) {
-      console.error("Erro ao atualizar modo manutenção:", error);
+      console.error("Erro ao atualizar configurações de manutenção:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
