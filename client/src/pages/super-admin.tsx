@@ -1046,7 +1046,7 @@ export default function SuperAdmin() {
         </div>
 
         <Tabs defaultValue="banners" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="banners" className="flex items-center gap-2">
               <Image className="w-4 h-4" />
               Banners
@@ -1058,10 +1058,6 @@ export default function SuperAdmin() {
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               Usuários
-            </TabsTrigger>
-            <TabsTrigger value="daily-scratch" className="flex items-center gap-2">
-              <Gift className="w-4 h-4" />
-              Raspadinha
             </TabsTrigger>
             <TabsTrigger value="promotions" className="flex items-center gap-2">
               <Trophy className="w-4 h-4" />
@@ -1601,45 +1597,6 @@ export default function SuperAdmin() {
             </div>
           </TabsContent>
 
-          {/* ABA DE RASPADINHA DIÁRIA */}
-          <TabsContent value="daily-scratch" className="space-y-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                <Gift className="w-6 h-6 text-purple-600" />
-                Sistema de Raspadinha Diária
-              </h2>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Configurações do Sistema */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="w-5 h-5 text-blue-600" />
-                    Configurações
-                  </CardTitle>
-                  <CardDescription>
-                    Configure como o sistema funciona
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Modo de Operação</p>
-                      <p className="text-sm text-gray-600">Manual ou Automático</p>
-                    </div>
-                    <Switch ref={operationModeRef} defaultChecked data-testid="switch-operation-mode" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Produtos por Dia</label>
-                    <Input ref={productsPerDayRef} type="number" defaultValue="5" min="1" max="10" className="max-w-20" data-testid="input-products-per-day" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Chance de Ganhar (%)</label>
-                    <Input ref={winChanceRef} type="number" defaultValue="25" min="1" max="100" className="max-w-20" data-testid="input-win-chance" />
-                  </div>
                   
                   <div className="space-y-2">
                     <Button 
