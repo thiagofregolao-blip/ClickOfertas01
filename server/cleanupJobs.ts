@@ -15,6 +15,20 @@ export async function cleanupExpiredStories() {
 }
 
 /**
+ * Job que executa a limpeza automática de promoções expiradas
+ * Marca promoções como inativas quando passam da data limite
+ */
+export async function cleanupExpiredPromotions() {
+  try {
+    console.log('🧹 Iniciando limpeza de promoções expiradas...');
+    const expiredCount = await storage.markExpiredPromotions();
+    console.log(`✅ Limpeza de promoções concluída: ${expiredCount} promoções expiradas marcadas como inativas`);
+  } catch (error) {
+    console.error('❌ Erro na limpeza de promoções:', error);
+  }
+}
+
+/**
  * Inicia o job de limpeza que roda a cada hora
  */
 export function startCleanupJobs() {
@@ -22,11 +36,15 @@ export function startCleanupJobs() {
   
   // Executar imediatamente na inicialização
   cleanupExpiredStories();
+  cleanupExpiredPromotions();
   
   // Agendar para rodar a cada 1 hora (3600000ms)
-  setInterval(cleanupExpiredStories, 60 * 60 * 1000);
+  setInterval(() => {
+    cleanupExpiredStories();
+    cleanupExpiredPromotions();
+  }, 60 * 60 * 1000);
   
-  console.log('⏰ Jobs agendados: limpeza de stories a cada 1 hora');
+  console.log('⏰ Jobs agendados: limpeza de stories e promoções a cada 1 hora');
 }
 
 /**

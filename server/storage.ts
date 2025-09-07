@@ -111,7 +111,7 @@ import {
   type InsertBudgetConfig,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, count, gte, lte, sql, inArray, or, isNull } from "drizzle-orm";
+import { eq, and, desc, asc, count, gte, lte, lt, sql, inArray, or, isNull } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -203,6 +203,7 @@ export interface IStorage {
   incrementPromotionUsage(promotionId: string): Promise<boolean>;
   getActivePromotions(): Promise<PromotionWithDetails[]>;
   getPromotionStats(promotionId: string): Promise<any>;
+  markExpiredPromotions(): Promise<number>;
 
   // NEW: Promotion Assignment operations (User-specific promotions)
   createPromotionAssignment(assignment: InsertPromotionAssignment): Promise<PromotionAssignment>;
@@ -1498,6 +1499,7 @@ export class DatabaseStorage implements IStorage {
   // ================================
 
   async getStorePromotions(storeId: string): Promise<PromotionWithDetails[]> {
+    // Buscar todas as promoções da loja (incluindo expiradas para o admin poder ver histórico)
     const storePromotions = await db
       .select({
         id: promotions.id,
@@ -1971,6 +1973,26 @@ export class DatabaseStorage implements IStorage {
         conversionRate: scratchCount > 0 ? ((usedCoupons / scratchCount) * 100).toFixed(2) : 0
       }
     };
+  }
+
+  // Marcar promoções expiradas como inativas
+  async markExpiredPromotions(): Promise<number> {
+    const now = new Date();
+    
+    const result = await db
+      .update(promotions)
+      .set({ 
+        isActive: false,
+        updatedAt: now
+      })
+      .where(
+        and(
+          eq(promotions.isActive, true),
+          lt(promotions.validUntil, now)
+        )
+      );
+
+    return result.rowCount || 0;
   }
 
   // NEW: Promotion Assignment operations (User-specific promotions)
