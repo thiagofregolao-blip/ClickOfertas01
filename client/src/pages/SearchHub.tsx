@@ -18,11 +18,11 @@ export default function SearchHub() {
   const [matchingStores, setMatchingStores] = useState<string[]>([]);
 
   // Fetch stores and products
-  const { data: stores = [], isLoading: storesLoading } = useQuery({
+  const { data: stores = [], isLoading: storesLoading } = useQuery<Store[]>({
     queryKey: ['/api/public/stores'],
   });
 
-  const { data: allProducts = [], isLoading: productsLoading } = useQuery({
+  const { data: allProducts = [], isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ['/api/public/products'],
   });
 
@@ -35,7 +35,7 @@ export default function SearchHub() {
       const matchingProducts = searchQuery 
         ? storeProducts.filter((p: Product) => 
             p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (p.category && p.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
             p.description?.toLowerCase().includes(searchQuery.toLowerCase())
           )
         : [];
@@ -252,23 +252,25 @@ export default function SearchHub() {
       </div>
 
       {/* Custom CSS for animations */}
-      <style jsx>{`
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}</style>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+          }
+          .animate-blob {
+            animation: blob 7s infinite;
+          }
+          .animation-delay-2000 {
+            animation-delay: 2s;
+          }
+          .animation-delay-4000 {
+            animation-delay: 4s;
+          }
+        `
+      }} />
     </div>
   );
 }
