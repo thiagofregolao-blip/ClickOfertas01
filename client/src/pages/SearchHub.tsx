@@ -230,22 +230,10 @@ export default function SearchHub() {
             </h1>
           </div>
 
-          {/* Barra de busca no header - só aparece quando busca está ativa */}
-          {isSearchActive && (
-            <div className="flex-1 max-w-md">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Buscar produtos..."
-                  value={searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-full rounded-full bg-white border-0 text-sm shadow-lg"
-                  data-testid="header-search-input"
-                />
-              </div>
-            </div>
-          )}
+          {/* Espaço reservado para barra quando ela se mover */}
+          <div className="flex-1 max-w-md">
+            {/* A barra aparecerá aqui quando ativa via position fixed */}
+          </div>
           
           <div className="flex-shrink-0">
             {isSearchActive ? (
@@ -287,33 +275,51 @@ export default function SearchHub() {
           <div className="relative z-10 w-full h-full">
             <div className="flex flex-col min-h-[85vh]">
               
-              {/* Container da barra de busca - só mostra quando não há busca ativa */}
+              {/* Texto promocional - só mostra quando não há busca */}
               {!isSearchActive && (
                 <div className="flex-1 flex flex-col justify-center pt-16 w-full max-w-2xl mx-auto px-6">
-                  
-                  {/* Texto promocional */}
                   <div className="text-center mb-8">
                     <h2 className="text-2xl font-bold text-white whitespace-nowrap">
                       Os melhores produtos do Paraguai você encontra aqui!
                     </h2>
                   </div>
+                </div>
+              )}
 
-                  {/* Barra de busca principal */}
-                  <div className="relative mb-8">
-                    <div className="relative">
-                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
-                      <Input
-                        type="text"
-                        placeholder={isSearchFocused || searchQuery ? "Digite o produto..." : currentText}
-                        value={searchQuery}
-                        onChange={(e) => handleSearchChange(e.target.value)}
-                        onFocus={() => setIsSearchFocused(true)}
-                        onBlur={() => setIsSearchFocused(false)}
-                        className="pl-12 pr-4 py-4 w-full rounded-full text-lg bg-white border-0 shadow-lg focus:ring-2 focus:ring-white/50"
-                        data-testid="main-search-input"
-                      />
-                    </div>
+              {/* A BARRA ÚNICA QUE DESLIZA - Wrapper deslizante */}
+              <div 
+                className={`
+                  ${isSearchActive 
+                    ? 'fixed top-3 left-1/2 -translate-x-1/2 max-w-md z-[60] transform-gpu'
+                    : 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-2xl z-50 transform-gpu'
+                  }
+                  w-full px-6 transition-all duration-1000 ease-in-out
+                `}
+              >
+                <div className="relative mb-8">
+                  <div className="relative">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                    <Input
+                      type="text"
+                      placeholder={isSearchFocused || searchQuery ? "Digite o produto..." : currentText}
+                      value={searchQuery}
+                      onChange={(e) => handleSearchChange(e.target.value)}
+                      onFocus={() => setIsSearchFocused(true)}
+                      onBlur={() => setIsSearchFocused(false)}
+                      className={`
+                        pl-12 pr-4 w-full rounded-full bg-white border-0 shadow-lg focus:ring-2 focus:ring-white/50
+                        transition-all duration-1000 ease-in-out
+                        ${isSearchActive ? 'py-2 text-sm' : 'py-4 text-lg'}
+                      `}
+                      data-testid="sliding-search-input"
+                    />
                   </div>
+                </div>
+              </div>
+
+              {/* Container das logos - só mostra quando não há busca */}
+              {!isSearchActive && (
+                <div className="w-full max-w-2xl mx-auto px-6">
 
                   {/* Logos das lojas cadastradas */}
                   {!isLoading && stores.length > 0 && (
@@ -362,7 +368,7 @@ export default function SearchHub() {
 
         {/* Resultados da busca - só mostra quando há busca ativa */}
         {isSearchActive && (
-          <div className="bg-gray-50 min-h-screen pt-20">
+          <div className="bg-gray-50 min-h-screen pt-20 animate-[fadeIn_300ms_ease-out]">
             <div className="container mx-auto px-4 py-6">
               
               {/* Contador de resultados */}

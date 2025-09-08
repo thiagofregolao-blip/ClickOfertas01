@@ -371,3 +371,9 @@ html {
   animation: bounce-once 1.2s ease-out;
 }
 
+/* FadeIn para resultados da busca */
+@keyframes fadeIn { 
+  from { opacity: 0; } 
+  to { opacity: 1; } 
+}
+
