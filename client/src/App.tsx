@@ -56,8 +56,11 @@ function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Se modo manutenção está ativo E usuário não tem bypass E não é super admin
-  if (maintenanceStatus?.isActive && !bypassMaintenance && !user?.isSuperAdmin) {
+  // Verificar se há um parâmetro de força de teste na URL
+  const forceMaintenanceTest = new URLSearchParams(window.location.search).get('test-maintenance') === 'true';
+  
+  // Se modo manutenção está ativo E usuário não tem bypass E (não é super admin OU está forçando teste)
+  if (maintenanceStatus?.isActive && !bypassMaintenance && (!user?.isSuperAdmin || forceMaintenanceTest)) {
     return (
       <MaintenancePage 
         onAccessGranted={() => {
