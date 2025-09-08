@@ -238,7 +238,7 @@ export default function SearchHub() {
               
               {/* Texto promocional */}
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-white">
+                <h2 className="text-2xl font-bold text-white whitespace-nowrap">
                   Os melhores produtos do Paraguai você encontra aqui!
                 </h2>
               </div>
