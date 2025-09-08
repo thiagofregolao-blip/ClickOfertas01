@@ -2254,6 +2254,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === COMPARAÇÃO DE PREÇOS INTERNACIONAL ===
 
+  // Endpoint para buscar todos os produtos públicos (para search hub)
+  app.get('/api/public/products', async (req, res) => {
+    try {
+      const products = await storage.getAllProducts();
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching public products:", error);
+      res.status(500).json({ message: "Erro ao buscar produtos públicos" });
+    }
+  });
+
   // Endpoint para buscar produtos disponíveis para comparação
   app.get('/api/public/products-for-comparison', async (req, res) => {
     try {
