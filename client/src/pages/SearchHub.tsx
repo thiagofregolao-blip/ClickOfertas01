@@ -305,7 +305,7 @@ export default function SearchHub() {
                   <p className="text-white/90 mb-6 text-lg">
                     Lojas cadastradas
                   </p>
-                  <div className="flex justify-between items-center px-4">
+                  <div className="flex justify-center items-center gap-8">
                     {stores.map((store) => (
                       <div 
                         key={store.id}
