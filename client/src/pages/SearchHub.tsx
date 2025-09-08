@@ -306,20 +306,25 @@ export default function SearchHub() {
                   <p className="text-white/90 mb-6 text-lg">
                     Lojas cadastradas
                   </p>
-                  <div className="flex flex-wrap justify-center gap-4">
+                  <div className="flex justify-center gap-6 overflow-x-auto">
                     {stores.map((store) => (
                       <div 
                         key={store.id}
-                        className="bg-white/90 backdrop-blur-sm rounded-lg p-4 hover:bg-white transition-colors cursor-pointer shadow-lg"
+                        className="flex-shrink-0 cursor-pointer transition-transform hover:scale-110"
                         data-testid={`store-logo-${store.id}`}
                       >
-                        <div className="text-center">
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-xl mb-2 mx-auto">
-                            {store.name.substring(0, 2).toUpperCase()}
-                          </div>
-                          <p className="text-sm font-medium text-gray-700">
-                            {store.name}
-                          </p>
+                        <div className="w-16 h-16 rounded-full bg-white shadow-lg flex items-center justify-center overflow-hidden">
+                          {store.logoUrl ? (
+                            <img 
+                              src={store.logoUrl} 
+                              alt={store.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-orange-500 font-bold text-xl">
+                              {store.name.substring(0, 2).toUpperCase()}
+                            </span>
+                          )}
                         </div>
                       </div>
                     ))}
