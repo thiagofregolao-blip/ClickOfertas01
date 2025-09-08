@@ -216,7 +216,7 @@ export default function SearchHub() {
     return (
       <div className="min-h-screen bg-white">
         {/* Header fixo com busca ativa */}
-        <header className="bg-gradient-to-r from-[#F04940] to-[#FA7D22] shadow-md sticky top-0 z-50 transition-all duration-500 ease-in-out">
+        <header className="bg-gradient-to-r from-[#F04940] to-[#FA7D22] shadow-md sticky top-0 z-50 transition-all duration-1000 ease-in-out">
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center gap-4">
               {/* Logo */}
@@ -329,7 +329,7 @@ export default function SearchHub() {
             <div className="pt-16"></div>
 
             {/* Barra de busca centralizada */}
-            <div className="flex-1 flex flex-col justify-center px-6 max-w-2xl mx-auto w-full transition-all duration-500 ease-in-out">
+            <div className="flex-1 flex flex-col justify-center px-6 max-w-2xl mx-auto w-full transition-all duration-1000 ease-in-out">
               
               {/* Texto promocional */}
               <div className="text-center mb-8">
@@ -349,7 +349,7 @@ export default function SearchHub() {
                     onChange={(e) => handleSearchChange(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => setIsSearchFocused(false)}
-                    className="pl-12 pr-4 py-4 w-full rounded-full text-lg bg-white border-0 shadow-lg focus:ring-2 focus:ring-white/50 transition-all duration-300"
+                    className="pl-12 pr-4 py-4 w-full rounded-full text-lg bg-white border-0 shadow-lg focus:ring-2 focus:ring-white/50 transition-all duration-700 ease-in-out"
                     data-testid="main-search-input"
                   />
                 </div>
