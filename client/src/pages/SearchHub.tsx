@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ export default function SearchHub() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<{product: Product, store: Store} | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
   
   const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -66,6 +67,11 @@ export default function SearchHub() {
     return results.slice(0, 10); // Limitar a 10 resultados
   }, [debouncedSearch, allProducts, stores]);
 
+  // Controlar estado da busca ativa
+  useEffect(() => {
+    setIsSearchActive(debouncedSearch.trim().length > 0);
+  }, [debouncedSearch]);
+
   const handleProductSelect = (product: Product, store: Store) => {
     setSelectedProduct({ product, store });
   };
@@ -73,6 +79,11 @@ export default function SearchHub() {
   const handleBackToSearch = () => {
     setSelectedProduct(null);
     setSearchQuery('');
+    setIsSearchActive(false);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
   };
 
   const isLoading = storesLoading || productsLoading;
@@ -200,6 +211,90 @@ export default function SearchHub() {
     );
   }
 
+  // Se busca ativa, mostrar layout com header fixo
+  if (isSearchActive && searchResults.length > 0) {
+    return (
+      <div className="min-h-screen bg-white">
+        {/* Header fixo com busca ativa */}
+        <header className="bg-gradient-to-r from-[#F04940] to-[#FA7D22] shadow-md sticky top-0 z-50 transition-all duration-500 ease-in-out">
+          <div className="max-w-7xl mx-auto px-4 py-3">
+            <div className="flex items-center gap-4">
+              {/* Logo */}
+              <div className="flex-shrink-0">
+                <h1 className="text-white font-bold text-lg whitespace-nowrap">
+                  Click Ofertas.PY
+                </h1>
+              </div>
+
+              {/* Barra de Busca no Header */}
+              <div className="flex-1 max-w-md">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    type="text"
+                    placeholder="Buscar produtos ou lojas..."
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    className="pl-10 pr-4 py-2 w-full rounded-full bg-white border-0 text-sm shadow-lg"
+                    data-testid="header-search-input"
+                  />
+                </div>
+              </div>
+
+              {/* Botão voltar */}
+              <Button 
+                variant="ghost" 
+                onClick={() => {
+                  setSearchQuery('');
+                  setIsSearchActive(false);
+                }}
+                className="text-white hover:bg-white/20 p-2"
+                data-testid="back-to-search"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        {/* Resultados preenchendo a tela */}
+        <div className="container mx-auto px-4 py-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {searchResults.map((result, index) => (
+              <Card 
+                key={`${result.product.id}-${index}`}
+                className="cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => handleProductSelect(result.product, result.store)}
+                data-testid={`product-card-${index}`}
+              >
+                <CardContent className="p-4">
+                  {result.product.imageUrl && (
+                    <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 mb-4">
+                      <img 
+                        src={result.product.imageUrl} 
+                        alt={result.product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+                    {result.product.name}
+                  </h4>
+                  <p className="text-sm text-gray-500 mb-2">
+                    {result.store.name}
+                  </p>
+                  <p className="text-lg font-bold text-orange-500">
+                    R$ {parseFloat(result.product.price).toFixed(2)}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Página principal de busca (estilo landing page)
   return (
     <div className="min-h-screen flex flex-col">
@@ -234,7 +329,7 @@ export default function SearchHub() {
             <div className="pt-16"></div>
 
             {/* Barra de busca centralizada */}
-            <div className="flex-1 flex flex-col justify-center px-6 max-w-2xl mx-auto w-full">
+            <div className="flex-1 flex flex-col justify-center px-6 max-w-2xl mx-auto w-full transition-all duration-500 ease-in-out">
               
               {/* Texto promocional */}
               <div className="text-center mb-8">
@@ -251,56 +346,17 @@ export default function SearchHub() {
                     type="text"
                     placeholder={isSearchFocused || searchQuery ? "Digite o produto..." : currentText}
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => setIsSearchFocused(false)}
-                    className="pl-12 pr-4 py-4 w-full rounded-full text-lg bg-white border-0 shadow-lg focus:ring-2 focus:ring-white/50"
+                    className="pl-12 pr-4 py-4 w-full rounded-full text-lg bg-white border-0 shadow-lg focus:ring-2 focus:ring-white/50 transition-all duration-300"
                     data-testid="main-search-input"
                   />
                 </div>
-                
-                {/* Resultados da busca */}
-                {searchResults.length > 0 && (
-                  <Card className="absolute top-full left-0 right-0 mt-2 shadow-xl z-20 max-h-96 overflow-y-auto">
-                    <CardContent className="p-0">
-                      {searchResults.map((result, index) => (
-                        <div
-                          key={`${result.product.id}-${index}`}
-                          className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                          onClick={() => handleProductSelect(result.product, result.store)}
-                          data-testid={`search-result-${index}`}
-                        >
-                          <div className="flex items-center gap-4">
-                            {result.product.imageUrl && (
-                              <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                                <img 
-                                  src={result.product.imageUrl} 
-                                  alt={result.product.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-gray-900 truncate">
-                                {result.product.name}
-                              </h4>
-                              <p className="text-sm text-gray-500">
-                                {result.store.name}
-                              </p>
-                              <p className="text-lg font-bold text-orange-500">
-                                R$ {parseFloat(result.product.price).toFixed(2)}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
               </div>
 
               {/* Logos das lojas cadastradas */}
-              {!isLoading && stores.length > 0 && (
+              {!isLoading && stores.length > 0 && !searchQuery && (
                 <div className="text-center">
                   <p className="text-white/90 mb-6 text-lg">
                     Lojas cadastradas
