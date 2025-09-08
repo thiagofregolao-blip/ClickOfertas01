@@ -235,14 +235,6 @@ export default function SearchHub() {
 
             {/* Barra de busca centralizada */}
             <div className="flex-1 flex flex-col justify-center px-6 max-w-2xl mx-auto w-full">
-              <div className="text-center mb-8">
-                <h2 className="text-4xl font-bold text-white mb-2">
-                  Busque Ofertas
-                </h2>
-                <p className="text-white/90 text-lg">
-                  Encontre os melhores produtos do Paraguai
-                </p>
-              </div>
 
               {/* Barra de Busca Principal */}
               <div className="relative mb-8">
