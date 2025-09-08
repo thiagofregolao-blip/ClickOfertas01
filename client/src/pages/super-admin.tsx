@@ -257,6 +257,8 @@ function MaintenanceControls() {
   const { data: maintenanceMode, refetch } = useQuery<MaintenanceMode>({
     queryKey: ['/api/maintenance/status'],
     retry: (failureCount, error) => !isUnauthorizedError(error),
+    staleTime: 0, // Sem cache para forçar nova consulta
+    cacheTime: 0, // Não manter em cache
   });
 
   // Form para editar configurações de manutenção

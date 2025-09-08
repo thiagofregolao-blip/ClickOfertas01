@@ -38,6 +38,8 @@ function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
   const { data: maintenanceStatus, isLoading: isLoadingMaintenance } = useQuery({
     queryKey: ['/api/maintenance/status'],
     refetchInterval: 30000, // Verifica a cada 30 segundos
+    staleTime: 0, // Sem cache para forçar nova consulta
+    cacheTime: 0, // Não manter em cache
   });
 
   const { user } = useAuth();
