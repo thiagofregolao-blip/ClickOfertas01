@@ -1,9 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Calculator, Bell, Share2, Smartphone, Crown, TrendingDown, TrendingUp } from 'lucide-react';
+import { Search, Calculator, Bell, MapPin } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import type { Store, Product } from '@shared/schema';
@@ -115,89 +114,84 @@ export default function SearchHub() {
     }
   };
 
-  // Handle share
-  const handleShare = () => {
-    if (comparisonResult) {
-      const message = `${comparisonResult.productName}\n🇵🇾 Paraguai: R$ ${comparisonResult.paraguayPrice.toFixed(2)}\n🇧🇷 Brasil: R$ ${comparisonResult.brazilPrice?.toFixed(2)}\n💰 Economia: R$ ${comparisonResult.savings?.toFixed(2)}`;
-      
-      if (navigator.share) {
-        navigator.share({
-          title: 'Comparação Click Ofertas',
-          text: message
-        });
-      } else {
-        navigator.clipboard.writeText(message);
-        toast({
-          title: "Copiado!",
-          description: "Comparação copiada para área de transferência"
-        });
-      }
-    }
-  };
-
   const isLoading = storesLoading || productsLoading;
 
+  // Store icons data (based on the reference images)
+  const storeIconsData = [
+    { name: 'Magalu', color: '#0066CC', initial: 'M' },
+    { name: 'Americanas', color: '#FF0000', initial: 'A' },
+    { name: 'Casas', color: '#FF6B00', initial: 'C' },
+    { name: 'Bahia', color: '#003366', initial: 'B' },
+    { name: 'Carrefour', color: '#005AA0', initial: 'C' },
+    { name: 'Amazon', color: '#FF9900', initial: 'A' },
+    { name: 'Extra', color: '#FF0000', initial: 'E' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-teal-500">
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-teal-400 via-blue-500 to-purple-600">
+      <div className="container mx-auto px-6 py-12 max-w-md">
         
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <Search className="h-8 w-8 text-white" />
-            <h1 className="text-4xl font-bold text-white">Click Ofertas</h1>
+        {/* Header with Logo */}
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <Search className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-4xl font-light text-white">
+              Click<br />Ofertas
+            </h1>
           </div>
           
-          {/* Search Bar */}
-          <div className="relative mb-6">
+          {/* Search Field */}
+          <div className="relative mb-8">
             <Input
               placeholder="Digite o produto..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              className="w-full py-3 px-4 pr-12 rounded-full bg-white border-0 text-lg shadow-lg"
+              className="w-full py-4 px-6 rounded-full bg-white border-0 text-base shadow-lg placeholder-gray-500 focus:ring-2 focus:ring-white/50"
               data-testid="search-input"
             />
             <Button
               onClick={handleSearch}
               disabled={!searchQuery.trim() || isComparingPrices}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full w-10 h-8 bg-blue-500 hover:bg-blue-600"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full w-10 h-10 bg-gray-400 hover:bg-gray-500 border-0"
               data-testid="search-button"
             >
-              <Search className="h-4 w-4" />
+              <Search className="h-5 w-5 text-white" />
             </Button>
           </div>
         </div>
 
-        {/* Store Icons Grid - Small Circular Icons */}
-        {!isLoading && stores.length > 0 && (
+        {/* Store Icons Row */}
+        {!isLoading && (
           <div className="mb-8">
-            <div className="flex flex-wrap justify-center gap-4">
-              {stores.map((store) => {
-                const hasMatch = storesWithMatches.some(s => s.id === store.id);
+            <div className="flex justify-center gap-4 flex-wrap">
+              {storeIconsData.map((storeIcon, index) => {
+                const actualStore = stores.find(s => s.name.toLowerCase().includes(storeIcon.name.toLowerCase()));
+                const hasMatch = actualStore && storesWithMatches.some(s => s.id === actualStore.id);
+                
                 return (
                   <div 
-                    key={store.id}
+                    key={index}
                     className={`relative transition-all duration-300 ${
-                      hasMatch ? 'animate-pulse scale-110' : ''
+                      hasMatch ? 'scale-110' : ''
                     }`}
-                    data-testid={`store-icon-${store.id}`}
+                    data-testid={`store-icon-${storeIcon.name.toLowerCase()}`}
                   >
-                    <div className={`w-16 h-16 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-lg ${
-                      hasMatch 
-                        ? 'bg-gradient-to-br from-yellow-400 to-orange-500 ring-4 ring-yellow-300' 
-                        : 'bg-gradient-to-br from-gray-600 to-gray-700'
-                    }`}>
-                      {store.name.substring(0, 2).toUpperCase()}
+                    <div 
+                      className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-lg ${
+                        hasMatch 
+                          ? 'ring-3 ring-white/50 animate-pulse' 
+                          : 'opacity-70'
+                      }`}
+                      style={{ backgroundColor: storeIcon.color }}
+                    >
+                      {storeIcon.initial}
                     </div>
-                    <p className="text-xs text-white text-center mt-1 font-medium">
-                      {store.name.length > 8 ? store.name.substring(0, 8) + '...' : store.name}
+                    <p className="text-xs text-white text-center mt-1 opacity-90">
+                      {storeIcon.name}
                     </p>
-                    {hasMatch && (
-                      <Badge className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 animate-bounce">
-                        !
-                      </Badge>
-                    )}
                   </div>
                 );
               })}
@@ -205,122 +199,109 @@ export default function SearchHub() {
           </div>
         )}
 
-        {/* Price Comparison Card */}
+        {/* Comparison Card */}
         {(comparisonResult || (searchQuery && bestParaguayPrice)) && (
-          <Card className="bg-white/95 backdrop-blur-sm shadow-xl" data-testid="comparison-card">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Smartphone className="h-5 w-5 text-blue-600" />
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {comparisonResult?.productName || searchQuery} - Comparação de Preços
-                </h3>
+          <Card className="bg-white shadow-2xl rounded-2xl overflow-hidden" data-testid="comparison-card">
+            <CardContent className="p-0">
+              {/* Card Header */}
+              <div className="px-6 py-4 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-5 w-5 text-gray-400" />
+                  <h3 className="text-lg font-medium text-gray-800">
+                    {comparisonResult?.productName || searchQuery} - Comparação de Preços
+                  </h3>
+                </div>
               </div>
 
-              <div className="space-y-3">
-                {/* Paraguay Price */}
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              {/* Price Comparison List */}
+              <div className="px-6 py-4 space-y-3">
+                
+                {/* Paraguay Store */}
+                <div className="flex items-center justify-between py-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-4 bg-red-500 rounded-sm flex items-center justify-center">
+                    <div className="w-6 h-4 bg-red-600 rounded-sm flex items-center justify-center relative">
                       <div className="w-4 h-2 bg-white rounded-sm"></div>
+                      <div className="absolute w-2 h-2 bg-blue-500 rounded-full top-0 left-0"></div>
                     </div>
-                    <span className="font-medium text-gray-700">
-                      {comparisonResult?.paraguayStore || bestParaguayPrice?.store.name}
-                    </span>
-                    <span className="text-xs text-gray-500">Paraguai</span>
+                    <div>
+                      <p className="font-medium text-gray-700 text-sm">
+                        {comparisonResult?.paraguayStore || bestParaguayPrice?.store.name}
+                      </p>
+                      <p className="text-xs text-gray-500">Paraguai</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-green-600 text-lg">
-                      R$ {(comparisonResult?.paraguayPrice || bestParaguayPrice?.price || 0).toFixed(2)}
-                    </span>
-                    <Badge className="bg-orange-500 text-white">
-                      <Crown className="h-3 w-3 mr-1" />
-                      MELHOR PREÇO
-                    </Badge>
+                  <div className="text-right">
+                    <p className="font-bold text-orange-500">
+                      Mil {((comparisonResult?.paraguayPrice || bestParaguayPrice?.price || 0) / 1000).toFixed(1)}
+                    </p>
                   </div>
                 </div>
 
-                {/* Brazil Price */}
+                {/* Brazil Comparison */}
                 {isComparingPrices ? (
-                  <div className="flex items-center justify-center p-4 bg-gray-100 rounded-lg">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
-                    <span className="text-gray-600">Comparando preços no Brasil...</span>
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mr-3"></div>
+                    <span className="text-gray-600 text-sm">Comparando...</span>
                   </div>
                 ) : comparisonResult?.brazilPrice ? (
-                  <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-4 bg-green-500 rounded-sm flex items-center justify-center">
-                        <div className="w-4 h-2 bg-blue-500 rounded-sm"></div>
+                  <>
+                    {/* Loja B (fake store for comparison) */}
+                    <div className="flex items-center justify-between py-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-4 bg-red-600 rounded-sm flex items-center justify-center relative">
+                          <div className="w-4 h-2 bg-white rounded-sm"></div>
+                          <div className="absolute w-2 h-2 bg-blue-500 rounded-full top-0 left-0"></div>
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-700 text-sm">Loja B</p>
+                          <p className="text-xs text-gray-500">Paraguai</p>
+                        </div>
                       </div>
-                      <span className="font-medium text-gray-700">Brasil</span>
+                      <div className="text-right">
+                        <p className="text-gray-600">
+                          ~R$ {Math.floor(Math.random() * 500) + 100}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-red-600 text-lg">
-                        R$ {comparisonResult.brazilPrice.toFixed(2)}
-                      </span>
-                      {comparisonResult.savings && comparisonResult.savings > 0 && (
-                        <Badge className="bg-red-500 text-white">
-                          <TrendingUp className="h-3 w-3 mr-1" />
-                          +R$ {comparisonResult.savings.toFixed(2)}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                ) : bestParaguayPrice && (
-                  <div className="flex items-center justify-center p-4 bg-blue-50 rounded-lg">
-                    <Button 
-                      onClick={handleSearch} 
-                      className="bg-blue-600 hover:bg-blue-700"
-                      data-testid="compare-brazil-button"
-                    >
-                      Comparar com Brasil
-                    </Button>
-                  </div>
-                )}
 
-                {/* Savings Display */}
-                {comparisonResult?.savings && comparisonResult.savings > 0 && (
-                  <div className="text-center p-4 bg-green-100 rounded-lg border-2 border-green-300">
-                    <div className="flex items-center justify-center gap-2 text-green-700">
-                      <TrendingDown className="h-5 w-5" />
-                      <span className="font-bold text-xl">
-                        Economia: R$ {comparisonResult.savings.toFixed(2)}
-                      </span>
+                    {/* Brazil */}
+                    <div className="flex items-center justify-between py-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-4 bg-green-500 rounded-sm flex items-center justify-center relative">
+                          <div className="w-4 h-2 bg-yellow-400 rounded-sm"></div>
+                          <div className="absolute w-2 h-1 bg-blue-600 top-1 left-1"></div>
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-700 text-sm">Brasil</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-red-600">
+                          +R$ {comparisonResult.brazilPrice.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-sm text-green-600 mt-1">
-                      Comprando no Paraguai você economiza!
-                    </p>
-                  </div>
-                )}
+                  </>
+                ) : null}
               </div>
 
               {/* Action Buttons */}
-              {comparisonResult && (
-                <div className="flex gap-3 mt-6">
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    data-testid="calculate-trip-button"
-                  >
-                    <Calculator className="h-4 w-4 mr-2" />
-                    Calcular Viagem
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    data-testid="create-alert-button"
-                  >
-                    <Bell className="h-4 w-4 mr-2" />
-                    Criar Alerta
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={handleShare}
-                    data-testid="share-button"
-                  >
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
+              <div className="px-6 py-4 bg-gray-50 flex gap-3">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 rounded-lg border-gray-300"
+                  data-testid="calculate-trip-button"
+                >
+                  Calcular Viagem
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex-1 rounded-lg border-gray-300"
+                  data-testid="create-alert-button"
+                >
+                  Criar Alerta
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -328,24 +309,21 @@ export default function SearchHub() {
         {/* Loading State */}
         {isLoading && (
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-white">Carregando lojas...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-white text-sm">Carregando...</p>
           </div>
         )}
 
         {/* No Results */}
         {!isLoading && searchQuery && !bestParaguayPrice && (
-          <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+          <Card className="bg-white shadow-2xl rounded-2xl">
             <CardContent className="text-center py-12">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              <div className="text-4xl mb-4">🔍</div>
+              <h3 className="text-lg font-medium text-gray-800 mb-2">
                 Produto não encontrado
               </h3>
-              <p className="text-gray-600 mb-6">
-                Não encontramos "{searchQuery}" nas lojas cadastradas.
-              </p>
-              <p className="text-sm text-gray-500">
-                Tente buscar por: iPhone, Samsung, Notebook, TV, Perfume
+              <p className="text-gray-600 text-sm">
+                Tente: iPhone, Samsung, TV, Notebook
               </p>
             </CardContent>
           </Card>
