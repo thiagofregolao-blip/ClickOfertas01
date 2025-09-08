@@ -27,7 +27,6 @@ import SuperAdminLogin from "@/pages/super-admin-login";
 import DailyScratchPage from "@/pages/daily-scratch";
 import ApifyDemo from "@/pages/apify-demo";
 import MaintenancePage from "@/pages/maintenance";
-import SearchHub from "@/pages/SearchHub";
 import NotFound from "@/pages/not-found";
 
 function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
@@ -92,7 +91,6 @@ function Router() {
         <Route path="/price-comparison" component={LoadingComponent} />
         <Route path="/daily-scratch" component={LoadingComponent} />
         <Route path="/apify-demo" component={LoadingComponent} />
-        <Route path="/search-hub" component={LoadingComponent} />
         <Route path="/flyer/:slug" component={PublicFlyer} />
         <Route path="/stores/:slug" component={PublicFlyer} />
         <Route path="/super-admin" component={SuperAdminLogin} />
@@ -122,7 +120,7 @@ function Router() {
           <Route path="/price-comparison" component={PriceComparison} />
           <Route path="/daily-scratch" component={DailyScratchPage} />
           <Route path="/apify-demo" component={ApifyDemo} />
-          <Route path="/search-hub" component={SearchHub} />
+
           <Route path="/super-admin-login" component={SuperAdminLogin} />
           <Route path="/super-admin" component={SuperAdminLogin} />
           <Route path="/admin-panel" component={SuperAdmin} />
@@ -148,7 +146,7 @@ function Router() {
           <Route path="/create-story" component={CreateStory} />
           <Route path="/price-comparison" component={PriceComparison} />
           <Route path="/daily-scratch" component={DailyScratchPage} />
-          <Route path="/search-hub" component={SearchHub} />
+
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/my-coupons" component={MyCoupons} />
@@ -166,7 +164,7 @@ function Router() {
           <Route path="/create-story" component={CreateStory} />
           <Route path="/price-comparison" component={PriceComparison} />
           <Route path="/daily-scratch" component={DailyScratchPage} />
-          <Route path="/search-hub" component={SearchHub} />
+
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/my-coupons" component={MyCoupons} />
