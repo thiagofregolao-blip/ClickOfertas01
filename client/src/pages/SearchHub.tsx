@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Search, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
@@ -212,6 +213,25 @@ export default function SearchHub() {
     );
   }
 
+  // Componente auxiliar para flutuar a barra no topo da viewport
+  function FloatingSearch({ children }: { children: React.ReactNode }) {
+    return createPortal(
+      <div
+        className="
+          fixed left-1/2 -translate-x-1/2
+          top-[calc(env(safe-area-inset-top,0px)+12px)]
+          w-full max-w-md px-4
+          z-[10000]
+          transition-all duration-700 ease-in-out
+          pointer-events-auto
+        "
+      >
+        {children}
+      </div>,
+      document.body
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col relative">
       {/* Header que aparece quando busca está ativa */}
@@ -286,36 +306,51 @@ export default function SearchHub() {
                 </div>
               )}
 
-              {/* A BARRA ÚNICA QUE DESLIZA - Wrapper deslizante */}
-              <div 
-                className={`
-                  ${isSearchActive 
-                    ? 'fixed top-3 left-1/2 -translate-x-1/2 max-w-md z-[60] transform-gpu'
-                    : 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-2xl z-50 transform-gpu'
-                  }
-                  w-full px-6 transition-all duration-1000 ease-in-out
-                `}
-              >
-                <div className="relative mb-8">
+              {/* ESTADO INATIVO: centralizada dentro da seção hero */}
+              {!isSearchActive && (
+                <div
+                  className="
+                    absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+                    w-full max-w-2xl px-6 z-50 transform-gpu
+                    transition-all duration-1000 ease-in-out
+                  "
+                >
+                  <div className="relative mb-8">
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                      <Input
+                        type="text"
+                        placeholder={isSearchFocused || searchQuery ? "Digite o produto..." : currentText}
+                        value={searchQuery}
+                        onChange={(e) => handleSearchChange(e.target.value)}
+                        onFocus={() => setIsSearchFocused(true)}
+                        onBlur={() => setIsSearchFocused(false)}
+                        className="pl-12 pr-4 py-4 w-full rounded-full text-lg bg-white border-0 shadow-lg focus:ring-2 focus:ring-white/50"
+                        data-testid="main-search-input"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ESTADO ATIVO: usa portal + fixed por cima de tudo */}
+              {isSearchActive && (
+                <FloatingSearch>
                   <div className="relative">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 z-10" />
                     <Input
                       type="text"
-                      placeholder={isSearchFocused || searchQuery ? "Digite o produto..." : currentText}
+                      placeholder="Buscar produtos..."
                       value={searchQuery}
                       onChange={(e) => handleSearchChange(e.target.value)}
                       onFocus={() => setIsSearchFocused(true)}
                       onBlur={() => setIsSearchFocused(false)}
-                      className={`
-                        pl-12 pr-4 w-full rounded-full bg-white border-0 shadow-lg focus:ring-2 focus:ring-white/50
-                        transition-all duration-1000 ease-in-out
-                        ${isSearchActive ? 'py-2 text-sm' : 'py-4 text-lg'}
-                      `}
-                      data-testid="sliding-search-input"
+                      className="pl-10 pr-4 py-2 w-full rounded-full text-sm bg-white border-0 shadow-lg focus:ring-2 focus:ring-blue-500/50"
+                      data-testid="floating-search-input"
                     />
                   </div>
-                </div>
-              </div>
+                </FloatingSearch>
+              )}
 
               {/* Container das logos - só mostra quando não há busca */}
               {!isSearchActive && (
@@ -368,7 +403,7 @@ export default function SearchHub() {
 
         {/* Resultados da busca - só mostra quando há busca ativa */}
         {isSearchActive && (
-          <div className="bg-gray-50 min-h-screen pt-20 animate-[fadeIn_300ms_ease-out]">
+          <div className="bg-gray-50 min-h-screen pt-24 animate-[fadeIn_300ms_ease-out]">
             <div className="container mx-auto px-4 py-6">
               
               {/* Contador de resultados */}
