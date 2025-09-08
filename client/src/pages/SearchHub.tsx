@@ -312,7 +312,7 @@ export default function SearchHub() {
                         className="flex-shrink-0 cursor-pointer transition-transform hover:scale-110"
                         data-testid={`store-logo-${store.id}`}
                       >
-                        <div className="w-16 h-16 rounded-full bg-white shadow-lg flex items-center justify-center overflow-hidden">
+                        <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center overflow-hidden">
                           {store.logoUrl ? (
                             <img 
                               src={store.logoUrl} 
