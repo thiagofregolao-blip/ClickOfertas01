@@ -222,14 +222,32 @@ export default function SearchHub() {
           ${isSearchActive ? 'sticky top-0 z-50 shadow-md' : ''}
         `}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center">
+        <div className="max-w-7xl mx-auto flex items-center gap-4">
+          {/* Logo */}
+          <div className="flex-shrink-0">
             <h1 className={`text-xl font-bold ${isSearchActive ? 'text-white' : 'text-gray-900'}`}>
               Click Ofertas <span className={isSearchActive ? 'text-white' : 'text-orange-500'}>PY</span>
             </h1>
           </div>
+
+          {/* Barra de busca no header - só aparece quando busca está ativa */}
+          {isSearchActive && (
+            <div className="flex-1 max-w-md">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  type="text"
+                  placeholder="Buscar produtos..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="pl-10 pr-4 py-2 w-full rounded-full bg-white border-0 text-sm shadow-lg"
+                  data-testid="header-search-input"
+                />
+              </div>
+            </div>
+          )}
           
-          <div>
+          <div className="flex-shrink-0">
             {isSearchActive ? (
               <Button 
                 variant="ghost" 
@@ -269,88 +287,75 @@ export default function SearchHub() {
           <div className="relative z-10 w-full h-full">
             <div className="flex flex-col min-h-[85vh]">
               
-              {/* Container da barra de busca - esta é a mesma barra que desliza */}
-              <div 
-                className={`
-                  w-full max-w-2xl mx-auto px-6
-                  transition-all duration-1000 ease-in-out
-                  ${isSearchActive ? 
-                    'transform -translate-y-32 scale-75 fixed top-16 left-1/2 -translate-x-1/2 z-50 max-w-md' : 
-                    'flex-1 flex flex-col justify-center pt-16'
-                  }
-                `}
-              >
-                
-                {/* Texto promocional - só mostra quando não está buscando */}
-                {!isSearchActive && (
+              {/* Container da barra de busca - só mostra quando não há busca ativa */}
+              {!isSearchActive && (
+                <div className="flex-1 flex flex-col justify-center pt-16 w-full max-w-2xl mx-auto px-6">
+                  
+                  {/* Texto promocional */}
                   <div className="text-center mb-8">
                     <h2 className="text-2xl font-bold text-white whitespace-nowrap">
                       Os melhores produtos do Paraguai você encontra aqui!
                     </h2>
                   </div>
-                )}
 
-                {/* A MESMA barra de busca que se move */}
-                <div className="relative mb-8">
-                  <div className="relative">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
-                    <Input
-                      type="text"
-                      placeholder={isSearchFocused || searchQuery ? "Digite o produto..." : currentText}
-                      value={searchQuery}
-                      onChange={(e) => handleSearchChange(e.target.value)}
-                      onFocus={() => setIsSearchFocused(true)}
-                      onBlur={() => setIsSearchFocused(false)}
-                      className={`
-                        pl-12 pr-4 w-full rounded-full bg-white border-0 shadow-lg focus:ring-2 focus:ring-white/50
-                        transition-all duration-700 ease-in-out
-                        ${isSearchActive ? 'py-2 text-sm' : 'py-4 text-lg'}
-                      `}
-                      data-testid="main-search-input"
-                    />
-                  </div>
-                </div>
-
-                {/* Logos das lojas cadastradas - só mostra quando não está buscando */}
-                {!isLoading && stores.length > 0 && !isSearchActive && (
-                  <div className="text-center">
-                    <p className="text-white/90 mb-6 text-lg">
-                      Lojas cadastradas
-                    </p>
-                    <div className="flex justify-center items-center gap-8">
-                      {stores.map((store) => (
-                        <div 
-                          key={store.id}
-                          className="flex-shrink-0 cursor-pointer transition-transform hover:scale-110"
-                          data-testid={`store-logo-${store.id}`}
-                        >
-                          <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center overflow-hidden">
-                            {store.logoUrl ? (
-                              <img 
-                                src={store.logoUrl} 
-                                alt={store.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <span className="text-orange-500 font-bold text-xl">
-                                {store.name.substring(0, 2).toUpperCase()}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                  {/* Barra de busca principal */}
+                  <div className="relative mb-8">
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                      <Input
+                        type="text"
+                        placeholder={isSearchFocused || searchQuery ? "Digite o produto..." : currentText}
+                        value={searchQuery}
+                        onChange={(e) => handleSearchChange(e.target.value)}
+                        onFocus={() => setIsSearchFocused(true)}
+                        onBlur={() => setIsSearchFocused(false)}
+                        className="pl-12 pr-4 py-4 w-full rounded-full text-lg bg-white border-0 shadow-lg focus:ring-2 focus:ring-white/50"
+                        data-testid="main-search-input"
+                      />
                     </div>
                   </div>
-                )}
 
-                {/* Loading state */}
-                {isLoading && !isSearchActive && (
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-                    <p className="text-white/90">Carregando lojas...</p>
-                  </div>
-                )}
-              </div>
+                  {/* Logos das lojas cadastradas */}
+                  {!isLoading && stores.length > 0 && (
+                    <div className="text-center">
+                      <p className="text-white/90 mb-6 text-lg">
+                        Lojas cadastradas
+                      </p>
+                      <div className="flex justify-center items-center gap-8">
+                        {stores.map((store) => (
+                          <div 
+                            key={store.id}
+                            className="flex-shrink-0 cursor-pointer transition-transform hover:scale-110"
+                            data-testid={`store-logo-${store.id}`}
+                          >
+                            <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center overflow-hidden">
+                              {store.logoUrl ? (
+                                <img 
+                                  src={store.logoUrl} 
+                                  alt={store.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-orange-500 font-bold text-xl">
+                                  {store.name.substring(0, 2).toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Loading state */}
+                  {isLoading && (
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+                      <p className="text-white/90">Carregando lojas...</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
