@@ -479,7 +479,7 @@ export default function ThreeDailyScratchCards() {
     return await response.json();
   };
 
-  // Buscar as 3 cartas diárias
+  // Buscar as cartas diárias
   const { data: cardsData, isLoading, isError, error } = useQuery({
     queryKey: ['/api/daily-scratch/cards'],
     refetchOnWindowFocus: false,
@@ -487,6 +487,40 @@ export default function ThreeDailyScratchCards() {
   });
 
   const cards = (cardsData as any)?.cards || [];
+
+  // 🎯 NOVO: Buscar frases para cards perdidos que já existem
+  useEffect(() => {
+    if (!cards.length) return;
+    
+    const loadFunnyMessagesForExistingCards = async () => {
+      // Encontrar cards que perderam e precisam de frase
+      const cardsNeedingMessages = cards.filter((card: DailyScratchCard) => 
+        card.isScratched && !card.won && !funnyMessages[card.id]
+      );
+      
+      if (cardsNeedingMessages.length === 0) {
+        return;
+      }
+      
+      // Buscar frases para todos os cards que precisam
+      for (const card of cardsNeedingMessages) {
+        try {
+          const message = await fetchFunnyMessage();
+          setFunnyMessages(prev => ({
+            ...prev,
+            [card.id]: message
+          }));
+          
+          // Pequeno delay para evitar sobrecarga
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error) {
+          console.error('Failed to fetch funny message for existing card:', error);
+        }
+      }
+    };
+
+    loadFunnyMessagesForExistingCards();
+  }, [cards]); // Executar quando as cartas carregarem
 
   // Mutation para raspar uma carta
   const scratchMutation = useMutation({
