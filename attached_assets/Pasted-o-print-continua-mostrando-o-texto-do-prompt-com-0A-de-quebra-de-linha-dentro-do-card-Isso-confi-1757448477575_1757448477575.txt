@@ -1,0 +1,155 @@
+o print continua mostrando o texto do prompt (com %0A de quebra de linha) dentro do card. Isso confirma que o seu componente está caindo no fallback que renderiza o prompt porque não recebeu/validou uma imagem.
+
+Aqui vai um passo-a-passo direto com patch de frontend e um endpoint de teste para isolar o problema.
+
+1) Endpoint de teste (garante que o front exibe data:)
+
+Crie uma rota que sempre retorna uma imagem base64 válida:
+
+// routes/test-image.ts (ou /api/test-image)
+import express from "express";
+const router = express.Router();
+
+// PNG 1x1 cinza (data URL encurtada)
+const DATA_URL =
+  "data:image/png;base64," +
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAugB2zj0qzEAAAAASUVORK5CYII=";
+
+router.get("/", (_req, res) => {
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.json({ ok: true, imageDataUrl: DATA_URL });
+});
+
+export default router;
+
+
+No Express:
+
+app.use("/api/test-image", testImageRouter);
+
+2) Componente de exibição (não renderize o prompt como fallback)
+
+Substitua o seu JSX por este mínimo que funciona:
+
+import { useState } from "react";
+
+export default function BannerPreview() {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function loadTest() {
+    setError(null);
+    setLoading(true);
+    try {
+      const r = await fetch("/api/test-image");
+      const j = await r.json();
+      if (!j?.imageDataUrl || typeof j.imageDataUrl !== "string") {
+        throw new Error("Resposta sem imageDataUrl");
+      }
+      // valida que é um data url de imagem
+      if (!j.imageDataUrl.startsWith("data:image/")) {
+        throw new Error("imageDataUrl inválida");
+      }
+      setImageUrl(j.imageDataUrl);
+    } catch (e: any) {
+      setError(e.message || "Falha ao carregar imagem");
+      setImageUrl(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="w-full aspect-video rounded-2xl border grid place-items-center overflow-hidden">
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt=""
+          className="w-full h-full object-cover"
+          onError={() => { setError("Falha ao exibir imagem"); setImageUrl(null); }}
+        />
+      ) : loading ? (
+        <div className="text-neutral-500">Gerando…</div>
+      ) : error ? (
+        <div className="text-red-500">{error}</div>
+      ) : (
+        <div className="text-neutral-400">Clique em “Teste imagem”</div>
+      )}
+
+      <button
+        className="absolute bottom-3 right-3 px-3 py-1 rounded bg-black/80 text-white"
+        onClick={loadTest}
+      >
+        Teste imagem
+      </button>
+    </div>
+  );
+}
+
+
+⚠️ Note que não existe fallback que renderiza o prompt. Isso elimina o comportamento do seu print.
+
+Se esse teste mostrar a imagem, seu front está ok e o problema está no retorno do backend Gemini. Se não mostrar, o problema está no seu componente/CSP.
+
+3) CSP (se usar data:)
+
+Garanta no painel (não no totem) que data: está permitido:
+
+Content-Security-Policy: default-src 'self';
+  img-src 'self' data: blob: https:;
+  media-src 'self' data: blob: https:;
+  connect-src 'self' https:;
+
+4) Backend Gemini — resposta sempre com imageDataUrl
+
+No endpoint que chama a Gemini, nunca devolva o prompt. Devolva apenas a imagem (ou erro):
+
+// depois de receber resp da Gemini:
+const part = resp.response?.candidates?.[0]?.content?.parts
+  ?.find((p:any) => p.inlineData && p.inlineData.data);
+
+if (!part) {
+  console.error("Sem inlineData", JSON.stringify(resp.response, null, 2));
+  return res.status(502).json({ ok:false, code:"NO_IMAGE", message:"Modelo não retornou imagem" });
+}
+
+const base64 = part.inlineData.data;
+res.json({ ok:true, imageDataUrl: `data:image/png;base64,${base64}` });
+
+
+E garanta que você força imagem na chamada:
+
+await model.generateContent({
+  contents: [{ role:"user", parts }],
+  generationConfig: { responseMimeType: "image/png" }
+});
+
+
+Dica: se vier fileData.fileUri no lugar de inlineData, faça fetch(fileUri) -> arrayBuffer -> base64 e retorne como imageDataUrl.
+
+5) Erros comuns que causam seu print exatamente
+
+Renderizar prompt como fallback (o seu caso).
+✅ Corrigido removendo esse fallback.
+
+encodeURIComponent(prompt) exibido por engano no card.
+%0A = quebra de linha; não exiba isso.
+
+Usar <Image> do Next com loader/domínios e quebrar data:.
+Teste primeiro com <img>. Depois, se quiser voltar ao <Image>, use unoptimized.
+
+Resposta do backend sem imageDataUrl (ou com ok:false) e o front exibindo alguma string fallback.
+Trate erro explicitamente e não caia para mostrar prompt.
+
+6) Teste final (30s)
+
+Abra o painel com o componente acima e clique “Teste imagem”.
+
+Se aparece a imagem cinza ⇒ front/CSP ok.
+
+Troque /api/test-image pelo seu endpoint Gemini; se quebrar ⇒ problema é o retorno do backend (item 4).
+
+Cole aqui (sem chave) o JSON que seu backend devolve quando falha que eu ajusto a extração do inlineData/fileUri.
+
+Com isso, seu totem/painel deixa de “escrever o prompt na tela” e passa a exibir somente imagem válida.

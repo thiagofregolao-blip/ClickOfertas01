@@ -165,36 +165,46 @@ export default function AdminTotem() {
   const generateAIBannerMutation = useMutation({
     mutationFn: async (aiData: typeof aiContent) => {
       const response = await apiRequest('POST', '/api/totem/generate-banner', aiData);
-      return await response.json(); // Processar JSON aqui
+      return await response.json();
     },
     onSuccess: (data) => {
       console.log('🎯 AI Banner Response:', data);
-      console.log('🎯 ImageUrl recebida:', data.imageUrl);
       
-      // Salvar o banner gerado em estado específico
+      // Verificar se recebeu imagem real
+      if (!data?.imageUrl || typeof data.imageUrl !== "string") {
+        throw new Error("Resposta sem imageUrl válida");
+      }
+      
+      // Só aceitar data:image/ ou hasRealImage = true
+      const isDataUrl = data.imageUrl.startsWith("data:image/");
+      const hasRealImage = data.hasRealImage === true;
+      
+      if (!isDataUrl && !hasRealImage) {
+        console.warn('⚠️ Recebeu fallback, não exibindo:', data.imageUrl);
+        throw new Error("IA não conseguiu gerar imagem - recebeu fallback");
+      }
+      
+      // Salvar apenas imagem válida
       setGeneratedBanner(data.imageUrl);
       
       // Usar o banner gerado como URL do conteúdo
-      setNewContent(prev => {
-        const newState = {
-          ...prev,
-          mediaUrl: data.imageUrl,
-          title: aiContent.title,
-          description: aiContent.description
-        };
-        console.log('🎯 Novo estado newContent:', newState);
-        return newState;
-      });
+      setNewContent(prev => ({
+        ...prev,
+        mediaUrl: data.imageUrl,
+        title: aiContent.title,
+        description: aiContent.description
+      }));
       
       toast({
-        title: "Banner Gerado!",
-        description: "Banner criado com IA. Revise e clique em 'Criar Conteúdo'",
+        title: hasRealImage ? "✅ Banner Criado com IA!" : "⚡ Imagem de Teste",
+        description: "Banner pronto. Revise e clique em 'Criar Conteúdo'",
       });
     },
     onError: (error: any) => {
+      console.error('❌ Erro na mutation:', error);
       toast({
         title: "Erro na IA",
-        description: error.message || "Erro ao gerar banner com IA",
+        description: error.message || "Falha ao gerar banner com IA",
         variant: "destructive",
       });
     }
@@ -645,57 +655,47 @@ export default function AdminTotem() {
                               
                               {/* Área do preview com aspecto correto para totem */}
                               <div className="w-full max-w-md mx-auto">
-                                {generatedBanner ? (
-                                  <div className="space-y-3">
-                                    {/* Imagem em formato totem - aspecto 16:9 */}
-                                    <div className="relative w-full aspect-video bg-gray-100 rounded-lg overflow-hidden shadow-lg">
-                                      <img 
-                                        src={generatedBanner} 
-                                        alt="Banner para totem" 
-                                        className="w-full h-full object-cover"
-                                        onLoad={() => console.log('✅ Imagem carregou:')}
-                                        onError={(e) => {
-                                          console.error('❌ Erro ao carregar imagem');
-                                          e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyMCIgaGVpZ2h0PSIxMDgwIiB2aWV3Qm94PSIwIDAgMTkyMCAxMDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTkyMCIgaGVpZ2h0PSIxMDgwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9Ijk2MCIgeT0iNTQwIiBmaWxsPSIjNkI3MjgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDgiIGR5PSIuM2VtIj5FcnJvIGFvIGNhcnJlZ2FyIGltYWdlbTwvdGV4dD4KPHN2Zz4K';
+                                <BannerPreview 
+                                  generatedBanner={generatedBanner}
+                                  onTestImage={async () => {
+                                    try {
+                                      const r = await fetch('/api/test-image');
+                                      const j = await r.json();
+                                      if (j?.ok && j?.imageDataUrl) {
+                                        setGeneratedBanner(j.imageDataUrl);
+                                      }
+                                    } catch (error) {
+                                      console.error('Test failed:', error);
+                                    }
+                                  }}
+                                />
+                                
+                                {generatedBanner && (
+                                  <div className="mt-3 space-y-2">
+                                    <Label className="text-xs text-gray-600">Comando de edição:</Label>
+                                    <div className="flex space-x-2">
+                                      <Input
+                                        placeholder="Ex: adicione uma bolsa vermelha na mulher"
+                                        value={aiContent.editCommand || ''}
+                                        onChange={(e) => setAiContent(prev => ({ ...prev, editCommand: e.target.value }))}
+                                        className="text-xs"
+                                        onKeyPress={(e) => {
+                                          if (e.key === 'Enter' && aiContent.editCommand?.trim()) {
+                                            handleEditImage();
+                                          }
                                         }}
                                       />
+                                      <Button
+                                        type="button"
+                                        onClick={handleEditImage}
+                                        disabled={generateAIBannerMutation.isPending || !aiContent.editCommand?.trim()}
+                                        size="sm"
+                                        className="bg-blue-600 hover:bg-blue-700"
+                                      >
+                                        {generateAIBannerMutation.isPending ? '⏳' : '✨'}
+                                      </Button>
                                     </div>
-                                    
-                                    {/* Campo para edição iterativa - como nanobana */}
-                                    <div className="space-y-2">
-                                      <Label className="text-xs text-gray-600">Comando de edição:</Label>
-                                      <div className="flex space-x-2">
-                                        <Input
-                                          placeholder="Ex: adicione uma bolsa vermelha na mulher"
-                                          value={aiContent.editCommand || ''}
-                                          onChange={(e) => setAiContent(prev => ({ ...prev, editCommand: e.target.value }))}
-                                          className="text-xs"
-                                          onKeyPress={(e) => {
-                                            if (e.key === 'Enter' && aiContent.editCommand?.trim()) {
-                                              handleEditImage();
-                                            }
-                                          }}
-                                        />
-                                        <Button
-                                          type="button"
-                                          onClick={handleEditImage}
-                                          disabled={generateAIBannerMutation.isPending || !aiContent.editCommand?.trim()}
-                                          size="sm"
-                                          className="bg-blue-600 hover:bg-blue-700"
-                                        >
-                                          {generateAIBannerMutation.isPending ? '⏳' : '✨'}
-                                        </Button>
-                                      </div>
-                                      <p className="text-xs text-gray-400">Digite um comando e pressione Enter ou clique ✨</p>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="flex flex-col items-center justify-center min-h-[200px] border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                                    <div className="text-center space-y-3 p-6">
-                                      <div className="text-gray-400 text-4xl">🖼️</div>
-                                      <p className="text-sm text-gray-500">Clique "Gerar" para criar</p>
-                                      <p className="text-xs text-gray-400">Depois você pode editá-la com comandos</p>
-                                    </div>
+                                    <p className="text-xs text-gray-400">Digite um comando e pressione Enter ou clique ✨</p>
                                   </div>
                                 )}
                               </div>
@@ -921,3 +921,78 @@ export default function AdminTotem() {
     </AdminLayout>
   );
 }
+
+// Componente isolado para preview de banner sem fallback de texto
+const BannerPreview = ({ 
+  generatedBanner, 
+  onTestImage 
+}: { 
+  generatedBanner: string | null, 
+  onTestImage: () => void 
+}) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(generatedBanner);
+
+  // Sincronizar com prop externa
+  useState(() => {
+    setImageUrl(generatedBanner);
+  });
+
+  async function loadTest() {
+    setError(null);
+    setLoading(true);
+    try {
+      const r = await fetch("/api/test-image");
+      const j = await r.json();
+      if (!j?.imageDataUrl || typeof j.imageDataUrl !== "string") {
+        throw new Error("Resposta sem imageDataUrl");
+      }
+      // validar que é um data url de imagem
+      if (!j.imageDataUrl.startsWith("data:image/")) {
+        throw new Error("imageDataUrl inválida");
+      }
+      setImageUrl(j.imageDataUrl);
+      onTestImage(); // callback para parent
+    } catch (e: any) {
+      setError(e.message || "Falha ao carregar imagem");
+      setImageUrl(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="relative w-full aspect-video rounded-2xl border grid place-items-center overflow-hidden">
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt="Preview do banner"
+          className="w-full h-full object-cover"
+          onError={() => { 
+            setError("Falha ao exibir imagem"); 
+            setImageUrl(null); 
+          }}
+        />
+      ) : loading ? (
+        <div className="text-neutral-500">Gerando…</div>
+      ) : error ? (
+        <div className="text-red-500 text-sm text-center p-4">{error}</div>
+      ) : (
+        <div className="text-center space-y-3 p-6">
+          <div className="text-gray-400 text-4xl">🖼️</div>
+          <p className="text-sm text-gray-500">Clique "Gerar" para criar</p>
+          <p className="text-xs text-gray-400">Ou teste com imagem de exemplo</p>
+        </div>
+      )}
+
+      <button
+        className="absolute bottom-3 right-3 px-3 py-1 rounded bg-black/80 text-white text-xs"
+        onClick={loadTest}
+        disabled={loading}
+      >
+        {loading ? '⏳' : '🧪 Teste'}
+      </button>
+    </div>
+  );
+};
