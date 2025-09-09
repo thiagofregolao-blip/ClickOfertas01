@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share, BarChart3 } from "lucide-react";
+import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share, BarChart3, Plus } from "lucide-react";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import LoginPage from "@/components/login-page";
@@ -707,6 +707,27 @@ export default function StoresGallery() {
           <div className="mx-auto px-4 max-w-6xl py-4">
             {/* Stories das Lojas - layout horizontal com scroll */}
             <div className="flex items-start gap-4 overflow-x-auto scrollbar-hide">
+              {/* Botão Criar Story */}
+              <div 
+                className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
+                onClick={() => setLocation('/create-story')}
+                data-testid="button-create-story"
+              >
+                {/* Círculo de criação */}
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 p-0.5 hover:scale-105 transition-transform">
+                    <div className="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center">
+                      <Plus className="w-8 h-8 text-gray-600" />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Label */}
+                <div className="text-xs text-gray-600 w-20 text-center leading-tight">
+                  <span className="block truncate">Criar Story</span>
+                </div>
+              </div>
+
               {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
                 <div 
                   key={storyStore.id} 
@@ -758,6 +779,27 @@ export default function StoresGallery() {
             
             {/* Stories em scroll horizontal para mobile */}
             <div className="flex items-start gap-2 overflow-x-auto scrollbar-hide pb-4">
+              {/* Botão Criar Story - Mobile */}
+              <div 
+                className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
+                onClick={() => setLocation('/create-story')}
+                data-testid="button-create-story-mobile"
+              >
+                {/* Círculo de criação */}
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 p-0.5 hover:scale-105 transition-transform">
+                    <div className="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center">
+                      <Plus className="w-8 h-8 text-gray-600" />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Label - mobile */}
+                <div className="text-xs text-gray-600 w-20 text-center leading-tight">
+                  <span className="block truncate">Criar Story</span>
+                </div>
+              </div>
+
               {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
                 <div 
                   key={storyStore.id} 
