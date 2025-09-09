@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, TrendingDown, TrendingUp, ExternalLink, RefreshCw, AlertCircle, Zap, DollarSign, ChevronDown, ArrowRightLeft, Bell } from "lucide-react";
+import { Search, TrendingDown, TrendingUp, ExternalLink, RefreshCw, AlertCircle, Zap, DollarSign, ChevronDown, ArrowRightLeft, Bell, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatPriceWithCurrency } from "@/lib/priceUtils";
@@ -142,7 +142,12 @@ export default function PriceComparison() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 py-8">
+      {/* Split Layout Container */}
+      <div className="mx-auto max-w-7xl px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[calc(100vh-200px)]">
+          
+          {/* Left Side - Price Comparison Form */}
+          <div className="space-y-6">
         {/* Search Section */}
         <Card className="mb-8">
           <CardHeader>
@@ -345,7 +350,7 @@ export default function PriceComparison() {
                       )}
                       {/* Preço original USD embaixo */}
                       <p className="text-sm font-semibold text-green-500">
-                        ≈ {formatPriceWithCurrency(comparisonData.paraguayPrice, comparisonData.paraguayCurrency)}
+                        ≈ {formatPriceWithCurrency(comparisonData.paraguayPrice.toString(), comparisonData.paraguayCurrency)}
                       </p>
                     </div>
                     <p className="text-xs text-gray-600">{comparisonData.paraguayStore}</p>
@@ -354,8 +359,8 @@ export default function PriceComparison() {
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Menor Preço no Brasil</h4>
                     {(() => {
-                      const minPrice = Math.min(...comparisonData.brazilianPrices.map(p => parseFloat(p.price)));
-                      const bestBrazilianOffer = comparisonData.brazilianPrices.find(p => parseFloat(p.price) === minPrice);
+                      const minPrice = Math.min(...comparisonData.brazilianPrices.map(p => parseFloat(p.price.toString())));
+                      const bestBrazilianOffer = comparisonData.brazilianPrices.find(p => parseFloat(p.price.toString()) === minPrice);
                       
                       return (
                         <div className="space-y-1">
@@ -378,7 +383,7 @@ export default function PriceComparison() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Economia Máxima</h4>
-                    {comparisonData.savings.cheaperInBrazil ? (
+                    {comparisonData.savings.amount < 0 ? (
                       <div>
                         <p className="text-lg font-bold text-blue-600">
                           Mais barato no Brasil
@@ -390,7 +395,7 @@ export default function PriceComparison() {
                     ) : comparisonData.savings.amount > 0 ? (
                       <div>
                         <p className="text-lg font-bold text-green-600">
-                          🎉 Economia: {formatPriceWithCurrency(comparisonData.savings.amount, 'R$')}
+                          🎉 Economia: {formatPriceWithCurrency(comparisonData.savings.amount.toString(), 'R$')}
                         </p>
                         <p className="text-xs text-gray-600">
                           {comparisonData.savings.percentage}% mais barato que {comparisonData.savings.bestStore}
@@ -459,6 +464,30 @@ export default function PriceComparison() {
 
           </div>
         )}
+          
+          </div>
+          
+          {/* Right Side - Related Products */}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Filter className="w-5 h-5" />
+                  Produtos Relacionados
+                </CardTitle>
+                <p className="text-sm text-gray-600">
+                  Outros produtos disponíveis nas lojas do Paraguay
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 text-gray-500">
+                  Busque um produto para ver opções relacionadas
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+        </div>
       </div>
     </div>
   );
