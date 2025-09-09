@@ -1,0 +1,75 @@
+Como usar chaves da API Gemini
+
+Para usar a API Gemini, você precisa de uma chave de API. Você pode criar uma chave sem custo financeiro com alguns cliques no Google AI Studio.
+
+Depois de ter uma chave de API, você tem as seguintes opções para se conectar à API Gemini:
+
+Definir a chave de API como uma variável de ambiente
+Fornecer sua chave de API explicitamente
+Para testes iniciais, você pode codificar uma chave de API, mas isso só deve ser temporário, já que não é seguro. Confira exemplos de codificação da chave de API na seção Fornecer a chave de API explicitamente.
+
+Como definir a chave de API como variável de ambiente
+Se você definir a variável de ambiente GEMINI_API_KEY ou GOOGLE_API_KEY, a chave de API será escolhida automaticamente pelo cliente ao usar uma das bibliotecas da API Gemini. Recomendamos que você defina apenas uma dessas variáveis, mas, se ambas forem definidas, GOOGLE_API_KEY terá precedência.
+
+Se você estiver usando a API REST ou JavaScript no navegador, será necessário fornecer a chave de API explicitamente.
+
+Veja como definir sua chave de API localmente como a variável de ambiente GEMINI_API_KEY com diferentes sistemas operacionais.
+
+Linux/macOS: Bash
+macOS: Zsh
+Windows
+O Bash é uma configuração comum de terminal do Linux e do macOS. Para verificar se você tem um arquivo de configuração para ele, execute o seguinte comando:
+
+
+~/.bashrc
+Se a resposta for "No such file or directory", crie e abra o arquivo executando os seguintes comandos ou use zsh:
+
+
+touch ~/.bashrc
+open ~/.bashrc
+Em seguida, defina sua chave de API adicionando o seguinte comando de exportação:
+
+
+export GEMINI_API_KEY=<YOUR_API_KEY_HERE>
+Depois de salvar o arquivo, aplique as mudanças executando:
+
+
+source ~/.bashrc
+Fornecer a chave de API explicitamente
+Em alguns casos, talvez seja necessário fornecer uma chave de API explicitamente. Exemplo:
+
+Você está fazendo uma chamada de API simples e prefere codificar a chave de API.
+Você quer controle explícito sem precisar depender da descoberta automática de variáveis de ambiente pelas bibliotecas da API Gemini.
+Você está usando um ambiente em que as variáveis de ambiente não são compatíveis (por exemplo, na Web) ou está fazendo chamadas REST.
+Confira abaixo exemplos de como fornecer uma chave de API explicitamente:
+
+Python
+JavaScript
+Go
+Java
+REST
+
+from google import genai
+
+client = genai.Client(api_key="YOUR_API_KEY")
+
+response = client.models.generate_content(
+    model="gemini-2.5-flash", contents="Explain how AI works in a few words"
+)
+print(response.text)
+Mantenha sua chave de API segura
+Trate sua chave da API Gemini como uma senha. Se ela for comprometida, outras pessoas poderão usar a cota do seu projeto, gerar cobranças (se o faturamento estiver ativado) e acessar seus dados particulares, como arquivos.
+
+Regras de segurança críticas
+Nunca confirme chaves de API no controle de origem. Não verifique sua chave de API em sistemas de controle de versões como o Git.
+
+Nunca exponha chaves de API no lado do cliente. Não use sua chave de API diretamente em apps da Web ou para dispositivos móveis em produção. As chaves no código do lado do cliente (incluindo nossas bibliotecas JavaScript/TypeScript e chamadas REST) podem ser extraídas.
+
+Práticas recomendadas
+Use chamadas do lado do servidor com chaves de API: a maneira mais segura de usar sua chave de API é chamar a API Gemini de um aplicativo do lado do servidor em que a chave pode ser mantida em sigilo.
+
+Usar tokens temporários para acesso do lado do cliente (somente API Live): para acesso direto do lado do cliente à API Live, use tokens temporários. Elas têm menos riscos de segurança e podem ser adequadas para uso em produção. Consulte o guia sobre tokens efêmeros para mais informações.
+
+Considere adicionar restrições à sua chave:é possível limitar as permissões de uma chave adicionando restrições de chave de API. Isso minimiza os possíveis danos se a chave vazar.
+
+Para conferir algumas práticas recomendadas gerais, consulte este artigo de suporte.
