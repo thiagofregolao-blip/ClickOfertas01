@@ -2836,7 +2836,7 @@ Create a stunning banner that effectively promotes the product/service with high
       await generateImage(prompt, tempImagePath);
       
       // Converter para base64 para enviar pela API
-      const fs = require('fs');
+      const fs = await import('fs');
       const imageBuffer = fs.readFileSync(tempImagePath);
       const imageUrl = `data:image/png;base64,${imageBuffer.toString('base64')}`;
       
