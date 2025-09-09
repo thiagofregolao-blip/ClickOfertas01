@@ -158,6 +158,7 @@ export default function AdminTotem() {
     price: ''
   });
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [generatedBanner, setGeneratedBanner] = useState<string | null>(null);
 
   // Mutation para gerar banner com IA
   const generateAIBannerMutation = useMutation({
@@ -165,13 +166,23 @@ export default function AdminTotem() {
       return await apiRequest('POST', '/api/totem/generate-banner', aiData);
     },
     onSuccess: (data) => {
+      console.log('🎯 AI Banner Response:', data);
+      console.log('🎯 ImageUrl recebida:', data.imageUrl);
+      
+      // Salvar o banner gerado em estado específico
+      setGeneratedBanner(data.imageUrl);
+      
       // Usar o banner gerado como URL do conteúdo
-      setNewContent(prev => ({
-        ...prev,
-        mediaUrl: data.imageUrl,
-        title: aiContent.title,
-        description: aiContent.description
-      }));
+      setNewContent(prev => {
+        const newState = {
+          ...prev,
+          mediaUrl: data.imageUrl,
+          title: aiContent.title,
+          description: aiContent.description
+        };
+        console.log('🎯 Novo estado newContent:', newState);
+        return newState;
+      });
       
       toast({
         title: "Banner Gerado!",
@@ -215,6 +226,7 @@ export default function AdminTotem() {
         colors: '',
         price: ''
       });
+      setGeneratedBanner(null);
     }
     if (newMethod !== 'url') {
       setNewContent(prev => ({ ...prev, mediaUrl: '' }));
@@ -600,9 +612,9 @@ export default function AdminTotem() {
                           </div>
 
                           {/* Debug para ver se está chegando aqui */}
-                          {uploadMethod === 'ai' && console.log('AI method selected, mediaUrl:', newContent.mediaUrl)}
+                          {uploadMethod === 'ai' && console.log('AI method selected, mediaUrl:', newContent.mediaUrl, 'generatedBanner:', generatedBanner)}
                           
-                          {newContent.mediaUrl && uploadMethod === 'ai' && (
+                          {uploadMethod === 'ai' && generatedBanner && (
                             <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                               <div className="space-y-4">
                                 <div className="text-center">
@@ -614,11 +626,11 @@ export default function AdminTotem() {
                                 <div className="flex justify-center">
                                   <div className="border-2 border-green-300 rounded-lg overflow-hidden bg-white shadow-md">
                                     <img 
-                                      src={newContent.mediaUrl} 
+                                      src={generatedBanner} 
                                       alt="Banner gerado" 
                                       className="w-80 h-45 object-contain"
                                       onError={(e) => {
-                                        console.error('Erro ao carregar imagem:', newContent.mediaUrl);
+                                        console.error('Erro ao carregar imagem:', generatedBanner);
                                         e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjE2MCIgeT0iOTAiIGZpbGw9IiM2QjcyODAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZHk9Ii4zZW0iPkVycm8gYW8gY2FycmVnYXIgaW1hZ2VtPC90ZXh0Pgo8L3N2Zz4K';
                                       }}
                                     />
