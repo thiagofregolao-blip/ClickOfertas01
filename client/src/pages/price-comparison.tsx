@@ -179,21 +179,23 @@ export default function PriceComparison() {
         </div>
       </div>
 
-      {/* Split Layout Container */}
-      <div className="mx-auto max-w-7xl px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[calc(100vh-200px)]">
+      {/* New Layout Container */}
+      <div className="mx-auto max-w-7xl px-4 py-8 space-y-8">
+        
+        {/* Mobile: título da seção no topo */}
+        <div className="lg:hidden mb-4">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Comparação de Preços
+          </h1>
+          <p className="text-gray-600">
+            Compare preços entre Paraguay e Brasil
+          </p>
+        </div>
+        
+        {/* Seção Superior: Busca + Resultado da Comparação */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
-          {/* Mobile: título da seção no topo */}
-          <div className="lg:hidden col-span-1 mb-4">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Comparação de Preços
-            </h1>
-            <p className="text-gray-600">
-              Compare preços entre Paraguay e Brasil
-            </p>
-          </div>
-          
-          {/* Left Side - Price Comparison Form */}
+          {/* Lado Esquerdo: Busca e Seleção */}
           <div className="space-y-6">
         {/* Search Section */}
         <Card className="mb-8">
@@ -354,60 +356,42 @@ export default function PriceComparison() {
           </CardContent>
         </Card>
 
-        {/* Welcome Message */}
-        {!selectedProductForSearch && !comparePricesMutation.data && (
-          <Card className="border-dashed border-2 border-gray-300">
-            <CardContent className="p-12 text-center">
-              <div className="mb-6">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                  <Search className="w-8 h-8 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Compare Preços Internacionais
-                </h3>
-                <p className="text-gray-600 max-w-md mx-auto">
-                  Selecione um produto paraguaio na busca acima e descubra quanto você pode economizar comprando no Paraguay em vez do Brasil.
-                </p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                <div className="flex items-center justify-center gap-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  Preços atualizados em tempo real
-                </div>
-                <div className="flex items-center justify-center gap-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                  Comparação com lojas brasileiras
-                </div>
-                <div className="flex items-center justify-center gap-2">
-                  <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                  Cálculo de economia real
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Comparison Results */}
-        {comparePricesMutation.data && (
-          <div className="mt-8 space-y-6">
-            {/* Summary Card */}
-            <Card className="border-green-200 bg-green-50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-800">
-                  <TrendingDown className="w-5 h-5" />
-                  Resultado da Comparação
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-4 gap-4">
+          </div>
+          
+          {/* Lado Direito: Resultado da Comparação */}
+          <div className="space-y-6">
+            {/* Welcome Message ou Resultado Compacto */}
+            {!selectedProductForSearch && !comparePricesMutation.data ? (
+              <Card className="border-dashed border-2 border-gray-300">
+                <CardContent className="p-8 text-center">
+                  <div className="mb-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-3">
+                      <Search className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Compare Preços
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      Selecione um produto e descubra quanto você pode economizar
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : comparePricesMutation.data && (
+              /* Resultado da Comparação Compacto */
+              <Card className="border-green-200 bg-green-50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">Resultado da Comparação</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Produto</h4>
                     <p className="text-sm">{comparePricesMutation.data.productName}</p>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1">Preço no Paraguay</h4>
-                    <div className="space-y-1">
-                      {/* Preço em BRL em cima */}
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-1">Paraguay</h4>
                       {exchangeRateData && (
                         <p className="text-lg font-bold text-green-600">
                           {formatPriceWithCurrency(
@@ -416,211 +400,112 @@ export default function PriceComparison() {
                           )}
                         </p>
                       )}
-                      {/* Preço original USD embaixo */}
-                      <p className="text-sm font-semibold text-green-500">
-                        ≈ {formatPriceWithCurrency(comparePricesMutation.data.paraguayPrice.toString(), comparePricesMutation.data.paraguayCurrency)}
-                      </p>
+                      <p className="text-xs text-gray-600">{comparePricesMutation.data.paraguayStore}</p>
                     </div>
-                    <p className="text-xs text-gray-600">{comparePricesMutation.data.paraguayStore}</p>
-                  </div>
-                  {/* Menor Preço no Brasil */}
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1">Menor Preço no Brasil</h4>
-                    {(() => {
-                      const minPrice = Math.min(...comparePricesMutation.data.brazilianPrices.map((p: any) => parseFloat(p.price.toString())));
-                      const bestBrazilianOffer = comparePricesMutation.data.brazilianPrices.find((p: any) => parseFloat(p.price.toString()) === minPrice);
-                      
-                      return (
-                        <div className="space-y-1">
-                          <p className="text-lg font-bold text-blue-600">
-                            {formatPriceWithCurrency(minPrice.toFixed(2), 'R$')}
-                          </p>
-                          {/* Conversão para USD */}
-                          {exchangeRateData && (
-                            <p className="text-sm text-blue-500">
-                              ≈ {formatPriceWithCurrency(
-                                (minPrice / exchangeRateData.rate).toFixed(2), 
-                                'US$'
-                              )}
+                    
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-1">Brasil</h4>
+                      {(() => {
+                        const minPrice = Math.min(...comparePricesMutation.data.brazilianPrices.map((p: any) => parseFloat(p.price.toString())));
+                        const bestBrazilianOffer = comparePricesMutation.data.brazilianPrices.find((p: any) => parseFloat(p.price.toString()) === minPrice);
+                        
+                        return (
+                          <div>
+                            <p className="text-lg font-bold text-blue-600">
+                              {formatPriceWithCurrency(minPrice.toFixed(2), 'R$')}
                             </p>
-                          )}
-                          <p className="text-xs text-gray-600">{bestBrazilianOffer?.store}</p>
-                        </div>
-                      );
-                    })()}
+                            <p className="text-xs text-gray-600">{bestBrazilianOffer?.store}</p>
+                          </div>
+                        );
+                      })()}
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1">Economia Máxima</h4>
+                  
+                  <div className="border-t pt-3">
                     {comparePricesMutation.data.savings.amount < 0 ? (
-                      <div>
-                        <p className="text-lg font-bold text-blue-600">
-                          Mais barato no Brasil
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          Item custa menos em {comparePricesMutation.data.savings.bestStore}
-                        </p>
-                      </div>
+                      <p className="text-sm font-medium text-blue-600">
+                        Mais barato no Brasil
+                      </p>
                     ) : comparePricesMutation.data.savings.amount > 0 ? (
                       <div>
-                        <p className="text-lg font-bold text-green-600">
+                        <p className="text-sm font-bold text-green-600">
                           🎉 Economia: {formatPriceWithCurrency(comparePricesMutation.data.savings.amount.toString(), 'R$')}
                         </p>
                         <p className="text-xs text-gray-600">
-                          {comparePricesMutation.data.savings.percentage}% mais barato que {comparePricesMutation.data.savings.bestStore}
+                          {comparePricesMutation.data.savings.percentage}% mais barato
                         </p>
                       </div>
                     ) : (
-                      <div>
-                        <p className="text-lg font-bold text-gray-500">
-                          Preços similares
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          Não há diferença significativa
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Histórico de Preços */}
-            {priceHistory.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5" />
-                    Histórico de Preços (últimos 30 dias)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {priceHistory.slice(0, 10).map((record, index) => (
-                      <div key={record.id || index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <p className="font-medium text-sm">{record.storeName}</p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(record.recordedAt).toLocaleDateString('pt-BR', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-blue-600">
-                            {formatPriceWithCurrency(record.price, record.currency === 'BRL' ? 'R$' : 'US$')}
-                          </p>
-                          <Badge variant={record.availability === 'in_stock' ? 'default' : 'destructive'} className="text-xs">
-                            {record.availability === 'in_stock' ? 'Disponível' : 'Indisponível'}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                    
-                    {priceHistory.length > 10 && (
-                      <p className="text-xs text-gray-500 text-center">
-                        Mostrando os 10 registros mais recentes de {priceHistory.length} total
-                      </p>
+                      <p className="text-sm text-gray-500">Preços similares</p>
                     )}
                   </div>
                 </CardContent>
               </Card>
             )}
-
+          </div>
+        </div>
+        
+        {/* Seção Inferior: Grid de Cards dos Produtos Relacionados */}
+        {relatedProducts.length > 0 && (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Onde comprar: {comparePricesMutation.data?.productName}
+              </h3>
+              <p className="text-gray-600">
+                {relatedProducts.length} opções encontradas nas lojas do Paraguay
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {relatedProducts.map((product) => (
+                <div 
+                  key={`${product.store.id}-${product.id}`}
+                  className="border rounded-lg p-4 hover:shadow-md cursor-pointer transition-all bg-white"
+                  onClick={() => {
+                    setSelectedProductDetail(product);
+                    setSelectedStore(product.store);
+                  }}
+                >
+                  {/* Imagem do produto */}
+                  <div className="w-full h-32 rounded-lg overflow-hidden bg-gray-100 mb-3">
+                    {product.imageUrl ? (
+                      <img 
+                        src={product.imageUrl} 
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <span className="text-gray-400 text-sm">Sem foto</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Informações do produto */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
+                      {product.name}
+                    </h4>
+                    <p className="text-xs text-gray-500">
+                      {product.store.name}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-lg font-bold text-green-600">
+                        {formatPriceWithCurrency(product.price?.toString() || '0', 'US$')}
+                      </p>
+                      {product.category && (
+                        <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                          {product.category}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
-          
-          </div>
-          
-          {/* Right Side - Related Products */}
-          <div className="space-y-6 lg:sticky lg:top-6 lg:h-fit">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Filter className="w-5 h-5" />
-                  {comparePricesMutation.data ? 
-                    `Onde comprar: ${comparePricesMutation.data.productName}` :
-                    'Produtos Relacionados'
-                  }
-                </CardTitle>
-                <p className="text-sm text-gray-600">
-                  {comparePricesMutation.data ? 
-                    `${relatedProducts.length} opções encontradas nas lojas do Paraguay` :
-                    'Compare um produto para ver onde comprar'
-                  }
-                </p>
-              </CardHeader>
-              <CardContent>
-                {relatedProducts.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    {comparePricesMutation.data ? 
-                      "Produto não encontrado nas lojas cadastradas" :
-                      "Faça uma comparação de preços para ver onde comprar"
-                    }
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {relatedProducts.map((product) => (
-                      <div 
-                        key={`${product.store.id}-${product.id}`}
-                        className="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                        onClick={() => {
-                          setSelectedProductDetail(product);
-                          setSelectedStore(product.store);
-                        }}
-                      >
-                        <div className="flex items-center gap-3">
-                          {/* Imagem pequena do produto */}
-                          <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                            {product.imageUrl ? (
-                              <img 
-                                src={product.imageUrl} 
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                <span className="text-gray-400 text-xs">Sem foto</span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Informações do produto */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 min-w-0">
-                                <h4 className="text-sm font-medium text-gray-900 truncate">
-                                  {product.name}
-                                </h4>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  {product.store.name}
-                                </p>
-                              </div>
-                              <div className="text-right ml-2">
-                                <p className="text-sm font-bold text-green-600">
-                                  {formatPriceWithCurrency(product.price?.toString() || '0', 'US$')}
-                                </p>
-                                {product.category && (
-                                  <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">
-                                    {product.category}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-          
-        </div>
       </div>
 
       {/* Product Detail Modal */}
