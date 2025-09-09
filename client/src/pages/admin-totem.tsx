@@ -178,8 +178,10 @@ export default function AdminTotem() {
       // Aceitar data:image/ (IA funcionou) ou evitar fallback placeholder
       const isDataUrl = data.imageUrl.startsWith("data:image/");
       const isPlaceholder = data.imageUrl.includes("placehold.co");
+      const hasRealImage = data.hasRealImage === true;
       
-      if (isPlaceholder && !data.hasRealImage) {
+      // Rejeitar apenas placeholders que claramente são fallback
+      if (isPlaceholder && !hasRealImage) {
         console.warn('⚠️ Recebeu fallback placeholder, não exibindo:', data.imageUrl);
         throw new Error("IA não conseguiu gerar imagem - recebeu fallback");
       }
