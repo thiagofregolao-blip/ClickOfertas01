@@ -7,15 +7,43 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 export async function generateImage(
     prompt: string,
     imagePath: string,
+    baseImage?: string
 ): Promise<void> {
     try {
-        // IMPORTANT: only this gemini model supports image generation
+        // Use o modelo correto da documentação oficial
+        const model = "gemini-2.5-flash-image-preview";
+        
+        // Construir conteúdo baseado se é edição ou geração nova
+        let contents: any[];
+        
+        if (baseImage && baseImage.startsWith('data:image/')) {
+            // Modo edição: incluir imagem base + prompt
+            const base64Data = baseImage.split(',')[1];
+            const mimeType = baseImage.split(';')[0].split(':')[1];
+            
+            contents = [
+                {
+                    parts: [
+                        {
+                            inlineData: {
+                                data: base64Data,
+                                mimeType: mimeType
+                            }
+                        },
+                        {
+                            text: prompt
+                        }
+                    ]
+                }
+            ];
+        } else {
+            // Modo geração nova: apenas texto
+            contents = [prompt];
+        }
+
         const response = await ai.models.generateContent({
-            model: "gemini-2.0-flash-preview-image-generation",
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-            config: {
-                responseModalities: [Modality.TEXT, Modality.IMAGE],
-            },
+            model: model,
+            contents: contents
         });
 
         const candidates = response.candidates;

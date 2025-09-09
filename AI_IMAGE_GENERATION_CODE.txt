@@ -3,10 +3,18 @@ CÓDIGO COMPLETO: GERAÇÃO DE IMAGENS COM IA - SISTEMA TOTEM
 ===============================================================================
 
 VISÃO GERAL:
-- Sistema de geração de banners com Gemini AI
-- Edição iterativa como nanobana (comandos de texto)
+- Sistema de geração de banners com Gemini AI (OFICIAL NANO BANANA)
+- Edição iterativa REAL com imagem base (baseado na documentação oficial)
 - Interface dividida: formulário + preview em tempo real
 - Formato otimizado para totem (16:9, sem textos na imagem)
+- Modelo correto: gemini-2.5-flash-image-preview
+
+MELHORIAS BASEADAS NA DOCUMENTAÇÃO OFICIAL GEMINI:
+✅ Modelo correto: gemini-2.5-flash-image-preview
+✅ Edição iterativa real com imagem base
+✅ Estrutura API otimizada
+✅ Prompts profissionais para diferentes estilos
+✅ Suporte a comandos simples para edição
 
 ===============================================================================
 1. BACKEND - ENDPOINT DE GERAÇÃO (/api/totem/generate-banner)
@@ -163,7 +171,7 @@ CRITICAL: The image must contain ZERO text elements. Only visual imagery allowed
 });
 
 ===============================================================================
-2. INTEGRAÇÃO GEMINI (gemini.ts)
+2. INTEGRAÇÃO GEMINI ATUALIZADA (gemini.ts) - BASEADA NA DOCUMENTAÇÃO OFICIAL
 ===============================================================================
 
 // LOCALIZAÇÃO: gemini.ts (arquivo raiz)
@@ -176,15 +184,43 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 export async function generateImage(
     prompt: string,
     imagePath: string,
+    baseImage?: string
 ): Promise<void> {
     try {
-        // IMPORTANT: only this gemini model supports image generation
+        // Use o modelo correto da documentação oficial
+        const model = "gemini-2.5-flash-image-preview";
+        
+        // Construir conteúdo baseado se é edição ou geração nova
+        let contents: any[];
+        
+        if (baseImage && baseImage.startsWith('data:image/')) {
+            // Modo edição: incluir imagem base + prompt
+            const base64Data = baseImage.split(',')[1];
+            const mimeType = baseImage.split(';')[0].split(':')[1];
+            
+            contents = [
+                {
+                    parts: [
+                        {
+                            inlineData: {
+                                data: base64Data,
+                                mimeType: mimeType
+                            }
+                        },
+                        {
+                            text: prompt
+                        }
+                    ]
+                }
+            ];
+        } else {
+            // Modo geração nova: apenas texto
+            contents = [prompt];
+        }
+
         const response = await ai.models.generateContent({
-            model: "gemini-2.0-flash-preview-image-generation",
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-            config: {
-                responseModalities: [Modality.TEXT, Modality.IMAGE],
-            },
+            model: model,
+            contents: contents
         });
 
         const candidates = response.candidates;
@@ -500,6 +536,46 @@ ESTILOS DISPONÍVEIS:
 - Elegante: Fotografia premium, iluminação sofisticada
 - Promocional: Visual chamativo, elementos ousados
 - Profissional: Estética corporativa, layout limpo
+
+===============================================================================
+🎯 PRINCIPAIS MELHORIAS BASEADAS NA DOCUMENTAÇÃO OFICIAL GEMINI
+===============================================================================
+
+ANTES (Implementação Anterior):
+❌ Modelo: "gemini-2.0-flash-preview-image-generation"
+❌ Edição simulada apenas com texto
+❌ Estrutura API com responseModalities
+❌ Prompts genéricos
+
+DEPOIS (Com Base na Documentação Oficial):
+✅ Modelo: "gemini-2.5-flash-image-preview" (oficial nano banana)
+✅ Edição iterativa REAL com imagem base
+✅ Estrutura API otimizada da documentação
+✅ Prompts profissionais estilo fotografia comercial
+
+EXEMPLOS DE COMANDOS FUNCIONAIS:
+- Geração: "Mulher com sacolas de compras"
+- Edição 1: "adicione uma bolsa vermelha"
+- Edição 2: "mude a cor do cabelo para loiro"
+- Edição 3: "coloque óculos de sol"
+
+PROMPTS OTIMIZADOS POR ESTILO:
+- Moderno: "High-resolution, studio-lit commercial photograph with minimalist composition"
+- Colorido: "Vibrant, dynamic commercial photograph with bold saturated colors"
+- Elegante: "Luxury commercial photograph with sophisticated lighting"
+- Promocional: "Bold, eye-catching commercial photograph designed to grab attention"
+- Profissional: "Clean, corporate-style commercial photograph with professional lighting"
+
+FLUXO REAL DE EDIÇÃO ITERATIVA:
+1. Imagem gerada → armazenada em base64
+2. Comando de edição → enviado junto com imagem base
+3. Gemini analisa a imagem atual + aplica modificação
+4. Nova imagem gerada mantendo contexto visual
+5. Processo pode ser repetido infinitamente
+
+Esta implementação agora segue exatamente a documentação oficial do 
+Gemini 2.5 Flash Image (Nano Banana) e oferece verdadeira edição 
+iterativa como demonstrado nos exemplos oficiais da Google.
 
 ===============================================================================
 FIM DO DOCUMENTO

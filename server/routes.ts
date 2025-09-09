@@ -2796,64 +2796,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let prompt = '';
 
       if (isEdit && editCommand && baseImage) {
-        // MODO EDIÇÃO ITERATIVA - Simular edição baseada na imagem anterior
-        prompt = `Create a new visual image for digital totem display that incorporates this modification: "${editCommand}"
+        // MODO EDIÇÃO ITERATIVA - Baseado na documentação oficial
+        prompt = `${editCommand}
 
-Base context: ${description || title}
-Modification request: ${editCommand}
+Keep the overall composition and maintain the same visual quality. This is for a digital totem display (16:9 aspect ratio). No text should appear in the image.`;
 
-EDIT REQUIREMENTS:
-- Apply the requested modification to the visual concept
-- Maintain the same general theme and style
-- 16:9 aspect ratio (1920x1080 pixels)
-- NO TEXT in the image - pure visual only
-- HIGH CONTRAST for digital display
-- Professional commercial quality
-
-Create a new image that reflects the requested change while maintaining visual consistency.`;
-
-        console.log('✏️ Sending edit command to Gemini AI:', editCommand);
+        console.log('✏️ Sending iterative edit to Gemini 2.5 Flash:', editCommand);
       } else {
-        // MODO GERAÇÃO INICIAL
-        prompt = `Create a pure visual image for digital totem display. Theme: ${description || title}`;
-
-        // Adicionar instruções específicas do estilo SEM TEXTOS
-        const styleInstructions: { [key: string]: string } = {
-          'moderno': 'Clean minimalist photography style, geometric shapes, subtle gradients',
-          'colorido': 'Vibrant colorful photography, dynamic composition, bright saturated colors', 
-          'elegante': 'Luxury premium photography style, sophisticated lighting, refined aesthetic',
-          'promocional': 'Bold dynamic photography, eye-catching composition, energetic visual',
-          'profissional': 'Corporate professional photography, clean composition, business aesthetic'
+        // MODO GERAÇÃO INICIAL - Otimizado baseado na documentação
+        const stylePrompts: { [key: string]: string } = {
+          'moderno': 'A high-resolution, studio-lit commercial photograph with minimalist composition. Clean geometric elements, soft gradients, and professional lighting. Three-point lighting setup with diffused highlights.',
+          'colorido': 'A vibrant, dynamic commercial photograph with bold saturated colors. Energetic composition with striking color contrasts and professional studio lighting.',
+          'elegante': 'A luxury commercial photograph with sophisticated lighting and premium aesthetic. Refined composition with elegant elements, soft shadows, and high-end styling.',
+          'promocional': 'A bold, eye-catching commercial photograph designed to grab attention. Dynamic angles, dramatic lighting, and striking visual elements.',
+          'profissional': 'A clean, corporate-style commercial photograph with professional lighting. Business aesthetic with sharp focus and polished presentation.'
         };
 
-        prompt += `
-
-STRICT VISUAL REQUIREMENTS:
-- Aspect ratio: 16:9 (1920x1080 pixels)
-- Style: ${styleInstructions[style] || 'Modern professional photography'}`;
-
-        if (colors && colors.trim()) {
-          prompt += `
-- Color palette: ${colors}`;
+        prompt = stylePrompts[style] || stylePrompts['profissional'];
+        
+        // Adicionar contexto do produto/serviço
+        if (description) {
+          prompt += ` The scene should relate to: ${description}.`;
+        } else {
+          prompt += ` Theme: ${title}.`;
         }
 
-        prompt += `
-- HIGH CONTRAST for digital display
-- ZERO TEXT - no words, letters, numbers, or written content
-- NO LOGOS, NO BRANDS, NO TYPOGRAPHY
-- Pure photographic/artistic visual only
-- Commercial photography quality
-- Perfect for TV/totem display
+        // Adicionar especificações técnicas
+        prompt += ` Shot with professional camera equipment, 16:9 aspect ratio (1920x1080 pixels). Ultra-realistic with sharp focus and high contrast suitable for digital display.`;
 
-CRITICAL: The image must contain ZERO text elements. Only visual imagery allowed.`;
+        // Adicionar paleta de cores se especificada
+        if (colors && colors.trim()) {
+          prompt += ` Color palette: ${colors}.`;
+        }
 
-        console.log('🎯 Sending text-free prompt to Gemini AI');
+        // Restrições críticas
+        prompt += ` CRITICAL: No text, no logos, no typography, no written content of any kind. Pure visual imagery only. Commercial photography quality.`;
+
+        console.log('🎯 Sending optimized prompt to Gemini 2.5 Flash');
       }
 
       // Gerar imagem com Gemini
       const tempImagePath = `/tmp/banner_${Date.now()}.png`;
       
-      await generateImage(prompt, tempImagePath);
+      // Passar imagem base se for edição iterativa
+      await generateImage(prompt, tempImagePath, baseImage);
       
       // Converter para base64 para enviar pela API
       const fs = await import('fs');
