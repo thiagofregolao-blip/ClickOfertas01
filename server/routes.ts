@@ -2789,44 +2789,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Importar Gemini de forma dinâmica
       const { generateImage } = await import('../gemini');
       
-      // Construir prompt detalhado para o Gemini
-      let prompt = `Create a professional promotional banner image with these specifications:
-
-MAIN TITLE: "${title}"`;
-
-      if (price) {
-        prompt += `\nPRICE: ${price}`;
-      }
+      // Construir prompt visual focado APENAS na imagem, sem textos
+      let prompt = `Create a stunning visual banner image for digital display (totem/TV) based on: "${title}"`;
 
       if (description) {
-        prompt += `\nDESCRIPTION: ${description}`;
+        prompt += ` - ${description}`;
       }
 
-      prompt += `\nSTYLE: ${style}`;
-
-      if (colors) {
-        prompt += `\nCOLORS: ${colors}`;
-      }
-
-      // Adicionar instruções específicas do estilo
+      // Adicionar instruções específicas do estilo SEM TEXTOS
       const styleInstructions: { [key: string]: string } = {
-        'moderno': 'Clean, minimalist design with modern typography and subtle gradients',
-        'colorido': 'Vibrant colors, energetic design with bright elements and dynamic layout',
-        'elegante': 'Sophisticated design with elegant fonts, premium look and feel',
-        'promocional': 'Eye-catching promotional design with bold text and attention-grabbing elements',
-        'profissional': 'Professional business design with clean layout and corporate aesthetics'
+        'moderno': 'Minimalist modern visual with clean geometric shapes, subtle gradients, contemporary feel',
+        'colorido': 'Vibrant colorful visual with dynamic elements, energetic composition, bright palette',
+        'elegante': 'Sophisticated luxurious visual with premium aesthetic, refined elements, classy composition',
+        'promocional': 'Eye-catching dynamic visual with bold visual elements, exciting composition, attention-grabbing',
+        'profissional': 'Professional corporate visual with clean aesthetic, business-focused elements'
       };
 
-      prompt += `\n\nDESIGN REQUIREMENTS:
-- Dimensions: 1920x1080 pixels (16:9 aspect ratio)
-- ${styleInstructions[style] || 'Modern professional design'}
-- High contrast for TV/screen display
-- Clear readable text
-- Product/service focused layout
-- Commercial advertising style
-- Professional quality artwork
+      prompt += `\n\nVISUAL REQUIREMENTS:
+- Dimensions: 1920x1080 pixels (16:9 aspect ratio) 
+- ${styleInstructions[style] || 'Modern professional visual design'}
+- HIGH CONTRAST for TV/totem display
+- NO TEXT OVERLAY - pure visual image only
+- NO WRITTEN WORDS - visual elements only
+- Product/service theme through visual elements`;
 
-Create a stunning banner that effectively promotes the product/service with high visual impact.`;
+      if (colors && colors.trim()) {
+        prompt += `\n- Color scheme: ${colors}`;
+      }
+
+      prompt += `
+- Professional commercial photography/artwork style
+- Clean background suitable for digital display
+- Visual storytelling through imagery only
+- Ultra high quality, crisp and sharp
+- Perfect for TV screen display
+
+IMPORTANT: Do NOT include any text, words, or written content in the image. Create a pure visual representation only.`;
 
       console.log('🎯 Sending prompt to Gemini AI for image generation');
 

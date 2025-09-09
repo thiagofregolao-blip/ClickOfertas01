@@ -631,37 +631,40 @@ export default function AdminTotem() {
                                 
                                 {generatedBanner ? (
                                   <div className="space-y-3">
-                                    <div className="border-2 border-green-300 rounded-lg overflow-hidden bg-white shadow-md">
+                                    {/* Imagem em formato totem (16:9) apenas */}
+                                    <div className="relative w-full aspect-video bg-gray-100 rounded-lg overflow-hidden shadow-lg">
                                       <img 
                                         src={generatedBanner} 
-                                        alt="Banner gerado" 
-                                        className="w-full max-w-sm h-auto object-contain"
+                                        alt="Banner para totem" 
+                                        className="w-full h-full object-cover"
                                         onLoad={() => console.log('✅ Imagem carregou com sucesso:', generatedBanner)}
                                         onError={(e) => {
                                           console.error('❌ Erro ao carregar imagem:', generatedBanner);
-                                          console.error('❌ Erro detalhes:', e);
-                                          e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjE2MCIgeT0iOTAiIGZpbGw9IiM2QjcyODAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZHk9Ii4zZW0iPkVycm8gYW8gY2FycmVnYXIgaW1hZ2VtPC90ZXh0Pgo8L3N2Zz4K';
+                                          e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyMCIgaGVpZ2h0PSIxMDgwIiB2aWV3Qm94PSIwIDAgMTkyMCAxMDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTkyMCIgaGVpZ2h0PSIxMDgwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9Ijk2MCIgeT0iNTQwIiBmaWxsPSIjNkI3MjgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDgiIGR5PSIuM2VtIj5FcnJvIGFvIGNhcnJlZ2FyIGltYWdlbTwvdGV4dD4KPHN2Zz4K';
                                         }}
                                       />
                                     </div>
                                     
-                                    <div className="text-center space-y-2">
-                                      <div className="flex items-center justify-center space-x-2">
-                                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                                        <p className="text-sm text-green-700 font-medium">Banner gerado com sucesso!</p>
-                                      </div>
-                                      <p className="text-xs text-gray-600">Preview 16:9 (1920x1080px)</p>
-                                      <p className="text-xs text-green-600">Clique em "Criar Conteúdo" abaixo para salvar</p>
-                                      
+                                    {/* Controles minimalistas */}
+                                    <div className="flex justify-center space-x-2">
                                       <Button
                                         type="button"
                                         onClick={handleGenerateAI}
                                         disabled={generateAIBannerMutation.isPending}
                                         variant="outline"
                                         size="sm"
-                                        className="mt-2"
+                                        className="text-xs"
                                       >
-                                        🔄 Gerar Novo
+                                        {generateAIBannerMutation.isPending ? '🔄 Gerando...' : '🎨 Regenerar'}
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        onClick={() => setGeneratedBanner(null)}
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-xs"
+                                      >
+                                        🗑️ Limpar
                                       </Button>
                                     </div>
                                   </div>
