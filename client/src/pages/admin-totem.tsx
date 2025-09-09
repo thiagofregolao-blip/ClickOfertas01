@@ -175,12 +175,12 @@ export default function AdminTotem() {
         throw new Error("Resposta sem imageUrl válida");
       }
       
-      // Só aceitar data:image/ ou hasRealImage = true
+      // Aceitar data:image/ (IA funcionou) ou evitar fallback placeholder
       const isDataUrl = data.imageUrl.startsWith("data:image/");
-      const hasRealImage = data.hasRealImage === true;
+      const isPlaceholder = data.imageUrl.includes("placehold.co");
       
-      if (!isDataUrl && !hasRealImage) {
-        console.warn('⚠️ Recebeu fallback, não exibindo:', data.imageUrl);
+      if (isPlaceholder && !data.hasRealImage) {
+        console.warn('⚠️ Recebeu fallback placeholder, não exibindo:', data.imageUrl);
         throw new Error("IA não conseguiu gerar imagem - recebeu fallback");
       }
       
