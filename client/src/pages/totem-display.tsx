@@ -88,13 +88,40 @@ export default function TotemDisplay() {
 
   // Auto-rotação
   useEffect(() => {
-    if (!settings.autoRotate || content.length <= 1) return;
+    // Usar configurações padrão se não houver configurações definidas
+    const autoRotate = settings?.autoRotate !== false; // Default true
+    const defaultInterval = '10'; // 10 segundos padrão
+    
+    if (!autoRotate || content.length <= 1) {
+      console.log('🔄 Auto-rotação desabilitada:', { autoRotate, contentLength: content.length });
+      return;
+    }
 
     const currentContent = content[currentIndex];
-    const interval = parseInt(currentContent?.displayDuration || settings.rotationInterval || '10', 10) * 1000;
+    const interval = parseInt(
+      currentContent?.displayDuration || 
+      settings?.rotationInterval || 
+      defaultInterval, 
+      10
+    ) * 1000;
 
-    const timer = setTimeout(nextContent, interval);
-    return () => clearTimeout(timer);
+    console.log('⏰ Configurando timer para próximo conteúdo:', { 
+      interval: interval / 1000 + 's', 
+      currentIndex, 
+      totalContent: content.length,
+      currentContentDuration: currentContent?.displayDuration,
+      settingsInterval: settings?.rotationInterval
+    });
+
+    const timer = setTimeout(() => {
+      console.log('🔄 Mudando para próximo conteúdo...');
+      nextContent();
+    }, interval);
+
+    return () => {
+      console.log('🧹 Limpando timer anterior');
+      clearTimeout(timer);
+    };
   }, [currentIndex, content, settings, nextContent]);
 
   // Controles de teclado para navegação manual
@@ -175,8 +202,17 @@ export default function TotemDisplay() {
   const currentContent = content[currentIndex];
   
   if (!currentContent) {
+    console.log('❌ Nenhum conteúdo atual disponível');
     return null;
   }
+
+  console.log('📺 Renderizando conteúdo:', {
+    title: currentContent.title,
+    mediaType: currentContent.mediaType,
+    currentIndex: currentIndex + 1,
+    totalContent: content.length,
+    autoRotate: settings?.autoRotate !== false
+  });
 
   const getTransitionClass = () => {
     const effect = settings.transitionEffect || 'fade';
@@ -221,9 +257,33 @@ export default function TotemDisplay() {
           <img
             src={currentContent.mediaUrl}
             alt={currentContent.title}
-            className="max-w-full max-h-full object-contain"
+            className="w-full h-full object-cover"
+            style={{ 
+              objectPosition: 'center',
+              imageRendering: 'optimizeQuality'
+            }}
+            onLoad={(e) => {
+              // Detectar orientação da imagem e aplicar rotação se necessário
+              const img = e.target as HTMLImageElement;
+              const isVertical = img.naturalHeight > img.naturalWidth;
+              
+              console.log('📸 Imagem carregada:', { 
+                src: currentContent.mediaUrl,
+                width: img.naturalWidth, 
+                height: img.naturalHeight,
+                isVertical,
+                aspectRatio: (img.naturalWidth / img.naturalHeight).toFixed(2)
+              });
+
+              // Para imagens verticais em TV horizontal, aplicar rotação
+              if (isVertical) {
+                console.log('🔄 Aplicando rotação para imagem vertical');
+                img.style.transform = 'rotate(90deg) scale(0.8)';
+                img.style.transformOrigin = 'center center';
+              }
+            }}
             onError={(e) => {
-              console.error('Erro ao carregar imagem:', currentContent.mediaUrl);
+              console.error('❌ Erro ao carregar imagem:', currentContent.mediaUrl);
               // Tentar novamente após 5 segundos
               setTimeout(() => {
                 const target = e.target as HTMLImageElement;
@@ -234,12 +294,33 @@ export default function TotemDisplay() {
         ) : (
           <video
             src={currentContent.mediaUrl}
-            className="max-w-full max-h-full object-contain"
+            className="w-full h-full object-cover"
+            style={{ objectPosition: 'center' }}
             autoPlay
             loop
             muted
+            playsInline
+            onLoadedMetadata={(e) => {
+              const video = e.target as HTMLVideoElement;
+              const isVertical = video.videoHeight > video.videoWidth;
+              
+              console.log('🎥 Vídeo carregado:', { 
+                src: currentContent.mediaUrl,
+                width: video.videoWidth, 
+                height: video.videoHeight,
+                isVertical,
+                aspectRatio: (video.videoWidth / video.videoHeight).toFixed(2)
+              });
+
+              // Para vídeos verticais em TV horizontal, aplicar rotação
+              if (isVertical) {
+                console.log('🔄 Aplicando rotação para vídeo vertical');
+                video.style.transform = 'rotate(90deg) scale(0.8)';
+                video.style.transformOrigin = 'center center';
+              }
+            }}
             onError={(e) => {
-              console.error('Erro ao carregar vídeo:', currentContent.mediaUrl);
+              console.error('❌ Erro ao carregar vídeo:', currentContent.mediaUrl);
             }}
           />
         )}
