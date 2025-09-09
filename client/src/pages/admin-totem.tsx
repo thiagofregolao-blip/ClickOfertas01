@@ -225,6 +225,24 @@ export default function AdminTotem() {
     e.preventDefault();
     
     // Validações específicas por método
+    if (uploadMethod === 'url' && !newContent.mediaUrl) {
+      toast({
+        title: "Erro",
+        description: "URL da mídia é obrigatória",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (uploadMethod === 'file' && !selectedFile) {
+      toast({
+        title: "Erro",
+        description: "Selecione um arquivo para upload",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (uploadMethod === 'ai' && !newContent.mediaUrl) {
       toast({
         title: "Erro",
@@ -582,11 +600,41 @@ export default function AdminTotem() {
                           </div>
 
                           {newContent.mediaUrl && uploadMethod === 'ai' && (
-                            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                              <p className="text-sm text-green-700 font-medium">✅ Banner gerado com sucesso!</p>
-                              <p className="text-sm text-green-600">Revise o banner abaixo e clique em "Criar Conteúdo" para salvar.</p>
-                              <div className="mt-2">
-                                <img src={newContent.mediaUrl} alt="Banner gerado" className="max-w-full max-h-32 rounded border" />
+                            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                              <div className="flex items-start gap-4">
+                                <div className="flex-1">
+                                  <p className="text-sm text-green-700 font-medium mb-2">✅ Banner gerado com sucesso!</p>
+                                  <p className="text-sm text-green-600 mb-3">Revise o banner ao lado e, se estiver satisfeito, clique em "Criar Conteúdo" para salvar no totem.</p>
+                                  
+                                  <div className="space-y-2">
+                                    <Button
+                                      type="button"
+                                      onClick={handleGenerateAI}
+                                      disabled={generateAIBannerMutation.isPending}
+                                      variant="outline"
+                                      size="sm"
+                                      className="mr-2"
+                                    >
+                                      🔄 Gerar Novo Banner
+                                    </Button>
+                                    <p className="text-xs text-green-600">
+                                      Não gostou? Altere as informações acima e gere um novo banner.
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex-shrink-0">
+                                  <div className="border-2 border-green-300 rounded-lg overflow-hidden bg-white">
+                                    <img 
+                                      src={newContent.mediaUrl} 
+                                      alt="Banner gerado" 
+                                      className="w-64 h-36 object-cover"
+                                    />
+                                  </div>
+                                  <p className="text-xs text-center text-green-600 mt-1">
+                                    Preview 16:9 (1920x1080px)
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           )}

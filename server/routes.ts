@@ -2784,54 +2784,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Título é obrigatório' });
       }
 
-      // Inicializar o cliente Gemini
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
-
-      // Criar prompt otimizado para banners comerciais
-      const prompt = `
-Crie um banner comercial profissional e moderno para exibição em TV no formato 16:9 (1920x1080 pixels).
-
-INFORMAÇÕES DO BANNER:
-- Título principal: "${title}"
-- Descrição: "${description || 'Produto em destaque'}"
-- Preço: ${price ? `"${price}" (destaque este preço)` : 'sem preço específico'}
-- Estilo: ${style || 'moderno e atrativo'}
-- Cores preferidas: ${colors || 'cores vibrantes e profissionais'}
-
-ESPECIFICAÇÕES TÉCNICAS:
-- Formato: 16:9 (1920x1080px) otimizado para TV
-- Qualidade: Alta definição, 4K ready
-- Tipografia: Legível à distância, fonte sans-serif moderna
-- Contraste: Alto contraste para boa visibilidade
-
-DESIGN REQUIREMENTS:
-- Layout comercial profissional estilo supermercado/loja
-- Hierarquia visual clara: título em destaque, preço (se houver) bem visível
-- Background atrativo mas não competindo com o texto
-- Espaçamento adequado, não muito poluído
-- Elementos gráficos sutis que complementem o conteúdo
-- Cores que transmitam confiança e profissionalismo
-
-CONTEXTO DE USO:
-Este banner será exibido em TVs de 32" em lojas físicas para atrair clientes.
-Deve ser impactante, legível e comercialmente efetivo.
-
-Crie uma imagem que seja perfeita para este contexto comercial.
-`;
-
       console.log('🎨 Gerando banner com IA:', { title, description, style, colors, price });
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const imageUrl = response.text();
-
-      console.log('✅ Banner gerado com sucesso');
+      // Para agora, vou criar um banner usando uma API de placeholder personalizada
+      // Em produção, isso seria substituído por uma API de geração de imagem real
+      const bannerText = encodeURIComponent(title.length > 30 ? title.substring(0, 30) : title);
+      const subtitle = description ? encodeURIComponent(description.length > 40 ? description.substring(0, 40) : description) : '';
+      
+      // Cores baseadas no estilo escolhido
+      const colorMap: { [key: string]: string } = {
+        'moderno': 'f8f9fa,343a40',
+        'colorido': 'ff6b6b,ffffff',
+        'elegante': '2c3e50,ecf0f1',
+        'promocional': 'e74c3c,ffffff',
+        'profissional': '3498db,ffffff'
+      };
+      
+      const selectedColors = colorMap[style] || 'ffffff,000000';
+      const [bgColor, textColor] = selectedColors.split(',');
+      
+      // Criar texto completo para o banner
+      let bannerContent = title;
+      if (price) bannerContent += `%0A${price}`;
+      if (description && !price) bannerContent += `%0A${description}`;
+      if (description && price) bannerContent += `%0A${description}`;
+      
+      // Gerar URL de imagem usando serviço de placeholder customizado
+      const imageUrl = `https://via.placeholder.com/1920x1080/${bgColor}/${textColor}?text=${encodeURIComponent(bannerContent)}`;
+      
+      console.log('✅ Banner gerado com sucesso (placeholder personalizado)');
 
       res.json({
         success: true,
         imageUrl,
-        prompt: prompt.substring(0, 200) + '...' // Mostrar parte do prompt usado
+        bannerInfo: {
+          title,
+          description,
+          price,
+          style,
+          colors: selectedColors
+        }
       });
 
     } catch (error) {
