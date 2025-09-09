@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatPriceWithCurrency } from "@/lib/priceUtils";
 import { useAuth } from "@/hooks/useAuth";
+import ProductCard from "@/components/product-card";
+import { ProductDetailModal } from "@/components/product-detail-modal";
 
 interface BrazilianPrice {
   store: string;
@@ -44,11 +46,19 @@ export default function PriceComparison() {
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [selectedProductForSearch, setSelectedProductForSearch] = useState<any | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedProductDetail, setSelectedProductDetail] = useState<any | null>(null);
+  const [selectedStore, setSelectedStore] = useState<any | null>(null);
 
   // Buscar produtos disponíveis no Paraguay para comparação
   const { data: paraguayProducts = [], isLoading: loadingProducts } = useQuery<any[]>({
     queryKey: ['/api/public/products-for-comparison'],
     staleTime: 5 * 60 * 1000,
+  });
+
+  // Buscar todas as lojas com produtos para exibir no lado direito
+  const { data: allStores = [], isLoading: loadingStores } = useQuery<any[]>({
+    queryKey: ['/api/public/stores'],
+    staleTime: 10 * 60 * 1000,
   });
 
   // Realizar comparação de preços
@@ -91,6 +101,27 @@ export default function PriceComparison() {
       )
       .slice(0, 10); // Limitar a 10 sugestões
   }, [paraguayProducts, searchQuery]);
+
+  // Filtrar produtos relacionados para exibir no lado direito
+  const relatedProducts = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    
+    // Extrair todos os produtos de todas as lojas
+    const allProducts = allStores.flatMap(store => 
+      store.products
+        ?.filter((product: any) => product.isActive)
+        ?.map((product: any) => ({ ...product, store })) || []
+    );
+    
+    // Filtrar por termos similares ao produto pesquisado
+    return allProducts
+      .filter(product => 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      .slice(0, 6); // Limitar a 6 cards
+  }, [allStores, searchQuery]);
 
   // Hook para buscar cotação USD → BRL
   const { data: exchangeRateData } = useQuery<{ rate: number }>({
@@ -480,15 +511,48 @@ export default function PriceComparison() {
                 </p>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-gray-500">
-                  Busque um produto para ver opções relacionadas
-                </div>
+                {relatedProducts.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    {searchQuery.trim() ? 
+                      `Nenhum produto relacionado encontrado para "${searchQuery}"` :
+                      "Busque um produto para ver opções relacionadas"
+                    }
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {relatedProducts.map((product) => (
+                      <ProductCard
+                        key={`${product.store.id}-${product.id}`}
+                        product={product}
+                        currency="US$"
+                        themeColor={product.store.themeColor || '#3B82F6'}
+                        showFeaturedBadge={false}
+                        enableEngagement={false}
+                        onClick={(prod) => {
+                          setSelectedProductDetail(prod);
+                          setSelectedStore(product.store);
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
           
         </div>
       </div>
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        product={selectedProductDetail}
+        store={selectedStore}
+        isOpen={!!selectedProductDetail}
+        onClose={() => {
+          setSelectedProductDetail(null);
+          setSelectedStore(null);
+        }}
+      />
     </div>
   );
 }
