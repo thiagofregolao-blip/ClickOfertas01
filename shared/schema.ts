@@ -1512,14 +1512,15 @@ export type InsertTotemSettings = typeof totemSettings.$inferInsert;
 export type UpdateTotemSettings = Partial<InsertTotemSettings>;
 
 // Schemas Zod para validação
-export const insertTotemContentSchema = createInsertSchema(totemContent).omit({
-  id: true,
-  storeId: true, // Será preenchido pelo servidor
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  scheduleStart: z.string().optional().transform(val => val && val !== '' ? new Date(val) : undefined),
-  scheduleEnd: z.string().optional().transform(val => val && val !== '' ? new Date(val) : undefined),
+export const insertTotemContentSchema = z.object({
+  title: z.string().min(1, "Título é obrigatório"),
+  description: z.string().optional(),
+  mediaUrl: z.string().url("URL da mídia deve ser válida"),
+  mediaType: z.enum(['image', 'video']).default('image'),
+  displayDuration: z.string().default('10'),
+  sortOrder: z.string().default('0'),
+  scheduleStart: z.string().optional(),
+  scheduleEnd: z.string().optional(),
 });
 
 export const updateTotemContentSchema = createInsertSchema(totemContent).omit({

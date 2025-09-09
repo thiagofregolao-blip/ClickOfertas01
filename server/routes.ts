@@ -2568,7 +2568,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/totem/content', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.id || req.user?.claims?.sub || req.session?.user?.id;
-      const contentData = insertTotemContentSchema.parse(req.body);
       
       // Buscar a loja do usuário logado
       const store = await storage.getUserStore(userId);
@@ -2576,13 +2575,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'No store found for user' });
       }
       
-      // Adicionar o storeId automaticamente
-      const contentWithStoreId = {
-        ...contentData,
-        storeId: store.id
+      // Validar os dados recebidos
+      const contentData = insertTotemContentSchema.parse(req.body);
+      
+      // Preparar dados para inserção no banco
+      const contentForDB = {
+        storeId: store.id,
+        title: contentData.title,
+        description: contentData.description || null,
+        mediaUrl: contentData.mediaUrl,
+        mediaType: contentData.mediaType,
+        displayDuration: contentData.displayDuration,
+        sortOrder: contentData.sortOrder,
+        isActive: true,
+        scheduleStart: contentData.scheduleStart && contentData.scheduleStart !== '' 
+          ? new Date(contentData.scheduleStart) : null,
+        scheduleEnd: contentData.scheduleEnd && contentData.scheduleEnd !== '' 
+          ? new Date(contentData.scheduleEnd) : null,
       };
       
-      const content = await storage.createTotemContent(contentWithStoreId);
+      const content = await storage.createTotemContent(contentForDB);
       res.status(201).json({ success: true, content });
     } catch (error) {
       console.error('Error creating totem content:', error);
