@@ -155,7 +155,8 @@ export default function AdminTotem() {
     description: '',
     style: 'moderno',
     colors: '',
-    price: ''
+    price: '',
+    editCommand: ''
   });
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [generatedBanner, setGeneratedBanner] = useState<string | null>(null);
@@ -210,6 +211,23 @@ export default function AdminTotem() {
     }
     
     generateAIBannerMutation.mutate(aiContent);
+  };
+
+  // Função para editar imagem iterativamente (como nanobana)
+  const handleEditImage = () => {
+    if (!aiContent.editCommand?.trim()) return;
+    if (!generatedBanner) return;
+    
+    // Usar o mesmo mutation mas com flag de edição
+    generateAIBannerMutation.mutate({
+      ...aiContent,
+      isEdit: true,
+      baseImage: generatedBanner,
+      editCommand: aiContent.editCommand
+    });
+
+    // Limpar comando após enviar
+    setAiContent(prev => ({ ...prev, editCommand: '' }));
   };
 
   // Função para limpar estados quando mudar método
@@ -621,58 +639,63 @@ export default function AdminTotem() {
                             {/* Preview - Lado Direito */}
                             <div className="space-y-4">
                               <div className="text-center">
-                                <h4 className="text-md font-medium text-gray-700 mb-2">Preview do Banner</h4>
-                                <p className="text-xs text-gray-500">A imagem aparecerá aqui após a geração</p>
+                                <h4 className="text-md font-medium text-gray-700 mb-2">Preview Totem</h4>
+                                <p className="text-xs text-gray-500">Formato 16:9 para TV</p>
                               </div>
                               
-                              <div className="flex flex-col items-center justify-center min-h-[300px] border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                                {/* Debug para ver se está chegando aqui */}
-                                {uploadMethod === 'ai' && console.log('AI method selected, mediaUrl:', newContent.mediaUrl, 'generatedBanner:', generatedBanner)}
-                                
+                              {/* Área do preview com aspecto correto para totem */}
+                              <div className="w-full max-w-md mx-auto">
                                 {generatedBanner ? (
                                   <div className="space-y-3">
-                                    {/* Imagem em formato totem (16:9) apenas */}
+                                    {/* Imagem em formato totem - aspecto 16:9 */}
                                     <div className="relative w-full aspect-video bg-gray-100 rounded-lg overflow-hidden shadow-lg">
                                       <img 
                                         src={generatedBanner} 
                                         alt="Banner para totem" 
                                         className="w-full h-full object-cover"
-                                        onLoad={() => console.log('✅ Imagem carregou com sucesso:', generatedBanner)}
+                                        onLoad={() => console.log('✅ Imagem carregou:')}
                                         onError={(e) => {
-                                          console.error('❌ Erro ao carregar imagem:', generatedBanner);
+                                          console.error('❌ Erro ao carregar imagem');
                                           e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyMCIgaGVpZ2h0PSIxMDgwIiB2aWV3Qm94PSIwIDAgMTkyMCAxMDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTkyMCIgaGVpZ2h0PSIxMDgwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9Ijk2MCIgeT0iNTQwIiBmaWxsPSIjNkI3MjgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDgiIGR5PSIuM2VtIj5FcnJvIGFvIGNhcnJlZ2FyIGltYWdlbTwvdGV4dD4KPHN2Zz4K';
                                         }}
                                       />
                                     </div>
                                     
-                                    {/* Controles minimalistas */}
-                                    <div className="flex justify-center space-x-2">
-                                      <Button
-                                        type="button"
-                                        onClick={handleGenerateAI}
-                                        disabled={generateAIBannerMutation.isPending}
-                                        variant="outline"
-                                        size="sm"
-                                        className="text-xs"
-                                      >
-                                        {generateAIBannerMutation.isPending ? '🔄 Gerando...' : '🎨 Regenerar'}
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        onClick={() => setGeneratedBanner(null)}
-                                        variant="outline"
-                                        size="sm"
-                                        className="text-xs"
-                                      >
-                                        🗑️ Limpar
-                                      </Button>
+                                    {/* Campo para edição iterativa - como nanobana */}
+                                    <div className="space-y-2">
+                                      <Label className="text-xs text-gray-600">Comando de edição:</Label>
+                                      <div className="flex space-x-2">
+                                        <Input
+                                          placeholder="Ex: adicione uma bolsa vermelha na mulher"
+                                          value={aiContent.editCommand || ''}
+                                          onChange={(e) => setAiContent(prev => ({ ...prev, editCommand: e.target.value }))}
+                                          className="text-xs"
+                                          onKeyPress={(e) => {
+                                            if (e.key === 'Enter' && aiContent.editCommand?.trim()) {
+                                              handleEditImage();
+                                            }
+                                          }}
+                                        />
+                                        <Button
+                                          type="button"
+                                          onClick={handleEditImage}
+                                          disabled={generateAIBannerMutation.isPending || !aiContent.editCommand?.trim()}
+                                          size="sm"
+                                          className="bg-blue-600 hover:bg-blue-700"
+                                        >
+                                          {generateAIBannerMutation.isPending ? '⏳' : '✨'}
+                                        </Button>
+                                      </div>
+                                      <p className="text-xs text-gray-400">Digite um comando e pressione Enter ou clique ✨</p>
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="text-center space-y-3 p-8">
-                                    <div className="text-gray-400 text-6xl">🖼️</div>
-                                    <p className="text-gray-500">Nenhum banner gerado ainda</p>
-                                    <p className="text-xs text-gray-400">Preencha os campos ao lado e clique em "Gerar Banner com IA"</p>
+                                  <div className="flex flex-col items-center justify-center min-h-[200px] border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                                    <div className="text-center space-y-3 p-6">
+                                      <div className="text-gray-400 text-4xl">🖼️</div>
+                                      <p className="text-sm text-gray-500">Clique "Gerar" para criar</p>
+                                      <p className="text-xs text-gray-400">Depois você pode editá-la com comandos</p>
+                                    </div>
                                   </div>
                                 )}
                               </div>

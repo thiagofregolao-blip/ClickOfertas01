@@ -2778,55 +2778,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { title, description, style, colors, price } = req.body;
+      const { title, description, style, colors, price, isEdit, editCommand, baseImage } = req.body;
 
       if (!title) {
         return res.status(400).json({ message: 'Título é obrigatório' });
       }
 
-      console.log('🎨 Gerando banner com IA:', { title, description, style, colors, price });
+      if (isEdit && editCommand) {
+        console.log('✏️ Editando imagem existente com comando:', editCommand);
+      } else {
+        console.log('🎨 Gerando nova imagem com IA:', { title, description, style, colors, price });
+      }
 
       // Importar Gemini de forma dinâmica
       const { generateImage } = await import('../gemini');
       
-      // Construir prompt visual focado APENAS na imagem, sem textos
-      let prompt = `Create a stunning visual banner image for digital display (totem/TV) based on: "${title}"`;
+      let prompt = '';
 
-      if (description) {
-        prompt += ` - ${description}`;
+      if (isEdit && editCommand && baseImage) {
+        // MODO EDIÇÃO ITERATIVA - Simular edição baseada na imagem anterior
+        prompt = `Create a new visual image for digital totem display that incorporates this modification: "${editCommand}"
+
+Base context: ${description || title}
+Modification request: ${editCommand}
+
+EDIT REQUIREMENTS:
+- Apply the requested modification to the visual concept
+- Maintain the same general theme and style
+- 16:9 aspect ratio (1920x1080 pixels)
+- NO TEXT in the image - pure visual only
+- HIGH CONTRAST for digital display
+- Professional commercial quality
+
+Create a new image that reflects the requested change while maintaining visual consistency.`;
+
+        console.log('✏️ Sending edit command to Gemini AI:', editCommand);
+      } else {
+        // MODO GERAÇÃO INICIAL
+        prompt = `Create a pure visual image for digital totem display. Theme: ${description || title}`;
+
+        // Adicionar instruções específicas do estilo SEM TEXTOS
+        const styleInstructions: { [key: string]: string } = {
+          'moderno': 'Clean minimalist photography style, geometric shapes, subtle gradients',
+          'colorido': 'Vibrant colorful photography, dynamic composition, bright saturated colors', 
+          'elegante': 'Luxury premium photography style, sophisticated lighting, refined aesthetic',
+          'promocional': 'Bold dynamic photography, eye-catching composition, energetic visual',
+          'profissional': 'Corporate professional photography, clean composition, business aesthetic'
+        };
+
+        prompt += `
+
+STRICT VISUAL REQUIREMENTS:
+- Aspect ratio: 16:9 (1920x1080 pixels)
+- Style: ${styleInstructions[style] || 'Modern professional photography'}`;
+
+        if (colors && colors.trim()) {
+          prompt += `
+- Color palette: ${colors}`;
+        }
+
+        prompt += `
+- HIGH CONTRAST for digital display
+- ZERO TEXT - no words, letters, numbers, or written content
+- NO LOGOS, NO BRANDS, NO TYPOGRAPHY
+- Pure photographic/artistic visual only
+- Commercial photography quality
+- Perfect for TV/totem display
+
+CRITICAL: The image must contain ZERO text elements. Only visual imagery allowed.`;
+
+        console.log('🎯 Sending text-free prompt to Gemini AI');
       }
-
-      // Adicionar instruções específicas do estilo SEM TEXTOS
-      const styleInstructions: { [key: string]: string } = {
-        'moderno': 'Minimalist modern visual with clean geometric shapes, subtle gradients, contemporary feel',
-        'colorido': 'Vibrant colorful visual with dynamic elements, energetic composition, bright palette',
-        'elegante': 'Sophisticated luxurious visual with premium aesthetic, refined elements, classy composition',
-        'promocional': 'Eye-catching dynamic visual with bold visual elements, exciting composition, attention-grabbing',
-        'profissional': 'Professional corporate visual with clean aesthetic, business-focused elements'
-      };
-
-      prompt += `\n\nVISUAL REQUIREMENTS:
-- Dimensions: 1920x1080 pixels (16:9 aspect ratio) 
-- ${styleInstructions[style] || 'Modern professional visual design'}
-- HIGH CONTRAST for TV/totem display
-- NO TEXT OVERLAY - pure visual image only
-- NO WRITTEN WORDS - visual elements only
-- Product/service theme through visual elements`;
-
-      if (colors && colors.trim()) {
-        prompt += `\n- Color scheme: ${colors}`;
-      }
-
-      prompt += `
-- Professional commercial photography/artwork style
-- Clean background suitable for digital display
-- Visual storytelling through imagery only
-- Ultra high quality, crisp and sharp
-- Perfect for TV screen display
-
-IMPORTANT: Do NOT include any text, words, or written content in the image. Create a pure visual representation only.`;
-
-      console.log('🎯 Sending prompt to Gemini AI for image generation');
 
       // Gerar imagem com Gemini
       const tempImagePath = `/tmp/banner_${Date.now()}.png`;
