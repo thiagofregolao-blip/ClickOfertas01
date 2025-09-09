@@ -2771,10 +2771,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Gerar banner com IA para totem
   app.post('/api/totem/generate-banner', isAuthenticated, async (req: any, res) => {
     try {
-      if (!process.env.GOOGLE_API_KEY) {
+      if (!process.env.GEMINI_API_KEY) {
         return res.status(500).json({ 
-          message: 'API key do Google não configurada',
-          error: 'GOOGLE_API_KEY não encontrada' 
+          message: 'API key do Gemini não configurada',
+          error: 'GEMINI_API_KEY não encontrada' 
         });
       }
 
@@ -2786,33 +2786,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('🎨 Gerando banner com IA:', { title, description, style, colors, price });
 
-      // Para agora, vou criar um banner usando uma API de placeholder personalizada
-      // Em produção, isso seria substituído por uma API de geração de imagem real
-      const bannerText = encodeURIComponent(title.length > 30 ? title.substring(0, 30) : title);
-      const subtitle = description ? encodeURIComponent(description.length > 40 ? description.substring(0, 40) : description) : '';
+      // Importar Gemini de forma dinâmica
+      const { generateImage } = await import('../gemini');
       
-      // Cores baseadas no estilo escolhido
-      const colorMap: { [key: string]: string } = {
-        'moderno': 'f8f9fa,343a40',
-        'colorido': 'ff6b6b,ffffff',
-        'elegante': '2c3e50,ecf0f1',
-        'promocional': 'e74c3c,ffffff',
-        'profissional': '3498db,ffffff'
+      // Construir prompt detalhado para o Gemini
+      let prompt = `Create a professional promotional banner image with these specifications:
+
+MAIN TITLE: "${title}"`;
+
+      if (price) {
+        prompt += `\nPRICE: ${price}`;
+      }
+
+      if (description) {
+        prompt += `\nDESCRIPTION: ${description}`;
+      }
+
+      prompt += `\nSTYLE: ${style}`;
+
+      if (colors) {
+        prompt += `\nCOLORS: ${colors}`;
+      }
+
+      // Adicionar instruções específicas do estilo
+      const styleInstructions: { [key: string]: string } = {
+        'moderno': 'Clean, minimalist design with modern typography and subtle gradients',
+        'colorido': 'Vibrant colors, energetic design with bright elements and dynamic layout',
+        'elegante': 'Sophisticated design with elegant fonts, premium look and feel',
+        'promocional': 'Eye-catching promotional design with bold text and attention-grabbing elements',
+        'profissional': 'Professional business design with clean layout and corporate aesthetics'
       };
+
+      prompt += `\n\nDESIGN REQUIREMENTS:
+- Dimensions: 1920x1080 pixels (16:9 aspect ratio)
+- ${styleInstructions[style] || 'Modern professional design'}
+- High contrast for TV/screen display
+- Clear readable text
+- Product/service focused layout
+- Commercial advertising style
+- Professional quality artwork
+
+Create a stunning banner that effectively promotes the product/service with high visual impact.`;
+
+      console.log('🎯 Sending prompt to Gemini AI for image generation');
+
+      // Gerar imagem com Gemini
+      const tempImagePath = `/tmp/banner_${Date.now()}.png`;
       
-      const selectedColors = colorMap[style] || 'ffffff,000000';
-      const [bgColor, textColor] = selectedColors.split(',');
+      await generateImage(prompt, tempImagePath);
       
-      // Criar texto completo para o banner
-      let bannerContent = title;
-      if (price) bannerContent += `%0A${price}`;
-      if (description && !price) bannerContent += `%0A${description}`;
-      if (description && price) bannerContent += `%0A${description}`;
+      // Converter para base64 para enviar pela API
+      const fs = require('fs');
+      const imageBuffer = fs.readFileSync(tempImagePath);
+      const imageUrl = `data:image/png;base64,${imageBuffer.toString('base64')}`;
       
-      // Usar serviço de placeholder mais confiável
-      const imageUrl = `https://placehold.co/1920x1080/${bgColor}/${textColor}/png?text=${encodeURIComponent(bannerContent)}&font=roboto`;
+      // Limpar arquivo temporário
+      fs.unlinkSync(tempImagePath);
       
-      console.log('✅ Banner gerado com sucesso (placeholder personalizado)');
+      console.log('✅ Banner gerado com sucesso usando Gemini AI!');
 
       res.json({
         success: true,
@@ -2822,14 +2853,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description,
           price,
           style,
-          colors: selectedColors
-        }
+          colors
+        },
+        generatedWith: 'Gemini AI'
       });
 
     } catch (error) {
       console.error('❌ Erro ao gerar banner com IA:', error);
-      res.status(500).json({ 
-        message: 'Erro ao gerar banner',
+      
+      // Fallback para placeholder em caso de erro
+      const colorMap: { [key: string]: string } = {
+        'moderno': 'f8f9fa,343a40',
+        'colorido': 'ff6b6b,ffffff',
+        'elegante': '2c3e50,ecf0f1',
+        'promocional': 'e74c3c,ffffff',
+        'profissional': '3498db,ffffff'
+      };
+      
+      const { title, style } = req.body;
+      const selectedColors = colorMap[style] || 'ffffff,000000';
+      const [bgColor, textColor] = selectedColors.split(',');
+      
+      let bannerContent = title;
+      if (req.body.price) bannerContent += `%0A${req.body.price}`;
+      if (req.body.description) bannerContent += `%0A${req.body.description}`;
+      
+      const fallbackUrl = `https://placehold.co/1920x1080/${bgColor}/${textColor}/png?text=${encodeURIComponent(bannerContent)}&font=roboto`;
+      
+      console.log('⚠️ Usando fallback placeholder devido ao erro:', error instanceof Error ? error.message : 'Erro desconhecido');
+      
+      res.json({
+        success: true,
+        imageUrl: fallbackUrl,
+        bannerInfo: {
+          title,
+          description: req.body.description,
+          price: req.body.price,
+          style,
+          colors: selectedColors
+        },
+        fallback: true,
         error: error instanceof Error ? error.message : 'Erro desconhecido'
       });
     }
