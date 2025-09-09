@@ -37,15 +37,20 @@ export async function generateImage(
                 }
             ];
         } else {
-            // Modo geração nova: apenas texto
-            contents = [prompt];
+            // Modo geração nova: estrutura completa com role/parts
+            contents = [{
+                role: "user",
+                parts: [{ text: prompt }]
+            }];
         }
 
         const response = await ai.models.generateContent({
             model: model,
             contents: contents,
             config: {
-                responseModalities: [Modality.TEXT, Modality.IMAGE]
+                // Forçar apenas imagem (evitar retorno só de texto)
+                responseModalities: [Modality.IMAGE],
+                generationConfig: { responseMimeType: "image/png" }
             }
         });
 

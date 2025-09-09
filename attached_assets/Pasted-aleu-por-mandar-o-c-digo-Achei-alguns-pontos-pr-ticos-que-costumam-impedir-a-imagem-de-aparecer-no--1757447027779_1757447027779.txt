@@ -1,0 +1,122 @@
+aleu por mandar o código. Achei alguns pontos práticos que costumam impedir a imagem de aparecer no site — e no seu caso há 3 “suspeitos principais” (com correções). Vou direto ao ponto:
+
+1) Forçar resposta em imagem (evitar retorno só de texto)
+
+Hoje você pede responseModalities: [Modality.TEXT, Modality.IMAGE]. Isso permite o modelo responder apenas com texto (bem comum) e o seu loop nunca acha inlineData. Para garantir imagem:
+
+// gemini.ts
+const response = await ai.models.generateContent({
+  model: "gemini-2.5-flash-preview-image",
+  contents,
+  config: {
+    // peça apenas imagem
+    responseModalities: [Modality.IMAGE],
+    // e declare o mime, quando suportado
+    generationConfig: { responseMimeType: "image/png" }
+  }
+});
+
+
+Também vale manter um fallback no loop: se vier texto, registre e continue tentando achar inlineData, mas não considere sucesso sem a parte de imagem. (A sua checagem já tenta isso, só estava “permitindo” texto.) 
+
+AI_BANNER_GENERATION_COMPLETE
+
+2) Formato de contents em geração “texto-apenas”
+
+No caminho “geração nova” você manda contents = [prompt]. A SDK costuma esperar objetos com parts. Para evitar respostas vazias:
+
+// geração nova (sem baseImage)
+contents = [{
+  role: "user",
+  parts: [{ text: prompt }]
+}];
+
+
+No caminho de edição você já monta parts certinho (imagem + texto), então deixe como está. 
+
+AI_BANNER_GENERATION_COMPLETE
+
+3) CSP do site pode estar bloqueando data: em <img>
+
+No frontend você exibe data:image/png;base64,.... Se a sua Content-Security-Policy não inclui data: em img-src, o navegador bloqueia silenciosamente. Garanta algo assim nos headers (ou meta tag):
+
+Content-Security-Policy: default-src 'self';
+  img-src 'self' data: blob: https:;
+  media-src 'self' data: blob: https:;
+  connect-src 'self' https:;
+
+
+Se você usa Next/Nginx/Cloudflare, ajuste no lugar correspondente. (Se o placeholder externo aparecer e a imagem da IA não, é um forte indício de CSP bloqueando data:.) 
+
+AI_BANNER_GENERATION_COMPLETE
+
+Outras checagens rápidas que já vi darem problema
+
+Tamanho do JSON de requisição (edição): quando você manda baseImage como data URL no POST, verifique o limit do bodyParser/express.json. Se estiver baixo (padrão 100kb), aumente para ~10mb ou mais:
+
+app.use(express.json({ limit: "15mb" }));
+
+
+(Sem isso, a imagem base pode chegar truncada e a IA falhar silenciosamente.) 
+
+AI_BANNER_GENERATION_COMPLETE
+
+Caminho temporário: em serverless (Vercel, etc.), use sempre /tmp (você já usa) e leia o arquivo antes de unlinkSync (você já faz certo). 
+
+AI_BANNER_GENERATION_COMPLETE
+
+Prefixo base64: você já retorna data:image/png;base64,${...} certinho — mantenha isso. No <img>, deixe object-cover como está, e logue onError (você já loga). 
+
+AI_BANNER_GENERATION_COMPLETE
+
+Nome do modelo: confira exatamente "gemini-2.5-flash-preview-image" (você já escreveu o correto e até deixou o alerta sobre o nome errado comum). Um caracter trocado faz o endpoint cair em fallback. 
+
+AI_BANNER_GENERATION_COMPLETE
+
+Quota/429: se bater quota você recebe o seu placeholder (e parece “não gerar”). Monitore o data.fallback no frontend para avisar o usuário que foi fallback, o que você já faz. 
+
+AI_BANNER_GENERATION_COMPLETE
+
+“Quero igual ao site da Gemini (Nanobanana)”
+
+O demo do “nanobanana” dá a sensação de edição iterativa e resposta imediata. Você já reproduziu a UX de edição iterativa (campo “Comando de edição” que reaproveita a imagem atual). Para ficar ainda mais parecido:
+
+Streaming no frontend (UX):
+
+Em vez de esperar o PNG final, exiba um spinner em cima do preview e, se a SDK permitir, use streaming de partes (quando disponível) para atualizar um progress bar.
+
+Como você está renderizando a imagem final do backend, um passo simples é mostrar um skeleton shimmer no contêiner aspect-video enquanto a mutation está isPending.
+
+Modo edição restritivo (consistência visual):
+
+Você já envia: “Keep the overall composition… No text… 16:9…”. Mantenha isso e evite mudar estilo/cor base sem o usuário pedir — ajuda a ficar “Nanobanana-like”. 
+
+AI_BANNER_GENERATION_COMPLETE
+
+Patch mínimo sugerido (2 mudanças essenciais)
+
+A) gemini.ts – corrigir modalities e contents:
+
+// geração nova
+const contents = [{
+  role: "user",
+  parts: [{ text: prompt }]
+}];
+
+// chamada
+const response = await ai.models.generateContent({
+  model: "gemini-2.5-flash-preview-image",
+  contents,
+  config: {
+    responseModalities: [Modality.IMAGE],
+    generationConfig: { responseMimeType: "image/png" }
+  }
+});
+
+
+B) CSP – permitir data::
+
+img-src 'self' data: blob: https:;
+
+
+Com isso, na prática, você resolve os dois motivos mais comuns para “tenho a chave, mas a imagem não aparece”.
