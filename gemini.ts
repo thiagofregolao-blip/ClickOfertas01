@@ -9,8 +9,18 @@ export async function generateImage(
     imagePath: string,
     baseImage?: string
 ): Promise<void> {
+    // Tentar Hugging Face primeiro se disponível
+    if (process.env.HUGGINGFACE_API_KEY) {
+        try {
+            await generateImageWithHuggingFace(prompt, imagePath);
+            return;
+        } catch (error) {
+            console.warn('⚠️ Hugging Face falhou, tentando Gemini:', error);
+        }
+    }
+
     try {
-        // Usar modelo correto e mais recente para geração de imagem
+        // Fallback para Gemini se Hugging Face não estiver disponível
         const model = "gemini-2.5-flash-image-preview";
         
         // Construir conteúdo baseado se é edição ou geração nova
@@ -144,5 +154,50 @@ Respond with JSON in this format:
         }
     } catch (error) {
         throw new Error(`Failed to analyze sentiment: ${error}`);
+    }
+}
+
+// Função para gerar imagem com Hugging Face
+async function generateImageWithHuggingFace(prompt: string, imagePath: string): Promise<void> {
+    try {
+        console.log('🤗 Gerando imagem com Hugging Face Stable Diffusion...');
+        
+        const response = await fetch(
+            "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+                    "Content-Type": "application/json",
+                },
+                method: "POST",
+                body: JSON.stringify({
+                    inputs: prompt,
+                    parameters: {
+                        negative_prompt: "low quality, blurry, distorted, text, watermark",
+                        num_inference_steps: 20,
+                        guidance_scale: 7.5,
+                        width: 1024,
+                        height: 576, // 16:9 aspect ratio
+                    }
+                }),
+            }
+        );
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Hugging Face API error: ${response.status} ${errorText}`);
+        }
+
+        const imageBuffer = await response.arrayBuffer();
+        
+        // Salvar imagem no path especificado
+        const fs = await import('fs');
+        fs.default.writeFileSync(imagePath, Buffer.from(imageBuffer));
+        
+        console.log('✅ Imagem gerada com sucesso usando Hugging Face!');
+        
+    } catch (error) {
+        console.error('❌ Erro ao gerar imagem com Hugging Face:', error);
+        throw error;
     }
 }
