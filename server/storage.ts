@@ -34,6 +34,8 @@ import {
   budgetConfig,
   funnyMessages,
   maintenanceMode,
+  totemContent,
+  totemSettings,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -109,6 +111,15 @@ import {
   type InsertDailyScratchCard,
   type BudgetConfig,
   type InsertBudgetConfig,
+  type TotemContent,
+  type InsertTotemContent,
+  type TotemSettings,
+  type InsertTotemSettings,
+  type UpdateTotemSettings,
+  insertTotemContentSchema,
+  updateTotemContentSchema,
+  insertTotemSettingsSchema,
+  updateTotemSettingsSchema,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, gte, lte, lt, sql, inArray, or, isNull } from "drizzle-orm";
@@ -273,6 +284,16 @@ export interface IStorage {
   updateBudgetConfig(updates: Partial<BudgetConfig>): Promise<BudgetConfig>;
   getBudgetStats(): Promise<any>;
   getAvailableProductsForPrizes(): Promise<Product[]>;
+
+  // Totem operations
+  getTotemContent(storeId: string): Promise<TotemContent[]>;
+  createTotemContent(content: InsertTotemContent): Promise<TotemContent>;
+  updateTotemContent(id: string, storeId: string, content: Partial<InsertTotemContent>): Promise<TotemContent>;
+  deleteTotemContent(id: string, storeId: string): Promise<void>;
+  
+  getTotemSettings(storeId: string): Promise<TotemSettings | undefined>;
+  upsertTotemSettings(storeId: string, settings: InsertTotemSettings | UpdateTotemSettings): Promise<TotemSettings>;
+  updateTotemLastSync(storeId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3264,6 +3285,92 @@ export class DatabaseStorage implements IStorage {
         updatedBy: data.updatedBy
       });
     }
+  }
+
+  // ==========================================
+  // SISTEMA DE TOTEM
+  // ==========================================
+
+  async getTotemContent(storeId: string): Promise<TotemContent[]> {
+    const content = await db
+      .select()
+      .from(totemContent)
+      .where(eq(totemContent.storeId, storeId))
+      .orderBy(asc(totemContent.sortOrder), desc(totemContent.createdAt));
+    return content;
+  }
+
+  async createTotemContent(content: InsertTotemContent): Promise<TotemContent> {
+    const [newContent] = await db
+      .insert(totemContent)
+      .values({
+        ...content,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newContent;
+  }
+
+  async updateTotemContent(id: string, storeId: string, content: Partial<InsertTotemContent>): Promise<TotemContent> {
+    const [updatedContent] = await db
+      .update(totemContent)
+      .set({
+        ...content,
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(totemContent.id, id),
+        eq(totemContent.storeId, storeId)
+      ))
+      .returning();
+    return updatedContent;
+  }
+
+  async deleteTotemContent(id: string, storeId: string): Promise<void> {
+    await db
+      .delete(totemContent)
+      .where(and(
+        eq(totemContent.id, id),
+        eq(totemContent.storeId, storeId)
+      ));
+  }
+
+  async getTotemSettings(storeId: string): Promise<TotemSettings | undefined> {
+    const [settings] = await db
+      .select()
+      .from(totemSettings)
+      .where(eq(totemSettings.storeId, storeId));
+    return settings;
+  }
+
+  async upsertTotemSettings(storeId: string, settings: InsertTotemSettings | UpdateTotemSettings): Promise<TotemSettings> {
+    const [result] = await db
+      .insert(totemSettings)
+      .values({
+        ...settings,
+        storeId,
+        updatedAt: new Date(),
+      } as InsertTotemSettings)
+      .onConflictDoUpdate({
+        target: totemSettings.storeId,
+        set: {
+          ...settings,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return result;
+  }
+
+  async updateTotemLastSync(storeId: string): Promise<void> {
+    await db
+      .update(totemSettings)
+      .set({
+        lastSync: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(totemSettings.storeId, storeId));
   }
 
   // ==========================================

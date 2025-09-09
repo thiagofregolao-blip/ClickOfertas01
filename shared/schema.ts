@@ -382,6 +382,8 @@ export const storesRelations = relations(stores, ({ one, many }) => ({
   scratchCampaigns: many(scratchCampaigns),
   virtualScratchClones: many(virtualScratchClones),
   promotions: many(promotions),
+  totemContent: many(totemContent),
+  totemSettings: many(totemSettings),
 }));
 
 export const productsRelations = relations(products, ({ one, many }) => ({
@@ -527,8 +529,6 @@ export const promotionScratchesRelations = relations(promotionScratches, ({ one 
   }),
 }));
 
-
-
 // Controle do modo manutenção
 export const maintenanceMode = pgTable("maintenance_mode", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -539,6 +539,68 @@ export const maintenanceMode = pgTable("maintenance_mode", {
   updatedAt: timestamp("updated_at").defaultNow(),
   updatedBy: varchar("updated_by").references(() => users.id),
 });
+
+// Sistema de Totems - Gerenciamento de conteúdo para TVs
+export const totemContent = pgTable("totem_content", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  
+  // Informações do conteúdo
+  title: text("title").notNull(),
+  description: text("description"),
+  mediaUrl: text("media_url").notNull(), // URL da imagem/vídeo
+  mediaType: varchar("media_type").notNull(), // 'image', 'video'
+  
+  // Configurações de exibição
+  displayDuration: varchar("display_duration").default("10"), // Segundos para exibir
+  isActive: boolean("is_active").default(true),
+  sortOrder: varchar("sort_order").default("0"),
+  
+  // Agendamento (opcional)
+  scheduleStart: timestamp("schedule_start"),
+  scheduleEnd: timestamp("schedule_end"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Configurações específicas do totem por loja
+export const totemSettings = pgTable("totem_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  
+  // Configurações visuais
+  backgroundColor: varchar("background_color").default("#000000"),
+  transitionEffect: varchar("transition_effect").default("fade"), // 'fade', 'slide', 'zoom'
+  transitionDuration: varchar("transition_duration").default("1000"), // ms
+  
+  // Configurações de rotação
+  autoRotate: boolean("auto_rotate").default(true),
+  rotationInterval: varchar("rotation_interval").default("10"), // segundos
+  
+  // Controles
+  isActive: boolean("is_active").default(true),
+  lastSync: timestamp("last_sync").defaultNow(),
+  
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique().on(table.storeId), // Uma configuração por loja
+]);
+
+// Relations para totem
+export const totemContentRelations = relations(totemContent, ({ one }) => ({
+  store: one(stores, {
+    fields: [totemContent.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export const totemSettingsRelations = relations(totemSettings, ({ one }) => ({
+  store: one(stores, {
+    fields: [totemSettings.storeId],
+    references: [stores.id],
+  }),
+}));
 
 // Histórico de preços para monitoramento
 export const priceHistory = pgTable("price_history", {
@@ -1441,3 +1503,39 @@ export const insertFunnyMessageSchema = createInsertSchema(funnyMessages).omit({
 
 export type FunnyMessage = typeof funnyMessages.$inferSelect;
 export type InsertFunnyMessage = z.infer<typeof insertFunnyMessageSchema>;
+
+// Types para sistema de totem
+export type TotemContent = typeof totemContent.$inferSelect;
+export type InsertTotemContent = typeof totemContent.$inferInsert;
+export type TotemSettings = typeof totemSettings.$inferSelect;
+export type InsertTotemSettings = typeof totemSettings.$inferInsert;
+export type UpdateTotemSettings = Partial<InsertTotemSettings>;
+
+// Schemas Zod para validação
+export const insertTotemContentSchema = createInsertSchema(totemContent).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateTotemContentSchema = createInsertSchema(totemContent).omit({
+  id: true,
+  storeId: true,
+  createdAt: true,
+  updatedAt: true,
+}).partial();
+
+export const insertTotemSettingsSchema = createInsertSchema(totemSettings).omit({
+  id: true,
+  lastSync: true,
+  updatedAt: true,
+});
+
+export const updateTotemSettingsSchema = createInsertSchema(totemSettings).omit({
+  id: true,
+  storeId: true,
+  lastSync: true,
+  updatedAt: true,
+}).partial();
+
+export type MaintenanceMode = typeof maintenanceMode.$inferSelect;

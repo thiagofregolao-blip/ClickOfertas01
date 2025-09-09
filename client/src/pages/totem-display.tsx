@@ -1,0 +1,300 @@
+import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useRoute } from "wouter";
+
+interface TotemContent {
+  id: string;
+  title: string;
+  description?: string;
+  mediaUrl: string;
+  mediaType: 'image' | 'video';
+  displayDuration: string;
+  sortOrder: string;
+  isActive: boolean;
+  scheduleStart?: string;
+  scheduleEnd?: string;
+}
+
+interface TotemSettings {
+  backgroundColor?: string;
+  transitionEffect?: string;
+  transitionDuration?: string;
+  autoRotate?: boolean;
+  rotationInterval?: string;
+  isActive?: boolean;
+}
+
+export default function TotemDisplay() {
+  const [, params] = useRoute("/totem/:storeId");
+  const storeId = params?.storeId;
+  
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Buscar conteúdo do totem
+  const { data: contentData, isLoading, error } = useQuery({
+    queryKey: [`/api/totem/${storeId}/content`],
+    enabled: !!storeId,
+    refetchInterval: 30000, // Atualiza a cada 30 segundos
+    retry: 3,
+    retryDelay: 5000,
+  });
+
+  // Buscar configurações do totem
+  const { data: settingsData } = useQuery({
+    queryKey: [`/api/totem/${storeId}/settings`],
+    enabled: !!storeId,
+    refetchInterval: 60000, // Atualiza a cada 1 minuto
+  });
+
+  const content = contentData?.content || [];
+  const settings: TotemSettings = settingsData?.settings || {};
+
+  // Sincronizar com o servidor que o totem está ativo
+  useEffect(() => {
+    if (!storeId) return;
+
+    const syncInterval = setInterval(async () => {
+      try {
+        await fetch(`/api/totem/${storeId}/sync`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        console.error('Erro ao sincronizar:', error);
+      }
+    }, 60000); // Sync a cada 1 minuto
+
+    // Sync inicial
+    fetch(`/api/totem/${storeId}/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    }).catch(console.error);
+
+    return () => clearInterval(syncInterval);
+  }, [storeId]);
+
+  // Função para avançar para o próximo conteúdo
+  const nextContent = useCallback(() => {
+    if (content.length <= 1) return;
+
+    setIsTransitioning(true);
+    
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev + 1) % content.length);
+      setIsTransitioning(false);
+    }, parseInt(settings.transitionDuration || '500', 10));
+  }, [content.length, settings.transitionDuration]);
+
+  // Auto-rotação
+  useEffect(() => {
+    if (!settings.autoRotate || content.length <= 1) return;
+
+    const currentContent = content[currentIndex];
+    const interval = parseInt(currentContent?.displayDuration || settings.rotationInterval || '10', 10) * 1000;
+
+    const timer = setTimeout(nextContent, interval);
+    return () => clearTimeout(timer);
+  }, [currentIndex, content, settings, nextContent]);
+
+  // Controles de teclado para navegação manual
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        nextContent();
+      } else if (e.key === 'ArrowLeft') {
+        setCurrentIndex((prev) => (prev - 1 + content.length) % content.length);
+      } else if (e.key === 'f' || e.key === 'F11') {
+        // Alternar fullscreen
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        } else {
+          document.documentElement.requestFullscreen();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [nextContent, content.length]);
+
+  // Estados de carregamento e erro
+  if (isLoading) {
+    return (
+      <div 
+        className="w-screen h-screen flex items-center justify-center"
+        style={{ backgroundColor: settings.backgroundColor || '#000000' }}
+      >
+        <div className="text-center text-white">
+          <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h1 className="text-2xl font-light">Carregando conteúdo...</h1>
+          <p className="text-lg opacity-75 mt-2">Conectando com {storeId}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div 
+        className="w-screen h-screen flex items-center justify-center"
+        style={{ backgroundColor: settings.backgroundColor || '#000000' }}
+      >
+        <div className="text-center text-white">
+          <h1 className="text-3xl font-light mb-4">❌ Erro de Conexão</h1>
+          <p className="text-xl opacity-75">Não foi possível carregar o conteúdo</p>
+          <p className="text-lg opacity-50 mt-2">Verifique a conexão com a internet</p>
+          <div className="mt-8">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-colors"
+            >
+              🔄 Tentar Novamente
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (content.length === 0) {
+    return (
+      <div 
+        className="w-screen h-screen flex items-center justify-center"
+        style={{ backgroundColor: settings.backgroundColor || '#000000' }}
+      >
+        <div className="text-center text-white">
+          <h1 className="text-4xl font-light mb-4">📺 Totem Digital</h1>
+          <p className="text-xl opacity-75">Nenhum conteúdo configurado</p>
+          <p className="text-lg opacity-50 mt-2">Entre no painel administrativo para adicionar conteúdo</p>
+        </div>
+      </div>
+    );
+  }
+
+  const currentContent = content[currentIndex];
+  
+  if (!currentContent) {
+    return null;
+  }
+
+  const getTransitionClass = () => {
+    const effect = settings.transitionEffect || 'fade';
+    const duration = settings.transitionDuration || '500';
+    
+    switch (effect) {
+      case 'slide':
+        return `transition-transform duration-${duration}`;
+      case 'zoom':
+        return `transition-all duration-${duration}`;
+      default:
+        return `transition-opacity duration-${duration}`;
+    }
+  };
+
+  const getTransitionStyle = () => {
+    if (!isTransitioning) return {};
+    
+    const effect = settings.transitionEffect || 'fade';
+    
+    switch (effect) {
+      case 'slide':
+        return { transform: 'translateX(-100%)' };
+      case 'zoom':
+        return { transform: 'scale(0.8)', opacity: 0.5 };
+      default:
+        return { opacity: 0 };
+    }
+  };
+
+  return (
+    <div 
+      className="w-screen h-screen overflow-hidden relative"
+      style={{ backgroundColor: settings.backgroundColor || '#000000' }}
+    >
+      {/* Conteúdo principal */}
+      <div
+        className={`w-full h-full flex items-center justify-center ${getTransitionClass()}`}
+        style={getTransitionStyle()}
+      >
+        {currentContent.mediaType === 'image' ? (
+          <img
+            src={currentContent.mediaUrl}
+            alt={currentContent.title}
+            className="max-w-full max-h-full object-contain"
+            onError={(e) => {
+              console.error('Erro ao carregar imagem:', currentContent.mediaUrl);
+              // Tentar novamente após 5 segundos
+              setTimeout(() => {
+                const target = e.target as HTMLImageElement;
+                target.src = currentContent.mediaUrl + '?retry=' + Date.now();
+              }, 5000);
+            }}
+          />
+        ) : (
+          <video
+            src={currentContent.mediaUrl}
+            className="max-w-full max-h-full object-contain"
+            autoPlay
+            loop
+            muted
+            onError={(e) => {
+              console.error('Erro ao carregar vídeo:', currentContent.mediaUrl);
+            }}
+          />
+        )}
+      </div>
+
+      {/* Título sobreposto (se houver) */}
+      {currentContent.title && (
+        <div className="absolute bottom-8 left-8 right-8">
+          <div className="bg-black bg-opacity-50 backdrop-blur-sm rounded-lg p-6">
+            <h1 className="text-4xl font-bold text-white mb-2">
+              {currentContent.title}
+            </h1>
+            {currentContent.description && (
+              <p className="text-xl text-gray-200 opacity-90">
+                {currentContent.description}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Indicadores de progresso (apenas se houver múltiplo conteúdo) */}
+      {content.length > 1 && (
+        <div className="absolute top-8 right-8 flex space-x-2">
+          {content.map((_, index) => (
+            <div
+              key={index}
+              className={`w-3 h-3 rounded-full transition-colors ${
+                index === currentIndex 
+                  ? 'bg-white' 
+                  : 'bg-white bg-opacity-30'
+              }`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Controles discretos no canto inferior direito */}
+      <div className="absolute bottom-4 right-4 text-white opacity-20 text-sm">
+        <div className="flex items-center space-x-4">
+          <span>Use ←→ ou ESPAÇO para navegar</span>
+          <span>F11 para tela cheia</span>
+          {content.length > 1 && (
+            <span>{currentIndex + 1}/{content.length}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Status de conexão */}
+      <div className="absolute top-4 left-4 text-white opacity-30 text-sm">
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span>Online • {storeId}</span>
+        </div>
+      </div>
+    </div>
+  );
+}

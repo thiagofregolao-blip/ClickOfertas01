@@ -62,7 +62,7 @@ const isSuperAdmin = async (req: any, res: any, next: any) => {
 };
 import { getCurrentExchangeRate, convertUsdToBrl, formatBRL, formatUSD, clearExchangeRateCache } from "./exchange-rate";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema, insertBudgetConfigSchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema, insertBudgetConfigSchema, insertTotemContentSchema, updateTotemContentSchema, insertTotemSettingsSchema, updateTotemSettingsSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
@@ -2536,6 +2536,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting price alert:", error);
       res.status(500).json({ message: "Erro ao deletar alerta" });
+    }
+  });
+
+  // ========================
+  // ROTAS DO SISTEMA DE TOTEM
+  // ========================
+
+  // Listar conteúdo do totem (público)
+  app.get('/api/totem/:storeId/content', async (req, res) => {
+    try {
+      const { storeId } = req.params;
+      const content = await storage.getTotemContent(storeId);
+      
+      // Filtrar apenas conteúdo ativo e dentro do horário agendado
+      const now = new Date();
+      const activeContent = content.filter(item => 
+        item.isActive && 
+        (!item.scheduleStart || item.scheduleStart <= now) &&
+        (!item.scheduleEnd || item.scheduleEnd >= now)
+      );
+      
+      res.json({ success: true, content: activeContent });
+    } catch (error) {
+      console.error('Error fetching totem content:', error);
+      res.status(500).json({ message: 'Failed to fetch totem content' });
+    }
+  });
+
+  // Criar novo conteúdo do totem (admin)
+  app.post('/api/totem/content', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.id || req.user?.claims?.sub || req.session?.user?.id;
+      const contentData = insertTotemContentSchema.parse(req.body);
+      
+      // Verificar se o usuário é dono da loja
+      const store = await storage.getUserStore(userId);
+      if (!store || store.id !== contentData.storeId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      const content = await storage.createTotemContent(contentData);
+      res.status(201).json({ success: true, content });
+    } catch (error) {
+      console.error('Error creating totem content:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid data', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to create totem content' });
+    }
+  });
+
+  // Atualizar conteúdo do totem (admin)
+  app.put('/api/totem/content/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.id || req.user?.claims?.sub || req.session?.user?.id;
+      const { id } = req.params;
+      const contentData = updateTotemContentSchema.parse(req.body);
+      
+      const store = await storage.getUserStore(userId);
+      if (!store) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      const content = await storage.updateTotemContent(id, store.id, contentData);
+      res.json({ success: true, content });
+    } catch (error) {
+      console.error('Error updating totem content:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid data', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to update totem content' });
+    }
+  });
+
+  // Deletar conteúdo do totem (admin)
+  app.delete('/api/totem/content/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.id || req.user?.claims?.sub || req.session?.user?.id;
+      const { id } = req.params;
+      
+      const store = await storage.getUserStore(userId);
+      if (!store) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      await storage.deleteTotemContent(id, store.id);
+      res.json({ success: true, message: 'Content deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting totem content:', error);
+      res.status(500).json({ message: 'Failed to delete totem content' });
+    }
+  });
+
+  // Obter configurações do totem (admin)
+  app.get('/api/totem/settings', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.id || req.user?.claims?.sub || req.session?.user?.id;
+      const store = await storage.getUserStore(userId);
+      if (!store) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      const settings = await storage.getTotemSettings(store.id);
+      res.json({ success: true, settings });
+    } catch (error) {
+      console.error('Error fetching totem settings:', error);
+      res.status(500).json({ message: 'Failed to fetch totem settings' });
+    }
+  });
+
+  // Atualizar configurações do totem (admin)
+  app.post('/api/totem/settings', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.id || req.user?.claims?.sub || req.session?.user?.id;
+      const settingsData = req.body;
+      
+      const store = await storage.getUserStore(userId);
+      if (!store) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      const settings = await storage.upsertTotemSettings(store.id, settingsData);
+      res.json({ success: true, settings });
+    } catch (error) {
+      console.error('Error updating totem settings:', error);
+      res.status(500).json({ message: 'Failed to update totem settings' });
+    }
+  });
+
+  // Atualizar última sincronização do totem (público para o totem)
+  app.post('/api/totem/:storeId/sync', async (req, res) => {
+    try {
+      const { storeId } = req.params;
+      await storage.updateTotemLastSync(storeId);
+      res.json({ success: true, message: 'Sync updated', timestamp: new Date().toISOString() });
+    } catch (error) {
+      console.error('Error updating totem sync:', error);
+      res.status(500).json({ message: 'Failed to update sync' });
     }
   });
 
