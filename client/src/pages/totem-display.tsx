@@ -132,11 +132,16 @@ export default function TotemDisplay() {
       } else if (e.key === 'ArrowLeft') {
         setCurrentIndex((prev) => (prev - 1 + content.length) % content.length);
       } else if (e.key === 'f' || e.key === 'F11') {
+        e.preventDefault();
         // Alternar fullscreen
         if (document.fullscreenElement) {
-          document.exitFullscreen();
+          document.exitFullscreen().catch(err => {
+            console.log('❌ Erro ao sair da tela cheia:', err);
+          });
         } else {
-          document.documentElement.requestFullscreen();
+          document.documentElement.requestFullscreen().catch(err => {
+            console.log('❌ Erro ao entrar em tela cheia:', err);
+          });
         }
       }
     };
@@ -257,8 +262,9 @@ export default function TotemDisplay() {
           <img
             src={currentContent.mediaUrl}
             alt={currentContent.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full"
             style={{ 
+              objectFit: 'contain',
               objectPosition: 'center',
               imageRendering: 'optimizeQuality'
             }}
@@ -275,23 +281,17 @@ export default function TotemDisplay() {
                 aspectRatio: (img.naturalWidth / img.naturalHeight).toFixed(2)
               });
 
-              // Para imagens verticais em TV horizontal, aplicar rotação e escala adequada
+              // Para imagens verticais em TV horizontal, aplicar apenas rotação
               if (isVertical) {
                 console.log('🔄 Aplicando rotação para imagem vertical');
-                // Calcular escala necessária para preencher a tela
-                const aspectRatio = img.naturalWidth / img.naturalHeight;
-                const screenAspectRatio = 16 / 9; // TV 16:9
-                // Após rotação de 90°, precisamos escalar para preencher
-                const scale = Math.max(1, screenAspectRatio / aspectRatio);
-                
-                img.style.transform = `rotate(90deg) scale(${scale.toFixed(2)})`;
+                img.style.transform = 'rotate(90deg)';
                 img.style.transformOrigin = 'center center';
-                
-                console.log('📐 Escala aplicada:', { 
-                  aspectRatio: aspectRatio.toFixed(2),
-                  screenAspectRatio: screenAspectRatio.toFixed(2),
-                  scale: scale.toFixed(2)
-                });
+                img.style.objectFit = 'cover';
+                img.style.width = '100vh';
+                img.style.height = '100vw';
+              } else {
+                // Para imagens horizontais, usar object-cover normal
+                img.style.objectFit = 'cover';
               }
             }}
             onError={(e) => {
@@ -306,8 +306,11 @@ export default function TotemDisplay() {
         ) : (
           <video
             src={currentContent.mediaUrl}
-            className="w-full h-full object-cover"
-            style={{ objectPosition: 'center' }}
+            className="w-full h-full"
+            style={{ 
+              objectFit: 'contain',
+              objectPosition: 'center'
+            }}
             autoPlay
             loop
             muted
@@ -324,23 +327,17 @@ export default function TotemDisplay() {
                 aspectRatio: (video.videoWidth / video.videoHeight).toFixed(2)
               });
 
-              // Para vídeos verticais em TV horizontal, aplicar rotação e escala adequada
+              // Para vídeos verticais em TV horizontal, aplicar apenas rotação
               if (isVertical) {
                 console.log('🔄 Aplicando rotação para vídeo vertical');
-                // Calcular escala necessária para preencher a tela
-                const aspectRatio = video.videoWidth / video.videoHeight;
-                const screenAspectRatio = 16 / 9; // TV 16:9
-                // Após rotação de 90°, precisamos escalar para preencher
-                const scale = Math.max(1, screenAspectRatio / aspectRatio);
-                
-                video.style.transform = `rotate(90deg) scale(${scale.toFixed(2)})`;
+                video.style.transform = 'rotate(90deg)';
                 video.style.transformOrigin = 'center center';
-                
-                console.log('📐 Escala aplicada no vídeo:', { 
-                  aspectRatio: aspectRatio.toFixed(2),
-                  screenAspectRatio: screenAspectRatio.toFixed(2),
-                  scale: scale.toFixed(2)
-                });
+                video.style.objectFit = 'cover';
+                video.style.width = '100vh';
+                video.style.height = '100vw';
+              } else {
+                // Para vídeos horizontais, usar object-cover normal
+                video.style.objectFit = 'cover';
               }
             }}
             onError={(e) => {
@@ -350,21 +347,6 @@ export default function TotemDisplay() {
         )}
       </div>
 
-      {/* Título sobreposto (se houver) */}
-      {currentContent.title && (
-        <div className="absolute bottom-8 left-8 right-8">
-          <div className="bg-black bg-opacity-50 backdrop-blur-sm rounded-lg p-6">
-            <h1 className="text-4xl font-bold text-white mb-2">
-              {currentContent.title}
-            </h1>
-            {currentContent.description && (
-              <p className="text-xl text-gray-200 opacity-90">
-                {currentContent.description}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Indicadores de progresso (apenas se houver múltiplo conteúdo) */}
       {content.length > 1 && (
