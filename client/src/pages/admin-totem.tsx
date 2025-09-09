@@ -75,6 +75,10 @@ export default function AdminTotem() {
         scheduleEnd: '',
         sortOrder: '0'
       });
+      // Limpar estados de upload
+      setUploadMethod('url');
+      setSelectedFile(null);
+      setIsUploading(false);
     },
     onError: (error: any) => {
       toast({
@@ -124,14 +128,50 @@ export default function AdminTotem() {
     sortOrder: '0'
   });
 
-  const handleSubmitContent = (e: React.FormEvent) => {
+  const [uploadMethod, setUploadMethod] = useState<'url' | 'file'>('url');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleSubmitContent = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    let mediaUrl = newContent.mediaUrl;
+    
+    // Se está usando upload de arquivo, fazer upload primeiro
+    if (uploadMethod === 'file' && selectedFile) {
+      setIsUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        
+        const response = await fetch('/api/totem/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!response.ok) {
+          throw new Error('Erro no upload');
+        }
+        
+        const uploadResult = await response.json();
+        mediaUrl = uploadResult.url;
+      } catch (error) {
+        toast({
+          title: "Erro no upload",
+          description: "Não foi possível fazer upload do arquivo",
+          variant: "destructive",
+        });
+        setIsUploading(false);
+        return;
+      }
+      setIsUploading(false);
+    }
     
     // Filtrar campos vazios antes de enviar
     const cleanContent = {
       title: newContent.title,
       description: newContent.description || undefined,
-      mediaUrl: newContent.mediaUrl,
+      mediaUrl: mediaUrl,
       mediaType: newContent.mediaType,
       displayDuration: newContent.displayDuration,
       sortOrder: newContent.sortOrder,
@@ -140,6 +180,19 @@ export default function AdminTotem() {
     };
     
     createContentMutation.mutate(cleanContent);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      // Auto-detectar tipo de mídia baseado no arquivo
+      if (file.type.startsWith('image/')) {
+        setNewContent(prev => ({ ...prev, mediaType: 'image' }));
+      } else if (file.type.startsWith('video/')) {
+        setNewContent(prev => ({ ...prev, mediaType: 'video' }));
+      }
+    }
   };
 
   const handleDeleteContent = (contentId: string) => {
@@ -263,17 +316,73 @@ export default function AdminTotem() {
                       />
                     </div>
 
-                    <div>
-                      <Label htmlFor="mediaUrl">URL da Mídia</Label>
-                      <Input
-                        id="mediaUrl"
-                        value={newContent.mediaUrl}
-                        onChange={(e) => setNewContent(prev => ({ ...prev, mediaUrl: e.target.value }))}
-                        placeholder="https://exemplo.com/imagem.jpg"
-                        type="url"
-                        required
-                        data-testid="input-media-url"
-                      />
+                    {/* Opção de URL ou Upload */}
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Mídia</Label>
+                        <div className="flex space-x-4 mt-2">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="uploadMethod"
+                              value="url"
+                              checked={uploadMethod === 'url'}
+                              onChange={(e) => setUploadMethod(e.target.value as 'url' | 'file')}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <span>URL Externa</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="uploadMethod"
+                              value="file"
+                              checked={uploadMethod === 'file'}
+                              onChange={(e) => setUploadMethod(e.target.value as 'url' | 'file')}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <span>Upload Local</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {uploadMethod === 'url' ? (
+                        <div>
+                          <Label htmlFor="mediaUrl">URL da Mídia</Label>
+                          <Input
+                            id="mediaUrl"
+                            value={newContent.mediaUrl}
+                            onChange={(e) => setNewContent(prev => ({ ...prev, mediaUrl: e.target.value }))}
+                            placeholder="https://exemplo.com/imagem.jpg"
+                            type="url"
+                            required
+                            data-testid="input-media-url"
+                          />
+                        </div>
+                      ) : (
+                        <div>
+                          <Label htmlFor="fileUpload">Selecionar Arquivo</Label>
+                          <Input
+                            id="fileUpload"
+                            type="file"
+                            accept="image/*,video/*"
+                            onChange={handleFileChange}
+                            required
+                            className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            data-testid="input-file-upload"
+                          />
+                          {selectedFile && (
+                            <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                              <p className="text-sm text-gray-600">
+                                <strong>Arquivo:</strong> {selectedFile.name}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                Tamanho: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -318,10 +427,10 @@ export default function AdminTotem() {
                       </Button>
                       <Button
                         type="submit"
-                        disabled={createContentMutation.isPending}
+                        disabled={createContentMutation.isPending || isUploading}
                         data-testid="button-submit-content"
                       >
-                        {createContentMutation.isPending ? "Criando..." : "Criar Conteúdo"}
+                        {isUploading ? "Fazendo Upload..." : createContentMutation.isPending ? "Criando..." : "Criar Conteúdo"}
                       </Button>
                     </div>
                   </form>

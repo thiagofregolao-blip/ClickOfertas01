@@ -115,6 +115,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   }));
 
+  // Servir arquivos estáticos da pasta uploads (para imagens do totem)
+  const express = (await import('express')).default;
+  const path = (await import('path')).default;
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
   // Routes que NÃO devem usar Replit Auth (devem vir ANTES do setupAuth)
   
 
@@ -2693,6 +2698,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error updating totem sync:', error);
       res.status(500).json({ message: 'Failed to update sync' });
     }
+  });
+
+  // Upload de imagem para totem
+  app.post('/api/totem/upload', isAuthenticated, async (req: any, res) => {
+    const multer = require('multer');
+    const path = require('path');
+    const fs = require('fs');
+    
+    // Configurar multer para salvar na pasta uploads/totem
+    const storage = multer.diskStorage({
+      destination: (req: any, file: any, cb: any) => {
+        const uploadDir = path.join(process.cwd(), 'uploads', 'totem');
+        // Criar diretório se não existir
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+      },
+      filename: (req: any, file: any, cb: any) => {
+        // Gerar nome único com timestamp
+        const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+        cb(null, uniqueName);
+      }
+    });
+
+    const upload = multer({
+      storage,
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB máximo
+      fileFilter: (req: any, file: any, cb: any) => {
+        // Aceitar apenas imagens e vídeos
+        const allowedTypes = /jpeg|jpg|png|gif|webp|mp4|webm|mov/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+        
+        if (mimetype && extname) {
+          return cb(null, true);
+        } else {
+          cb(new Error('Apenas imagens (JPG, PNG, GIF, WEBP) e vídeos (MP4, WEBM, MOV) são permitidos'));
+        }
+      }
+    }).single('file');
+
+    upload(req, res, (err: any) => {
+      if (err) {
+        console.error('Upload error:', err);
+        return res.status(400).json({ 
+          success: false, 
+          message: err.message || 'Erro no upload do arquivo' 
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Nenhum arquivo foi enviado' 
+        });
+      }
+
+      // Retornar URL da imagem uploaded
+      const fileUrl = `/uploads/totem/${req.file.filename}`;
+      res.json({ 
+        success: true, 
+        url: fileUrl,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size
+      });
+    });
   });
 
   // ========================
