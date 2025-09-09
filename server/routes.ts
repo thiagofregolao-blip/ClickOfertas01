@@ -6,6 +6,7 @@ import { getUserId } from "./utils/auth";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Middleware para verificar autenticação (sessão manual ou Replit Auth)
 const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
@@ -2765,6 +2766,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
         size: req.file.size
       });
     });
+  });
+
+  // Gerar banner com IA para totem
+  app.post('/api/totem/generate-banner', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!process.env.GOOGLE_API_KEY) {
+        return res.status(500).json({ 
+          message: 'API key do Google não configurada',
+          error: 'GOOGLE_API_KEY não encontrada' 
+        });
+      }
+
+      const { title, description, style, colors, price } = req.body;
+
+      if (!title) {
+        return res.status(400).json({ message: 'Título é obrigatório' });
+      }
+
+      // Inicializar o cliente Gemini
+      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+
+      // Criar prompt otimizado para banners comerciais
+      const prompt = `
+Crie um banner comercial profissional e moderno para exibição em TV no formato 16:9 (1920x1080 pixels).
+
+INFORMAÇÕES DO BANNER:
+- Título principal: "${title}"
+- Descrição: "${description || 'Produto em destaque'}"
+- Preço: ${price ? `"${price}" (destaque este preço)` : 'sem preço específico'}
+- Estilo: ${style || 'moderno e atrativo'}
+- Cores preferidas: ${colors || 'cores vibrantes e profissionais'}
+
+ESPECIFICAÇÕES TÉCNICAS:
+- Formato: 16:9 (1920x1080px) otimizado para TV
+- Qualidade: Alta definição, 4K ready
+- Tipografia: Legível à distância, fonte sans-serif moderna
+- Contraste: Alto contraste para boa visibilidade
+
+DESIGN REQUIREMENTS:
+- Layout comercial profissional estilo supermercado/loja
+- Hierarquia visual clara: título em destaque, preço (se houver) bem visível
+- Background atrativo mas não competindo com o texto
+- Espaçamento adequado, não muito poluído
+- Elementos gráficos sutis que complementem o conteúdo
+- Cores que transmitam confiança e profissionalismo
+
+CONTEXTO DE USO:
+Este banner será exibido em TVs de 32" em lojas físicas para atrair clientes.
+Deve ser impactante, legível e comercialmente efetivo.
+
+Crie uma imagem que seja perfeita para este contexto comercial.
+`;
+
+      console.log('🎨 Gerando banner com IA:', { title, description, style, colors, price });
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const imageUrl = response.text();
+
+      console.log('✅ Banner gerado com sucesso');
+
+      res.json({
+        success: true,
+        imageUrl,
+        prompt: prompt.substring(0, 200) + '...' // Mostrar parte do prompt usado
+      });
+
+    } catch (error) {
+      console.error('❌ Erro ao gerar banner com IA:', error);
+      res.status(500).json({ 
+        message: 'Erro ao gerar banner',
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
   });
 
   // ========================

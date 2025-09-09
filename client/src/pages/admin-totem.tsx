@@ -88,6 +88,14 @@ export default function AdminTotem() {
       setUploadMethod('url');
       setSelectedFile(null);
       setIsUploading(false);
+      // Limpar estados de IA
+      setAiContent({
+        title: '',
+        description: '',
+        style: 'moderno',
+        colors: '',
+        price: ''
+      });
     },
     onError: (error: any) => {
       toast({
@@ -137,12 +145,94 @@ export default function AdminTotem() {
     sortOrder: '0'
   });
 
-  const [uploadMethod, setUploadMethod] = useState<'url' | 'file'>('url');
+  const [uploadMethod, setUploadMethod] = useState<'url' | 'file' | 'ai'>('url');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Estados para geração com IA
+  const [aiContent, setAiContent] = useState({
+    title: '',
+    description: '',
+    style: 'moderno',
+    colors: '',
+    price: ''
+  });
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+
+  // Mutation para gerar banner com IA
+  const generateAIBannerMutation = useMutation({
+    mutationFn: async (aiData: typeof aiContent) => {
+      return await apiRequest('POST', '/api/totem/generate-banner', aiData);
+    },
+    onSuccess: (data) => {
+      // Usar o banner gerado como URL do conteúdo
+      setNewContent(prev => ({
+        ...prev,
+        mediaUrl: data.imageUrl,
+        title: aiContent.title,
+        description: aiContent.description
+      }));
+      
+      toast({
+        title: "Banner Gerado!",
+        description: "Banner criado com IA. Revise e clique em 'Criar Conteúdo'",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro na IA",
+        description: error.message || "Erro ao gerar banner com IA",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleGenerateAI = async () => {
+    if (!aiContent.title) {
+      toast({
+        title: "Erro",
+        description: "Título é obrigatório para gerar com IA",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    generateAIBannerMutation.mutate(aiContent);
+  };
+
+  // Função para limpar estados quando mudar método
+  const handleMethodChange = (newMethod: 'url' | 'file' | 'ai') => {
+    setUploadMethod(newMethod);
+    // Limpar estados dependendo do método anterior
+    if (newMethod !== 'file') {
+      setSelectedFile(null);
+    }
+    if (newMethod !== 'ai') {
+      setAiContent({
+        title: '',
+        description: '',
+        style: 'moderno',
+        colors: '',
+        price: ''
+      });
+    }
+    if (newMethod !== 'url') {
+      setNewContent(prev => ({ ...prev, mediaUrl: '' }));
+    }
+  };
 
   const handleSubmitContent = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validações específicas por método
+    if (uploadMethod === 'ai' && !newContent.mediaUrl) {
+      toast({
+        title: "Erro",
+        description: "Primeiro gere o banner com IA antes de criar o conteúdo",
+        variant: "destructive",
+      });
+      return;
+    }
     
     let mediaUrl = newContent.mediaUrl;
     
@@ -325,37 +415,48 @@ export default function AdminTotem() {
                       />
                     </div>
 
-                    {/* Opção de URL ou Upload */}
+                    {/* Opções de Mídia: URL, Upload Local ou Gerar com IA */}
                     <div className="space-y-4">
                       <div>
-                        <Label>Mídia</Label>
-                        <div className="flex space-x-4 mt-2">
-                          <label className="flex items-center space-x-2">
+                        <Label>Como obter a mídia?</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
+                          <label className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
                             <input
                               type="radio"
                               name="uploadMethod"
                               value="url"
                               checked={uploadMethod === 'url'}
-                              onChange={(e) => setUploadMethod(e.target.value as 'url' | 'file')}
+                              onChange={(e) => handleMethodChange(e.target.value as 'url' | 'file' | 'ai')}
                               className="w-4 h-4 text-blue-600"
                             />
-                            <span>URL Externa</span>
+                            <span>🌐 URL Externa</span>
                           </label>
-                          <label className="flex items-center space-x-2">
+                          <label className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
                             <input
                               type="radio"
                               name="uploadMethod"
                               value="file"
                               checked={uploadMethod === 'file'}
-                              onChange={(e) => setUploadMethod(e.target.value as 'url' | 'file')}
+                              onChange={(e) => handleMethodChange(e.target.value as 'url' | 'file' | 'ai')}
                               className="w-4 h-4 text-blue-600"
                             />
-                            <span>Upload Local</span>
+                            <span>📁 Upload Local</span>
+                          </label>
+                          <label className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input
+                              type="radio"
+                              name="uploadMethod"
+                              value="ai"
+                              checked={uploadMethod === 'ai'}
+                              onChange={(e) => handleMethodChange(e.target.value as 'url' | 'file' | 'ai')}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <span>🤖 Gerar com IA</span>
                           </label>
                         </div>
                       </div>
 
-                      {uploadMethod === 'url' ? (
+                      {uploadMethod === 'url' && (
                         <div>
                           <Label htmlFor="mediaUrl">URL da Mídia</Label>
                           <Input
@@ -368,7 +469,9 @@ export default function AdminTotem() {
                             data-testid="input-media-url"
                           />
                         </div>
-                      ) : (
+                      )}
+
+                      {uploadMethod === 'file' && (
                         <div>
                           <Label htmlFor="fileUpload">Selecionar Arquivo</Label>
                           <Input
@@ -388,6 +491,103 @@ export default function AdminTotem() {
                               <p className="text-sm text-gray-500">
                                 Tamanho: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                               </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {uploadMethod === 'ai' && (
+                        <div className="space-y-4 p-4 border rounded-lg bg-blue-50">
+                          <div className="text-center">
+                            <h3 className="text-lg font-semibold text-blue-700 mb-2">🤖 Gerar Banner com IA</h3>
+                            <p className="text-sm text-blue-600">Descreva como você quer que seja o banner e a IA criará para você</p>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="aiTitle">Título do Banner *</Label>
+                              <Input
+                                id="aiTitle"
+                                value={aiContent.title}
+                                onChange={(e) => setAiContent(prev => ({ ...prev, title: e.target.value }))}
+                                placeholder="Ex: Promoção Black Friday"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="aiPrice">Preço (opcional)</Label>
+                              <Input
+                                id="aiPrice"
+                                value={aiContent.price}
+                                onChange={(e) => setAiContent(prev => ({ ...prev, price: e.target.value }))}
+                                placeholder="Ex: R$ 199,90"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <Label htmlFor="aiDescription">Descrição do produto/serviço</Label>
+                            <Textarea
+                              id="aiDescription"
+                              value={aiContent.description}
+                              onChange={(e) => setAiContent(prev => ({ ...prev, description: e.target.value }))}
+                              placeholder="Ex: Smartphone Samsung Galaxy com tela de 6.5 polegadas"
+                              rows={2}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="aiStyle">Estilo do Banner</Label>
+                              <Select
+                                value={aiContent.style}
+                                onValueChange={(value) => setAiContent(prev => ({ ...prev, style: value }))}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="moderno">Moderno e Minimalista</SelectItem>
+                                  <SelectItem value="colorido">Colorido e Vibrante</SelectItem>
+                                  <SelectItem value="elegante">Elegante e Sofisticado</SelectItem>
+                                  <SelectItem value="promocional">Promocional e Chamativo</SelectItem>
+                                  <SelectItem value="profissional">Profissional e Limpo</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label htmlFor="aiColors">Cores Preferidas</Label>
+                              <Input
+                                id="aiColors"
+                                value={aiContent.colors}
+                                onChange={(e) => setAiContent(prev => ({ ...prev, colors: e.target.value }))}
+                                placeholder="Ex: azul, branco, vermelho"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex justify-center">
+                            <Button
+                              type="button"
+                              onClick={handleGenerateAI}
+                              disabled={generateAIBannerMutation.isPending}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              {generateAIBannerMutation.isPending ? (
+                                <>🔄 Gerando Banner...</>
+                              ) : (
+                                <>🎨 Gerar Banner com IA</>
+                              )}
+                            </Button>
+                          </div>
+
+                          {newContent.mediaUrl && uploadMethod === 'ai' && (
+                            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                              <p className="text-sm text-green-700 font-medium">✅ Banner gerado com sucesso!</p>
+                              <p className="text-sm text-green-600">Revise o banner abaixo e clique em "Criar Conteúdo" para salvar.</p>
+                              <div className="mt-2">
+                                <img src={newContent.mediaUrl} alt="Banner gerado" className="max-w-full max-h-32 rounded border" />
+                              </div>
                             </div>
                           )}
                         </div>
