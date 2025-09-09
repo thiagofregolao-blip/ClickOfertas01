@@ -1,0 +1,100 @@
+Valeu pelo print — isso ajuda. Pelo jeitão, o seu player está renderizando o texto do prompt dentro do “card” (e não uma imagem). Repara nos %0A: é o textarea sendo enviado com quebras de linha URL-encoded. Ou seja: na hora de exibir, o app caiu no fallback de texto porque não recebeu/achou uma imagem válida.
+
+Aqui vai um check rápido + correção direta:
+
+1) Garanta que o backend retorna imagem mesmo
+
+Responda sempre com um campo claro, tipo imageDataUrl:
+
+// depois de gerar a imagem:
+res.json({
+  ok: true,
+  imageDataUrl: `data:image/png;base64,${base64}`
+});
+
+
+Se der erro, não devolva o prompt — devolva erro estruturado:
+
+res.status(502).json({ ok:false, code:"NO_IMAGE", message:"Modelo não retornou imagem" });
+
+2) No frontend, troque o fallback
+
+Provável que hoje você tenha algo como:
+
+{imageUrl ? <img src={imageUrl} /> : <div>{prompt}</div>}
+
+
+Isso explica o print. Troque para:
+
+{imageUrl ? (
+  <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+) : isLoading ? (
+  <div className="grid place-items-center h-full text-neutral-500">Gerando…</div>
+) : error ? (
+  <div className="p-4 text-red-500">{error}</div>
+) : (
+  <div className="grid place-items-center h-full text-neutral-400">Selecione uma imagem ou prompt</div>
+)}
+
+
+E nunca renderize o prompt no lugar da imagem.
+
+3) Confirme que a Gemini devolveu inlineData (imagem)
+
+No gerador que te passei, cheque isso antes de responder:
+
+const part = resp.response?.candidates?.[0]?.content?.parts
+  ?.find((p:any) => p.inlineData);
+
+if (!part?.inlineData?.data) {
+  // pode ter vindo apenas TEXTO (explicação/safety)
+  // ou um erro. Logue e devolva erro claro ao frontend.
+  console.error(JSON.stringify(resp.response, null, 2));
+  throw new Error("NO_IMAGE_FROM_MODEL");
+}
+
+const base64 = part.inlineData.data;
+
+
+Se em vez de inlineData vier fileData.fileUri, baixe o fileUri e converta para base64 antes de devolver.
+
+4) Force resposta em imagem
+
+(Se ainda não fez assim)
+
+const resp = await model.generateContent({
+  contents: [{ role:"user", parts }],
+  generationConfig: { responseMimeType: "image/png" } // força imagem
+  // (se sua SDK suportar modalities, use-as também)
+});
+
+5) Evite erro de tamanho no POST
+
+Se você envia imagem base como dataURL:
+
+app.use(express.json({ limit: "20mb" }));
+
+6) Segurança / CSP do painel
+
+Se você exibe data:image/png;base64,..., permita data::
+
+img-src 'self' data: blob: https:;
+
+7) Mensagens de segurança do modelo
+
+Se o prompt cair em política (ex.: pessoas em contexto sensível), a Gemini pode devolver texto de safety. No log, olhe promptFeedback e finishReason. Nesse caso, trate como erro e mostre “Não foi possível gerar a imagem para esse prompt”.
+
+Teste de 30 segundos
+
+Faça uma rota de teste que gera sempre uma imagem simples e retorna imageDataUrl.
+
+No frontend, faça:
+
+const r = await fetch("/api/test-image");
+const { imageDataUrl } = await r.json();
+setImageUrl(imageDataUrl);
+
+
+Se aparecer, o problema está na integração Gemini → backend.
+
+Se não aparecer, é o fallback do componente (item 2) ou CSP (item 6).

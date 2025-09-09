@@ -64,18 +64,27 @@ export async function generateImage(
             throw new Error("No content parts returned from Gemini");
         }
 
-        for (const part of content.parts) {
-            if (part.text) {
-                console.log("Gemini text response:", part.text);
-            } else if (part.inlineData && part.inlineData.data) {
-                const imageData = Buffer.from(part.inlineData.data, "base64");
-                fs.writeFileSync(imagePath, imageData);
-                console.log(`✅ Image saved as ${imagePath}`);
-                return;
-            }
-        }
+        // Verificar se realmente temos uma imagem antes de considerar sucesso
+        const imagePart = content.parts?.find((p: any) => p.inlineData);
         
-        throw new Error("No image data found in Gemini response");
+        if (!imagePart?.inlineData?.data) {
+            console.error("❌ Gemini não retornou imagem, apenas texto ou erro");
+            console.error("Response parts:", JSON.stringify(content.parts, null, 2));
+            
+            // Logar texto se houver (pode ser mensagem de segurança)
+            const textParts = content.parts?.filter((p: any) => p.text);
+            if (textParts?.length > 0) {
+                console.error("Texto retornado:", textParts.map(p => p.text).join(' '));
+            }
+            
+            throw new Error("NO_IMAGE_FROM_MODEL - Gemini retornou apenas texto");
+        }
+
+        // Salvar a imagem encontrada
+        const imageData = Buffer.from(imagePart.inlineData.data, "base64");
+        fs.writeFileSync(imagePath, imageData);
+        console.log(`✅ Image saved as ${imagePath} (${imageData.length} bytes)`);
+        return;
     } catch (error) {
         console.error("❌ Failed to generate image with Gemini:", error);
         throw new Error(`Failed to generate image: ${error}`);

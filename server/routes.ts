@@ -2854,6 +2854,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
       res.json({
         success: true,
         imageUrl,
+        hasRealImage: true,
         bannerInfo: {
           title,
           description,
@@ -2891,6 +2892,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
       res.json({
         success: true,
         imageUrl: fallbackUrl,
+        hasRealImage: false,
         bannerInfo: {
           title,
           description: req.body.description,
@@ -2900,6 +2902,43 @@ Keep the overall composition and maintain the same visual quality. This is for a
         },
         fallback: true,
         error: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  });
+
+  // ROTA DE TESTE - Verifica se o problema é no Gemini ou no frontend
+  app.post('/api/test-image', async (req, res) => {
+    try {
+      console.log('🧪 Gerando imagem de teste com Gemini...');
+      
+      const { generateImage } = await import('../gemini');
+      const tempImagePath = `/tmp/test_${Date.now()}.png`;
+      
+      // Prompt simples para teste
+      const testPrompt = 'A simple blue circle on white background, commercial photography style, 16:9 aspect ratio';
+      
+      await generateImage(testPrompt, tempImagePath);
+      
+      const fs = await import('fs');
+      const imageBuffer = fs.default.readFileSync(tempImagePath);
+      const imageDataUrl = `data:image/png;base64,${imageBuffer.toString('base64')}`;
+      
+      fs.default.unlinkSync(tempImagePath);
+      
+      console.log('✅ Imagem de teste gerada com sucesso!');
+      
+      res.json({
+        success: true,
+        imageDataUrl,
+        message: 'Teste realizado com sucesso - Gemini funcionando'
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro no teste de imagem:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Erro no teste',
+        message: 'Falha no teste - problema com Gemini'
       });
     }
   });
