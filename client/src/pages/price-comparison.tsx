@@ -103,9 +103,9 @@ export default function PriceComparison() {
   }, [paraguayProducts, searchQuery]);
 
   // Filtrar produtos relacionados para exibir no lado direito
-  // Só mostrar após seleção específica de produto
+  // Só mostrar APÓS clicar em "Comparar Preços" (quando comparisonData existir)
   const relatedProducts = useMemo(() => {
-    if (!selectedProductForSearch) return [];
+    if (!comparePricesMutation.data?.productName) return [];
     
     // Extrair todos os produtos de todas as lojas
     const allProducts = allStores.flatMap(store => 
@@ -114,19 +114,21 @@ export default function PriceComparison() {
         ?.map((product: any) => ({ ...product, store })) || []
     );
     
-    // Buscar o produto selecionado em todas as lojas
-    const productName = selectedProductForSearch.name.toLowerCase();
+    // Buscar o produto comparado em todas as lojas
+    const productName = comparePricesMutation.data.productName.toLowerCase();
     return allProducts
       .filter(product => {
         const similarity = product.name.toLowerCase();
         // Busca mais flexível - considera produtos similares
         return similarity.includes(productName) || 
                productName.includes(similarity) ||
-               (product.category?.toLowerCase() === selectedProductForSearch.category?.toLowerCase() &&
-                similarity.includes(productName.split(' ')[0])); // Primeira palavra
+               // Busca por palavras-chave do produto
+               productName.split(' ').some(word => 
+                 word.length > 3 && similarity.includes(word)
+               );
       })
       .slice(0, 8); // Limitar a 8 resultados
-  }, [allStores, selectedProductForSearch]);
+  }, [allStores, comparePricesMutation.data]);
 
   // Hook para buscar cotação USD → BRL
   const { data: exchangeRateData } = useQuery<{ rate: number }>({
@@ -135,7 +137,6 @@ export default function PriceComparison() {
     staleTime: 15 * 60 * 1000, // Considerar stale após 15 minutos
   });
 
-  const comparisonData = comparePricesMutation.data as ProductComparison | undefined;
 
   const handleCompareProduct = (product: any) => {
     setSelectedProduct(product.id);
@@ -308,24 +309,45 @@ export default function PriceComparison() {
                       </div>
                     </div>
                   </div>
-                  <Button
-                    onClick={() => handleCompareProduct(selectedProductForSearch)}
-                    disabled={comparePricesMutation.isPending}
-                    className="bg-blue-600 hover:bg-blue-700"
-                    data-testid="button-start-comparison"
-                  >
-                    {comparePricesMutation.isPending ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                        Comparando...
-                      </>
-                    ) : (
-                      <>
-                        <DollarSign className="w-4 h-4 mr-2" />
-                        Comparar Preços
-                      </>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleCompareProduct(selectedProductForSearch)}
+                      disabled={comparePricesMutation.isPending}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      data-testid="button-start-comparison"
+                    >
+                      {comparePricesMutation.isPending ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          Comparando...
+                        </>
+                      ) : (
+                        <>
+                          <DollarSign className="w-4 h-4 mr-2" />
+                          Comparar Preços
+                        </>
+                      )}
+                    </Button>
+                    
+                    {/* Botão Nova Pesquisa - só aparece após uma comparação */}
+                    {comparePricesMutation.data && (
+                      <Button 
+                        variant="outline"
+                        onClick={() => {
+                          setSearchQuery("");
+                          setSelectedProduct(null);
+                          setSelectedProductForSearch(null);
+                          setShowSuggestions(false);
+                          // Limpar dados da comparação
+                          comparePricesMutation.reset();
+                        }}
+                        className="px-4"
+                        data-testid="button-new-search"
+                      >
+                        Nova Pesquisa
+                      </Button>
                     )}
-                  </Button>
+                  </div>
                 </div>
               )}
             </div>
@@ -333,7 +355,7 @@ export default function PriceComparison() {
         </Card>
 
         {/* Welcome Message */}
-        {!selectedProductForSearch && !comparisonData && (
+        {!selectedProductForSearch && !comparePricesMutation.data && (
           <Card className="border-dashed border-2 border-gray-300">
             <CardContent className="p-12 text-center">
               <div className="mb-6">
@@ -366,7 +388,7 @@ export default function PriceComparison() {
         )}
 
         {/* Comparison Results */}
-        {comparisonData && (
+        {comparePricesMutation.data && (
           <div className="mt-8 space-y-6">
             {/* Summary Card */}
             <Card className="border-green-200 bg-green-50">
@@ -380,7 +402,7 @@ export default function PriceComparison() {
                 <div className="grid md:grid-cols-4 gap-4">
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Produto</h4>
-                    <p className="text-sm">{comparisonData.productName}</p>
+                    <p className="text-sm">{comparePricesMutation.data.productName}</p>
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Preço no Paraguay</h4>
@@ -389,24 +411,24 @@ export default function PriceComparison() {
                       {exchangeRateData && (
                         <p className="text-lg font-bold text-green-600">
                           {formatPriceWithCurrency(
-                            (parseFloat(comparisonData.paraguayPrice.toString()) * exchangeRateData.rate).toFixed(2), 
+                            (parseFloat(comparePricesMutation.data.paraguayPrice.toString()) * exchangeRateData.rate).toFixed(2), 
                             'R$'
                           )}
                         </p>
                       )}
                       {/* Preço original USD embaixo */}
                       <p className="text-sm font-semibold text-green-500">
-                        ≈ {formatPriceWithCurrency(comparisonData.paraguayPrice.toString(), comparisonData.paraguayCurrency)}
+                        ≈ {formatPriceWithCurrency(comparePricesMutation.data.paraguayPrice.toString(), comparePricesMutation.data.paraguayCurrency)}
                       </p>
                     </div>
-                    <p className="text-xs text-gray-600">{comparisonData.paraguayStore}</p>
+                    <p className="text-xs text-gray-600">{comparePricesMutation.data.paraguayStore}</p>
                   </div>
                   {/* Menor Preço no Brasil */}
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Menor Preço no Brasil</h4>
                     {(() => {
-                      const minPrice = Math.min(...comparisonData.brazilianPrices.map(p => parseFloat(p.price.toString())));
-                      const bestBrazilianOffer = comparisonData.brazilianPrices.find(p => parseFloat(p.price.toString()) === minPrice);
+                      const minPrice = Math.min(...comparePricesMutation.data.brazilianPrices.map((p: any) => parseFloat(p.price.toString())));
+                      const bestBrazilianOffer = comparePricesMutation.data.brazilianPrices.find((p: any) => parseFloat(p.price.toString()) === minPrice);
                       
                       return (
                         <div className="space-y-1">
@@ -429,22 +451,22 @@ export default function PriceComparison() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Economia Máxima</h4>
-                    {comparisonData.savings.amount < 0 ? (
+                    {comparePricesMutation.data.savings.amount < 0 ? (
                       <div>
                         <p className="text-lg font-bold text-blue-600">
                           Mais barato no Brasil
                         </p>
                         <p className="text-xs text-gray-600">
-                          Item custa menos em {comparisonData.savings.bestStore}
+                          Item custa menos em {comparePricesMutation.data.savings.bestStore}
                         </p>
                       </div>
-                    ) : comparisonData.savings.amount > 0 ? (
+                    ) : comparePricesMutation.data.savings.amount > 0 ? (
                       <div>
                         <p className="text-lg font-bold text-green-600">
-                          🎉 Economia: {formatPriceWithCurrency(comparisonData.savings.amount.toString(), 'R$')}
+                          🎉 Economia: {formatPriceWithCurrency(comparePricesMutation.data.savings.amount.toString(), 'R$')}
                         </p>
                         <p className="text-xs text-gray-600">
-                          {comparisonData.savings.percentage}% mais barato que {comparisonData.savings.bestStore}
+                          {comparePricesMutation.data.savings.percentage}% mais barato que {comparePricesMutation.data.savings.bestStore}
                         </p>
                       </div>
                     ) : (
@@ -519,24 +541,24 @@ export default function PriceComparison() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Filter className="w-5 h-5" />
-                  {selectedProductForSearch ? 
-                    `Onde comprar: ${selectedProductForSearch.name}` :
+                  {comparePricesMutation.data ? 
+                    `Onde comprar: ${comparePricesMutation.data.productName}` :
                     'Produtos Relacionados'
                   }
                 </CardTitle>
                 <p className="text-sm text-gray-600">
-                  {selectedProductForSearch ? 
+                  {comparePricesMutation.data ? 
                     `${relatedProducts.length} opções encontradas nas lojas do Paraguay` :
-                    'Selecione um produto para ver onde comprar'
+                    'Compare um produto para ver onde comprar'
                   }
                 </p>
               </CardHeader>
               <CardContent>
                 {relatedProducts.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    {selectedProductForSearch ? 
+                    {comparePricesMutation.data ? 
                       "Produto não encontrado nas lojas cadastradas" :
-                      "Selecione um produto da lista de sugestões para ver onde comprar"
+                      "Faça uma comparação de preços para ver onde comprar"
                     }
                   </div>
                 ) : (
