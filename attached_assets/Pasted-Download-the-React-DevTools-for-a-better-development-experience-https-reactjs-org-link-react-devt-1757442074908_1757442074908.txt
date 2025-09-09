@@ -1,0 +1,17 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/ef804262-4106-4dae-b44d-efd1605a4d5e:1 Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/ef804262-4106-4dae-b44d-efd1605a4d5e:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+main.tsx:13 Falha no registro do Service Worker: SecurityError: Failed to register a ServiceWorker for scope ('https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/') with script ('https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/sw.js'): The script has an unsupported MIME type ('text/html').
+admin-totem.tsx:615 AI method selected, mediaUrl:  generatedBanner: null
+admin-totem.tsx:615 AI method selected, mediaUrl:  generatedBanner: null
+admin-totem.tsx:615 AI method selected, mediaUrl:  generatedBanner: null
+admin-totem.tsx:615 AI method selected, mediaUrl:  generatedBanner: null
+admin-totem.tsx:615 AI method selected, mediaUrl:  generatedBanner: null
+admin-totem.tsx:615 AI method selected, mediaUrl:  generatedBanner: null
+admin-totem.tsx:615 AI method selected, mediaUrl:  generatedBanner: null
+admin-totem.tsx:615 AI method selected, mediaUrl:  generatedBanner: null
+admin-totem.tsx:615 AI method selected, mediaUrl:  generatedBanner: null
+admin-totem.tsx:169 🎯 AI Banner Response: Response {type: 'basic', url: 'https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c…fqwb4y.spock.replit.dev/api/totem/generate-banner', redirected: false, status: 200, ok: true, …}
+admin-totem.tsx:170 🎯 ImageUrl recebida: undefined
+admin-totem.tsx:183 🎯 Novo estado newContent: {title: 'Promoção Black Friday', description: 'Descontos imperdíveis', mediaUrl: undefined, mediaType: 'image', displayDuration: '10', …}
+2admin-totem.tsx:615 AI method selected, mediaUrl: undefined generatedBanner: undefined

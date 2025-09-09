@@ -163,7 +163,8 @@ export default function AdminTotem() {
   // Mutation para gerar banner com IA
   const generateAIBannerMutation = useMutation({
     mutationFn: async (aiData: typeof aiContent) => {
-      return await apiRequest('POST', '/api/totem/generate-banner', aiData);
+      const response = await apiRequest('POST', '/api/totem/generate-banner', aiData);
+      return await response.json(); // Processar JSON aqui
     },
     onSuccess: (data) => {
       console.log('🎯 AI Banner Response:', data);
