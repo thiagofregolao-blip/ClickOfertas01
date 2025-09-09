@@ -1515,7 +1515,15 @@ export type UpdateTotemSettings = Partial<InsertTotemSettings>;
 export const insertTotemContentSchema = z.object({
   title: z.string().min(1, "Título é obrigatório"),
   description: z.string().optional(),
-  mediaUrl: z.string().url("URL da mídia deve ser válida"),
+  mediaUrl: z.string().min(1, "URL ou caminho da mídia é obrigatório").refine(
+    (val) => {
+      // Aceitar URLs completas ou caminhos relativos que começam com /
+      const urlRegex = /^https?:\/\/.+/;
+      const pathRegex = /^\/[^\s]+/;
+      return urlRegex.test(val) || pathRegex.test(val);
+    },
+    { message: "Deve ser uma URL válida (http://...) ou caminho relativo (/...)" }
+  ),
   mediaType: z.enum(['image', 'video']).default('image'),
   displayDuration: z.string().default('10'),
   sortOrder: z.string().default('0'),
