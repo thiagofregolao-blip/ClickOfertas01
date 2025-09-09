@@ -2837,11 +2837,11 @@ Create a stunning banner that effectively promotes the product/service with high
       
       // Converter para base64 para enviar pela API
       const fs = await import('fs');
-      const imageBuffer = fs.readFileSync(tempImagePath);
+      const imageBuffer = fs.default.readFileSync(tempImagePath);
       const imageUrl = `data:image/png;base64,${imageBuffer.toString('base64')}`;
       
       // Limpar arquivo temporário
-      fs.unlinkSync(tempImagePath);
+      fs.default.unlinkSync(tempImagePath);
       
       console.log('✅ Banner gerado com sucesso usando Gemini AI!');
 
