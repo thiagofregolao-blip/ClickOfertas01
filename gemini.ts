@@ -10,8 +10,8 @@ export async function generateImage(
     baseImage?: string
 ): Promise<void> {
     try {
-        // Use o modelo correto da documentação oficial
-        const model = "gemini-2.5-flash-image-preview";
+        // Use o modelo correto da documentação oficial  
+        const model = "gemini-2.5-flash-preview-image";
         
         // Construir conteúdo baseado se é edição ou geração nova
         let contents: any[];
@@ -43,7 +43,10 @@ export async function generateImage(
 
         const response = await ai.models.generateContent({
             model: model,
-            contents: contents
+            contents: contents,
+            config: {
+                responseModalities: [Modality.TEXT, Modality.IMAGE]
+            }
         });
 
         const candidates = response.candidates;

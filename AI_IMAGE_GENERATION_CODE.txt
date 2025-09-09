@@ -10,7 +10,7 @@ VISÃO GERAL:
 - Modelo correto: gemini-2.5-flash-image-preview
 
 MELHORIAS BASEADAS NA DOCUMENTAÇÃO OFICIAL GEMINI:
-✅ Modelo correto: gemini-2.5-flash-image-preview
+✅ Modelo correto: gemini-2.5-flash-preview-image (CORRIGIDO!)
 ✅ Edição iterativa real com imagem base
 ✅ Estrutura API otimizada
 ✅ Prompts profissionais para diferentes estilos
