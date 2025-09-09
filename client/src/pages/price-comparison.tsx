@@ -103,8 +103,9 @@ export default function PriceComparison() {
   }, [paraguayProducts, searchQuery]);
 
   // Filtrar produtos relacionados para exibir no lado direito
+  // Só mostrar após seleção específica de produto
   const relatedProducts = useMemo(() => {
-    if (!searchQuery.trim()) return [];
+    if (!selectedProductForSearch) return [];
     
     // Extrair todos os produtos de todas as lojas
     const allProducts = allStores.flatMap(store => 
@@ -113,15 +114,19 @@ export default function PriceComparison() {
         ?.map((product: any) => ({ ...product, store })) || []
     );
     
-    // Filtrar por termos similares ao produto pesquisado
+    // Buscar o produto selecionado em todas as lojas
+    const productName = selectedProductForSearch.name.toLowerCase();
     return allProducts
-      .filter(product => 
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      .slice(0, 6); // Limitar a 6 cards
-  }, [allStores, searchQuery]);
+      .filter(product => {
+        const similarity = product.name.toLowerCase();
+        // Busca mais flexível - considera produtos similares
+        return similarity.includes(productName) || 
+               productName.includes(similarity) ||
+               (product.category?.toLowerCase() === selectedProductForSearch.category?.toLowerCase() &&
+                similarity.includes(productName.split(' ')[0])); // Primeira palavra
+      })
+      .slice(0, 8); // Limitar a 8 resultados
+  }, [allStores, selectedProductForSearch]);
 
   // Hook para buscar cotação USD → BRL
   const { data: exchangeRateData } = useQuery<{ rate: number }>({
@@ -514,35 +519,78 @@ export default function PriceComparison() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Filter className="w-5 h-5" />
-                  Produtos Relacionados
+                  {selectedProductForSearch ? 
+                    `Onde comprar: ${selectedProductForSearch.name}` :
+                    'Produtos Relacionados'
+                  }
                 </CardTitle>
                 <p className="text-sm text-gray-600">
-                  Outros produtos disponíveis nas lojas do Paraguay
+                  {selectedProductForSearch ? 
+                    `${relatedProducts.length} opções encontradas nas lojas do Paraguay` :
+                    'Selecione um produto para ver onde comprar'
+                  }
                 </p>
               </CardHeader>
               <CardContent>
                 {relatedProducts.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    {searchQuery.trim() ? 
-                      `Nenhum produto relacionado encontrado para "${searchQuery}"` :
-                      "Busque um produto para ver opções relacionadas"
+                    {selectedProductForSearch ? 
+                      "Produto não encontrado nas lojas cadastradas" :
+                      "Selecione um produto da lista de sugestões para ver onde comprar"
                     }
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                  <div className="space-y-3">
                     {relatedProducts.map((product) => (
-                      <ProductCard
+                      <div 
                         key={`${product.store.id}-${product.id}`}
-                        product={product}
-                        currency="US$"
-                        themeColor={product.store.themeColor || '#3B82F6'}
-                        showFeaturedBadge={false}
-                        enableEngagement={false}
-                        onClick={(prod) => {
-                          setSelectedProductDetail(prod);
+                        className="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedProductDetail(product);
                           setSelectedStore(product.store);
                         }}
-                      />
+                      >
+                        <div className="flex items-center gap-3">
+                          {/* Imagem pequena do produto */}
+                          <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                            {product.imageUrl ? (
+                              <img 
+                                src={product.imageUrl} 
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                <span className="text-gray-400 text-xs">Sem foto</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Informações do produto */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-sm font-medium text-gray-900 truncate">
+                                  {product.name}
+                                </h4>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {product.store.name}
+                                </p>
+                              </div>
+                              <div className="text-right ml-2">
+                                <p className="text-sm font-bold text-green-600">
+                                  {formatPriceWithCurrency(product.price?.toString() || '0', 'US$')}
+                                </p>
+                                {product.category && (
+                                  <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">
+                                    {product.category}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
