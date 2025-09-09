@@ -529,137 +529,152 @@ export default function AdminTotem() {
 
                       {uploadMethod === 'ai' && (
                         <div className="space-y-4 p-4 border rounded-lg bg-blue-50">
-                          <div className="text-center">
+                          <div className="text-center mb-4">
                             <h3 className="text-lg font-semibold text-blue-700 mb-2">🤖 Gerar Banner com IA</h3>
                             <p className="text-sm text-blue-600">Descreva como você quer que seja o banner e a IA criará para você</p>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <Label htmlFor="aiTitle">Título do Banner *</Label>
-                              <Input
-                                id="aiTitle"
-                                value={aiContent.title}
-                                onChange={(e) => setAiContent(prev => ({ ...prev, title: e.target.value }))}
-                                placeholder="Ex: Promoção Black Friday"
-                                required
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="aiPrice">Preço (opcional)</Label>
-                              <Input
-                                id="aiPrice"
-                                value={aiContent.price}
-                                onChange={(e) => setAiContent(prev => ({ ...prev, price: e.target.value }))}
-                                placeholder="Ex: R$ 199,90"
-                              />
-                            </div>
-                          </div>
-
-                          <div>
-                            <Label htmlFor="aiDescription">Descrição do produto/serviço</Label>
-                            <Textarea
-                              id="aiDescription"
-                              value={aiContent.description}
-                              onChange={(e) => setAiContent(prev => ({ ...prev, description: e.target.value }))}
-                              placeholder="Ex: Smartphone Samsung Galaxy com tela de 6.5 polegadas"
-                              rows={2}
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <Label htmlFor="aiStyle">Estilo do Banner</Label>
-                              <Select
-                                value={aiContent.style}
-                                onValueChange={(value) => setAiContent(prev => ({ ...prev, style: value }))}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="moderno">Moderno e Minimalista</SelectItem>
-                                  <SelectItem value="colorido">Colorido e Vibrante</SelectItem>
-                                  <SelectItem value="elegante">Elegante e Sofisticado</SelectItem>
-                                  <SelectItem value="promocional">Promocional e Chamativo</SelectItem>
-                                  <SelectItem value="profissional">Profissional e Limpo</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label htmlFor="aiColors">Cores Preferidas</Label>
-                              <Input
-                                id="aiColors"
-                                value={aiContent.colors}
-                                onChange={(e) => setAiContent(prev => ({ ...prev, colors: e.target.value }))}
-                                placeholder="Ex: azul, branco, vermelho"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="flex justify-center">
-                            <Button
-                              type="button"
-                              onClick={handleGenerateAI}
-                              disabled={generateAIBannerMutation.isPending}
-                              className="bg-blue-600 hover:bg-blue-700"
-                            >
-                              {generateAIBannerMutation.isPending ? (
-                                <>🔄 Gerando Banner...</>
-                              ) : (
-                                <>🎨 Gerar Banner com IA</>
-                              )}
-                            </Button>
-                          </div>
-
-                          {/* Debug para ver se está chegando aqui */}
-                          {uploadMethod === 'ai' && console.log('AI method selected, mediaUrl:', newContent.mediaUrl, 'generatedBanner:', generatedBanner)}
-                          
-                          {uploadMethod === 'ai' && generatedBanner && (
-                            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                              <div className="space-y-4">
-                                <div className="text-center">
-                                  <p className="text-sm text-green-700 font-medium mb-2">✅ Banner gerado com sucesso!</p>
-                                  <p className="text-sm text-green-600">Revise o banner abaixo e clique em "Criar Conteúdo" para salvar.</p>
+                          {/* Layout dividido: formulário à esquerda, preview à direita */}
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            
+                            {/* Formulário - Lado Esquerdo */}
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-1 gap-4">
+                                <div>
+                                  <Label htmlFor="aiTitle">Título do Banner *</Label>
+                                  <Input
+                                    id="aiTitle"
+                                    value={aiContent.title}
+                                    onChange={(e) => setAiContent(prev => ({ ...prev, title: e.target.value }))}
+                                    placeholder="Ex: Promoção Black Friday"
+                                    required
+                                  />
                                 </div>
-                                
-                                {/* Preview da imagem centralizado */}
-                                <div className="flex justify-center">
-                                  <div className="border-2 border-green-300 rounded-lg overflow-hidden bg-white shadow-md">
-                                    <img 
-                                      src={generatedBanner} 
-                                      alt="Banner gerado" 
-                                      className="w-80 h-45 object-contain"
-                                      onError={(e) => {
-                                        console.error('Erro ao carregar imagem:', generatedBanner);
-                                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjE2MCIgeT0iOTAiIGZpbGw9IiM2QjcyODAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZHk9Ii4zZW0iPkVycm8gYW8gY2FycmVnYXIgaW1hZ2VtPC90ZXh0Pgo8L3N2Zz4K';
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-                                
-                                <div className="text-center">
-                                  <p className="text-xs text-green-600 mb-3">Preview 16:9 (1920x1080px)</p>
-                                  
-                                  <div className="flex justify-center gap-2">
-                                    <Button
-                                      type="button"
-                                      onClick={handleGenerateAI}
-                                      disabled={generateAIBannerMutation.isPending}
-                                      variant="outline"
-                                      size="sm"
-                                    >
-                                      🔄 Gerar Novo Banner
-                                    </Button>
-                                  </div>
-                                  
-                                  <p className="text-xs text-green-600 mt-2">
-                                    Não gostou? Altere as informações acima e gere um novo.
-                                  </p>
+                                <div>
+                                  <Label htmlFor="aiPrice">Preço (opcional)</Label>
+                                  <Input
+                                    id="aiPrice"
+                                    value={aiContent.price}
+                                    onChange={(e) => setAiContent(prev => ({ ...prev, price: e.target.value }))}
+                                    placeholder="Ex: R$ 199,90"
+                                  />
                                 </div>
                               </div>
+
+                              <div>
+                                <Label htmlFor="aiDescription">Descrição do produto/serviço</Label>
+                                <Textarea
+                                  id="aiDescription"
+                                  value={aiContent.description}
+                                  onChange={(e) => setAiContent(prev => ({ ...prev, description: e.target.value }))}
+                                  placeholder="Ex: Smartphone Samsung Galaxy com tela de 6.5 polegadas"
+                                  rows={3}
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-1 gap-4">
+                                <div>
+                                  <Label htmlFor="aiStyle">Estilo do Banner</Label>
+                                  <Select
+                                    value={aiContent.style}
+                                    onValueChange={(value) => setAiContent(prev => ({ ...prev, style: value }))}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="moderno">Moderno e Minimalista</SelectItem>
+                                      <SelectItem value="colorido">Colorido e Vibrante</SelectItem>
+                                      <SelectItem value="elegante">Elegante e Sofisticado</SelectItem>
+                                      <SelectItem value="promocional">Promocional e Chamativo</SelectItem>
+                                      <SelectItem value="profissional">Profissional e Limpo</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label htmlFor="aiColors">Cores Preferidas</Label>
+                                  <Input
+                                    id="aiColors"
+                                    value={aiContent.colors}
+                                    onChange={(e) => setAiContent(prev => ({ ...prev, colors: e.target.value }))}
+                                    placeholder="Ex: azul, branco, vermelho"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="flex justify-center">
+                                <Button
+                                  type="button"
+                                  onClick={handleGenerateAI}
+                                  disabled={generateAIBannerMutation.isPending}
+                                  className="bg-blue-600 hover:bg-blue-700 w-full"
+                                >
+                                  {generateAIBannerMutation.isPending ? (
+                                    <>🔄 Gerando Banner...</>
+                                  ) : (
+                                    <>🎨 Gerar Banner com IA</>
+                                  )}
+                                </Button>
+                              </div>
                             </div>
-                          )}
+
+                            {/* Preview - Lado Direito */}
+                            <div className="space-y-4">
+                              <div className="text-center">
+                                <h4 className="text-md font-medium text-gray-700 mb-2">Preview do Banner</h4>
+                                <p className="text-xs text-gray-500">A imagem aparecerá aqui após a geração</p>
+                              </div>
+                              
+                              <div className="flex flex-col items-center justify-center min-h-[300px] border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                                {/* Debug para ver se está chegando aqui */}
+                                {uploadMethod === 'ai' && console.log('AI method selected, mediaUrl:', newContent.mediaUrl, 'generatedBanner:', generatedBanner)}
+                                
+                                {generatedBanner ? (
+                                  <div className="space-y-3">
+                                    <div className="border-2 border-green-300 rounded-lg overflow-hidden bg-white shadow-md">
+                                      <img 
+                                        src={generatedBanner} 
+                                        alt="Banner gerado" 
+                                        className="w-full max-w-sm h-auto object-contain"
+                                        onLoad={() => console.log('✅ Imagem carregou com sucesso:', generatedBanner)}
+                                        onError={(e) => {
+                                          console.error('❌ Erro ao carregar imagem:', generatedBanner);
+                                          console.error('❌ Erro detalhes:', e);
+                                          e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjE2MCIgeT0iOTAiIGZpbGw9IiM2QjcyODAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZHk9Ii4zZW0iPkVycm8gYW8gY2FycmVnYXIgaW1hZ2VtPC90ZXh0Pgo8L3N2Zz4K';
+                                        }}
+                                      />
+                                    </div>
+                                    
+                                    <div className="text-center space-y-2">
+                                      <div className="flex items-center justify-center space-x-2">
+                                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                        <p className="text-sm text-green-700 font-medium">Banner gerado com sucesso!</p>
+                                      </div>
+                                      <p className="text-xs text-gray-600">Preview 16:9 (1920x1080px)</p>
+                                      <p className="text-xs text-green-600">Clique em "Criar Conteúdo" abaixo para salvar</p>
+                                      
+                                      <Button
+                                        type="button"
+                                        onClick={handleGenerateAI}
+                                        disabled={generateAIBannerMutation.isPending}
+                                        variant="outline"
+                                        size="sm"
+                                        className="mt-2"
+                                      >
+                                        🔄 Gerar Novo
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-center space-y-3 p-8">
+                                    <div className="text-gray-400 text-6xl">🖼️</div>
+                                    <p className="text-gray-500">Nenhum banner gerado ainda</p>
+                                    <p className="text-xs text-gray-400">Preencha os campos ao lado e clique em "Gerar Banner com IA"</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
