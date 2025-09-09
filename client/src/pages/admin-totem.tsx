@@ -24,13 +24,19 @@ export default function AdminTotem() {
   const { data: totemData, isLoading } = useQuery({
     queryKey: ['/api/totem/my-content'],
     queryFn: async () => {
-      const response = await fetch('/api/stores/me');
-      const store = await response.json();
-      if (store?.id) {
-        const contentResponse = await fetch(`/api/totem/${store.id}/content`);
-        return await contentResponse.json();
+      try {
+        const response = await fetch('/api/stores/me');
+        const store = await response.json();
+        if (store?.id) {
+          const contentResponse = await fetch(`/api/totem/${store.id}/content`);
+          const data = await contentResponse.json();
+          return data;
+        }
+        return { content: [] };
+      } catch (error) {
+        console.error('Error fetching totem content:', error);
+        return { content: [] };
       }
-      return { content: [] };
     }
   });
 
@@ -58,6 +64,17 @@ export default function AdminTotem() {
         description: "Conteúdo criado com sucesso",
       });
       setIsCreating(false);
+      // Limpar o formulário
+      setNewContent({
+        title: '',
+        description: '',
+        mediaUrl: '',
+        mediaType: 'image' as 'image' | 'video',
+        displayDuration: '10',
+        scheduleStart: '',
+        scheduleEnd: '',
+        sortOrder: '0'
+      });
     },
     onError: (error: any) => {
       toast({
@@ -109,7 +126,20 @@ export default function AdminTotem() {
 
   const handleSubmitContent = (e: React.FormEvent) => {
     e.preventDefault();
-    createContentMutation.mutate(newContent);
+    
+    // Filtrar campos vazios antes de enviar
+    const cleanContent = {
+      title: newContent.title,
+      description: newContent.description || undefined,
+      mediaUrl: newContent.mediaUrl,
+      mediaType: newContent.mediaType,
+      displayDuration: newContent.displayDuration,
+      sortOrder: newContent.sortOrder,
+      ...(newContent.scheduleStart && { scheduleStart: newContent.scheduleStart }),
+      ...(newContent.scheduleEnd && { scheduleEnd: newContent.scheduleEnd }),
+    };
+    
+    createContentMutation.mutate(cleanContent);
   };
 
   const handleDeleteContent = (contentId: string) => {

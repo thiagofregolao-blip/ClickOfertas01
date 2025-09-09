@@ -1514,8 +1514,12 @@ export type UpdateTotemSettings = Partial<InsertTotemSettings>;
 // Schemas Zod para validação
 export const insertTotemContentSchema = createInsertSchema(totemContent).omit({
   id: true,
+  storeId: true, // Será preenchido pelo servidor
   createdAt: true,
   updatedAt: true,
+}).extend({
+  scheduleStart: z.string().optional().transform(val => val && val !== '' ? new Date(val) : undefined),
+  scheduleEnd: z.string().optional().transform(val => val && val !== '' ? new Date(val) : undefined),
 });
 
 export const updateTotemContentSchema = createInsertSchema(totemContent).omit({

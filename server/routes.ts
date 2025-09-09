@@ -2570,13 +2570,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user?.id || req.user?.claims?.sub || req.session?.user?.id;
       const contentData = insertTotemContentSchema.parse(req.body);
       
-      // Verificar se o usuário é dono da loja
+      // Buscar a loja do usuário logado
       const store = await storage.getUserStore(userId);
-      if (!store || store.id !== contentData.storeId) {
-        return res.status(403).json({ message: 'Access denied' });
+      if (!store) {
+        return res.status(403).json({ message: 'No store found for user' });
       }
       
-      const content = await storage.createTotemContent(contentData);
+      // Adicionar o storeId automaticamente
+      const contentWithStoreId = {
+        ...contentData,
+        storeId: store.id
+      };
+      
+      const content = await storage.createTotemContent(contentWithStoreId);
       res.status(201).json({ success: true, content });
     } catch (error) {
       console.error('Error creating totem content:', error);
