@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -936,10 +936,13 @@ const BannerPreview = ({
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(generatedBanner);
 
-  // Sincronizar com prop externa
-  useState(() => {
+  // Sincronizar com prop externa usando useEffect
+  React.useEffect(() => {
     setImageUrl(generatedBanner);
-  });
+    if (generatedBanner) {
+      setError(null); // Limpar erro quando nova imagem chegar
+    }
+  }, [generatedBanner]);
 
   async function loadTest() {
     setError(null);
