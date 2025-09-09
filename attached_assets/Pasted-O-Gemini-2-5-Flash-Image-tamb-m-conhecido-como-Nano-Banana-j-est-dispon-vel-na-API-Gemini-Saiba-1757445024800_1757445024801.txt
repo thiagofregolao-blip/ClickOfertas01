@@ -1,0 +1,599 @@
+O Gemini 2.5 Flash Image (também conhecido como Nano Banana) já está disponível na API Gemini. Saiba mais
+ Esta página foi traduzida pela API Cloud Translation.
+Switch to English
+Página inicial
+Gemini API
+Documentos da API Gemini
+Isso foi útil?
+
+Envie comentáriosGeração de imagens com o Gemini (também conhecido como Nano Banana)
+
+
+O Gemini pode gerar e processar imagens de forma conversacional. Você pode pedir ao Gemini com texto, imagens ou uma combinação dos dois, permitindo criar, editar e iterar recursos visuais com um controle sem precedentes:
+
+Text-to-Image::gere imagens de alta qualidade com base em descrições de texto simples ou complexas.
+Imagem + texto para imagem (edição): forneça uma imagem e use comandos de texto para adicionar, remover ou modificar elementos, mudar o estilo ou ajustar a gradação de cores.
+Várias imagens para imagem (composição e transferência de estilo): use várias imagens de entrada para compor uma nova cena ou transferir o estilo de uma imagem para outra.
+Refinamento iterativo:converse para refinar progressivamente sua imagem em várias interações, fazendo pequenos ajustes até que ela fique perfeita.
+Renderização de texto de alta fidelidade:gere imagens com texto legível e bem posicionado, ideal para logotipos, diagramas e pôsteres.
+Todas as imagens geradas incluem uma marca-d'água do SynthID.
+
+Geração de imagens (conversão de texto em imagem)
+O código a seguir demonstra como gerar uma imagem com base em um comando descritivo.
+
+Python
+JavaScript
+Go
+REST
+
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
+
+client = genai.Client()
+
+prompt = (
+    "Create a picture of a nano banana dish in a fancy restaurant with a Gemini theme"
+)
+
+response = client.models.generate_content(
+    model="gemini-2.5-flash-image-preview",
+    contents=[prompt],
+)
+
+for part in response.candidates[0].content.parts:
+    if part.text is not None:
+        print(part.text)
+    elif part.inline_data is not None:
+        image = Image.open(BytesIO(part.inline_data.data))
+        image.save("generated_image.png")
+Imagem de um prato de nano banana gerada com IA
+Imagem gerada com IA de um prato de nano banana em um restaurante com tema do Gemini
+Edição de imagens (texto e imagem para imagem)
+Lembrete: confira se você tem os direitos necessários sobre as imagens que enviar. Não gere conteúdo que viole os direitos de terceiros, incluindo vídeos ou imagens que enganem, assediem ou prejudiquem pessoas. O uso deste serviço de IA generativa está sujeito à nossa Política de Uso Proibido.
+
+O exemplo a seguir demonstra o upload de imagens codificadas em base64. Para várias imagens, payloads maiores e tipos MIME compatíveis, consulte a página Entendimento de imagens.
+
+Python
+JavaScript
+Go
+REST
+
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
+
+client = genai.Client()
+
+prompt = (
+    "Create a picture of my cat eating a nano-banana in a "
+    "fancy restaurant under the Gemini constellation",
+)
+
+image = Image.open("/path/to/cat_image.png")
+
+response = client.models.generate_content(
+    model="gemini-2.5-flash-image-preview",
+    contents=[prompt, image],
+)
+
+for part in response.candidates[0].content.parts:
+    if part.text is not None:
+        print(part.text)
+    elif part.inline_data is not None:
+        image = Image.open(BytesIO(part.inline_data.data))
+        image.save("generated_image.png")
+Imagem gerada com IA de um gato comendo uma banana anano
+Imagem gerada com IA de um gato comendo uma nanobananinha
+Outros modos de geração de imagens
+O Gemini oferece suporte a outros modos de interação com imagens com base na estrutura e no contexto do comando, incluindo:
+
+Texto para imagens e texto (intercalado): gera imagens com texto relacionado.
+Exemplo de comando: "Gere uma receita ilustrada de paella".
+Imagens e texto para imagens e texto (intercalados): usa imagens e texto de entrada para criar novas imagens e texto relacionados.
+Exemplo de comando: (com uma imagem de um quarto mobiliado) "Quais outras cores de sofás ficariam boas no meu espaço? Você pode atualizar a imagem?"
+Edição de imagens com várias interações (chat): continue gerando e editando imagens em uma conversa.
+Exemplos de comandos: [faça upload de uma imagem de um carro azul]. , "Transforme este carro em um conversível", "Agora mude a cor para amarelo."
+Guia e estratégias para a criação de comandos
+Para dominar a geração de imagens com o Gemini 2.5 Flash, é preciso seguir um princípio fundamental:
+
+Descreva a cena, não apenas liste palavras-chave. O principal ponto forte do modelo é a compreensão profunda da linguagem. Um parágrafo narrativo e descritivo quase sempre produz uma imagem melhor e mais coerente do que uma lista de palavras desconectadas.
+
+Comandos para gerar imagens
+As estratégias a seguir vão ajudar você a criar comandos eficazes para gerar exatamente as imagens que procura.
+
+1. Cenas fotorrealistas
+Para imagens realistas, use termos de fotografia. Mencione ângulos de câmera, tipos de lente, iluminação e detalhes para guiar o modelo a um resultado fotorrealista.
+
+Modelo
+Comando
+Python
+JavaScript
+Go
+REST
+
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
+
+client = genai.Client()
+
+# Generate an image from a text prompt
+response = client.models.generate_content(
+    model="gemini-2.5-flash-image-preview",
+    contents="A photorealistic close-up portrait of an elderly Japanese ceramicist with deep, sun-etched wrinkles and a warm, knowing smile. He is carefully inspecting a freshly glazed tea bowl. The setting is his rustic, sun-drenched workshop with pottery wheels and shelves of clay pots in the background. The scene is illuminated by soft, golden hour light streaming through a window, highlighting the fine texture of the clay and the fabric of his apron. Captured with an 85mm portrait lens, resulting in a soft, blurred background (bokeh). The overall mood is serene and masterful.",
+)
+
+image_parts = [
+    part.inline_data.data
+    for part in response.candidates[0].content.parts
+    if part.inline_data
+]
+
+if image_parts:
+    image = Image.open(BytesIO(image_parts[0]))
+    image.save('photorealistic_example.png')
+    image.show()
+Um retrato fotorrealista em close de um ceramista japonês idoso...
+Um retrato fotorrealista em close-up de um ceramista japonês idoso...
+2. Ilustrações e adesivos estilizados
+Para criar adesivos, ícones ou recursos, seja explícito sobre o estilo e peça um plano de fundo transparente.
+
+Modelo
+Comando
+Python
+JavaScript
+Go
+REST
+
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
+
+client = genai.Client()
+
+# Generate an image from a text prompt
+response = client.models.generate_content(
+    model="gemini-2.5-flash-image-preview",
+    contents="A kawaii-style sticker of a happy red panda wearing a tiny bamboo hat. It's munching on a green bamboo leaf. The design features bold, clean outlines, simple cel-shading, and a vibrant color palette. The background must be white.",
+)
+
+image_parts = [
+    part.inline_data.data
+    for part in response.candidates[0].content.parts
+    if part.inline_data
+]
+
+if image_parts:
+    image = Image.open(BytesIO(image_parts[0]))
+    image.save('red_panda_sticker.png')
+    image.show()
+Um adesivo estilo kawaii de um...
+Um adesivo de estilo kawaii de um panda-vermelho feliz...
+3. Texto preciso em imagens
+O Gemini é excelente em renderização de texto. Seja claro sobre o texto, o estilo da fonte (de forma descritiva) e o design geral.
+
+Modelo
+Comando
+Python
+JavaScript
+Go
+REST
+
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
+
+client = genai.Client()
+
+# Generate an image from a text prompt
+response = client.models.generate_content(
+    model="gemini-2.5-flash-image-preview",
+    contents="Create a modern, minimalist logo for a coffee shop called 'The Daily Grind'. The text should be in a clean, bold, sans-serif font. The design should feature a simple, stylized icon of a a coffee bean seamlessly integrated with the text. The color scheme is black and white.",
+)
+
+image_parts = [
+    part.inline_data.data
+    for part in response.candidates[0].content.parts
+    if part.inline_data
+]
+
+if image_parts:
+    image = Image.open(BytesIO(image_parts[0]))
+    image.save('logo_example.png')
+    image.show()
+Crie um logotipo moderno e minimalista para uma cafeteria chamada &quot;The Daily Grind&quot;...
+Crie um logotipo moderno e minimalista para uma cafeteria chamada "The Daily Grind"...
+4. Simulações de produtos e fotografia comercial
+Perfeito para criar fotos de produtos limpas e profissionais para e-commerce, publicidade ou branding.
+
+Modelo
+Comando
+Python
+JavaScript
+Go
+REST
+
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
+
+client = genai.Client()
+
+# Generate an image from a text prompt
+response = client.models.generate_content(
+    model="gemini-2.5-flash-image-preview",
+    contents="A high-resolution, studio-lit product photograph of a minimalist ceramic coffee mug in matte black, presented on a polished concrete surface. The lighting is a three-point softbox setup designed to create soft, diffused highlights and eliminate harsh shadows. The camera angle is a slightly elevated 45-degree shot to showcase its clean lines. Ultra-realistic, with sharp focus on the steam rising from the coffee. Square image.",
+)
+
+image_parts = [
+    part.inline_data.data
+    for part in response.candidates[0].content.parts
+    if part.inline_data
+]
+
+if image_parts:
+    image = Image.open(BytesIO(image_parts[0]))
+    image.save('product_mockup.png')
+    image.show()
+Uma foto de produto em alta resolução e com iluminação de estúdio de uma xícara de café de cerâmica minimalista...
+Uma foto de produto em alta resolução e iluminação de estúdio de uma xícara de café de cerâmica minimalista...
+5. Design minimalista e com espaço negativo
+Excelente para criar planos de fundo para sites, apresentações ou materiais de marketing em que o texto será sobreposto.
+
+Modelo
+Comando
+Python
+JavaScript
+Go
+REST
+
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
+
+client = genai.Client()
+
+# Generate an image from a text prompt
+response = client.models.generate_content(
+    model="gemini-2.5-flash-image-preview",
+    contents="A minimalist composition featuring a single, delicate red maple leaf positioned in the bottom-right of the frame. The background is a vast, empty off-white canvas, creating significant negative space for text. Soft, diffused lighting from the top left. Square image.",
+)
+
+image_parts = [
+    part.inline_data.data
+    for part in response.candidates[0].content.parts
+    if part.inline_data
+]
+
+if image_parts:
+    image = Image.open(BytesIO(image_parts[0]))
+    image.save('minimalist_design.png')
+    image.show()
+Uma composição minimalista com uma única folha de bordo vermelha delicada...
+Uma composição minimalista com uma única e delicada folha de bordo vermelha...
+6. Arte sequencial (painel de quadrinhos / storyboard)
+Cria painéis para contar histórias visuais com base na consistência dos personagens e na descrição das cenas.
+
+Modelo
+Comando
+Python
+JavaScript
+Go
+REST
+
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
+
+client = genai.Client()
+
+# Generate an image from a text prompt
+response = client.models.generate_content(
+    model="gemini-2.5-flash-image-preview",
+    contents="A single comic book panel in a gritty, noir art style with high-contrast black and white inks. In the foreground, a detective in a trench coat stands under a flickering streetlamp, rain soaking his shoulders. In the background, the neon sign of a desolate bar reflects in a puddle. A caption box at the top reads \"The city was a tough place to keep secrets.\" The lighting is harsh, creating a dramatic, somber mood. Landscape.",
+)
+
+image_parts = [
+    part.inline_data.data
+    for part in response.candidates[0].content.parts
+    if part.inline_data
+]
+
+if image_parts:
+    image = Image.open(BytesIO(image_parts[0]))
+    image.save('comic_panel.png')
+    image.show()
+Um único painel de quadrinhos em um estilo de arte noir e sombrio...
+Um único painel de quadrinhos em um estilo de arte noir e sombrio...
+Comandos para editar imagens
+Estes exemplos mostram como fornecer imagens junto com seus comandos de texto para edição, composição e transferência de estilo.
+
+1. Adicionar e remover elementos
+Forneça uma imagem e descreva a mudança. O modelo vai corresponder ao estilo, à iluminação e à perspectiva da imagem original.
+
+Modelo
+Comando
+Python
+JavaScript
+Go
+REST
+
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
+
+client = genai.Client()
+
+# Base image prompt: "A photorealistic picture of a fluffy ginger cat sitting on a wooden floor, looking directly at the camera. Soft, natural light from a window."
+image_input = Image.open('/path/to/your/cat_photo.png')
+text_input = """Using the provided image of my cat, please add a small, knitted wizard hat on its head. Make it look like it's sitting comfortably and not falling off."""
+
+# Generate an image from a text prompt
+response = client.models.generate_content(
+    model="gemini-2.5-flash-image-preview",
+    contents=[text_input, image_input],
+)
+
+image_parts = [
+    part.inline_data.data
+    for part in response.candidates[0].content.parts
+    if part.inline_data
+]
+
+if image_parts:
+    image = Image.open(BytesIO(image_parts[0]))
+    image.save('cat_with_hat.png')
+    image.show()
+Entrada
+
+Saída
+
+Uma imagem fotorrealista de um gato ruivo fofo.
+Uma imagem fotorealista de um gato ruivo fofo...
+Usando a imagem fornecida do meu gato, adicione um pequeno chapéu de mago de tricô...
+Usando a imagem fornecida do meu gato, adicione um chapéu de mago pequeno e de tricô...
+2. Retoque (mascaramento semântico)
+Defina uma "máscara" por conversa para editar uma parte específica de uma imagem sem alterar o restante.
+
+Modelo
+Comando
+Python
+JavaScript
+Go
+REST
+
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
+
+client = genai.Client()
+
+# Base image prompt: "A wide shot of a modern, well-lit living room with a prominent blue sofa in the center. A coffee table is in front of it and a large window is in the background."
+living_room_image = Image.open('/path/to/your/living_room.png')
+text_input = """Using the provided image of a living room, change only the blue sofa to be a vintage, brown leather chesterfield sofa. Keep the rest of the room, including the pillows on the sofa and the lighting, unchanged."""
+
+# Generate an image from a text prompt
+response = client.models.generate_content(
+    model="gemini-2.5-flash-image-preview",
+    contents=[living_room_image, text_input],
+)
+
+image_parts = [
+    part.inline_data.data
+    for part in response.candidates[0].content.parts
+    if part.inline_data
+]
+
+if image_parts:
+    image = Image.open(BytesIO(image_parts[0]))
+    image.save('living_room_edited.png')
+    image.show()
+Entrada
+
+Saída
+
+Uma foto ampla de uma sala de estar moderna e bem iluminada...
+Uma foto ampla de uma sala de estar moderna e bem iluminada...
+Usando a imagem fornecida de uma sala de estar, mude apenas o sofá azul para um sofá vintage de couro marrom estilo Chesterfield...
+Usando a imagem fornecida de uma sala de estar, mude apenas o sofá azul para um sofá chesterfield vintage de couro marrom...
+3. Transferência de estilo
+Forneça uma imagem e peça para o modelo recriar o conteúdo dela em um estilo artístico diferente.
+
+Modelo
+Comando
+Python
+JavaScript
+Go
+REST
+
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
+
+client = genai.Client()
+
+# Base image prompt: "A photorealistic, high-resolution photograph of a busy city street in New York at night, with bright neon signs, yellow taxis, and tall skyscrapers."
+city_image = Image.open('/path/to/your/city.png')
+text_input = """Transform the provided photograph of a modern city street at night into the artistic style of Vincent van Gogh's 'Starry Night'. Preserve the original composition of buildings and cars, but render all elements with swirling, impasto brushstrokes and a dramatic palette of deep blues and bright yellows."""
+
+# Generate an image from a text prompt
+response = client.models.generate_content(
+    model="gemini-2.5-flash-image-preview",
+    contents=[city_image, text_input],
+)
+
+image_parts = [
+    part.inline_data.data
+    for part in response.candidates[0].content.parts
+    if part.inline_data
+]
+
+if image_parts:
+    image = Image.open(BytesIO(image_parts[0]))
+    image.save('city_style_transfer.png')
+    image.show()
+Entrada
+
+Saída
+
+Uma fotografia fotorrealista de alta resolução de uma rua movimentada...
+Uma fotografia fotorrealista de alta resolução de uma rua movimentada...
+Transforme a fotografia fornecida de uma rua moderna da cidade à noite...
+Transforme a fotografia fornecida de uma rua moderna da cidade à noite...
+4. Composição avançada: combinar várias imagens
+Forneça várias imagens como contexto para criar uma cena nova e composta. Isso é perfeito para simulações de produtos ou colagens criativas.
+
+Modelo
+Comando
+Python
+JavaScript
+Go
+REST
+
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
+
+client = genai.Client()
+
+# Base image prompts:
+# 1. Dress: "A professionally shot photo of a blue floral summer dress on a plain white background, ghost mannequin style."
+# 2. Model: "Full-body shot of a woman with her hair in a bun, smiling, standing against a neutral grey studio background."
+dress_image = Image.open('/path/to/your/dress.png')
+model_image = Image.open('/path/to/your/model.png')
+
+text_input = """Create a professional e-commerce fashion photo. Take the blue floral dress from the first image and let the woman from the second image wear it. Generate a realistic, full-body shot of the woman wearing the dress, with the lighting and shadows adjusted to match the outdoor environment."""
+
+# Generate an image from a text prompt
+response = client.models.generate_content(
+    model="gemini-2.5-flash-image-preview",
+    contents=[dress_image, model_image, text_input],
+)
+
+image_parts = [
+    part.inline_data.data
+    for part in response.candidates[0].content.parts
+    if part.inline_data
+]
+
+if image_parts:
+    image = Image.open(BytesIO(image_parts[0]))
+    image.save('fashion_ecommerce_shot.png')
+    image.show()
+Entrada 1
+
+Entrada 2
+
+Saída
+
+Uma foto profissional de um vestido de verão azul com estampa floral...
+Uma foto profissional de um vestido de verão azul com estampa floral...
+Foto de corpo inteiro de uma mulher com o cabelo preso em um coque...
+Foto de corpo inteiro de uma mulher com o cabelo preso em um coque...
+Crie uma foto profissional de moda para e-commerce...
+Crie uma foto profissional de moda para e-commerce...
+5. Preservação de detalhes de alta fidelidade
+Para garantir que detalhes importantes (como um rosto ou um logotipo) sejam preservados durante uma edição, descreva-os com muitos detalhes junto com sua solicitação de edição.
+
+Modelo
+Comando
+Python
+JavaScript
+Go
+REST
+
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
+
+client = genai.Client()
+
+# Base image prompts:
+# 1. Woman: "A professional headshot of a woman with brown hair and blue eyes, wearing a plain black t-shirt, against a neutral studio background."
+# 2. Logo: "A simple, modern logo with the letters 'G' and 'A' in a white circle."
+woman_image = Image.open('/path/to/your/woman.png')
+logo_image = Image.open('/path/to/your/logo.png')
+text_input = """Take the first image of the woman with brown hair, blue eyes, and a neutral expression. Add the logo from the second image onto her black t-shirt. Ensure the woman's face and features remain completely unchanged. The logo should look like it's naturally printed on the fabric, following the folds of the shirt."""
+
+# Generate an image from a text prompt
+response = client.models.generate_content(
+    model="gemini-2.5-flash-image-preview",
+    contents=[woman_image, logo_image, text_input],
+)
+
+image_parts = [
+    part.inline_data.data
+    for part in response.candidates[0].content.parts
+    if part.inline_data
+]
+
+if image_parts:
+    image = Image.open(BytesIO(image_parts[0]))
+    image.save('woman_with_logo.png')
+    image.show()
+Entrada 1
+
+Entrada 2
+
+Saída
+
+Uma foto profissional de uma mulher com cabelos castanhos e olhos azuis...
+Um retrato profissional de uma mulher com cabelo castanho e olhos azuis...
+Um logotipo simples e moderno com as letras &quot;G&quot; e &quot;A&quot;...
+Um logotipo simples e moderno com as letras "G" e "A"...
+Pegue a primeira imagem da mulher com cabelo castanho, olhos azuis e uma expressão neutra...
+Pegue a primeira imagem da mulher com cabelo castanho, olhos azuis e uma expressão neutra...
+Práticas recomendadas
+Para melhorar seus resultados, incorpore estas estratégias profissionais ao seu fluxo de trabalho.
+
+Seja hiperespecífico:quanto mais detalhes você fornecer, mais controle terá. Em vez de "armadura de fantasia", descreva: "armadura de placas élfica ornamentada, gravada com padrões de folhas de prata, com um colar alto e ombreiras em forma de asas de falcão".
+Forneça contexto e intenção:explique o propósito da imagem. A compreensão do contexto pelo modelo influencia o resultado final. Por exemplo, "Crie um logotipo para uma marca de cuidados com a pele sofisticada e minimalista" vai gerar resultados melhores do que apenas "Crie um logotipo".
+Itere e refine:não espere uma imagem perfeita na primeira tentativa. Use a natureza conversacional do modelo para fazer pequenas mudanças. Faça perguntas como: "Ótimo, mas você pode deixar a iluminação um pouco mais quente?" ou "Mantenha tudo igual, mas mude a expressão do personagem para algo mais sério".
+Use instruções detalhadas:para cenas complexas com muitos elementos, divida o comando em etapas. "Primeiro, crie um plano de fundo de uma floresta serena e enevoada ao amanhecer. Em seguida, em primeiro plano, adicione um altar de pedra antigo coberto de musgo. Por fim, coloque uma única espada brilhante em cima do altar."
+Use comandos negativos semânticos: em vez de dizer "sem carros", descreva a cena desejada de forma positiva: "uma rua vazia e deserta sem sinais de trânsito".
+Controle a câmera:use linguagem fotográfica e cinematográfica para controlar a composição. Termos como wide-angle shot, macro shot e low-angle perspective.
+Limitações
+Para ter o melhor desempenho, use os seguintes idiomas: EN, es-MX, ja-JP, zh-CN e hi-IN.
+A geração de imagens não aceita entradas de áudio ou vídeo.
+O modelo nem sempre segue o número exato de imagens que o usuário pediu explicitamente.
+O modelo funciona melhor com até três imagens como entrada.
+Ao gerar texto para uma imagem, o Gemini funciona melhor se você primeiro gerar o texto e depois pedir uma imagem com ele.
+No momento, não é possível fazer upload de imagens de crianças no EEE, na Suíça e no Reino Unido.
+Todas as imagens geradas incluem uma marca-d'água do SynthID.
+Quando usar o Imagen
+Além de usar os recursos integrados de geração de imagens do Gemini, você também pode acessar o Imagen, nosso modelo especializado de geração de imagens, pela API Gemini.
+
+Atributo	Imagen	Imagem nativa do Gemini
+Pontos fortes	O modelo de geração de imagens mais eficiente até o momento. Recomendado para imagens fotorrealistas, mais nitidez, ortografia e tipografia aprimoradas.	Recomendação padrão.
+Flexibilidade incomparável, compreensão contextual e edição simples e sem máscara. Capacidade única de edição conversacional multiturno.
+Disponibilidade	Disponibilidade geral	Prévia (uso em produção permitido)
+Latência	Baixa. Otimizado para desempenho quase em tempo real.	Alto. Mais computação é necessária para os recursos avançados.
+Custo	Econômico para tarefas especializadas. US$ 0,02/imagem a US $0,12/imagem	Preços baseados em token. US$ 30 por 1 milhão de tokens para saída de imagem (saída de imagem tokenizada a 1.290 tokens por imagem, até 1.024 x 1.024 pixels)
+Tarefas recomendadas	
+Qualidade da imagem, fotorrealismo, detalhes artísticos ou estilos específicos (por exemplo, impressionismo, anime) são as principais prioridades.
+Infundir branding, estilo ou gerar logotipos e designs de produtos.
+Gerar ortografia ou tipografia avançada.
+Geração de texto e imagens intercaladas para combinar texto e imagens de forma integrada.
+Combine elementos criativos de várias imagens com um único comando.
+Faça edições altamente específicas em imagens, modifique elementos individuais com comandos de linguagem simples e trabalhe de forma iterativa em uma imagem.
+Aplique um design ou uma textura específica de uma imagem a outra, preservando a forma e os detalhes do assunto original.
+O Imagen 4 é o modelo ideal para começar a gerar imagens com o Imagen. Escolha o Imagen 4 Ultra para casos de uso avançados ou quando você precisar da melhor qualidade de imagem (observe que só é possível gerar uma imagem por vez).
+
+A seguir
+Encontre mais exemplos e amostras de código no guia de receitas.
+Confira o guia do Veo para saber como gerar vídeos com a API Gemini.
+Para saber mais sobre os modelos do Gemini, consulte Modelos do Gemini.
