@@ -488,6 +488,19 @@ export default function ThreeDailyScratchCards() {
 
   const cards = (cardsData as any)?.cards || [];
 
+  // 🐛 DEBUG: Status dos cards
+  console.log('🎯 STATUS DOS CARDS:', {
+    totalCards: cards.length,
+    scratchedCards: cards.filter((c: DailyScratchCard) => c.isScratched).length,
+    lostCards: cards.filter((c: DailyScratchCard) => c.isScratched && !c.won).length,
+    funnyMessagesCount: Object.keys(funnyMessages).length,
+    funnyMessages: Object.keys(funnyMessages).map(id => ({
+      id,
+      message: funnyMessages[id]?.message,
+      emoji: funnyMessages[id]?.emoji
+    }))
+  });
+
   // 🎯 NOVO: Buscar frases para cards perdidos que já existem
   useEffect(() => {
     if (!cards.length) return;
@@ -498,23 +511,35 @@ export default function ThreeDailyScratchCards() {
         card.isScratched && !card.won && !funnyMessages[card.id]
       );
       
+      console.log('🔍 Cards que perderam e precisam de frase:', {
+        totalLostCards: cards.filter((c: DailyScratchCard) => c.isScratched && !c.won).length,
+        cardsNeedingMessages: cardsNeedingMessages.length,
+        details: cardsNeedingMessages.map(c => ({ id: c.id, cardNumber: c.cardNumber }))
+      });
+      
       if (cardsNeedingMessages.length === 0) {
         return;
       }
       
       // Buscar frases para todos os cards que precisam
       for (const card of cardsNeedingMessages) {
+        console.log(`📝 Buscando frase para card ${card.cardNumber}...`);
         try {
           const message = await fetchFunnyMessage();
-          setFunnyMessages(prev => ({
-            ...prev,
-            [card.id]: message
-          }));
+          console.log(`✅ Frase encontrada para card ${card.cardNumber}:`, message);
+          setFunnyMessages(prev => {
+            const updated = {
+              ...prev,
+              [card.id]: message
+            };
+            console.log('🎭 Frases atualizadas:', updated);
+            return updated;
+          });
           
           // Pequeno delay para evitar sobrecarga
           await new Promise(resolve => setTimeout(resolve, 100));
         } catch (error) {
-          console.error('Failed to fetch funny message for existing card:', error);
+          console.error(`❌ Erro ao buscar frase para card ${card.cardNumber}:`, error);
         }
       }
     };
