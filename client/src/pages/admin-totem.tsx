@@ -20,6 +20,15 @@ export default function AdminTotem() {
   const [activeTab, setActiveTab] = useState<'content' | 'settings'>('content');
   const [isCreating, setIsCreating] = useState(false);
 
+  // Buscar dados da loja atual
+  const { data: storeData } = useQuery({
+    queryKey: ['/api/stores/me'],
+    queryFn: async () => {
+      const response = await fetch('/api/stores/me');
+      return await response.json();
+    }
+  });
+
   // Buscar conteúdo atual do totem
   const { data: totemData, isLoading } = useQuery({
     queryKey: ['/api/totem/my-content'],
@@ -495,8 +504,20 @@ export default function AdminTotem() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => window.open(item.mediaUrl, '_blank')}
+                            onClick={() => {
+                              if (storeData?.id) {
+                                window.open(`/totem/${storeData.id}`, '_blank');
+                              } else {
+                                toast({
+                                  title: "Erro",
+                                  description: "ID da loja não encontrado",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                            disabled={!storeData?.id}
                             data-testid={`button-preview-${item.id}`}
+                            title="Visualizar totem completo"
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
