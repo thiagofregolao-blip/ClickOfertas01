@@ -3,6 +3,9 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { getUserId } from "./utils/auth";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 // Middleware para verificar autenticação (sessão manual ou Replit Auth)
 const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
@@ -2702,12 +2705,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Upload de imagem para totem
   app.post('/api/totem/upload', isAuthenticated, async (req: any, res) => {
-    const multer = require('multer');
-    const path = require('path');
-    const fs = require('fs');
-    
     // Configurar multer para salvar na pasta uploads/totem
-    const storage = multer.diskStorage({
+    const multerStorage = multer.diskStorage({
       destination: (req: any, file: any, cb: any) => {
         const uploadDir = path.join(process.cwd(), 'uploads', 'totem');
         // Criar diretório se não existir
@@ -2724,7 +2723,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     const upload = multer({
-      storage,
+      storage: multerStorage,
       limits: { fileSize: 10 * 1024 * 1024 }, // 10MB máximo
       fileFilter: (req: any, file: any, cb: any) => {
         // Aceitar apenas imagens e vídeos
