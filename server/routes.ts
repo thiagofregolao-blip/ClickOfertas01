@@ -2809,8 +2809,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (description && !price) bannerContent += `%0A${description}`;
       if (description && price) bannerContent += `%0A${description}`;
       
-      // Gerar URL de imagem usando serviço de placeholder customizado
-      const imageUrl = `https://via.placeholder.com/1920x1080/${bgColor}/${textColor}?text=${encodeURIComponent(bannerContent)}`;
+      // Usar serviço de placeholder mais confiável
+      const imageUrl = `https://placehold.co/1920x1080/${bgColor}/${textColor}/png?text=${encodeURIComponent(bannerContent)}&font=roboto`;
       
       console.log('✅ Banner gerado com sucesso (placeholder personalizado)');
 

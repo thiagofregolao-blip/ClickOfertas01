@@ -599,40 +599,49 @@ export default function AdminTotem() {
                             </Button>
                           </div>
 
+                          {/* Debug para ver se está chegando aqui */}
+                          {uploadMethod === 'ai' && console.log('AI method selected, mediaUrl:', newContent.mediaUrl)}
+                          
                           {newContent.mediaUrl && uploadMethod === 'ai' && (
                             <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                              <div className="flex items-start gap-4">
-                                <div className="flex-1">
+                              <div className="space-y-4">
+                                <div className="text-center">
                                   <p className="text-sm text-green-700 font-medium mb-2">✅ Banner gerado com sucesso!</p>
-                                  <p className="text-sm text-green-600 mb-3">Revise o banner ao lado e, se estiver satisfeito, clique em "Criar Conteúdo" para salvar no totem.</p>
+                                  <p className="text-sm text-green-600">Revise o banner abaixo e clique em "Criar Conteúdo" para salvar.</p>
+                                </div>
+                                
+                                {/* Preview da imagem centralizado */}
+                                <div className="flex justify-center">
+                                  <div className="border-2 border-green-300 rounded-lg overflow-hidden bg-white shadow-md">
+                                    <img 
+                                      src={newContent.mediaUrl} 
+                                      alt="Banner gerado" 
+                                      className="w-80 h-45 object-contain"
+                                      onError={(e) => {
+                                        console.error('Erro ao carregar imagem:', newContent.mediaUrl);
+                                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjE2MCIgeT0iOTAiIGZpbGw9IiM2QjcyODAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZHk9Ii4zZW0iPkVycm8gYW8gY2FycmVnYXIgaW1hZ2VtPC90ZXh0Pgo8L3N2Zz4K';
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                                
+                                <div className="text-center">
+                                  <p className="text-xs text-green-600 mb-3">Preview 16:9 (1920x1080px)</p>
                                   
-                                  <div className="space-y-2">
+                                  <div className="flex justify-center gap-2">
                                     <Button
                                       type="button"
                                       onClick={handleGenerateAI}
                                       disabled={generateAIBannerMutation.isPending}
                                       variant="outline"
                                       size="sm"
-                                      className="mr-2"
                                     >
                                       🔄 Gerar Novo Banner
                                     </Button>
-                                    <p className="text-xs text-green-600">
-                                      Não gostou? Altere as informações acima e gere um novo banner.
-                                    </p>
                                   </div>
-                                </div>
-                                
-                                <div className="flex-shrink-0">
-                                  <div className="border-2 border-green-300 rounded-lg overflow-hidden bg-white">
-                                    <img 
-                                      src={newContent.mediaUrl} 
-                                      alt="Banner gerado" 
-                                      className="w-64 h-36 object-cover"
-                                    />
-                                  </div>
-                                  <p className="text-xs text-center text-green-600 mt-1">
-                                    Preview 16:9 (1920x1080px)
+                                  
+                                  <p className="text-xs text-green-600 mt-2">
+                                    Não gostou? Altere as informações acima e gere um novo.
                                   </p>
                                 </div>
                               </div>
