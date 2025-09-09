@@ -10,8 +10,8 @@ export async function generateImage(
     baseImage?: string
 ): Promise<void> {
     try {
-        // Usar modelo correto para geração de imagem (do blueprint)
-        const model = "gemini-2.0-flash-preview-image-generation";
+        // Usar modelo correto e mais recente para geração de imagem
+        const model = "gemini-2.5-flash-image-preview";
         
         // Construir conteúdo baseado se é edição ou geração nova
         let contents: any[];
