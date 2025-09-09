@@ -275,11 +275,23 @@ export default function TotemDisplay() {
                 aspectRatio: (img.naturalWidth / img.naturalHeight).toFixed(2)
               });
 
-              // Para imagens verticais em TV horizontal, aplicar rotação
+              // Para imagens verticais em TV horizontal, aplicar rotação e escala adequada
               if (isVertical) {
                 console.log('🔄 Aplicando rotação para imagem vertical');
-                img.style.transform = 'rotate(90deg) scale(0.8)';
+                // Calcular escala necessária para preencher a tela
+                const aspectRatio = img.naturalWidth / img.naturalHeight;
+                const screenAspectRatio = 16 / 9; // TV 16:9
+                // Após rotação de 90°, precisamos escalar para preencher
+                const scale = Math.max(1, screenAspectRatio / aspectRatio);
+                
+                img.style.transform = `rotate(90deg) scale(${scale.toFixed(2)})`;
                 img.style.transformOrigin = 'center center';
+                
+                console.log('📐 Escala aplicada:', { 
+                  aspectRatio: aspectRatio.toFixed(2),
+                  screenAspectRatio: screenAspectRatio.toFixed(2),
+                  scale: scale.toFixed(2)
+                });
               }
             }}
             onError={(e) => {
@@ -312,11 +324,23 @@ export default function TotemDisplay() {
                 aspectRatio: (video.videoWidth / video.videoHeight).toFixed(2)
               });
 
-              // Para vídeos verticais em TV horizontal, aplicar rotação
+              // Para vídeos verticais em TV horizontal, aplicar rotação e escala adequada
               if (isVertical) {
                 console.log('🔄 Aplicando rotação para vídeo vertical');
-                video.style.transform = 'rotate(90deg) scale(0.8)';
+                // Calcular escala necessária para preencher a tela
+                const aspectRatio = video.videoWidth / video.videoHeight;
+                const screenAspectRatio = 16 / 9; // TV 16:9
+                // Após rotação de 90°, precisamos escalar para preencher
+                const scale = Math.max(1, screenAspectRatio / aspectRatio);
+                
+                video.style.transform = `rotate(90deg) scale(${scale.toFixed(2)})`;
                 video.style.transformOrigin = 'center center';
+                
+                console.log('📐 Escala aplicada no vídeo:', { 
+                  aspectRatio: aspectRatio.toFixed(2),
+                  screenAspectRatio: screenAspectRatio.toFixed(2),
+                  scale: scale.toFixed(2)
+                });
               }
             }}
             onError={(e) => {
