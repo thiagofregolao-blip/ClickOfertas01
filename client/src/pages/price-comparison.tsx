@@ -177,6 +177,16 @@ export default function PriceComparison() {
       <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[calc(100vh-200px)]">
           
+          {/* Mobile: título da seção no topo */}
+          <div className="lg:hidden col-span-1 mb-4">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Comparação de Preços
+            </h1>
+            <p className="text-gray-600">
+              Compare preços entre Paraguay e Brasil
+            </p>
+          </div>
+          
           {/* Left Side - Price Comparison Form */}
           <div className="space-y-6">
         {/* Search Section */}
@@ -499,7 +509,7 @@ export default function PriceComparison() {
           </div>
           
           {/* Right Side - Related Products */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:sticky lg:top-6 lg:h-fit">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -519,7 +529,7 @@ export default function PriceComparison() {
                     }
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
                     {relatedProducts.map((product) => (
                       <ProductCard
                         key={`${product.store.id}-${product.id}`}
