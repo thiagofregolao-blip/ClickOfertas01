@@ -60,7 +60,7 @@ export async function generateImage(
             config: {
                 // Forçar apenas imagem (evitar retorno só de texto)
                 responseModalities: [Modality.IMAGE],
-                generationConfig: { responseMimeType: "image/png" }
+                responseMimeType: "image/png"
             }
         });
 
@@ -154,6 +154,73 @@ Respond with JSON in this format:
         }
     } catch (error) {
         throw new Error(`Failed to analyze sentiment: ${error}`);
+    }
+}
+
+export interface TrendingProduct {
+    productName: string;
+    category: string;
+    price: number;
+    totalScore: number;
+    searchCount: number;
+    viewCount: number;
+}
+
+/**
+ * Gera arte promocional automaticamente baseada nos produtos em tendência
+ * Usa Gemini 2.5 Flash para criar banners atrativos para totems
+ */
+export async function generatePromotionalArt(
+    trendingProducts: TrendingProduct[],
+    outputPath: string
+): Promise<void> {
+    try {
+        console.log('🎨 Gerando arte promocional baseada em produtos em tendência...');
+        
+        // Criar prompt inteligente baseado nos produtos
+        const productsSummary = trendingProducts.map((p, index) => 
+            `${index + 1}. ${p.productName} (${p.category}) - $${p.price} - ${p.searchCount} buscas, ${p.viewCount} visualizações`
+        ).join('\n');
+        
+        const categories = Array.from(new Set(trendingProducts.map(p => p.category)));
+        const avgPrice = Math.round(trendingProducts.reduce((sum, p) => sum + p.price, 0) / trendingProducts.length);
+        
+        const prompt = `Crie um banner promocional vibrante e atrativo para um totem digital de loja, com o tema "PRODUTOS EM ALTA" ou "TENDÊNCIAS DA SEMANA".
+
+PRODUTOS EM DESTAQUE:
+${productsSummary}
+
+DIRETRIZES DO DESIGN:
+- Estilo moderno, colorido e eye-catching para chamar atenção em shopping centers
+- Dimensões 16:9 apropriadas para telas de totem (1920x1080)
+- Cores vibrantes: gradientes em azul, roxo, laranja ou verde
+- Texto em português brasileiro, fonte bold e legível
+- Layout clean com hierarquia visual clara
+- Elementos gráficos modernos: ícones, formas geométricas, linhas
+
+ELEMENTOS OBRIGATÓRIOS:
+- Título principal: "PRODUTOS EM ALTA" ou "TENDÊNCIAS DA SEMANA"
+- Destaque para as categorias: ${categories.join(', ')}
+- Indicação de preço médio: "A partir de $${avgPrice}"
+- Call-to-action: "CONFIRA AGORA!" ou "PROMOÇÕES LIMITADAS"
+- Logo ou marca "Click Ofertas Paraguai" discretamente posicionado
+
+ESTILO VISUAL:
+- Background: gradiente moderno ou padrão geométrico sutil
+- Tipografia: Sans-serif moderna, contrastes claros
+- Ícones: relacionados às categorias dos produtos
+- Elementos decorativos: formas abstratas, linhas dinâmicas
+- Paleta: cores energéticas que transmitam urgência e oportunidade
+
+O banner deve ser profissional mas impactante, adequado para ambiente de varejo e capaz de atrair clientes de longe.`;
+
+        await generateImage(prompt, outputPath);
+        
+        console.log(`✅ Arte promocional gerada: ${outputPath}`);
+        
+    } catch (error) {
+        console.error('❌ Erro ao gerar arte promocional:', error);
+        throw new Error(`Failed to generate promotional art: ${error}`);
     }
 }
 

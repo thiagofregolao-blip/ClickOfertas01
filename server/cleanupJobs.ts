@@ -1,4 +1,5 @@
 import { storage } from './storage';
+import { generatePromotionalArt, type TrendingProduct } from '../gemini';
 
 /**
  * Job que executa a limpeza automática de stories expirados
@@ -92,6 +93,55 @@ export async function generateTrendingProducts() {
     trending.forEach((product, index) => {
       console.log(`${index + 1}. ${product.productName} (${product.category}) - Score: ${product.totalScore}`);
     });
+    
+    // Gerar arte promocional automaticamente se houver produtos em tendência
+    if (trending.length > 0) {
+      try {
+        console.log('🎨 Iniciando geração automática de arte promocional...');
+        
+        // Criar diretório para as artes se não existir
+        const fs = await import('fs');
+        const path = await import('path');
+        const artsDir = path.resolve(process.cwd(), 'attached_assets/generated_arts');
+        if (!fs.existsSync(artsDir)) {
+          fs.mkdirSync(artsDir, { recursive: true });
+        }
+        
+        // Gerar nome do arquivo com timestamp
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+        const filename = `trending_promo_${timestamp}.png`;
+        const artPath = path.join(artsDir, filename);
+        
+        // Converter dados para o formato esperado pela função de arte
+        const trendingForArt: TrendingProduct[] = trending.map(t => ({
+          productName: t.productName,
+          category: t.category,
+          price: t.price || 0,
+          totalScore: t.totalScore,
+          searchCount: t.searchCount || 0,
+          viewCount: t.viewCount || 0
+        }));
+        
+        // Gerar a arte promocional
+        await generatePromotionalArt(trendingForArt, artPath);
+        
+        // Salvar metadados da arte gerada no banco
+        await storage.createGeneratedTotemArt({
+          storeId: 'global-trends', // ID especial para artes globais baseadas em tendências
+          generationDate: new Date(),
+          trendingProductsData: trending, // JSON com dados completos dos produtos
+          imageUrl: `attached_assets/generated_arts/${filename}`,
+          imagePrompt: `Banner promocional com produtos em tendência: ${trending.map(t => t.productName).join(', ')}`,
+          isActive: true
+        });
+        
+        console.log(`✅ Arte promocional gerada e salva: ${filename}`);
+        
+      } catch (artError) {
+        console.error('❌ Erro ao gerar arte promocional:', artError);
+        // Não interromper o job por erro na arte, apenas log
+      }
+    }
     
     return trending;
   } catch (error) {
