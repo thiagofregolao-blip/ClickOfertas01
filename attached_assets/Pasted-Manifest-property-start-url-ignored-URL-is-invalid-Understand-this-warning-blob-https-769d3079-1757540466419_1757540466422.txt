@@ -1,0 +1,2020 @@
+Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/dca41612-a47c-479b-bcce-8e07f5e76f76:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+simulator.js:7 An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.
+Go @ simulator.js:7Understand this warning
+cards:1 An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.Understand this warning
+82VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+63VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+57VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+12VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+10VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+9VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+2VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+8VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+2VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+9VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+2VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+2VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+2VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+8VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+2VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+8VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+8VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+9VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+8VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+8VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+8VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+9VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+9VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+9VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+9VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+29VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+55VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+9VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+6VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+9VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+152VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+2VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+8VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+6VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+6VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+6VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+6VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+6VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+6VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+6VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+22VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)Understand this error
+88VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+2VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+9VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+2VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+9VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+11VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+2VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+9VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+8VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+8VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+10VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+11VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+11VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+8VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+154VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+10VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+3VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+10VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+10VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+9VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+4VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+6VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+2VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+7VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+2VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+5VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+6VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+2VM492:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'nodeName')
+    at e (<anonymous>:1:58)
+    at Element.append (<anonymous>:1:317)
+    at h (client:235:8)
+    at createTemplate (client:391:7)
+    at new ErrorOverlay (client:423:27)
+    at createErrorOverlay (client:724:29)
+    at handleMessage (client:700:11)
+    at WebSocket.<anonymous> (client:550:5)
+e @ VM492:1
+Element.append @ VM492:1
+h @ client:235
+createTemplate @ client:391
+ErrorOverlay @ client:423
+createErrorOverlay @ client:724
+handleMessage @ client:700
+(anonymous) @ client:550Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}

@@ -145,7 +145,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
         {banners.map((banner, index) => (
           <div
             key={banner.id}
-            className="min-w-full h-full shrink-0 snap-start snap-always cursor-pointer"
+            className="min-w-full h-full shrink-0 snap-start cursor-pointer"
             style={{ backgroundColor: banner.backgroundColor }}
             onClick={() => handleBannerClick(banner)}
             data-testid={`banner-carousel-${banner.id}`}
