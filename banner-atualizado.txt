@@ -1,0 +1,195 @@
+=== CÓDIGO ATUALIZADO DOS BANNERS ===
+
+=== MUDANÇAS APLICADAS ===
+
+1. ✅ IMAGEM CENTRALIZADA (BannerCarousel.tsx linha 99):
+   ANTES: object-cover object-[85%_50%] md:object-contain md:object-center
+   AGORA: object-cover object-center md:object-contain md:object-center
+
+2. ✅ CONTAINER CENTRALIZADO (BannerCarousel.tsx linha 80):
+   ANTES: w-full aspect-[3/1] md:aspect-auto
+   AGORA: w-full mx-auto aspect-[3/1] md:aspect-auto
+
+3. ✅ PADDING LATERAL MOBILE (BannerSection.tsx linha 107-109):
+   ANTES: <BannerCarousel banners={rotatingBanners} />
+   AGORA: <div className="px-4"><BannerCarousel banners={rotatingBanners} /></div>
+
+=== BannerCarousel.tsx - CÓDIGO COMPLETO ATUALIZADO ===
+
+import { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+interface Banner {
+  id: string;
+  title: string;
+  description?: string;
+  imageUrl: string;
+  linkUrl?: string;
+  backgroundColor: string;
+  textColor: string;
+}
+
+interface BannerCarouselProps {
+  banners: Banner[];
+  autoPlayInterval?: number;
+}
+
+export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarouselProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+  // Auto-play functionality
+  useEffect(() => {
+    if (!isAutoPlaying || banners.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length);
+    }, autoPlayInterval);
+
+    return () => clearInterval(interval);
+  }, [banners.length, autoPlayInterval, isAutoPlaying]);
+
+  const goToPrevious = () => {
+    setIsAutoPlaying(false);
+    setCurrentIndex((prevIndex) => 
+      prevIndex === 0 ? banners.length - 1 : prevIndex - 1
+    );
+  };
+
+  const goToNext = () => {
+    setIsAutoPlaying(false);
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length);
+  };
+
+  const goToSlide = (index: number) => {
+    setIsAutoPlaying(false);
+    setCurrentIndex(index);
+  };
+
+  if (!banners || banners.length === 0) {
+    return null;
+  }
+
+  const currentBanner = banners[currentIndex];
+
+  const handleBannerClick = async (banner: Banner) => {
+    // Registrar clique no banner
+    try {
+      await fetch('/api/banners/click', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bannerId: banner.id,
+        }),
+      });
+    } catch (error) {
+      console.error('Erro ao registrar clique:', error);
+    }
+
+    // Abrir link se existir
+    if (banner.linkUrl) {
+      window.open(banner.linkUrl, '_blank');
+    }
+  };
+
+  return (
+    {/* 🔥 MUDANÇA 2: Adicionado mx-auto para centralizar */}
+    <div className="relative w-full mx-auto aspect-[3/1] md:aspect-auto md:w-[790px] md:h-[230px] overflow-hidden shadow-lg group md:rounded-lg">
+      {/* Container dos banners com efeito slide */}
+      <div 
+        className="flex transition-transform duration-500 ease-in-out h-full"
+        style={{
+          transform: `translateX(-${currentIndex * 100}%)`,
+        }}
+      >
+        {banners.map((banner, index) => (
+          <div
+            key={banner.id}
+            className="w-full h-full cursor-pointer flex-shrink-0"
+            style={{ backgroundColor: banner.backgroundColor }}
+            onClick={() => handleBannerClick(banner)}
+            data-testid={`banner-carousel-${banner.id}`}
+          >
+            {/* 🔥 MUDANÇA 1: object-center ao invés de object-[85%_50%] */}
+            <img
+              src={banner.imageUrl}
+              alt={banner.title}
+              className="w-full h-full block select-none object-cover object-center md:object-contain md:object-center"
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Controles de navegação - aparecem no hover */}
+      {banners.length > 1 && (
+        <>
+          {/* Botão anterior */}
+          <button
+            onClick={goToPrevious}
+            className="absolute left-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black bg-opacity-50 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-opacity-70"
+            data-testid="banner-prev-button"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+
+          {/* Botão próximo */}
+          <button
+            onClick={goToNext}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black bg-opacity-50 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-opacity-70"
+            data-testid="banner-next-button"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </>
+      )}
+
+      {/* Indicadores de pontos */}
+      {banners.length > 1 && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-2">
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                index === currentIndex
+                  ? 'bg-white scale-110'
+                  : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+              }`}
+              data-testid={`banner-indicator-${index}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+=== BannerSection.tsx - SEÇÃO MOBILE ATUALIZADA ===
+
+{/* Layout mobile: banner de tela cheia com padding lateral */}
+<div className="md:hidden">
+  {/* Banner rotativo - ocultar quando busca ativa */}
+  {!isSearchActive && rotatingBanners.length > 0 && (
+    {/* 🔥 MUDANÇA 3: Envolto com px-4 para alinhar com o grid */}
+    <div className="px-4">
+      <BannerCarousel banners={rotatingBanners} />
+    </div>
+  )}
+
+  {/* Rapadinhas diárias em mobile para usuários autenticados - ocultar quando busca ativa */}
+  {!isSearchActive && isAuthenticated && (
+    <div className="px-4 mt-4">
+      <ThreeDailyScratchCards />
+    </div>
+  )}
+</div>
+
+=== RESULTADO ESPERADO ===
+
+Agora o banner deve estar:
+✅ Centralizado no mobile (object-center)
+✅ Alinhado com o resto da página (px-4)
+✅ Centralizado no container (mx-auto)
+✅ Mantendo comportamento correto no desktop
