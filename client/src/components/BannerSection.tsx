@@ -83,7 +83,7 @@ export function BannerSection({ isSearchActive = false }: BannerSectionProps) {
   }
 
   return (
-    <div className="w-full px-4 mb-6 md:mt-8" data-testid="banner-section">
+    <div className="w-full mb-6 mt-4 md:mt-8 md:px-4" data-testid="banner-section">
       <div className="max-w-6xl mx-auto">
         {/* Layout desktop: carousel + banners estáticos lado a lado */}
         <div className="hidden md:flex gap-[5px]">
@@ -101,7 +101,7 @@ export function BannerSection({ isSearchActive = false }: BannerSectionProps) {
         </div>
 
         {/* Layout mobile: banner de tela cheia sem bordas laterais */}
-        <div className="md:hidden px-4">
+        <div className="md:hidden">
           {/* Banner rotativo - ocultar quando busca ativa */}
           {!isSearchActive && rotatingBanners.length > 0 && (
             <BannerCarousel banners={rotatingBanners} />
