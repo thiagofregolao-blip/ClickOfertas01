@@ -2556,17 +2556,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/totem/:storeId/content', async (req, res) => {
     try {
       const { storeId } = req.params;
-      const content = await storage.getTotemContent(storeId);
+      
+      // Buscar conteúdo regular da loja
+      const storeContent = await storage.getTotemContent(storeId);
       
       // Filtrar apenas conteúdo ativo e dentro do horário agendado
       const now = new Date();
-      const activeContent = content.filter(item => 
+      const activeStoreContent = storeContent.filter(item => 
         item.isActive && 
         (!item.scheduleStart || item.scheduleStart <= now) &&
         (!item.scheduleEnd || item.scheduleEnd >= now)
       );
       
-      res.json({ success: true, content: activeContent });
+      // Buscar artes geradas automaticamente (ativas dos últimos 7 dias)
+      let activeGeneratedArts = [];
+      try {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        
+        const generatedArts = await storage.getGeneratedTotemArts('global-trends');
+        activeGeneratedArts = generatedArts.filter(art => {
+          if (!art.isActive) return false;
+          
+          // Verificar se a data é válida antes de comparar
+          const genDate = new Date(art.generationDate);
+          return !isNaN(genDate.getTime()) && genDate >= sevenDaysAgo;
+        });
+      } catch (error) {
+        console.warn('⚠️ Erro ao buscar artes geradas para totem, usando apenas conteúdo da loja:', error);
+        activeGeneratedArts = []; // Continuar sem artes geradas
+      }
+      
+      // Converter artes geradas para formato de conteúdo do totem
+      const generatedContentItems = activeGeneratedArts.map(art => {
+        // Normalizar URL da imagem
+        let mediaUrl = art.imageUrl;
+        if (!mediaUrl.startsWith('http') && !mediaUrl.startsWith('/')) {
+          mediaUrl = `/${art.imageUrl}`;
+        }
+        
+        return {
+          id: `generated-${art.id}`,
+          storeId: storeId, // Usar storeId atual para compatibilidade
+          title: 'Produtos em Tendência',
+          description: `Arte promocional gerada automaticamente com base nos produtos mais buscados`,
+          mediaUrl: mediaUrl,
+          mediaType: 'image' as const,
+          displayDuration: '15', // 15 segundos para artes promocionais
+          isActive: true,
+          sortOrder: '999', // Exibir por último na rotação
+          scheduleStart: null,
+          scheduleEnd: null,
+          createdAt: art.generationDate, // Usar generationDate consistentemente
+          updatedAt: art.generationDate
+        };
+      });
+      
+      // Combinar conteúdo da loja com artes geradas
+      const allContent = [...activeStoreContent, ...generatedContentItems];
+      
+      // Ordenar por sortOrder e depois por data de criação
+      allContent.sort((a, b) => {
+        // Parsing seguro de sortOrder
+        const orderA = Number.isFinite(Number(a.sortOrder)) ? Number(a.sortOrder) : 0;
+        const orderB = Number.isFinite(Number(b.sortOrder)) ? Number(b.sortOrder) : 0;
+        if (orderA !== orderB) return orderA - orderB;
+        
+        // Parsing seguro de datas
+        const timeA = a.createdAt ? Date.parse(a.createdAt) : 0;
+        const timeB = b.createdAt ? Date.parse(b.createdAt) : 0;
+        const dateA = Number.isFinite(timeA) ? timeA : 0;
+        const dateB = Number.isFinite(timeB) ? timeB : 0;
+        return dateB - dateA;
+      });
+      
+      console.log(`📺 Totem ${storeId}: ${activeStoreContent.length} conteúdo da loja + ${generatedContentItems.length} artes geradas = ${allContent.length} total`);
+      
+      res.json({ success: true, content: allContent });
     } catch (error) {
       console.error('Error fetching totem content:', error);
       res.status(500).json({ message: 'Failed to fetch totem content' });
