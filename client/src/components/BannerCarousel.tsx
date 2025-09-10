@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 
 interface Banner {
   id: string;
@@ -19,40 +18,56 @@ interface BannerCarouselProps {
 export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-play functionality
+  // Auto-play functionality com scroll nativo
   useEffect(() => {
-    if (!isAutoPlaying || banners.length <= 1) return;
+    if (!isAutoPlaying || banners.length <= 1 || !containerRef.current) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length);
+      const container = containerRef.current;
+      if (!container) return;
+
+      const nextIndex = (currentIndex + 1) % banners.length;
+      const scrollLeft = nextIndex * container.clientWidth;
+      
+      container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+      setCurrentIndex(nextIndex);
     }, autoPlayInterval);
 
     return () => clearInterval(interval);
-  }, [banners.length, autoPlayInterval, isAutoPlaying]);
+  }, [banners.length, autoPlayInterval, isAutoPlaying, currentIndex]);
 
-  const goToPrevious = () => {
-    setIsAutoPlaying(false);
-    setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? banners.length - 1 : prevIndex - 1
-    );
-  };
-
-  const goToNext = () => {
-    setIsAutoPlaying(false);
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length);
+  // Detectar scroll para atualizar indicador
+  const handleScroll = () => {
+    if (!containerRef.current) return;
+    
+    const container = containerRef.current;
+    const scrollLeft = container.scrollLeft;
+    const slideWidth = container.clientWidth;
+    const newIndex = Math.round(scrollLeft / slideWidth);
+    
+    if (newIndex !== currentIndex) {
+      setCurrentIndex(newIndex);
+    }
   };
 
   const goToSlide = (index: number) => {
+    if (!containerRef.current) return;
+    
     setIsAutoPlaying(false);
+    const container = containerRef.current;
+    const scrollLeft = index * container.clientWidth;
+    container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
     setCurrentIndex(index);
+    
+    // Reativar autoplay após 3 segundos
+    setTimeout(() => setIsAutoPlaying(true), 3000);
   };
 
   if (!banners || banners.length === 0) {
     return null;
   }
-
-  const currentBanner = banners[currentIndex];
 
   const handleBannerClick = async (banner: Banner) => {
     // Registrar clique no banner
@@ -77,18 +92,24 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
   };
 
   return (
-    <div className="relative w-full mx-auto aspect-[3/1] md:aspect-auto md:w-[790px] md:h-[230px] overflow-hidden shadow-lg group md:rounded-lg">
-      {/* Container dos banners com efeito slide */}
+    <div className="relative w-full aspect-[3/1] md:aspect-auto md:w-[790px] md:h-[230px] shadow-lg group md:rounded-lg overflow-hidden">
+      {/* Container com scroll snap */}
       <div 
-        className="flex transition-transform duration-500 ease-in-out h-full will-change-transform"
-        style={{
-          transform: `translateX(-${currentIndex * 100}%)`,
+        ref={containerRef}
+        className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth h-full scrollbar-none overscroll-x-contain"
+        style={{ 
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
         }}
+        onScroll={handleScroll}
+        onTouchStart={() => setIsAutoPlaying(false)}
+        onMouseDown={() => setIsAutoPlaying(false)}
       >
         {banners.map((banner, index) => (
           <div
             key={banner.id}
-            className="basis-full h-full cursor-pointer shrink-0"
+            className="min-w-full h-full shrink-0 snap-start cursor-pointer"
             style={{ backgroundColor: banner.backgroundColor }}
             onClick={() => handleBannerClick(banner)}
             data-testid={`banner-carousel-${banner.id}`}
@@ -97,33 +118,11 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
               src={banner.imageUrl}
               alt={banner.title}
               className="w-full h-full block select-none object-cover object-center md:object-contain md:object-center"
+              draggable={false}
             />
           </div>
         ))}
       </div>
-
-      {/* Controles de navegação - aparecem no hover */}
-      {banners.length > 1 && (
-        <>
-          {/* Botão anterior */}
-          <button
-            onClick={goToPrevious}
-            className="absolute left-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black bg-opacity-50 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-opacity-70"
-            data-testid="banner-prev-button"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-
-          {/* Botão próximo */}
-          <button
-            onClick={goToNext}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black bg-opacity-50 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-opacity-70"
-            data-testid="banner-next-button"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </>
-      )}
 
       {/* Indicadores de pontos */}
       {banners.length > 1 && (
