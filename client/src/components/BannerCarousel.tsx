@@ -1,23 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Hook para detectar mobile
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-  
-  return isMobile;
-};
-
 interface Banner {
   id: string;
   title: string;
@@ -36,7 +19,6 @@ interface BannerCarouselProps {
 export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const isMobile = useIsMobile();
 
   // Auto-play functionality
   useEffect(() => {
@@ -107,17 +89,15 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
           <div
             key={banner.id}
             className="w-full h-full cursor-pointer flex-shrink-0"
-            style={{
-              backgroundColor: banner.backgroundColor,
-              backgroundImage: `url(${banner.imageUrl})`,
-              backgroundSize: isMobile ? 'cover' : 'contain',
-              backgroundPosition: isMobile ? '85% center' : 'center center',
-              backgroundRepeat: 'no-repeat',
-            }}
+            style={{ backgroundColor: banner.backgroundColor }}
             onClick={() => handleBannerClick(banner)}
             data-testid={`banner-carousel-${banner.id}`}
           >
-            
+            <img
+              src={banner.imageUrl}
+              alt={banner.title}
+              className="w-full h-full block select-none object-cover object-[85%_50%] md:object-contain md:object-center"
+            />
           </div>
         ))}
       </div>
