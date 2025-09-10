@@ -14,7 +14,6 @@ import ScratchCard from "@/components/scratch-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import FlyerHeader from "@/components/flyer-header";
 import FlyerFooter from "@/components/flyer-footer";
-import PriceComparisonPopup from "@/components/price-comparison-popup";
 import { downloadFlyerAsPNG } from "@/lib/flyer-utils";
 import type { StoreWithProducts, Product, PromotionWithDetails } from "@shared/schema";
 import { InstagramStories } from "@/components/instagram-stories";
@@ -90,9 +89,6 @@ export default function PublicFlyer() {
   const [selectedStore, setSelectedStore] = useState<StoreWithProducts | null>(null);
   const [viewingStory, setViewingStory] = useState<InstagramStory | null>(null);
   const [likedStories, setLikedStories] = useState<Set<string>>(new Set());
-  const [showPriceComparison, setShowPriceComparison] = useState(false);
-  const [comparisonProductId, setComparisonProductId] = useState<string>("");
-  const [comparisonProductName, setComparisonProductName] = useState<string>("");
   const { isAuthenticated } = useAuth();
 
   // Log da versão e modo de acesso (para desenvolvimento)
@@ -403,7 +399,7 @@ export default function PublicFlyer() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Global Header */}
-      <GlobalHeader showPriceComparison={true} />
+      <GlobalHeader showPriceComparison={false} />
       
       {/* Spacer for fixed header */}
       <div className="h-16"></div>
@@ -889,18 +885,7 @@ export default function PublicFlyer() {
                               <Bookmark className={`w-5 h-5 sm:w-4 sm:h-4 ${isAuthenticated && isProductSaved(product.id) ? 'text-blue-600 fill-blue-600' : ''}`} />
                               <span className="text-xs sm:text-xs">Salvar</span>
                             </button>
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setComparisonProductId(product.id);
-                                setComparisonProductName(product.name);
-                                setShowPriceComparison(true);
-                              }}
-                              className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors"
-                            >
-                              <BarChart3 className="w-5 h-5 sm:w-4 sm:h-4" />
-                              <span className="text-xs sm:text-xs">Comparar</span>
-                            </button>
+
                           </div>
                         </div>
                       </div>
@@ -1023,10 +1008,6 @@ export default function PublicFlyer() {
                                 <Bookmark className="w-3 h-3" />
                                 <span>Salvar</span>
                               </button>
-                              <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors">
-                                <BarChart3 className="w-3 h-3" />
-                                <span>Comparar</span>
-                              </button>
                             </div>
                           </div>
                         </div>
@@ -1109,18 +1090,7 @@ export default function PublicFlyer() {
                               <Bookmark className={`w-5 h-5 sm:w-4 sm:h-4 ${isAuthenticated && isProductSaved(product.id) ? 'text-blue-600 fill-blue-600' : ''}`} />
                               <span className="text-xs sm:text-xs">Salvar</span>
                             </button>
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setComparisonProductId(product.id);
-                                setComparisonProductName(product.name);
-                                setShowPriceComparison(true);
-                              }}
-                              className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors"
-                            >
-                              <BarChart3 className="w-5 h-5 sm:w-4 sm:h-4" />
-                              <span className="text-xs sm:text-xs">Comparar</span>
-                            </button>
+
                           </div>
                         </div>
                       </div>
@@ -1357,13 +1327,6 @@ export default function PublicFlyer() {
         </DialogContent>
       </Dialog>
 
-      {/* Popup de Comparação de Preços */}
-      <PriceComparisonPopup
-        isOpen={showPriceComparison}
-        onClose={() => setShowPriceComparison(false)}
-        productId={comparisonProductId}
-        productName={comparisonProductName}
-      />
       
       {/* Menu do Rodapé Mobile */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
