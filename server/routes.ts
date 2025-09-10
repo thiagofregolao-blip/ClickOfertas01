@@ -4045,6 +4045,76 @@ Keep the overall composition and maintain the same visual quality. This is for a
     }
   });
 
+  // ========================================== 
+  // NOVAS ROTAS DE ANALYTICS EXPANDIDO
+  // ==========================================
+
+  // Buscar produtos em tendência globalmente (acessível para lojistas)
+  app.get('/api/analytics/global-trending', isAuthenticated, async (req: any, res) => {
+    try {
+      const { days = '7' } = req.query;
+      const trending = await storage.getTrendingProducts(parseInt(days as string));
+      
+      // Mapear para o formato esperado pelo frontend
+      const formattedTrending = trending.map(item => ({
+        productId: item.productId,
+        productName: item.productName,
+        searchCount: item.searchCount || 0,
+        viewCount: item.viewCount || 0,
+        category: item.category || 'Categoria não informada',
+        imageUrl: item.imageUrl,
+        storeId: item.storeId,
+        storeName: item.storeName || 'Loja não informada'
+      }));
+      
+      res.json(formattedTrending.slice(0, 10)); // Top 10
+    } catch (error) {
+      console.error('Error getting global trending products:', error);
+      res.status(500).json({ success: false, message: 'Erro ao buscar produtos em tendência' });
+    }
+  });
+
+  // Buscar artes geradas automaticamente
+  app.get('/api/analytics/generated-arts', isAuthenticated, async (req: any, res) => {
+    try {
+      const artes = await storage.getGeneratedTotemArts('global-trends');
+      
+      // Mapear para o formato esperado pelo frontend
+      const formattedArts = artes.map(art => ({
+        id: art.id,
+        imageUrl: art.imageUrl,
+        prompt: art.prompt || 'Prompt não disponível',
+        isActive: art.isActive,
+        generationDate: art.generationDate,
+        trendingProducts: art.trendingProducts || [],
+        tag: art.tag || 'global-trends'
+      }));
+      
+      res.json(formattedArts);
+    } catch (error) {
+      console.error('Error getting generated arts:', error);
+      res.status(500).json({ success: false, message: 'Erro ao buscar artes geradas' });
+    }
+  });
+
+  // Ativar/desativar arte gerada
+  app.patch('/api/totem/generated-arts/:artId/toggle', isAuthenticated, async (req: any, res) => {
+    try {
+      const { artId } = req.params;
+      const { isActive } = req.body;
+      
+      await storage.updateGeneratedTotemArt(artId, { isActive });
+      
+      res.json({ 
+        success: true, 
+        message: isActive ? 'Arte ativada com sucesso' : 'Arte desativada com sucesso' 
+      });
+    } catch (error) {
+      console.error('Error toggling generated art:', error);
+      res.status(500).json({ success: false, message: 'Erro ao atualizar status da arte' });
+    }
+  });
+
   // ==========================================
   // SISTEMA DE ANALYTICS (METADADOS ANÔNIMOS)
   // ==========================================

@@ -41,7 +41,7 @@ function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
     queryKey: ['/api/maintenance/status'],
     refetchInterval: 30000, // Verifica a cada 30 segundos
     staleTime: 0, // Sem cache para forçar nova consulta
-    cacheTime: 0, // Não manter em cache
+    gcTime: 0, // Não manter em cache (v5 usa gcTime ao invés de cacheTime)
   });
 
   const { user } = useAuth();
@@ -62,7 +62,7 @@ function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
   const forceMaintenanceTest = new URLSearchParams(window.location.search).get('test-maintenance') === 'true';
   
   // Se modo manutenção está ativo E usuário não tem bypass E (não é super admin OU está forçando teste)
-  if (maintenanceStatus?.isActive && !bypassMaintenance && (!user?.isSuperAdmin || forceMaintenanceTest)) {
+  if ((maintenanceStatus as any)?.isActive && !bypassMaintenance && (!user?.isSuperAdmin || forceMaintenanceTest)) {
     return (
       <MaintenancePage 
         onAccessGranted={() => {
