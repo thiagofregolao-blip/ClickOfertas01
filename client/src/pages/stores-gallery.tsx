@@ -21,6 +21,8 @@ import { LazyImage } from "@/components/lazy-image";
 import { SearchResultItem } from "@/components/search-result-item";
 import { StoreResultItem } from "@/components/store-result-item";
 import { BannerSection } from "@/components/BannerSection";
+import { BannerCarousel } from "@/components/BannerCarousel";
+import ThreeDailyScratchCards from "@/components/ThreeDailyScratchCards";
 import GlobalHeader from "@/components/global-header";
 import type { StoreWithProducts, Product, InstagramStoryWithDetails } from "@shared/schema";
 import logoUrl from '../assets/logo.jpg';
@@ -223,6 +225,13 @@ export default function StoresGallery() {
   const { data: instagramStories = [], isLoading: storiesLoading } = useQuery<InstagramStoryWithDetails[]>({
     queryKey: ['/api/instagram-stories'],
     staleTime: 2 * 60 * 1000, // 2 minutos
+  });
+  
+  // Banners data para usar o BannerCarousel separadamente
+  const { data: banners = [] } = useQuery({
+    queryKey: ['/api/banners/active'],
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutos
   });
 
   // Agrupar stories por loja
@@ -432,12 +441,16 @@ export default function StoresGallery() {
         </div>
       )}
       
-      {/* Mobile: Banner e raspadinhas primeiro */}
-      {isMobile && (
-        <BannerSection isSearchActive={!!searchQuery.trim()} />
+      {/* Mobile: Banner rotativo primeiro */}
+      {isMobile && !searchQuery.trim() && (
+        <div className="w-full mb-4">
+          <div className="-mx-4 w-screen">
+            <BannerCarousel banners={banners.filter(banner => banner.bannerType === 'rotating' && banner.isActive)} />
+          </div>
+        </div>
       )}
       
-      {/* Mobile: Stories abaixo do banner */}
+      {/* Mobile: Stories no meio */}
       {!searchQuery.trim() && isMobile && (
         <div className="bg-white border-b">
           <div className="mx-auto px-4 max-w-full">
@@ -506,6 +519,13 @@ export default function StoresGallery() {
               ))}
             </div>
           </div>
+        </div>
+      )}
+      
+      {/* Mobile: Raspadinhas depois das stories */}
+      {isMobile && !searchQuery.trim() && isAuthenticated && (
+        <div className="px-4 mb-4">
+          <ThreeDailyScratchCards />
         </div>
       )}
       
