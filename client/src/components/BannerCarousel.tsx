@@ -93,7 +93,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
               backgroundColor: banner.backgroundColor,
               backgroundImage: `url(${banner.imageUrl})`,
               backgroundSize: 'contain',
-              backgroundPosition: 'center center',
+              backgroundPosition: 'center right',
               backgroundRepeat: 'no-repeat',
             }}
             onClick={() => handleBannerClick(banner)}
