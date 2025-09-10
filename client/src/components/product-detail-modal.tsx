@@ -41,8 +41,11 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
   const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right');
   const [nextImageIndex, setNextImageIndex] = useState(1);
   const [isClosing, setIsClosing] = useState(false);
-  const [productTransitionDirection, setProductTransitionDirection] = useState<'left' | 'right'>('right');
-  const [isNavigating, setIsNavigating] = useState(false);
+  
+  // Estados para transição entre produtos (igual às imagens)
+  const [isProductTransitioning, setIsProductTransitioning] = useState(false);
+  const [productSlideDirection, setProductSlideDirection] = useState<'left' | 'right'>('right');
+  const [nextProduct, setNextProduct] = useState<Product | null>(null);
   const { isMobile, isDesktop } = useAppVersion();
   const { toast } = useToast();
   const { handleDoubleTap, handleSaveProduct, isProductLiked, isProductSaved, toggleLike } = useEngagement();
@@ -108,40 +111,12 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
     if (totalProducts <= 1) return;
 
     if (isLeftSwipe) {
-      // Próximo produto - slide para a esquerda
-      const newIndex = currentIndex < totalProducts - 1 ? currentIndex + 1 : 0;
-      const newProduct = storeProducts[newIndex];
-      if (newProduct) {
-        setCurrentImageIndex(0);
-        setProductTransitionDirection('left');
-        setIsClosing(true);
-        setTimeout(() => {
-          onClose();
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('openProductModal', {
-              detail: { product: newProduct, store, slideDirection: 'left' }
-            }));
-          }, 100);
-        }, 300);
-      }
+      // Próximo produto
+      nextProductSlide();
     }
     if (isRightSwipe) {
-      // Produto anterior - slide para a direita
-      const newIndex = currentIndex > 0 ? currentIndex - 1 : totalProducts - 1;
-      const newProduct = storeProducts[newIndex];
-      if (newProduct) {
-        setCurrentImageIndex(0);
-        setProductTransitionDirection('right');
-        setIsClosing(true);
-        setTimeout(() => {
-          onClose();
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('openProductModal', {
-              detail: { product: newProduct, store, slideDirection: 'right' }
-            }));
-          }, 100);
-        }, 300);
-      }
+      // Produto anterior
+      prevProductSlide();
     }
   };
 
@@ -150,28 +125,17 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
     setCurrentImageIndex(0);
   }, [product?.id]);
 
-  // Detecta a direção de entrada do modal
+  // Listener para atualização de produto via evento
   useEffect(() => {
-    const handleProductModal = (e: any) => {
-      if (e.detail?.slideDirection) {
-        setProductTransitionDirection(e.detail.slideDirection === 'left' ? 'right' : 'left');
-        setIsNavigating(true);
+    const handleUpdateProduct = (e: any) => {
+      if (e.detail?.product) {
+        setCurrentImageIndex(0);
       }
     };
 
-    window.addEventListener('openProductModal', handleProductModal);
-    return () => window.removeEventListener('openProductModal', handleProductModal);
+    window.addEventListener('updateProductModal', handleUpdateProduct);
+    return () => window.removeEventListener('updateProductModal', handleUpdateProduct);
   }, []);
-
-  // Reset navegation state when modal opens/closes
-  useEffect(() => {
-    if (isOpen) {
-      // Reset after animation completes
-      setTimeout(() => setIsNavigating(false), 350);
-    } else {
-      setIsNavigating(false);
-    }
-  }, [isOpen]);
 
   if (!product || !store) return null;
 
@@ -220,6 +184,57 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
         setCurrentImageIndex(prevIndex);
         setIsTransitioning(false);
       }, 350);
+    }
+  };
+
+  // Navegação entre produtos (igual às imagens)
+  const nextProductSlide = () => {
+    const storeProducts = store?.products?.filter(p => p.isActive) || [];
+    const currentIndex = storeProducts.findIndex(p => p.id === product.id);
+    const totalProducts = storeProducts.length;
+    
+    if (totalProducts > 1 && !isProductTransitioning) {
+      const nextIndex = (currentIndex + 1) % totalProducts;
+      const newProduct = storeProducts[nextIndex];
+      
+      if (newProduct) {
+        setNextProduct(newProduct);
+        setProductSlideDirection('left');
+        setIsProductTransitioning(true);
+        setTimeout(() => {
+          // Atualiza o produto via evento customizado
+          window.dispatchEvent(new CustomEvent('updateProductModal', {
+            detail: { product: newProduct, store }
+          }));
+          setCurrentImageIndex(0);
+          setIsProductTransitioning(false);
+        }, 350);
+      }
+    }
+  };
+
+  const prevProductSlide = () => {
+    const storeProducts = store?.products?.filter(p => p.isActive) || [];
+    const currentIndex = storeProducts.findIndex(p => p.id === product.id);
+    const totalProducts = storeProducts.length;
+    
+    if (totalProducts > 1 && !isProductTransitioning) {
+      const prevIndex = (currentIndex - 1 + totalProducts) % totalProducts;
+      const newProduct = storeProducts[prevIndex];
+      
+      if (newProduct) {
+        setNextProduct(newProduct);
+        setProductSlideDirection('right');
+        setIsProductTransitioning(true);
+        setTimeout(() => {
+          // Atualiza o produto via evento customizado
+          window.dispatchEvent(new CustomEvent('updateProductModal', {
+            detail: { product: newProduct, store }
+          }));
+          setCurrentImageIndex(0);
+          setIsProductTransitioning(false);
+        }, 350);
+      }
     }
   };
 
@@ -286,17 +301,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
           }, 300);
         }
       }}>
-        <DialogContent className={`w-full h-full max-w-none max-h-none m-0 p-0 bg-white ${
-          isClosing 
-            ? productTransitionDirection === 'left' 
-              ? 'animate-product-slide-out-left' 
-              : 'animate-product-slide-out-right'
-            : isNavigating 
-              ? productTransitionDirection === 'left'
-                ? 'animate-product-slide-in-left'
-                : 'animate-product-slide-in-right'
-              : ''
-        }`}>
+        <DialogContent className="w-full h-full max-w-none max-h-none m-0 p-0 bg-white">
           <div className="relative h-full flex flex-col overflow-hidden">
             {/* Nome da Loja e Badges - Área separada acima da imagem */}
             <div className="bg-white border-b px-4 py-3 flex items-center justify-between">
@@ -400,30 +405,10 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   const totalProducts = storeProducts.length;
                   
                   const navigateToProduct = (direction: 'prev' | 'next') => {
-                    if (totalProducts <= 1) return;
-                    
-                    let newIndex;
-                    const slideDirection = direction === 'prev' ? 'right' : 'left';
-                    
                     if (direction === 'prev') {
-                      newIndex = currentIndex > 0 ? currentIndex - 1 : totalProducts - 1;
+                      prevProductSlide();
                     } else {
-                      newIndex = currentIndex < totalProducts - 1 ? currentIndex + 1 : 0;
-                    }
-                    
-                    const newProduct = storeProducts[newIndex];
-                    if (newProduct) {
-                      setCurrentImageIndex(0);
-                      setProductTransitionDirection(slideDirection);
-                      setIsClosing(true);
-                      setTimeout(() => {
-                        onClose();
-                        setTimeout(() => {
-                          window.dispatchEvent(new CustomEvent('openProductModal', {
-                            detail: { product: newProduct, store, slideDirection }
-                          }));
-                        }, 100);
-                      }, 300);
+                      nextProductSlide();
                     }
                   };
                   
@@ -645,7 +630,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                 </div>
               </div>
             </div>
-            </div>
+          </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -710,16 +695,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                       <>
                         {hasPrevious && (
                           <Button
-                            onClick={() => {
-                              const previousProduct = activeProducts[currentIndex - 1];
-                              setCurrentImageIndex(0);
-                              onClose();
-                              setTimeout(() => {
-                                window.dispatchEvent(new CustomEvent('openProductModal', {
-                                  detail: { product: previousProduct, store }
-                                }));
-                              }, 100);
-                            }}
+                            onClick={prevProductSlide}
                             variant="outline"
                             size="icon"
                             className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm border-gray-200 hover:bg-white shadow-lg"
@@ -730,16 +706,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                         
                         {hasNext && (
                           <Button
-                            onClick={() => {
-                              const nextProduct = activeProducts[currentIndex + 1];
-                              setCurrentImageIndex(0);
-                              onClose();
-                              setTimeout(() => {
-                                window.dispatchEvent(new CustomEvent('openProductModal', {
-                                  detail: { product: nextProduct, store }
-                                }));
-                              }, 100);
-                            }}
+                            onClick={nextProductSlide}
                             variant="outline"
                             size="icon"
                             className="fixed right-6 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full bg-white/95 backdrop-blur-sm border-gray-200 hover:bg-white shadow-xl"
