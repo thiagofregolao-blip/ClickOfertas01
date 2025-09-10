@@ -41,9 +41,17 @@ export function usePWA(): PWAHook {
 
     checkIfInstalled();
 
-    // Registra service worker
-    if ('serviceWorker' in navigator) {
+    // Registra service worker APENAS EM PRODUÇÃO
+    if ('serviceWorker' in navigator && import.meta.env.PROD) {
       registerServiceWorker();
+    } else if ('serviceWorker' in navigator && import.meta.env.DEV) {
+      // DESENVOLVIMENTO: Desregistrar qualquer Service Worker existente
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => {
+          registration.unregister();
+          console.log('DEV: PWA Service Worker desregistrado');
+        });
+      });
     }
 
     // Escuta evento de instalação
