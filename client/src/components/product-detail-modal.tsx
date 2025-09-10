@@ -202,13 +202,12 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
         setProductSlideDirection('left');
         setIsProductTransitioning(true);
         setTimeout(() => {
+          // Atualiza o produto via evento customizado
+          window.dispatchEvent(new CustomEvent('updateProductModal', {
+            detail: { product: newProduct, store }
+          }));
+          setCurrentImageIndex(0);
           setIsProductTransitioning(false);
-          onClose();
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('openProductModal', {
-              detail: { product: newProduct, store }
-            }));
-          }, 100);
         }, 350);
       }
     }
@@ -228,13 +227,12 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
         setProductSlideDirection('right');
         setIsProductTransitioning(true);
         setTimeout(() => {
+          // Atualiza o produto via evento customizado
+          window.dispatchEvent(new CustomEvent('updateProductModal', {
+            detail: { product: newProduct, store }
+          }));
+          setCurrentImageIndex(0);
           setIsProductTransitioning(false);
-          onClose();
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('openProductModal', {
-              detail: { product: newProduct, store }
-            }));
-          }, 100);
         }, 350);
       }
     }

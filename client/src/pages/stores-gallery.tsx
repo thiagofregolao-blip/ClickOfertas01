@@ -207,9 +207,20 @@ export default function StoresGallery() {
       setSelectedProduct(product);
       setSelectedStore(store);
     };
+
+    const handleUpdateProductModal = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { product, store } = customEvent.detail;
+      setSelectedProduct(product);
+      setSelectedStore(store);
+    };
     
     window.addEventListener('openProductModal', handleOpenProductModal as EventListener);
-    return () => window.removeEventListener('openProductModal', handleOpenProductModal as EventListener);
+    window.addEventListener('updateProductModal', handleUpdateProductModal as EventListener);
+    return () => {
+      window.removeEventListener('openProductModal', handleOpenProductModal as EventListener);
+      window.removeEventListener('updateProductModal', handleUpdateProductModal as EventListener);
+    };
   }, []);
   
   const { data: stores, isLoading } = useQuery<StoreWithProducts[]>({
