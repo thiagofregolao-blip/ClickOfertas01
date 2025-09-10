@@ -1552,3 +1552,142 @@ export const updateTotemSettingsSchema = createInsertSchema(totemSettings).omit(
 }).partial();
 
 export type MaintenanceMode = typeof maintenanceMode.$inferSelect;
+
+// ================================
+// METADADOS ANÔNIMOS PARA ANALYTICS
+// ================================
+
+// Sessões anônimas de usuários (sem dados pessoais)
+export const userSessions = pgTable("user_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionToken: varchar("session_token").notNull().unique(), // Token único para rastrear sessão
+  deviceType: varchar("device_type"), // 'mobile', 'desktop', 'tablet'
+  screenResolution: varchar("screen_resolution"),
+  browserInfo: varchar("browser_info"),
+  visitDuration: decimal("visit_duration", { precision: 10, scale: 2 }), // segundos
+  pagesViewed: decimal("pages_viewed", { precision: 5, scale: 0 }).default("0"),
+  createdAt: timestamp("created_at").defaultNow(),
+  lastActivity: timestamp("last_activity").defaultNow(),
+}, (table) => [
+  index("idx_user_sessions_token").on(table.sessionToken),
+  index("idx_user_sessions_created").on(table.createdAt),
+]);
+
+// Buscas de produtos (anônimas)
+export const productSearches = pgTable("product_searches", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionToken: varchar("session_token").notNull(), // Vincula à sessão anônima
+  searchTerm: text("search_term").notNull(),
+  category: varchar("category"),
+  priceMin: decimal("price_min", { precision: 12, scale: 2 }),
+  priceMax: decimal("price_max", { precision: 12, scale: 2 }),
+  resultsCount: decimal("results_count", { precision: 5, scale: 0 }),
+  clickedProductId: varchar("clicked_product_id"), // Se clicou em algum resultado
+  storeId: varchar("store_id"), // Loja onde foi feita a busca
+  searchAt: timestamp("search_at").defaultNow(),
+}, (table) => [
+  index("idx_product_searches_session").on(table.sessionToken),
+  index("idx_product_searches_term").on(table.searchTerm),
+  index("idx_product_searches_date").on(table.searchAt),
+  index("idx_product_searches_store").on(table.storeId),
+]);
+
+// Visualizações de produtos (anônimas)
+export const productViews = pgTable("product_views", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionToken: varchar("session_token").notNull(),
+  productId: varchar("product_id").notNull(),
+  productName: text("product_name").notNull(),
+  productCategory: varchar("product_category"),
+  productPrice: decimal("product_price", { precision: 12, scale: 2 }),
+  storeId: varchar("store_id").notNull(),
+  storeName: text("store_name"),
+  viewDuration: decimal("view_duration", { precision: 10, scale: 2 }), // segundos na página
+  cameFromSearch: boolean("came_from_search").default(false),
+  searchTerm: text("search_term"), // Se veio de busca
+  wasCompared: boolean("was_compared").default(false), // Se foi usado na comparação
+  wasSaved: boolean("was_saved").default(false), // Se foi salvo/curtido
+  viewedAt: timestamp("viewed_at").defaultNow(),
+}, (table) => [
+  index("idx_product_views_session").on(table.sessionToken),
+  index("idx_product_views_product").on(table.productId),
+  index("idx_product_views_store").on(table.storeId),
+  index("idx_product_views_date").on(table.viewedAt),
+]);
+
+// Produtos em tendência (calculados diariamente)
+export const trendingProducts = pgTable("trending_products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  date: timestamp("date").notNull(), // Data da análise
+  rank: decimal("rank", { precision: 2, scale: 0 }).notNull(), // 1-5 (top 5)
+  productName: text("product_name").notNull(),
+  category: varchar("category"),
+  searchCount: decimal("search_count", { precision: 10, scale: 0 }).default("0"),
+  viewCount: decimal("view_count", { precision: 10, scale: 0 }).default("0"),
+  saveCount: decimal("save_count", { precision: 10, scale: 0 }).default("0"),
+  compareCount: decimal("compare_count", { precision: 10, scale: 0 }).default("0"),
+  totalScore: decimal("total_score", { precision: 12, scale: 2 }).notNull(), // Score calculado
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_trending_products_date").on(table.date),
+  index("idx_trending_products_rank").on(table.rank),
+]);
+
+// Artes geradas automaticamente para totem
+export const generatedTotemArts = pgTable("generated_totem_arts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  generationDate: timestamp("generation_date").notNull(),
+  trendingProductsData: jsonb("trending_products_data").notNull(), // Top 5 produtos + dados
+  imageUrl: text("image_url").notNull(), // URL da arte gerada
+  imagePrompt: text("image_prompt").notNull(), // Prompt usado para gerar
+  isActive: boolean("is_active").default(true),
+  displayedAt: timestamp("displayed_at"), // Quando foi exibida no totem
+  impressions: decimal("impressions", { precision: 10, scale: 0 }).default("0"), // Quantas vezes foi vista
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_generated_arts_store").on(table.storeId),
+  index("idx_generated_arts_date").on(table.generationDate),
+  index("idx_generated_arts_active").on(table.isActive),
+]);
+
+
+// Zod schemas para metadados
+export const insertUserSessionSchema = createInsertSchema(userSessions).omit({
+  id: true,
+  createdAt: true,
+  lastActivity: true,
+});
+
+export const insertProductSearchSchema = createInsertSchema(productSearches).omit({
+  id: true,
+  searchAt: true,
+});
+
+export const insertProductViewSchema = createInsertSchema(productViews).omit({
+  id: true,
+  viewedAt: true,
+});
+
+export const insertTrendingProductSchema = createInsertSchema(trendingProducts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertGeneratedTotemArtSchema = createInsertSchema(generatedTotemArts).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types para TypeScript
+export type UserSession = typeof userSessions.$inferSelect;
+export type ProductSearch = typeof productSearches.$inferSelect;
+export type ProductView = typeof productViews.$inferSelect;
+export type TrendingProduct = typeof trendingProducts.$inferSelect;
+export type GeneratedTotemArt = typeof generatedTotemArts.$inferSelect;
+
+export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
+export type InsertProductSearch = z.infer<typeof insertProductSearchSchema>;
+export type InsertProductView = z.infer<typeof insertProductViewSchema>;
+export type InsertTrendingProduct = z.infer<typeof insertTrendingProductSchema>;
+export type InsertGeneratedTotemArt = z.infer<typeof insertGeneratedTotemArtSchema>;
