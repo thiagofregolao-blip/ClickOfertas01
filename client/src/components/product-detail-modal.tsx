@@ -287,16 +287,6 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                   )}
                 </div>
               </div>
-              
-              
-              <Button
-                onClick={onClose}
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-4 w-4" />
-              </Button>
             </div>
 
             {/* Conteúdo Scrollável - Imagem e informações juntas */}
