@@ -1,0 +1,295 @@
+=== CÓDIGO ATUAL DOS BANNERS ===
+
+=== BannerCarousel.tsx ===
+import { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+interface Banner {
+  id: string;
+  title: string;
+  description?: string;
+  imageUrl: string;
+  linkUrl?: string;
+  backgroundColor: string;
+  textColor: string;
+}
+
+interface BannerCarouselProps {
+  banners: Banner[];
+  autoPlayInterval?: number;
+}
+
+export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarouselProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+  // Auto-play functionality
+  useEffect(() => {
+    if (!isAutoPlaying || banners.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length);
+    }, autoPlayInterval);
+
+    return () => clearInterval(interval);
+  }, [banners.length, autoPlayInterval, isAutoPlaying]);
+
+  const goToPrevious = () => {
+    setIsAutoPlaying(false);
+    setCurrentIndex((prevIndex) => 
+      prevIndex === 0 ? banners.length - 1 : prevIndex - 1
+    );
+  };
+
+  const goToNext = () => {
+    setIsAutoPlaying(false);
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length);
+  };
+
+  const goToSlide = (index: number) => {
+    setIsAutoPlaying(false);
+    setCurrentIndex(index);
+  };
+
+  if (!banners || banners.length === 0) {
+    return null;
+  }
+
+  const currentBanner = banners[currentIndex];
+
+  const handleBannerClick = async (banner: Banner) => {
+    // Registrar clique no banner
+    try {
+      await fetch('/api/banners/click', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bannerId: banner.id,
+        }),
+      });
+    } catch (error) {
+      console.error('Erro ao registrar clique:', error);
+    }
+
+    // Abrir link se existir
+    if (banner.linkUrl) {
+      window.open(banner.linkUrl, '_blank');
+    }
+  };
+
+  return (
+    <div className="relative w-full aspect-[3/1] md:aspect-auto md:w-[790px] md:h-[230px] overflow-hidden shadow-lg group md:rounded-lg">
+      {/* Container dos banners com efeito slide */}
+      <div 
+        className="flex transition-transform duration-500 ease-in-out h-full"
+        style={{
+          transform: `translateX(-${currentIndex * 100}%)`,
+        }}
+      >
+        {banners.map((banner, index) => (
+          <div
+            key={banner.id}
+            className="w-full h-full cursor-pointer flex-shrink-0"
+            style={{ backgroundColor: banner.backgroundColor }}
+            onClick={() => handleBannerClick(banner)}
+            data-testid={`banner-carousel-${banner.id}`}
+          >
+            <img
+              src={banner.imageUrl}
+              alt={banner.title}
+              className="w-full h-full block select-none object-cover object-[85%_50%] md:object-contain md:object-center"
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Controles de navegação - aparecem no hover */}
+      {banners.length > 1 && (
+        <>
+          {/* Botão anterior */}
+          <button
+            onClick={goToPrevious}
+            className="absolute left-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black bg-opacity-50 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-opacity-70"
+            data-testid="banner-prev-button"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+
+          {/* Botão próximo */}
+          <button
+            onClick={goToNext}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black bg-opacity-50 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-opacity-70"
+            data-testid="banner-next-button"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </>
+      )}
+
+      {/* Indicadores de pontos */}
+      {banners.length > 1 && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-2">
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                index === currentIndex
+                  ? 'bg-white scale-110'
+                  : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+              }`}
+              data-testid={`banner-indicator-${index}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+=== BannerSection.tsx ===
+import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { BannerCarousel } from './BannerCarousel';
+import { StaticBanner } from './StaticBanner';
+import ThreeDailyScratchCards from './ThreeDailyScratchCards';
+import { useAuth } from '@/hooks/useAuth';
+
+interface Banner {
+  id: string;
+  title: string;
+  description?: string;
+  imageUrl: string;
+  linkUrl?: string;
+  backgroundColor: string;
+  textColor: string;
+  bannerType: 'rotating' | 'static_left' | 'static_right';
+  isActive: boolean;
+  priority: string;
+}
+
+interface BannerSectionProps {
+  isSearchActive?: boolean;
+}
+
+export function BannerSection({ isSearchActive = false }: BannerSectionProps) {
+  const { isAuthenticated } = useAuth();
+  const { data: banners = [] } = useQuery<Banner[]>({
+    queryKey: ['/api/banners/active'],
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
+
+  // Registrar visualização dos banners
+  const registerBannerViews = async (bannerIds: string[]) => {
+    try {
+      await Promise.all(
+        bannerIds.map(bannerId =>
+          fetch('/api/banners/view', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              bannerId,
+            }),
+          })
+        )
+      );
+    } catch (error) {
+      console.error('Erro ao registrar views:', error);
+    }
+  };
+
+  // Separar banners por tipo
+  const rotatingBanners = banners.filter(banner => 
+    banner.bannerType === 'rotating' && banner.isActive
+  ).sort((a, b) => parseInt(a.priority) - parseInt(b.priority));
+
+  const staticLeftBanners = banners.filter(banner => 
+    banner.bannerType === 'static_left' && banner.isActive
+  ).sort((a, b) => parseInt(a.priority) - parseInt(b.priority));
+
+  const staticRightBanners = banners.filter(banner => 
+    banner.bannerType === 'static_right' && banner.isActive
+  ).sort((a, b) => parseInt(a.priority) - parseInt(b.priority));
+
+  // Registrar views quando os banners carregarem
+  useEffect(() => {
+    if (banners.length > 0) {
+      const visibleBannerIds = banners
+        .filter(banner => banner.isActive)
+        .map(banner => banner.id);
+      
+      if (visibleBannerIds.length > 0) {
+        registerBannerViews(visibleBannerIds);
+      }
+    }
+  }, [banners]);
+
+  // Se não há banners ativos, não renderizar nada
+  if (banners.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="w-full mb-6 mt-4 md:mt-8 md:px-4" data-testid="banner-section">
+      <div className="max-w-6xl mx-auto">
+        {/* Layout desktop: carousel + banners estáticos lado a lado */}
+        <div className="hidden md:flex gap-[5px]">
+          {/* Banner rotativo (790x230px) */}
+          {rotatingBanners.length > 0 && (
+            <div>
+              <BannerCarousel banners={rotatingBanners} />
+            </div>
+          )}
+
+          {/* 3 Rapadinhas diárias para usuários autenticados */}
+          <div className="space-y-[5px]">
+            {isAuthenticated && <ThreeDailyScratchCards />}
+          </div>
+        </div>
+
+        {/* Layout mobile: banner de tela cheia sem bordas laterais */}
+        <div className="md:hidden">
+          {/* Banner rotativo - ocultar quando busca ativa */}
+          {!isSearchActive && rotatingBanners.length > 0 && (
+            <BannerCarousel banners={rotatingBanners} />
+          )}
+
+          {/* Rapadinhas diárias em mobile para usuários autenticados - ocultar quando busca ativa */}
+          {!isSearchActive && isAuthenticated && (
+            <div className="px-4 mt-4">
+              <ThreeDailyScratchCards />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+=== ESTRUTURA IMPORTANTE ===
+
+1. Container Principal (BannerSection.tsx - linha 86):
+   - Mobile: sem padding lateral para largura total
+   - Desktop: com padding lateral (md:px-4)
+
+2. Banner no Mobile (BannerCarousel.tsx - linha 80):
+   - aspect-[3/1]: proporção 3:1 no mobile
+   - w-full: largura total
+
+3. Imagem do Banner (BannerCarousel.tsx - linha 96-100):
+   - MOBILE: object-cover object-[85%_50%] (corta imagem, posiciona 85% direita)
+   - DESKTOP: md:object-contain md:object-center (imagem completa, centralizada)
+
+=== PROBLEMA ATUAL ===
+Banner ainda não está deslocado para a direita no mobile como esperado.
+O object-[85%_50%] deveria posicionar a imagem mais à direita, mas pode não estar funcionando como esperado.
+
+TESTE ALTERNATIVO SUGERIDO:
+- Tentar object-right ao invés de object-[85%_50%]
+- Verificar se o aspect-ratio está interferindo
+- Considerar usar transform: translateX() como alternativa
