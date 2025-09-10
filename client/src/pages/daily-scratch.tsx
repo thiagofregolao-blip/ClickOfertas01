@@ -230,7 +230,7 @@ export default function DailyScratchPage() {
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
         <div className="flex items-center justify-around py-2 px-4">
           {/* Home */}
-          <Link href="/">
+          <Link href="/cards">
             <button
               className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-primary"
               data-testid="button-mobile-home"
