@@ -101,7 +101,7 @@ export function BannerSection({ isSearchActive = false }: BannerSectionProps) {
         </div>
 
         {/* Layout mobile: banner de tela cheia sem bordas laterais */}
-        <div className="md:hidden -mx-4 w-screen">
+        <div className="md:hidden -mx-4">
           {/* Banner rotativo - ocultar quando busca ativa */}
           {!isSearchActive && rotatingBanners.length > 0 && (
             <BannerCarousel banners={rotatingBanners} />
