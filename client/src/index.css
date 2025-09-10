@@ -258,6 +258,67 @@ html {
   animation: modal-zoom-out 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
+/* Animações suaves para transição entre produtos */
+@keyframes product-slide-out-left {
+  from {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes product-slide-out-right {
+  from {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes product-slide-in-left {
+  from {
+    transform: translateX(-100%) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes product-slide-in-right {
+  from {
+    transform: translateX(100%) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-product-slide-out-left {
+  animation: product-slide-out-left 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-product-slide-out-right {
+  animation: product-slide-out-right 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-product-slide-in-left {
+  animation: product-slide-in-left 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-product-slide-in-right {
+  animation: product-slide-in-right 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
 /* Animação da chama para produtos em destaque */
 @keyframes flame {
   0%, 100% {
