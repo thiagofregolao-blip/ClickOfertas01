@@ -1,0 +1,541 @@
+WebSocket connection to 'wss://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/?token=pXFJ_WsonoXg' failed: 
+setupWebSocket @ client:536Understand this error
+client:536 Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=pXFJ_WsonoXg' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)Understand this error
+chunk-RPCDYKBN.js?v=30fd559a:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+simulator.js:7 An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.
+Go @ simulator.js:7Understand this warning
+cards:1 An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.Understand this warning
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+2chunk-RPCDYKBN.js?v=30fd559a:16670 Uncaught NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at removeChild (chunk-RPCDYKBN.js?v=30fd559a:8456:26)
+    at commitDeletionEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17510:21)
+    at commitDeletionEffects (chunk-RPCDYKBN.js?v=30fd559a:17477:13)
+    at recursivelyTraverseMutationEffects (chunk-RPCDYKBN.js?v=30fd559a:17674:17)
+    at commitMutationEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17737:15)
+    at recursivelyTraverseMutationEffects (chunk-RPCDYKBN.js?v=30fd559a:17685:15)
+    at commitMutationEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17699:15)
+    at recursivelyTraverseMutationEffects (chunk-RPCDYKBN.js?v=30fd559a:17685:15)
+    at commitMutationEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17896:15)
+    at recursivelyTraverseMutationEffects (chunk-RPCDYKBN.js?v=30fd559a:17685:15)Understand this error
+chunk-RPCDYKBN.js?v=30fd559a:16670 Uncaught NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at removeChildFromContainer (chunk-RPCDYKBN.js?v=30fd559a:8462:23)
+    at commitDeletionEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17508:21)
+    at recursivelyTraverseDeletionEffects (chunk-RPCDYKBN.js?v=30fd559a:17486:13)
+    at commitDeletionEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17577:15)
+    at recursivelyTraverseDeletionEffects (chunk-RPCDYKBN.js?v=30fd559a:17486:13)
+    at commitDeletionEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17610:15)
+    at recursivelyTraverseDeletionEffects (chunk-RPCDYKBN.js?v=30fd559a:17486:13)
+    at commitDeletionEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17577:15)
+    at recursivelyTraverseDeletionEffects (chunk-RPCDYKBN.js?v=30fd559a:17486:13)
+    at commitDeletionEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17577:15)Understand this error
+2chunk-RPCDYKBN.js?v=30fd559a:14032 The above error occurred in the <div> component:
+
+    at div
+    at div
+    at StoresGallery (https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/src/pages/stores-gallery.tsx:50:41)
+    at Route (https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=30fd559a:265:16)
+    at Switch (https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=30fd559a:321:17)
+    at Router (https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/src/App.tsx?v=3LJZ0QlKgu3PA6mvVTF2Y:120:48)
+    at MaintenanceWrapper (https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/src/App.tsx?v=3LJZ0QlKgu3PA6mvVTF2Y:50:31)
+    at Provider (https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-5AJU3CG7.js?v=30fd559a:38:15)
+    at TooltipProvider (https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=30fd559a:61:5)
+    at QueryClientProvider (https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=30fd559a:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-RPCDYKBN.js?v=30fd559a:14032Understand this error
+chunk-RPCDYKBN.js?v=30fd559a:9129 Uncaught NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at removeChild (chunk-RPCDYKBN.js?v=30fd559a:8456:26)
+    at commitDeletionEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17510:21)
+    at commitDeletionEffects (chunk-RPCDYKBN.js?v=30fd559a:17477:13)
+    at recursivelyTraverseMutationEffects (chunk-RPCDYKBN.js?v=30fd559a:17674:17)
+    at commitMutationEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17737:15)
+    at recursivelyTraverseMutationEffects (chunk-RPCDYKBN.js?v=30fd559a:17685:15)
+    at commitMutationEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17699:15)
+    at recursivelyTraverseMutationEffects (chunk-RPCDYKBN.js?v=30fd559a:17685:15)
+    at commitMutationEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17896:15)
+    at recursivelyTraverseMutationEffects (chunk-RPCDYKBN.js?v=30fd559a:17685:15)Understand this error
+chunk-RPCDYKBN.js?v=30fd559a:14032 The above error occurred in the <App> component:
+
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-RPCDYKBN.js?v=30fd559a:14032Understand this error
+chunk-RPCDYKBN.js?v=30fd559a:9129 Uncaught NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at removeChildFromContainer (chunk-RPCDYKBN.js?v=30fd559a:8462:23)
+    at commitDeletionEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17508:21)
+    at recursivelyTraverseDeletionEffects (chunk-RPCDYKBN.js?v=30fd559a:17486:13)
+    at commitDeletionEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17577:15)
+    at recursivelyTraverseDeletionEffects (chunk-RPCDYKBN.js?v=30fd559a:17486:13)
+    at commitDeletionEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17610:15)
+    at recursivelyTraverseDeletionEffects (chunk-RPCDYKBN.js?v=30fd559a:17486:13)
+    at commitDeletionEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17577:15)
+    at recursivelyTraverseDeletionEffects (chunk-RPCDYKBN.js?v=30fd559a:17486:13)
+    at commitDeletionEffectsOnFiber (chunk-RPCDYKBN.js?v=30fd559a:17577:15)Understand this error
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:514 🔍 Cards que perderam e precisam de frase: Object
+ThreeDailyScratchCards.tsx:526 📝 Buscando frase para card 1...
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:529 ✅ Frase encontrada para card 1: Object
+ThreeDailyScratchCards.tsx:535 🎭 Frases atualizadas: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:526 📝 Buscando frase para card 2...
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:529 ✅ Frase encontrada para card 2: Object
+ThreeDailyScratchCards.tsx:535 🎭 Frases atualizadas: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:526 📝 Buscando frase para card 3...
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:529 ✅ Frase encontrada para card 3: Object
+ThreeDailyScratchCards.tsx:535 🎭 Frases atualizadas: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:526 📝 Buscando frase para card 4...
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:529 ✅ Frase encontrada para card 4: Object
+ThreeDailyScratchCards.tsx:535 🎭 Frases atualizadas: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:526 📝 Buscando frase para card 5...
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:529 ✅ Frase encontrada para card 5: Object
+ThreeDailyScratchCards.tsx:535 🎭 Frases atualizadas: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}funnyMessages: (5) [{…}, {…}, {…}, {…}, {…}]funnyMessagesCount: 5lostCards: 5scratchedCards: 6totalCards: 6[[Prototype]]: Object
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
+ThreeDailyScratchCards.tsx:492 🎯 STATUS DOS CARDS: {totalCards: 6, scratchedCards: 6, lostCards: 5, funnyMessagesCount: 5, funnyMessages: Array(5)}
