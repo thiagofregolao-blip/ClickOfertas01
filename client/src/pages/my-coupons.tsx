@@ -4,11 +4,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Download, Share2, QrCode, CheckCircle, XCircle, ArrowLeft, Trash2 } from "lucide-react";
+import { Clock, Download, Share2, QrCode, CheckCircle, XCircle, ArrowLeft, Trash2, Settings, ShoppingCart, BarChart3, LogOut } from "lucide-react";
 import { formatBrazilianPrice, formatPriceWithCurrency } from "@/lib/priceUtils";
 import jsPDF from "jspdf";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 
 interface CouponWithDetails {
   id: string;
@@ -498,6 +498,70 @@ export default function MyCoupons() {
           </div>
         </div>
       )}
+      
+      {/* Menu do Rodapé Mobile */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+        <div className="flex items-center justify-around py-2 px-4">
+          {/* Home */}
+          <Link href="/">
+            <button
+              className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-primary"
+              data-testid="button-mobile-home"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9,22 9,12 15,12 15,22"/>
+              </svg>
+              <span className="text-xs">Home</span>
+            </button>
+          </Link>
+          
+          {/* Lista de Compras */}
+          <button
+            onClick={() => setLocation('/shopping-list')}
+            className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-primary"
+            data-testid="button-mobile-shopping"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            <span className="text-xs">Lista</span>
+          </button>
+          
+          {/* Comparar Preços */}
+          <Link href="/price-comparison">
+            <button
+              className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-primary"
+              data-testid="button-mobile-comparison"
+            >
+              <BarChart3 className="w-5 h-5" />
+              <span className="text-xs">Comparar</span>
+            </button>
+          </Link>
+          
+          {/* Configurações */}
+          <button
+            onClick={() => setLocation('/settings')}
+            className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-primary"
+            data-testid="button-mobile-settings"
+          >
+            <Settings className="w-5 h-5" />
+            <span className="text-xs">Config</span>
+          </button>
+          
+          {/* Sair */}
+          {isAuthenticated && (
+            <button
+              onClick={() => {
+                window.location.href = '/api/logout';
+              }}
+              className="flex flex-col items-center gap-1 p-2 text-red-600 hover:text-red-700"
+              data-testid="button-mobile-logout"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="text-xs">Sair</span>
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
