@@ -3980,8 +3980,116 @@ Keep the overall composition and maintain the same visual quality. This is for a
   });
 
   // ==========================================
-  // FIM DO SISTEMA DE RASPADINHA DIÁRIA
+  // SISTEMA DE ANALYTICS (METADADOS ANÔNIMOS)
   // ==========================================
+
+  // Criar sessão anônima
+  app.post('/api/analytics/session', async (req, res) => {
+    try {
+      const sessionData = req.body;
+      const session = await storage.createUserSession(sessionData);
+      res.json({ success: true, session });
+    } catch (error) {
+      console.debug('Analytics session error:', error);
+      res.status(500).json({ success: false });
+    }
+  });
+
+  // Atualizar sessão anônima
+  app.post('/api/analytics/session/update', async (req, res) => {
+    try {
+      const { sessionToken, ...updates } = req.body;
+      await storage.updateUserSession(sessionToken, updates);
+      res.json({ success: true });
+    } catch (error) {
+      console.debug('Analytics session update error:', error);
+      res.status(500).json({ success: false });
+    }
+  });
+
+  // Registrar busca de produto
+  app.post('/api/analytics/search', async (req, res) => {
+    try {
+      const searchData = req.body;
+      const search = await storage.createProductSearch(searchData);
+      res.json({ success: true, search });
+    } catch (error) {
+      console.debug('Analytics search error:', error);
+      res.status(500).json({ success: false });
+    }
+  });
+
+  // Registrar visualização de produto
+  app.post('/api/analytics/view', async (req, res) => {
+    try {
+      const viewData = req.body;
+      const view = await storage.createProductView(viewData);
+      res.json({ success: true, view });
+    } catch (error) {
+      console.debug('Analytics view error:', error);
+      res.status(500).json({ success: false });
+    }
+  });
+
+  // Registrar clique em produto (desde busca)
+  app.post('/api/analytics/search/click', async (req, res) => {
+    try {
+      const { sessionToken, productId, searchTerm } = req.body;
+      await storage.updateProductSearchClick(sessionToken, productId, searchTerm);
+      res.json({ success: true });
+    } catch (error) {
+      console.debug('Analytics click error:', error);
+      res.status(500).json({ success: false });
+    }
+  });
+
+  // Registrar ação de produto (save/compare)
+  app.post('/api/analytics/save', async (req, res) => {
+    try {
+      const { sessionToken, productId } = req.body;
+      await storage.updateProductViewAction(sessionToken, productId, 'save');
+      res.json({ success: true });
+    } catch (error) {
+      console.debug('Analytics save error:', error);
+      res.status(500).json({ success: false });
+    }
+  });
+
+  app.post('/api/analytics/compare', async (req, res) => {
+    try {
+      const { sessionToken, productId } = req.body;
+      await storage.updateProductViewAction(sessionToken, productId, 'compare');
+      res.json({ success: true });
+    } catch (error) {
+      console.debug('Analytics compare error:', error);
+      res.status(500).json({ success: false });
+    }
+  });
+
+  // Obter produtos em tendência (para admin)
+  app.get('/api/analytics/trending', isSuperAdmin, async (req, res) => {
+    try {
+      const days = req.query.days ? parseInt(req.query.days as string) : 30;
+      const trending = await storage.getTrendingProducts(days);
+      res.json({ success: true, trending });
+    } catch (error) {
+      console.error('Error getting trending products:', error);
+      res.status(500).json({ success: false });
+    }
+  });
+
+  // Gerar produtos em tendência (job diário)
+  app.post('/api/analytics/trending/generate', isSuperAdmin, async (req, res) => {
+    try {
+      const { date } = req.body;
+      const targetDate = date ? new Date(date) : new Date();
+      const trending = await storage.generateTrendingProducts(targetDate);
+      res.json({ success: true, trending });
+    } catch (error) {
+      console.error('Error generating trending products:', error);
+      res.status(500).json({ success: false });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

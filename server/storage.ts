@@ -36,6 +36,12 @@ import {
   maintenanceMode,
   totemContent,
   totemSettings,
+  // Metadados anônimos para analytics
+  userSessions,
+  productSearches,
+  productViews,
+  trendingProducts,
+  generatedTotemArts,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -120,6 +126,17 @@ import {
   updateTotemContentSchema,
   insertTotemSettingsSchema,
   updateTotemSettingsSchema,
+  // Types de metadados anônimos
+  type UserSession,
+  type InsertUserSession,
+  type ProductSearch,
+  type InsertProductSearch,
+  type ProductView,
+  type InsertProductView,
+  type TrendingProduct,
+  type InsertTrendingProduct,
+  type GeneratedTotemArt,
+  type InsertGeneratedTotemArt,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, gte, lte, lt, sql, inArray, or, isNull } from "drizzle-orm";
@@ -294,6 +311,18 @@ export interface IStorage {
   getTotemSettings(storeId: string): Promise<TotemSettings | undefined>;
   upsertTotemSettings(storeId: string, settings: InsertTotemSettings | UpdateTotemSettings): Promise<TotemSettings>;
   updateTotemLastSync(storeId: string): Promise<void>;
+
+  // Analytics operations (metadados anônimos)
+  createUserSession(session: InsertUserSession): Promise<UserSession>;
+  updateUserSession(sessionToken: string, updates: { visitDuration?: number; pagesViewed?: number }): Promise<void>;
+  createProductSearch(search: InsertProductSearch): Promise<ProductSearch>;
+  createProductView(view: InsertProductView): Promise<ProductView>;
+  updateProductSearchClick(sessionToken: string, productId: string, searchTerm?: string): Promise<void>;
+  updateProductViewAction(sessionToken: string, productId: string, action: 'save' | 'compare'): Promise<void>;
+  getTrendingProducts(days?: number): Promise<TrendingProduct[]>;
+  generateTrendingProducts(date: Date): Promise<TrendingProduct[]>;
+  createGeneratedTotemArt(art: InsertGeneratedTotemArt): Promise<GeneratedTotemArt>;
+  getGeneratedTotemArts(storeId: string): Promise<GeneratedTotemArt[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3373,9 +3402,158 @@ export class DatabaseStorage implements IStorage {
       .where(eq(totemSettings.storeId, storeId));
   }
 
-  // ==========================================
-  // FIM DO SISTEMA DE RASPADINHA DIÁRIA
-  // ==========================================
+  // ===================================
+  // Analytics operations (metadados anônimos)
+  // ===================================
+
+  async createUserSession(session: InsertUserSession): Promise<UserSession> {
+    const [created] = await db
+      .insert(userSessions)
+      .values(session)
+      .returning();
+    return created;
+  }
+
+  async updateUserSession(sessionToken: string, updates: { visitDuration?: number; pagesViewed?: number }): Promise<void> {
+    await db
+      .update(userSessions)
+      .set({
+        visitDuration: updates.visitDuration?.toString(),
+        pagesViewed: updates.pagesViewed?.toString(),
+        lastActivity: new Date()
+      })
+      .where(eq(userSessions.sessionToken, sessionToken));
+  }
+
+  async createProductSearch(search: InsertProductSearch): Promise<ProductSearch> {
+    const [created] = await db
+      .insert(productSearches)
+      .values(search)
+      .returning();
+    return created;
+  }
+
+  async createProductView(view: InsertProductView): Promise<ProductView> {
+    const [created] = await db
+      .insert(productViews)
+      .values(view)
+      .returning();
+    return created;
+  }
+
+  async updateProductSearchClick(sessionToken: string, productId: string, searchTerm?: string): Promise<void> {
+    await db
+      .update(productSearches)
+      .set({ clickedProductId: productId })
+      .where(
+        and(
+          eq(productSearches.sessionToken, sessionToken),
+          searchTerm ? eq(productSearches.searchTerm, searchTerm) : sql`1=1`
+        )
+      );
+  }
+
+  async updateProductViewAction(sessionToken: string, productId: string, action: 'save' | 'compare'): Promise<void> {
+    const updateData = action === 'save' 
+      ? { wasSaved: true } 
+      : { wasCompared: true };
+
+    await db
+      .update(productViews)
+      .set(updateData)
+      .where(
+        and(
+          eq(productViews.sessionToken, sessionToken),
+          eq(productViews.productId, productId)
+        )
+      );
+  }
+
+  async getTrendingProducts(days: number = 30): Promise<TrendingProduct[]> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    return await db
+      .select()
+      .from(trendingProducts)
+      .where(gte(trendingProducts.date, startDate))
+      .orderBy(desc(trendingProducts.date), asc(trendingProducts.rank));
+  }
+
+  async generateTrendingProducts(date: Date): Promise<TrendingProduct[]> {
+    const startDate = new Date(date);
+    startDate.setDate(startDate.getDate() - 7);
+
+    const trendingData = await db
+      .select({
+        productName: productSearches.searchTerm,
+        category: productSearches.category,
+        searchCount: count(productSearches.id),
+      })
+      .from(productSearches)
+      .where(gte(productSearches.searchAt, startDate))
+      .groupBy(productSearches.searchTerm, productSearches.category)
+      .having(sql`COUNT(${productSearches.id}) >= 3`)
+      .orderBy(sql`COUNT(${productSearches.id}) DESC`)
+      .limit(5);
+
+    const trendingProductsList: TrendingProduct[] = [];
+    for (let i = 0; i < trendingData.length; i++) {
+      const data = trendingData[i];
+      
+      // Buscar estatísticas complementares
+      const [viewStats] = await db
+        .select({
+          viewCount: count(productViews.id),
+          saveCount: sql<number>`SUM(CASE WHEN ${productViews.wasSaved} THEN 1 ELSE 0 END)`,
+          compareCount: sql<number>`SUM(CASE WHEN ${productViews.wasCompared} THEN 1 ELSE 0 END)`,
+        })
+        .from(productViews)
+        .where(eq(productViews.productName, data.productName));
+
+      const viewCount = viewStats?.viewCount || 0;
+      const saveCount = Number(viewStats?.saveCount) || 0;
+      const compareCount = Number(viewStats?.compareCount) || 0;
+      
+      const totalScore = (data.searchCount * 1.0) + (viewCount * 0.8) + 
+                        (saveCount * 2.0) + (compareCount * 1.5);
+
+      const [trending] = await db
+        .insert(trendingProducts)
+        .values({
+          date,
+          rank: (i + 1).toString(),
+          productName: data.productName,
+          category: data.category,
+          searchCount: data.searchCount.toString(),
+          viewCount: viewCount.toString(),
+          saveCount: saveCount.toString(),
+          compareCount: compareCount.toString(),
+          totalScore: totalScore.toString()
+        })
+        .returning();
+
+      trendingProductsList.push(trending);
+    }
+
+    return trendingProductsList;
+  }
+
+  async createGeneratedTotemArt(art: InsertGeneratedTotemArt): Promise<GeneratedTotemArt> {
+    const [created] = await db
+      .insert(generatedTotemArts)
+      .values(art)
+      .returning();
+    return created;
+  }
+
+  async getGeneratedTotemArts(storeId: string): Promise<GeneratedTotemArt[]> {
+    return await db
+      .select()
+      .from(generatedTotemArts)
+      .where(eq(generatedTotemArts.storeId, storeId))
+      .orderBy(desc(generatedTotemArts.generationDate));
+  }
 }
 
 export const storage = new DatabaseStorage();
