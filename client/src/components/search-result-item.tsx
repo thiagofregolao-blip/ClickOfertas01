@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { LazyImage } from "@/components/lazy-image";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import type { StoreWithProducts, Product } from "@shared/schema";
 
 // Função para limitar nome a duas palavras no mobile
@@ -15,18 +16,47 @@ interface SearchResultItemProps {
   store: StoreWithProducts;
   onClick?: () => void;
   isMobile?: boolean;
+  searchTerm?: string;
 }
 
 export function SearchResultItem({ 
   product, 
   store, 
   onClick,
-  isMobile = false
+  isMobile = false,
+  searchTerm
 }: SearchResultItemProps) {
+  const { trackEvent, sessionToken } = useAnalytics();
+
+  const handleClick = () => {
+    // Capturar evento de clique em produto desde busca
+    if (sessionToken && searchTerm) {
+      trackEvent('searchClick', {
+        sessionToken,
+        productId: product.id,
+        searchTerm
+      });
+    }
+
+    // Capturar visualização de produto
+    if (sessionToken) {
+      trackEvent('productView', {
+        sessionToken,
+        productId: product.id,
+        productName: product.name,
+        category: product.category || undefined,
+        price: product.price,
+        storeId: store.id,
+        source: searchTerm ? 'search' : 'direct'
+      });
+    }
+
+    onClick?.();
+  };
   return (
     <div 
       className={`${isMobile ? 'p-3' : 'p-4'} hover:bg-blue-50 hover:border-l-4 hover:border-blue-500 transition-all cursor-pointer border-l-4 border-transparent group`}
-      onClick={onClick}
+      onClick={handleClick}
       data-testid={`search-result-${product.id}`}
       title="Clique para ver detalhes do produto"
     >

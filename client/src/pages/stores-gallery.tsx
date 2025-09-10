@@ -17,6 +17,7 @@ import { useAppVersion, type AppVersionType } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useTypewriter } from "@/hooks/use-typewriter";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { LazyImage } from "@/components/lazy-image";
 import { SearchResultItem } from "@/components/search-result-item";
 import { StoreResultItem } from "@/components/store-result-item";
@@ -50,6 +51,7 @@ export default function StoresGallery() {
       window.history.replaceState({}, '', newUrl);
     }
   }, [urlSearch]);
+
   
   // Frases para efeito de digitação automática
   const typewriterPhrases = [
@@ -76,6 +78,7 @@ export default function StoresGallery() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
+  const { trackEvent, sessionToken } = useAnalytics();
   
   // Instagram Stories state
   const [viewingStory, setViewingStory] = useState<InstagramStoryWithDetails | null>(null);
@@ -354,6 +357,29 @@ export default function StoresGallery() {
       return 0;
     });
   }, [searchQuery, stores]);
+
+  // Capturar evento de busca no stores gallery (após declaração das variáveis)
+  useEffect(() => {
+    if (searchQuery && searchQuery.trim().length > 2 && sessionToken) {
+      // Determinar categoria mais comum nos resultados
+      const searchResultsData = searchResults
+        .filter(r => r.type === 'product')
+        .map(r => r.data.category)
+        .filter(Boolean);
+      const mostCommonCategory = searchResultsData.length > 0 
+        ? searchResultsData.reduce((a, b, i, arr) => 
+            arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
+          ) 
+        : undefined;
+
+      trackEvent('search', {
+        sessionToken,
+        searchTerm: searchQuery,
+        category: mostCommonCategory,
+        resultsCount: searchResults.length
+      });
+    }
+  }, [searchQuery, searchResults, sessionToken, trackEvent]);
 
   if (isLoading) {
     return (

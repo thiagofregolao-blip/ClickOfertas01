@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Search, BarChart3, X } from "lucide-react";
 import { useTypewriter } from "@/hooks/use-typewriter";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { SearchResultItem } from "@/components/search-result-item";
 import { StoreResultItem } from "@/components/store-result-item";
 import type { StoreWithProducts } from "@shared/schema";
@@ -29,6 +30,7 @@ export default function GlobalHeader({
   const [, setLocation] = useLocation();
   
   const searchQuery = useDebounce(searchInput, 500);
+  const { trackEvent, sessionToken } = useAnalytics();
   
   // Buscar stores para funcionalidade de busca
   const { data: stores } = useQuery<StoreWithProducts[]>({
@@ -90,6 +92,29 @@ export default function GlobalHeader({
       return 0;
     });
   }, [searchQuery, stores]);
+
+  // Capturar evento de busca
+  useEffect(() => {
+    if (searchQuery && searchQuery.trim().length > 2 && sessionToken) {
+      // Determinar categoria mais comum nos resultados
+      const categories = searchResults
+        .filter(r => r.type === 'product')
+        .map(r => r.data.category)
+        .filter(Boolean);
+      const mostCommonCategory = categories.length > 0 
+        ? categories.reduce((a, b, i, arr) => 
+            arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
+          ) 
+        : undefined;
+
+      trackEvent('search', {
+        sessionToken,
+        searchTerm: searchQuery,
+        category: mostCommonCategory,
+        resultsCount: searchResults.length
+      });
+    }
+  }, [searchQuery, searchResults, sessionToken, trackEvent]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -201,6 +226,7 @@ export default function GlobalHeader({
                     <SearchResultItem
                       product={result.data}
                       store={result.store}
+                      searchTerm={searchQuery}
                       onClick={() => {
                         setLocation(`/flyer/${result.store.slug}`);
                         setSearchInput('');
@@ -294,6 +320,7 @@ export default function GlobalHeader({
                           <SearchResultItem
                             product={result.data}
                             store={result.store}
+                            searchTerm={searchQuery}
                             onClick={() => {
                               setLocation(`/flyer/${result.store.slug}`);
                               setSearchInput('');

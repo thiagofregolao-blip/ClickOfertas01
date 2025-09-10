@@ -5,6 +5,7 @@ import type { Product } from "@shared/schema";
 import { Likeable } from "@/components/heart-animation";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAuth } from "@/hooks/useAuth";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import ScratchCard from "./scratch-card";
 import { formatBrazilianPrice } from "@/lib/priceUtils";
 import PriceComparisonPopup from "./price-comparison-popup";
@@ -19,6 +20,8 @@ interface ProductCardProps {
   enableEngagement?: boolean;
   onClick?: (product: Product) => void;
   customUsdBrlRate?: number; // Taxa personalizada da loja
+  storeId?: string;
+  source?: 'search' | 'feed' | 'direct' | 'share';
 }
 
 // Cores por categoria
@@ -57,17 +60,61 @@ export default function ProductCard({
   showFeaturedBadge = false,
   enableEngagement = false,
   onClick,
-  customUsdBrlRate
+  customUsdBrlRate,
+  storeId,
+  source = 'feed'
 }: ProductCardProps) {
   const { hearts, handleDoubleTap, handleSaveProduct, isSaving, isProductLiked, isProductSaved, toggleLike } = useEngagement();
   const { isAuthenticated } = useAuth();
+  const { trackEvent, sessionToken } = useAnalytics();
   const categoryColors = getCategoryColors(product.category || undefined);
   const [showPriceComparison, setShowPriceComparison] = useState(false);
   
   const handleCardClick = () => {
+    // Capturar visualização de produto
+    if (sessionToken) {
+      trackEvent('productView', {
+        sessionToken,
+        productId: product.id,
+        productName: product.name,
+        category: product.category || undefined,
+        price: product.price,
+        storeId: storeId || undefined,
+        source
+      });
+    }
+
     if (onClick) {
       onClick(product);
     }
+  };
+
+  // Override handleSaveProduct para incluir analytics
+  const handleSaveWithAnalytics = async (productId: string) => {
+    // Capturar evento de save
+    if (sessionToken) {
+      trackEvent('productSave', {
+        sessionToken,
+        productId
+      });
+    }
+    
+    return handleSaveProduct(productId);
+  };
+
+  // Handler para comparação de preços com analytics
+  const handlePriceComparisonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // Capturar evento de compare
+    if (sessionToken) {
+      trackEvent('productCompare', {
+        sessionToken,
+        productId: product.id
+      });
+    }
+    
+    setShowPriceComparison(true);
   };
 
   // CORRIGIDO: Produto original SEMPRE aparece normal
@@ -107,10 +154,7 @@ export default function ProductCard({
             {/* Price comparison button - Hidden on mobile */}
             <div className="absolute top-2 right-2 hidden sm:block">
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowPriceComparison(true);
-                }}
+                onClick={handlePriceComparisonClick}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded transition-all duration-200"
                 title="Comparar preços no Brasil"
               >
@@ -164,7 +208,7 @@ export default function ProductCard({
               onClick={(e) => {
                 e.stopPropagation();
                 if (enableEngagement) {
-                  handleSaveProduct(product.id);
+                  handleSaveWithAnalytics(product.id);
                 }
               }}
               disabled={isSaving}

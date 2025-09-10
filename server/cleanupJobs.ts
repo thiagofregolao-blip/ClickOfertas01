@@ -48,6 +48,59 @@ export function startCleanupJobs() {
 }
 
 /**
+ * Inicia o job de análise de tendências que roda uma vez por dia
+ */
+export function startTrendingAnalysisJob() {
+  console.log('📊 Iniciando job de análise de tendências');
+  
+  // Executar imediatamente na inicialização para teste
+  generateTrendingProducts();
+  
+  // Agendar para rodar uma vez por dia (24 horas = 86400000ms)
+  // Executa às 02:00 da manhã para não impactar performance durante o dia
+  const scheduleNextRun = () => {
+    const now = new Date();
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 2, 0, 0);
+    const timeUntilNextRun = tomorrow.getTime() - now.getTime();
+    
+    setTimeout(() => {
+      generateTrendingProducts();
+      // Reagendar para o próximo dia
+      setInterval(() => {
+        generateTrendingProducts();
+      }, 24 * 60 * 60 * 1000);
+    }, timeUntilNextRun);
+    
+    console.log(`⏰ Próxima análise de tendências agendada para: ${tomorrow.toLocaleString('pt-BR')}`);
+  };
+  
+  scheduleNextRun();
+}
+
+/**
+ * Job diário que analisa metadados de analytics e gera produtos em tendência
+ * Executa análise dos últimos 7 dias para identificar top 4-5 produtos
+ */
+export async function generateTrendingProducts() {
+  try {
+    console.log('📊 Iniciando análise de tendências...');
+    const today = new Date();
+    const trending = await storage.generateTrendingProducts(today);
+    console.log(`✅ Análise de tendências concluída: ${trending.length} produtos identificados`);
+    
+    // Log dos produtos em tendência para debug
+    trending.forEach((product, index) => {
+      console.log(`${index + 1}. ${product.productName} (${product.category}) - Score: ${product.totalScore}`);
+    });
+    
+    return trending;
+  } catch (error) {
+    console.error('❌ Erro na análise de tendências:', error);
+    return [];
+  }
+}
+
+/**
  * Job para limpar views muito antigas (opcional - para performance)
  */
 export async function cleanupOldViews() {
