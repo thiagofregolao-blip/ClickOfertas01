@@ -432,7 +432,79 @@ export default function StoresGallery() {
         </div>
       )}
       
-      {/* Mobile: Banner abaixo do header */}
+      {/* Mobile: Stories acima das raspadinhas */}
+      {!searchQuery.trim() && isMobile && (
+        <div className="bg-white border-b">
+          <div className="mx-auto px-4 max-w-full">
+            
+            {/* Stories em scroll horizontal para mobile */}
+            <div className="flex items-start gap-2 overflow-x-auto scrollbar-hide pb-4">
+              {/* Botão Criar Story - Mobile */}
+              <div 
+                className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
+                onClick={() => setLocation('/create-story')}
+                data-testid="button-create-story-mobile"
+              >
+                {/* Círculo de criação */}
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 p-0.5 hover:scale-105 transition-transform">
+                    <div className="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center">
+                      <Plus className="w-8 h-8 text-gray-600" />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Label - mobile */}
+                <div className="text-xs text-gray-600 w-20 text-center leading-tight">
+                  <span className="block truncate">Criar Story</span>
+                </div>
+              </div>
+
+              {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
+                <div 
+                  key={storyStore.id} 
+                  className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
+                  onClick={() => openStoryModal(stories[0], 0)}
+                  data-testid={`story-circle-${storyStore.slug}`}
+                >
+                  {/* Círculo da loja */}
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
+                      <div className="w-full h-full rounded-full overflow-hidden">
+                        <Avatar className="w-full h-full">
+                          <AvatarImage 
+                            src={storyStore.logoUrl} 
+                            alt={storyStore.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <AvatarFallback className="text-sm font-bold bg-white">
+                            {storyStore.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                    </div>
+                    
+                    {/* Contador de stories */}
+                    <Badge 
+                      variant="secondary" 
+                      className="absolute -top-1 -right-1 bg-green-500 text-white border-2 border-white text-xs px-1"
+                    >
+                      {stories.length}
+                    </Badge>
+                  </div>
+                  
+                  {/* Nome da loja - mobile */}
+                  <div className="text-xs text-gray-600 w-20 text-center leading-tight">
+                    <span className="block truncate">{storyStore.name}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Mobile: Banner e raspadinhas abaixo das stories */}
       {isMobile && (
         <BannerSection isSearchActive={!!searchQuery.trim()} />
       )}
@@ -677,77 +749,6 @@ export default function StoresGallery() {
         </div>
       )}
 
-      {/* SEÇÃO DE STORIES - Mobile apenas */}
-      {!searchQuery.trim() && isMobile && (
-        <div className="bg-white border-b">
-          <div className="mx-auto px-4 max-w-full">
-            
-            {/* Stories em scroll horizontal para mobile */}
-            <div className="flex items-start gap-2 overflow-x-auto scrollbar-hide pb-4">
-              {/* Botão Criar Story - Mobile */}
-              <div 
-                className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
-                onClick={() => setLocation('/create-story')}
-                data-testid="button-create-story-mobile"
-              >
-                {/* Círculo de criação */}
-                <div className="relative">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 p-0.5 hover:scale-105 transition-transform">
-                    <div className="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center">
-                      <Plus className="w-8 h-8 text-gray-600" />
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Label - mobile */}
-                <div className="text-xs text-gray-600 w-20 text-center leading-tight">
-                  <span className="block truncate">Criar Story</span>
-                </div>
-              </div>
-
-              {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
-                <div 
-                  key={storyStore.id} 
-                  className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
-                  onClick={() => openStoryModal(stories[0], 0)}
-                  data-testid={`story-circle-${storyStore.slug}`}
-                >
-                  {/* Círculo da loja */}
-                  <div className="relative">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform">
-                      <div className="w-full h-full rounded-full overflow-hidden">
-                        <Avatar className="w-full h-full">
-                          <AvatarImage 
-                            src={storyStore.logoUrl} 
-                            alt={storyStore.name}
-                            className="w-full h-full object-cover"
-                          />
-                          <AvatarFallback className="text-sm font-bold bg-white">
-                            {storyStore.name.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                      </div>
-                    </div>
-                    
-                    {/* Contador de stories */}
-                    <Badge 
-                      variant="secondary" 
-                      className="absolute -top-1 -right-1 bg-green-500 text-white border-2 border-white text-xs px-1"
-                    >
-                      {stories.length}
-                    </Badge>
-                  </div>
-                  
-                  {/* Nome da loja - mobile */}
-                  <div className="text-xs text-gray-600 w-20 text-center leading-tight">
-                    <span className="block truncate">{storyStore.name}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Feed Unificado */}
       <UnifiedFeedView 
