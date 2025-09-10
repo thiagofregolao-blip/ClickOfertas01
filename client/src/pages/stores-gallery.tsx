@@ -72,7 +72,6 @@ export default function StoresGallery() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedStore, setSelectedStore] = useState<StoreWithProducts | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
   
@@ -190,24 +189,6 @@ export default function StoresGallery() {
     setIsPaused(false);
   };
 
-  // Fecha o menu do usuário quando clica fora
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (isUserMenuOpen) {
-        const target = event.target as HTMLElement;
-        // Verifica se o clique foi fora do menu do usuário
-        if (!target.closest('[data-testid="button-user-menu"]') && 
-            !target.closest('.user-dropdown-menu')) {
-          setIsUserMenuOpen(false);
-        }
-      }
-    };
-    
-    if (isUserMenuOpen) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
-    }
-  }, [isUserMenuOpen]);
 
   // Sincronizar viewMode com a detecção automática
   useEffect(() => {
@@ -402,82 +383,6 @@ export default function StoresGallery() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* User Menu for Mobile - Positioned over header */}
-      {isMobile && isAuthenticated && (
-        <div className="fixed top-3 right-3 z-[60]">
-          <div className="relative">
-            <button
-              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-              className="bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 font-medium flex items-center gap-2 px-3 py-1.5 rounded-full"
-              data-testid="button-user-menu"
-            >
-              <User className="w-4 h-4" />
-              <span className="text-xs">
-                {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'User'}
-              </span>
-              <Settings className="w-3 h-3" />
-            </button>
-                  
-            {/* Menu dropdown do usuário */}
-            {isUserMenuOpen && (
-              <div className="user-dropdown-menu absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border py-2 z-50">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsUserMenuOpen(false);
-                    setLocation('/settings');
-                  }}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
-                  data-testid="button-user-config"
-                >
-                  <Settings className="w-4 h-4" />
-                  Configurações
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsUserMenuOpen(false);
-                    setLocation('/shopping-list');
-                  }}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
-                  data-testid="button-shopping-list"
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  Lista de Compras
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsUserMenuOpen(false);
-                    setLocation('/my-coupons');
-                  }}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
-                  data-testid="button-my-coupons"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
-                    <line x1="8" y1="2" x2="8" y2="22"/>
-                    <line x1="16" y1="2" x2="16" y2="22"/>
-                  </svg>
-                  Meus Cupons
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsUserMenuOpen(false);
-                    window.location.href = '/api/auth/logout';
-                  }}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-red-600"
-                  data-testid="button-user-logout"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Sair
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
       
       {/* Mobile: Header com logo, busca e banner */}
       {isMobile && (
@@ -1068,6 +973,20 @@ export default function StoresGallery() {
               </svg>
               <span className="text-xs">Cupons</span>
             </button>
+            
+            {/* Sair - Só aparece para usuários autenticados */}
+            {isAuthenticated && (
+              <button
+                onClick={() => {
+                  window.location.href = '/api/logout';
+                }}
+                className="flex flex-col items-center gap-1 p-2 text-red-600 hover:text-red-700"
+                data-testid="button-mobile-logout"
+              >
+                <LogOut className="w-5 h-5" />
+                <span className="text-xs">Sair</span>
+              </button>
+            )}
           </div>
         </div>
       )}
