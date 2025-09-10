@@ -80,7 +80,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
     <div className="relative w-full mx-auto aspect-[3/1] md:aspect-auto md:w-[790px] md:h-[230px] overflow-hidden shadow-lg group md:rounded-lg">
       {/* Container dos banners com efeito slide */}
       <div 
-        className="flex transition-transform duration-500 ease-in-out h-full"
+        className="flex transition-transform duration-500 ease-in-out h-full will-change-transform"
         style={{
           transform: `translateX(-${currentIndex * 100}%)`,
         }}
@@ -88,7 +88,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
         {banners.map((banner, index) => (
           <div
             key={banner.id}
-            className="w-full h-full cursor-pointer flex-shrink-0"
+            className="basis-full h-full cursor-pointer shrink-0"
             style={{ backgroundColor: banner.backgroundColor }}
             onClick={() => handleBannerClick(banner)}
             data-testid={`banner-carousel-${banner.id}`}
