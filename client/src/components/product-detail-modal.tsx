@@ -58,15 +58,18 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
 
   // Gestures para imagens do produto
   const onImageTouchStart = (e: React.TouchEvent) => {
+    e.stopPropagation(); // Impede propagação para o container pai
     setTouchEndImage(null);
     setTouchStartImage(e.targetTouches[0].clientX);
   };
 
   const onImageTouchMove = (e: React.TouchEvent) => {
+    e.stopPropagation(); // Impede propagação para o container pai
     setTouchEndImage(e.targetTouches[0].clientX);
   };
 
-  const onImageTouchEnd = () => {
+  const onImageTouchEnd = (e: React.TouchEvent) => {
+    e.stopPropagation(); // Impede propagação para o container pai
     if (!touchStartImage || !touchEndImage) return;
     const distance = touchStartImage - touchEndImage;
     const isLeftSwipe = distance > minSwipeDistance;
