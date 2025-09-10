@@ -529,7 +529,7 @@ export default function StoresGallery() {
       
       {/* Mobile: Banner abaixo do header */}
       {isMobile && (
-        <BannerSection />
+        <BannerSection isSearchActive={!!searchQuery.trim()} />
       )}
       
       {/* Desktop: Header completo */}
@@ -695,7 +695,7 @@ export default function StoresGallery() {
           <div className="mx-auto px-2 max-w-6xl py-2">
             {/* Banner ocupando toda a largura */}
             <div className="w-full">
-              <BannerSection />
+              <BannerSection isSearchActive={false} />
             </div>
           </div>
         </div>

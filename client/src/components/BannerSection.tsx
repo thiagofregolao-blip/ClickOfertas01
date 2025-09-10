@@ -18,7 +18,11 @@ interface Banner {
   priority: string;
 }
 
-export function BannerSection() {
+interface BannerSectionProps {
+  isSearchActive?: boolean;
+}
+
+export function BannerSection({ isSearchActive = false }: BannerSectionProps) {
   const { isAuthenticated } = useAuth();
   const { data: banners = [] } = useQuery<Banner[]>({
     queryKey: ['/api/banners/active'],
@@ -98,13 +102,13 @@ export function BannerSection() {
 
         {/* Layout mobile: banner de tela cheia sem bordas laterais */}
         <div className="md:hidden -mx-4 w-screen">
-          {/* Banner rotativo */}
-          {rotatingBanners.length > 0 && (
+          {/* Banner rotativo - ocultar quando busca ativa */}
+          {!isSearchActive && rotatingBanners.length > 0 && (
             <BannerCarousel banners={rotatingBanners} />
           )}
 
-          {/* Rapadinhas diárias em mobile para usuários autenticados */}
-          {isAuthenticated && (
+          {/* Rapadinhas diárias em mobile para usuários autenticados - ocultar quando busca ativa */}
+          {!isSearchActive && isAuthenticated && (
             <div className="px-4 mt-4">
               <ThreeDailyScratchCards />
             </div>
