@@ -19,8 +19,10 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
+  const resumeTimeoutRef = useRef<number | null>(null);
+  const scrollTimeoutRef = useRef<number | null>(null);
 
-  // Auto-play functionality com scroll nativo
+  // Auto-play functionality baseado na posição real de scroll
   useEffect(() => {
     if (!isAutoPlaying || banners.length <= 1 || !containerRef.current) return;
 
@@ -28,17 +30,18 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
       const container = containerRef.current;
       if (!container) return;
 
-      const nextIndex = (currentIndex + 1) % banners.length;
+      // Basear no scroll real, não no estado
+      const currentScrollIndex = Math.round(container.scrollLeft / container.clientWidth);
+      const nextIndex = (currentScrollIndex + 1) % banners.length;
       const scrollLeft = nextIndex * container.clientWidth;
       
       container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
-      setCurrentIndex(nextIndex);
     }, autoPlayInterval);
 
     return () => clearInterval(interval);
-  }, [banners.length, autoPlayInterval, isAutoPlaying, currentIndex]);
+  }, [isAutoPlaying, banners.length, autoPlayInterval]);
 
-  // Detectar scroll para atualizar indicador
+  // Detectar scroll para atualizar indicador com debounce
   const handleScroll = () => {
     if (!containerRef.current) return;
     
@@ -50,19 +53,52 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
     if (newIndex !== currentIndex) {
       setCurrentIndex(newIndex);
     }
+
+    // Debounce: reagendar autoplay após scroll parar
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    
+    scrollTimeoutRef.current = window.setTimeout(() => {
+      if (!isAutoPlaying) {
+        setIsAutoPlaying(true);
+      }
+    }, 1500);
   };
+
+  // Função para pausar autoplay temporariamente
+  const pauseAutoplay = () => {
+    setIsAutoPlaying(false);
+    
+    if (resumeTimeoutRef.current) {
+      clearTimeout(resumeTimeoutRef.current);
+    }
+    
+    resumeTimeoutRef.current = window.setTimeout(() => {
+      setIsAutoPlaying(true);
+    }, 2500);
+  };
+
+  // Cleanup dos timeouts
+  useEffect(() => {
+    return () => {
+      if (resumeTimeoutRef.current) {
+        clearTimeout(resumeTimeoutRef.current);
+      }
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const goToSlide = (index: number) => {
     if (!containerRef.current) return;
     
-    setIsAutoPlaying(false);
+    pauseAutoplay();
     const container = containerRef.current;
     const scrollLeft = index * container.clientWidth;
     container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
     setCurrentIndex(index);
-    
-    // Reativar autoplay após 3 segundos
-    setTimeout(() => setIsAutoPlaying(true), 3000);
   };
 
   if (!banners || banners.length === 0) {
@@ -103,13 +139,13 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
           msOverflowStyle: 'none'
         }}
         onScroll={handleScroll}
-        onTouchStart={() => setIsAutoPlaying(false)}
-        onMouseDown={() => setIsAutoPlaying(false)}
+        onTouchStart={pauseAutoplay}
+        onMouseDown={pauseAutoplay}
       >
         {banners.map((banner, index) => (
           <div
             key={banner.id}
-            className="min-w-full h-full shrink-0 snap-start cursor-pointer"
+            className="min-w-full h-full shrink-0 snap-start snap-always cursor-pointer"
             style={{ backgroundColor: banner.backgroundColor }}
             onClick={() => handleBannerClick(banner)}
             data-testid={`banner-carousel-${banner.id}`}
