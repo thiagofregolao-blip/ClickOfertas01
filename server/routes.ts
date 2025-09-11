@@ -4409,6 +4409,113 @@ Keep the overall composition and maintain the same visual quality. This is for a
     }
   });
 
+  // Buscar TODOS os produtos (para Super Admin - Teste IA)
+  app.get('/api/super-admin/all-products', isAuthenticated, async (req: any, res) => {
+    try {
+      // Verificar se é super admin
+      const user = req.user || req.session?.user;
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ error: 'Acesso negado. Requer privilégios de Super Admin.' });
+      }
+
+      // Buscar todos os produtos com informações das lojas
+      const products = await storage.getAllProducts();
+      
+      // Buscar informações das lojas para enrichment
+      const allStores = await storage.getAllStores();
+      const storeMap = new Map(allStores.map(store => [store.id, store]));
+      
+      // Enrichar produtos com dados da loja
+      const enrichedProducts = products.map(product => {
+        const store = storeMap.get(product.storeId);
+        return {
+          ...product,
+          storeName: store?.name || 'Loja não encontrada',
+          storeLogoUrl: store?.logoUrl || null,
+          storeIsActive: store?.isActive || false
+        };
+      });
+      
+      res.json(enrichedProducts);
+    } catch (error) {
+      console.error('Error getting all products:', error);
+      res.status(500).json({ error: 'Erro ao buscar produtos' });
+    }
+  });
+
+  // Gerar banner de teste com produtos específicos (para Super Admin)
+  app.post('/api/super-admin/ai-test/generate-banner', isAuthenticated, async (req: any, res) => {
+    try {
+      // Verificar se é super admin
+      const user = req.user || req.session?.user;
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ error: 'Acesso negado. Requer privilégios de Super Admin.' });
+      }
+
+      const { productIds, testMode } = req.body;
+      
+      if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+        return res.status(400).json({ error: 'Lista de produtos é obrigatória' });
+      }
+
+      // Buscar produtos selecionados
+      const allProducts = await storage.getAllProducts();
+      const selectedProducts = allProducts.filter(product => productIds.includes(product.id));
+      
+      if (selectedProducts.length === 0) {
+        return res.status(400).json({ error: 'Nenhum produto válido encontrado' });
+      }
+
+      // Buscar informações das lojas
+      const allStores = await storage.getAllStores();
+      const storeMap = new Map(allStores.map(store => [store.id, store]));
+      
+      // Enrichar produtos com dados da loja
+      const enrichedProducts = selectedProducts.map(product => {
+        const store = storeMap.get(product.storeId);
+        return {
+          ...product,
+          storeName: store?.name || 'Loja não encontrada'
+        };
+      });
+
+      // Gerar prompt personalizado para os produtos selecionados
+      const productNames = enrichedProducts.map(p => p.name).join(', ');
+      const storeNames = [...new Set(enrichedProducts.map(p => p.storeName))].join(', ');
+      
+      const customPrompt = `Crie um banner promocional chamativo para destacar os seguintes produtos selecionados para teste: ${productNames}. Produtos das lojas: ${storeNames}. Use design vibrante com cores que chamem atenção, layout moderno e limpo. Inclua elementos visuais que remetam a ofertas especiais e promoções imperdíveis.`;
+
+      // Usar o sistema de geração existente com produtos customizados
+      const { imageUrl } = await generatePromotionalArt(enrichedProducts, customPrompt);
+      
+      // Salvar a arte gerada como arte de teste
+      const trendingProductsData = JSON.stringify(enrichedProducts.map(p => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        storeName: p.storeName
+      })));
+
+      await storage.saveGeneratedTotemArt(
+        'global-trends',
+        imageUrl,
+        new Date(),
+        trendingProductsData,
+        `TESTE IA: ${customPrompt.substring(0, 100)}...`
+      );
+      
+      res.json({ 
+        success: true, 
+        message: `Banner de teste gerado com sucesso usando ${selectedProducts.length} produto(s)`,
+        imageUrl,
+        productsUsed: selectedProducts.length
+      });
+    } catch (error) {
+      console.error('Error generating test banner:', error);
+      res.status(500).json({ error: error.message || 'Erro ao gerar banner de teste' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
