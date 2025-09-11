@@ -16,6 +16,28 @@ function normalizeAndValidatePrivateKey(key: string): string {
   // Remover espaços e aspas ao redor
   let normalized = key.trim();
   
+  // Detectar se é um fragmento de JSON e extrair apenas a private_key
+  if (normalized.includes('"client_email"') || normalized.includes('"type"')) {
+    console.log('🔍 Detectado fragmento de JSON na private_key, extraindo...');
+    try {
+      // Tentar extrair a private_key do JSON
+      const match = normalized.match(/"private_key":\s*"([^"]+)"/);
+      if (match) {
+        normalized = match[1];
+        console.log('✅ Private key extraída do JSON');
+      } else {
+        // Procurar por padrão de chave PEM diretamente
+        const pemMatch = normalized.match(/(-----BEGIN PRIVATE KEY-----[\s\S]*?-----END PRIVATE KEY-----)/);
+        if (pemMatch) {
+          normalized = pemMatch[1];
+          console.log('✅ Chave PEM extraída do texto');
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Falha ao extrair chave do JSON, continuando com normalização padrão');
+    }
+  }
+  
   // Remover aspas (simples, duplas, backticks) se existirem
   if ((normalized.startsWith('"') && normalized.endsWith('"')) ||
       (normalized.startsWith("'") && normalized.endsWith("'")) ||
@@ -23,28 +45,42 @@ function normalizeAndValidatePrivateKey(key: string): string {
     normalized = normalized.slice(1, -1);
   }
   
-  // Normalizar quebras de linha
+  // Normalização robusta conforme Opção C
   normalized = normalized
-    .replace(/\\r\\n/g, '\n')
-    .replace(/\\n/g, '\n')
-    .replace(/\\r/g, '\n')
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n');
+    .replace(/\\n/g, '\n')   // transforma \n literais em quebras reais
+    .replace(/\r/g, '');     // remove CR em Windows
   
   // Garantir quebra de linha final
   if (!normalized.endsWith('\n')) {
     normalized += '\n';
   }
   
-  // TEMPORÁRIO: Pular validação pois chave está comprometida
-  console.warn('⚠️ CHAVE COMPROMETIDA: Validação desabilitada temporariamente');
-  console.warn('🔑 AÇÃO URGENTE: Revogar chave atual e gerar nova no Google Cloud');
-  
-  // Log seguro para debug
-  const keyFingerprint = crypto.createHash('sha256').update(normalized).digest('hex').slice(0, 8);
-  console.log(`⚠️ Usando chave comprometida (fingerprint: ${keyFingerprint})`);
-  
-  return normalized;
+  // Teste de validação com crypto.createPrivateKey
+  try {
+    crypto.createPrivateKey({ key: normalized });
+    console.log('✅ Private key passou na validação crypto.createPrivateKey()');
+    
+    // Log seguro para debug
+    const keyFingerprint = crypto.createHash('sha256').update(normalized).digest('hex').slice(0, 8);
+    console.log(`✅ Chave válida (fingerprint: ${keyFingerprint})`);
+    
+    return normalized;
+  } catch (error: any) {
+    console.error('❌ Private key ainda inválida após normalização:', {
+      message: error.message,
+      hasBeginHeader: normalized.includes('-----BEGIN'),
+      hasEndFooter: normalized.includes('-----END'),
+      length: normalized.length
+    });
+    
+    // Log de debug detalhado
+    console.log('🔍 Debug da chave:');
+    console.log('- Primeira linha:', normalized.split('\n')[0]);
+    console.log('- Última linha:', normalized.split('\n').slice(-2, -1)[0]);
+    console.log('- Total de linhas:', normalized.split('\n').length);
+    
+    throw new Error(`Private key inválida após normalização: ${error.message}`);
+  }
 }
 
 // Configurar autenticação Vertex AI
