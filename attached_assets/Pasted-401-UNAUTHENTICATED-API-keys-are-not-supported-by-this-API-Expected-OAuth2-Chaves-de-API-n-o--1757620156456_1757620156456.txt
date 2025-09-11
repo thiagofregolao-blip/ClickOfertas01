@@ -1,0 +1,111 @@
+401 UNAUTHENTICATED — “API keys are not supported by this API. Expected OAuth2…”
+(Chaves de API não são aceitas no Vertex AI. Ele espera OAuth2/conta de serviço.)
+
+Em outras palavras: a sua chamada para o Vertex AI está indo com key=... (ou header x-goog-api-key) em vez de Bearer token de uma conta de serviço.
+
+Como corrigir (passo a passo)
+1) Use conta de serviço (ADC), não key=...
+
+Crie/defina uma Service Account no projeto.
+
+Dê a ela os papéis mínimos:
+
+Vertex AI User (ou roles/aiplatform.user)
+
+Service Usage Consumer (roles/serviceusage.serviceUsageConsumer)
+
+Em desenvolvimento local: baixe o JSON e exporte:
+
+set GOOGLE_APPLICATION_CREDENTIALS=C:\caminho\chave.json   (Windows)
+# ou
+export GOOGLE_APPLICATION_CREDENTIALS=/caminho/chave.json  (Linux/macOS)
+
+
+Em produção (Cloud Run, GCE, GKE etc.): anexe a service account ao serviço (não use arquivo de chave).
+
+2) Chame o endpoint do Vertex com Bearer token
+
+Nada de ?key= ou x-goog-api-key. Exemplo Node/Express (copie e compare com o seu):
+
+import fetch from "node-fetch";
+import { GoogleAuth } from "google-auth-library";
+
+const PROJECT_ID = "SEU_PROJECT_ID";
+const LOCATION   = "us-central1";
+const MODEL      = "gemini-2.5-flash-image"; // ou o ID exato que aparece em "Receber código"
+
+const auth = new GoogleAuth({ scopes: "https://www.googleapis.com/auth/cloud-platform" });
+
+export async function gerarImagem(req, res) {
+  try {
+    const { prompt } = req.body;
+    const client = await auth.getClient();
+    const { token } = await client.getAccessToken();
+
+    const url = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}` +
+                `/locations/${LOCATION}/publishers/google/models/${MODEL}:generateContent`;
+
+    const body = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+
+    const r = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const text = await r.text();
+    if (!r.ok) return res.status(r.status).type("application/json").send(text);
+
+    const json = JSON.parse(text);
+    const part = json?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+    if (!part) return res.status(500).send("Sem imagem no retorno");
+    const buf = Buffer.from(part.inlineData.data, "base64");
+    res.setHeader("Content-Type", part.inlineData.mimeType || "image/png");
+    return res.send(buf);
+  } catch (e) {
+    return res.status(500).send(String(e));
+  }
+}
+
+3) Teste rápido (para isolar problema de credencial)
+
+No terminal (com gcloud logado no projeto):
+
+gcloud auth application-default print-access-token
+
+
+Depois use esse token num curl (substitua PROJECT/LOCATION/MODEL):
+
+TOKEN="$(gcloud auth application-default print-access-token)"
+curl -s -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  "https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/gemini-2.5-flash-image:generateContent" \
+  -d '{"contents":[{"role":"user","parts":[{"text":"ícone minimalista de espiga de milho, fundo transparente"}]}]}'
+
+
+Se o curl funcionar, o problema estava no seu código (provavelmente key=).
+
+4) Checklist do que costuma causar esse 401
+
+ Qualquer ?key=... na URL (remova).
+
+ Header x-goog-api-key definido (remova).
+
+ GOOGLE_APPLICATION_CREDENTIALS não apontando para o JSON correto.
+
+ Serviço em produção sem service account anexada.
+
+ Projeto/Região/Modelo diferentes do que o Studio mostra em “Receber código”.
+
+5) Bônus: propague o status correto
+
+Seu front exibiu 500; melhor repassar o 401 do Google:
+
+if (!r.ok) {
+  const text = await r.text();
+  return res.status(r.status).type("application/json").send(text); // 401 vai como 401
+}

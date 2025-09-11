@@ -1,14 +1,22 @@
 import * as fs from "fs";
+import { GoogleAuth } from "google-auth-library";
 
-// Configuração Vertex AI para quotas maiores - usando endpoint Vertex AI com API Key
+// Configuração Vertex AI para quotas maiores - autenticação OAuth2 correta
 const PROJECT_ID = process.env.GCLOUD_PROJECT;
 const LOCATION = "us-central1";
 const GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
 const GEMINI_TEXT_MODEL = "gemini-2.5-flash";
 const GEMINI_PRO_MODEL = "gemini-2.5-pro";
 
-// Usar API Key para autenticação Vertex AI (funciona no Replit)
-const API_KEY = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+// GoogleAuth com Service Account credentials para Vertex AI
+const auth = new GoogleAuth({
+  credentials: {
+    client_email: process.env.GOOGLE_CLIENT_EMAIL,
+    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'), // Corrigir quebras de linha
+  },
+  projectId: PROJECT_ID,
+  scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+});
 
 interface VertexAIError {
   error: {
@@ -24,28 +32,48 @@ interface VertexAIError {
   };
 }
 
-// Função auxiliar para fazer chamadas Vertex AI com API Key diretamente
+// Função auxiliar para fazer chamadas Vertex AI com OAuth2 Bearer token
 async function callVertexAI(model: string, body: any): Promise<any> {
   if (!PROJECT_ID) {
     throw new Error("❌ GCLOUD_PROJECT não configurado. Configure o ID do projeto (não número) nos Secrets do Replit.");
   }
   
-  if (!API_KEY) {
-    throw new Error("❌ GOOGLE_API_KEY não configurado. Configure nos Secrets do Replit.");
+  if (!process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
+    throw new Error("❌ GOOGLE_CLIENT_EMAIL e GOOGLE_PRIVATE_KEY não configurados. Configure os dados da Service Account nos Secrets do Replit.");
   }
 
-  // Endpoint Vertex AI com API Key (não precisa GoogleAuth)
-  const url = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${model}:generateContent?key=${API_KEY}`;
+  try {
+    // Obter Bearer token OAuth2 da Service Account
+    const client = await auth.getClient();
+    const { token } = await client.getAccessToken();
+    
+    if (!token) {
+      throw new Error("❌ Falha ao obter token OAuth2 da Service Account");
+    }
 
-  console.log(`🚀 Chamando Vertex AI: ${model} em ${PROJECT_ID}`);
+    // Endpoint Vertex AI correto (SEM API key, COM Bearer token)
+    const url = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${model}:generateContent`;
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+    console.log(`🚀 Chamando Vertex AI OAuth2: ${model} em ${PROJECT_ID}`);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    
+    return await handleVertexResponse(response);
+  } catch (authError: any) {
+    console.error("❌ Erro de autenticação OAuth2:", authError);
+    throw new Error(`Falha na autenticação Vertex AI: ${authError.message}`);
+  }
+}
+
+// Função auxiliar para processar resposta do Vertex AI
+async function handleVertexResponse(response: Response): Promise<any> {
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -62,9 +90,11 @@ async function callVertexAI(model: string, body: any): Promise<any> {
         fullError: errorJson
       });
       
-      // Criar mensagem de erro específica baseada na quota
+      // Criar mensagem de erro específica
       let errorMessage = errorJson.error.message;
-      if (response.status === 429) {
+      if (response.status === 401) {
+        errorMessage = "❌ Erro de autenticação: Verifique se a Service Account tem as permissões 'Vertex AI User' e 'Service Usage Consumer'";
+      } else if (response.status === 429) {
         if (quotaLimit?.includes('PerDay')) {
           errorMessage = "⚠️ Quota diária do Vertex AI esgotada. Reset às ~04:00 BRT. Considere solicitar aumento de quota.";
         } else if (quotaLimit?.includes('PerMinute')) {
