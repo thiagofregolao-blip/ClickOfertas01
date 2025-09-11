@@ -1,0 +1,85 @@
+Receber código” e usar no seu app (via backend seguro)
+
+No topo direito do Studio, clique em Receber código e selecione Node.js (ou Python) e a região (geralmente us-central1).
+Abaixo deixo um exemplo de endpoint Node/Express usando Vertex AI (com conta de serviço). Assim o seu app Flutter só chama seu backend e você controla a taxa/quotas.
+
+Node.js (backend) – Vertex AI (REST oficial)
+// server.js
+import express from "express";
+import fetch from "node-fetch";
+import { GoogleAuth } from "google-auth-library";
+
+const app = express();
+app.use(express.json());
+
+const PROJECT_ID = process.env.GCLOUD_PROJECT || "SEU_PROJECT_ID";
+const LOCATION = "us-central1";
+// Modelos disponíveis no Studio (escolha o seu):
+// const MODEL = "imagen-4.0-generate-001"; // Imagen 4
+const MODEL = "gemini-2.5-flash-image"; // Nano Banana no Vertex AI (ajuste se o Studio mostrar sufixo diferente)
+
+const auth = new GoogleAuth({
+  scopes: "https://www.googleapis.com/auth/cloud-platform",
+});
+
+app.post("/api/gerar-imagem", async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    const client = await auth.getClient();
+    const token = await client.getAccessToken();
+
+    const url =
+      `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}` +
+      `/locations/${LOCATION}/publishers/google/models/${MODEL}:generateContent`;
+
+    const body = {
+      contents: [
+        { role: "user", parts: [{ text: prompt }] }
+      ],
+      // opcional: repetir resultado
+      generationConfig: { seed: 123 }, 
+    };
+
+    const r = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token.token || token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!r.ok) {
+      const errTxt = await r.text();
+      return res.status(r.status).send(errTxt); // 429 -> bateu quota/rajada
+    }
+
+    const json = await r.json();
+    const parts = json?.candidates?.[0]?.content?.parts || [];
+    const imgPart = parts.find(p => p.inlineData && p.inlineData.mimeType?.startsWith("image/"));
+    if (!imgPart) return res.status(500).send("Sem imagem no retorno.");
+
+    const b64 = imgPart.inlineData.data;
+    const buf = Buffer.from(b64, "base64");
+    res.setHeader("Content-Type", imgPart.inlineData.mimeType || "image/png");
+    return res.send(buf);
+  } catch (e) {
+    console.error(e);
+    res.status(500).send(String(e));
+  }
+});
+
+app.listen(3000, () => console.log("API rodando em http://localhost:3000"));
+
+
+Como usar do Flutter/app:
+
+Envie POST /api/gerar-imagem com { "prompt": "seu prompt" }.
+
+Receba os bytes PNG e exiba com Image.memory(bytes).
+
+Importante:
+
+Não coloque chave de API no app. Use conta de serviço no servidor (GOOGLE_APPLICATION_CREDENTIALS apontando para o JSON).
+
+Se tomar HTTP 429, implemente retry com pequenas esperas e limite a concorrência (2–5 chamadas em paralelo).

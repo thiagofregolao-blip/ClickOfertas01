@@ -25,7 +25,9 @@ export async function generateImage(
         
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash-image-preview",
-            contents: prompt // Estrutura simples como mostrado no exemplo
+            contents: [
+                { role: "user", parts: [{ text: prompt }] }
+            ]
         });
 
         // Buscar por inlineData nas parts retornadas
@@ -39,14 +41,15 @@ export async function generateImage(
             throw new Error("No content parts returned from Gemini");
         }
 
-        // Encontrar a parte com imagem
-        for (const part of content.parts) {
-            if (part.inlineData && part.inlineData.data) {
-                const imageData = Buffer.from(part.inlineData.data, "base64");
-                fs.writeFileSync(imagePath, imageData);
-                console.log(`✅ Imagem gerada com Nano Banana: ${imagePath} (${imageData.length} bytes)`);
-                return;
-            }
+        // Encontrar a parte com imagem - seguindo estrutura do exemplo
+        const parts = content.parts || [];
+        const imgPart = parts.find(p => p.inlineData && p.inlineData.mimeType?.startsWith("image/"));
+        
+        if (imgPart && imgPart.inlineData?.data) {
+            const imageData = Buffer.from(imgPart.inlineData.data, "base64");
+            fs.writeFileSync(imagePath, imageData);
+            console.log(`✅ Imagem gerada com Nano Banana: ${imagePath} (${imageData.length} bytes, ${imgPart.inlineData.mimeType})`);
+            return;
         }
         
         throw new Error("Nenhuma imagem retornada pela API do Nano Banana");
