@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { getUserId } from "./utils/auth";
-import { generatePromotionalArt } from "../gemini";
+import { generatePromotionalArt } from "../gemini.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -4233,7 +4233,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
   // =============================================
 
   // Analytics globais agregados de todas as lojas (para Super Admin)
-  app.get('/api/super-admin/analytics/global-overview', isAuthenticated, async (req: any, res) => {
+  app.get('/api/super-admin/analytics/global-overview', isSuperAdmin, async (req: any, res) => {
     try {
       // Verificar se é super admin
       const user = req.user || req.session?.user;
@@ -4285,7 +4285,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
   });
 
   // Analytics detalhados por loja (para Super Admin)  
-  app.get('/api/super-admin/analytics/stores-detail', isAuthenticated, async (req: any, res) => {
+  app.get('/api/super-admin/analytics/stores-detail', isSuperAdmin, async (req: any, res) => {
     try {
       // Verificar se é super admin
       const user = req.user || req.session?.user;
@@ -4331,7 +4331,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
   });
 
   // Gestão completa de artes IA (para Super Admin)
-  app.get('/api/super-admin/generated-arts/manage', isAuthenticated, async (req: any, res) => {
+  app.get('/api/super-admin/generated-arts/manage', isSuperAdmin, async (req: any, res) => {
     try {
       // Verificar se é super admin
       const user = req.user || req.session?.user;
@@ -4366,7 +4366,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
   });
 
   // Excluir arte IA (para Super Admin)
-  app.delete('/api/super-admin/generated-arts/:artId', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/super-admin/generated-arts/:artId', isSuperAdmin, async (req: any, res) => {
     try {
       // Verificar se é super admin
       const user = req.user || req.session?.user;
@@ -4389,7 +4389,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
   });
 
   // Forçar geração de nova arte (para Super Admin)
-  app.post('/api/super-admin/generated-arts/force-generate', isAuthenticated, async (req: any, res) => {
+  app.post('/api/super-admin/generated-arts/force-generate', isSuperAdmin, async (req: any, res) => {
     try {
       // Verificar se é super admin
       const user = req.user || req.session?.user;
@@ -4411,7 +4411,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
   });
 
   // Buscar TODOS os produtos (para Super Admin - Teste IA)
-  app.get('/api/super-admin/all-products', isAuthenticated, async (req: any, res) => {
+  app.get('/api/super-admin/all-products', isSuperAdmin, async (req: any, res) => {
     try {
       // Verificar se é super admin
       const user = req.user || req.session?.user;
@@ -4445,7 +4445,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
   });
 
   // Gerar banner de teste com produtos específicos (para Super Admin)
-  app.post('/api/super-admin/ai-test/generate-banner', isAuthenticated, async (req: any, res) => {
+  app.post('/api/super-admin/ai-test/generate-banner', isSuperAdmin, async (req: any, res) => {
     try {
       // Verificar se é super admin
       const user = req.user || req.session?.user;
