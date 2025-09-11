@@ -504,7 +504,6 @@ function AITestInterface() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
 
   // ========== BUSCAR TODOS OS PRODUTOS ==========
   const { data: allProducts, isLoading: productsLoading } = useQuery({
@@ -2204,7 +2203,7 @@ export default function SuperAdmin() {
                           {store.isActive ? "Ativa" : "Inativa"}
                         </Badge>
                         <Badge variant="outline">
-                          {store.products.length} produtos
+                          {store.products?.length || 0} produtos
                         </Badge>
                       </div>
                       
