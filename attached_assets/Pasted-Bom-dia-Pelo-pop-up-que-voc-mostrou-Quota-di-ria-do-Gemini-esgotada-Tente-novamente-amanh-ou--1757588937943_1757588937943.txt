@@ -1,0 +1,185 @@
+Bom dia! Pelo pop-up que você mostrou:
+
+“Quota diária do Gemini esgotada. Tente novamente amanhã ou faça upgrade do plano.”
+
+isso quase sempre acontece quando o seu backend está chamando a Gemini API (Developer API) via chave, não o Vertex AI. A mensagem “faça upgrade do plano” é típica do plano da Gemini API por chave; o Vertex normalmente retorna apenas 429/RESOURCE_EXHAUSTED sem esse texto.
+
+Como confirmar em 1 minuto
+
+Abra o log da sua API e verifique qual URL você está chamando:
+
+https://generativelanguage.googleapis.com/...:generateContent?key=... → Você está usando a Gemini API por chave (limites/dia menores).
+
+https://{LOCATION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/google/models/{MODEL}:generateContent → Você está no Vertex AI (conta de serviço, quotas por projeto/região).
+
+Se enxergar ?key= na URL, está indo para a Developer API (a cota diária dela zerou).
+Se for a URL do Vertex, aí a cota que zerou é a do Vertex AI (Requests per day na região usada).
+
+Correções rápidas
+1) Garanta que seu servidor está chamando o Vertex AI (não a Developer API)
+
+Autenticação: usar conta de serviço (GoogleAuth / ADC), sem key=....
+
+Endpoint: https://{LOCATION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/google/models/{MODEL}:generateContent
+
+MODEL (exemplo): gemini-2.5-flash-image (ajuste exatamente para o ID que aparece no “Receber código” do Studio).
+
+Exemplo (Node/Express – Vertex REST) — compare com o seu e ajuste a URL/autenticação: 
+
+vertex-ai-implementation
+
+const url =
+ `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}` +
+ `/locations/${LOCATION}/publishers/google/models/${MODEL}:generateContent`;
+// sem ?key=... ; use Authorization: Bearer <token da conta de serviço>
+
+2) Não transforme 429 em 500
+
+Hoje seu app mostra 500; isso mascara o erro real. Devolva o status do upstream:
+
+const r = await fetch(url, { ... });
+if (!r.ok) {
+  const text = await r.text();
+  // devolve o status original (429 quando for quota)
+  return res.status(r.status).type("application/json").send(text);
+}
+
+3) Diga ao usuário qual quota estourou (dia vs minuto)
+
+A resposta de erro costuma trazer detalhes. Extraia o “quota_limit”:
+
+try {
+  const text = await r.text();
+  const err = JSON.parse(text);
+  const info = err?.error?.details?.find(d => (d['@type']||'').includes('ErrorInfo'));
+  const limit = info?.metadata?.quota_limit; // ex.: RequestsPerDay ou RequestsPerMinutePerProject
+  console.error("Quota estourada:", limit);
+  return res.status(r.status).json({ error: err.error.message, limit });
+} catch {
+  return res.status(r.status).send(text);
+}
+
+
+RequestsPerMinute… → rajada (muitas por minuto).
+
+RequestsPerDay → acabou o dia. (Reseta ~04:00 BRT.)
+
+4) Se for mesmo Developer API por chave
+
+Ou espere o reset diário (~04:00 BRT),
+
+ou faça upgrade/solicite aumento,
+
+ou migre as chamadas do app para Vertex AI com conta de serviço (recomendado para produção).
+
+5) Se for Vertex AI
+
+Vá em IAM e administrador → Cotas, Serviço: Vertex AI API, Região: a que você usa (ex.: us-central1), busque “generation” e verifique:
+
+…requests per minute… (rajadas → ajuste concorrência/retry)
+
+…requests per day… (cota diária → peça aumento ali mesmo)
+
+Reduza rajadas: 2–5 requisições em paralelo no máx. + retry exponencial (1s→2s→4s…).
+
+Checklist do que pode estar “errado” aí
+
+ Endpoint ainda é generativelanguage.googleapis.com com ?key= (Developer API).
+
+ Servidor converte qualquer erro em 500 (não propaga 429).
+
+ Modelo/Região divergentes do que o Studio mostrou em “Receber código”.
+
+ Concorrência alta sem retry → estoura per minute e “parece” cota.
+
+ Faltou vincular faturamento ou pedir aumento de cota na linha correta.
+
+Se quiser, cole aqui a URL que seu backend está chamando (sem segredos) e/ou o JSON do erro que chegou do Google. Em cima disso te digo em qual cota bater e já te passo o texto pronto para o pedido de aumento.
+
+Fontes
+Você disse:
+voce analisou o codigo que te mandei
+
+O ChatGPT disse:
+Pensou por 42s
+
+Sim — analisei o arquivo que você mandou (vertex-ai-implementation.txt). Eis o que vi e o que recomendo:
+
+O que está certo no seu código
+
+Você está chamando o Vertex AI (URL ...aiplatform.googleapis.com/...:generateContent), não a Developer API por chave. 
+
+vertex-ai-implementation
+
+A autenticação usa conta de serviço com GoogleAuth (escopo cloud-platform). 
+
+vertex-ai-implementation
+
+Você propaga o status HTTP original do Google (429, 400 etc.) ao cliente — ótimo. 
+
+vertex-ai-implementation
+
+O parse do retorno pega a imagem via inlineData corretamente. 
+
+vertex-ai-implementation
+
+Por que você viu “Quota diária do Gemini esgotada”
+
+Essa mensagem é típica da Developer API por chave (o texto “faça upgrade do plano” vem de lá). No seu arquivo também aparece o trecho da implementação antiga com @google/genai — se algum lugar do sistema ainda usa isso, você pode estar chamando a Developer API sem perceber. 
+
+vertex-ai-implementation
+
+Checklist para achar o “caminho antigo”
+
+Procure no projeto por:
+
+generativelanguage.googleapis.com
+
+?key=
+
+@google/genai
+
+Garanta que o app sempre chama seu endpoint /api/gerar-imagem (e não a API do Gemini direto do front).
+
+Nos logs do backend, registre e confira a URL chamada (deve ser ...aiplatform.googleapis.com).
+
+Se algum trecho ainda bater na Developer API, vai “comer” a cota diária dela e disparar exatamente esse alerta, mesmo que o seu backend novo esteja ok.
+
+Melhoria rápida no tratamento de erro (descobrir qual quota estourou)
+
+Adapte esse trecho para extrair o nome do limite do erro do Vertex (ex.: RequestsPerDay ou RequestsPerMinutePerProject), em vez de devolver 500 genérico:
+
+const r = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
+
+if (!r.ok) {
+  const text = await r.text();
+  try {
+    const err = JSON.parse(text);
+    const info = err?.error?.details?.find(d => (d['@type']||'').includes('ErrorInfo'));
+    const quota = info?.metadata?.quota_limit; // ex.: RequestsPerDay
+    return res.status(r.status).json({ message: err?.error?.message, quota });
+  } catch {
+    return res.status(r.status).type("application/json").send(text);
+  }
+}
+
+
+Assim você saberá na hora se foi por minuto (rajada) ou por dia (acabar do dia).
+
+Se for quota do Vertex AI (e não Developer API)
+
+Abra IAM e administrador → Cotas, Serviço: Vertex AI API, Região: (ex.) us-central1; filtre por “generation” e veja:
+
+…requests per minute… → reduza concorrência (2–5 em paralelo) + retry com backoff.
+
+…requests per day… → peça aumento na linha da quota ou espere o reset (~04:00 BRT).
+
+Resumo
+
+O arquivo que você me mandou está correto e usa o Vertex AI. 
+
+vertex-ai-implementation
+
+O alerta “Quota diária do Gemini esgotada” indica que alguma rota ainda usa a Developer API por chave. Procure pelos indicadores acima e direcione tudo para o endpoint do Vertex.
+
+Adicione o parse do erro para identificar exatamente qual quota bateu e decidir (reduzir rajadas vs. pedir aumento).
