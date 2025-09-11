@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import { GoogleAuth } from "google-auth-library";
+import * as crypto from "crypto";
 
 // Configuração Vertex AI para quotas maiores - autenticação OAuth2 correta
 const PROJECT_ID = process.env.GCLOUD_PROJECT;
@@ -8,15 +9,49 @@ const GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
 const GEMINI_TEXT_MODEL = "gemini-2.5-flash";
 const GEMINI_PRO_MODEL = "gemini-2.5-pro";
 
-// GoogleAuth com Service Account credentials para Vertex AI
-const auth = new GoogleAuth({
-  credentials: {
-    client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'), // Corrigir quebras de linha
-  },
-  projectId: PROJECT_ID,
-  scopes: ['https://www.googleapis.com/auth/cloud-platform'],
-});
+// Configurar autenticação Vertex AI - usando JSON completo (mais confiável)
+let auth: GoogleAuth;
+
+if (process.env.GOOGLE_CREDENTIALS_JSON) {
+  // Opção C: JSON completo em uma única variável (recomendado)
+  console.log('🔧 Usando GOOGLE_CREDENTIALS_JSON...');
+  try {
+    const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+    auth = new GoogleAuth({
+      credentials,
+      scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+    });
+    console.log('✅ Autenticação configurada via JSON completo');
+  } catch (error: any) {
+    console.error('❌ Erro ao parsear GOOGLE_CREDENTIALS_JSON:', error.message);
+    throw new Error('JSON de credenciais inválido');
+  }
+} else if (process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
+  // Fallback: variáveis separadas
+  console.log('🔧 Usando variáveis GOOGLE_CLIENT_EMAIL e GOOGLE_PRIVATE_KEY...');
+  
+  // Normalizar private_key
+  let privateKey = process.env.GOOGLE_PRIVATE_KEY
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '\n')
+    .trim();
+  
+  if (!privateKey.endsWith('\n')) {
+    privateKey += '\n';
+  }
+  
+  auth = new GoogleAuth({
+    credentials: {
+      client_email: process.env.GOOGLE_CLIENT_EMAIL,
+      private_key: privateKey,
+    },
+    projectId: PROJECT_ID,
+    scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+  });
+  console.log('✅ Autenticação configurada via variáveis separadas');
+} else {
+  throw new Error('❌ Configuração de autenticação não encontrada. Configure GOOGLE_CREDENTIALS_JSON ou GOOGLE_CLIENT_EMAIL + GOOGLE_PRIVATE_KEY');
+}
 
 interface VertexAIError {
   error: {

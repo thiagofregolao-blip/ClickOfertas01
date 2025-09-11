@@ -1,0 +1,141 @@
+Esse erro:
+
+Falha na autenticação Vertex AI: error:1E08010C:DECODER routines::unsupported
+
+é do OpenSSL/Node tentando ler a chave privada da sua service account e não conseguindo decodificar. Quase sempre acontece por um destes motivos:
+
+Você colocou a chave no .env e os \n ficaram como texto literal (\\n), então o PEM fica inválido.
+
+Você passou API key ou JSON incompleto no lugar da credencial de service account.
+
+Está apontando para um arquivo errado (não é o JSON da service account) ou com caracteres extras.
+
+Raro: Node/OpenSSL antigos/incompatíveis.
+
+A seguir, como corrigir rapidinho — escolha o cenário que você usa.
+
+✅ Cenário A (recomendado): usar o arquivo JSON da service account
+
+Gere o JSON em: IAM & Admin → Contas de serviço → [sua SA] → Chaves → Adicionar chave → JSON.
+
+No servidor/local, aponte a variável para o caminho do arquivo, não para o conteúdo:
+
+Windows (PowerShell)
+
+setx GOOGLE_APPLICATION_CREDENTIALS "C:\caminho\chave.json"
+
+
+macOS/Linux
+
+export GOOGLE_APPLICATION_CREDENTIALS=/caminho/chave.json
+
+
+No código não passe key= na URL. Deixe o google-auth-library pegar o token:
+
+import { GoogleAuth } from "google-auth-library";
+const auth = new GoogleAuth({ scopes: "https://www.googleapis.com/auth/cloud-platform" });
+const client = await auth.getClient();
+const { token } = await client.getAccessToken();
+// use o token no header Authorization: Bearer <token>
+
+
+Se estiver tudo certo, o erro “DECODER” desaparece.
+
+✅ Cenário B: guardar a credencial no .env (sem arquivo)
+
+No .env (exemplo):
+
+GOOGLE_PROJECT_ID=seu-projeto
+GOOGLE_CLIENT_EMAIL=MinhaSA@seu-projeto.iam.gserviceaccount.com
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIE...==\n-----END PRIVATE KEY-----\n"
+
+
+⚠️ Note os \n dentro das aspas — eles precisam virar quebra de linha real no código:
+
+import { GoogleAuth } from "google-auth-library";
+
+const auth = new GoogleAuth({
+  projectId: process.env.GOOGLE_PROJECT_ID,
+  credentials: {
+    client_email: process.env.GOOGLE_CLIENT_EMAIL,
+    private_key: (process.env.GOOGLE_PRIVATE_KEY || "").replace(/\\n/g, "\n"),
+  },
+  scopes: "https://www.googleapis.com/auth/cloud-platform",
+});
+
+
+Se você não fizer o replace(/\\n/g, '\n'), o OpenSSL não consegue decodificar e dá exatamente esse DECODER::unsupported.
+
+Checagens rápidas que resolvem 90% dos casos
+
+ Sem ?key= na URL e sem header x-goog-api-key. Vertex AI não aceita API Key.
+
+ O JSON começa com "type": "service_account" e tem client_email + private_key.
+
+ A private_key tem -----BEGIN PRIVATE KEY----- e -----END PRIVATE KEY----- sem espaços extras.
+
+ Node 18+ (OpenSSL 3). Rode node -v.
+
+ Permissões da SA: Vertex AI User e Service Usage Consumer no projeto.
+
+Diagnóstico em 30s
+
+Valide a chave (se estiver no .env):
+
+import crypto from "node:crypto";
+crypto.createPrivateKey({
+  key: (process.env.GOOGLE_PRIVATE_KEY || "").replace(/\\n/g, "\n"),
+});
+console.log("Chave válida");
+
+
+Se estourar com “DECODER”, o problema é formatação (\n) ou conteúdo.
+
+Teste o token ADC (para isolar credencial):
+
+gcloud auth application-default print-access-token
+
+
+Com o token, faça um curl no endpoint do Vertex; se funcionar, o erro está no carregamento da credencial no seu app.
+
+Exemplo completo do fetch (Vertex AI) — conferência final
+import fetch from "node-fetch";
+import { GoogleAuth } from "google-auth-library";
+
+const PROJECT_ID = "SEU_PROJETO";
+const LOCATION   = "us-central1";
+const MODEL      = "gemini-2.5-flash-image"; // ou o ID exato do “Receber código”
+
+const auth = new GoogleAuth({
+  scopes: "https://www.googleapis.com/auth/cloud-platform",
+  // Se for .env (sem arquivo), descomente:
+  // projectId: process.env.GOOGLE_PROJECT_ID,
+  // credentials: {
+  //   client_email: process.env.GOOGLE_CLIENT_EMAIL,
+  //   private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+  // },
+});
+
+export async function gerar(req, res) {
+  const client = await auth.getClient();
+  const { token } = await client.getAccessToken();
+
+  const url = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}`
+            + `/locations/${LOCATION}/publishers/google/models/${MODEL}:generateContent`;
+
+  const body = { contents: [{ role: "user", parts: [{ text: req.body.prompt }] }] };
+
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  const text = await r.text();
+  if (!r.ok) return res.status(r.status).type("application/json").send(text);
+
+  const json = JSON.parse(text);
+  const part = json?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+  if (!part) return res.status(500).send("Sem imagem no retorno");
+  return res.type(part.inlineData.mimeType || "image/png").send(Buffer.from(part.inlineData.data, "base64"));
+}
