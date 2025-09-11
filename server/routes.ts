@@ -108,14 +108,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   app.set("trust proxy", 1);
+  // Verificar se SESSION_SECRET está definido em produção
+  const sessionSecret = process.env.SESSION_SECRET;
+  if (process.env.NODE_ENV === 'production' && (!sessionSecret || sessionSecret === 'fallback-secret-key')) {
+    throw new Error('⚠️ ERRO DE SEGURANÇA: SESSION_SECRET deve ser definido em produção!');
+  }
+  
+  const isProduction = process.env.NODE_ENV === 'production';
+  
   app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback-secret-key',
+    secret: sessionSecret || 'dev-only-fallback-' + Math.random().toString(36),
     store: pgStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // Set to false for localhost
+      secure: isProduction, // Cookies seguros em produção
+      sameSite: isProduction ? 'lax' : undefined,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
     },
   }));
