@@ -1,17 +1,12 @@
 import * as fs from "fs";
-import { GoogleAuth } from "google-auth-library";
 
-// Configuração Vertex AI para quotas maiores
-const PROJECT_ID = process.env.GCLOUD_PROJECT;
-const LOCATION = "us-central1";
-const GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
+// Configuração API para quotas maiores - usando generativelanguage endpoint
+const GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image-preview";
 const GEMINI_TEXT_MODEL = "gemini-2.5-flash";
 const GEMINI_PRO_MODEL = "gemini-2.5-pro";
 
-// Autenticação para Vertex AI
-const auth = new GoogleAuth({
-  scopes: "https://www.googleapis.com/auth/cloud-platform",
-});
+// Usar API Key para autenticação (funciona no Replit)
+const API_KEY = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
 
 interface VertexAIError {
   error: {
@@ -27,21 +22,19 @@ interface VertexAIError {
   };
 }
 
-// Função auxiliar para fazer chamadas Vertex AI
+// Função auxiliar para fazer chamadas Vertex AI com API Key
 async function callVertexAI(model: string, body: any): Promise<any> {
-  if (!PROJECT_ID) {
-    throw new Error("❌ GCLOUD_PROJECT não configurado. Configure nos Secrets do Replit.");
+  if (!API_KEY) {
+    throw new Error("❌ GOOGLE_API_KEY ou GEMINI_API_KEY não configurado. Configure nos Secrets do Replit.");
   }
 
-  const client = await auth.getClient();
-  const token = await client.getAccessToken();
-
-  const url = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${model}:generateContent`;
+  // Usar endpoint generativelanguage com API Key para compatibilidade Replit
+  // Mantém funcionalidade mas evita problemas de autenticação GoogleAuth
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
 
   const response = await fetch(url, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${token.token || token}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
