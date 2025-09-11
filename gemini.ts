@@ -1,8 +1,94 @@
 import * as fs from "fs";
-import { GoogleGenAI, Modality } from "@google/genai";
+import { GoogleAuth } from "google-auth-library";
 
-// This API key is from Gemini Developer API Key, not vertex AI API Key
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+// Configuração Vertex AI para quotas maiores
+const PROJECT_ID = process.env.GCLOUD_PROJECT;
+const LOCATION = "us-central1";
+const GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
+const GEMINI_TEXT_MODEL = "gemini-2.5-flash";
+const GEMINI_PRO_MODEL = "gemini-2.5-pro";
+
+// Autenticação para Vertex AI
+const auth = new GoogleAuth({
+  scopes: "https://www.googleapis.com/auth/cloud-platform",
+});
+
+interface VertexAIError {
+  error: {
+    code: number;
+    message: string;
+    status: string;
+    details?: Array<{
+      '@type': string;
+      metadata?: {
+        quota_limit?: string;
+      };
+    }>;
+  };
+}
+
+// Função auxiliar para fazer chamadas Vertex AI
+async function callVertexAI(model: string, body: any): Promise<any> {
+  if (!PROJECT_ID) {
+    throw new Error("❌ GCLOUD_PROJECT não configurado. Configure nos Secrets do Replit.");
+  }
+
+  const client = await auth.getClient();
+  const token = await client.getAccessToken();
+
+  const url = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${model}:generateContent`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token.token || token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    try {
+      const errorJson: VertexAIError = JSON.parse(errorText);
+      const info = errorJson?.error?.details?.find(d => (d['@type'] || '').includes('ErrorInfo'));
+      const quotaLimit = info?.metadata?.quota_limit;
+      
+      // Log detalhado do erro
+      console.error(`❌ Vertex AI Error (${response.status}):`, {
+        message: errorJson.error.message,
+        status: errorJson.error.status,
+        quotaLimit,
+        fullError: errorJson
+      });
+      
+      // Criar mensagem de erro específica baseada na quota
+      let errorMessage = errorJson.error.message;
+      if (response.status === 429) {
+        if (quotaLimit?.includes('PerDay')) {
+          errorMessage = "⚠️ Quota diária do Vertex AI esgotada. Reset às ~04:00 BRT. Considere solicitar aumento de quota.";
+        } else if (quotaLimit?.includes('PerMinute')) {
+          errorMessage = "⚠️ Limite de requisições por minuto atingido. Tentando novamente em alguns segundos...";
+        } else {
+          errorMessage = "⚠️ Quota do Vertex AI temporariamente esgotada. Tente novamente em alguns minutos.";
+        }
+      }
+      
+      const error = new Error(errorMessage) as any;
+      error.status = response.status;
+      error.quotaLimit = quotaLimit;
+      error.vertexError = errorJson;
+      throw error;
+    } catch (parseError) {
+      // Se não conseguir fazer parse do JSON, retornar erro original
+      const error = new Error(`Vertex AI API error: ${response.status} ${errorText}`) as any;
+      error.status = response.status;
+      throw error;
+    }
+  }
+
+  return response.json();
+}
 
 export async function generateImage(
     prompt: string,
@@ -20,61 +106,69 @@ export async function generateImage(
     }
 
     try {
-        // Usar Gemini 2.5 Flash Image Preview (Nano Banana) - estrutura correta
-        console.log('🍌 Tentando gerar imagem com Nano Banana (Gemini 2.5 Flash Image Preview)...');
+        console.log('🚀 Gerando imagem com Vertex AI (Nano Banana) - Quotas maiores!');
         
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash-image-preview",
+        const body = {
             contents: [
                 { role: "user", parts: [{ text: prompt }] }
-            ]
-        });
+            ],
+            generationConfig: { 
+                seed: Math.floor(Math.random() * 1000000) // Para variação nas imagens
+            }
+        };
 
+        const response = await callVertexAI(GEMINI_IMAGE_MODEL, body);
+        
         // Buscar por inlineData nas parts retornadas
         const candidates = response.candidates;
         if (!candidates || candidates.length === 0) {
-            throw new Error("No candidates returned from Gemini");
+            throw new Error("No candidates returned from Vertex AI");
         }
 
         const content = candidates[0].content;
         if (!content || !content.parts) {
-            throw new Error("No content parts returned from Gemini");
+            throw new Error("No content parts returned from Vertex AI");
         }
 
-        // Encontrar a parte com imagem - seguindo estrutura do exemplo
+        // Encontrar a parte com imagem - seguindo estrutura Vertex AI
         const parts = content.parts || [];
-        const imgPart = parts.find(p => p.inlineData && p.inlineData.mimeType?.startsWith("image/"));
+        const imgPart = parts.find((p: any) => p.inlineData && p.inlineData.mimeType?.startsWith("image/"));
         
         if (imgPart && imgPart.inlineData?.data) {
             const imageData = Buffer.from(imgPart.inlineData.data, "base64");
             fs.writeFileSync(imagePath, imageData);
-            console.log(`✅ Imagem gerada com Nano Banana: ${imagePath} (${imageData.length} bytes, ${imgPart.inlineData.mimeType})`);
+            console.log(`✅ Imagem gerada com Vertex AI: ${imagePath} (${imageData.length} bytes, ${imgPart.inlineData.mimeType})`);
             return;
         }
         
-        throw new Error("Nenhuma imagem retornada pela API do Nano Banana");
+        throw new Error("Nenhuma imagem retornada pela API do Vertex AI");
         
     } catch (error: any) {
-        console.error("❌ Erro com Nano Banana:", error);
+        console.error("❌ Erro com Vertex AI:", error);
         
-        // Verificar se é erro de quota específico
-        if (error?.status === 429 && error?.message?.includes('quota')) {
-            throw new Error("⚠️ Quota diária do Gemini esgotada. Tente novamente amanhã ou faça upgrade do plano.");
-        }
-        
-        throw new Error(`Failed to generate image with Nano Banana: ${error}`);
+        // Re-lançar o erro com informações detalhadas já processadas em callVertexAI
+        throw error;
     }
 }
 
 export async function summarizeArticle(text: string): Promise<string> {
-    const prompt = `Please summarize the following text concisely while maintaining key points:\n\n${text}`;
+    try {
+        const prompt = `Please summarize the following text concisely while maintaining key points:\n\n${text}`;
 
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-    });
+        const body = {
+            contents: [
+                { role: "user", parts: [{ text: prompt }] }
+            ]
+        };
 
-    return response.text || "Something went wrong";
+        const response = await callVertexAI(GEMINI_TEXT_MODEL, body);
+        
+        const text_response = response.candidates?.[0]?.content?.parts?.[0]?.text;
+        return text_response || "Something went wrong";
+    } catch (error) {
+        console.error("❌ Erro ao resumir artigo:", error);
+        return "Erro ao processar resumo";
+    }
 }
 
 export interface Sentiment {
@@ -84,31 +178,27 @@ export interface Sentiment {
 
 export async function analyzeSentiment(text: string): Promise<Sentiment> {
     try {
-        const systemPrompt = `You are a sentiment analysis expert. 
+        const prompt = `You are a sentiment analysis expert. 
 Analyze the sentiment of the text and provide a rating
 from 1 to 5 stars and a confidence score between 0 and 1.
 Respond with JSON in this format: 
-{'rating': number, 'confidence': number}`;
+{'rating': number, 'confidence': number}
 
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-pro",
-            config: {
-                systemInstruction: systemPrompt,
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: "object",
-                    properties: {
-                        rating: { type: "number" },
-                        confidence: { type: "number" },
-                    },
-                    required: ["rating", "confidence"],
-                },
-            },
-            contents: text,
-        });
+Text to analyze: ${text}`;
 
-        const rawJson = response.text;
+        const body = {
+            contents: [
+                { role: "user", parts: [{ text: prompt }] }
+            ],
+            generationConfig: {
+                responseMimeType: "application/json"
+            }
+        };
 
+        const response = await callVertexAI(GEMINI_PRO_MODEL, body);
+        
+        const rawJson = response.candidates?.[0]?.content?.parts?.[0]?.text;
+        
         console.log(`Raw JSON: ${rawJson}`);
 
         if (rawJson) {
