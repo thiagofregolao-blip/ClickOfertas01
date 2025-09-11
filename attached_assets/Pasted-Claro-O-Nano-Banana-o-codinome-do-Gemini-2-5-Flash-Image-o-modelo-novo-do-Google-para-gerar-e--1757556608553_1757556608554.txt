@@ -1,0 +1,120 @@
+Claro! O “Nano Banana” é o codinome do Gemini 2.5 Flash Image, o modelo novo do Google para gerar e editar imagens. Você consegue usá-lo pela Gemini API (oficial) — hoje (10/09/2025) o ID do modelo é gemini-2.5-flash-image-preview. 
+Google AI for Developers
++1
+
+Abaixo deixo um exemplo pronto pra colar em Flutter/Dart (chamando a API direto) e um exemplo em Node.js (útil para fazer o backend/proxy e não expor sua chave no app).
+
+Flutter / Dart (REST direto)
+
+Recomendado só para protótipo. Em produção, use um backend para esconder a chave de API.
+
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
+
+/// Gera uma imagem com o Gemini 2.5 Flash Image (aka Nano Banana)
+Future<Uint8List> gerarImagemGemini({
+  required String prompt,
+  required String apiKey,
+}) async {
+  final uri = Uri.parse(
+    'https://generativelanguage.googleapis.com/v1beta/models/'
+    'gemini-2.5-flash-image-preview:generateContent?key=$apiKey',
+  );
+
+  final body = {
+    "contents": [
+      {
+        "parts": [
+          {"text": prompt}
+        ]
+      }
+    ]
+  };
+
+  final resp = await http.post(
+    uri,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode(body),
+  );
+
+  if (resp.statusCode >= 200 && resp.statusCode < 300) {
+    final json = jsonDecode(resp.body);
+    final candidates = (json['candidates'] as List?) ?? [];
+    if (candidates.isNotEmpty) {
+      final parts = candidates[0]['content']['parts'] as List;
+      for (final part in parts) {
+        if (part is Map && part['inlineData'] != null) {
+          final b64 = part['inlineData']['data'] as String;
+          return base64Decode(b64);
+        }
+      }
+    }
+    throw Exception('Nenhuma imagem retornada pela API.');
+  } else {
+    throw Exception('Erro ${resp.statusCode}: ${resp.body}');
+  }
+}
+
+
+Uso (ex.: exibir no app):
+
+final bytes = await gerarImagemGemini(
+  prompt: 'Crie um pôster minimalista de uma colheitadeira ao pôr do sol, 4k, widescreen',
+  apiKey: 'SUA_CHAVE_API_AQUI',
+);
+// Image.memory(bytes) em um widget, ou salve em arquivo.
+
+
+A forma de chamada e o formato do retorno seguem a doc oficial da Gemini API para “Image generation”. 
+Google AI for Developers
+
+Node.js (backend seguro)
+npm i @google/genai
+
+// generate.js
+import { GoogleGenAI } from "@google/genai";
+import fs from "node:fs";
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+async function gerar() {
+  const res = await ai.models.generateContent({
+    model: "gemini-2.5-flash-image-preview",
+    contents: "Crie um logo flat de um grão de milho estilizado, fundo transparente",
+  });
+
+  for (const part of res.candidates[0].content.parts) {
+    if (part.inlineData) {
+      const buf = Buffer.from(part.inlineData.data, "base64");
+      fs.writeFileSync("saida.png", buf);
+      console.log("Imagem salva como saida.png");
+    }
+  }
+}
+gerar().catch(console.error);
+
+
+Esse fluxo e o ID do modelo são os mesmos que o guia oficial mostra. Você pode expor um endpoint /gerar-imagem no seu backend e o app Flutter só envia o prompt. 
+Google AI for Developers
+
+Dicas rápidas (importantes)
+
+Nome do modelo: use gemini-2.5-flash-image-preview (pode mudar quando sair a versão estável; confira a doc mais recente antes de publicar). 
+Google AI for Developers
+
+Custos & disponibilidade: o modelo está disponível via Gemini API/AI Studio e foi anunciado oficialmente (há detalhes e preço por imagem no post do Google Developers). 
+Google Developers Blog
+
+Marca d’água: as imagens vêm com SynthID (invisível) por padrão. 
+Google AI for Developers
+
+Produção: nunca coloque a API key no app cliente; faça as chamadas via servidor.
+
+Edição de imagens (opcional): também dá para enviar uma imagem + um prompt para editar (ex.: remover fundo). A doc tem exemplos prontos de “text-and-image-to-image”. 
+Google AI for Developers
+
+Alternativa hospedada: se preferir usar uma plataforma de inferência pronta (fila, storage, webhooks), o fal.ai já expõe “Nano Banana” com SDK simples. 
+fal.ai
+
+Se você quiser, adapto esse código exatamente ao seu app Flutter (por exemplo, criar um service + controller + widget de preview, ou incluir edição com upload da foto do usuário). Também posso te entregar um endpoint Express já pronto para usar no app.

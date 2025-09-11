@@ -20,50 +20,15 @@ export async function generateImage(
     }
 
     try {
-        // Fallback para Gemini se Hugging Face não estiver disponível
-        const model = "gemini-2.5-flash-image-preview";
+        // Usar Gemini 2.5 Flash Image Preview (Nano Banana) - estrutura correta
+        console.log('🍌 Tentando gerar imagem com Nano Banana (Gemini 2.5 Flash Image Preview)...');
         
-        // Construir conteúdo baseado se é edição ou geração nova
-        let contents: any[];
-        
-        if (baseImage && baseImage.startsWith('data:image/')) {
-            // Modo edição: incluir imagem base + prompt
-            const base64Data = baseImage.split(',')[1];
-            const mimeType = baseImage.split(';')[0].split(':')[1];
-            
-            contents = [
-                {
-                    parts: [
-                        {
-                            inlineData: {
-                                data: base64Data,
-                                mimeType: mimeType
-                            }
-                        },
-                        {
-                            text: prompt
-                        }
-                    ]
-                }
-            ];
-        } else {
-            // Modo geração nova: estrutura completa com role/parts
-            contents = [{
-                role: "user",
-                parts: [{ text: prompt }]
-            }];
-        }
-
         const response = await ai.models.generateContent({
-            model: model,
-            contents: contents,
-            config: {
-                // Forçar apenas imagem (evitar retorno só de texto)
-                responseModalities: [Modality.IMAGE],
-                responseMimeType: "image/png"
-            }
+            model: "gemini-2.5-flash-image-preview",
+            contents: prompt // Estrutura simples como mostrado no exemplo
         });
 
+        // Buscar por inlineData nas parts retornadas
         const candidates = response.candidates;
         if (!candidates || candidates.length === 0) {
             throw new Error("No candidates returned from Gemini");
@@ -74,30 +39,21 @@ export async function generateImage(
             throw new Error("No content parts returned from Gemini");
         }
 
-        // Verificar se realmente temos uma imagem antes de considerar sucesso
-        const imagePart = content.parts?.find((p: any) => p.inlineData);
-        
-        if (!imagePart?.inlineData?.data) {
-            console.error("❌ Gemini não retornou imagem, apenas texto ou erro");
-            console.error("Response parts:", JSON.stringify(content.parts, null, 2));
-            
-            // Logar texto se houver (pode ser mensagem de segurança)
-            const textParts = content.parts?.filter((p: any) => p.text);
-            if (textParts?.length > 0) {
-                console.error("Texto retornado:", textParts.map(p => p.text).join(' '));
+        // Encontrar a parte com imagem
+        for (const part of content.parts) {
+            if (part.inlineData) {
+                const imageData = Buffer.from(part.inlineData.data, "base64");
+                fs.writeFileSync(imagePath, imageData);
+                console.log(`✅ Imagem gerada com Nano Banana: ${imagePath} (${imageData.length} bytes)`);
+                return;
             }
-            
-            throw new Error("NO_IMAGE_FROM_MODEL - Gemini retornou apenas texto");
         }
-
-        // Salvar a imagem encontrada
-        const imageData = Buffer.from(imagePart.inlineData.data, "base64");
-        fs.writeFileSync(imagePath, imageData);
-        console.log(`✅ Image saved as ${imagePath} (${imageData.length} bytes)`);
-        return;
+        
+        throw new Error("Nenhuma imagem retornada pela API do Nano Banana");
+        
     } catch (error) {
-        console.error("❌ Failed to generate image with Gemini:", error);
-        throw new Error(`Failed to generate image: ${error}`);
+        console.error("❌ Erro com Nano Banana:", error);
+        throw new Error(`Failed to generate image with Nano Banana: ${error}`);
     }
 }
 
