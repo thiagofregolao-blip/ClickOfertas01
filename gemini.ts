@@ -148,6 +148,11 @@ async function callVertexAI(model: string, body: any): Promise<any> {
   try {
     // Obter Bearer token OAuth2 da Service Account
     const client = await auth.getClient();
+    
+    // Verificar qual Service Account está sendo usada
+    const credentials = await auth.getCredentials();
+    console.log("🔑 Usando Service Account:", credentials.client_email || "desconhecida");
+    
     const { token } = await client.getAccessToken();
     
     if (!token) {
@@ -158,6 +163,7 @@ async function callVertexAI(model: string, body: any): Promise<any> {
     const url = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${model}:generateContent`;
 
     console.log(`🚀 Chamando Vertex AI: ${model} em ${PROJECT_ID}`);
+    console.log(`🎯 URL: ${url}`);
 
     const response = await fetch(url, {
       method: "POST",

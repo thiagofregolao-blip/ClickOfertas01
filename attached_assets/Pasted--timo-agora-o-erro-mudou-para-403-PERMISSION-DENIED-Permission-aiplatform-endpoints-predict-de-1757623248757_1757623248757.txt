@@ -1,0 +1,89 @@
+Ótimo — agora o erro mudou para 403 PERMISSION_DENIED:
+
+Permission "aiplatform.endpoints.predict" denied on resource ... /publishers/google/models/gemini-2.5-flash-image
+
+Isso quer dizer: sua Service Account autenticou, mas não tem permissão para chamar a predição no Vertex AI (o método de geração). Antes era problema de chave (DECODER), agora é IAM. (No seu relatório anterior eu já via que você estava perto disso. 
+
+teste-ia-completo
+
+)
+
+Aqui vai o conserto, direto ao ponto:
+
+1) Garanta que está chamando o endpoint correto
+
+Use GenerateContent no modelo publicador, não :predict em endpoint próprio.
+
+// OK (GenerateContent em modelo publicador)
+const URL = `https://us-central1-aiplatform.googleapis.com/v1/projects/${PROJECT}/locations/us-central1/publishers/google/models/gemini-2.5-flash-image:generateContent`;
+
+
+Se em algum lugar estiver chamando:
+
+.../projects/.../locations/.../endpoints/123456:predict   // ❌
+
+
+vai exigir permissões de endpoint (e você não criou/atribuiu nada pra isso).
+
+2) Dê as funções certas para a Service Account do backend
+
+No projeto future-abode-407113, para a SA
+vertex-gen-image-sa@future-abode-407113.iam.gserviceaccount.com:
+
+Vertex AI User (roles/aiplatform.user)
+
+Service Usage Consumer (roles/serviceusage.serviceUsageConsumer)
+
+Vertex AI Endpoint User (roles/aiplatform.endpointUser) ← resolve o “aiplatform.endpoints.predict denied” que alguns caminhos de chamada mapeiam internamente
+
+Como testar rápido: conceda Vertex AI Admin temporariamente. Se funcionar, você sabe que é falta de papel; depois volte para o mínimo (User + EndpointUser + ServiceUsageConsumer).
+
+Caminho no console: IAM & Admin → IAM → Conceder acesso → selecione a SA → adicione os papéis acima → Salvar.
+(Propagação pode levar 1–5 minutos.)
+
+3) Confirme que o processo do servidor está usando ESSA SA
+
+Logue quem é o principal que assinou o token:
+
+import { GoogleAuth } from "google-auth-library";
+const auth = new GoogleAuth({ scopes: "https://www.googleapis.com/auth/cloud-platform" });
+const client = await auth.getClient();
+console.log("Usando credencial:", (await auth.getCredentials()).client_email || "desconhecida");
+
+
+Se aparecer outro e-mail (por ex. sua conta pessoal via gcloud auth), você está rodando com a credencial errada.
+
+4) Teste de linha de comando (isolar IAM)
+
+Com a SA anexada (ou GOOGLE_APPLICATION_CREDENTIALS apontando para a chave da SA):
+
+TOKEN="$(gcloud auth application-default print-access-token)"
+curl -s -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  "https://us-central1-aiplatform.googleapis.com/v1/projects/future-abode-407113/locations/us-central1/publishers/google/models/gemini-2.5-flash-image:generateContent" \
+  -d '{"contents":[{"role":"user","parts":[{"text":"ícone minimalista de espiga de milho, fundo transparente"}]}]}'
+
+
+Se esse curl funcionar e seu backend não, o problema está no papel usado pelo processo (item 3).
+
+Se o curl der 403 também, faltam papéis (item 2) ou o projeto/região estão errados.
+
+5) Checklist rápido (evita voltar o 403)
+
+ URL é .../publishers/google/models/...:generateContent (nada de /endpoints/...:predict).
+
+ SA tem Vertex AI User, Vertex AI Endpoint User, Service Usage Consumer.
+
+ Backend realmente roda com essa SA (log do client_email).
+
+ Projeto/Região batem com o Studio (future-abode-407113 / us-central1).
+
+ Nada de ?key= ou x-goog-api-key (Vertex não aceita API key).
+
+Se quiser, me manda:
+
+a URL exata que seu backend usa hoje, e
+
+o e-mail que saiu no console.log("Usando credencial:", ...),
+que eu te digo na hora se é endpoint errado, papel faltando ou credencial trocada.
