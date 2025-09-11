@@ -41,7 +41,7 @@ export async function generateImage(
 
         // Encontrar a parte com imagem
         for (const part of content.parts) {
-            if (part.inlineData) {
+            if (part.inlineData && part.inlineData.data) {
                 const imageData = Buffer.from(part.inlineData.data, "base64");
                 fs.writeFileSync(imagePath, imageData);
                 console.log(`✅ Imagem gerada com Nano Banana: ${imagePath} (${imageData.length} bytes)`);
@@ -51,8 +51,14 @@ export async function generateImage(
         
         throw new Error("Nenhuma imagem retornada pela API do Nano Banana");
         
-    } catch (error) {
+    } catch (error: any) {
         console.error("❌ Erro com Nano Banana:", error);
+        
+        // Verificar se é erro de quota específico
+        if (error?.status === 429 && error?.message?.includes('quota')) {
+            throw new Error("⚠️ Quota diária do Gemini esgotada. Tente novamente amanhã ou faça upgrade do plano.");
+        }
+        
         throw new Error(`Failed to generate image with Nano Banana: ${error}`);
     }
 }
@@ -214,8 +220,7 @@ async function generateImageWithHuggingFace(prompt: string, imagePath: string): 
         const imageBuffer = await response.arrayBuffer();
         
         // Salvar imagem no path especificado
-        const fs = await import('fs');
-        fs.default.writeFileSync(imagePath, Buffer.from(imageBuffer));
+        fs.writeFileSync(imagePath, Buffer.from(imageBuffer));
         
         console.log('✅ Imagem gerada com sucesso usando Hugging Face!');
         
