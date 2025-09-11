@@ -7,7 +7,6 @@ import { generatePromotionalArt } from "../gemini.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Middleware para verificar autenticação (sessão manual ou Replit Auth)
 const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
