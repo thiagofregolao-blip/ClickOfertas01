@@ -4057,14 +4057,14 @@ Keep the overall composition and maintain the same visual quality. This is for a
       
       // Mapear para o formato esperado pelo frontend
       const formattedTrending = trending.map(item => ({
-        productId: item.productId,
+        productId: item.id, // Usar id em vez de productId que não existe
         productName: item.productName,
-        searchCount: item.searchCount || 0,
-        viewCount: item.viewCount || 0,
+        searchCount: parseInt(item.searchCount || '0'),
+        viewCount: parseInt(item.viewCount || '0'),
         category: item.category || 'Categoria não informada',
-        imageUrl: item.imageUrl,
-        storeId: item.storeId,
-        storeName: item.storeName || 'Loja não informada'
+        imageUrl: '/placeholder-product.png', // Placeholder até termos imageUrl real
+        storeId: 'global', // Placeholder até termos storeId real
+        storeName: 'Loja não informada'
       }));
       
       res.json(formattedTrending.slice(0, 10)); // Top 10
@@ -4083,11 +4083,11 @@ Keep the overall composition and maintain the same visual quality. This is for a
       const formattedArts = artes.map(art => ({
         id: art.id,
         imageUrl: art.imageUrl,
-        prompt: art.prompt || 'Prompt não disponível',
+        prompt: art.imagePrompt || 'Prompt não disponível',
         isActive: art.isActive,
         generationDate: art.generationDate,
-        trendingProducts: art.trendingProducts || [],
-        tag: art.tag || 'global-trends'
+        trendingProducts: art.trendingProductsData ? JSON.parse(art.trendingProductsData as string) : [],
+        tag: 'global-trends'
       }));
       
       res.json(formattedArts);
@@ -4224,6 +4224,188 @@ Keep the overall composition and maintain the same visual quality. This is for a
     } catch (error) {
       console.error('Error generating trending products:', error);
       res.status(500).json({ success: false });
+    }
+  });
+
+  // =============================================
+  // SUPER ADMIN ANALYTICS - VISÃO GLOBAL
+  // =============================================
+
+  // Analytics globais agregados de todas as lojas (para Super Admin)
+  app.get('/api/super-admin/analytics/global-overview', isAuthenticated, async (req: any, res) => {
+    try {
+      // Verificar se é super admin
+      const user = req.user || req.session?.user;
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ error: 'Acesso negado. Requer privilégios de Super Admin.' });
+      }
+
+      const { days = '7' } = req.query;
+      const daysNum = parseInt(days as string);
+
+      // Buscar TODAS as lojas da plataforma
+      const allStores = await storage.getAllStores();
+      
+      // Agregar analytics de TODAS as lojas
+      let globalAnalytics = {
+        storyViews: 0,
+        flyerViews: 0,
+        productLikes: 0,
+        productsSaved: 0,
+        totalStores: allStores.length,
+        totalProducts: 0,
+        totalSessions: 0,
+        totalSearches: 0
+      };
+
+      // Calcular produtos totais
+      for (const store of allStores) {
+        const products = await storage.getProductsByStoreId(store.id);
+        globalAnalytics.totalProducts += products.length;
+
+        // Somar analytics da loja
+        const storeAnalytics = await storage.getStoreAnalytics(store.id, daysNum);
+        globalAnalytics.storyViews += storeAnalytics.storyViews;
+        globalAnalytics.flyerViews += storeAnalytics.flyerViews;
+        globalAnalytics.productLikes += storeAnalytics.productLikes;
+        globalAnalytics.productsSaved += storeAnalytics.productsSaved;
+      }
+
+      // Obter estatísticas de sessões anônimas
+      const sessionStats = await storage.getGlobalSessionStats(daysNum);
+      globalAnalytics.totalSessions = sessionStats.totalSessions || 0;
+      globalAnalytics.totalSearches = sessionStats.totalSearches || 0;
+
+      res.json(globalAnalytics);
+    } catch (error) {
+      console.error('Error fetching super admin global analytics:', error);
+      res.status(500).json({ error: 'Erro ao buscar analytics globais' });
+    }
+  });
+
+  // Analytics detalhados por loja (para Super Admin)  
+  app.get('/api/super-admin/analytics/stores-detail', isAuthenticated, async (req: any, res) => {
+    try {
+      // Verificar se é super admin
+      const user = req.user || req.session?.user;
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ error: 'Acesso negado. Requer privilégios de Super Admin.' });
+      }
+
+      const { days = '7' } = req.query;
+      const daysNum = parseInt(days as string);
+
+      // Buscar TODAS as lojas
+      const allStores = await storage.getAllStores();
+      
+      // Obter analytics detalhados de cada loja
+      const storesAnalytics = [];
+      
+      for (const store of allStores) {
+        const storeAnalytics = await storage.getStoreAnalytics(store.id, daysNum);
+        const products = await storage.getProductsByStoreId(store.id);
+        
+        storesAnalytics.push({
+          storeId: store.id,
+          storeName: store.name,
+          storeImage: store.imageUrl || '/placeholder-store.png',
+          isActive: store.isActive,
+          totalProducts: products.length,
+          analytics: storeAnalytics
+        });
+      }
+
+      // Ordenar por engajamento total (views + likes + saves)
+      storesAnalytics.sort((a, b) => {
+        const engagementA = a.analytics.storyViews + a.analytics.flyerViews + a.analytics.productLikes + a.analytics.productsSaved;
+        const engagementB = b.analytics.storyViews + b.analytics.flyerViews + b.analytics.productLikes + b.analytics.productsSaved;
+        return engagementB - engagementA;
+      });
+
+      res.json(storesAnalytics);
+    } catch (error) {
+      console.error('Error fetching stores detail analytics:', error);
+      res.status(500).json({ error: 'Erro ao buscar detalhes das lojas' });
+    }
+  });
+
+  // Gestão completa de artes IA (para Super Admin)
+  app.get('/api/super-admin/generated-arts/manage', isAuthenticated, async (req: any, res) => {
+    try {
+      // Verificar se é super admin
+      const user = req.user || req.session?.user;
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ error: 'Acesso negado. Requer privilégios de Super Admin.' });
+      }
+
+      // Buscar TODAS as artes geradas
+      const allArts = await storage.getAllGeneratedTotemArts();
+      
+      // Formatá-las com informações completas
+      const formattedArts = allArts.map(art => ({
+        id: art.id,
+        imageUrl: art.imageUrl,
+        prompt: art.imagePrompt || 'Prompt não disponível',
+        isActive: art.isActive,
+        generationDate: art.generationDate,
+        trendingProducts: art.trendingProductsData ? JSON.parse(art.trendingProductsData as string) : [],
+        tag: 'global-trends',
+        storeId: art.storeId || null,
+        storeName: 'Global' // Não temos storeName diretamente
+      }));
+
+      // Ordenar por data de criação (mais recentes primeiro)
+      formattedArts.sort((a, b) => new Date(b.generationDate).getTime() - new Date(a.generationDate).getTime());
+
+      res.json(formattedArts);
+    } catch (error) {
+      console.error('Error fetching all generated arts:', error);
+      res.status(500).json({ error: 'Erro ao buscar artes geradas' });
+    }
+  });
+
+  // Excluir arte IA (para Super Admin)
+  app.delete('/api/super-admin/generated-arts/:artId', isAuthenticated, async (req: any, res) => {
+    try {
+      // Verificar se é super admin
+      const user = req.user || req.session?.user;
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ error: 'Acesso negado. Requer privilégios de Super Admin.' });
+      }
+
+      const { artId } = req.params;
+      
+      await storage.deleteGeneratedTotemArt(artId);
+      
+      res.json({ 
+        success: true, 
+        message: 'Arte excluída com sucesso' 
+      });
+    } catch (error) {
+      console.error('Error deleting generated art:', error);
+      res.status(500).json({ error: 'Erro ao excluir arte gerada' });
+    }
+  });
+
+  // Forçar geração de nova arte (para Super Admin)
+  app.post('/api/super-admin/generated-arts/force-generate', isAuthenticated, async (req: any, res) => {
+    try {
+      // Verificar se é super admin
+      const user = req.user || req.session?.user;
+      if (!user?.isSuperAdmin) {
+        return res.status(403).json({ error: 'Acesso negado. Requer privilégios de Super Admin.' });
+      }
+
+      // Forçar geração de nova arte
+      await storage.generateTrendingProducts(new Date());
+      
+      res.json({ 
+        success: true, 
+        message: 'Nova arte será gerada em instantes baseada nos produtos em tendência' 
+      });
+    } catch (error) {
+      console.error('Error force generating art:', error);
+      res.status(500).json({ error: 'Erro ao forçar geração de arte' });
     }
   });
 

@@ -16,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Edit2, Trash2, Eye, LogOut, Gift, Dice6, Target, Award, Save, Package, Percent, DollarSign, Trophy, RotateCcw, Download, HelpCircle, Calculator, AlertTriangle, AlertCircle, TrendingUp, Search } from 'lucide-react';
+import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Edit2, Trash2, Eye, LogOut, Gift, Dice6, Target, Award, Save, Package, Percent, DollarSign, Trophy, RotateCcw, Download, HelpCircle, Calculator, AlertTriangle, AlertCircle, TrendingUp, Search, Brain, Globe, Activity, Zap, RefreshCw } from 'lucide-react';
 import { isUnauthorizedError } from '@/lib/authUtils';
 
 const bannerSchema = z.object({
@@ -495,6 +495,541 @@ function MaintenanceControls() {
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// =============================================
+// SUPER ADMIN ANALYTICS COMPONENT
+// =============================================
+
+function SuperAdminAnalytics() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedPeriod, setSelectedPeriod] = useState('7');
+
+  // ========== DADOS GLOBAIS ==========
+  const { data: globalOverview, isLoading: overviewLoading } = useQuery({
+    queryKey: [`/api/super-admin/analytics/global-overview?days=${selectedPeriod}`],
+    gcTime: 5 * 60 * 1000, // 5 minutos
+  });
+
+  const { data: storesDetail, isLoading: storesLoading } = useQuery({
+    queryKey: [`/api/super-admin/analytics/stores-detail?days=${selectedPeriod}`],
+    gcTime: 5 * 60 * 1000,
+  });
+
+  const { data: globalTrending, isLoading: trendingLoading } = useQuery({
+    queryKey: [`/api/analytics/global-trending?days=${selectedPeriod}`],
+    gcTime: 5 * 60 * 1000,
+  });
+
+  const { data: allGeneratedArts, isLoading: artsLoading } = useQuery({
+    queryKey: ['/api/super-admin/generated-arts/manage'],
+    gcTime: 3 * 60 * 1000, // 3 minutos
+  });
+
+  // ========== MUTATIONS ==========
+  const toggleArtMutation = useMutation({
+    mutationFn: async ({ artId, isActive }: { artId: string; isActive: boolean }) => 
+      apiRequest(`/api/totem/generated-arts/${artId}/toggle`, 'PATCH', { isActive }),
+    onSuccess: () => {
+      toast({
+        title: "Status atualizado!",
+        description: "Arte atualizada com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/generated-arts/manage'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao atualizar arte.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteArtMutation = useMutation({
+    mutationFn: async (artId: string) => 
+      apiRequest(`/api/super-admin/generated-arts/${artId}`, 'DELETE'),
+    onSuccess: () => {
+      toast({
+        title: "Arte excluída!",
+        description: "Arte removida com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/generated-arts/manage'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao excluir arte.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const forceGenerateMutation = useMutation({
+    mutationFn: async () => 
+      apiRequest('/api/super-admin/generated-arts/force-generate', 'POST'),
+    onSuccess: () => {
+      toast({
+        title: "Geração iniciada!",
+        description: "Nova arte será gerada em instantes.",
+      });
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/super-admin/generated-arts/manage'] });
+      }, 5000);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao forçar geração.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* HEADER WITH PERIOD SELECTOR */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Globe className="w-7 h-7 text-blue-600" />
+            Analytics & IA Global
+          </h2>
+          <p className="text-gray-500">Visão completa de todas as lojas da plataforma</p>
+        </div>
+        <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+          <SelectTrigger className="w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="7">Últimos 7 dias</SelectItem>
+            <SelectItem value="30">Últimos 30 dias</SelectItem>
+            <SelectItem value="90">Últimos 90 dias</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* TABS NAVIGATION */}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <Activity className="w-4 h-4" />
+            Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="stores" className="flex items-center gap-2">
+            <Store className="w-4 h-4" />
+            Lojas
+          </TabsTrigger>
+          <TabsTrigger value="trending" className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Tendências
+          </TabsTrigger>
+          <TabsTrigger value="ai-arts" className="flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            Artes IA
+          </TabsTrigger>
+        </TabsList>
+
+        {/* ABA 1: VISÃO GERAL */}
+        <TabsContent value="overview" className="space-y-6">
+          {overviewLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map(i => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="h-6 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-8 bg-gray-200 rounded"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <>
+              {/* MÉTRICAS PRINCIPAIS */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Lojas Total</p>
+                        <p className="text-2xl font-bold text-gray-900" data-testid="metric-total-stores">
+                          {globalOverview?.totalStores || 0}
+                        </p>
+                      </div>
+                      <Store className="w-8 h-8 text-blue-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Produtos Total</p>
+                        <p className="text-2xl font-bold text-gray-900" data-testid="metric-total-products">
+                          {globalOverview?.totalProducts || 0}
+                        </p>
+                      </div>
+                      <Package className="w-8 h-8 text-green-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Sessões</p>
+                        <p className="text-2xl font-bold text-gray-900" data-testid="metric-total-sessions">
+                          {globalOverview?.totalSessions || 0}
+                        </p>
+                      </div>
+                      <Users className="w-8 h-8 text-purple-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Buscas</p>
+                        <p className="text-2xl font-bold text-gray-900" data-testid="metric-total-searches">
+                          {globalOverview?.totalSearches || 0}
+                        </p>
+                      </div>
+                      <Search className="w-8 h-8 text-orange-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* ENGAJAMENTO GLOBAL */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Views Stories</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {globalOverview?.storyViews || 0}
+                        </p>
+                      </div>
+                      <Eye className="w-8 h-8 text-indigo-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Views Flyers</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {globalOverview?.flyerViews || 0}
+                        </p>
+                      </div>
+                      <Image className="w-8 h-8 text-pink-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Curtidas</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {globalOverview?.productLikes || 0}
+                        </p>
+                      </div>
+                      <Award className="w-8 h-8 text-red-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Salvamentos</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {globalOverview?.productsSaved || 0}
+                        </p>
+                      </div>
+                      <Save className="w-8 h-8 text-teal-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          )}
+        </TabsContent>
+
+        {/* ABA 2: ANALYTICS POR LOJA */}
+        <TabsContent value="stores" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Store className="h-5 w-5 text-blue-600" />
+                Performance por Loja
+              </CardTitle>
+              <CardDescription>
+                Analytics detalhadas de cada loja da plataforma
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {storesLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="animate-pulse">
+                      <div className="flex items-center space-x-4 p-4 border rounded-lg">
+                        <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : !storesDetail || storesDetail.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Store className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>Nenhuma loja encontrada.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {storesDetail.map((store: any) => {
+                    const totalEngagement = store.analytics.storyViews + store.analytics.flyerViews + 
+                                          store.analytics.productLikes + store.analytics.productsSaved;
+                    
+                    return (
+                      <div key={store.storeId} className="border rounded-lg p-4" data-testid={`store-detail-${store.storeId}`}>
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center space-x-4">
+                            <img 
+                              src={store.storeImage} 
+                              alt={store.storeName}
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-semibold text-gray-900">{store.storeName}</h3>
+                                <Badge variant={store.isActive ? "default" : "secondary"}>
+                                  {store.isActive ? "Ativa" : "Inativa"}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-500">
+                                {store.totalProducts} produtos
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-gray-900">
+                              {totalEngagement}
+                            </p>
+                            <p className="text-xs text-gray-500">Engajamento Total</p>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                          <div className="text-center p-2 bg-gray-50 rounded">
+                            <p className="text-lg font-semibold text-indigo-600">{store.analytics.storyViews}</p>
+                            <p className="text-xs text-gray-500">Views Stories</p>
+                          </div>
+                          <div className="text-center p-2 bg-gray-50 rounded">
+                            <p className="text-lg font-semibold text-pink-600">{store.analytics.flyerViews}</p>
+                            <p className="text-xs text-gray-500">Views Flyers</p>
+                          </div>
+                          <div className="text-center p-2 bg-gray-50 rounded">
+                            <p className="text-lg font-semibold text-red-600">{store.analytics.productLikes}</p>
+                            <p className="text-xs text-gray-500">Curtidas</p>
+                          </div>
+                          <div className="text-center p-2 bg-gray-50 rounded">
+                            <p className="text-lg font-semibold text-teal-600">{store.analytics.productsSaved}</p>
+                            <p className="text-xs text-gray-500">Salvamentos</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ABA 3: TENDÊNCIAS GLOBAIS */}
+        <TabsContent value="trending" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-orange-600" />
+                Produtos em Tendência Global
+              </CardTitle>
+              <CardDescription>
+                Os produtos mais buscados em toda a plataforma
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {trendingLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="animate-pulse">
+                      <div className="h-48 bg-gray-200 rounded-lg mb-4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : !globalTrending || globalTrending.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <TrendingUp className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>Ainda não há produtos em tendência.</p>
+                  <p className="text-sm mt-1">Os produtos aparecerão aqui conforme as buscas aumentam.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {globalTrending.map((product: any, index: number) => (
+                    <Card key={product.productId} className="overflow-hidden" data-testid={`trending-product-${index}`}>
+                      <div className="relative">
+                        <img 
+                          src={product.imageUrl} 
+                          alt={product.productName}
+                          className="w-full h-48 object-cover"
+                        />
+                        <Badge className="absolute top-2 left-2" variant="default">
+                          #{index + 1}
+                        </Badge>
+                      </div>
+                      <CardContent className="p-4">
+                        <h4 className="font-medium text-gray-900 mb-2">{product.productName}</h4>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm text-gray-500">{product.category}</span>
+                          <span className="text-sm font-medium text-blue-600">{product.storeName}</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>{product.searchCount} buscas</span>
+                          <span>{product.viewCount} views</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ABA 4: GESTÃO DE ARTES IA */}
+        <TabsContent value="ai-arts" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-purple-600" />
+                Gestão Completa de Artes IA
+              </CardTitle>
+              <CardDescription className="flex justify-between items-center">
+                <span>Controle total de todas as artes geradas automaticamente</span>
+                <Button 
+                  onClick={() => forceGenerateMutation.mutate()}
+                  disabled={forceGenerateMutation.isPending}
+                  size="sm"
+                  className="flex items-center gap-2"
+                  data-testid="button-force-generate"
+                >
+                  {forceGenerateMutation.isPending ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Zap className="w-4 h-4" />
+                  )}
+                  Forçar Geração
+                </Button>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {artsLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="animate-pulse">
+                      <div className="h-48 bg-gray-200 rounded-lg mb-4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : !allGeneratedArts || allGeneratedArts.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Brain className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>Ainda não há artes geradas.</p>
+                  <p className="text-sm mt-1">Use o botão "Forçar Geração" para criar novas artes automaticamente.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {allGeneratedArts.map((art: any) => (
+                    <Card key={art.id} className="overflow-hidden" data-testid={`ai-art-${art.id}`}>
+                      <div className="relative">
+                        <img 
+                          src={art.imageUrl} 
+                          alt="Arte gerada por IA"
+                          className="w-full h-48 object-cover"
+                        />
+                        <div className="absolute top-2 right-2">
+                          <Badge variant={art.isActive ? "default" : "secondary"}>
+                            {art.isActive ? "Ativo" : "Inativo"}
+                          </Badge>
+                        </div>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 left-2"
+                          onClick={() => deleteArtMutation.mutate(art.id)}
+                          disabled={deleteArtMutation.isPending}
+                          data-testid={`button-delete-art-${art.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium text-gray-900">
+                            {art.storeName || 'Global'} - #{art.id.slice(0, 8)}
+                          </h4>
+                          <Switch 
+                            checked={art.isActive}
+                            onCheckedChange={(checked) => {
+                              toggleArtMutation.mutate({ artId: art.id, isActive: checked });
+                            }}
+                            disabled={toggleArtMutation.isPending}
+                            data-testid={`switch-art-${art.id}`}
+                          />
+                        </div>
+                        <p className="text-sm text-gray-500 mb-2">
+                          {new Date(art.generationDate).toLocaleDateString('pt-BR')}
+                        </p>
+                        <p className="text-xs text-gray-400 line-clamp-2">
+                          {art.prompt}
+                        </p>
+                        {art.trendingProducts.length > 0 && (
+                          <div className="mt-2">
+                            <p className="text-xs text-gray-500">
+                              Produtos: {art.trendingProducts.join(', ')}
+                            </p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
@@ -3199,11 +3734,7 @@ export default function SuperAdmin() {
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-6">
-            <div className="text-center py-12">
-              <BarChart3 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">Estatísticas do Sistema</h3>
-              <p className="text-gray-500">Em desenvolvimento...</p>
-            </div>
+            <SuperAdminAnalytics />
           </TabsContent>
 
           {/* ABA DE SISTEMA */}

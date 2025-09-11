@@ -3554,6 +3554,70 @@ export class DatabaseStorage implements IStorage {
       .where(eq(generatedTotemArts.storeId, storeId))
       .orderBy(desc(generatedTotemArts.generationDate));
   }
+
+  // =============================================
+  // SUPER ADMIN FUNCTIONS
+  // =============================================
+
+  // Buscar TODAS as artes geradas (para Super Admin)
+  async getAllGeneratedTotemArts(): Promise<GeneratedTotemArt[]> {
+    return await db
+      .select()
+      .from(generatedTotemArts)
+      .orderBy(desc(generatedTotemArts.generationDate));
+  }
+
+  // Excluir arte gerada (para Super Admin)
+  async deleteGeneratedTotemArt(artId: string): Promise<void> {
+    await db
+      .delete(generatedTotemArts)
+      .where(eq(generatedTotemArts.id, artId));
+  }
+
+  // Atualizar arte gerada (ativar/desativar)
+  async updateGeneratedTotemArt(artId: string, updates: Partial<GeneratedTotemArt>): Promise<void> {
+    await db
+      .update(generatedTotemArts)
+      .set(updates)
+      .where(eq(generatedTotemArts.id, artId));
+  }
+
+  // Estatísticas globais de sessões (para Super Admin)
+  async getGlobalSessionStats(days: number): Promise<{ totalSessions: number; totalSearches: number }> {
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - days);
+
+    const sessionsCount = await db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(userSessions)
+      .where(gte(userSessions.createdAt, daysAgo));
+
+    const searchesCount = await db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(productSearches)
+      .where(gte(productSearches.searchAt, daysAgo));
+
+    return {
+      totalSessions: sessionsCount[0]?.count || 0,
+      totalSearches: searchesCount[0]?.count || 0
+    };
+  }
+
+  // Buscar TODAS as lojas (para Super Admin)
+  async getAllStores(): Promise<any[]> {
+    return await db
+      .select()
+      .from(stores)
+      .orderBy(desc(stores.createdAt));
+  }
+
+  // Buscar produtos por loja (para Super Admin)
+  async getProductsByStoreId(storeId: string): Promise<any[]> {
+    return await db
+      .select()
+      .from(products)
+      .where(eq(products.storeId, storeId));
+  }
 }
 
 export const storage = new DatabaseStorage();
