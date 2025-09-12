@@ -4351,17 +4351,34 @@ Keep the overall composition and maintain the same visual quality. This is for a
       const allArts = await storage.getAllGeneratedTotemArts();
       
       // Formatá-las com informações completas
-      const formattedArts = allArts.map(art => ({
-        id: art.id,
-        imageUrl: art.imageUrl,
-        prompt: art.imagePrompt || 'Prompt não disponível',
-        isActive: art.isActive,
-        generationDate: art.generationDate,
-        trendingProducts: art.trendingProductsData ? JSON.parse(art.trendingProductsData as string) : [],
-        tag: 'global-trends',
-        storeId: art.storeId || null,
-        storeName: 'Global' // Não temos storeName diretamente
-      }));
+      const formattedArts = allArts.map(art => {
+        let trendingProducts = [];
+        if (art.trendingProductsData) {
+          try {
+            // Remover aspas extras e fazer parse
+            let cleanData = art.trendingProductsData as string;
+            // Remove aspas triplas e escapes excessivos
+            cleanData = cleanData.replace(/^"{1,3}|"{1,3}$/g, '');
+            cleanData = cleanData.replace(/\\"/g, '"');
+            trendingProducts = JSON.parse(cleanData);
+          } catch (e) {
+            console.warn('Erro ao parsear trending products:', e);
+            trendingProducts = [];
+          }
+        }
+        
+        return {
+          id: art.id,
+          imageUrl: art.imageUrl,
+          prompt: art.imagePrompt || 'Prompt não disponível',
+          isActive: art.isActive,
+          generationDate: art.generationDate,
+          trendingProducts,
+          tag: 'global-trends',
+          storeId: art.storeId || null,
+          storeName: 'Global' // Não temos storeName diretamente
+        };
+      });
 
       // Ordenar por data de criação (mais recentes primeiro)
       formattedArts.sort((a, b) => new Date(b.generationDate).getTime() - new Date(a.generationDate).getTime());
