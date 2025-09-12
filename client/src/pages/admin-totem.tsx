@@ -112,10 +112,20 @@ export default function AdminTotem() {
       return await apiRequest('DELETE', `/api/totem/content/${contentId}`);
     },
     onSuccess: () => {
+      // Forçar refetch completo da query
       queryClient.invalidateQueries({ queryKey: ['/api/totem/my-content'] });
+      queryClient.refetchQueries({ queryKey: ['/api/totem/my-content'] });
       toast({
         title: "Sucesso!",
         description: "Conteúdo removido com sucesso",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Erro ao deletar conteúdo:', error);
+      toast({
+        title: "Erro!",
+        description: error.message || "Erro ao remover conteúdo",
+        variant: "destructive",
       });
     }
   });
