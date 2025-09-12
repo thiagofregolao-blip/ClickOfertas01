@@ -1,0 +1,55 @@
+Isso acontece porque modelos de imagem (Imagen/Gemini) não desenham texto de forma confiável. Eles “pintam” letras como textura e saem palavras quebradas (“CRIE UMUM…”) — pior ainda em PT-BR. Então, mesmo com um ótimo prompt, o texto tende a vir gibberish.
+
+Como resolver (pipeline recomendado)
+
+Faça em 2 etapas:
+
+Gere só o fundo (produto + layout), sem texto.
+
+16:9 para banner, 2K se puder.
+
+Coloque no prompt: “sem palavras, sem letras, sem marcas; área limpa para título na direita”.
+
+Sobreponha o texto por código (garante tipografia perfeita e editável).
+
+Exemplo (Node + Sharp) — usa a imagem gerada e adiciona texto
+import sharp from "sharp";
+import fs from "node:fs";
+
+// bytes da imagem gerada pelo Vertex (PNG/JPG)
+const bg = fs.readFileSync("fundo.png"); // substitua pelo buffer vindo do Vertex
+const width = 1920, height = 1080;
+
+const svg = `
+<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <style>
+    .t{font-family:Arial,Helvetica,sans-serif;fill:#ffffff}
+    .h1{font-size:84px;font-weight:800}
+    .h2{font-size:36px;font-weight:600;opacity:.9}
+  </style>
+  <!-- faixa escura p/ contraste -->
+  <rect x="${width*0.52}" y="0" width="${width*0.48}" height="${height}" fill="#00000088"/>
+  <text x="${width*0.55}" y="200" class="t h1">CRIE UM BANNER</text>
+  <text x="${width*0.55}" y="260" class="t h2">Produtos em destaque</text>
+  <text x="${width*0.55}" y="320" class="t h2">iPhone 16 • Galaxy S24 • Pixel</text>
+</svg>`;
+
+const out = await sharp(bg)
+  .resize(width, height, { fit: "cover" })
+  .composite([{ input: Buffer.from(svg), top: 0, left: 0 }])
+  .png()
+  .toBuffer();
+
+fs.writeFileSync("banner-final.png", out);
+
+Prompt de fundo (exemplo)
+
+“Banner 16:9, fundo moderno para promo de smartphones, produto grande à esquerda, área limpa à direita para texto, luz suave, alto contraste, sem palavras, sem letras, sem números, sem logotipos.”
+
+Dicas rápidas
+
+Se o texto precisa sair da IA: tente Imagen 4 com 2K e inglês curto (mesmo assim é incerto).
+
+Mantendo tudo programático você ganha: legibilidade, multi-idioma, e fácil troca de headline/preço/call-to-action.
+
+No app/web, dá para sobrepor texto com HTML/CSS/Canvas/Flutter em vez de “queimar” na imagem.
