@@ -4495,7 +4495,12 @@ Keep the overall composition and maintain the same visual quality. This is for a
       const customPrompt = `Crie um banner promocional chamativo para destacar os seguintes produtos selecionados para teste: ${productNames}. Produtos das lojas: ${storeNames}. Use design vibrante com cores que chamem atenção, layout moderno e limpo. Inclua elementos visuais que remetam a ofertas especiais e promoções imperdíveis.`;
 
       // Usar o sistema de geração existente com produtos customizados
-      const { imageUrl } = await generatePromotionalArt(enrichedProducts, customPrompt);
+      // Gerar nome único para o arquivo
+      const timestamp = Date.now();
+      const outputPath = `./attached_assets/generated_arts/test_banner_${timestamp}.png`;
+      
+      await generatePromotionalArt(enrichedProducts, outputPath, customPrompt);
+      const imageUrl = `/generated_arts/test_banner_${timestamp}.png`;
       
       // Salvar a arte gerada como arte de teste
       const trendingProductsData = JSON.stringify(enrichedProducts.map(p => ({

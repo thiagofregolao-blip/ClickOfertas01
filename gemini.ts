@@ -423,7 +423,8 @@ export interface TrendingProduct {
  */
 export async function generatePromotionalArt(
     trendingProducts: TrendingProduct[],
-    outputPath: string
+    outputPath: string,
+    customPrompt?: string
 ): Promise<void> {
     try {
         console.log('🎨 Gerando arte promocional baseada em produtos em tendência...');
@@ -436,7 +437,7 @@ export async function generatePromotionalArt(
         const categories = Array.from(new Set(trendingProducts.map(p => p.category)));
         const avgPrice = Math.round(trendingProducts.reduce((sum, p) => sum + p.price, 0) / trendingProducts.length);
         
-        const prompt = `Crie um banner promocional vibrante e atrativo para um totem digital de loja, com o tema "PRODUTOS EM ALTA" ou "TENDÊNCIAS DA SEMANA".
+        const prompt = customPrompt || `Crie um banner promocional vibrante e atrativo para um totem digital de loja, com o tema "PRODUTOS EM ALTA" ou "TENDÊNCIAS DA SEMANA".
 
 PRODUTOS EM DESTAQUE:
 ${productsSummary}
