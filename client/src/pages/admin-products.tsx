@@ -82,6 +82,7 @@ export default function AdminProducts() {
       imageUrl3: "",
       isFeatured: false,
       showInStories: false,
+      showInTotem: false, // NOVO: Controle para exibição no totem
       isActive: true,
       // Campos de raspadinha
       isScratchCard: false,
@@ -233,6 +234,7 @@ export default function AdminProducts() {
       imageUrl3: "",
       isFeatured: false,
       showInStories: false,
+      showInTotem: false,
       isActive: true,
       // Campos de raspadinha - valores padrão
       isScratchCard: false,
@@ -256,6 +258,7 @@ export default function AdminProducts() {
       imageUrl3: product.imageUrl3 || "",
       isFeatured: product.isFeatured,
       showInStories: product.showInStories || false,
+      showInTotem: product.showInTotem || false,
       isActive: product.isActive,
       // Campos de raspadinha
       isScratchCard: product.isScratchCard || false,
@@ -813,6 +816,19 @@ export default function AdminProducts() {
                         />
                         <Label htmlFor="stories" className="text-purple-800 font-medium">
                           Mostrar nos Stories
+                        </Label>
+                      </div>
+
+                      {/* NOVO: Controle para Totem */}
+                      <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                        <Switch
+                          id="totem"
+                          checked={form.watch("showInTotem") || false}
+                          onCheckedChange={(checked) => form.setValue("showInTotem", checked)}
+                          data-testid="switch-totem"
+                        />
+                        <Label htmlFor="totem" className="text-orange-800 font-medium">
+                          Exibir no Totem
                         </Label>
                       </div>
 

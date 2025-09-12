@@ -2649,7 +2649,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Criar novo conteúdo do totem (admin)
-  app.post('/api/totem/content', isAuthenticated, async (req: any, res) => {
+  app.post('/api/totem/content', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const userId = req.user?.id || req.user?.claims?.sub || req.session?.user?.id;
       
@@ -2690,7 +2690,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Atualizar conteúdo do totem (admin)
-  app.put('/api/totem/content/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/totem/content/:id', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const userId = req.user?.id || req.user?.claims?.sub || req.session?.user?.id;
       const { id } = req.params;
@@ -4471,6 +4471,101 @@ Keep the overall composition and maintain the same visual quality. This is for a
     } catch (error) {
       console.error('Error getting all products:', error);
       res.status(500).json({ error: 'Erro ao buscar produtos' });
+    }
+  });
+
+  // ========== NOVA FUNCIONALIDADE: TOTEMS DE PRODUTOS ==========
+
+  // Gerar totem de produto específico (para Lojas)
+  app.post('/api/stores/:storeId/products/:productId/generate-totem', isAuthenticated, async (req: any, res) => {
+    try {
+      const { storeId, productId } = req.params;
+      const userId = getUserId(req);
+      
+      // Verificar propriedade da loja
+      if (!userId) {
+        return res.status(401).json({ error: 'Usuário não autenticado' });
+      }
+      
+      const isOwner = await verifyStoreOwnership(storeId, userId);
+      if (!isOwner) {
+        return res.status(403).json({ error: 'Acesso negado. Você só pode gerar totems para sua própria loja.' });
+      }
+
+      // Buscar produto e loja
+      const product = await storage.getProductById(productId);
+      if (!product || product.storeId !== storeId) {
+        return res.status(404).json({ error: 'Produto não encontrado' });
+      }
+
+      const store = await storage.getStore(storeId);
+      if (!store) {
+        return res.status(404).json({ error: 'Loja não encontrada' });
+      }
+
+      // Gerar nome único para o arquivo do totem
+      const timestamp = Date.now();
+      const outputPath = `./uploads/totem/totem_${productId}_${timestamp}.png`;
+      
+      // Usar a nova função de composição de totem
+      const { composeProductTotem } = await import('../gemini.js');
+      await composeProductTotem(
+        {
+          id: product.id,
+          name: product.name,
+          price: parseFloat(product.price?.toString().replace(',', '.') || '0') || 0,
+          imageUrl: product.imageUrl || undefined,
+          category: product.category || undefined,
+          description: product.description || undefined,
+        },
+        {
+          name: store.name,
+          themeColor: store.themeColor || undefined,
+          currency: store.currency || undefined,
+        },
+        outputPath
+      );
+
+      const totemUrl = `/uploads/totem/totem_${productId}_${timestamp}.png`;
+      
+      res.json({
+        success: true,
+        totemUrl,
+        productName: product.name,
+        storeName: store.name
+      });
+      
+    } catch (error) {
+      console.error('Erro ao gerar totem:', error);
+      res.status(500).json({ error: 'Erro interno do servidor ao gerar totem' });
+    }
+  });
+
+  // Listar produtos marcados para totem
+  app.get('/api/stores/:storeId/totem-products', isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const { storeId } = req.params;
+      const userId = getUserId(req);
+      
+      // Verificar propriedade da loja
+      if (!userId) {
+        return res.status(401).json({ error: 'Usuário não autenticado' });
+      }
+      
+      const isOwner = await verifyStoreOwnership(storeId, userId);
+      if (!isOwner) {
+        return res.status(403).json({ error: 'Acesso negado. Você só pode acessar produtos de sua própria loja.' });
+      }
+
+      // Buscar produtos marcados para totem
+      const allProducts = await storage.getStoreProducts(storeId);
+      const totemProducts = allProducts.filter(product => product.showInTotem && product.isActive);
+      
+      res.json(totemProducts);
+      
+    } catch (error) {
+      console.error('Erro ao buscar produtos para totem:', error);
+      res.status(500).json({ error: 'Erro ao buscar produtos para totem' });
     }
   });
 

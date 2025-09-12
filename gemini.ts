@@ -713,6 +713,209 @@ async function composePromotionalBanner(
     }
 }
 
+// ========== NOVO SISTEMA: TOTEMS DE PRODUTOS ==========
+
+/**
+ * NOVA FUNCIONALIDADE: Compor totem profissional para produto específico
+ * Usa dados reais do produto + imagem já cadastrada no sistema
+ * 
+ * CARACTERÍSTICAS:
+ * ✅ Imagem real do produto (imageUrl do banco)
+ * ✅ Dados reais: nome, preço em BRL, categoria
+ * ✅ Layout profissional 1920x1080 para totem
+ * ✅ Design responsivo com quebra de linha
+ * ✅ Call-to-action específico da loja
+ */
+export async function composeProductTotem(
+    product: {
+        id: string;
+        name: string;
+        price: number;
+        imageUrl?: string;
+        category?: string;
+        description?: string;
+    },
+    store: {
+        name: string;
+        themeColor?: string;
+        currency?: string;
+    },
+    outputPath: string
+): Promise<void> {
+    const sharp = await import('sharp');
+    const path = await import('path');
+    const fs = await import('fs');
+    
+    try {
+        console.log(`🏪 Compondo totem para produto: ${product.name}`);
+
+        // Garantir que pasta de saída existe
+        fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+
+        // Dimensões do totem (16:9)
+        const totemWidth = 1920;
+        const totemHeight = 1080;
+
+        // Formatação de preço em Real brasileiro
+        const preco = new Intl.NumberFormat('pt-BR', { 
+            style: 'currency', 
+            currency: 'BRL' 
+        }).format(product.price);
+
+        // Cor tema da loja ou padrão
+        const primaryColor = store.themeColor || '#E11D48';
+        const accentColor = '#ffd700';
+
+        // Quebrar nome do produto em múltiplas linhas se necessário
+        const words = product.name.split(' ');
+        let line1 = '', line2 = '', line3 = '';
+        
+        if (words.length > 4 && product.name.length > 40) {
+            const third = Math.ceil(words.length / 3);
+            line1 = words.slice(0, third).join(' ').toUpperCase();
+            line2 = words.slice(third, third * 2).join(' ').toUpperCase();
+            line3 = words.slice(third * 2).join(' ').toUpperCase();
+        } else if (words.length > 2 && product.name.length > 25) {
+            const mid = Math.ceil(words.length / 2);
+            line1 = words.slice(0, mid).join(' ').toUpperCase();
+            line2 = words.slice(mid).join(' ').toUpperCase();
+        } else {
+            line1 = product.name.length > 35 ? product.name.substring(0, 35) + '...' : product.name.toUpperCase();
+        }
+
+        let productImageBuffer: Buffer | null = null;
+        
+        // Baixar imagem do produto se disponível
+        if (product.imageUrl) {
+            try {
+                console.log(`📥 Baixando imagem do produto: ${product.imageUrl}`);
+                const imageResponse = await fetch(product.imageUrl);
+                if (imageResponse.ok) {
+                    const imageArrayBuffer = await imageResponse.arrayBuffer();
+                    productImageBuffer = Buffer.from(imageArrayBuffer);
+                    console.log(`✅ Imagem baixada: ${productImageBuffer.length} bytes`);
+                }
+            } catch (error) {
+                console.warn(`⚠️ Erro ao baixar imagem do produto: ${error}`);
+            }
+        }
+
+        // Criar gradiente de fundo com cor da loja
+        const gradientSvg = `
+        <svg width="${totemWidth}" height="${totemHeight}">
+            <defs>
+                <linearGradient id="storeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:${primaryColor};stop-opacity:0.9" />
+                    <stop offset="100%" style="stop-color:#000000;stop-opacity:0.8" />
+                </linearGradient>
+                <linearGradient id="shine" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:rgba(255,255,255,0.1)" />
+                    <stop offset="50%" style="stop-color:rgba(255,255,255,0.2)" />
+                    <stop offset="100%" style="stop-color:rgba(255,255,255,0.1)" />
+                </linearGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#storeGrad)" />
+            <rect width="100%" height="100%" fill="url(#shine)" />
+        </svg>`;
+
+        // Definir layout baseado na presença da imagem
+        const hasImage = productImageBuffer !== null;
+        const textAreaWidth = hasImage ? totemWidth * 0.5 : totemWidth * 0.8;
+        const textStartX = hasImage ? 100 : totemWidth * 0.1;
+        const imageAreaX = hasImage ? totemWidth * 0.55 : 0;
+
+        // Criar SVG com informações do produto
+        const productInfoSvg = `
+        <svg width="${totemWidth}" height="${totemHeight}">
+            <!-- Faixa translúcida para contraste -->
+            <rect x="50" y="100" width="${textAreaWidth}" height="600" fill="rgba(0,0,0,0.5)" rx="30"/>
+            
+            <!-- Categoria -->
+            <text x="${textStartX}" y="180" font-family="sans-serif" font-size="42" font-weight="normal" fill="rgba(255,255,255,0.9)" text-anchor="start">
+                ${(product.category || 'PRODUTO').toUpperCase()}
+            </text>
+            
+            <!-- Nome do produto (linha 1) -->
+            <text x="${textStartX}" y="260" font-family="sans-serif" font-size="${line3 ? '54' : '68'}" font-weight="bold" fill="white" text-anchor="start">
+                ${line1}
+            </text>
+            
+            <!-- Nome do produto (linha 2) -->
+            ${line2 ? `<text x="${textStartX}" y="${line3 ? '320' : '340'}" font-family="sans-serif" font-size="${line3 ? '54' : '68'}" font-weight="bold" fill="white" text-anchor="start">${line2}</text>` : ''}
+            
+            <!-- Nome do produto (linha 3) -->
+            ${line3 ? `<text x="${textStartX}" y="380" font-family="sans-serif" font-size="54" font-weight="bold" fill="white" text-anchor="start">${line3}</text>` : ''}
+            
+            <!-- Preço destacado -->
+            <text x="${textStartX}" y="${line3 ? 480 : line2 ? 450 : 420}" font-family="sans-serif" font-size="96" font-weight="bold" fill="${accentColor}" text-anchor="start" stroke="rgba(0,0,0,0.3)" stroke-width="3">
+                ${preco}
+            </text>
+            
+            <!-- Call to Action da loja -->
+            <text x="${textStartX}" y="${line3 ? 580 : line2 ? 550 : 520}" font-family="sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
+                DISPONÍVEL NA
+            </text>
+            <text x="${textStartX}" y="${line3 ? 630 : line2 ? 600 : 570}" font-family="sans-serif" font-size="42" font-weight="bold" fill="${accentColor}" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
+                ${store.name.toUpperCase()}
+            </text>
+            
+            <!-- Logo/Brand no rodapé -->
+            <text x="${totemWidth - 50}" y="${totemHeight - 50}" font-family="sans-serif" font-size="32" fill="rgba(255,255,255,0.8)" text-anchor="end">
+                Click Ofertas Paraguai
+            </text>
+        </svg>`;
+
+        // Começar composição com o fundo
+        let composition = sharp.default(Buffer.from(gradientSvg));
+
+        // Adicionar imagem do produto se disponível
+        if (productImageBuffer && hasImage) {
+            try {
+                // Redimensionar imagem do produto para caber na área designada
+                const productImageProcessed = await sharp.default(productImageBuffer)
+                    .resize(700, 800, { 
+                        fit: 'contain', 
+                        background: { r: 0, g: 0, b: 0, alpha: 0 } 
+                    })
+                    .png()
+                    .toBuffer();
+
+                composition = composition.composite([
+                    {
+                        input: productImageProcessed,
+                        left: Math.round(imageAreaX),
+                        top: 140,
+                        blend: 'over'
+                    }
+                ]);
+                
+                console.log(`🖼️ Imagem do produto adicionada ao totem`);
+            } catch (error) {
+                console.warn(`⚠️ Erro ao processar imagem do produto: ${error}`);
+            }
+        }
+
+        // Adicionar informações do produto
+        composition = composition.composite([
+            {
+                input: Buffer.from(productInfoSvg),
+                left: 0,
+                top: 0,
+                blend: 'over'
+            }
+        ]);
+
+        // Salvar o totem final
+        await composition.png().toFile(outputPath);
+
+        console.log(`✅ Totem do produto composto: ${outputPath}`);
+        
+    } catch (error) {
+        console.error('❌ Erro ao compor totem do produto:', error);
+        throw error;
+    }
+}
+
 /**
  * Gera arte promocional focada em produto específico
  * NOVA VERSÃO: Usa composição de imagem real do Pexels + texto sobreposto

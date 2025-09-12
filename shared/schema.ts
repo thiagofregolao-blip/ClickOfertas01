@@ -100,6 +100,7 @@ export const products = pgTable("products", {
   category: varchar("category").default("Perfumaria"),
   isFeatured: boolean("is_featured").default(false),
   showInStories: boolean("show_in_stories").default(false),
+  showInTotem: boolean("show_in_totem").default(false), // NOVO: Controla exibição no totem
   isActive: boolean("is_active").default(true),
   sortOrder: varchar("sort_order").default("0"),
   // Campos para funcionalidade de Raspadinha
