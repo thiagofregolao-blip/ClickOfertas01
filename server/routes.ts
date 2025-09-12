@@ -4355,12 +4355,17 @@ Keep the overall composition and maintain the same visual quality. This is for a
         let trendingProducts = [];
         if (art.trendingProductsData) {
           try {
-            // Remover aspas extras e fazer parse
-            let cleanData = art.trendingProductsData as string;
-            // Remove aspas triplas e escapes excessivos
-            cleanData = cleanData.replace(/^"{1,3}|"{1,3}$/g, '');
-            cleanData = cleanData.replace(/\\"/g, '"');
-            trendingProducts = JSON.parse(cleanData);
+            // Verificar se é string antes de fazer replace
+            let cleanData = art.trendingProductsData;
+            if (typeof cleanData === 'string') {
+              // Remove aspas triplas e escapes excessivos
+              cleanData = cleanData.replace(/^"{1,3}|"{1,3}$/g, '');
+              cleanData = cleanData.replace(/\\"/g, '"');
+              trendingProducts = JSON.parse(cleanData);
+            } else {
+              // Se já é objeto, usar diretamente
+              trendingProducts = cleanData;
+            }
           } catch (e) {
             console.warn('Erro ao parsear trending products:', e);
             trendingProducts = [];
@@ -4517,7 +4522,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
       const outputPath = `./attached_assets/generated_arts/test_banner_${timestamp}.png`;
       
       await generatePromotionalArt(enrichedProducts, outputPath, customPrompt);
-      const imageUrl = `/generated_arts/test_banner_${timestamp}.png`;
+      const imageUrl = `/attached_assets/generated_arts/test_banner_${timestamp}.png`;
       
       // Salvar a arte gerada como arte de teste
       const trendingProductsData = JSON.stringify(enrichedProducts.map(p => ({
