@@ -2723,7 +2723,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Access denied' });
       }
       
-      await storage.deleteTotemContent(id, store.id);
+      // Verificar se é uma arte gerada (ID começa com "generated-")
+      if (id.startsWith('generated-')) {
+        const artId = id.replace('generated-', '');
+        console.log(`🗑️ Deletando arte gerada: ${artId}`);
+        await storage.deleteGeneratedTotemArt(artId);
+      } else {
+        // Conteúdo regular da loja
+        await storage.deleteTotemContent(id, store.id);
+      }
+      
       res.json({ success: true, message: 'Content deleted successfully' });
     } catch (error) {
       console.error('Error deleting totem content:', error);
