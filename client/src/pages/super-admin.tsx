@@ -1260,6 +1260,71 @@ export default function SuperAdmin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  // ========== MUTATIONS PARA ARTES IA ==========
+  const { data: allGeneratedArts, isLoading: artsLoading } = useQuery({
+    queryKey: ['/api/super-admin/generated-arts/manage'],
+    gcTime: 3 * 60 * 1000, // 3 minutos
+  });
+
+  const toggleArtMutation = useMutation({
+    mutationFn: async ({ artId, isActive }: { artId: string; isActive: boolean }) => 
+      apiRequest(`/api/totem/generated-arts/${artId}/toggle`, 'PATCH', { isActive }),
+    onSuccess: () => {
+      toast({
+        title: "Status atualizado!",
+        description: "Arte ativada/desativada com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/generated-arts/manage'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao atualizar arte.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteArtMutation = useMutation({
+    mutationFn: async (artId: string) => 
+      apiRequest(`/api/super-admin/generated-arts/${artId}`, 'DELETE'),
+    onSuccess: () => {
+      toast({
+        title: "Arte excluída!",
+        description: "Arte removida com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/generated-arts/manage'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao excluir arte.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const forceGenerateMutation = useMutation({
+    mutationFn: async () => 
+      apiRequest('/api/super-admin/generated-arts/force-generate', 'POST'),
+    onSuccess: () => {
+      toast({
+        title: "Geração iniciada!",
+        description: "Nova arte será gerada em instantes.",
+      });
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/super-admin/generated-arts/manage'] });
+      }, 5000);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao forçar geração.",
+        variant: "destructive",
+      });
+    },
+  });
+  
   // Refs para controles de raspadinha
   const operationModeRef = useRef<HTMLButtonElement>(null);
   const productsPerDayRef = useRef<HTMLInputElement>(null);
