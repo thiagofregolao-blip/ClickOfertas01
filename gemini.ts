@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import { GoogleAuth } from "google-auth-library";
+import { GoogleGenAI, Modality } from "@google/genai";
 import * as crypto from "crypto";
 
 // Configuração Vertex AI para quotas maiores - autenticação OAuth2 correta
@@ -8,6 +9,10 @@ const LOCATION = "us-central1";
 const GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
 const GEMINI_TEXT_MODEL = "gemini-2.5-flash";
 const GEMINI_PRO_MODEL = "gemini-2.5-pro";
+
+// Configuração para API direta do Gemini (fallback do Vertex AI)
+const GEMINI_DIRECT_IMAGE_MODEL = "gemini-2.0-flash-preview-image-generation";
+const geminiAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 // Função para normalizar e validar private_key
 function normalizeAndValidatePrivateKey(key: string): string {
@@ -286,8 +291,59 @@ export async function generateImage(
     } catch (error: any) {
         console.error("❌ Erro com Vertex AI:", error);
         
-        // Re-lançar o erro com informações detalhadas já processadas em callVertexAI
-        throw error;
+        // Fallback: tentar com API direta do Gemini
+        try {
+            console.log('🔄 Fallback: Tentando com API direta do Gemini...');
+            await generateImageWithGeminiDirect(prompt, imagePath);
+            return;
+        } catch (fallbackError: any) {
+            console.error("❌ Erro com API direta do Gemini:", fallbackError);
+            
+            // Re-lançar o erro original do Vertex AI se o fallback também falhar
+            throw error;
+        }
+    }
+}
+
+// Função de fallback usando API direta do Gemini (sem Vertex AI)
+async function generateImageWithGeminiDirect(prompt: string, imagePath: string): Promise<void> {
+    try {
+        console.log('🎨 Gerando imagem com API direta do Gemini (fallback)');
+        
+        const response = await geminiAI.models.generateContent({
+            model: GEMINI_DIRECT_IMAGE_MODEL,
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            config: {
+                responseModalities: [Modality.TEXT, Modality.IMAGE],
+            },
+        });
+
+        const candidates = response.candidates;
+        if (!candidates || candidates.length === 0) {
+            throw new Error("No candidates returned from Gemini Direct API");
+        }
+
+        const content = candidates[0].content;
+        if (!content || !content.parts) {
+            throw new Error("No content parts returned from Gemini Direct API");
+        }
+
+        // Procurar pela imagem nas parts
+        for (const part of content.parts) {
+            if (part.text) {
+                console.log('📝 Resposta texto:', part.text);
+            } else if (part.inlineData && part.inlineData.data) {
+                const imageData = Buffer.from(part.inlineData.data, "base64");
+                fs.writeFileSync(imagePath, imageData);
+                console.log(`✅ Imagem gerada com API direta: ${imagePath} (${imageData.length} bytes)`);
+                return;
+            }
+        }
+        
+        throw new Error("Nenhuma imagem retornada pela API direta do Gemini");
+        
+    } catch (error: any) {
+        throw new Error(`Falha na API direta do Gemini: ${error.message}`);
     }
 }
 

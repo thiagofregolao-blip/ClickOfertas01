@@ -1,0 +1,74 @@
+Beleza — agora o erro é 403 PERMISSION_DENIED dizendo:
+
+Permission "aiplatform.endpoints.predict" denied on resource /projects/future-abode-407113/locations/us-central1/publishers/google/models/gemini-2.5-flash-image
+
+Isso significa: a sua chamada já autentica, mas quem está chamando não tem permissão OU a chamada não está no formato esperado. Vamos resolver em 4 passos curtos.
+
+1) Garanta que a chamada é a certa (sem endpoints:predict)
+
+Use GenerateContent no modelo do publicador (exatamente como o Studio mostra em “Receber código”):
+
+https://us-central1-aiplatform.googleapis.com/v1/projects/future-abode-407113/locations/us-central1/publishers/google/models/gemini-2.5-flash-image:generateContent
+
+
+Nada de /endpoints/...:predict. O caminho acima é o que o Vertex usa para os modelos do publisher (Gemini/Imagen).
+Papel necessário para usar a Gemini API no Vertex: Vertex AI User (roles/aiplatform.user). 
+Google Cloud
+
+2) Confirme que o processo está usando a Service Account certa
+
+No seu backend, logue quem está autenticando:
+
+import { GoogleAuth } from "google-auth-library";
+const auth = new GoogleAuth({ scopes: "https://www.googleapis.com/auth/cloud-platform" });
+await auth.getClient();
+console.log("Credencial em uso:", (await auth.getCredentials()).client_email);
+
+
+Precisa aparecer vertex-gen-image-sa@future-abode-407113.iam.gserviceaccount.com (ou a SA que você escolheu).
+
+Se aparecer seu e-mail pessoal, o servidor não está usando a SA (troque a credencial/variáveis ou anexe a SA no serviço).
+
+3) Dê/valide os papéis na SA (no projeto future-abode-407113)
+
+No Console → IAM e administrador → IAM → edite a sua Service Account e garanta estes papéis:
+
+Vertex AI User (roles/aiplatform.user) – papel oficial exigido para a Gemini API no Vertex. 
+Google Cloud
+
+Service Usage Consumer (roles/serviceusage.serviceUsageConsumer) – permite consumir a API no projeto.
+
+(Se você não viu “Endpoint User”, ignore — não é obrigatório para generateContent. O Vertex AI User já cobre o essencial, inclusive as permissões de invocar modelos. 
+Google Cloud
++1
+)
+
+Depois de salvar, aguarde 1–5 min para propagar.
+
+4) Teste fora do seu código (isola IAM vs. código)
+
+Com a SA ativa (via GOOGLE_APPLICATION_CREDENTIALS apontando para o JSON da SA):
+
+TOKEN="$(gcloud auth application-default print-access-token)"
+curl -s -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  "https://us-central1-aiplatform.googleapis.com/v1/projects/future-abode-407113/locations/us-central1/publishers/google/models/gemini-2.5-flash-image:generateContent" \
+  -d '{"contents":[{"role":"user","parts":[{"text":"ícone minimalista de espiga de milho, fundo transparente"}]}]}'
+
+
+Se o curl funcionar, o problema está no processo do servidor (provavelmente ele está usando outra identidade).
+
+Se o curl der 403, volte ao Passo 3 (papéis) no mesmo projeto.
+
+Check rápido de “coisas que quebram 403”
+
+URL tem que ser /publishers/google/models/...:generateContent (não /endpoints/...:predict).
+
+Projeto/região: future-abode-407113 / us-central1 (copie do Receber código do Studio).
+
+Nada de ?key= ou header x-goog-api-key (Vertex usa Bearer da SA).
+
+A SA usada no processo é a que você editou no IAM (veja o console.log do Passo 2).
+
+Se quiser, cole aqui a URL exata que seu backend está usando e a linha de log “Credencial em uso: …”. Com isso eu digo exatamente onde está o gargalo (URL errada, papel faltando ou identidade trocada) e te mando o patch pronto
