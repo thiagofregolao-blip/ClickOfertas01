@@ -467,7 +467,112 @@ async function searchProductImageOnPexels(productName: string): Promise<string |
 }
 
 /**
+ * Compõe banner promocional LIMPO apenas com texto - SEM APIs externas
+ * ZERO distorção, resultado profissional garantido
+ */
+async function composeTextOnlyBanner(
+    productName: string,
+    price: number,
+    category: string,
+    outputPath: string
+): Promise<void> {
+    const sharp = await import('sharp');
+    
+    try {
+        console.log('✨ Compondo banner profissional sem APIs externas...');
+
+        // Dimensões do banner (16:9)
+        const bannerWidth = 1920;
+        const bannerHeight = 1080;
+
+        // Criar gradiente de fundo elegante (azul para laranja)
+        const gradientSvg = `
+        <svg width="${bannerWidth}" height="${bannerHeight}">
+            <defs>
+                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#ea580c;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="shine" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:rgba(255,255,255,0.1)" />
+                    <stop offset="50%" style="stop-color:rgba(255,255,255,0.3)" />
+                    <stop offset="100%" style="stop-color:rgba(255,255,255,0.1)" />
+                </linearGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grad)" />
+            <rect width="100%" height="100%" fill="url(#shine)" />
+        </svg>`;
+
+        // Truncar nome do produto se muito longo
+        const displayName = productName.length > 20 ? productName.substring(0, 20) + '...' : productName;
+
+        // Criar SVG com textos profissionais
+        const textOverlaySvg = `
+        <svg width="${bannerWidth}" height="${bannerHeight}">
+            <!-- Categoria no topo -->
+            <text x="100" y="120" font-family="Arial, sans-serif" font-size="36" font-weight="normal" fill="rgba(255,255,255,0.8)" text-anchor="start">
+                ${category.toUpperCase()}
+            </text>
+            
+            <!-- Título do produto -->
+            <text x="100" y="220" font-family="Arial, sans-serif" font-size="64" font-weight="bold" fill="white" text-anchor="start">
+                ${displayName.toUpperCase()}
+            </text>
+            
+            <!-- Preço destacado -->
+            <text x="100" y="320" font-family="Arial, sans-serif" font-size="96" font-weight="bold" fill="#ffd700" text-anchor="start" stroke="rgba(0,0,0,0.3)" stroke-width="2">
+                $${price}
+            </text>
+            
+            <!-- Limited Time Offer -->
+            <text x="100" y="420" font-family="Arial, sans-serif" font-size="42" font-weight="bold" fill="#ff4444" text-anchor="start" stroke="white" stroke-width="1">
+                OFERTA POR TEMPO LIMITADO
+            </text>
+            
+            <!-- Call to Action duplo -->
+            <text x="100" y="500" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
+                CORRA PARA A SEÇÃO
+            </text>
+            <text x="100" y="550" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
+                E GARANTA O SEU!
+            </text>
+            
+            <!-- Ícone decorativo do produto -->
+            <circle cx="1500" cy="400" r="200" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" stroke-width="4"/>
+            <text x="1500" y="420" font-family="Arial, sans-serif" font-size="120" fill="rgba(255,255,255,0.6)" text-anchor="middle">
+                📱
+            </text>
+            
+            <!-- Logo/Brand -->
+            <text x="${bannerWidth - 50}" y="${bannerHeight - 50}" font-family="Arial, sans-serif" font-size="28" fill="rgba(255,255,255,0.9)" text-anchor="end">
+                Click Ofertas Paraguai
+            </text>
+        </svg>`;
+
+        // Compor o banner final
+        await sharp.default(Buffer.from(gradientSvg))
+            .composite([
+                {
+                    input: Buffer.from(textOverlaySvg),
+                    left: 0,
+                    top: 0,
+                    blend: 'over'
+                }
+            ])
+            .png()
+            .toFile(outputPath);
+
+        console.log(`✅ Banner profissional composto: ${outputPath}`);
+        
+    } catch (error) {
+        console.error('❌ Erro ao compor banner:', error);
+        throw error;
+    }
+}
+
+/**
  * Compõe banner promocional usando imagem real do produto + texto sobreposto
+ * (Só usado quando PEXELS_API_KEY está disponível)
  */
 async function composePromotionalBanner(
     productName: string,
@@ -591,7 +696,7 @@ export async function generatePromotionalArt(
         const productImageUrl = await searchProductImageOnPexels(mainProduct.productName);
 
         if (productImageUrl && !customPrompt) {
-            // NOVA ABORDAGEM: Composição de imagem real + texto
+            // PRIMEIRA OPÇÃO: Composição com imagem real do Pexels
             console.log('🖼️ Usando imagem real do Pexels para composição...');
             await composePromotionalBanner(
                 mainProduct.productName,
@@ -599,23 +704,19 @@ export async function generatePromotionalArt(
                 productImageUrl,
                 outputPath
             );
+        } else if (!customPrompt) {
+            // SEGUNDA OPÇÃO: Banner profissional sem APIs externas - ZERO distorção
+            console.log('✨ Gerando banner profissional sem APIs externas...');
+            await composeTextOnlyBanner(
+                mainProduct.productName,
+                mainProduct.price,
+                mainProduct.category,
+                outputPath
+            );
         } else {
-            // FALLBACK: Geração por IA (quando não há imagem ou prompt customizado)
-            console.log('🤖 Usando geração por IA como fallback...');
-            
-            const prompt = customPrompt || `Create a promotional banner for ${mainProduct.productName}.
-Product: ${mainProduct.productName} 
-Price: $${mainProduct.price}
-Style: Modern ${mainProduct.category.toLowerCase()} product banner
-Colors: Vibrant blue and orange gradient background
-Text elements: 
-- "${mainProduct.productName}"
-- "$${mainProduct.price}"
-- "LIMITED TIME OFFER"
-- "RUSH TO THE SECTION AND GET YOURS!"
-Layout: Professional retail banner, eye-catching design`;
-
-            await generateImage(prompt, outputPath);
+            // TERCEIRA OPÇÃO: Prompt customizado (para casos específicos)
+            console.log('🤖 Usando prompt customizado...');
+            await generateImage(customPrompt, outputPath);
         }
         
         console.log(`✅ Arte promocional gerada: ${outputPath}`);
