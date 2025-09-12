@@ -1804,7 +1804,7 @@ export default function SuperAdmin() {
         </div>
 
         <Tabs defaultValue="banners" className="w-full">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="banners" className="flex items-center gap-2">
               <Image className="w-4 h-4" />
               Banners
@@ -1832,6 +1832,10 @@ export default function SuperAdmin() {
             <TabsTrigger value="ai-test" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
               Teste IA
+            </TabsTrigger>
+            <TabsTrigger value="ai-arts-main" className="flex items-center gap-2">
+              <Brain className="w-4 h-4" />
+              Artes IA
             </TabsTrigger>
             <TabsTrigger value="system" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
@@ -3968,6 +3972,104 @@ export default function SuperAdmin() {
           </TabsContent>
 
           {/* ABA DE SISTEMA */}
+          {/* ABA ARTES IA */}
+          <TabsContent value="ai-arts-main" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-purple-600" />
+                  Gestão Completa de Artes IA
+                </CardTitle>
+                <CardDescription className="flex justify-between items-center">
+                  <span>Controle total de todas as artes geradas automaticamente</span>
+                  <Button 
+                    onClick={() => forceGenerateMutation.mutate()}
+                    disabled={forceGenerateMutation.isPending}
+                    size="sm"
+                    className="flex items-center gap-2"
+                    data-testid="button-force-generate"
+                  >
+                    {forceGenerateMutation.isPending ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Zap className="w-4 h-4" />
+                    )}
+                    Forçar Geração
+                  </Button>
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {artsLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="animate-pulse">
+                        <div className="h-48 bg-gray-200 rounded-lg mb-4"></div>
+                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : !allGeneratedArts || allGeneratedArts.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Brain className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>Ainda não há artes geradas.</p>
+                    <p className="text-sm mt-1">Use o botão "Forçar Geração" para criar novas artes automaticamente.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {allGeneratedArts.map((art: any) => (
+                      <Card key={art.id} className="overflow-hidden" data-testid={`ai-art-${art.id}`}>
+                        <div className="relative">
+                          <img 
+                            src={art.imageUrl} 
+                            alt="Arte gerada por IA"
+                            className="w-full h-48 object-cover"
+                          />
+                          <div className="absolute top-2 right-2">
+                            <Badge variant={art.isActive ? "default" : "secondary"}>
+                              {art.isActive ? "Ativo" : "Inativo"}
+                            </Badge>
+                          </div>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-2 left-2"
+                            onClick={() => deleteArtMutation.mutate(art.id)}
+                            disabled={deleteArtMutation.isPending}
+                            data-testid={`button-delete-art-${art.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-gray-900">
+                              {art.storeName || 'Global'} - #{art.id.slice(0, 8)}
+                            </h4>
+                            <Switch 
+                              checked={art.isActive}
+                              onCheckedChange={(checked) => {
+                                toggleArtMutation.mutate({ artId: art.id, isActive: checked });
+                              }}
+                              disabled={toggleArtMutation.isPending}
+                              data-testid={`switch-art-${art.id}`}
+                            />
+                          </div>
+                          <p className="text-sm text-gray-500 mb-2">
+                            {new Date(art.generationDate).toLocaleDateString('pt-BR')}
+                          </p>
+                          <p className="text-xs text-gray-400 line-clamp-2">
+                            {art.prompt}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="system" className="space-y-6">
             <MaintenanceControls />
           </TabsContent>
