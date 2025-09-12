@@ -4510,13 +4510,14 @@ Keep the overall composition and maintain the same visual quality. This is for a
         storeName: p.storeName
       })));
 
-      await storage.saveGeneratedTotemArt(
-        'global-trends',
-        imageUrl,
-        new Date(),
-        trendingProductsData,
-        `TESTE IA: ${customPrompt.substring(0, 100)}...`
-      );
+      await storage.createGeneratedTotemArt({
+        storeId: 'global-trends',
+        imageUrl: imageUrl,
+        generationDate: new Date(),
+        trendingProductsData: trendingProductsData,
+        imagePrompt: `TESTE IA: ${customPrompt.substring(0, 100)}...`,
+        isActive: true
+      });
       
       res.json({ 
         success: true, 
