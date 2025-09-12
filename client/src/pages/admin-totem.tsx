@@ -37,7 +37,15 @@ export default function AdminTotem() {
         const response = await fetch('/api/stores/me');
         const store = await response.json();
         if (store?.id) {
-          const contentResponse = await fetch(`/api/totem/${store.id}/content`);
+          // Adicionar timestamp para evitar cache HTTP
+          const timestamp = Date.now();
+          const contentResponse = await fetch(`/api/totem/${store.id}/content?_t=${timestamp}`, {
+            cache: 'no-cache',
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
+          });
           const data = await contentResponse.json();
           return data;
         }
@@ -112,9 +120,13 @@ export default function AdminTotem() {
       return await apiRequest('DELETE', `/api/totem/content/${contentId}`);
     },
     onSuccess: () => {
-      // Forçar refetch completo da query
+      // Forçar refetch completo sem cache
+      queryClient.removeQueries({ queryKey: ['/api/totem/my-content'] });
       queryClient.invalidateQueries({ queryKey: ['/api/totem/my-content'] });
-      queryClient.refetchQueries({ queryKey: ['/api/totem/my-content'] });
+      // Aguardar um momento para garantir que o backend processou a exclusão
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['/api/totem/my-content'] });
+      }, 100);
       toast({
         title: "Sucesso!",
         description: "Conteúdo removido com sucesso",
