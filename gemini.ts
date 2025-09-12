@@ -418,8 +418,159 @@ export interface TrendingProduct {
 }
 
 /**
- * Gera arte promocional automaticamente baseada nos produtos em tendência
- * Usa Gemini 2.5 Flash para criar banners atrativos para totems
+ * Busca imagem de produto no Pexels API
+ */
+async function searchProductImageOnPexels(productName: string): Promise<string | null> {
+    try {
+        if (!process.env.PEXELS_API_KEY) {
+            console.warn('⚠️ PEXELS_API_KEY não configurado, usando prompt sem imagem de referência');
+            return null;
+        }
+
+        // Extrair keywords principais do nome do produto para busca mais efetiva
+        const searchTerm = productName
+            .toLowerCase()
+            .replace(/\d+gb|\d+tb|\d+\s*tb|\d+\s*gb/gi, '') // Remove capacidades de armazenamento
+            .replace(/\b\d+\w*\b/g, '') // Remove números e versões
+            .replace(/[^a-zA-Z\s]/g, '') // Remove caracteres especiais
+            .trim();
+
+        console.log(`🔍 Buscando imagem no Pexels para: "${searchTerm}"`);
+
+        const response = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(searchTerm)}&per_page=5&orientation=landscape`, {
+            headers: {
+                'Authorization': process.env.PEXELS_API_KEY
+            }
+        });
+
+        if (!response.ok) {
+            console.warn(`⚠️ Erro na busca Pexels: ${response.status}`);
+            return null;
+        }
+
+        const data = await response.json();
+        
+        if (data.photos && data.photos.length > 0) {
+            // Pegar a primeira imagem de alta qualidade
+            const photo = data.photos[0];
+            console.log(`✅ Imagem encontrada no Pexels: ${photo.src.medium}`);
+            return photo.src.large; // URL da imagem em alta resolução
+        }
+
+        console.warn(`⚠️ Nenhuma imagem encontrada no Pexels para: ${searchTerm}`);
+        return null;
+        
+    } catch (error) {
+        console.warn(`⚠️ Erro ao buscar imagem no Pexels: ${error}`);
+        return null;
+    }
+}
+
+/**
+ * Compõe banner promocional usando imagem real do produto + texto sobreposto
+ */
+async function composePromotionalBanner(
+    productName: string,
+    price: number,
+    productImageUrl: string,
+    outputPath: string
+): Promise<void> {
+    const sharp = await import('sharp');
+    
+    try {
+        console.log('🎨 Compondo banner com imagem real do produto...');
+
+        // Baixar imagem do produto
+        const imageResponse = await fetch(productImageUrl);
+        if (!imageResponse.ok) {
+            throw new Error(`Erro ao baixar imagem: ${imageResponse.status}`);
+        }
+        const imageBuffer = await imageResponse.arrayBuffer();
+
+        // Dimensões do banner (16:9)
+        const bannerWidth = 1920;
+        const bannerHeight = 1080;
+
+        // Criar gradiente de fundo (azul para laranja)
+        const gradientSvg = `
+        <svg width="${bannerWidth}" height="${bannerHeight}">
+            <defs>
+                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#1e40af;stop-opacity:0.9" />
+                    <stop offset="100%" style="stop-color:#ea580c;stop-opacity:0.9" />
+                </linearGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grad)" />
+        </svg>`;
+
+        // Redimensionar imagem do produto para caber no banner
+        const productImage = sharp.default(Buffer.from(imageBuffer))
+            .resize(800, 600, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } });
+
+        // Criar SVG com textos sobrepostos
+        const textOverlaySvg = `
+        <svg width="${bannerWidth}" height="${bannerHeight}">
+            <!-- Título do produto -->
+            <text x="100" y="150" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white" text-anchor="start">
+                ${productName.toUpperCase()}
+            </text>
+            
+            <!-- Preço -->
+            <text x="100" y="250" font-family="Arial, sans-serif" font-size="96" font-weight="bold" fill="#ffd700" text-anchor="start">
+                $${price}
+            </text>
+            
+            <!-- Limited Time Offer -->
+            <text x="100" y="350" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#ff4444" text-anchor="start">
+                LIMITED TIME OFFER
+            </text>
+            
+            <!-- Call to Action -->
+            <text x="100" y="450" font-family="Arial, sans-serif" font-size="42" font-weight="bold" fill="white" text-anchor="start">
+                RUSH TO THE SECTION
+            </text>
+            <text x="100" y="510" font-family="Arial, sans-serif" font-size="42" font-weight="bold" fill="white" text-anchor="start">
+                AND GET YOURS!
+            </text>
+            
+            <!-- Logo/Brand -->
+            <text x="${bannerWidth - 50}" y="${bannerHeight - 50}" font-family="Arial, sans-serif" font-size="32" fill="white" text-anchor="end" opacity="0.8">
+                Click Ofertas Paraguai
+            </text>
+        </svg>`;
+
+        // Compor o banner final
+        const finalBanner = await sharp.default(Buffer.from(gradientSvg))
+            .composite([
+                // Imagem do produto no lado direito
+                {
+                    input: await productImage.png().toBuffer(),
+                    left: bannerWidth - 850,
+                    top: 240,
+                    blend: 'over'
+                },
+                // Texto sobreposto
+                {
+                    input: Buffer.from(textOverlaySvg),
+                    left: 0,
+                    top: 0,
+                    blend: 'over'
+                }
+            ])
+            .png()
+            .toFile(outputPath);
+
+        console.log(`✅ Banner composto com sucesso: ${outputPath}`);
+        
+    } catch (error) {
+        console.error('❌ Erro ao compor banner:', error);
+        throw error;
+    }
+}
+
+/**
+ * Gera arte promocional focada em produto específico
+ * NOVA VERSÃO: Usa composição de imagem real do Pexels + texto sobreposto
  */
 export async function generatePromotionalArt(
     trendingProducts: TrendingProduct[],
@@ -429,44 +580,43 @@ export async function generatePromotionalArt(
     try {
         console.log('🎨 Gerando arte promocional baseada em produtos em tendência...');
         
-        // Criar prompt inteligente baseado nos produtos
-        const productsSummary = trendingProducts.map((p, index) => 
-            `${index + 1}. ${p.productName} (${p.category}) - $${p.price} - ${p.searchCount} buscas, ${p.viewCount} visualizações`
-        ).join('\n');
+        // Focar no primeiro produto da lista (mais em tendência)
+        const mainProduct = trendingProducts[0];
         
-        const categories = Array.from(new Set(trendingProducts.map(p => p.category)));
-        const avgPrice = Math.round(trendingProducts.reduce((sum, p) => sum + p.price, 0) / trendingProducts.length);
-        
-        const prompt = customPrompt || `Crie um banner promocional vibrante e atrativo para um totem digital de loja, com o tema "PRODUTOS EM ALTA" ou "TENDÊNCIAS DA SEMANA".
+        if (!mainProduct) {
+            throw new Error('Nenhum produto fornecido para geração');
+        }
 
-PRODUTOS EM DESTAQUE:
-${productsSummary}
+        // Buscar imagem real do produto no Pexels
+        const productImageUrl = await searchProductImageOnPexels(mainProduct.productName);
 
-DIRETRIZES DO DESIGN:
-- Estilo moderno, colorido e eye-catching para chamar atenção em shopping centers
-- Dimensões 16:9 apropriadas para telas de totem (1920x1080)
-- Cores vibrantes: gradientes em azul, roxo, laranja ou verde
-- Texto em português brasileiro, fonte bold e legível
-- Layout clean com hierarquia visual clara
-- Elementos gráficos modernos: ícones, formas geométricas, linhas
+        if (productImageUrl && !customPrompt) {
+            // NOVA ABORDAGEM: Composição de imagem real + texto
+            console.log('🖼️ Usando imagem real do Pexels para composição...');
+            await composePromotionalBanner(
+                mainProduct.productName,
+                mainProduct.price,
+                productImageUrl,
+                outputPath
+            );
+        } else {
+            // FALLBACK: Geração por IA (quando não há imagem ou prompt customizado)
+            console.log('🤖 Usando geração por IA como fallback...');
+            
+            const prompt = customPrompt || `Create a promotional banner for ${mainProduct.productName}.
+Product: ${mainProduct.productName} 
+Price: $${mainProduct.price}
+Style: Modern ${mainProduct.category.toLowerCase()} product banner
+Colors: Vibrant blue and orange gradient background
+Text elements: 
+- "${mainProduct.productName}"
+- "$${mainProduct.price}"
+- "LIMITED TIME OFFER"
+- "RUSH TO THE SECTION AND GET YOURS!"
+Layout: Professional retail banner, eye-catching design`;
 
-ELEMENTOS OBRIGATÓRIOS:
-- Título principal: "PRODUTOS EM ALTA" ou "TENDÊNCIAS DA SEMANA"
-- Destaque para as categorias: ${categories.join(', ')}
-- Indicação de preço médio: "A partir de $${avgPrice}"
-- Call-to-action: "CONFIRA AGORA!" ou "PROMOÇÕES LIMITADAS"
-- Logo ou marca "Click Ofertas Paraguai" discretamente posicionado
-
-ESTILO VISUAL:
-- Background: gradiente moderno ou padrão geométrico sutil
-- Tipografia: Sans-serif moderna, contrastes claros
-- Ícones: relacionados às categorias dos produtos
-- Elementos decorativos: formas abstratas, linhas dinâmicas
-- Paleta: cores energéticas que transmitam urgência e oportunidade
-
-O banner deve ser profissional mas impactante, adequado para ambiente de varejo e capaz de atrair clientes de longe.`;
-
-        await generateImage(prompt, outputPath);
+            await generateImage(prompt, outputPath);
+        }
         
         console.log(`✅ Arte promocional gerada: ${outputPath}`);
         
