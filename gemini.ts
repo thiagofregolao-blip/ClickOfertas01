@@ -235,11 +235,18 @@ async function handleVertexResponse(response: Response): Promise<any> {
   return response.json();
 }
 
-export async function generateImage(
-    prompt: string,
-    imagePath: string,
-    baseImage?: string
-): Promise<void> {
+// ========== GERAÇÃO DE IMAGENS COM IA (FALLBACK) ==========
+
+/**
+ * Função de geração de imagens com IA - usado apenas como fallback
+ * Corrigida conforme feedback: URL correta do Vertex AI GenerateContent
+ */
+export async function generateImage(prompt: string, imagePath: string): Promise<void> {
+    // Garantir que pasta de saída existe
+    const path = await import('path');
+    const fs = await import('fs');
+    fs.mkdirSync(path.dirname(imagePath), { recursive: true });
+    
     // Tentar Hugging Face primeiro se disponível
     if (process.env.HUGGINGFACE_API_KEY) {
         try {
@@ -251,20 +258,19 @@ export async function generateImage(
     }
 
     try {
-        console.log('🚀 Gerando imagem com Vertex AI (Nano Banana) - Quotas maiores!');
+        console.log('🚀 Gerando imagem com Vertex AI GenerateContent...');
         
         const body = {
             contents: [
                 { role: "user", parts: [{ text: prompt }] }
             ],
             generationConfig: { 
-                seed: Math.floor(Math.random() * 1000000) // Para variação nas imagens
+                seed: Math.floor(Math.random() * 1000000)
             }
         };
 
         const response = await callVertexAI(GEMINI_IMAGE_MODEL, body);
         
-        // Buscar por inlineData nas parts retornadas
         const candidates = response.candidates;
         if (!candidates || candidates.length === 0) {
             throw new Error("No candidates returned from Vertex AI");
@@ -275,14 +281,14 @@ export async function generateImage(
             throw new Error("No content parts returned from Vertex AI");
         }
 
-        // Encontrar a parte com imagem - seguindo estrutura Vertex AI
+        // Encontrar a parte com imagem
         const parts = content.parts || [];
         const imgPart = parts.find((p: any) => p.inlineData && p.inlineData.mimeType?.startsWith("image/"));
         
         if (imgPart && imgPart.inlineData?.data) {
             const imageData = Buffer.from(imgPart.inlineData.data, "base64");
             fs.writeFileSync(imagePath, imageData);
-            console.log(`✅ Imagem gerada com Vertex AI: ${imagePath} (${imageData.length} bytes, ${imgPart.inlineData.mimeType})`);
+            console.log(`✅ Imagem gerada com Vertex AI: ${imagePath} (${imageData.length} bytes)`);
             return;
         }
         
@@ -298,8 +304,6 @@ export async function generateImage(
             return;
         } catch (fallbackError: any) {
             console.error("❌ Erro com API direta do Gemini:", fallbackError);
-            
-            // Re-lançar o erro original do Vertex AI se o fallback também falhar
             throw error;
         }
     }
@@ -467,8 +471,16 @@ async function searchProductImageOnPexels(productName: string): Promise<string |
 }
 
 /**
- * Compõe banner promocional LIMPO apenas com texto - SEM APIs externas
- * ZERO distorção, resultado profissional garantido
+ * CORRIGIDO: Banner promocional LIMPO apenas com texto - SEM APIs externas
+ * ZERO distorção garantida + melhorias de qualidade profissional
+ * 
+ * CORREÇÕES IMPLEMENTADAS:
+ * ✅ Preço formatado em BRL (Real brasileiro)
+ * ✅ Fonte segura (sans-serif) ao invés de Arial
+ * ✅ Garantia de criação da pasta de saída  
+ * ✅ Ícone SVG ao invés de emoji problemático
+ * ✅ Quebra de linha responsiva para nomes longos
+ * ✅ Faixa translúcida para melhor contraste
  */
 async function composeTextOnlyBanner(
     productName: string,
@@ -477,13 +489,24 @@ async function composeTextOnlyBanner(
     outputPath: string
 ): Promise<void> {
     const sharp = await import('sharp');
+    const path = await import('path');
+    const fs = await import('fs');
     
     try {
         console.log('✨ Compondo banner profissional sem APIs externas...');
 
+        // ✅ CORREÇÃO: Garantir que pasta de saída existe
+        fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+
         // Dimensões do banner (16:9)
         const bannerWidth = 1920;
         const bannerHeight = 1080;
+
+        // ✅ CORREÇÃO: Formatação de preço em Real brasileiro
+        const preco = new Intl.NumberFormat('pt-BR', { 
+            style: 'currency', 
+            currency: 'BRL' 
+        }).format(price);
 
         // Criar gradiente de fundo elegante (azul para laranja)
         const gradientSvg = `
@@ -503,48 +526,65 @@ async function composeTextOnlyBanner(
             <rect width="100%" height="100%" fill="url(#shine)" />
         </svg>`;
 
-        // Truncar nome do produto se muito longo
-        const displayName = productName.length > 20 ? productName.substring(0, 20) + '...' : productName;
+        // ✅ CORREÇÃO: Quebrar nome do produto em 2 linhas se muito longo
+        const words = productName.split(' ');
+        let line1 = '', line2 = '';
+        
+        if (words.length > 2 && productName.length > 25) {
+            const mid = Math.ceil(words.length / 2);
+            line1 = words.slice(0, mid).join(' ').toUpperCase();
+            line2 = words.slice(mid).join(' ').toUpperCase();
+        } else {
+            line1 = productName.length > 30 ? productName.substring(0, 30) + '...' : productName.toUpperCase();
+        }
 
-        // Criar SVG com textos profissionais
+        // ✅ CORREÇÃO: SVG com textos profissionais e fonte segura
         const textOverlaySvg = `
         <svg width="${bannerWidth}" height="${bannerHeight}">
+            <!-- ✅ Faixa translúcida para melhor contraste -->
+            <rect x="50" y="80" width="${bannerWidth * 0.5}" height="500" fill="rgba(0,0,0,0.4)" rx="20"/>
+            
             <!-- Categoria no topo -->
-            <text x="100" y="120" font-family="Arial, sans-serif" font-size="36" font-weight="normal" fill="rgba(255,255,255,0.8)" text-anchor="start">
+            <text x="100" y="140" font-family="sans-serif" font-size="36" font-weight="normal" fill="rgba(255,255,255,0.9)" text-anchor="start">
                 ${category.toUpperCase()}
             </text>
             
-            <!-- Título do produto -->
-            <text x="100" y="220" font-family="Arial, sans-serif" font-size="64" font-weight="bold" fill="white" text-anchor="start">
-                ${displayName.toUpperCase()}
+            <!-- Título do produto (linha 1) -->
+            <text x="100" y="220" font-family="sans-serif" font-size="64" font-weight="bold" fill="white" text-anchor="start">
+                ${line1}
             </text>
             
-            <!-- Preço destacado -->
-            <text x="100" y="320" font-family="Arial, sans-serif" font-size="96" font-weight="bold" fill="#ffd700" text-anchor="start" stroke="rgba(0,0,0,0.3)" stroke-width="2">
-                $${price}
+            <!-- Título do produto (linha 2, se existe) -->
+            ${line2 ? `<text x="100" y="290" font-family="sans-serif" font-size="64" font-weight="bold" fill="white" text-anchor="start">${line2}</text>` : ''}
+            
+            <!-- ✅ CORREÇÃO: Preço destacado em BRL formatado -->
+            <text x="100" y="${line2 ? 380 : 320}" font-family="sans-serif" font-size="96" font-weight="bold" fill="#ffd700" text-anchor="start" stroke="rgba(0,0,0,0.3)" stroke-width="2">
+                ${preco}
             </text>
             
             <!-- Limited Time Offer -->
-            <text x="100" y="420" font-family="Arial, sans-serif" font-size="42" font-weight="bold" fill="#ff4444" text-anchor="start" stroke="white" stroke-width="1">
+            <text x="100" y="${line2 ? 480 : 420}" font-family="sans-serif" font-size="42" font-weight="bold" fill="#ff4444" text-anchor="start" stroke="white" stroke-width="1">
                 OFERTA POR TEMPO LIMITADO
             </text>
             
             <!-- Call to Action duplo -->
-            <text x="100" y="500" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
+            <text x="100" y="${line2 ? 540 : 500}" font-family="sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
                 CORRA PARA A SEÇÃO
             </text>
-            <text x="100" y="550" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
+            <text x="100" y="${line2 ? 580 : 550}" font-family="sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
                 E GARANTA O SEU!
             </text>
             
-            <!-- Ícone decorativo do produto -->
-            <circle cx="1500" cy="400" r="200" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" stroke-width="4"/>
-            <text x="1500" y="420" font-family="Arial, sans-serif" font-size="120" fill="rgba(255,255,255,0.6)" text-anchor="middle">
-                📱
-            </text>
+            <!-- ✅ CORREÇÃO: Ícone decorativo SVG (ao invés de emoji problemático) -->
+            <circle cx="1500" cy="400" r="180" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" stroke-width="4"/>
+            
+            <!-- Ícone de smartphone em SVG estável -->
+            <rect x="1450" y="350" width="100" height="160" rx="15" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="4"/>
+            <rect x="1465" y="365" width="70" height="110" rx="5" fill="rgba(255,255,255,0.2)"/>
+            <circle cx="1500" cy="490" r="8" fill="rgba(255,255,255,0.7)"/>
             
             <!-- Logo/Brand -->
-            <text x="${bannerWidth - 50}" y="${bannerHeight - 50}" font-family="Arial, sans-serif" font-size="28" fill="rgba(255,255,255,0.9)" text-anchor="end">
+            <text x="${bannerWidth - 50}" y="${bannerHeight - 50}" font-family="sans-serif" font-size="28" fill="rgba(255,255,255,0.9)" text-anchor="end">
                 Click Ofertas Paraguai
             </text>
         </svg>`;

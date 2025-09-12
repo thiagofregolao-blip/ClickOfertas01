@@ -4510,18 +4510,27 @@ Keep the overall composition and maintain the same visual quality. This is for a
         };
       });
 
-      // Gerar prompt personalizado para os produtos selecionados
-      const productNames = enrichedProducts.map(p => p.name).join(', ');
-      const storeNames = [...new Set(enrichedProducts.map(p => p.storeName))].join(', ');
+      // CORREÇÃO CRÍTICA: Testar sistema de 3 níveis sem forçar customPrompt
+      // Se testMode for true, usar Sharp puro (nível 2)
+      // Senão, usar prompt customizado (nível 3)
       
-      const customPrompt = `Crie um banner promocional chamativo para destacar os seguintes produtos selecionados para teste: ${productNames}. Produtos das lojas: ${storeNames}. Use design vibrante com cores que chamem atenção, layout moderno e limpo. Inclua elementos visuais que remetam a ofertas especiais e promoções imperdíveis.`;
-
-      // Usar o sistema de geração existente com produtos customizados
-      // Gerar nome único para o arquivo
       const timestamp = Date.now();
       const outputPath = `./attached_assets/generated_arts/test_banner_${timestamp}.png`;
       
-      await generatePromotionalArt(enrichedProducts, outputPath, customPrompt);
+      if (testMode === 'sharp-only') {
+        // TESTE DO NÍVEL 2: Sharp puro sem APIs externas
+        console.log('🔬 TESTE: Forçando uso do Sharp puro (sem customPrompt)');
+        await generatePromotionalArt(enrichedProducts, outputPath);
+      } else {
+        // NÍVEL 3: IA com prompt customizado
+        const productNames = enrichedProducts.map(p => p.name).join(', ');
+        const storeNames = [...new Set(enrichedProducts.map(p => p.storeName))].join(', ');
+        
+        const customPrompt = `Crie um banner promocional chamativo para destacar os seguintes produtos selecionados para teste: ${productNames}. Produtos das lojas: ${storeNames}. Use design vibrante com cores que chamem atenção, layout moderno e limpo. Inclua elementos visuais que remetam a ofertas especiais e promoções imperdíveis.`;
+        
+        console.log('🔬 TESTE: Usando prompt customizado para IA');
+        await generatePromotionalArt(enrichedProducts, outputPath, customPrompt);
+      }
       const imageUrl = `/attached_assets/generated_arts/test_banner_${timestamp}.png`;
       
       // Salvar a arte gerada como arte de teste

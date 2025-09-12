@@ -1,0 +1,108 @@
+Boa! Li o seu arquivo teste-ia-completo-detalhado.txt. A arquitetura de 3 níveis (Pexels+Sharp → Sharp puro → IA) está bem pensada e, em geral, correta. Abaixo vão os pontos que eu ajustaria para ficar redondo e evitar os erros/efeitos que você relatou. 
+
+teste-ia-completo-detalhado
+
+O que está OK
+
+Lógica condicional dos 3 níveis (usa IA só quando customPrompt existe).
+
+Composição com Sharp em 1920×1080 e texto sobreposto (resolve “texto torto” da IA).
+
+Busca no Pexels e fallback limpo quando não há PEXELS_API_KEY.
+
+Ajustes críticos (recomendo fazer já)
+
+Garante que esse módulo está em produção
+Pelos seus prints “Hugging Face / GenerateContent / 403”, ainda existe código antigo sendo chamado. Confirme na sua rota que você exporta e chama generatePromotionalArt(...) deste arquivo e não outra função com nome igual/antigo. (No seu texto de diagnóstico isso já aparece como causa provável.)
+
+generateImage não está no arquivo
+Você chama generateImage(customPrompt, outputPath) mas a função não está definida aqui. Se ela estiver em outro módulo, ótimo; se não, adicione uma versão Vertex AI (nada de /endpoints:predict nem ?key=):
+
+// exemplo mínimo (Vertex AI - GenerateContent)
+import fetch from "node-fetch";
+import { GoogleAuth } from "google-auth-library";
+
+async function generateImage(prompt, outputPath) {
+  const PROJECT_ID = process.env.GCLOUD_PROJECT;
+  const LOCATION = "us-central1";
+  const MODEL = "gemini-2.5-flash-image";
+
+  const auth = new GoogleAuth({ scopes: "https://www.googleapis.com/auth/cloud-platform" });
+  const client = await auth.getClient();
+  const { token } = await client.getAccessToken();
+
+  const url = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${MODEL}:generateContent`;
+
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }]}] })
+  });
+
+  const txt = await r.text();
+  if (!r.ok) throw new Error(`Vertex ${r.status}: ${txt}`);
+
+  const json = JSON.parse(txt);
+  const part = json?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+  if (!part) throw new Error("Sem imagem no retorno");
+
+  const buf = Buffer.from(part.inlineData.data, "base64");
+  await (await import("fs")).promises.writeFile(outputPath, buf);
+}
+
+
+IAM/403 “aiplatform.endpoints.predict”
+Esse 403 aparece quando a chamada não está no formato acima (ou a SA não é a usada no processo).
+
+URL: precisa ser /publishers/google/models/...:generateContent (nada de /endpoints/...:predict).
+
+Papeis na SA: Vertex AI User + Service Usage Consumer (e confirme no log quem é a credencial em uso com auth.getCredentials().client_email).
+
+Preço e localidade
+$${price} vai imprimir “$123” sem formatação. Use BRL quando for Brasil:
+
+const preco = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL"}).format(price);
+
+
+…e troque no SVG.
+
+Fonts/emoji com Sharp
+Arial pode não existir no host; e emoji pode falhar.
+
+Troque font-family para uma família segura (ex.: sans-serif) ou incorpore uma fonte via SVG/@font-face.
+
+Para o “📱”, prefira um ícone em SVG (path) — é estável em qualquer servidor.
+
+Pexels em alta de verdade
+Você usa photo.src.large; para banner 1920×1080 é melhor large2x ou original:
+
+return photo.src.large2x || photo.src.original || photo.src.large;
+
+
+Garantir pasta de saída
+Antes de toFile(outputPath), crie a pasta:
+
+import * as path from "path";
+import * as fs from "fs";
+fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+
+Ajustes de qualidade (opcional, mas melhora visual)
+
+Quebra de linha do título: seu truncamento a 20 chars corta nomes. Faça wrap por palavras e múltiplas <tspan> para 2 linhas.
+
+Posicionamento da imagem do produto: em 1920×1080, left: bannerWidth - 850 pode cortar foto alta; calcule dinamicamente com metadata() do Sharp e centralize verticalmente.
+
+Contraste: adicione uma faixa translúcida atrás do texto (já tem algo no “text-only”; leve a ideia para o banner com produto).
+
+Teste “fim-a-fim” esperado (sem PEXELS_API_KEY)
+
+Deve logar:
+⚠️ PEXELS_API_KEY não configurado … → em seguida ✨ Gerando banner profissional sem APIs externas… → sem chamar IA.
+Se cair no “🤖 Usando prompt customizado…”, a rota/condição ainda está trazendo customPrompt com valor (ex.: "") ou rodando o código antigo.
+
+Se você quiser, me mande:
+
+o handler da rota que chama generatePromotionalArt e
+
+a URL que o backend usa para o Vertex,
+que eu te devolvo um patch curto garantindo que (1) a função certa seja chamada e (2) a chamada ao Vertex esteja no formato GenerateContent com a SA correta.
