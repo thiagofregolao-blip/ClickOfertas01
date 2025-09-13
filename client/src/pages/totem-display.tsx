@@ -264,11 +264,9 @@ export default function TotemDisplay() {
             alt={currentContent.title}
             className="w-full h-full"
             style={{ 
-              objectFit: 'contain',
+              objectFit: 'cover',
               objectPosition: 'center',
-              imageRendering: 'optimizeQuality',
-              maxWidth: '100%',
-              maxHeight: '100%'
+              imageRendering: 'optimizeQuality'
             }}
             onLoad={(e) => {
               const img = e.target as HTMLImageElement;
@@ -280,9 +278,9 @@ export default function TotemDisplay() {
                 aspectRatio: (img.naturalWidth / img.naturalHeight).toFixed(2)
               });
 
-              // Para imagens do totem (produtos), sempre manter proporções
-              // sem rotação ou redimensionamento forçado
-              img.style.objectFit = 'contain';
+              // Para imagens do totem: garantir exibição horizontal (landscape)
+              // As imagens são geradas em 1920x1080 e devem aparecer horizontalmente
+              img.style.objectFit = 'cover';
               img.style.objectPosition = 'center';
               img.style.width = '100%';
               img.style.height = '100%';
