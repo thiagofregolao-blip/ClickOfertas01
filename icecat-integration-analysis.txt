@@ -1,0 +1,290 @@
+===== ANÁLISE COMPLETA DA INTEGRAÇÃO ICECAT =====
+
+PROBLEMA IDENTIFICADO:
+- Icecat API está rejeitando TODOS os GTINs com erro: "The GTIN can not be found"
+- Fallback Google Shopping falha: apifyService.searchProducts is not a function
+
+===== CÓDIGO COMPLETO DA INTEGRAÇÃO ICECAT =====
+
+==== 1. ARQUIVO: server/icecat.ts ====
+import fetch from 'node-fetch';
+
+interface IcecatProduct {
+  id: string;
+  name: string;
+  description?: string;
+  brand?: string;
+  category?: string;
+  images: string[];
+}
+
+interface IcecatGalleryItem {
+  Pic?: string;
+  Pic500x500?: string;
+  ThumbPic?: string;
+}
+
+interface IcecatApiResponse {
+  Gallery?: IcecatGalleryItem[];
+  data?: {
+    Gallery?: IcecatGalleryItem[];
+    GeneralInfo?: {
+      Title?: string;
+      Description?: string;
+      Brand?: string;
+      Category?: {
+        Name?: string;
+      };
+    };
+  };
+  GeneralInfo?: {
+    Title?: string;
+    Description?: string;
+    Brand?: string;
+    Category?: {
+      Name?: string;
+    };
+  };
+}
+
+const ICECAT_API_BASE = 'https://live.icecat.biz/api';
+
+/**
+ * Busca produto no Icecat via GTIN/EAN/UPC
+ */
+export async function searchProductByGTIN(gtin: string): Promise<IcecatProduct | null> {
+  try {
+    console.log(`🔍 Buscando produto no Icecat com GTIN: ${gtin}`);
+
+    const headers = {
+      'api_token': process.env.ICECAT_API_TOKEN!,
+      'content_token': process.env.ICECAT_CONTENT_TOKEN!,
+    };
+
+    // Buscar apenas galeria para ter imagens
+    const shopname = process.env.ICECAT_USER?.trim() || '';
+    const cleanGtin = gtin.trim();
+    const galleryUrl = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(shopname)}&GTIN=${encodeURIComponent(cleanGtin)}&content=gallery`;
+    
+    console.log(`📡 Fazendo requisição para galeria: ${galleryUrl}`);
+    const galleryResponse = await fetch(galleryUrl, { headers });
+    
+    if (!galleryResponse.ok) {
+      const errorText = await galleryResponse.text();
+      console.warn(`⚠️ Erro na API do Icecat (galeria): ${galleryResponse.status} ${galleryResponse.statusText}`);
+      console.warn(`📄 Resposta de erro:`, errorText);
+      console.warn(`🔧 Headers enviados:`, JSON.stringify(headers, null, 2));
+      return null;
+    }
+
+    const galleryData: IcecatApiResponse = await galleryResponse.json();
+    console.log(`📸 Resposta da galeria:`, JSON.stringify(galleryData, null, 2));
+
+    // Buscar informações gerais do produto
+    const infoUrl = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(shopname)}&GTIN=${encodeURIComponent(cleanGtin)}&content=essentialinfo`;
+    
+    console.log(`📡 Fazendo requisição para info: ${infoUrl}`);
+    const infoResponse = await fetch(infoUrl, { headers });
+    
+    let infoData: IcecatApiResponse = {};
+    if (infoResponse.ok) {
+      infoData = await infoResponse.json();
+      console.log(`📋 Resposta das informações:`, JSON.stringify(infoData, null, 2));
+    }
+
+    // Extrair galeria de imagens
+    const gallery = galleryData.Gallery || galleryData?.data?.Gallery || [];
+    const images = gallery
+      .map(item => item.Pic)
+      .filter(Boolean)
+      .slice(0, 3); // Máximo 3 imagens
+
+    console.log(`🖼️ Imagens encontradas: ${images.length}`);
+
+    // Extrair informações do produto
+    const generalInfo = infoData.GeneralInfo || infoData?.data?.GeneralInfo || {};
+    
+    const product: IcecatProduct = {
+      id: gtin,
+      name: generalInfo.Title || `Produto ${gtin}`,
+      description: generalInfo.Description || '',
+      brand: generalInfo.Brand || '',
+      category: generalInfo.Category?.Name || 'Eletrônicos',
+      images
+    };
+
+    console.log(`✅ Produto encontrado:`, product);
+    return product;
+
+  } catch (error) {
+    console.error(`❌ Erro ao buscar produto no Icecat:`, error);
+    return null;
+  }
+}
+
+==== 2. ENDPOINT NO ROUTES.TS ====
+// Buscar produto no Icecat via GTIN
+app.get('/api/icecat/product/:gtin', isAuthenticated, async (req: any, res) => {
+  try {
+    const { gtin } = req.params;
+    
+    if (!gtin || gtin.length < 8) {
+      return res.status(400).json({ message: "GTIN deve ter pelo menos 8 dígitos" });
+    }
+    
+    const { searchProductByGTIN } = await import('./icecat');
+    const product = await searchProductByGTIN(gtin);
+    
+    if (!product) {
+      return res.status(404).json({ message: "Produto não encontrado no catálogo Icecat" });
+    }
+    
+    res.json(product);
+  } catch (error) {
+    console.error("Error searching Icecat:", error);
+    res.status(500).json({ message: "Erro ao buscar produto no Icecat" });
+  }
+});
+
+==== 3. FRONTEND EM ADMIN-PRODUCTS.TSX ====
+// Função para buscar produto no Icecat via GTIN
+const searchIcecatProduct = async () => {
+  if (!gtinInput.trim() || gtinInput.length < 8) {
+    toast({
+      title: "GTIN inválido",
+      description: "Por favor, insira um código GTIN/EAN válido (mínimo 8 dígitos)",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  setIcecatSearching(true);
+
+  try {
+    // Primeiro tenta Icecat
+    let response = await fetch(`/api/icecat/product/${gtinInput.trim()}`);
+    
+    let product;
+    if (response.ok) {
+      product = await response.json();
+    } else {
+      // Fallback: Busca via Google Shopping
+      console.log('🔄 Icecat falhou, tentando Google Shopping...');
+      response = await fetch(`/api/products/search-by-gtin/${gtinInput.trim()}`);
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Produto não encontrado em nenhuma base de dados");
+      }
+      
+      product = await response.json();
+    }
+
+    // Preencher formulário automaticamente
+    form.setValue("name", product.name);
+    form.setValue("description", product.description || "");
+    form.setValue("category", product.category || "Eletrônicos");
+    form.setValue("imageUrl", product.images[0] || "");
+    form.setValue("imageUrl2", product.images[1] || "");
+    form.setValue("imageUrl3", product.images[2] || "");
+    form.setValue("gtin", gtinInput.trim());
+    form.setValue("brand", product.brand || "");
+    form.setValue("sourceType", "icecat");
+    form.setValue("showInTotem", true); // ✅ Ativar totem automaticamente
+
+    // Determinar a fonte dos dados
+    const source = response.url?.includes('/icecat/') ? "Icecat" : "Google Shopping";
+    
+    toast({
+      title: "✅ Produto encontrado!",
+      description: `${product.name} carregado via ${source} com ${product.images.length} imagens`,
+    });
+
+  } catch (error: any) {
+    toast({
+      title: "Produto não encontrado",
+      description: error.message || "Não foi possível encontrar o produto no catálogo Icecat",
+      variant: "destructive",
+    });
+  } finally {
+    setIcecatSearching(false);
+  }
+};
+
+==== 4. INTERFACE VISUAL NO JSX ====
+{/* Busca no Icecat */}
+<div className="bg-gradient-to-r from-blue-50 to-purple-50 p-5 rounded-lg border border-blue-200 shadow-sm">
+  <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
+    <Package className="w-5 h-5 mr-2 text-blue-600" />
+    🔍 Buscar Produto no Catálogo Icecat
+  </h3>
+  <div className="bg-white p-4 rounded-lg border border-blue-100">
+    <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex-1">
+        <Label htmlFor="gtin-search" className="text-gray-700 font-medium text-sm">Código de Barras (GTIN/EAN/UPC)</Label>
+        <Input
+          id="gtin-search"
+          value={gtinInput}
+          onChange={(e) => setGtinInput(e.target.value)}
+          placeholder="Ex: 7891234567890"
+          className="mt-1 placeholder:text-gray-400 border-gray-300 focus:border-blue-500"
+          data-testid="input-gtin-search"
+        />
+      </div>
+      <div className="flex items-end">
+        <Button
+          type="button"
+          onClick={searchIcecatProduct}
+          disabled={icecatSearching || !gtinInput.trim()}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+          data-testid="button-search-icecat"
+        >
+          {icecatSearching ? "Buscando..." : "🔍 Buscar"}
+        </Button>
+      </div>
+    </div>
+    <p className="text-xs text-gray-500 mt-2">
+      ✨ Preenchimento automático: nome, descrição, categoria e até 3 imagens oficiais + <strong>totem ativado</strong>
+    </p>
+  </div>
+</div>
+
+===== PROBLEMAS IDENTIFICADOS =====
+
+1. **ICECAT API REJEITANDO GTINs**:
+   - Status: 400 Bad Request
+   - Erro: "The GTIN can not be found" 
+   - Testado: 3614270670596, 194253420229
+   - Possível causa: Base limitada ou credenciais inadequadas
+
+2. **FALLBACK GOOGLE SHOPPING QUEBRADO**:
+   - Erro: apifyService.searchProducts is not a function
+   - Causa: Método não existe no apifyService
+
+3. **CREDENCIAIS ICECAT**:
+   ✅ ICECAT_API_TOKEN: 89e39860-6495-4f58-9ed3-2666a7630c77
+   ✅ ICECAT_CONTENT_TOKEN: 58212966-af86-4312-8c69-f9839424fbf8
+   ✅ ICECAT_USER: thiagofregolao
+
+===== SOLUÇÕES PROPOSTAS =====
+
+1. **TESTAR CONTA ICECAT**:
+   - Verificar se a conta tem acesso completo
+   - Testar com produtos eletrônicos específicos
+   - Verificar se precisa de outros parâmetros
+
+2. **CORRIGIR FALLBACK**:
+   - Verificar se apifyService tem método correto
+   - Implementar busca direta via Google Shopping
+   - Usar API alternativa (EAN-Search.org)
+
+3. **IMPLEMENTAR ALTERNATIVA**:
+   - Usar API gratuita como EAN-Search.org
+   - Implementar busca via nome como fallback
+   - Criar preenchimento manual inteligente
+
+===== STATUS ATUAL =====
+❌ Icecat: Não funciona com nenhum GTIN
+❌ Google Shopping: Erro de implementação
+✅ Interface: Completa e funcional
+✅ Backend: Estrutura correta
