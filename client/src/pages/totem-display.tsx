@@ -266,34 +266,27 @@ export default function TotemDisplay() {
             style={{ 
               objectFit: 'contain',
               objectPosition: 'center',
-              imageRendering: 'optimizeQuality'
+              imageRendering: 'optimizeQuality',
+              maxWidth: '100%',
+              maxHeight: '100%'
             }}
             onLoad={(e) => {
-              // Detectar orientação da imagem e aplicar rotação se necessário
               const img = e.target as HTMLImageElement;
-              const isVertical = img.naturalHeight > img.naturalWidth;
               
               console.log('📸 Imagem carregada:', { 
                 src: currentContent.mediaUrl,
                 width: img.naturalWidth, 
                 height: img.naturalHeight,
-                isVertical,
                 aspectRatio: (img.naturalWidth / img.naturalHeight).toFixed(2)
               });
 
-              // Para imagens verticais em TV horizontal, aplicar apenas rotação
-              if (isVertical) {
-                console.log('🔄 Aplicando rotação para imagem vertical');
-                img.style.transform = 'rotate(90deg)';
-                img.style.transformOrigin = 'center center';
-                img.style.objectFit = 'cover';
-                img.style.width = '100vh';
-                img.style.height = '100vw';
-              } else {
-                // Para imagens horizontais, usar object-cover normal
-                img.style.objectFit = 'cover';
-              }
-            }}
+              // Para imagens do totem (produtos), sempre manter proporções
+              // sem rotação ou redimensionamento forçado
+              img.style.objectFit = 'contain';
+              img.style.objectPosition = 'center';
+              img.style.width = '100%';
+              img.style.height = '100%';
+            }
             onError={(e) => {
               console.error('❌ Erro ao carregar imagem:', currentContent.mediaUrl);
               // Tentar novamente após 5 segundos
