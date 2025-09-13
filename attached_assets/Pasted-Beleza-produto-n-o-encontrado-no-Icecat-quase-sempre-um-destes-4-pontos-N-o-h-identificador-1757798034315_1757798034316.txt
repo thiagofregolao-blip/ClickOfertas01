@@ -1,0 +1,129 @@
+Beleza — “produto não encontrado” no Icecat quase sempre é um destes 4 pontos:
+
+Não há identificador válido no texto (Icecat não faz busca por texto livre; precisa de GTIN/EAN/UPC ou Brand+MPN).
+
+GTIN inválido (dígito verificador) ou UPC-A (12 dígitos) sem o zero à esquerda para virar EAN-13.
+
+Tokens/headers errados (tem que ser api_token e content_token, com underscore).
+
+O item não está no Open Icecat (muitas marcas/categorias só no plano Full).
+
+Abaixo vai um “drop-in” para você diagnosticar e corrigir de uma vez. Ele:
+
+extrai GTIN do texto (valida EAN-13 e normaliza UPC-A→EAN-13),
+
+tenta Brand+MPN (se você passar um MPN real),
+
+chama o Icecat só com content=gallery,
+
+loga URL, status e amostra do corpo quando falhar (sem te deixar no escuro).
+
+Cole isso no seu backend (Node 18+)
+import fetch from "node-fetch";
+
+// ==== CONFIG ====
+const ICECAT_USER = process.env.ICECAT_USER;            // seu username (shopname)
+const API_TOKEN   = process.env.ICECAT_API_TOKEN;       // datasheet
+const CONTENT_TOK = process.env.ICECAT_CONTENT_TOKEN;   // assets/imagens
+
+// ==== UTIL: EAN/UPC ====
+const onlyDigits = s => (s || "").replace(/\D+/g, "");
+
+function isValidEAN13(ean) {
+  if (!/^\d{13}$/.test(ean)) return false;
+  const sum = ean.slice(0,12).split("").reduce((acc,d,i)=>acc+(i%2?3:1)*Number(d),0);
+  const cd = (10 - (sum % 10)) % 10;
+  return cd === Number(ean[12]);
+}
+
+// Extrai GTINs do texto e normaliza UPC-A (12) -> EAN-13 (prefixando 0)
+function extractGTINs(text) {
+  const matches = (text.match(/\d{8,14}/g) || []).map(onlyDigits);
+  const eans13 = matches.map(d => d.length === 13 ? d : (d.length === 12 ? "0"+d : null))
+                        .filter(Boolean).filter(isValidEAN13);
+  return [...new Set(eans13)];
+}
+
+// ==== LOG DE DIAGNÓSTICO ====
+function logFail(ctx) {
+  const { url, status, bodySample, reason } = ctx;
+  console.error(JSON.stringify({
+    icecat_call: { url, status, reason, bodySample }
+  }, null, 2));
+}
+
+// ==== CHAMADAS ICECAT ====
+async function fetchGalleryByGTIN(gtin) {
+  const url = `https://live.icecat.biz/api?lang=PT&shopname=${encodeURIComponent(ICECAT_USER)}&GTIN=${encodeURIComponent(gtin)}&content=gallery`;
+  const r = await fetch(url, { headers: { "api_token": API_TOKEN, "content_token": CONTENT_TOK }});
+  const text = await r.text();
+  if (!r.ok) { logFail({ url, status: r.status, bodySample: text.slice(0,300), reason: "HTTP_NOT_OK" }); throw new Error(`Icecat ${r.status}`); }
+  const json = JSON.parse(text);
+  const gallery = json.Gallery || json?.data?.Gallery || [];
+  if (!gallery.length) { logFail({ url, status: r.status, bodySample: text.slice(0,300), reason: "EMPTY_GALLERY" }); }
+  return gallery.map(g => g.Pic).filter(Boolean);
+}
+
+// (Opcional) Brand + MPN quando você tiver um MPN real (ex.: "CFI-1216A", "A2848", etc.)
+async function fetchGalleryByBrandMPN(brand, mpn) {
+  const url = `https://live.icecat.biz/api?lang=PT&shopname=${encodeURIComponent(ICECAT_USER)}&Brand=${encodeURIComponent(brand)}&ProductCode=${encodeURIComponent(mpn)}&content=gallery`;
+  const r = await fetch(url, { headers: { "api_token": API_TOKEN, "content_token": CONTENT_TOK }});
+  const text = await r.text();
+  if (!r.ok) { logFail({ url, status: r.status, bodySample: text.slice(0,300), reason: "HTTP_NOT_OK" }); throw new Error(`Icecat ${r.status}`); }
+  const json = JSON.parse(text);
+  const gallery = json.Gallery || json?.data?.Gallery || [];
+  if (!gallery.length) { logFail({ url, status: r.status, bodySample: text.slice(0,300), reason: "EMPTY_GALLERY" }); }
+  return gallery.map(g => g.Pic).filter(Boolean);
+}
+
+// ==== ENTRADA TEXTO → IMAGENS ====
+export async function imagensPorTexto(texto, hints = {}) {
+  // 1) GTIN direto
+  const gtins = extractGTINs(texto);
+  if (gtins.length) {
+    try { return await fetchGalleryByGTIN(gtins[0]); } 
+    catch (e) { /* continua para Brand+MPN */ }
+  }
+
+  // 2) Brand+MPN (só se você tiver um MPN real; "iPhone 15 Pro" não é MPN)
+  if (hints.brand && hints.mpn) {
+    return await fetchGalleryByBrandMPN(hints.brand, hints.mpn);
+  }
+
+  // 3) Sem identificador -> falha clara
+  throw new Error("Produto não encontrado: forneça um GTIN (EAN/UPC) válido ou Brand+MPN real.");
+}
+
+Como usar
+// Caso 1: texto contém um GTIN/EAN (normaliza UPC-A 12 dígitos automaticamente)
+const urls = await imagensPorTexto("Café 500g EAN 7894900011517");
+console.log(urls);
+
+// Caso 2: sem GTIN, mas você sabe Brand + MPN
+const urls2 = await imagensPorTexto("PlayStation 5", { brand: "Sony", mpn: "CFI-1216A" });
+
+Se ainda vier “não encontrado”, confira isso em 30s
+
+Logs (o código acima imprime):
+
+HTTP_NOT_OK 401/403 → token inválido/revogado ou shopname errado.
+
+EMPTY_GALLERY 200 → produto existe, mas sem galeria (faltou content_token ou item fora da cobertura do Open).
+
+Headers exatos: api_token e content_token (com underscore).
+
+lang=PT e shopname=<ICECAT_USER> preenchidos.
+
+GTIN válido: 13 dígitos com dígito verificador ok; UPC-A (12) precisa ganhar 0 à esquerda.
+
+Plano: muitos FMCG/marcas locais não estão no Open. Se o seu sortimento é de supermercado, considere NIQ Brandbank ou Full Icecat para cobertura.
+
+Quer “busca por nome” mesmo?
+
+O Icecat não tem busca textual pública. O caminho prático é:
+
+Pedir GTIN no seu app (leitor de código de barras ajuda muito).
+
+Ou resolver nome → GTIN/MPN via outra fonte (GS1/Brandbank/marketplace), depois chamar o Icecat.
+
+Manter um dicionário local (nome curto → GTIN) que você preenche à medida que encontra.

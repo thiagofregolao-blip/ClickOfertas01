@@ -3,6 +3,11 @@ import fetch from 'node-fetch';
 
 const ICECAT_API_BASE = 'https://live.icecat.biz/api';
 
+// ==== CONFIG ====
+const ICECAT_USER = process.env.ICECAT_USER;            // seu username (shopname)
+const API_TOKEN   = process.env.ICECAT_API_TOKEN;       // datasheet
+const CONTENT_TOK = process.env.ICECAT_CONTENT_TOKEN;   // assets/imagens
+
 /**
  * Interface para produto do Icecat
  */
@@ -26,350 +31,115 @@ interface IcecatGalleryItem {
   LowPic?: string;
 }
 
-/**
- * Mapeamento de aliases de marca para nomes corretos
- */
-const BRAND_ALIASES = new Map([
-  // Apple
-  ["iphone", "Apple"],
-  ["ipad", "Apple"],
-  ["macbook", "Apple"],
-  ["airpods", "Apple"],
-  ["apple", "Apple"],
-  // Sony
-  ["playstation", "Sony"],
-  ["ps5", "Sony"],
-  ["ps4", "Sony"],
-  ["ps3", "Sony"],
-  ["sony", "Sony"],
-  // Samsung
-  ["galaxy", "Samsung"],
-  ["note", "Samsung"],
-  ["samsung", "Samsung"],
-  // Microsoft
-  ["xbox", "Microsoft"],
-  ["surface", "Microsoft"],
-  ["microsoft", "Microsoft"],
-  // Outras marcas comuns
-  ["xiaomi", "Xiaomi"],
-  ["huawei", "Huawei"],
-  ["lg", "LG"],
-  ["motorola", "Motorola"],
-  ["dell", "Dell"],
-  ["hp", "HP"],
-  ["lenovo", "Lenovo"],
-  ["asus", "Asus"],
-  ["acer", "Acer"]
-]);
+// ==== UTIL: EAN/UPC ====
+const onlyDigits = (s: string) => (s || "").replace(/\D+/g, "");
 
-/**
- * Lista de marcas canônicas suportadas
- */
-const CANONICAL_BRANDS = [
-  "Apple", "Samsung", "Sony", "Xiaomi", "LG", "Motorola", 
-  "Dell", "HP", "Lenovo", "Asus", "Acer", "Microsoft", "Huawei"
-];
-
-/**
- * Função helper para obter header de autenticação básica se disponível
- */
-function getAuthHeader(): string | null {
-  const user = process.env.ICECAT_USER;
-  if (!user) return null;
-  
-  // Se tiver senha, usar Basic Auth  
-  // (geralmente não é necessário para tokens, mas alguns casos podem exigir)
-  return null; // Por enquanto, vamos usar apenas os tokens
-}
-
-/**
- * Extrai apenas dígitos de uma string
- */
-function onlyDigits(s: string): string {
-  return (s || "").replace(/\D+/g, "");
-}
-
-/**
- * Valida se um EAN-13 é válido
- */
 function isValidEAN13(ean: string): boolean {
   if (!/^\d{13}$/.test(ean)) return false;
-  const sum = ean.slice(0, 12).split("").reduce((acc, d, i) => acc + (i % 2 ? 3 : 1) * Number(d), 0);
+  const sum = ean.slice(0,12).split("").reduce((acc,d,i)=>acc+(i%2?3:1)*Number(d),0);
   const cd = (10 - (sum % 10)) % 10;
   return cd === Number(ean[12]);
 }
 
-/**
- * Extrai GTINs válidos do texto
- */
+// Extrai GTINs do texto e normaliza UPC-A (12) -> EAN-13 (prefixando 0)
 function extractGTINs(text: string): string[] {
-  const digits = (text.match(/\d{8,14}/g) || []).map(onlyDigits);
-  // Normalizar para EAN-13 quando possível
-  const eans13 = digits
-    .map(d => d.length === 13 ? d : (d.length === 12 ? "0" + d : null))
-    .filter((d): d is string => Boolean(d))
-    .filter(isValidEAN13);
+  const matches = (text.match(/\d{8,14}/g) || []).map(onlyDigits);
+  const eans13 = matches.map(d => d.length === 13 ? d : (d.length === 12 ? "0"+d : null))
+                        .filter(Boolean).filter(isValidEAN13);
   return Array.from(new Set(eans13));
 }
 
-/**
- * Resolve marca a partir do texto usando aliases
- */
-function resolveBrand(text: string): string | null {
-  const t = text.toLowerCase();
-  
-  // Primeiro, verificar aliases
-  for (const entry of BRAND_ALIASES.entries()) {
-    const [alias, brand] = entry;
-    if (t.includes(alias)) return brand;
-  }
-  
-  // Fallback: marcas canônicas
-  const hit = CANONICAL_BRANDS.find(b => t.includes(b.toLowerCase()));
-  return hit || null;
-}
-
-/**
- * Extrai MPN (Model Part Number) por padrões conhecidos
- */
-function extractMPN(text: string, brand: string): string | null {
-  const t = text.toUpperCase().replace(/\s+/g, "");
-  
-  if (brand === "Sony") {
-    // PS5: CFI-xxxxA/B (varia por região/lote)
-    const m = t.match(/CFI-\d{4}[A-Z]/);
-    if (m) return m[0];
-  }
-  
-  if (brand === "Apple") {
-    // iPhone: modelos tipo A2848/A3105 (não é "iPhone 15 Pro")
-    const m = t.match(/\bA\d{4}\b/);
-    if (m) return m[0];
-  }
-  
-  return null;
-}
-
-/**
- * Log detalhado das chamadas Icecat para debug
- */
-function logIcecatCall(url: any, headers: Record<string, string>, status: number, body: string) {
-  console.log(`🔍 Icecat Debug:`, JSON.stringify({
-    url: url.replace(/&?(api_token|content_token)=[^&]*/g, '&[TOKEN_HIDDEN]'),
-    headers: Object.keys(headers),
-    status,
-    sample: body?.slice?.(0, 300)
+// ==== LOG DE DIAGNÓSTICO ====
+function logFail(ctx: any) {
+  const { url, status, bodySample, reason } = ctx;
+  console.error(JSON.stringify({
+    icecat_call: { url, status, reason, bodySample }
   }, null, 2));
 }
 
-/**
- * Busca imagens por GTIN no Icecat
- */
-async function fetchGalleryByGTIN(gtin: string, lang: string = 'PT'): Promise<string[]> {
-  const headers: Record<string, string> = {
-    'api_token': process.env.ICECAT_API_TOKEN!,        // underscore!
-    'content_token': process.env.ICECAT_CONTENT_TOKEN! // underscore!
-  };
-
-  const shopname = process.env.ICECAT_USER?.trim() || '';
-  const url = `${ICECAT_API_BASE}?lang=${lang}&shopname=${encodeURIComponent(shopname)}&GTIN=${encodeURIComponent(gtin)}&content=gallery`;
+// ==== CHAMADAS ICECAT ====
+async function fetchGalleryByGTIN(gtin: string): Promise<string[]> {
+  const url = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(ICECAT_USER || '')}&GTIN=${encodeURIComponent(gtin)}&content=gallery`;
+  const r = await fetch(url, { headers: { "api_token": API_TOKEN!, "content_token": CONTENT_TOK! }});
+  const text = await r.text();
   
-  console.log(`🔍 Buscando galeria por GTIN: ${gtin}`);
-  
-  const response = await fetch(url, { headers });
-  const body = await response.text();
-  
-  if (!response.ok) {
-    logIcecatCall(url, headers, response.status, body);
-    throw new Error(`Icecat ${response.status}: ${body}`);
+  if (!r.ok) { 
+    logFail({ url, status: r.status, bodySample: text.slice(0,300), reason: "HTTP_NOT_OK" }); 
+    throw new Error(`Icecat ${r.status}`); 
   }
   
-  const json = JSON.parse(body);
-  // Algumas contas retornam em json.Gallery; outras em json.data.Gallery
+  const json = JSON.parse(text);
   const gallery = json.Gallery || json?.data?.Gallery || [];
   
-  const images = gallery.map((g: IcecatGalleryItem) => g.Pic).filter(Boolean);
-  console.log(`✅ Encontradas ${images.length} imagens para GTIN ${gtin}`);
+  if (!gallery.length) { 
+    logFail({ url, status: r.status, bodySample: text.slice(0,300), reason: "EMPTY_GALLERY" }); 
+  }
   
-  return images;
+  console.log(`✅ Encontradas ${gallery.length} imagens para GTIN ${gtin}`);
+  return gallery.map((g: IcecatGalleryItem) => g.Pic).filter(Boolean);
 }
 
-/**
- * Busca produto por Brand + ProductCode no Icecat
- */
-async function fetchByBrandMPN(brand: string, productCode: string, lang: string = 'PT'): Promise<IcecatProduct | null> {
-  const headers: Record<string, string> = {
-    'api_token': process.env.ICECAT_API_TOKEN!,        // underscore!
-    'content_token': process.env.ICECAT_CONTENT_TOKEN! // underscore!
-  };
+// (Opcional) Brand + MPN quando você tiver um MPN real (ex.: "CFI-1216A", "A2848", etc.)
+async function fetchGalleryByBrandMPN(brand: string, mpn: string): Promise<string[]> {
+  const url = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(ICECAT_USER || '')}&Brand=${encodeURIComponent(brand)}&ProductCode=${encodeURIComponent(mpn)}&content=gallery`;
+  const r = await fetch(url, { headers: { "api_token": API_TOKEN!, "content_token": CONTENT_TOK! }});
+  const text = await r.text();
+  
+  if (!r.ok) { 
+    logFail({ url, status: r.status, bodySample: text.slice(0,300), reason: "HTTP_NOT_OK" }); 
+    throw new Error(`Icecat ${r.status}`); 
+  }
+  
+  const json = JSON.parse(text);
+  const gallery = json.Gallery || json?.data?.Gallery || [];
+  
+  if (!gallery.length) { 
+    logFail({ url, status: r.status, bodySample: text.slice(0,300), reason: "EMPTY_GALLERY" }); 
+  }
+  
+  console.log(`✅ Encontradas ${gallery.length} imagens para ${brand} ${mpn}`);
+  return gallery.map((g: IcecatGalleryItem) => g.Pic).filter(Boolean);
+}
 
-  const shopname = process.env.ICECAT_USER?.trim() || '';
-  const url = `${ICECAT_API_BASE}?lang=${lang}&shopname=${encodeURIComponent(shopname)}&Brand=${encodeURIComponent(brand)}&ProductCode=${encodeURIComponent(productCode)}&content=essentialinfo,gallery`;
+// ==== BUSCA COMPLETA COM DADOS DO PRODUTO ====
+async function fetchProductByGTIN(gtin: string): Promise<IcecatProduct | null> {
+  const url = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(ICECAT_USER || '')}&GTIN=${encodeURIComponent(gtin)}&content=essentialinfo,gallery`;
+  const r = await fetch(url, { headers: { "api_token": API_TOKEN!, "content_token": CONTENT_TOK! }});
+  const text = await r.text();
   
-  console.log(`🔍 Buscando por Brand + MPN: ${brand} + ${productCode}`);
-  
-  const response = await fetch(url, { headers });
-  const body = await response.text();
-  
-  if (!response.ok) {
-    logIcecatCall(url, headers, response.status, body);
+  if (!r.ok) { 
+    logFail({ url, status: r.status, bodySample: text.slice(0,300), reason: "HTTP_NOT_OK" }); 
     return null;
   }
   
-  const json = JSON.parse(body);
+  const json = JSON.parse(text);
   
-  if (json.data?.GeneralInfo) {
-    const product = parseIcecatProduct(json, `${brand} ${productCode}`);
-    if (product) {
-      console.log(`✅ Produto encontrado: ${product.name}`);
-      return product;
-    }
-  }
-  
-  return null;
-}
-
-/**
- * Busca produto no Icecat via texto (IMPLEMENTAÇÃO CORRIGIDA)
- * Algoritmo em 3 passos: GTIN → Brand+MPN → Erro explicativo
- */
-export async function searchProductByText(searchText: string, lang: string = 'PT'): Promise<IcecatProduct[]> {
-  try {
-    console.log(`🔍 Buscando produtos no Icecat por texto: "${searchText}" (lang: ${lang})`);
-
-    // PASSO 1: Tentar extrair GTIN do texto (melhor caminho)
-    const gtins = extractGTINs(searchText);
-    if (gtins.length > 0) {
-      console.log(`🎯 GTIN encontrado: ${gtins[0]}`);
-      try {
-        const images = await fetchGalleryByGTIN(gtins[0], lang);
-        if (images.length > 0) {
-          // Buscar dados completos do produto
-          const product = await searchProductByGTIN(gtins[0], lang);
-          if (product) {
-            return [product];
-          }
-        }
-      } catch (error) {
-        console.warn(`⚠️ GTIN ${gtins[0]} falhou:`, (error as Error).message);
-      }
-    }
-
-    // PASSO 2: Tentar Brand + MPN (quando tem padrão confiável)
-    const brand = resolveBrand(searchText);
-    const mpn = extractMPN(searchText, brand || '');
-    
-    if (brand && mpn) {
-      console.log(`🎯 Brand + MPN: ${brand} + ${mpn}`);
-      const product = await fetchByBrandMPN(brand, mpn, lang);
-      if (product) {
-        return [product];
-      }
-    }
-
-    // PASSO 2.5: Tentar busca simples por marca identificada
-    if (brand) {
-      console.log(`🎯 Tentando busca por marca: ${brand}`);
-      // Extrair possível código do produto removendo a marca
-      const cleanText = searchText.toLowerCase()
-        .replace(new RegExp(brand.toLowerCase(), 'gi'), '')
-        .replace(/\s+/g, ' ')
-        .trim();
-      
-      if (cleanText.length >= 2) {
-        const product = await fetchByBrandMPN(brand, cleanText, lang);
-        if (product) {
-          return [product];
-        }
-        
-        // Tentar também sem espaços
-        const cleanTextNoSpaces = cleanText.replace(/\s+/g, '');
-        if (cleanTextNoSpaces !== cleanText && cleanTextNoSpaces.length >= 2) {
-          const product = await fetchByBrandMPN(brand, cleanTextNoSpaces, lang);
-          if (product) {
-            return [product];
-          }
-        }
-      }
-    }
-
-    // Tentar fallback para EN se não encontrou nada em PT
-    if (lang === 'PT') {
-      console.log('🔄 Tentando fallback para EN...');
-      return searchProductByText(searchText, 'EN');
-    }
-
-    // PASSO 3: Nenhum identificador encontrado
-    console.warn('⚠️ Nenhum identificador (GTIN/MPN) válido encontrado no texto');
-    console.log(`💡 Dica: Forneça um GTIN (código de barras) ou código de modelo específico`);
-    console.log(`💡 Exemplos: "0711719709695" (GTIN PS5) ou "Sony CFI-1115A" (Brand + MPN)`);
-    
-    return [];
-
-  } catch (error) {
-    console.error(`❌ Erro ao buscar por texto no Icecat:`, error);
-    return [];
-  }
-}
-
-/**
- * Busca produto no Icecat via GTIN
- */
-export async function searchProductByGTIN(gtin: string, lang: string = 'PT'): Promise<IcecatProduct | null> {
-  try {
-    console.log(`🔍 Buscando produto no Icecat via GTIN: ${gtin} (lang: ${lang})`);
-
-    const headers: Record<string, string> = {
-      'api_token': process.env.ICECAT_API_TOKEN!,        // underscore!
-      'content_token': process.env.ICECAT_CONTENT_TOKEN! // underscore!
-    };
-
-    // Adicionar Basic Auth se disponível
-    const basicAuth = getAuthHeader();
-    if (basicAuth) {
-      headers['Authorization'] = basicAuth;
-    }
-
-    const shopname = process.env.ICECAT_USER?.trim() || '';
-    
-    // Busca por GTIN
-    const url = `${ICECAT_API_BASE}?lang=${lang}&shopname=${encodeURIComponent(shopname)}&GTIN=${encodeURIComponent(gtin)}&content=essentialinfo,gallery`;
-    
-    console.log(`📡 Fazendo busca por GTIN: ${gtin}`);
-    const response = await fetch(url, { headers });
-    const body = await response.text();
-    
-    if (!response.ok) {
-      console.warn(`⚠️ Erro na busca por GTIN: ${response.status} ${response.statusText}`);
-      logIcecatCall(url, headers, response.status, body);
-      
-      // Tentar fallback para EN se foi PT
-      if (lang === 'PT') {
-        console.log('🔄 Tentando fallback para EN...');
-        return searchProductByGTIN(gtin, 'EN');
-      }
-      
-      return null;
-    }
-
-    const data: any = JSON.parse(body);
-    
-    console.log(`📊 Busca por GTIN - produto encontrado: ${data.data ? 'Sim' : 'Não'}`);
-    
-    if (process.env.ICECAT_DEBUG === 'true') {
-      console.log(`🔍 Payload de GTIN:`, JSON.stringify(data, null, 2));
-    }
-
-    if (data.data?.GeneralInfo) {
-      return parseIcecatProduct(data, gtin);
-    }
-
-    return null;
-
-  } catch (error) {
-    console.error(`❌ Erro ao buscar GTIN no Icecat:`, error);
+  if (!json.data?.GeneralInfo) {
+    logFail({ url, status: r.status, bodySample: text.slice(0,300), reason: "NO_GENERAL_INFO" });
     return null;
   }
+  
+  return parseIcecatProduct(json, gtin);
+}
+
+async function fetchProductByBrandMPN(brand: string, mpn: string): Promise<IcecatProduct | null> {
+  const url = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(ICECAT_USER || '')}&Brand=${encodeURIComponent(brand)}&ProductCode=${encodeURIComponent(mpn)}&content=essentialinfo,gallery`;
+  const r = await fetch(url, { headers: { "api_token": API_TOKEN!, "content_token": CONTENT_TOK! }});
+  const text = await r.text();
+  
+  if (!r.ok) { 
+    logFail({ url, status: r.status, bodySample: text.slice(0,300), reason: "HTTP_NOT_OK" }); 
+    return null;
+  }
+  
+  const json = JSON.parse(text);
+  
+  if (!json.data?.GeneralInfo) {
+    logFail({ url, status: r.status, bodySample: text.slice(0,300), reason: "NO_GENERAL_INFO" });
+    return null;
+  }
+  
+  return parseIcecatProduct(json, `${brand} ${mpn}`);
 }
 
 /**
@@ -408,6 +178,8 @@ function parseIcecatProduct(data: any, fallbackName: string): IcecatProduct | nu
       name = fallbackName;
     }
 
+    console.log(`✅ Produto parseado: ${name} (${brand})`);
+
     return {
       id: data.data?.GTIN || data.data?.ID || `icecat-${Date.now()}`,
       name: name.trim(),
@@ -422,4 +194,172 @@ function parseIcecatProduct(data: any, fallbackName: string): IcecatProduct | nu
     console.error('❌ Erro ao parsear produto Icecat:', error);
     return null;
   }
+}
+
+// ==== MAPEAMENTO DE ALIASES CONHECIDOS ====
+const KNOWN_MPNS = new Map([
+  // PlayStation 5 (Sony)
+  ["playstation5", "CFI-1115A"],
+  ["playstation 5", "CFI-1115A"],
+  ["ps5", "CFI-1115A"],
+  
+  // Xbox Series X (Microsoft)
+  ["xbox series x", "FMT-00015"],
+  ["xsx", "FMT-00015"],
+  
+  // Exemplos de iPhones (Apple) - códigos modelo reais  
+  ["iphone15", "A3089"],
+  ["iphone 15", "A3089"],
+  ["iphone15pro", "A3102"],
+  ["iphone 15 pro", "A3102"],
+]);
+
+const BRAND_ALIASES = new Map([
+  ["playstation", "Sony"],
+  ["ps5", "Sony"],
+  ["ps4", "Sony"],
+  ["xbox", "Microsoft"],
+  ["iphone", "Apple"],
+  ["ipad", "Apple"],
+  ["macbook", "Apple"],
+  ["galaxy", "Samsung"],
+  ["surface", "Microsoft"],
+]);
+
+function resolveBrandAndMPN(text: string): { brand?: string; mpn?: string } {
+  const lowerText = text.toLowerCase().trim();
+  
+  // Primeiro, verificar se o texto inteiro corresponde a um MPN conhecido
+  if (KNOWN_MPNS.has(lowerText)) {
+    const mpn = KNOWN_MPNS.get(lowerText)!;
+    
+    // Determinar a marca pelo MPN
+    if (mpn.startsWith("CFI-")) return { brand: "Sony", mpn };
+    if (mpn.startsWith("FMT-")) return { brand: "Microsoft", mpn };
+    if (mpn.startsWith("A")) return { brand: "Apple", mpn };
+  }
+  
+  // Segundo, tentar resolver pela marca no texto
+  for (const [alias, brand] of BRAND_ALIASES.entries()) {
+    if (lowerText.includes(alias)) {
+      // Procurar por um MPN conhecido que contenha parte do texto
+      for (const [textKey, mpn] of KNOWN_MPNS.entries()) {
+        if (lowerText.includes(textKey.replace(/\s+/g, "")) || textKey.includes(alias)) {
+          return { brand, mpn };
+        }
+      }
+      
+      return { brand }; // Apenas a marca, sem MPN específico
+    }
+  }
+  
+  return {};
+}
+
+// ==== ENTRADA TEXTO → PRODUTOS ====
+export async function searchProductByText(texto: string, lang: string = 'PT'): Promise<IcecatProduct[]> {
+  console.log(`🔍 Buscando produtos no Icecat por texto: "${texto}" (lang: ${lang})`);
+  
+  try {
+    // 1) GTIN direto (melhor caminho)
+    const gtins = extractGTINs(texto);
+    if (gtins.length) {
+      console.log(`🎯 GTIN encontrado: ${gtins[0]}`);
+      try { 
+        const product = await fetchProductByGTIN(gtins[0]);
+        if (product) {
+          return [product];
+        }
+      } catch (e) { 
+        console.warn(`⚠️ GTIN ${gtins[0]} falhou:`, (e as Error).message);
+      }
+    }
+
+    // 2) Brand+MPN (quando temos um MPN real)
+    const { brand, mpn } = resolveBrandAndMPN(texto);
+    if (brand && mpn) {
+      console.log(`🎯 Brand + MPN identificados: ${brand} + ${mpn}`);
+      try {
+        const product = await fetchProductByBrandMPN(brand, mpn);
+        if (product) {
+          return [product];
+        }
+      } catch (e) {
+        console.warn(`⚠️ Brand + MPN falhou:`, (e as Error).message);
+      }
+    }
+
+    // 3) Fallback para EN se estava em PT
+    if (lang === 'PT') {
+      console.log('🔄 Tentando fallback para EN...');
+      return searchProductByText(texto, 'EN');
+    }
+
+    // 4) Sem identificador -> falha clara
+    console.warn("⚠️ Produto não encontrado: forneça um GTIN (EAN/UPC) válido ou Brand+MPN real.");
+    console.log(`💡 Dicas:`);
+    console.log(`   • GTIN válido: "0711719709695" (PS5)`);
+    console.log(`   • Texto com MPN: "PlayStation 5" → Sony CFI-1115A`);
+    console.log(`   • Marcas suportadas: ${Array.from(BRAND_ALIASES.values()).join(', ')}`);
+    
+    return [];
+
+  } catch (error) {
+    console.error(`❌ Erro ao buscar por texto no Icecat:`, error);
+    return [];
+  }
+}
+
+// ==== BUSCA POR GTIN (COMPATIBILIDADE) ====
+export async function searchProductByGTIN(gtin: string, lang: string = 'PT'): Promise<IcecatProduct | null> {
+  console.log(`🔍 Buscando produto no Icecat via GTIN: ${gtin} (lang: ${lang})`);
+  
+  try {
+    return await fetchProductByGTIN(gtin);
+  } catch (error) {
+    console.error(`❌ Erro ao buscar GTIN no Icecat:`, error);
+    
+    // Tentar fallback para EN se foi PT
+    if (lang === 'PT') {
+      console.log('🔄 Tentando fallback para EN...');
+      return searchProductByGTIN(gtin, 'EN');
+    }
+    
+    return null;
+  }
+}
+
+// ==== FUNÇÃO PÚBLICA PARA IMAGENS ====
+export async function imagensPorTexto(texto: string, hints: { brand?: string; mpn?: string } = {}): Promise<string[]> {
+  // 1) GTIN direto
+  const gtins = extractGTINs(texto);
+  if (gtins.length) {
+    try { 
+      return await fetchGalleryByGTIN(gtins[0]); 
+    } catch (e) { 
+      console.warn(`⚠️ GTIN ${gtins[0]} falhou:`, (e as Error).message);
+    }
+  }
+
+  // 2) Brand+MPN (só se você tiver um MPN real; "iPhone 15 Pro" não é MPN)
+  if (hints.brand && hints.mpn) {
+    try {
+      return await fetchGalleryByBrandMPN(hints.brand, hints.mpn);
+    } catch (e) {
+      console.warn(`⚠️ Brand+MPN ${hints.brand}+${hints.mpn} falhou:`, (e as Error).message);
+    }
+  }
+
+  // 3) Tentar resolver automaticamente
+  const { brand, mpn } = resolveBrandAndMPN(texto);
+  if (brand && mpn) {
+    try {
+      return await fetchGalleryByBrandMPN(brand, mpn);
+    } catch (e) {
+      console.warn(`⚠️ Auto Brand+MPN ${brand}+${mpn} falhou:`, (e as Error).message);
+    }
+  }
+
+  // 4) Sem identificador -> falha clara
+  throw new Error("Produto não encontrado: forneça um GTIN (EAN/UPC) válido ou Brand+MPN real.");
 }
