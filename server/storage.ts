@@ -3618,6 +3618,91 @@ export class DatabaseStorage implements IStorage {
       .from(products)
       .where(eq(products.storeId, storeId));
   }
+
+  // ========== NOVA FUNCIONALIDADE: SINCRONIZAÇÃO AUTOMÁTICA DE TOTEMS ==========
+  
+  // Sincronizar produtos marcados para totem automaticamente
+  async syncProductTotem(productId: string, storeId: string): Promise<void> {
+    try {
+      // Buscar o produto com dados da loja
+      const product = await this.getProductWithStore(productId);
+      if (!product || product.storeId !== storeId || !product.store) {
+        throw new Error('Produto não encontrado ou não pertence à loja');
+      }
+
+      // Verificar se produto está marcado para totem
+      if (!product.showInTotem || !product.isActive) {
+        // Se não está marcado ou não está ativo, remover conteúdo existente
+        await this.removeProductTotemContent(productId, storeId);
+        return;
+      }
+
+      // Gerar nome único para o arquivo do totem
+      const timestamp = Date.now();
+      const outputPath = `./uploads/totem/product_${productId}_${timestamp}.png`;
+      
+      // Importar e usar a função de composição de totem
+      const { composeProductTotem } = await import('../gemini.js');
+      await composeProductTotem(
+        {
+          id: product.id,
+          name: product.name,
+          price: parseFloat(product.price?.toString().replace(',', '.') || '0') || 0,
+          imageUrl: product.imageUrl || undefined,
+          category: product.category || undefined,
+          description: product.description || undefined,
+        },
+        {
+          name: product.store.name,
+          themeColor: product.store.themeColor || undefined,
+          currency: product.store.currency || undefined,
+        },
+        outputPath
+      );
+
+      const totemUrl = `/uploads/totem/product_${productId}_${timestamp}.png`;
+      
+      // Remover conteúdo anterior do produto (se existir)
+      await this.removeProductTotemContent(productId, storeId);
+      
+      // Criar novo conteúdo do totem
+      const totemContent: InsertTotemContent = {
+        id: `product-${productId}`, // ID único baseado no produto
+        storeId: storeId,
+        title: product.name,
+        description: `Produto disponível na ${product.store.name}`,
+        mediaUrl: totemUrl,
+        mediaType: 'image',
+        displayDuration: '15', // 15 segundos
+        isActive: true,
+        sortOrder: '100', // Prioridade alta para produtos
+      };
+      
+      await this.createTotemContent(totemContent);
+      
+      console.log(`✅ Totem sincronizado automaticamente para produto: ${product.name}`);
+      
+    } catch (error) {
+      console.error(`❌ Erro ao sincronizar totem do produto ${productId}:`, error);
+      throw error;
+    }
+  }
+
+  // Remover conteúdo de totem de um produto específico
+  async removeProductTotemContent(productId: string, storeId: string): Promise<void> {
+    try {
+      await db
+        .delete(totemContent)
+        .where(and(
+          eq(totemContent.id, `product-${productId}`),
+          eq(totemContent.storeId, storeId)
+        ));
+      
+      console.log(`🗑️ Conteúdo de totem removido para produto: ${productId}`);
+    } catch (error) {
+      console.error(`❌ Erro ao remover conteúdo de totem do produto ${productId}:`, error);
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
