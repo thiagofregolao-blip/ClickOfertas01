@@ -846,11 +846,13 @@ export async function composeProductTotem(
             <rect width="100%" height="100%" fill="url(#shine)" />
         </svg>`;
 
-        // Definir layout baseado na presença da imagem
-        const hasImage = productImageBuffer !== null;
-        const textAreaWidth = hasImage ? totemWidth * 0.5 : totemWidth * 0.8;
-        const textStartX = hasImage ? 100 : totemWidth * 0.1;
+        // Definir layout baseado na presença da imagem (variáveis para permitir ajuste)
+        let hasImage = productImageBuffer !== null;
+        let textAreaWidth = hasImage ? totemWidth * 0.5 : totemWidth * 0.8;
+        let textStartX = hasImage ? 100 : totemWidth * 0.1;
         const imageAreaX = hasImage ? totemWidth * 0.55 : 0;
+        const imageAreaWidth = 700;
+        const imageAreaHeight = 800;
 
         // Criar SVG com informações do produto
         const productInfoSvg = `
@@ -901,15 +903,16 @@ export async function composeProductTotem(
             try {
                 console.log(`🔄 Processando imagem do produto...`);
                 
-                // Redimensionar imagem do produto para caber na área designada
+                // Redimensionar imagem do produto preservando aspect ratio
                 const productImageProcessed = await sharp.default(productImageBuffer)
                     .rotate() // Auto-rotacionar baseado em EXIF se necessário
-                    .resize(700, 800, { 
+                    .resize(imageAreaWidth, imageAreaHeight, { 
                         fit: 'contain', 
                         background: { r: 0, g: 0, b: 0, alpha: 0 },
-                        withoutEnlargement: true // Não aumentar imagens pequenas
+                        withoutEnlargement: true,
+                        position: 'centre' // Centralizar na área
                     })
-                    .png({ quality: 90, compressionLevel: 6 })
+                    .png({ compressionLevel: 9, adaptiveFiltering: true })
                     .toBuffer();
 
                 console.log(`📐 Imagem processada: ${productImageProcessed.length} bytes`);
@@ -944,10 +947,20 @@ export async function composeProductTotem(
             }
         ]);
 
-        // Salvar o totem final
-        await composition.png().toFile(outputPath);
+        // Salvar o totem final garantindo dimensões exatas
+        await composition
+            .resize(totemWidth, totemHeight, { 
+                fit: 'cover', 
+                position: 'centre' 
+            })
+            .png({ compressionLevel: 9, adaptiveFiltering: true })
+            .toFile(outputPath);
 
+        // Verificar dimensões finais
+        const finalImage = sharp.default(outputPath);
+        const finalMetadata = await finalImage.metadata();
         console.log(`✅ Totem do produto composto: ${outputPath}`);
+        console.log(`📐 Dimensões finais: ${finalMetadata.width}x${finalMetadata.height}`);
         
     } catch (error) {
         console.error('❌ Erro ao compor totem do produto:', error);
