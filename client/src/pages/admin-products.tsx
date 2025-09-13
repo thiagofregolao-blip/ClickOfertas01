@@ -160,7 +160,7 @@ export default function AdminProducts() {
       }
       
       // Preencher o formulário com os dados do produto
-      selectProduct(product);
+      selectProduct(product, gtin); // Passar o GTIN correto como parâmetro
       
     } catch (error: any) {
       toast({
@@ -174,7 +174,7 @@ export default function AdminProducts() {
   };
 
   // Função para selecionar um produto dos resultados
-  const selectProduct = (product: any) => {
+  const selectProduct = (product: any, forcedGtin?: string) => {
     // Preencher todos os campos do formulário
     form.setValue("name", product.name || "");
     form.setValue("description", product.description || "");
@@ -182,7 +182,9 @@ export default function AdminProducts() {
     form.setValue("imageUrl", product.images?.[0] || "");
     form.setValue("imageUrl2", product.images?.[1] || "");
     form.setValue("imageUrl3", product.images?.[2] || "");
-    form.setValue("gtin", product.id || "");
+    // 🎯 CORREÇÃO CRÍTICA: Usar GTIN real, não ID interno do Icecat
+    const actualGtin = forcedGtin || product.gtin || product.ean || product.upc || product.id || "";
+    form.setValue("gtin", actualGtin);
     form.setValue("brand", product.brand || "");
     form.setValue("sourceType", "icecat");
     
