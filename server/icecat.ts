@@ -59,7 +59,8 @@ function logFail(ctx: any) {
 
 // ==== CHAMADAS ICECAT ====
 async function fetchGalleryByGTIN(gtin: string): Promise<string[]> {
-  const url = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(ICECAT_USER || '')}&GTIN=${encodeURIComponent(gtin)}&content=gallery`;
+  const shopname = (ICECAT_USER || '').trim();
+  const url = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(shopname)}&GTIN=${encodeURIComponent(gtin)}&content=gallery`;
   const r = await fetch(url, { headers: { "api_token": API_TOKEN!, "content_token": CONTENT_TOK! }});
   const text = await r.text();
   
@@ -81,7 +82,8 @@ async function fetchGalleryByGTIN(gtin: string): Promise<string[]> {
 
 // (Opcional) Brand + MPN quando você tiver um MPN real (ex.: "CFI-1216A", "A2848", etc.)
 async function fetchGalleryByBrandMPN(brand: string, mpn: string): Promise<string[]> {
-  const url = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(ICECAT_USER || '')}&Brand=${encodeURIComponent(brand)}&ProductCode=${encodeURIComponent(mpn)}&content=gallery`;
+  const shopname = (ICECAT_USER || '').trim();
+  const url = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(shopname)}&Brand=${encodeURIComponent(brand)}&ProductCode=${encodeURIComponent(mpn)}&content=gallery`;
   const r = await fetch(url, { headers: { "api_token": API_TOKEN!, "content_token": CONTENT_TOK! }});
   const text = await r.text();
   
@@ -103,7 +105,8 @@ async function fetchGalleryByBrandMPN(brand: string, mpn: string): Promise<strin
 
 // ==== BUSCA COMPLETA COM DADOS DO PRODUTO ====
 async function fetchProductByGTIN(gtin: string): Promise<IcecatProduct | null> {
-  const url = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(ICECAT_USER || '')}&GTIN=${encodeURIComponent(gtin)}&content=essentialinfo,gallery`;
+  const shopname = (ICECAT_USER || '').trim();
+  const url = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(shopname)}&GTIN=${encodeURIComponent(gtin)}&content=essentialinfo,gallery`;
   const r = await fetch(url, { headers: { "api_token": API_TOKEN!, "content_token": CONTENT_TOK! }});
   const text = await r.text();
   
@@ -114,7 +117,12 @@ async function fetchProductByGTIN(gtin: string): Promise<IcecatProduct | null> {
   
   const json = JSON.parse(text);
   
+  // Se tem galeria mas não tem GeneralInfo, criar produto básico
   if (!json.data?.GeneralInfo) {
+    if (json.data?.Gallery && json.data.Gallery.length > 0) {
+      console.log(`⚠️ Produto ${gtin} tem galeria mas sem GeneralInfo - criando produto básico`);
+      return createBasicProductFromGallery(gtin, json.data.Gallery, `Produto ${gtin}`);
+    }
     logFail({ url, status: r.status, bodySample: text.slice(0,300), reason: "NO_GENERAL_INFO" });
     return null;
   }
@@ -123,7 +131,8 @@ async function fetchProductByGTIN(gtin: string): Promise<IcecatProduct | null> {
 }
 
 async function fetchProductByBrandMPN(brand: string, mpn: string): Promise<IcecatProduct | null> {
-  const url = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(ICECAT_USER || '')}&Brand=${encodeURIComponent(brand)}&ProductCode=${encodeURIComponent(mpn)}&content=essentialinfo,gallery`;
+  const shopname = (ICECAT_USER || '').trim();
+  const url = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(shopname)}&Brand=${encodeURIComponent(brand)}&ProductCode=${encodeURIComponent(mpn)}&content=essentialinfo,gallery`;
   const r = await fetch(url, { headers: { "api_token": API_TOKEN!, "content_token": CONTENT_TOK! }});
   const text = await r.text();
   
@@ -134,12 +143,64 @@ async function fetchProductByBrandMPN(brand: string, mpn: string): Promise<Iceca
   
   const json = JSON.parse(text);
   
+  // Se tem galeria mas não tem GeneralInfo, criar produto básico
   if (!json.data?.GeneralInfo) {
+    if (json.data?.Gallery && json.data.Gallery.length > 0) {
+      console.log(`⚠️ Produto ${brand} ${mpn} tem galeria mas sem GeneralInfo - criando produto básico`);
+      return createBasicProductFromGallery(`${brand}-${mpn}`, json.data.Gallery, `${brand} ${mpn}`);
+    }
     logFail({ url, status: r.status, bodySample: text.slice(0,300), reason: "NO_GENERAL_INFO" });
     return null;
   }
   
   return parseIcecatProduct(json, `${brand} ${mpn}`);
+}
+
+/**
+ * Cria um produto básico apenas com galeria (quando não há GeneralInfo)
+ */
+function createBasicProductFromGallery(id: string, gallery: any[], fallbackName: string): IcecatProduct | null {
+  try {
+    // Prioritizar imagens de melhor qualidade
+    const images = gallery
+      .map((galleryItem: IcecatGalleryItem) => 
+        galleryItem.Pic500x500 || galleryItem.Pic || galleryItem.ThumbPic || galleryItem.LowPic
+      )
+      .filter((url): url is string => Boolean(url))
+      .slice(0, 3);
+
+    if (images.length === 0) {
+      console.warn('❌ Galeria sem imagens válidas');
+      return null;
+    }
+
+    // Tentar extrair marca do nome se possível
+    let brand = 'Desconhecida';
+    const lowerName = fallbackName.toLowerCase();
+    for (const [alias, brandName] of BRAND_ALIASES.entries()) {
+      if (lowerName.includes(alias)) {
+        brand = brandName;
+        break;
+      }
+    }
+
+    const product: IcecatProduct = {
+      id,
+      name: fallbackName,
+      description: `Produto encontrado no Icecat - ${images.length} imagens disponíveis`,
+      brand,
+      category: 'Eletrônicos',
+      images,
+      demoAccount: false
+    };
+
+    console.log(`✅ Produto básico criado: ${product.name} (${images.length} imagens)`);
+    return product;
+
+  } catch (error) {
+    console.error('❌ Erro ao criar produto básico:', error);
+    return null;
+  }
 }
 
 /**
