@@ -1,108 +1,157 @@
 import fetch from 'node-fetch';
 
-interface IcecatProduct {
-  id: string;
+export interface IcecatProduct {
+  id: string;        // GTIN
   name: string;
   description?: string;
   brand?: string;
   category?: string;
   images: string[];
+  raw?: any;         // opcional: payload bruto para debug
+  demoAccount?: boolean;
 }
 
 interface IcecatGalleryItem {
   Pic?: string;
   Pic500x500?: string;
   ThumbPic?: string;
+  LowPic?: string;
 }
 
-interface IcecatApiResponse {
-  Gallery?: IcecatGalleryItem[];
+interface IcecatGeneralInfo {
+  Title?: string;
+  Description?: string | { Value?: string };
+  Brand?: string;
+  Category?: { Name?: string | { Value?: string } };
+}
+
+interface IcecatJsonResponse {
+  msg?: string; // "OK" em sucesso
+  statusCode?: number;
+  message?: string;
+  DemoAccount?: boolean;
+  ContentErrors?: string;
   data?: {
+    GeneralInfo?: IcecatGeneralInfo;
     Gallery?: IcecatGalleryItem[];
-    GeneralInfo?: {
-      Title?: string;
-      Description?: string;
-      Brand?: string;
-      Category?: {
-        Name?: string;
-      };
-    };
-  };
-  GeneralInfo?: {
-    Title?: string;
-    Description?: string;
-    Brand?: string;
-    Category?: {
-      Name?: string;
-    };
+    Dictionary?: Record<string, any>;
+    DemoAccount?: boolean;
+    ContentErrors?: string;
   };
 }
 
 const ICECAT_API_BASE = 'https://live.icecat.biz/api';
 
+function normalizeGTIN(gtin: string) {
+  return gtin.replace(/[^0-9]/g, '').trim();
+}
+
+function getAuthHeader() {
+  const user = process.env.ICECAT_USER?.trim();
+  const pass = process.env.ICECAT_PASSWORD?.trim();
+  if (user && pass) {
+    const token = Buffer.from(`${user}:${pass}`).toString('base64');
+    return `Basic ${token}`;
+  }
+  return undefined;
+}
+
 /**
  * Busca produto no Icecat via GTIN/EAN/UPC
  */
-export async function searchProductByGTIN(gtin: string): Promise<IcecatProduct | null> {
+export async function searchProductByGTIN(gtin: string, lang: string = 'BR'): Promise<IcecatProduct | null> {
   try {
-    console.log(`🔍 Buscando produto no Icecat com GTIN: ${gtin}`);
+    const cleanGtin = normalizeGTIN(gtin);
+    console.log(`🔍 Buscando produto no Icecat com GTIN: ${cleanGtin} (lang: ${lang})`);
 
-    const headers = {
-      'api_token': process.env.ICECAT_API_TOKEN!,
-      'content_token': process.env.ICECAT_CONTENT_TOKEN!,
+    const headers: Record<string, string> = {
+      'api-token': process.env.ICECAT_API_TOKEN!,
+      'content-token': process.env.ICECAT_CONTENT_TOKEN!,
     };
 
-    // Buscar apenas galeria para ter imagens
+    // Adicionar Basic Auth se disponível
+    const basicAuth = getAuthHeader();
+    if (basicAuth) {
+      headers['Authorization'] = basicAuth;
+    }
+
     const shopname = process.env.ICECAT_USER?.trim() || '';
-    const cleanGtin = gtin.trim();
-    const galleryUrl = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(shopname)}&GTIN=${encodeURIComponent(cleanGtin)}&content=gallery`;
     
-    console.log(`📡 Fazendo requisição para galeria: ${galleryUrl}`);
-    const galleryResponse = await fetch(galleryUrl, { headers });
+    // Uma única chamada com conteúdo combinado
+    const url = `${ICECAT_API_BASE}?lang=${lang}&shopname=${encodeURIComponent(shopname)}&GTIN=${encodeURIComponent(cleanGtin)}&content=essentialinfo,gallery`;
     
-    if (!galleryResponse.ok) {
-      const errorText = await galleryResponse.text();
-      console.warn(`⚠️ Erro na API do Icecat (galeria): ${galleryResponse.status} ${galleryResponse.statusText}`);
+    console.log(`📡 Fazendo requisição: ${url.replace(/&?(api-token|content-token)=[^&]*/g, '')}`);
+    const response = await fetch(url, { headers });
+    
+    if (!response.ok) {
+      console.warn(`⚠️ Erro na API do Icecat: ${response.status} ${response.statusText}`);
+      
+      // Tentar fallback para EN se foi BR
+      if (lang === 'BR') {
+        console.log('🔄 Tentando fallback para EN...');
+        return searchProductByGTIN(gtin, 'EN');
+      }
+      
+      const errorText = await response.text();
       console.warn(`📄 Resposta de erro:`, errorText);
-      console.warn(`🔧 Headers enviados:`, JSON.stringify(headers, null, 2));
       return null;
     }
 
-    const galleryData: IcecatApiResponse = await galleryResponse.json();
-    console.log(`📸 Resposta da galeria:`, JSON.stringify(galleryData, null, 2));
-
-    // Buscar informações gerais do produto
-    const infoUrl = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(shopname)}&GTIN=${encodeURIComponent(cleanGtin)}&content=essentialinfo`;
+    const data: IcecatJsonResponse = await response.json();
     
-    console.log(`📡 Fazendo requisição para info: ${infoUrl}`);
-    const infoResponse = await fetch(infoUrl, { headers });
+    // Log de debug detalhado
+    console.log(`📊 Status: ${data.statusCode}, Message: ${data.message}`);
+    console.log(`🏢 DemoAccount: ${data.DemoAccount || data.data?.DemoAccount}`);
+    console.log(`⚠️ ContentErrors: ${data.ContentErrors || data.data?.ContentErrors}`);
     
-    let infoData: IcecatApiResponse = {};
-    if (infoResponse.ok) {
-      infoData = await infoResponse.json();
-      console.log(`📋 Resposta das informações:`, JSON.stringify(infoData, null, 2));
+    if (process.env.ICECAT_DEBUG === 'true') {
+      console.log(`🔍 Payload completo:`, JSON.stringify(data, null, 2));
     }
 
-    // Extrair galeria de imagens
-    const gallery = galleryData.Gallery || galleryData?.data?.Gallery || [];
+    // Verificar se há erros
+    if (data.statusCode && data.statusCode !== 200) {
+      console.warn(`❌ Icecat retornou erro: ${data.statusCode} - ${data.message}`);
+      return null;
+    }
+
+    // Extrair informações gerais
+    const generalInfo = data.data?.GeneralInfo || {};
+    let title = generalInfo.Title;
+    let description = generalInfo.Description;
+    let brand = generalInfo.Brand;
+    let categoryName = generalInfo.Category?.Name;
+    
+    // Tratar campos que podem ter estrutura { Value: string }
+    if (typeof description === 'object' && description?.Value) {
+      description = description.Value;
+    }
+    if (typeof categoryName === 'object' && categoryName?.Value) {
+      categoryName = categoryName.Value;
+    }
+
+    // Extrair galeria de imagens com prioridade
+    const gallery = data.data?.Gallery || [];
     const images = gallery
-      .map(item => item.Pic)
+      .map(item => item.Pic500x500 || item.Pic || item.ThumbPic || item.LowPic)
       .filter(Boolean)
-      .slice(0, 3); // Máximo 3 imagens
+      .slice(0, 3);
 
     console.log(`🖼️ Imagens encontradas: ${images.length}`);
 
-    // Extrair informações do produto
-    const generalInfo = infoData.GeneralInfo || infoData?.data?.GeneralInfo || {};
-    
     const product: IcecatProduct = {
-      id: gtin,
-      name: generalInfo.Title || `Produto ${gtin}`,
-      description: generalInfo.Description || '',
-      brand: generalInfo.Brand || '',
-      category: generalInfo.Category?.Name || 'Eletrônicos',
-      images
+      id: cleanGtin,
+      name: title || `Produto ${cleanGtin}`,
+      description: (description as string) || '',
+      brand: brand || '',
+      category: (categoryName as string) || 'Eletrônicos',
+      images,
+      demoAccount: data.DemoAccount || data.data?.DemoAccount
     };
+
+    // Anexar payload bruto se debug estiver ativo
+    if (process.env.ICECAT_DEBUG === 'true') {
+      product.raw = data;
+    }
 
     console.log(`✅ Produto encontrado:`, product);
     return product;

@@ -811,13 +811,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/icecat/product/:gtin', isAuthenticated, async (req: any, res) => {
     try {
       const { gtin } = req.params;
+      const { lang } = req.query;
       
-      if (!gtin || gtin.length < 8) {
-        return res.status(400).json({ message: "GTIN deve ter pelo menos 8 dígitos" });
+      if (!gtin || gtin.replace(/[^0-9]/g, '').length < 8) {
+        return res.status(400).json({ message: "GTIN deve ter pelo menos 8 dígitos numéricos" });
       }
       
       const { searchProductByGTIN } = await import('./icecat');
-      const product = await searchProductByGTIN(gtin);
+      const product = await searchProductByGTIN(gtin, (lang as string) || 'BR');
       
       if (!product) {
         return res.status(404).json({ message: "Produto não encontrado no catálogo Icecat" });
@@ -826,52 +827,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(product);
     } catch (error) {
       console.error("Error searching Icecat:", error);
-      res.status(500).json({ message: "Erro ao buscar produto no Icecat" });
+      res.status(500).json({ message: "Erro interno ao buscar produto no Icecat" });
     }
   });
 
-  // Fallback: Buscar produto via Google Shopping quando Icecat falhar
-  app.get('/api/products/search-by-gtin/:gtin', isAuthenticated, async (req: any, res) => {
-    try {
-      const { gtin } = req.params;
-      
-      if (!gtin || gtin.length < 8) {
-        return res.status(400).json({ message: "GTIN deve ter pelo menos 8 dígitos" });
-      }
-      
-      console.log(`🔍 Fallback: Buscando produto via Google Shopping com GTIN: ${gtin}`);
-      
-      // Usar apifyService para buscar via Google Shopping
-      const searchResults = await apifyService.searchProducts(gtin, 'google');
-      
-      if (!searchResults.length) {
-        return res.status(404).json({ message: "Produto não encontrado via Google Shopping" });
-      }
-      
-      const firstResult = searchResults[0];
-      
-      // Adaptar formato para compatibilidade com frontend
-      const product = {
-        id: gtin,
-        name: firstResult.title || `Produto ${gtin}`,
-        description: firstResult.description || '',
-        brand: '', // Google Shopping não sempre tem marca separada
-        category: 'Eletrônicos',
-        images: [
-          firstResult.image1,
-          firstResult.image2,
-          firstResult.image3
-        ].filter(Boolean).slice(0, 3)
-      };
-      
-      console.log(`✅ Produto encontrado via Google Shopping:`, product);
-      res.json(product);
-      
-    } catch (error) {
-      console.error("Error searching via Google Shopping:", error);
-      res.status(500).json({ message: "Erro ao buscar produto via Google Shopping" });
-    }
-  });
 
   app.patch('/api/stores/:storeId/products/:productId', isAuthenticated, async (req: any, res) => {
     try {
