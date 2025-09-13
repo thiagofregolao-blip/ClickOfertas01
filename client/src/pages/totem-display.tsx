@@ -286,7 +286,7 @@ export default function TotemDisplay() {
               img.style.objectPosition = 'center';
               img.style.width = '100%';
               img.style.height = '100%';
-            }
+            }}
             onError={(e) => {
               console.error('❌ Erro ao carregar imagem:', currentContent.mediaUrl);
               // Tentar novamente após 5 segundos
