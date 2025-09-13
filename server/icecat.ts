@@ -1,3 +1,4 @@
+// @ts-ignore
 import fetch from 'node-fetch';
 
 export interface IcecatProduct {
@@ -132,8 +133,8 @@ export async function searchProductByGTIN(gtin: string, lang: string = 'BR'): Pr
     // Extrair galeria de imagens com prioridade
     const gallery = data.data?.Gallery || [];
     const images = gallery
-      .map(item => item.Pic500x500 || item.Pic || item.ThumbPic || item.LowPic)
-      .filter(Boolean)
+      .map((item: IcecatGalleryItem) => item.Pic500x500 || item.Pic || item.ThumbPic || item.LowPic)
+      .filter((url): url is string => Boolean(url))
       .slice(0, 3);
 
     console.log(`🖼️ Imagens encontradas: ${images.length}`);
@@ -191,7 +192,7 @@ export async function searchProductByBrandCode(brand: string, productCode: strin
     const infoUrl = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(shopname)}&Brand=${encodeURIComponent(brand)}&ProductCode=${encodeURIComponent(productCode)}&content=essentialinfo`;
     
     const infoResponse = await fetch(infoUrl, { headers });
-    let infoData: IcecatApiResponse = {};
+    let infoData: IcecatJsonResponse = {};
     if (infoResponse.ok) {
       infoData = await infoResponse.json();
     }
@@ -199,8 +200,8 @@ export async function searchProductByBrandCode(brand: string, productCode: strin
     // Extrair dados
     const gallery = galleryData.Gallery || galleryData?.data?.Gallery || [];
     const images = gallery
-      .map(item => item.Pic)
-      .filter(Boolean)
+      .map((item: IcecatGalleryItem) => item.Pic)
+      .filter((url): url is string => Boolean(url))
       .slice(0, 3);
 
     const generalInfo = infoData.GeneralInfo || infoData?.data?.GeneralInfo || {};

@@ -104,7 +104,7 @@ function Router() {
         <Route path="/super-admin-login" component={SuperAdminLogin} />
         <Route path="/admin-panel" component={SuperAdmin} />
         <Route path="/admin" component={LoadingComponent} />
-        <Route path="/admin/*" component={LoadingComponent} />
+        <Route path="/admin/:rest*" component={LoadingComponent} />
         <Route path="/settings" component={LoadingComponent} />
         <Route path="/shopping-list" component={LoadingComponent} />
         <Route path="/my-coupons" component={LoadingComponent} />
@@ -131,6 +131,23 @@ function Router() {
           <Route path="/super-admin" component={SuperAdminLogin} />
           <Route path="/admin-panel" component={SuperAdmin} />
           <Route path="/totem/:storeId" component={TotemDisplay} />
+          {/* Admin routes fallback during auth loading - show loading instead of 404 */}
+          <Route path="/admin" component={() => (
+            <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Verificando acesso...</p>
+              </div>
+            </div>
+          )} />
+          <Route path="/admin/:rest*" component={() => (
+            <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Verificando acesso...</p>
+              </div>
+            </div>
+          )} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
           <Route path="/:slug" component={PublicFlyer} />
@@ -185,7 +202,7 @@ function Router() {
           <Route path="/:slug" component={PublicFlyer} />
           {/* Usuário normal não tem acesso ao admin - redireciona para /cards */}
           <Route path="/admin" component={() => { window.location.href = '/cards'; return null; }} />
-          <Route path="/admin/*" component={() => { window.location.href = '/cards'; return null; }} />
+          <Route path="/admin/:rest*" component={() => { window.location.href = '/cards'; return null; }} />
         </>
       )}
       <Route component={NotFound} />
