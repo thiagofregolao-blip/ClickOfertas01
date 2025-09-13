@@ -21,6 +21,7 @@ import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff, ChevronLeft, ChevronRig
 import type { Store, Product, InsertProduct } from "@shared/schema";
 import { z } from "zod";
 import { PhotoCapture } from "@/components/PhotoCapture";
+import { IcecatCodeSearchModal } from "@/components/IcecatCodeSearchModal";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
@@ -52,6 +53,7 @@ export default function AdminProducts() {
   const [searchMode, setSearchMode] = useState<'gtin' | 'text'>('text'); // Por padrão busca por texto
   const [searchText, setSearchText] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showCodeSearchModal, setShowCodeSearchModal] = useState(false);
 
   // Função para buscar produtos no Icecat
   const searchIcecatProducts = async () => {
@@ -134,6 +136,38 @@ export default function AdminProducts() {
         variant: "destructive",
       });
       setSearchResults([]);
+    } finally {
+      setIcecatSearching(false);
+    }
+  };
+
+  // Função para selecionar um produto do modal de códigos
+  const handleSelectProductFromModal = async (gtin: string, productName: string) => {
+    setIcecatSearching(true);
+    
+    try {
+      // Buscar o produto pelo GTIN selecionado
+      const response = await fetch(`/api/icecat/product/${gtin}?lang=BR`);
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Produto não encontrado no catálogo Icecat");
+      }
+      
+      const product = await response.json();
+      if (!product) {
+        throw new Error("Produto não encontrado no catálogo Icecat");
+      }
+      
+      // Preencher o formulário com os dados do produto
+      selectProduct(product);
+      
+    } catch (error: any) {
+      toast({
+        title: "Erro ao carregar produto",
+        description: error.message || "Não foi possível carregar os dados do produto",
+        variant: "destructive",
+      });
     } finally {
       setIcecatSearching(false);
     }
@@ -730,7 +764,7 @@ export default function AdminProducts() {
                             </>
                           )}
                         </div>
-                        <div className="flex items-end">
+                        <div className="flex items-end gap-2">
                           <Button
                             type="button"
                             onClick={searchIcecatProducts}
@@ -739,6 +773,15 @@ export default function AdminProducts() {
                             data-testid="button-search-icecat"
                           >
                             {icecatSearching ? "Buscando..." : "🔍 Buscar"}
+                          </Button>
+                          <Button
+                            type="button"
+                            onClick={() => setShowCodeSearchModal(true)}
+                            variant="outline"
+                            className="border-blue-600 text-blue-600 hover:bg-blue-50 px-6"
+                            data-testid="button-search-codes"
+                          >
+                            📋 Buscar Códigos
                           </Button>
                         </div>
                       </div>
@@ -1556,6 +1599,13 @@ export default function AdminProducts() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Modal de busca de códigos */}
+      <IcecatCodeSearchModal
+        isOpen={showCodeSearchModal}
+        onClose={() => setShowCodeSearchModal(false)}
+        onSelectProduct={handleSelectProductFromModal}
+      />
     </AdminLayout>
   );
 }
