@@ -1,0 +1,373 @@
+sabe aquelas telas que ficam no burger kink exibindo o cardapio em imagens atraentes , como eles fazem isso, qual app eles usam, como funciona
+O ChatGPT disse:
+Pensou por 37s
+
+Claro! Essas “telas de cardápio” do tipo Burger King são feitas com digital signage (painéis digitais). Na prática, você tem um software de gestão de conteúdo (CMS) que envia artes/vídeos para players (ou TVs profissionais com player embutido) instalados nas lojas. O CMS agenda, troca preços e faz playlists por horário (café, almoço, jantar) de forma centralizada.
+
+Como funciona (por partes)
+
+CMS de Digital Signage (nuvem ou on-premise): onde você cria/edita os menus, sobe imagens/vídeos, agenda conteúdos e, em soluções mais avançadas, integra com o POS/ERP para atualizar preços/ruptura em tempo real. Exemplos: Samsung VXT, LG SuperSign, ScreenCloud, Yodeck, Raydiant, Scala, BrightSign (com CMS/BSN.cloud). 
+BrightSign®
++6
+Samsung VXT
++6
+Samsung VXT
++6
+
+Player: mini-PC dedicado (ex.: BrightSign) ou o player embutido das telas profissionais (Samsung Tizen, LG webOS). Isso baixa o conteúdo do CMS e exibe offline/online com confiabilidade. 
+BrightSign®
++2
+Samsung
++2
+
+Displays: telas comerciais (indoor/outdoor; portrait/landscape) – muitas marcas têm linhas específicas para QSR/drive-thru. 
+Samsung
+
+Integrações: CMS ↔ POS (ex.: NCR Aloha, Toast, Olo/Deliverect), para empurrar preço, indisponibilidade e LTOs (ofertas por tempo limitado). 
+42 Digital Signage -
++4
+HCS Aloha POS
++4
+EverPass
++4
+
+Caso real: há estudos de caso de Burger King com plataformas de digital signage (ex.: Allsee Tech, Wallflower) em diferentes países/unidades — cada rede/franqueado escolhe integradores/soluções locais. 
+allsee-tech.com
++2
+allsee-tech.com
++2
+
+“Que app eles usam?”
+
+Não existe um “app único” global. Redes grandes normalmente usam um CMS corporativo (ou mais de um, conforme o país), com templates e integrações. Se você quer algo pronto para rodar rápido no Brasil, opções comuns são:
+
+Samsung VXT (software + telas Samsung); LG SuperSign (software + telas LG). 
+Samsung VXT
++2
+Samsung VXT
++2
+
+ScreenCloud ou Yodeck (SaaS, fácil de usar; roda em players Android/Chromebox/Raspberry ou players próprios). 
+screencloud.com
++1
+
+BrightSign (players robustos + gestão remota; integra com vários CMS). 
+BrightSign®
+
+4YouSee (fornecedor brasileiro com solução de menu board). 
+4yousee | Seja visto pelo mundo
+
+Fluxo típico de conteúdo
+
+Templates (cardápio por dia/hora), playlists e agendamento por período (dayparting). 
+screencloud.com
+
+Upload de imagens/vídeos (geralmente 1920×1080 ou 3840×2160; portrait para totens, landscape para balcão).
+
+Atualização central: altera preço/itens no CMS → propaga para todas as telas (ou uma loja específica). 
+Samsung VXT
+
+Integração com POS para atualizar preços e “fora de estoque” automaticamente. 
+pos.toasttab.com
++1
+
+Como você pode montar o seu (passo a passo rápido)
+
+Escolher hardware
+
+Mais simples: TV + player (Android/Chromebox) com ScreenCloud/Yodeck. 
+screencloud.com
++1
+
+Mais corporativo: tela profissional Samsung/LG (SoC) + CMS nativo (VXT/SuperSign) ou BrightSign como player dedicado. 
+Samsung
++2
+LG Electronics
++2
+
+Escolher o CMS conforme necessidade (templates prontos x integrações POS). 
+Samsung VXT
++2
+screencloud.com
++2
+
+Design/templating: defina layouts “hero” com imagens fortes e campos dinâmicos (itens, preço, descrições). Muitos CMS já têm templates prontos de menu. 
+Samsung VXT
++1
+
+Agendamento (dayparting) e regras (ex.: promo só de 12h–15h). 
+screencloud.com
+
+Integração com POS (opcional, mas ideal): sincronize preços/itens para evitar digitação dupla. 
+pos.toasttab.com
++1
+
+Piloto em 1–2 lojas (teste de rede, latência, brilho, leitura a 2–5 m).
+
+Operação: governança (quem pode publicar), checagens automáticas e monitoração dos players (online/offline). BrightSign/BSN.cloud e CMS corporativos dão esse controle. 
+BrightSign®
+
+Dicas práticas
+
+Não renderize texto via IA: gere o fundo/arte e aplique texto via template do CMS (tipografia perfeita e editável).
+
+Use vídeo curto para destaque (H.264/H.265) e imagens otimizadas para atualização rápida.
+
+Se for outdoor/drive-thru, escolha hardware e suportes apropriados (montagem, vedação, brilho). Há soluções de pedestal/mastro pensadas para QSR. 
+AVNetwork
+
+Se você me contar quantas telas (e se são 32" em pé como seu totem), sistema de PDV e se prefere algo simples ou corporativo, eu te indico 2 caminhos concretos (ex.: “Samsung VXT + TVs Samsung” vs. “ScreenCloud + player Android”), já com checklist de implantação e um modelo de template para cardápio.
+
+Você disse:
+agora no inicio vao ser no maximo 4 totens por loja espalhados dentro dela, e sao de 32 polegadas da xiaomi com android tv todas em pé, quero implementar isso no meu app, ja tenho algo aqui mas não esta como eu quero 
+O ChatGPT disse:
+Pensou por 38s
+
+Perfeito — dá pra deixar seus totens Android TV (Xiaomi 32") em pé funcionando sem distorção e sem dor de cabeça. A chave é: o Android TV fica “sempre landscape”, então você precisa produzir o conteúdo em retrato (1080×1920) e girá-lo na exibição (ou pré-girar no servidor). Abaixo te entrego um “kit mínimo” pra pôr de pé:
+
+Visão rápida do que vamos fazer
+
+Feed (JSON) com a playlist do totem (imagens/vídeos, duração, horários).
+
+App Android TV em modo “kiosk”: tela cheia, sem barras, acordado, auto-start.
+
+Render retrato sem distorção:
+
+Gere arte nativa em 1080×1920 (retrataço).
+
+Opção A (recomendada): o app gira 90° na renderização.
+
+Opção B: o servidor já manda a imagem pré-girada (90°), e o app só exibe.
+
+Como você tem TVs montadas em pé, o sistema continua landscape; quem compensa é você (app ou servidor). Assim o conteúdo fica retinho, sem “esticada”.
+
+1) Modelo de feed (playlist)
+
+Sirva algo assim no seu backend (ex.: /totem/loja-123.json):
+
+{
+  "version": 1,
+  "orientation": "portrait",
+  "items": [
+    {
+      "type": "image",
+      "url": "https://cdn.suaempresa.com/totem/1080x1920/prod-123.jpg",
+      "durationSec": 10,
+      "validFrom": "2025-09-10T00:00:00-03:00",
+      "validTo": "2025-10-01T00:00:00-03:00"
+    },
+    {
+      "type": "video",
+      "url": "https://cdn.suaempresa.com/totem/1080x1920/campanha-primavera.mp4",
+      "mute": true
+    }
+  ]
+}
+
+
+1080×1920 sempre (retrataço).
+
+Você pode ter um feed por totem se quiser segmentar (corredor de bebidas vs frios).
+
+2) App Android TV (Kotlin + Compose) — “kiosk” + rotação de 90°
+
+Esse exemplo gira a renderização (Opção A). Se preferir pré-girar no servidor, é só remover a rotação e mandar a imagem já “de lado”.
+
+Manifest (trechos):
+
+<manifest ...>
+  <uses-feature android:name="android.software.leanback" android:required="true" />
+  <uses-feature android:name="android.hardware.type.television" android:required="true" />
+
+  <application ... android:banner="@drawable/app_banner_tv">
+    <!-- Lança como app de TV -->
+    <activity android:name=".MainActivity"
+              android:exported="true"
+              android:launchMode="singleTask"
+              android:screenOrientation="landscape"
+              android:resizeableActivity="false">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+      </intent-filter>
+    </activity>
+
+    <!-- Auto-start após boot -->
+    <receiver android:name=".BootReceiver" android:exported="false">
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED"/>
+      </intent-filter>
+    </receiver>
+  </application>
+</manifest>
+
+
+BootReceiver.kt (abrir o app no boot):
+
+class BootReceiver : BroadcastReceiver() {
+  override fun onReceive(ctx: Context, intent: Intent) {
+    if (Intent.ACTION_BOOT_COMPLETED == intent.action) {
+      val i = Intent(ctx, MainActivity::class.java)
+      i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      ctx.startActivity(i)
+    }
+  }
+}
+
+
+MainActivity.kt (Compose, fullscreen, rotação e slideshow simples de imagens):
+
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+
+    // Modo imersivo
+    window.decorView.systemUiVisibility =
+      View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+      View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+      View.SYSTEM_UI_FLAG_FULLSCREEN or
+      View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+
+    // Mantém tela ligada
+    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+    setContent {
+      MaterialTheme {
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            // >>> Rotaciona 90 graus para TVs montadas em pé
+            .graphicsLayer(rotationZ = 90f)
+            // Como rotacionou, troque a escala para preencher sem distorcer
+            .then(Modifier.background(Color.Black))
+        ) {
+          TotemPlayer(
+            feedUrl = "https://cdn.suaempresa.com/feeds/loja-123.json"
+          )
+        }
+      }
+    }
+  }
+}
+
+
+TotemPlayer.kt (carrega o feed, exibe imagens em loop; vídeos você pode tocar com ExoPlayer):
+
+@Composable
+fun TotemPlayer(feedUrl: String) {
+  val scope = rememberCoroutineScope()
+  var items by remember { mutableStateOf<List<PlaylistItem>>(emptyList()) }
+  var idx by remember { mutableStateOf(0) }
+
+  // carrega feed
+  LaunchedEffect(feedUrl) {
+    val json = withContext(Dispatchers.IO) { URL(feedUrl).readText() }
+    items = parseItems(json).filter { it.isValidNow() }
+  }
+
+  if (items.isEmpty()) {
+    // placeholder
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+      Text("Carregando...", color = Color.White)
+    }
+    return
+  }
+
+  val current = items[idx % items.size]
+
+  // troca slide após duration
+  LaunchedEffect(current) {
+    val dur = (current.durationSec ?: 10).coerceAtLeast(3)
+    delay(dur * 1000L)
+    idx++
+  }
+
+  // IMAGEM (para vídeo, integre ExoPlayer)
+  if (current.type == "image") {
+    AsyncImage(
+      model = ImageRequest.Builder(LocalContext.current)
+        .data(current.url)
+        .diskCachePolicy(CachePolicy.ENABLED)
+        .build(),
+      contentDescription = null,
+      modifier = Modifier.fillMaxSize(),
+      contentScale = ContentScale.Crop // preenche sem distorcer
+    )
+  } else {
+    // TODO: implementar ExoPlayer para "video"
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+      Text("Vídeo não implementado", color = Color.White)
+    }
+  }
+}
+
+// Models utilitários
+data class PlaylistItem(
+  val type: String, val url: String,
+  val durationSec: Int? = null,
+  val validFrom: String? = null, val validTo: String? = null
+)
+
+fun parseItems(json: String): List<PlaylistItem> {
+  val root = JSONObject(json)
+  val arr = root.getJSONArray("items")
+  return buildList {
+    for (i in 0 until arr.length()) {
+      val o = arr.getJSONObject(i)
+      add(
+        PlaylistItem(
+          type = o.getString("type"),
+          url = o.getString("url"),
+          durationSec = o.optInt("durationSec", 10),
+          validFrom = o.optString("validFrom", null),
+          validTo = o.optString("validTo", null),
+        )
+      )
+    }
+  }
+}
+
+fun PlaylistItem.isValidNow(): Boolean {
+  fun parse(s: String?): Instant? = s?.let { OffsetDateTime.parse(it).toInstant() }
+  val now = Instant.now()
+  val from = parse(validFrom) ?: Instant.EPOCH
+  val to = parse(validTo) ?: Instant.parse("9999-01-01T00:00:00Z")
+  return now.isAfter(from) && now.isBefore(to)
+}
+
+
+Dica: se notar leve “softness” na rotação por graphicsLayer, você pode trocar para TextureView ou (Opção B) pré-girar a imagem no servidor (90°) e remover a rotação do app. Visualmente fica mais nítido.
+
+3) Vídeo (opcional) — ExoPlayer em retrato
+
+Quando for vídeo vertical (1080×1920), use ExoPlayer com AspectRatioFrameLayout.RESIZE_MODE_ZOOM para preencher sem distorcer. Se o vídeo for “normal” (1080×1920), mantenha a rotação do container como acima.
+
+4) Regras essenciais para não distorcer
+
+Produza assets 1080×1920 (retratos de verdade).
+
+No app, preencha com ContentScale.Crop (imagens) / RESIZE_MODE_ZOOM (vídeos).
+
+Nunca “estique” 1920×1080 para caber em retrato.
+
+Se seu backend hoje gera 1920×1080, ajuste para gerar retrato (ou gere as 2 variantes e sirva a correta para o totem).
+
+5) Qual usar: girar no app ou pré-girar no servidor?
+
+Girar no app (acima): simples, um binário serve para qualquer loja.
+
+Pré-girar no servidor: qualidade levemente melhor (sem transformação de GPU na TV) e compatível com players mais fracos.
+
+Nesse caso, você remove a linha .graphicsLayer(rotationZ = 90f) e só exibe.
+
+6) Operação (4 totens por loja)
+
+Dê um feed diferente por totem (URLs distintas) ou parametrize por deviceId (ex.: /feeds/loja-123/totem-01.json).
+
+Cache local (o exemplo já usa cache de imagens com Coil). Você pode baixar tudo com WorkManager para ficar 100% offline.
+
+Desative screen saver nas TVs e ative auto-start.
+
+Se quiser “modo administração” por controle remoto, crie um gesto secreto (ex.: apertar 5× “OK”) que abre uma tela de diagnóstico.

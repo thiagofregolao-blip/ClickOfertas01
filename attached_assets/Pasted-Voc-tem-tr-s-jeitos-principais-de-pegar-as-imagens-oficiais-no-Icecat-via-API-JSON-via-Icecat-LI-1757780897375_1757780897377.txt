@@ -1,0 +1,62 @@
+Você tem três jeitos principais de pegar as imagens oficiais no Icecat — via API JSON, via Icecat LIVE (JS) ou em lote. O mais direto para backend é a API JSON:
+
+1) API JSON (recomendado para backend)
+
+Endpoint base: https://live.icecat.biz/api? (JSON) 
+Iceclog
+
+Identificação do produto: por GTIN/EAN/UPC, Brand + ProductCode ou icecat_id. 
+Iceclog
+
+Cabeçalhos:
+
+api_token (datasheet)
+
+content_token (assets, como imagens) 
+Iceclog
+
+Parâmetro content: inclua gallery para trazer apenas a galeria (ou combine com outros blocos). Ex.: content=gallery ou content=essentialinfo%2Cgallery%2Cvideos... 
+Iceclog
+
+Onde estão as URLs de imagem no JSON: no bloco Gallery (campos como Pic – alta resolução; Pic500x500 – médio; ThumbPic – miniatura). 
+Iceclog
+
+Exemplo (só para ilustrar o formato — substitua USERNAME, GTIN e envie os tokens nos headers):
+
+GET https://live.icecat.biz/api?lang=PT&shopname=USERNAME&GTIN=SEU_GTIN&content=gallery
+Headers:
+  api_token: <seu_api_token>
+  content_token: <seu_content_token>
+
+
+Na resposta, use Gallery[i].Pic (maior) ou Pic500x500/ThumbPic conforme a necessidade. 
+Iceclog
+
+2) Icecat LIVE (JavaScript) – pega “ImageGallery” no front
+
+Se quiser inserir direto no site/app sem tratar JSON manualmente, o Icecat LIVE expõe containers prontos; o container ImageGallery corresponde à galeria de imagens. Você passa GTIN (ou Brand+PartCode) e o UserName. 
+Iceclog
+
+3) Download em lote (biblioteca de imagens)
+
+Precisa baixar muitas imagens de uma vez para o seu DAM/CDN? O Icecat tem um manual específico de download de bibliotecas de imagem com o passo a passo (11 etapas). 
+Iceclog
+
+Observações importantes
+
+Cadastro / acesso: crie conta Open Icecat (grátis) e gere seus tokens; Open = marcas patrocinadoras. Para cobertura total, só com Full Icecat (pago). 
+Iceclog
++2
+Icecat
++2
+
+Match confiável: priorize GTIN ou Brand + ProductCode; o próprio Icecat destaca esse fluxo nas integrações. 
+Icecat
+
+Se você quiser, eu te mando um snippet Node que:
+
+recebe um GTIN,
+
+chama a API JSON com content=gallery,
+
+escolhe a maior imagem (Pic) e salva suas derivações (ex.: 1080×1920 para totem e 1200×1200 para card).

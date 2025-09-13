@@ -1,0 +1,52 @@
+Sim 👍
+Se você chamar a API JSON do Icecat com o parâmetro content=gallery, a resposta traz apenas a galeria de imagens do produto (sem ficha técnica). A lista vem no array Gallery com campos como Pic (alta), Pic500x500 (média) e ThumbPic (mini).
+
+Exemplo rápido (só imagens)
+curl -s \
+  -H "api_token: SEU_API_TOKEN" \
+  -H "content_token: SEU_CONTENT_TOKEN" \
+  "https://live.icecat.biz/api?lang=PT&shopname=SEU_USUARIO&GTIN=SEU_GTIN&content=gallery"
+
+Node.js – pegar só as URLs ou baixar a maior
+import fs from "node:fs/promises";
+import fetch from "node-fetch";
+
+const API = "https://live.icecat.biz/api";
+const HEADERS = {
+  "api_token": process.env.ICECAT_API_TOKEN,
+  "content_token": process.env.ICECAT_CONTENT_TOKEN,
+};
+
+async function getImageUrlsByGTIN(gtin) {
+  const url = `${API}?lang=PT&shopname=${process.env.ICECAT_USER}&GTIN=${gtin}&content=gallery`;
+  const r = await fetch(url, { headers: HEADERS });
+  if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+  const json = await r.json();
+
+  // O array pode vir em json.Gallery ou json.data.Gallery (depende do plano/endpoint)
+  const gallery = json.Gallery || json?.data?.Gallery || [];
+  // Retorna só URLs (maior primeiro)
+  return gallery.map(g => g.Pic).filter(Boolean);
+}
+
+async function downloadMainImage(gtin, outPath) {
+  const urls = await getImageUrlsByGTIN(gtin);
+  if (!urls.length) throw new Error("Sem imagens para este GTIN");
+  const img = await fetch(urls[0]);
+  const buf = Buffer.from(await img.arrayBuffer());
+  await fs.writeFile(outPath, buf);
+}
+
+// uso:
+// const urls = await getImageUrlsByGTIN("7891234567890"); // só URLs
+// await downloadMainImage("7891234567890", "./output/7891234567890-main.jpg"); // baixa a maior
+
+Dicas
+
+Se não vier nada no Open Icecat, tente buscar por Brand + ProductCode (algumas marcas não estão no plano Open).
+
+Baixe a imagem original (Pic) e gere suas derivações (ex.: 1080×1920 para totem, 1200×1200 para card).
+
+Guarde no seu CDN com caminho por GTIN; isso facilita cache e reuso.
+
+Se quiser, eu adapto esse snippet para: receber uma lista de GTINs, buscar só as imagens, baixar a maior e já salvar as variantes prontas para totem e flyer.
