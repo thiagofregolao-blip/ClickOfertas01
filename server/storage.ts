@@ -3624,14 +3624,23 @@ export class DatabaseStorage implements IStorage {
   // Sincronizar produtos marcados para totem automaticamente
   async syncProductTotem(productId: string, storeId: string): Promise<void> {
     try {
+      console.log(`🔄 Iniciando sincronização de totem para produto: ${productId}`);
+      
       // Buscar o produto com dados da loja
       const product = await this.getProductWithStore(productId);
       if (!product || product.storeId !== storeId || !product.store) {
+        console.log(`❌ Produto não encontrado ou inválido: ${productId}`);
         throw new Error('Produto não encontrado ou não pertence à loja');
       }
 
       // Verificar se produto está marcado para totem
+      console.log(`📊 Status do produto ${product.name}:`, { 
+        showInTotem: product.showInTotem, 
+        isActive: product.isActive 
+      });
+      
       if (!product.showInTotem || !product.isActive) {
+        console.log(`🗑️ Produto não qualificado para totem, removendo conteúdo existente`);
         // Se não está marcado ou não está ativo, remover conteúdo existente
         await this.removeProductTotemContent(productId, storeId);
         return;

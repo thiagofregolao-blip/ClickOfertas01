@@ -840,6 +840,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const wasAlreadyScratch = productBefore?.isScratchCard === true;
       
       const productData = updateProductSchema.parse(req.body);
+      console.log(`🔄 Atualizando produto ${productId}:`, { 
+        showInTotem: productData.showInTotem, 
+        isActive: productData.isActive,
+        name: productData.name 
+      });
       const product = await storage.updateProduct(productId, storeId, productData);
       
       // NOVO: Se está ativando raspadinha pela primeira vez, criar campanha automaticamente
