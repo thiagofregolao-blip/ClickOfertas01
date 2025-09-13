@@ -92,7 +92,16 @@ export default function AdminProducts() {
         }
         
         const product = await response.json();
+        if (!product) {
+          throw new Error("Produto não encontrado no catálogo Icecat");
+        }
+        
         setSearchResults([product]);
+        
+        toast({
+          title: "✅ Busca concluída!",
+          description: "Produto encontrado e adicionado aos resultados.",
+        });
       } else {
         // Buscar por texto
         response = await fetch(`/api/icecat/search?q=${encodeURIComponent(searchText.trim())}&lang=BR`);
@@ -103,17 +112,20 @@ export default function AdminProducts() {
         }
         
         const data = await response.json();
-        setSearchResults(data.products || []);
+        const products = Array.isArray(data.products) ? data.products : [];
+        setSearchResults(products);
         
-        if (data.products.length === 0) {
+        if (products.length === 0) {
           throw new Error("Nenhum produto encontrado para esta busca");
         }
+        
+        toast({
+          title: "✅ Busca concluída!",
+          description: `${products.length} produto(s) encontrado(s). Escolha um para preencher o formulário.`,
+        });
       }
 
-      toast({
-        title: "✅ Busca concluída!",
-        description: `${searchResults.length || 'Vários'} produto(s) encontrado(s). Escolha um para preencher o formulário.`,
-      });
+      // Toast de sucesso já foi chamado dentro de cada branch
 
     } catch (error: any) {
       toast({
@@ -129,24 +141,31 @@ export default function AdminProducts() {
 
   // Função para selecionar um produto dos resultados
   const selectProduct = (product: any) => {
-    form.setValue("name", product.name);
+    // Preencher todos os campos do formulário
+    form.setValue("name", product.name || "");
     form.setValue("description", product.description || "");
     form.setValue("category", product.category || "Eletrônicos");
-    form.setValue("imageUrl", product.images[0] || "");
-    form.setValue("imageUrl2", product.images[1] || "");
-    form.setValue("imageUrl3", product.images[2] || "");
+    form.setValue("imageUrl", product.images?.[0] || "");
+    form.setValue("imageUrl2", product.images?.[1] || "");
+    form.setValue("imageUrl3", product.images?.[2] || "");
     form.setValue("gtin", product.id || "");
     form.setValue("brand", product.brand || "");
     form.setValue("sourceType", "icecat");
+    
+    // ✅ TOTEM AUTO-ATIVADO para produtos do Icecat
     form.setValue("showInTotem", true);
 
+    // Limpar resultados da busca
     setSearchResults([]);
+    setSearchText("");
+    setGtinInput("");
     
+    const imageCount = product.images?.length || 0;
     const demoWarning = product.demoAccount ? " (conta demo)" : "";
     
     toast({
       title: "✅ Produto selecionado!",
-      description: `${product.name} adicionado ao formulário com ${product.images.length} imagens${demoWarning}`,
+      description: `${product.name} adicionado ao formulário com ${imageCount} imagens + totem ativado${demoWarning}`,
     });
   };
   

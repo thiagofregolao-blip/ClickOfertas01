@@ -110,17 +110,41 @@ export async function searchProductByText(searchText: string, lang: string = 'BR
       const generalInfo = item.GeneralInfo || {};
       const gallery = item.Gallery || [];
       
+      // Função helper para unwrap campos que podem vir como { Value: "..." }
+      const unwrapValue = (field: any): string => {
+        if (!field) return '';
+        if (typeof field === 'string') return field;
+        if (field.Value) return field.Value;
+        if (field.value) return field.value;
+        return String(field);
+      };
+      
+      // Prioritizar imagens de melhor qualidade
       const images = gallery
-        .map((galleryItem: IcecatGalleryItem) => galleryItem.Pic500x500 || galleryItem.Pic || galleryItem.ThumbPic || galleryItem.LowPic)
+        .map((galleryItem: IcecatGalleryItem) => 
+          galleryItem.Pic500x500 || galleryItem.Pic || galleryItem.ThumbPic || galleryItem.LowPic
+        )
         .filter((url): url is string => Boolean(url))
         .slice(0, 3);
 
+      // Extrair e normalizar informações do produto
+      let name = unwrapValue(generalInfo.Title) || unwrapValue(generalInfo.ProductName) || unwrapValue(item.name);
+      let description = unwrapValue(generalInfo.Description) || unwrapValue(generalInfo.ShortDesc) || unwrapValue(generalInfo.LongDesc);
+      let brand = unwrapValue(generalInfo.Brand) || unwrapValue(generalInfo.Supplier) || unwrapValue(generalInfo.Vendor);
+      let category = unwrapValue(generalInfo.Category?.Name) || unwrapValue(generalInfo.CategoryName) || 'Eletrônicos';
+      
+      // Se o nome está muito genérico, tentar melhorar
+      if (!name || name.includes('Produto ') || name.length < 3) {
+        const gtin = item.GTIN || item.ID || '';
+        name = brand && gtin ? `${brand} ${gtin}` : (gtin || 'Produto sem nome');
+      }
+
       return {
         id: item.GTIN || item.ID || `search-${Date.now()}`,
-        name: generalInfo.Title || generalInfo.ProductName || item.name || 'Produto sem nome',
-        description: generalInfo.Description || generalInfo.ShortDesc || '',
-        brand: generalInfo.Brand || generalInfo.Supplier || '',
-        category: generalInfo.Category?.Name || 'Eletrônicos',
+        name: name.trim(),
+        description: description.trim(),
+        brand: brand.trim(),
+        category: category.trim(),
         images
       } as IcecatProduct;
     }).slice(0, 5); // Máximo 5 resultados
@@ -194,10 +218,20 @@ export async function searchProductByGTIN(gtin: string, lang: string = 'BR'): Pr
 
     // Extrair informações gerais
     const generalInfo = data.data?.GeneralInfo || {};
-    let title = generalInfo.Title || generalInfo.ProductName || generalInfo.Name;
-    let description = generalInfo.Description || generalInfo.ShortDesc || generalInfo.LongDesc;
-    let brand = generalInfo.Brand || generalInfo.Supplier || generalInfo.Vendor;
-    let categoryName = generalInfo.Category?.Name || generalInfo.CategoryName;
+    
+    // Função helper para unwrap campos que podem vir como { Value: "..." }
+    const unwrapValue = (field: any): string => {
+      if (!field) return '';
+      if (typeof field === 'string') return field;
+      if (field.Value) return field.Value;
+      if (field.value) return field.value;
+      return String(field);
+    };
+    
+    let title = unwrapValue(generalInfo.Title) || unwrapValue(generalInfo.ProductName) || unwrapValue(generalInfo.Name);
+    let description = unwrapValue(generalInfo.Description) || unwrapValue(generalInfo.ShortDesc) || unwrapValue(generalInfo.LongDesc);
+    let brand = unwrapValue(generalInfo.Brand) || unwrapValue(generalInfo.Supplier) || unwrapValue(generalInfo.Vendor);
+    let categoryName = unwrapValue(generalInfo.Category?.Name) || unwrapValue(generalInfo.CategoryName);
     
     // Tratar campos que podem ter estrutura { Value: string }
     if (typeof description === 'object' && description?.Value) {
