@@ -53,13 +53,18 @@ export async function searchProductByGTIN(gtin: string): Promise<IcecatProduct |
     };
 
     // Buscar apenas galeria para ter imagens
-    const galleryUrl = `${ICECAT_API_BASE}?lang=PT&shopname=${process.env.ICECAT_USER}&GTIN=${gtin}&content=gallery`;
+    const shopname = process.env.ICECAT_USER?.trim() || '';
+    const cleanGtin = gtin.trim();
+    const galleryUrl = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(shopname)}&GTIN=${encodeURIComponent(cleanGtin)}&content=gallery`;
     
     console.log(`📡 Fazendo requisição para galeria: ${galleryUrl}`);
     const galleryResponse = await fetch(galleryUrl, { headers });
     
     if (!galleryResponse.ok) {
+      const errorText = await galleryResponse.text();
       console.warn(`⚠️ Erro na API do Icecat (galeria): ${galleryResponse.status} ${galleryResponse.statusText}`);
+      console.warn(`📄 Resposta de erro:`, errorText);
+      console.warn(`🔧 Headers enviados:`, JSON.stringify(headers, null, 2));
       return null;
     }
 
@@ -67,7 +72,7 @@ export async function searchProductByGTIN(gtin: string): Promise<IcecatProduct |
     console.log(`📸 Resposta da galeria:`, JSON.stringify(galleryData, null, 2));
 
     // Buscar informações gerais do produto
-    const infoUrl = `${ICECAT_API_BASE}?lang=PT&shopname=${process.env.ICECAT_USER}&GTIN=${gtin}&content=essentialinfo`;
+    const infoUrl = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(shopname)}&GTIN=${encodeURIComponent(cleanGtin)}&content=essentialinfo`;
     
     console.log(`📡 Fazendo requisição para info: ${infoUrl}`);
     const infoResponse = await fetch(infoUrl, { headers });
@@ -121,7 +126,8 @@ export async function searchProductByBrandCode(brand: string, productCode: strin
     };
 
     // Buscar galeria
-    const galleryUrl = `${ICECAT_API_BASE}?lang=PT&shopname=${process.env.ICECAT_USER}&Brand=${encodeURIComponent(brand)}&ProductCode=${encodeURIComponent(productCode)}&content=gallery`;
+    const shopname = process.env.ICECAT_USER?.trim() || '';
+    const galleryUrl = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(shopname)}&Brand=${encodeURIComponent(brand)}&ProductCode=${encodeURIComponent(productCode)}&content=gallery`;
     
     const galleryResponse = await fetch(galleryUrl, { headers });
     
@@ -133,7 +139,7 @@ export async function searchProductByBrandCode(brand: string, productCode: strin
     const galleryData: IcecatApiResponse = await galleryResponse.json();
 
     // Buscar informações gerais
-    const infoUrl = `${ICECAT_API_BASE}?lang=PT&shopname=${process.env.ICECAT_USER}&Brand=${encodeURIComponent(brand)}&ProductCode=${encodeURIComponent(productCode)}&content=essentialinfo`;
+    const infoUrl = `${ICECAT_API_BASE}?lang=PT&shopname=${encodeURIComponent(shopname)}&Brand=${encodeURIComponent(brand)}&ProductCode=${encodeURIComponent(productCode)}&content=essentialinfo`;
     
     const infoResponse = await fetch(infoUrl, { headers });
     let infoData: IcecatApiResponse = {};
