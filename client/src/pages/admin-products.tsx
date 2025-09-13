@@ -824,17 +824,7 @@ export default function AdminProducts() {
                         <Switch
                           id="totem"
                           checked={form.watch("showInTotem") || false}
-                          onCheckedChange={(checked) => {
-                            form.setValue("showInTotem", checked);
-                            // NOVA FUNCIONALIDADE: Atualização automática quando editando produto existente
-                            if (editingProduct) {
-                              toggleMutation.mutate({
-                                productId: editingProduct.id,
-                                field: "showInTotem",
-                                value: checked
-                              });
-                            }
-                          }}
+                          onCheckedChange={(checked) => form.setValue("showInTotem", checked)}
                           data-testid="switch-totem"
                         />
                         <Label htmlFor="totem" className="text-orange-800 font-medium">

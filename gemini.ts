@@ -753,8 +753,8 @@ export async function composeProductTotem(
         fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
         // Dimensões do totem (16:9)
-        const totemWidth = 1080;
-        const totemHeight = 1920;
+        const totemWidth = 1920;
+        const totemHeight = 1080;
 
         // Formatação de preço em Real brasileiro
         const preco = new Intl.NumberFormat('pt-BR', { 
@@ -766,36 +766,26 @@ export async function composeProductTotem(
         const primaryColor = store.themeColor || '#E11D48';
         const accentColor = '#ffd700';
 
-        // Função para escapar caracteres XML
-        const escapeXml = (text: string) => {
-            return text
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        };
-
         // Quebrar nome do produto em múltiplas linhas se necessário
         const words = product.name.split(' ');
         let line1 = '', line2 = '', line3 = '';
         
         if (words.length > 4 && product.name.length > 40) {
             const third = Math.ceil(words.length / 3);
-            line1 = escapeXml(words.slice(0, third).join(' ').toUpperCase());
-            line2 = escapeXml(words.slice(third, third * 2).join(' ').toUpperCase());
-            line3 = escapeXml(words.slice(third * 2).join(' ').toUpperCase());
+            line1 = words.slice(0, third).join(' ').toUpperCase();
+            line2 = words.slice(third, third * 2).join(' ').toUpperCase();
+            line3 = words.slice(third * 2).join(' ').toUpperCase();
         } else if (words.length > 2 && product.name.length > 25) {
             const mid = Math.ceil(words.length / 2);
-            line1 = escapeXml(words.slice(0, mid).join(' ').toUpperCase());
-            line2 = escapeXml(words.slice(mid).join(' ').toUpperCase());
+            line1 = words.slice(0, mid).join(' ').toUpperCase();
+            line2 = words.slice(mid).join(' ').toUpperCase();
         } else {
-            line1 = escapeXml(product.name.length > 35 ? product.name.substring(0, 35) + '...' : product.name.toUpperCase());
+            line1 = product.name.length > 35 ? product.name.substring(0, 35) + '...' : product.name.toUpperCase();
         }
 
         let productImageBuffer: Buffer | null = null;
         
-        // Baixar e validar imagem do produto se disponível
+        // Baixar imagem do produto se disponível
         if (product.imageUrl) {
             try {
                 console.log(`📥 Baixando imagem do produto: ${product.imageUrl}`);
@@ -804,24 +794,6 @@ export async function composeProductTotem(
                     const imageArrayBuffer = await imageResponse.arrayBuffer();
                     productImageBuffer = Buffer.from(imageArrayBuffer);
                     console.log(`✅ Imagem baixada: ${productImageBuffer.length} bytes`);
-                    
-                    // Validar se é uma imagem válida
-                    try {
-                        const testImage = sharp.default(productImageBuffer);
-                        const metadata = await testImage.metadata();
-                        console.log(`📊 Metadata da imagem: ${metadata.width}x${metadata.height}, formato: ${metadata.format}`);
-                        
-                        // Verificar se tem dimensões válidas
-                        if (!metadata.width || !metadata.height || metadata.width < 50 || metadata.height < 50) {
-                            console.warn(`⚠️ Imagem muito pequena ou inválida, usando layout sem imagem`);
-                            productImageBuffer = null;
-                        }
-                    } catch (sharpError) {
-                        console.warn(`⚠️ Erro ao validar imagem com Sharp: ${sharpError}`);
-                        productImageBuffer = null;
-                    }
-                } else {
-                    console.warn(`⚠️ Falha ao baixar imagem: status ${imageResponse.status}`);
                 }
             } catch (error) {
                 console.warn(`⚠️ Erro ao baixar imagem do produto: ${error}`);
@@ -846,53 +818,49 @@ export async function composeProductTotem(
             <rect width="100%" height="100%" fill="url(#shine)" />
         </svg>`;
 
-        // LAYOUT VERTICAL NATIVO:
-        // Layout otimizado para tela vertical (1080×1920) sem rotação
-        let hasImage = productImageBuffer !== null;
-        let textAreaWidth = hasImage ? 500 : 700;    // Largura para tela vertical
-        let textStartX = hasImage ? 80 : 150;        // Posição X centralizada
-        const imageAreaX = hasImage ? 600 : 0;       // Imagem na direita/baixo
-        const imageAreaWidth = 400;                  // Menor para caber na vertical
-        const imageAreaHeight = 600;
+        // Definir layout baseado na presença da imagem
+        const hasImage = productImageBuffer !== null;
+        const textAreaWidth = hasImage ? totemWidth * 0.5 : totemWidth * 0.8;
+        const textStartX = hasImage ? 100 : totemWidth * 0.1;
+        const imageAreaX = hasImage ? totemWidth * 0.55 : 0;
 
-        // SVG COM LAYOUT VERTICAL NATIVO
-        // Layout otimizado para tela vertical (1080×1920) sem rotação no frontend
+        // Criar SVG com informações do produto
         const productInfoSvg = `
         <svg width="${totemWidth}" height="${totemHeight}">
             <!-- Faixa translúcida para contraste -->
-            <rect x="40" y="400" width="${textAreaWidth}" height="1000" fill="rgba(0,0,0,0.75)" rx="25"/>
+            <rect x="50" y="100" width="${textAreaWidth}" height="600" fill="rgba(0,0,0,0.5)" rx="30"/>
             
             <!-- Categoria -->
-            <text x="${textStartX}" y="500" font-family="Arial, sans-serif" font-size="36" font-weight="normal" fill="rgba(255,255,255,0.9)" text-anchor="start">
-                ${escapeXml((product.category || 'PRODUTO').toUpperCase())}
+            <text x="${textStartX}" y="180" font-family="sans-serif" font-size="42" font-weight="normal" fill="rgba(255,255,255,0.9)" text-anchor="start">
+                ${(product.category || 'PRODUTO').toUpperCase()}
             </text>
             
             <!-- Nome do produto (linha 1) -->
-            <text x="${textStartX}" y="600" font-family="Arial, sans-serif" font-size="${line3 ? '48' : '58'}" font-weight="bold" fill="white" text-anchor="start">
+            <text x="${textStartX}" y="260" font-family="sans-serif" font-size="${line3 ? '54' : '68'}" font-weight="bold" fill="white" text-anchor="start">
                 ${line1}
             </text>
             
             <!-- Nome do produto (linha 2) -->
-            ${line2 ? `<text x="${textStartX}" y="${line3 ? '670' : '690'}" font-family="Arial, sans-serif" font-size="${line3 ? '48' : '58'}" font-weight="bold" fill="white" text-anchor="start">${line2}</text>` : ''}
+            ${line2 ? `<text x="${textStartX}" y="${line3 ? '320' : '340'}" font-family="sans-serif" font-size="${line3 ? '54' : '68'}" font-weight="bold" fill="white" text-anchor="start">${line2}</text>` : ''}
             
             <!-- Nome do produto (linha 3) -->
-            ${line3 ? `<text x="${textStartX}" y="740" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="start">${line3}</text>` : ''}
+            ${line3 ? `<text x="${textStartX}" y="380" font-family="sans-serif" font-size="54" font-weight="bold" fill="white" text-anchor="start">${line3}</text>` : ''}
             
             <!-- Preço destacado -->
-            <text x="${textStartX}" y="${line3 ? 880 : line2 ? 850 : 820}" font-family="Arial, sans-serif" font-size="86" font-weight="bold" fill="${accentColor}" text-anchor="start" stroke="rgba(0,0,0,0.4)" stroke-width="3">
+            <text x="${textStartX}" y="${line3 ? 480 : line2 ? 450 : 420}" font-family="sans-serif" font-size="96" font-weight="bold" fill="${accentColor}" text-anchor="start" stroke="rgba(0,0,0,0.3)" stroke-width="3">
                 ${preco}
             </text>
             
             <!-- Call to Action da loja -->
-            <text x="${textStartX}" y="${line3 ? 1000 : line2 ? 970 : 940}" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
+            <text x="${textStartX}" y="${line3 ? 580 : line2 ? 550 : 520}" font-family="sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
                 DISPONÍVEL NA
             </text>
-            <text x="${textStartX}" y="${line3 ? 1050 : line2 ? 1020 : 990}" font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="${accentColor}" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
-                ${escapeXml(store.name.toUpperCase())}
+            <text x="${textStartX}" y="${line3 ? 630 : line2 ? 600 : 570}" font-family="sans-serif" font-size="42" font-weight="bold" fill="${accentColor}" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
+                ${store.name.toUpperCase()}
             </text>
             
             <!-- Logo/Brand no rodapé -->
-            <text x="${totemWidth - 40}" y="${totemHeight - 80}" font-family="Arial, sans-serif" font-size="28" fill="rgba(255,255,255,0.8)" text-anchor="end">
+            <text x="${totemWidth - 50}" y="${totemHeight - 50}" font-family="sans-serif" font-size="32" fill="rgba(255,255,255,0.8)" text-anchor="end">
                 Click Ofertas Paraguai
             </text>
         </svg>`;
@@ -903,39 +871,27 @@ export async function composeProductTotem(
         // Adicionar imagem do produto se disponível
         if (productImageBuffer && hasImage) {
             try {
-                console.log(`🔄 Processando imagem do produto...`);
-                
-                // Redimensionar imagem do produto preservando aspect ratio
+                // Redimensionar imagem do produto para caber na área designada
                 const productImageProcessed = await sharp.default(productImageBuffer)
-                    .rotate() // Auto-rotacionar baseado em EXIF se necessário
-                    .resize(imageAreaWidth, imageAreaHeight, { 
+                    .resize(700, 800, { 
                         fit: 'contain', 
-                        background: { r: 0, g: 0, b: 0, alpha: 0 },
-                        withoutEnlargement: true,
-                        position: 'centre' // Centralizar na área
+                        background: { r: 0, g: 0, b: 0, alpha: 0 } 
                     })
-                    .png({ compressionLevel: 9, adaptiveFiltering: true })
+                    .png()
                     .toBuffer();
-
-                console.log(`📐 Imagem processada: ${productImageProcessed.length} bytes`);
 
                 composition = composition.composite([
                     {
                         input: productImageProcessed,
                         left: Math.round(imageAreaX),
-                        top: 300,  // Posição ajustada para layout vertical
+                        top: 140,
                         blend: 'over'
                     }
                 ]);
                 
-                console.log(`🖼️ Imagem do produto adicionada ao totem com sucesso`);
+                console.log(`🖼️ Imagem do produto adicionada ao totem`);
             } catch (error) {
                 console.warn(`⚠️ Erro ao processar imagem do produto: ${error}`);
-                // Continuar sem a imagem mas ajustar layout
-                hasImage = false;
-                textAreaWidth = totemWidth * 0.8;
-                textStartX = totemWidth * 0.1;
-                console.log(`🔧 Layout ajustado para modo sem imagem`);
             }
         }
 
@@ -949,20 +905,10 @@ export async function composeProductTotem(
             }
         ]);
 
-        // Salvar o totem final garantindo dimensões exatas
-        await composition
-            .resize(totemWidth, totemHeight, { 
-                fit: 'cover', 
-                position: 'centre' 
-            })
-            .png({ compressionLevel: 9, adaptiveFiltering: true })
-            .toFile(outputPath);
+        // Salvar o totem final
+        await composition.png().toFile(outputPath);
 
-        // Verificar dimensões finais
-        const finalImage = sharp.default(outputPath);
-        const finalMetadata = await finalImage.metadata();
         console.log(`✅ Totem do produto composto: ${outputPath}`);
-        console.log(`📐 Dimensões finais: ${finalMetadata.width}x${finalMetadata.height}`);
         
     } catch (error) {
         console.error('❌ Erro ao compor totem do produto:', error);
