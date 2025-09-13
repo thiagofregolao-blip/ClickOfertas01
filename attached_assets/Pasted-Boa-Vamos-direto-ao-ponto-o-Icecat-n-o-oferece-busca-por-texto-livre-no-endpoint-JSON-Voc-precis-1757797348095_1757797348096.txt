@@ -1,0 +1,178 @@
+Boa! Vamos direto ao ponto: o Icecat não oferece busca por texto livre no endpoint JSON. Você precisa mandar um identificador: GTIN (EAN/UPC), ou Brand + ProductCode (MPN), ou icecat_id. O que funcionou “uma vez” foi provavelmente um caso em que seu texto acabou contendo (ou derivou) um identificador válido. Além disso, no seu código há dois detalhes que impedem respostas confiáveis:
+
+Você está usando headers com hífen (api-token, content-token). O Icecat exige underscore: api_token e content_token.
+
+Está usando lang=BR em alguns testes; use lang=PT (ou EN).
+
+O mapeamento de marca por texto falha em casos como “iphone” → Apple e “playstation” → Sony; e o “ProductCode” que você gera é genérico (ex.: “15 pro”, “5”) — isso não existe como MPN. 
+
+analise_busca_icecat
+
+A seguir deixo um conserto “na veia”: (1) acerte headers/parâmetros, (2) crie um resolver texto→identificador (GTIN/MPN) e (3) trate logs/erros pra saber o que aconteceu a cada chamada.
+
+1) Chamada correta ao Icecat (só imagens da galeria)
+import fetch from "node-fetch";
+
+const ICECAT_USER = process.env.ICECAT_USER;            // seu “shopname/username”
+const API_TOKEN   = process.env.ICECAT_API_TOKEN;       // datasheet
+const CONTENT_TOK = process.env.ICECAT_CONTENT_TOKEN;   // assets (imagens)
+
+async function fetchGalleryByGTIN(gtin) {
+  const url = `https://live.icecat.biz/api?lang=PT&shopname=${ICECAT_USER}&GTIN=${encodeURIComponent(gtin)}&content=gallery`;
+  const r = await fetch(url, {
+    headers: {
+      "api_token": API_TOKEN,        // <— underscore, não hífen
+      "content_token": CONTENT_TOK,  // <— underscore, não hífen
+    },
+  });
+  const text = await r.text();
+  if (!r.ok) throw new Error(`Icecat ${r.status}: ${text}`);
+  const json = JSON.parse(text);
+
+  // Algumas contas retornam em json.Gallery; outras em json.data.Gallery
+  const gallery = json.Gallery || json?.data?.Gallery || [];
+  return gallery.map(g => g.Pic).filter(Boolean); // maior resolução primeiro
+}
+
+
+Se content_token faltar, a gallery pode vir vazia mesmo com 200. Logue SEMPRE status + corpo quando não vier conteúdo.
+
+2) Resolver texto → identificadores (GTIN/Brand/MPN)
+2.1. Primeiro, tente extrair GTIN (melhor caminho)
+function onlyDigits(s){ return (s||"").replace(/\D+/g,""); }
+
+function isValidEAN13(ean) {
+  if (!/^\d{13}$/.test(ean)) return false;
+  const sum = ean.slice(0,12).split("").reduce((acc,d,i) => acc + (i%2? 3:1)*Number(d), 0);
+  const cd = (10 - (sum % 10)) % 10;
+  return cd === Number(ean[12]);
+}
+
+function extractGTINs(text) {
+  const digits = (text.match(/\d{8,14}/g) || []).map(onlyDigits);
+  // normalizar para EAN-13 quando possível
+  const eans13 = digits
+    .map(d => d.length === 13 ? d : (d.length === 12 ? "0"+d : null))
+    .filter(Boolean)
+    .filter(isValidEAN13);
+  return [...new Set(eans13)];
+}
+
+2.2. Depois, alias de marca (corrige “iphone” → Apple, “playstation” → Sony)
+const BRAND_ALIASES = new Map([
+  // Apple
+  ["iphone","Apple"],["ipad","Apple"],["macbook","Apple"],["airpods","Apple"],
+  // Sony
+  ["playstation","Sony"],["ps5","Sony"],["ps4","Sony"],
+  // Samsung
+  ["galaxy","Samsung"],["note","Samsung"],["a54","Samsung"],
+  // Microsoft
+  ["xbox","Microsoft"],["surface","Microsoft"],
+  // Outras que você usar…
+]);
+
+function resolveBrand(text) {
+  const t = text.toLowerCase();
+  for (const [alias, brand] of BRAND_ALIASES.entries()) {
+    if (t.includes(alias)) return brand;
+  }
+  // fallback: lista de marcas “canônicas” que você atende
+  const CANONICAL = ["Apple","Samsung","Sony","Xiaomi","LG","Motorola","Dell","HP","Lenovo","Asus","Acer"];
+  const hit = CANONICAL.find(b => t.includes(b.toLowerCase()));
+  return hit || null;
+}
+
+2.3. (Opcional) detectar MPN por padrões comuns
+
+Use apenas se você sabe padrões por marca. Exemplos:
+
+function extractMPN(text, brand) {
+  const t = text.toUpperCase().replace(/\s+/g,"");
+  if (brand === "Sony") {
+    // PS5: CFI-xxxxA/B (varia por região/lote)
+    const m = t.match(/CFI-\d{4}[A-Z]/);
+    if (m) return m[0];
+  }
+  if (brand === "Apple") {
+    // iPhone: modelos tipo A2848/A3105 (não é “iPhone 15 Pro”)
+    const m = t.match(/\bA\d{4}\b/);
+    if (m) return m[0];
+  }
+  return null;
+}
+
+2.4. Resolver texto → consulta Icecat
+async function resolveAndFetchImages(text) {
+  // 1) GTIN direto
+  const gtins = extractGTINs(text);
+  if (gtins.length) {
+    try { return await fetchGalleryByGTIN(gtins[0]); } 
+    catch(e){ console.error("GTIN falhou:", e.message); }
+  }
+
+  // 2) Brand + MPN (quando você tem um padrão confiável)
+  const brand = resolveBrand(text);
+  const mpn = extractMPN(text, brand);
+  if (brand && mpn) {
+    const url = `https://live.icecat.biz/api?lang=PT&shopname=${ICECAT_USER}&Brand=${encodeURIComponent(brand)}&ProductCode=${encodeURIComponent(mpn)}&content=gallery`;
+    const r = await fetch(url, { headers: { "api_token": API_TOKEN, "content_token": CONTENT_TOK }});
+    const body = await r.text();
+    if (!r.ok) throw new Error(`Icecat ${r.status}: ${body}`);
+    const json = JSON.parse(body);
+    const gallery = json.Gallery || json?.data?.Gallery || [];
+    if (gallery.length) return gallery.map(g => g.Pic).filter(Boolean);
+  }
+
+  // 3) Sem identificador → explique ao usuário como obter (GTIN/MPN)
+  throw new Error("Sem identificador (GTIN/MPN) no texto. Forneça o GTIN (EAN) ou um código de modelo/MPN.");
+}
+
+
+Por que isso resolve: o Icecat não aceita SearchText; logo, texto livre só funciona se você extrair dali um GTIN ou MPN real. O alias de marca impede erros tipo “PlayStation → Sony”. E os headers e lang=PT garantem que a resposta venha completa com galeria. 
+
+analise_busca_icecat
+
+3) Logs que não te deixam no escuro
+function logIcecat(url, headers, status, body) {
+  console.error(JSON.stringify({
+    url, headers: Object.keys(headers), status,
+    sample: body?.slice?.(0, 300)
+  }, null, 2));
+}
+
+
+Use isso em todas as falhas (!r.ok) para ver rapidamente se foi 401/403 (token), 400 (parâmetro), 200 sem galeria (falta content_token) etc.
+
+4) “Parou de funcionar” — checklist em 30s
+
+ Headers exatos: api_token e content_token (underscore).
+
+ lang=PT (ou EN), shopname=<seu usuário>.
+
+ content=gallery para retornar só imagens.
+
+ GTIN válido (checagem EAN-13).
+
+ Tokens não expirados/revogados no My Profile → Access Tokens.
+
+ Se vier 200 mas sem imagens, quase sempre é content_token faltando/errado.
+
+5) Se você precisa muito de “busca por nome”
+
+Como o Icecat não oferece “full-text search” público, há três saídas práticas:
+
+Exigir GTIN no cadastro/consulta (melhor caminho em varejo).
+
+Resolver nome → GTIN/MPN com um serviço externo (ex.: GS1/Brandbank, marketplaces com API que retornam EAN) e então chamar o Icecat.
+
+Índice local: guardar um dicionário “nome curto → GTIN/MPN” no seu banco e ir enriquecendo com o uso.
+
+Se quiser, eu adapto esse módulo pro seu backend atual e deixo um endpoint /imagens?texto=PlayStation 5 que:
+
+tenta GTIN;
+
+tenta Brand+MPN por padrões;
+
+se não achar, responde 422 explicando “faltou identificador” (e quais GTINs válidos foram vistos no texto, se algum).
+
+Isso te dá uma UX clara e previne a sensação de “funciona às vezes”.
