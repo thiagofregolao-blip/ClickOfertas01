@@ -58,6 +58,83 @@ function getAuthHeader() {
 }
 
 /**
+ * Busca produto no Icecat via texto/nome
+ */
+export async function searchProductByText(searchText: string, lang: string = 'BR'): Promise<IcecatProduct[]> {
+  try {
+    console.log(`🔍 Buscando produtos no Icecat por texto: "${searchText}" (lang: ${lang})`);
+
+    const headers: Record<string, string> = {
+      'api-token': process.env.ICECAT_API_TOKEN!,
+      'content-token': process.env.ICECAT_CONTENT_TOKEN!,
+    };
+
+    // Adicionar Basic Auth se disponível
+    const basicAuth = getAuthHeader();
+    if (basicAuth) {
+      headers['Authorization'] = basicAuth;
+    }
+
+    const shopname = process.env.ICECAT_USER?.trim() || '';
+    
+    // Busca por texto
+    const url = `${ICECAT_API_BASE}?lang=${lang}&shopname=${encodeURIComponent(shopname)}&SearchText=${encodeURIComponent(searchText)}&limit=5&content=essentialinfo,gallery`;
+    
+    console.log(`📡 Fazendo busca por texto: ${url.replace(/&?(api-token|content-token)=[^&]*/g, '')}`);
+    const response = await fetch(url, { headers });
+    
+    if (!response.ok) {
+      console.warn(`⚠️ Erro na busca por texto: ${response.status} ${response.statusText}`);
+      
+      // Tentar fallback para EN se foi BR
+      if (lang === 'BR') {
+        console.log('🔄 Tentando fallback para EN...');
+        return searchProductByText(searchText, 'EN');
+      }
+      
+      const errorText = await response.text();
+      console.warn(`📄 Resposta de erro:`, errorText);
+      return [];
+    }
+
+    const data: any = await response.json();
+    
+    console.log(`📊 Busca por texto - resultados encontrados: ${data.products?.length || 0}`);
+    
+    if (process.env.ICECAT_DEBUG === 'true') {
+      console.log(`🔍 Payload de busca:`, JSON.stringify(data, null, 2));
+    }
+
+    // Parse dos produtos da busca
+    const products = (data.products || []).map((item: any) => {
+      const generalInfo = item.GeneralInfo || {};
+      const gallery = item.Gallery || [];
+      
+      const images = gallery
+        .map((galleryItem: IcecatGalleryItem) => galleryItem.Pic500x500 || galleryItem.Pic || galleryItem.ThumbPic || galleryItem.LowPic)
+        .filter((url): url is string => Boolean(url))
+        .slice(0, 3);
+
+      return {
+        id: item.GTIN || item.ID || `search-${Date.now()}`,
+        name: generalInfo.Title || generalInfo.ProductName || item.name || 'Produto sem nome',
+        description: generalInfo.Description || generalInfo.ShortDesc || '',
+        brand: generalInfo.Brand || generalInfo.Supplier || '',
+        category: generalInfo.Category?.Name || 'Eletrônicos',
+        images
+      } as IcecatProduct;
+    }).slice(0, 5); // Máximo 5 resultados
+
+    console.log(`✅ ${products.length} produtos processados da busca por texto`);
+    return products;
+
+  } catch (error) {
+    console.error(`❌ Erro ao buscar por texto no Icecat:`, error);
+    return [];
+  }
+}
+
+/**
  * Busca produto no Icecat via GTIN/EAN/UPC
  */
 export async function searchProductByGTIN(gtin: string, lang: string = 'BR'): Promise<IcecatProduct | null> {
@@ -117,10 +194,10 @@ export async function searchProductByGTIN(gtin: string, lang: string = 'BR'): Pr
 
     // Extrair informações gerais
     const generalInfo = data.data?.GeneralInfo || {};
-    let title = generalInfo.Title;
-    let description = generalInfo.Description;
-    let brand = generalInfo.Brand;
-    let categoryName = generalInfo.Category?.Name;
+    let title = generalInfo.Title || generalInfo.ProductName || generalInfo.Name;
+    let description = generalInfo.Description || generalInfo.ShortDesc || generalInfo.LongDesc;
+    let brand = generalInfo.Brand || generalInfo.Supplier || generalInfo.Vendor;
+    let categoryName = generalInfo.Category?.Name || generalInfo.CategoryName;
     
     // Tratar campos que podem ter estrutura { Value: string }
     if (typeof description === 'object' && description?.Value) {

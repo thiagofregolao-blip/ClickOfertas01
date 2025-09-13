@@ -49,60 +49,105 @@ export default function AdminProducts() {
   const [addMoreProducts, setAddMoreProducts] = useState(false);
   const [icecatSearching, setIcecatSearching] = useState(false);
   const [gtinInput, setGtinInput] = useState("");
+  const [searchMode, setSearchMode] = useState<'gtin' | 'text'>('text'); // Por padrão busca por texto
+  const [searchText, setSearchText] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
-  // Função para buscar produto no Icecat via GTIN
-  const searchIcecatProduct = async () => {
-    if (!gtinInput.trim() || gtinInput.replace(/[^0-9]/g, '').length < 8) {
-      toast({
-        title: "GTIN inválido",
-        description: "Por favor, insira um código GTIN/EAN válido (mínimo 8 dígitos)",
-        variant: "destructive",
-      });
-      return;
+  // Função para buscar produtos no Icecat
+  const searchIcecatProducts = async () => {
+    if (searchMode === 'gtin') {
+      if (!gtinInput.trim() || gtinInput.replace(/[^0-9]/g, '').length < 8) {
+        toast({
+          title: "GTIN inválido",
+          description: "Por favor, insira um código GTIN/EAN válido (mínimo 8 dígitos)",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      if (!searchText.trim() || searchText.trim().length < 2) {
+        toast({
+          title: "Busca inválida",
+          description: "Por favor, digite pelo menos 2 caracteres para buscar",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setIcecatSearching(true);
+    setSearchResults([]);
 
     try {
-      // Buscar produto no Icecat com fallback de idioma (BR → EN)
-      const cleanGtin = gtinInput.replace(/[^0-9]/g, '').trim();
-      const response = await fetch(`/api/icecat/product/${cleanGtin}?lang=BR`);
+      let response;
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Produto não encontrado no catálogo Icecat");
+      if (searchMode === 'gtin') {
+        // Buscar por GTIN
+        const cleanGtin = gtinInput.replace(/[^0-9]/g, '').trim();
+        response = await fetch(`/api/icecat/product/${cleanGtin}?lang=BR`);
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Produto não encontrado no catálogo Icecat");
+        }
+        
+        const product = await response.json();
+        setSearchResults([product]);
+      } else {
+        // Buscar por texto
+        response = await fetch(`/api/icecat/search?q=${encodeURIComponent(searchText.trim())}&lang=BR`);
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Erro ao buscar produtos no Icecat");
+        }
+        
+        const data = await response.json();
+        setSearchResults(data.products || []);
+        
+        if (data.products.length === 0) {
+          throw new Error("Nenhum produto encontrado para esta busca");
+        }
       }
-      
-      const product = await response.json();
 
-      // Preencher formulário automaticamente
-      form.setValue("name", product.name);
-      form.setValue("description", product.description || "");
-      form.setValue("category", product.category || "Eletrônicos");
-      form.setValue("imageUrl", product.images[0] || "");
-      form.setValue("imageUrl2", product.images[1] || "");
-      form.setValue("imageUrl3", product.images[2] || "");
-      form.setValue("gtin", cleanGtin);
-      form.setValue("brand", product.brand || "");
-      form.setValue("sourceType", "icecat");
-      form.setValue("showInTotem", true); // ✅ Ativar totem automaticamente
-
-      const demoWarning = product.demoAccount ? " (conta demo)" : "";
-      
       toast({
-        title: "✅ Produto encontrado!",
-        description: `${product.name} carregado via Icecat com ${product.images.length} imagens${demoWarning}`,
+        title: "✅ Busca concluída!",
+        description: `${searchResults.length || 'Vários'} produto(s) encontrado(s). Escolha um para preencher o formulário.`,
       });
 
     } catch (error: any) {
       toast({
-        title: "Produto não encontrado",
-        description: error.message || "Não foi possível encontrar o produto no catálogo Icecat",
+        title: "Produtos não encontrados",
+        description: error.message || "Não foi possível encontrar produtos no catálogo Icecat",
         variant: "destructive",
       });
+      setSearchResults([]);
     } finally {
       setIcecatSearching(false);
     }
+  };
+
+  // Função para selecionar um produto dos resultados
+  const selectProduct = (product: any) => {
+    form.setValue("name", product.name);
+    form.setValue("description", product.description || "");
+    form.setValue("category", product.category || "Eletrônicos");
+    form.setValue("imageUrl", product.images[0] || "");
+    form.setValue("imageUrl2", product.images[1] || "");
+    form.setValue("imageUrl3", product.images[2] || "");
+    form.setValue("gtin", product.id || "");
+    form.setValue("brand", product.brand || "");
+    form.setValue("sourceType", "icecat");
+    form.setValue("showInTotem", true);
+
+    setSearchResults([]);
+    
+    const demoWarning = product.demoAccount ? " (conta demo)" : "";
+    
+    toast({
+      title: "✅ Produto selecionado!",
+      description: `${product.name} adicionado ao formulário com ${product.images.length} imagens${demoWarning}`,
+    });
   };
   
   const PRODUCTS_PER_PAGE = 15;
@@ -612,24 +657,65 @@ export default function AdminProducts() {
                       <Package className="w-5 h-5 mr-2 text-blue-600" />
                       🔍 Buscar Produto no Catálogo Icecat
                     </h3>
+                    
                     <div className="bg-white p-4 rounded-lg border border-blue-100">
+                      {/* Modo de busca */}
+                      <div className="flex gap-4 mb-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="searchMode"
+                            checked={searchMode === 'text'}
+                            onChange={() => setSearchMode('text')}
+                            className="text-blue-600"
+                          />
+                          <span className="text-sm font-medium text-gray-700">🔤 Buscar por nome</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="searchMode"
+                            checked={searchMode === 'gtin'}
+                            onChange={() => setSearchMode('gtin')}
+                            className="text-blue-600"
+                          />
+                          <span className="text-sm font-medium text-gray-700">📊 Buscar por código</span>
+                        </label>
+                      </div>
+
                       <div className="flex flex-col sm:flex-row gap-3">
                         <div className="flex-1">
-                          <Label htmlFor="gtin-search" className="text-gray-700 font-medium text-sm">Código de Barras (GTIN/EAN/UPC)</Label>
-                          <Input
-                            id="gtin-search"
-                            value={gtinInput}
-                            onChange={(e) => setGtinInput(e.target.value)}
-                            placeholder="Ex: 7891234567890"
-                            className="mt-1 placeholder:text-gray-400 border-gray-300 focus:border-blue-500"
-                            data-testid="input-gtin-search"
-                          />
+                          {searchMode === 'text' ? (
+                            <>
+                              <Label htmlFor="text-search" className="text-gray-700 font-medium text-sm">Nome do produto</Label>
+                              <Input
+                                id="text-search"
+                                value={searchText}
+                                onChange={(e) => setSearchText(e.target.value)}
+                                placeholder="Ex: iPhone 15, Samsung Galaxy, PlayStation 5..."
+                                className="mt-1 placeholder:text-gray-400 border-gray-300 focus:border-blue-500"
+                                data-testid="input-text-search"
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <Label htmlFor="gtin-search" className="text-gray-700 font-medium text-sm">Código de Barras (GTIN/EAN/UPC)</Label>
+                              <Input
+                                id="gtin-search"
+                                value={gtinInput}
+                                onChange={(e) => setGtinInput(e.target.value)}
+                                placeholder="Ex: 7891234567890"
+                                className="mt-1 placeholder:text-gray-400 border-gray-300 focus:border-blue-500"
+                                data-testid="input-gtin-search"
+                              />
+                            </>
+                          )}
                         </div>
                         <div className="flex items-end">
                           <Button
                             type="button"
-                            onClick={searchIcecatProduct}
-                            disabled={icecatSearching || !gtinInput.trim()}
+                            onClick={searchIcecatProducts}
+                            disabled={icecatSearching || (searchMode === 'text' ? !searchText.trim() : !gtinInput.trim())}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-6"
                             data-testid="button-search-icecat"
                           >
@@ -640,6 +726,41 @@ export default function AdminProducts() {
                       <p className="text-xs text-gray-500 mt-2">
                         ✨ Preenchimento automático: nome, descrição, categoria e até 3 imagens oficiais + <strong>totem ativado</strong>
                       </p>
+
+                      {/* Resultados da busca */}
+                      {searchResults.length > 0 && (
+                        <div className="mt-4 border-t pt-4">
+                          <h4 className="font-medium text-gray-800 mb-3">📦 Resultados encontrados:</h4>
+                          <div className="space-y-2 max-h-60 overflow-y-auto">
+                            {searchResults.map((product, index) => (
+                              <div key={index} className="border rounded-lg p-3 hover:bg-blue-50 cursor-pointer transition-colors" onClick={() => selectProduct(product)}>
+                                <div className="flex items-center gap-3">
+                                  {product.images?.[0] && (
+                                    <img 
+                                      src={product.images[0]} 
+                                      alt={product.name} 
+                                      className="w-12 h-12 object-cover rounded border"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                      }}
+                                    />
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <h5 className="font-medium text-gray-900 truncate">{product.name}</h5>
+                                    <p className="text-sm text-gray-500 truncate">
+                                      {product.brand && `${product.brand} • `}
+                                      {product.category || 'Eletrônicos'} • {product.images?.length || 0} imagens
+                                    </p>
+                                  </div>
+                                  <Button size="sm" variant="outline" className="text-xs">
+                                    Selecionar
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 

@@ -831,6 +831,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Buscar produtos no Icecat via texto/nome
+  app.get('/api/icecat/search', isAuthenticated, async (req: any, res) => {
+    try {
+      const { q, lang } = req.query;
+      
+      if (!q || q.trim().length < 2) {
+        return res.status(400).json({ message: "Busca deve ter pelo menos 2 caracteres" });
+      }
+      
+      const { searchProductByText } = await import('./icecat');
+      const products = await searchProductByText(q.trim(), (lang as string) || 'BR');
+      
+      res.json({ products, count: products.length });
+    } catch (error) {
+      console.error("Error searching Icecat by text:", error);
+      res.status(500).json({ message: "Erro interno ao buscar produtos no Icecat" });
+    }
+  });
+
 
   app.patch('/api/stores/:storeId/products/:productId', isAuthenticated, async (req: any, res) => {
     try {
