@@ -29,6 +29,10 @@ const productFormSchema = insertProductSchema.extend({
   price: z.string().min(1, "Preço é obrigatório"),
   scratchPrice: z.string().optional(),
   scratchExpiresAt: z.string().optional(),
+  gtin: z.string().optional(),
+  brand: z.string().optional(),
+  productCode: z.string().optional(),
+  sourceType: z.string().optional(),
 });
 
 type ProductFormData = z.infer<typeof productFormSchema>;
@@ -45,6 +49,57 @@ export default function AdminProducts() {
   const [addMoreProducts, setAddMoreProducts] = useState(false);
   const [icecatSearching, setIcecatSearching] = useState(false);
   const [gtinInput, setGtinInput] = useState("");
+
+  // Função para buscar produto no Icecat via GTIN
+  const searchIcecatProduct = async () => {
+    if (!gtinInput.trim() || gtinInput.length < 8) {
+      toast({
+        title: "GTIN inválido",
+        description: "Por favor, insira um código GTIN/EAN válido (mínimo 8 dígitos)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIcecatSearching(true);
+
+    try {
+      const response = await fetch(`/api/icecat/product/${gtinInput.trim()}`);
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Produto não encontrado");
+      }
+
+      const product = await response.json();
+
+      // Preencher formulário automaticamente
+      form.setValue("name", product.name);
+      form.setValue("description", product.description || "");
+      form.setValue("category", product.category || "Eletrônicos");
+      form.setValue("imageUrl", product.images[0] || "");
+      form.setValue("imageUrl2", product.images[1] || "");
+      form.setValue("imageUrl3", product.images[2] || "");
+      form.setValue("gtin", gtinInput.trim());
+      form.setValue("brand", product.brand || "");
+      form.setValue("sourceType", "icecat");
+      form.setValue("showInTotem", true); // ✅ Ativar totem automaticamente
+
+      toast({
+        title: "✅ Produto encontrado!",
+        description: `${product.name} carregado com ${product.images.length} imagens oficiais`,
+      });
+
+    } catch (error: any) {
+      toast({
+        title: "Produto não encontrado",
+        description: error.message || "Não foi possível encontrar o produto no catálogo Icecat",
+        variant: "destructive",
+      });
+    } finally {
+      setIcecatSearching(false);
+    }
+  };
   
   const PRODUCTS_PER_PAGE = 15;
 
@@ -547,6 +602,43 @@ export default function AdminProducts() {
             </DialogHeader>
               
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Busca no Icecat */}
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-5 rounded-lg border border-blue-200 shadow-sm">
+                    <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
+                      <Package className="w-5 h-5 mr-2 text-blue-600" />
+                      🔍 Buscar Produto no Catálogo Icecat
+                    </h3>
+                    <div className="bg-white p-4 rounded-lg border border-blue-100">
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex-1">
+                          <Label htmlFor="gtin-search" className="text-gray-700 font-medium text-sm">Código de Barras (GTIN/EAN/UPC)</Label>
+                          <Input
+                            id="gtin-search"
+                            value={gtinInput}
+                            onChange={(e) => setGtinInput(e.target.value)}
+                            placeholder="Ex: 7891234567890"
+                            className="mt-1 placeholder:text-gray-400 border-gray-300 focus:border-blue-500"
+                            data-testid="input-gtin-search"
+                          />
+                        </div>
+                        <div className="flex items-end">
+                          <Button
+                            type="button"
+                            onClick={searchIcecatProduct}
+                            disabled={icecatSearching || !gtinInput.trim()}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                            data-testid="button-search-icecat"
+                          >
+                            {icecatSearching ? "Buscando..." : "🔍 Buscar"}
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        ✨ Preenchimento automático: nome, descrição, categoria e até 3 imagens oficiais + <strong>totem ativado</strong>
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Informações Básicas */}
                   <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
                     <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
