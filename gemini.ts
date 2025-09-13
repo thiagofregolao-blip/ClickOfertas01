@@ -766,26 +766,36 @@ export async function composeProductTotem(
         const primaryColor = store.themeColor || '#E11D48';
         const accentColor = '#ffd700';
 
+        // Função para escapar caracteres XML
+        const escapeXml = (text: string) => {
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        };
+
         // Quebrar nome do produto em múltiplas linhas se necessário
         const words = product.name.split(' ');
         let line1 = '', line2 = '', line3 = '';
         
         if (words.length > 4 && product.name.length > 40) {
             const third = Math.ceil(words.length / 3);
-            line1 = words.slice(0, third).join(' ').toUpperCase();
-            line2 = words.slice(third, third * 2).join(' ').toUpperCase();
-            line3 = words.slice(third * 2).join(' ').toUpperCase();
+            line1 = escapeXml(words.slice(0, third).join(' ').toUpperCase());
+            line2 = escapeXml(words.slice(third, third * 2).join(' ').toUpperCase());
+            line3 = escapeXml(words.slice(third * 2).join(' ').toUpperCase());
         } else if (words.length > 2 && product.name.length > 25) {
             const mid = Math.ceil(words.length / 2);
-            line1 = words.slice(0, mid).join(' ').toUpperCase();
-            line2 = words.slice(mid).join(' ').toUpperCase();
+            line1 = escapeXml(words.slice(0, mid).join(' ').toUpperCase());
+            line2 = escapeXml(words.slice(mid).join(' ').toUpperCase());
         } else {
-            line1 = product.name.length > 35 ? product.name.substring(0, 35) + '...' : product.name.toUpperCase();
+            line1 = escapeXml(product.name.length > 35 ? product.name.substring(0, 35) + '...' : product.name.toUpperCase());
         }
 
         let productImageBuffer: Buffer | null = null;
         
-        // Baixar imagem do produto se disponível
+        // Baixar e validar imagem do produto se disponível
         if (product.imageUrl) {
             try {
                 console.log(`📥 Baixando imagem do produto: ${product.imageUrl}`);
@@ -794,6 +804,24 @@ export async function composeProductTotem(
                     const imageArrayBuffer = await imageResponse.arrayBuffer();
                     productImageBuffer = Buffer.from(imageArrayBuffer);
                     console.log(`✅ Imagem baixada: ${productImageBuffer.length} bytes`);
+                    
+                    // Validar se é uma imagem válida
+                    try {
+                        const testImage = sharp.default(productImageBuffer);
+                        const metadata = await testImage.metadata();
+                        console.log(`📊 Metadata da imagem: ${metadata.width}x${metadata.height}, formato: ${metadata.format}`);
+                        
+                        // Verificar se tem dimensões válidas
+                        if (!metadata.width || !metadata.height || metadata.width < 50 || metadata.height < 50) {
+                            console.warn(`⚠️ Imagem muito pequena ou inválida, usando layout sem imagem`);
+                            productImageBuffer = null;
+                        }
+                    } catch (sharpError) {
+                        console.warn(`⚠️ Erro ao validar imagem com Sharp: ${sharpError}`);
+                        productImageBuffer = null;
+                    }
+                } else {
+                    console.warn(`⚠️ Falha ao baixar imagem: status ${imageResponse.status}`);
                 }
             } catch (error) {
                 console.warn(`⚠️ Erro ao baixar imagem do produto: ${error}`);
@@ -832,7 +860,7 @@ export async function composeProductTotem(
             
             <!-- Categoria -->
             <text x="${textStartX}" y="180" font-family="sans-serif" font-size="42" font-weight="normal" fill="rgba(255,255,255,0.9)" text-anchor="start">
-                ${(product.category || 'PRODUTO').toUpperCase()}
+                ${escapeXml((product.category || 'PRODUTO').toUpperCase())}
             </text>
             
             <!-- Nome do produto (linha 1) -->
@@ -856,7 +884,7 @@ export async function composeProductTotem(
                 DISPONÍVEL NA
             </text>
             <text x="${textStartX}" y="${line3 ? 630 : line2 ? 600 : 570}" font-family="sans-serif" font-size="42" font-weight="bold" fill="${accentColor}" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
-                ${store.name.toUpperCase()}
+                ${escapeXml(store.name.toUpperCase())}
             </text>
             
             <!-- Logo/Brand no rodapé -->
@@ -871,14 +899,20 @@ export async function composeProductTotem(
         // Adicionar imagem do produto se disponível
         if (productImageBuffer && hasImage) {
             try {
+                console.log(`🔄 Processando imagem do produto...`);
+                
                 // Redimensionar imagem do produto para caber na área designada
                 const productImageProcessed = await sharp.default(productImageBuffer)
+                    .rotate() // Auto-rotacionar baseado em EXIF se necessário
                     .resize(700, 800, { 
                         fit: 'contain', 
-                        background: { r: 0, g: 0, b: 0, alpha: 0 } 
+                        background: { r: 0, g: 0, b: 0, alpha: 0 },
+                        withoutEnlargement: true // Não aumentar imagens pequenas
                     })
-                    .png()
+                    .png({ quality: 90, compressionLevel: 6 })
                     .toBuffer();
+
+                console.log(`📐 Imagem processada: ${productImageProcessed.length} bytes`);
 
                 composition = composition.composite([
                     {
@@ -889,9 +923,14 @@ export async function composeProductTotem(
                     }
                 ]);
                 
-                console.log(`🖼️ Imagem do produto adicionada ao totem`);
+                console.log(`🖼️ Imagem do produto adicionada ao totem com sucesso`);
             } catch (error) {
                 console.warn(`⚠️ Erro ao processar imagem do produto: ${error}`);
+                // Continuar sem a imagem mas ajustar layout
+                hasImage = false;
+                textAreaWidth = totemWidth * 0.8;
+                textStartX = totemWidth * 0.1;
+                console.log(`🔧 Layout ajustado para modo sem imagem`);
             }
         }
 
