@@ -753,8 +753,8 @@ export async function composeProductTotem(
         fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
         // Dimensões do totem (16:9)
-        const totemWidth = 1920;
-        const totemHeight = 1080;
+        const totemWidth = 1080;
+        const totemHeight = 1920;
 
         // Formatação de preço em Real brasileiro
         const preco = new Intl.NumberFormat('pt-BR', { 
@@ -846,54 +846,53 @@ export async function composeProductTotem(
             <rect width="100%" height="100%" fill="url(#shine)" />
         </svg>`;
 
-        // LAYOUT CORRIGIDO:
-        // Criar layout que funciona com rotação 90° no frontend
-        // A imagem será 1920x1080, rotacionada vira 1080x1920 na tela
+        // LAYOUT VERTICAL NATIVO:
+        // Layout otimizado para tela vertical (1080×1920) sem rotação
         let hasImage = productImageBuffer !== null;
-        let textAreaWidth = hasImage ? 600 : 800;  // Largura fixa para área de texto
-        let textStartX = hasImage ? 100 : 200;     // Posição X do texto
-        const imageAreaX = hasImage ? 700 : 0;     // Imagem na direita quando presente
-        const imageAreaWidth = 600;
-        const imageAreaHeight = 800;
+        let textAreaWidth = hasImage ? 500 : 700;    // Largura para tela vertical
+        let textStartX = hasImage ? 80 : 150;        // Posição X centralizada
+        const imageAreaX = hasImage ? 600 : 0;       // Imagem na direita/baixo
+        const imageAreaWidth = 400;                  // Menor para caber na vertical
+        const imageAreaHeight = 600;
 
-        // SVG COM LAYOUT HORIZONTAL NORMAL
-        // Como a rotação acontece no frontend, criar layout horizontal padrão
+        // SVG COM LAYOUT VERTICAL NATIVO
+        // Layout otimizado para tela vertical (1080×1920) sem rotação no frontend
         const productInfoSvg = `
         <svg width="${totemWidth}" height="${totemHeight}">
             <!-- Faixa translúcida para contraste -->
-            <rect x="50" y="200" width="${textAreaWidth}" height="600" fill="rgba(0,0,0,0.7)" rx="30"/>
+            <rect x="40" y="400" width="${textAreaWidth}" height="1000" fill="rgba(0,0,0,0.75)" rx="25"/>
             
             <!-- Categoria -->
-            <text x="${textStartX}" y="280" font-family="Arial, sans-serif" font-size="42" font-weight="normal" fill="rgba(255,255,255,0.9)" text-anchor="start">
+            <text x="${textStartX}" y="500" font-family="Arial, sans-serif" font-size="36" font-weight="normal" fill="rgba(255,255,255,0.9)" text-anchor="start">
                 ${escapeXml((product.category || 'PRODUTO').toUpperCase())}
             </text>
             
             <!-- Nome do produto (linha 1) -->
-            <text x="${textStartX}" y="360" font-family="Arial, sans-serif" font-size="${line3 ? '56' : '68'}" font-weight="bold" fill="white" text-anchor="start">
+            <text x="${textStartX}" y="600" font-family="Arial, sans-serif" font-size="${line3 ? '48' : '58'}" font-weight="bold" fill="white" text-anchor="start">
                 ${line1}
             </text>
             
             <!-- Nome do produto (linha 2) -->
-            ${line2 ? `<text x="${textStartX}" y="${line3 ? '420' : '440'}" font-family="Arial, sans-serif" font-size="${line3 ? '56' : '68'}" font-weight="bold" fill="white" text-anchor="start">${line2}</text>` : ''}
+            ${line2 ? `<text x="${textStartX}" y="${line3 ? '670' : '690'}" font-family="Arial, sans-serif" font-size="${line3 ? '48' : '58'}" font-weight="bold" fill="white" text-anchor="start">${line2}</text>` : ''}
             
             <!-- Nome do produto (linha 3) -->
-            ${line3 ? `<text x="${textStartX}" y="480" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="white" text-anchor="start">${line3}</text>` : ''}
+            ${line3 ? `<text x="${textStartX}" y="740" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="start">${line3}</text>` : ''}
             
             <!-- Preço destacado -->
-            <text x="${textStartX}" y="${line3 ? 580 : line2 ? 550 : 520}" font-family="Arial, sans-serif" font-size="96" font-weight="bold" fill="${accentColor}" text-anchor="start" stroke="rgba(0,0,0,0.4)" stroke-width="3">
+            <text x="${textStartX}" y="${line3 ? 880 : line2 ? 850 : 820}" font-family="Arial, sans-serif" font-size="86" font-weight="bold" fill="${accentColor}" text-anchor="start" stroke="rgba(0,0,0,0.4)" stroke-width="3">
                 ${preco}
             </text>
             
             <!-- Call to Action da loja -->
-            <text x="${textStartX}" y="${line3 ? 680 : line2 ? 650 : 620}" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
+            <text x="${textStartX}" y="${line3 ? 1000 : line2 ? 970 : 940}" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
                 DISPONÍVEL NA
             </text>
-            <text x="${textStartX}" y="${line3 ? 730 : line2 ? 700 : 670}" font-family="Arial, sans-serif" font-size="42" font-weight="bold" fill="${accentColor}" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
+            <text x="${textStartX}" y="${line3 ? 1050 : line2 ? 1020 : 990}" font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="${accentColor}" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
                 ${escapeXml(store.name.toUpperCase())}
             </text>
             
             <!-- Logo/Brand no rodapé -->
-            <text x="${totemWidth - 50}" y="${totemHeight - 50}" font-family="Arial, sans-serif" font-size="32" fill="rgba(255,255,255,0.8)" text-anchor="end">
+            <text x="${totemWidth - 40}" y="${totemHeight - 80}" font-family="Arial, sans-serif" font-size="28" fill="rgba(255,255,255,0.8)" text-anchor="end">
                 Click Ofertas Paraguai
             </text>
         </svg>`;
@@ -924,7 +923,7 @@ export async function composeProductTotem(
                     {
                         input: productImageProcessed,
                         left: Math.round(imageAreaX),
-                        top: 140,
+                        top: 300,  // Posição ajustada para layout vertical
                         blend: 'over'
                     }
                 ]);

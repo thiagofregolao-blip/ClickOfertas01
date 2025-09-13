@@ -264,11 +264,10 @@ export default function TotemDisplay() {
             alt={currentContent.title}
             className="w-full h-full"
             style={{ 
-              objectFit: 'contain',
+              objectFit: 'cover',
               objectPosition: 'center',
-              imageRendering: 'optimizeQuality',
-              width: '100%',
-              height: '100%'
+              width: '100vw',
+              height: '100vh'
             }}
             onLoad={(e) => {
               const img = e.target as HTMLImageElement;
@@ -280,12 +279,10 @@ export default function TotemDisplay() {
                 aspectRatio: (img.naturalWidth / img.naturalHeight).toFixed(2)
               });
 
-              // Rotacionar para horizontal mantendo dimensões simples
-              img.style.transform = 'rotate(90deg)';
-              img.style.transformOrigin = 'center center';
+              // Layout vertical nativo - sem rotação CSS
               img.style.objectFit = 'cover';
               img.style.objectPosition = 'center';
-              img.style.imageRendering = 'optimizeQuality';
+              img.style.imageRendering = 'auto';
             }}
             onError={(e) => {
               console.error('❌ Erro ao carregar imagem:', currentContent.mediaUrl);

@@ -1,0 +1,424 @@
+Pelo sintoma, o seu totem está gerando a arte na horizontal (1920×1080) e depois o frontend rotaciona 90° para ocupar a TV “de pé”. Isso distorce tudo (texto e foto), porque as posições e a proporção foram pensadas para horizontal.
+A correção é gerar a imagem já em vertical (1080×1920) e parar de rotacionar no frontend. (Deixei um passo-a-passo completo no arquivo que você subiu; resumo abaixo.) 
+
+TOTEM_ALIGNMENT_FIX
+
+Faça assim (passo a passo)
+1) Backend: renderize vertical nativo (1080×1920)
+
+No módulo que compõe a arte (ex.: gemini.ts/composeTotemForProduct):
+
+// dimensões do totem
+const totemWidth = 1080;    // era 1920
+const totemHeight = 1920;   // era 1080
+
+// ...mantenha os elementos pensando em layout vertical...
+// (ex.: bloco de texto à esquerda e produto à direita)
+
+
+Se usar Sharp no fim, normalize orientação para evitar EXIF estranho:
+
+image = image.rotate();     // respeita EXIF e fixa a orientação
+
+2) Frontend: remova a rotação e preencha a tela sem esticar
+
+No totem-display.tsx (onde você renderiza a imagem):
+
+<img
+  src={currentContent.mediaUrl}
+  style={{
+    width: "100vw",
+    height: "100vh",
+    objectFit: "cover",
+    objectPosition: "center",
+    imageRendering: "optimizeQuality",
+  }}
+  onLoad={(e) => {
+    const img = e.currentTarget;
+    console.log("TOTEM:", {
+      naturalWidth: img.naturalWidth,
+      naturalHeight: img.naturalHeight,
+      isPortrait: img.naturalHeight > img.naturalWidth,
+    });
+  }}
+/>
+
+
+CSS base (garante 100% da viewport):
+
+html, body, #root { height: 100%; margin: 0; background:#000; }
+
+
+Resultado: a imagem vertical (1080×1920) preenche a TV (Full HD) sem distorção.
+
+3) (Só se você precisar continuar rotacionando no frontend)
+
+Não recomendo, mas se for inevitável:
+
+/* container do totem em tela cheia */
+.totem { position:fixed; inset:0; background:#000; }
+
+/* a imagem precisa trocar width/height e rotacionar no centro */
+.totem img{
+  width: 100vh;          /* troca dimensões */
+  height: 100vw;
+  object-fit: cover;
+  object-position: center;
+  transform: rotate(90deg);
+  transform-origin: center center;
+}
+
+
+E, se você desenha texto via SVG no backend, saiba que ao rotacionar no frontend as coordenadas X/Y ficam trocadas; é preciso transformar posições (x’, y’) = (H − y, x) para tudo alinhar — no arquivo que te deixei tem a função pronta e onde aplicar. 
+
+TOTEM_ALIGNMENT_FIX
+
+Checklist rápido
+
+ Backend exporta 1080×1920 (não 1920×1080).
+
+ Frontend sem transform: rotate() (via solução recomendada).
+
+ <img> com object-fit: cover e width:100vw; height:100vh.
+
+ TV/Player em resolução 1920×1080 (normal) e sem “auto-rotate” do sistema brigando com o app.
+
+ (Se usar PNG/JPG vindos de câmera) aplique sharp().rotate() para fixar EXIF.
+
+Se quiser, me envie o trecho do seu totem-display.tsx que posiciona a <img> ou o container — eu devolvo com o ajuste exato para o seu layout.
+
+Fontes
+Você disse:
+entao mas esse produto tambem é exibido no flyer da empresa como um card se fizer isso nao vai afetar a exibicao dele na outra pagina tambem
+O ChatGPT disse:
+Pensou por 21s
+
+boa pergunta — dá pra deixar lindo no totem (vertical) sem quebrar o card do flyer. O truque é separar “ativo” de “exibição”:
+
+Ativo (master): a foto/arte do produto, em alta, sem distorção.
+
+Exibição: cada lugar (totem, flyer, site) aplica seu formato (tamanho/aspect ratio) com regras de preenchimento/corte adequadas.
+
+Abaixo te deixo um passo-a-passo que resolve já.
+
+1) Gere variantes do mesmo produto (sem esticar)
+
+No backend (Sharp, por ex.), derive 2 arquivos a partir do mesmo produto:
+
+Totem (vertical): 1080×1920 com cover (preenche tela sem distorcer, cortando só o excesso).
+
+Card do flyer (quadrado): 1200×1200 com contain (não corta nada; preenche com borda/fundo).
+
+Exemplo (Node + Sharp):
+
+import sharp from "sharp";
+import fs from "node:fs/promises";
+
+export async function gerarVariantesProduto(inputPath, outBase) {
+  const buf = await fs.readFile(inputPath);
+
+  // Totem: preenche, sem distorcer (corta o excesso)
+  await sharp(buf)
+    .resize(1080, 1920, { fit: "cover", position: "attention" }) // "attention" tenta focar o assunto
+    .jpeg({ quality: 90 })
+    .toFile(`${outBase}-totem-1080x1920.jpg`);
+
+  // Card: preserva tudo (pode ficar borda)
+  await sharp(buf)
+    .resize(1200, 1200, { fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 1 } })
+    .png()
+    .toFile(`${outBase}-card-1200.png`);
+}
+
+
+Dica: se o produto vem com fundo transparente (PNG), o contain fica perfeito no card; no totem você pode compor sobre um fundo/gradiente do seu tema.
+
+2) No totem, preencha a tela inteira sem girar a imagem
+/* tela cheia vertical */
+html, body, #app { height: 100%; margin: 0; background:#000; }
+.totem img {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;     /* preenche sem distorcer */
+  object-position: center;
+  image-rendering: optimizeQuality;
+}
+
+<img className="totem" src="/media/prod-123-totem-1080x1920.jpg" alt="Produto" />
+
+
+Não aplique transform: rotate(...) no front. Gere vertical nativo e use object-fit: cover.
+
+3) No card do flyer, preserve proporção (sem cortar)
+.card-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;   /* quadrado, responsivo */
+  object-fit: contain;   /* sem corte, sem distorção */
+  background: #f7f7f7;   /* cor de fundo segura */
+  border-radius: 12px;
+}
+
+<img className="card-thumb" src="/media/prod-123-card-1200.png" alt="Produto" />
+
+
+Se quiser borda/“caixa” visual, deixe o background do container e mantenha contain.
+
+4) Um único componente que escolhe a melhor variante
+
+Quando o mesmo produto aparece em telas diferentes, deixe o componente decidir:
+
+<picture>
+  {/* usa vertical em telas em pé (totem/tablet em portrait) */}
+  <source media="(orientation: portrait)" srcSet="/media/prod-123-totem-1080x1920.jpg" />
+  {/* fallback: card quadrado para web/flyer */}
+  <img src="/media/prod-123-card-1200.png" alt="Produto" style={{ width: "100%", height: "auto" }} />
+</picture>
+
+
+Ou, se for React + props:
+
+function ProductImage({ kind = "card" }) {
+  const src = kind === "totem"
+    ? "/media/prod-123-totem-1080x1920.jpg"
+    : "/media/prod-123-card-1200.png";
+  const style = kind === "totem"
+    ? { width: "100vw", height: "100vh", objectFit: "cover" }
+    : { width: "100%", aspectRatio: "1 / 1", objectFit: "contain" };
+  return <img src={src} style={style} alt="Produto" />;
+}
+
+5) Se você precisar usar uma só imagem para tudo
+
+Use uma master quadrada grande (ex.: 2048×2048, PNG com transparência) e:
+
+Totem: componha a master sobre um fundo vertical (gradiente/cor) e use object-fit: contain para o produto dentro do layout; a cena de fundo (se houver) usa cover.
+
+Card: use a master direto (fica perfeito em 1:1).
+
+Isso evita distorção sem manter dois binários, mas visual do totem fica melhor com a variante dedicada.
+
+6) Evite “efeito embaçado”
+
+Exporte no tamanho exato da tela do totem (1080×1920 para TV Full HD em pé).
+
+No card, 1200×1200 é bom; para retina/zoom, você pode servir 2x via srcset.
+
+Resumo
+
+Não precisa quebrar o flyer: separe as variantes (vertical e quadrada) e configure object-fit por contexto.
+
+Totem: 1080×1920 + cover.
+
+Card: 1200×1200 + contain.
+
+Se quiser, te mando um script que lê a pasta de produtos e gera automaticamente as duas variantes com nomenclatura padrão (prod-<id>-totem.jpg e prod-<id>-card.png) — assim seu front só monta a URL.
+
+Você disse:
+pode mandar
+O ChatGPT disse:
+Pensou por 22s
+
+perfeito! segue um script pronto pra usar que gera duas variantes por produto a partir de uma pasta de imagens:
+
+Totem (vertical): 1080×1920 com cover (preenche a TV sem distorcer)
+
+Card (flyer): 1200×1200 com contain (não corta, pode ter borda/fundo)
+
+Como usar
+
+Crie uma pastinha e instale as deps:
+
+mkdir gerador-variantes && cd gerador-variantes
+npm init -y
+npm i sharp fast-glob yargs
+
+
+Salve o arquivo abaixo como generate-variants.mjs na pasta.
+
+Coloque suas imagens originais em, por exemplo, ./input (JPG/PNG/WEBP/AVIF).
+
+Rode:
+
+node generate-variants.mjs --in ./input --out ./output \
+  --bg "#ffffff" --quality 90 --concurrency 4 --transparentCard=false
+
+
+--in pasta de entrada
+
+--out pasta de saída
+
+--bg cor de fundo do card quando usar contain (hex)
+
+--quality qualidade JPEG (totem)
+
+--concurrency quantas imagens processar em paralelo
+
+--transparentCard true|false (se true, o card sai PNG transparente)
+
+Script (Node 18+, ESM)
+// generate-variants.mjs
+// Gera duas variantes por produto:
+// - totem: 1080x1920, cover, JPEG (qualidade configurável)
+// - card:  1200x1200, contain, PNG transparente OU fundo sólido (--bg)
+//
+// Uso:
+// node generate-variants.mjs --in ./input --out ./output --bg "#ffffff" --quality 90 --concurrency 4 --transparentCard=false
+
+import fs from "node:fs/promises";
+import path from "node:path";
+import sharp from "sharp";
+import fg from "fast-glob";
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
+
+// --------- CLI ---------
+const argv = yargs(hideBin(process.argv))
+  .option("in", { type: "string", demandOption: true, describe: "Pasta de entrada com as imagens" })
+  .option("out", { type: "string", demandOption: true, describe: "Pasta de saída para as variantes" })
+  .option("bg", { type: "string", default: "#ffffff", describe: "Cor de fundo do CARD (quando contain)" })
+  .option("quality", { type: "number", default: 90, describe: "Qualidade JPEG do TOTEM (0-100)" })
+  .option("concurrency", { type: "number", default: 4, describe: "Concorrência de processamento" })
+  .option("transparentCard", { type: "boolean", default: false, describe: "Card PNG com fundo transparente" })
+  .argv;
+
+// --------- Util ---------
+function parseHexColor(hex) {
+  // Aceita formatos #RGB, #RRGGBB, #RRGGBBAA
+  let h = hex.replace("#", "").trim();
+  if (h.length === 3) h = h.split("").map(c => c + c).join("");
+  const r = parseInt(h.slice(0, 2), 16) || 255;
+  const g = parseInt(h.slice(2, 4), 16) || 255;
+  const b = parseInt(h.slice(4, 6), 16) || 255;
+  let a = 255;
+  if (h.length === 8) a = parseInt(h.slice(6, 8), 16);
+  return { r, g, b, alpha: a / 255 };
+}
+
+async function ensureDir(dir) {
+  await fs.mkdir(dir, { recursive: true });
+}
+
+function baseNameNoExt(p) {
+  return path.parse(p).name;
+}
+
+function pLimit(n) {
+  let active = 0;
+  /** @type {Array<() => void>} */
+  const queue = [];
+  const next = () => {
+    active--;
+    if (queue.length) queue.shift()();
+  };
+  return (fn) =>
+    new Promise((resolve, reject) => {
+      const run = () => {
+        active++;
+        Promise.resolve()
+          .then(fn)
+          .then((v) => {
+            next(); resolve(v);
+          })
+          .catch((e) => {
+            next(); reject(e);
+          });
+      };
+      active < n ? run() : queue.push(run);
+    });
+}
+
+// --------- Processadores ---------
+async function makeTotem(buffer, outFile, quality) {
+  // Orienta conforme EXIF, preenche sem distorcer, focaliza assunto
+  await sharp(buffer)
+    .rotate()
+    .resize(1080, 1920, { fit: "cover", position: "attention" })
+    .jpeg({ quality: Math.max(1, Math.min(100, quality)), mozjpeg: true })
+    .toFile(outFile);
+}
+
+async function makeCard(buffer, outFile, opts) {
+  const { bg, transparentCard } = opts;
+
+  // Se transparentCard=true, força PNG com alpha 0
+  if (transparentCard) {
+    await sharp(buffer)
+      .rotate()
+      .resize(1200, 1200, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .png()
+      .toFile(outFile);
+    return;
+  }
+
+  // Fundo sólido (p.ex. branco do flyer) — PNG para manter nitidez
+  await sharp(buffer)
+    .rotate()
+    .resize(1200, 1200, { fit: "contain", background: bg })
+    .png()
+    .toFile(outFile);
+}
+
+// --------- Main ---------
+async function main() {
+  const IN = path.resolve(argv.in);
+  const OUT = path.resolve(argv.out);
+  const bg = parseHexColor(argv.bg);
+  const quality = argv.quality;
+  const concurrency = Math.max(1, argv.concurrency|0);
+  const transparentCard = !!argv.transparentCard;
+
+  const patterns = [
+    path.join(IN, "**/*.{jpg,jpeg,png,webp,avif,JPG,JPEG,PNG,WEBP,AVIF}")
+  ];
+  const files = await fg(patterns, { onlyFiles: true, dot: false });
+
+  if (!files.length) {
+    console.log("Nenhuma imagem encontrada em:", IN);
+    return;
+  }
+
+  await ensureDir(OUT);
+
+  const limit = pLimit(concurrency);
+  let ok = 0, fail = 0;
+
+  console.log(`Encontradas ${files.length} imagens. Processando com conc=${concurrency} ...`);
+
+  await Promise.all(files.map((file) => limit(async () => {
+    try {
+      const buf = await fs.readFile(file);
+      const base = baseNameNoExt(file);
+
+      const totemOut = path.join(OUT, `${base}-totem-1080x1920.jpg`);
+      const cardOut  = path.join(OUT, `${base}-card-1200.png`);
+
+      await ensureDir(path.dirname(totemOut));
+
+      await makeTotem(buf, totemOut, quality);
+      await makeCard(buf, cardOut, { bg, transparentCard });
+
+      ok++;
+      console.log(`✔ ${base} → totem/card OK`);
+    } catch (e) {
+      fail++;
+      console.error(`✖ Erro em ${file}:`, e.message || e);
+    }
+  })));
+
+  console.log(`\nFinalizado. Sucesso: ${ok} | Falhas: ${fail}`);
+}
+
+main().catch((e) => {
+  console.error("Falha geral:", e);
+  process.exit(1);
+});
+
+Dicas finais
+
+Totem (vertical): use sempre a variante *-totem-1080x1920.jpg em tela cheia com CSS object-fit: cover.
+
+Card (flyer): use *-card-1200.png com object-fit: contain; troque --bg se quiser outra cor de fundo, ou --transparentCard=true para PNG transparente.
+
+O script já corrige EXIF (rotate()), então fotos “em pé” do celular não saem tortas.
+
+Se quiser gerar também 2× para telas retina, posso adicionar srcset automático e uma variante 2160×3840 / 2400×2400.
