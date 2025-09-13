@@ -846,51 +846,54 @@ export async function composeProductTotem(
             <rect width="100%" height="100%" fill="url(#shine)" />
         </svg>`;
 
-        // Definir layout baseado na presença da imagem (variáveis para permitir ajuste)
+        // LAYOUT PARA ROTAÇÃO NO FRONTEND:
+        // Como a imagem será rotacionada 90° no frontend, ajustar layout
+        // Para que textos apareçam corretamente na tela vertical rotacionada
         let hasImage = productImageBuffer !== null;
-        let textAreaWidth = hasImage ? totemWidth * 0.5 : totemWidth * 0.8;
-        let textStartX = hasImage ? 100 : totemWidth * 0.1;
-        const imageAreaX = hasImage ? totemWidth * 0.55 : 0;
-        const imageAreaWidth = 700;
-        const imageAreaHeight = 800;
+        let textAreaWidth = hasImage ? totemHeight * 0.4 : totemHeight * 0.7;  // Usar altura como largura
+        let textStartX = hasImage ? 50 : totemHeight * 0.15;  // Posição ajustada
+        const imageAreaX = hasImage ? totemHeight * 0.45 : 0;  // Área da imagem ajustada
+        const imageAreaWidth = 600;  // Reduzido para caber na rotação
+        const imageAreaHeight = 700;
 
-        // Criar SVG com informações do produto
+        // Criar SVG OTIMIZADO PARA ROTAÇÃO 90°
+        // Posições ajustadas para aparecer corretamente na tela rotacionada
         const productInfoSvg = `
         <svg width="${totemWidth}" height="${totemHeight}">
-            <!-- Faixa translúcida para contraste -->
-            <rect x="50" y="100" width="${textAreaWidth}" height="600" fill="rgba(0,0,0,0.5)" rx="30"/>
+            <!-- Faixa translúcida para contraste - posicionada para rotação -->
+            <rect x="80" y="150" width="${textAreaWidth}" height="500" fill="rgba(0,0,0,0.6)" rx="25"/>
             
-            <!-- Categoria -->
-            <text x="${textStartX}" y="180" font-family="sans-serif" font-size="42" font-weight="normal" fill="rgba(255,255,255,0.9)" text-anchor="start">
+            <!-- Categoria - posição otimizada -->
+            <text x="${textStartX + 30}" y="220" font-family="Arial, sans-serif" font-size="36" font-weight="normal" fill="rgba(255,255,255,0.9)" text-anchor="start">
                 ${escapeXml((product.category || 'PRODUTO').toUpperCase())}
             </text>
             
-            <!-- Nome do produto (linha 1) -->
-            <text x="${textStartX}" y="260" font-family="sans-serif" font-size="${line3 ? '54' : '68'}" font-weight="bold" fill="white" text-anchor="start">
+            <!-- Nome do produto (linha 1) - ajustado para rotação -->
+            <text x="${textStartX + 30}" y="280" font-family="Arial, sans-serif" font-size="${line3 ? '48' : '58'}" font-weight="bold" fill="white" text-anchor="start">
                 ${line1}
             </text>
             
             <!-- Nome do produto (linha 2) -->
-            ${line2 ? `<text x="${textStartX}" y="${line3 ? '320' : '340'}" font-family="sans-serif" font-size="${line3 ? '54' : '68'}" font-weight="bold" fill="white" text-anchor="start">${line2}</text>` : ''}
+            ${line2 ? `<text x="${textStartX + 30}" y="${line3 ? '330' : '340'}" font-family="Arial, sans-serif" font-size="${line3 ? '48' : '58'}" font-weight="bold" fill="white" text-anchor="start">${line2}</text>` : ''}
             
             <!-- Nome do produto (linha 3) -->
-            ${line3 ? `<text x="${textStartX}" y="380" font-family="sans-serif" font-size="54" font-weight="bold" fill="white" text-anchor="start">${line3}</text>` : ''}
+            ${line3 ? `<text x="${textStartX + 30}" y="380" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="start">${line3}</text>` : ''}
             
-            <!-- Preço destacado -->
-            <text x="${textStartX}" y="${line3 ? 480 : line2 ? 450 : 420}" font-family="sans-serif" font-size="96" font-weight="bold" fill="${accentColor}" text-anchor="start" stroke="rgba(0,0,0,0.3)" stroke-width="3">
+            <!-- Preço destacado - posição central -->
+            <text x="${textStartX + 30}" y="${line3 ? 460 : line2 ? 430 : 400}" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="${accentColor}" text-anchor="start" stroke="rgba(0,0,0,0.4)" stroke-width="2">
                 ${preco}
             </text>
             
-            <!-- Call to Action da loja -->
-            <text x="${textStartX}" y="${line3 ? 580 : line2 ? 550 : 520}" font-family="sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
+            <!-- Call to Action da loja - posição inferior -->
+            <text x="${textStartX + 30}" y="${line3 ? 540 : line2 ? 510 : 480}" font-family="Arial, sans-serif" font-size="30" font-weight="bold" fill="white" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
                 DISPONÍVEL NA
             </text>
-            <text x="${textStartX}" y="${line3 ? 630 : line2 ? 600 : 570}" font-family="sans-serif" font-size="42" font-weight="bold" fill="${accentColor}" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
+            <text x="${textStartX + 30}" y="${line3 ? 580 : line2 ? 550 : 520}" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="${accentColor}" text-anchor="start" stroke="rgba(0,0,0,0.5)" stroke-width="1">
                 ${escapeXml(store.name.toUpperCase())}
             </text>
             
-            <!-- Logo/Brand no rodapé -->
-            <text x="${totemWidth - 50}" y="${totemHeight - 50}" font-family="sans-serif" font-size="32" fill="rgba(255,255,255,0.8)" text-anchor="end">
+            <!-- Logo/Brand no rodapé - ajustado -->
+            <text x="${totemWidth - 80}" y="${totemHeight - 80}" font-family="Arial, sans-serif" font-size="28" fill="rgba(255,255,255,0.7)" text-anchor="end">
                 Click Ofertas Paraguai
             </text>
         </svg>`;
