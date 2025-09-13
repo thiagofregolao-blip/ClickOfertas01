@@ -64,14 +64,24 @@ export default function AdminProducts() {
     setIcecatSearching(true);
 
     try {
-      const response = await fetch(`/api/icecat/product/${gtinInput.trim()}`);
+      // Primeiro tenta Icecat
+      let response = await fetch(`/api/icecat/product/${gtinInput.trim()}`);
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Produto não encontrado");
+      let product;
+      if (response.ok) {
+        product = await response.json();
+      } else {
+        // Fallback: Busca via Google Shopping
+        console.log('🔄 Icecat falhou, tentando Google Shopping...');
+        response = await fetch(`/api/products/search-by-gtin/${gtinInput.trim()}`);
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Produto não encontrado em nenhuma base de dados");
+        }
+        
+        product = await response.json();
       }
-
-      const product = await response.json();
 
       // Preencher formulário automaticamente
       form.setValue("name", product.name);
@@ -85,9 +95,12 @@ export default function AdminProducts() {
       form.setValue("sourceType", "icecat");
       form.setValue("showInTotem", true); // ✅ Ativar totem automaticamente
 
+      // Determinar a fonte dos dados
+      const source = response.url?.includes('/icecat/') ? "Icecat" : "Google Shopping";
+      
       toast({
         title: "✅ Produto encontrado!",
-        description: `${product.name} carregado com ${product.images.length} imagens oficiais`,
+        description: `${product.name} carregado via ${source} com ${product.images.length} imagens`,
       });
 
     } catch (error: any) {
