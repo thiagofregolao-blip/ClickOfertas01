@@ -796,6 +796,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const productData = insertProductSchema.parse(req.body);
       const product = await storage.createProduct(storeId, productData);
+      
+      // NOVA FUNCIONALIDADE: Sincronização automática de totem para novos produtos
+      try {
+        await storage.syncProductTotem(product.id, storeId);
+      } catch (totemError) {
+        console.error("Erro ao sincronizar totem automaticamente:", totemError);
+        // Não falhar a criação do produto por causa disso
+      }
+      
       res.status(201).json(product);
     } catch (error) {
       console.error("Error creating product:", error);
@@ -886,6 +895,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Não falhar a atualização do produto por causa disso
         }
       }
+
+      // NOVA FUNCIONALIDADE: Sincronização automática de totem
+      try {
+        await storage.syncProductTotem(productId, storeId);
+      } catch (totemError) {
+        console.error("Erro ao sincronizar totem automaticamente:", totemError);
+        // Não falhar a atualização do produto por causa disso
+      }
       
       res.json(product);
     } catch (error) {
@@ -910,6 +927,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       await storage.deleteProduct(productId, storeId);
+      
+      // NOVA FUNCIONALIDADE: Remover conteúdo de totem ao deletar produto
+      try {
+        await storage.removeProductTotemContent(productId, storeId);
+      } catch (totemError) {
+        console.error("Erro ao remover conteúdo de totem:", totemError);
+        // Não falhar a exclusão do produto por causa disso
+      }
+      
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting product:", error);
