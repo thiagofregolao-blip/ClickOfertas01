@@ -98,6 +98,10 @@ export const products = pgTable("products", {
   imageUrl2: text("image_url2"),
   imageUrl3: text("image_url3"),
   category: varchar("category").default("Perfumaria"),
+  gtin: varchar("gtin", { length: 14 }), // GTIN/EAN/UPC para busca no Icecat
+  brand: varchar("brand"), // Marca do produto (do Icecat)
+  productCode: varchar("product_code"), // Código do produto (do Icecat)
+  sourceType: varchar("source_type").default("manual"), // "manual", "icecat"
   isFeatured: boolean("is_featured").default(false),
   showInStories: boolean("show_in_stories").default(false),
   showInTotem: boolean("show_in_totem").default(false), // NOVO: Controla exibição no totem
