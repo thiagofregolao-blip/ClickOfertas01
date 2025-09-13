@@ -55,7 +55,7 @@ export default function AdminProducts() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showCodeSearchModal, setShowCodeSearchModal] = useState(false);
 
-  // Função para buscar produtos no Icecat
+  // Função para buscar produtos com sistema híbrido (Icecat + MercadoLibre)
   const searchIcecatProducts = async () => {
     if (searchMode === 'gtin') {
       if (!gtinInput.trim() || gtinInput.replace(/[^0-9]/g, '').length < 8) {
@@ -105,25 +105,31 @@ export default function AdminProducts() {
           description: "Produto encontrado e adicionado aos resultados.",
         });
       } else {
-        // Buscar por texto
-        response = await fetch(`/api/icecat/search?q=${encodeURIComponent(searchText.trim())}&lang=BR`);
+        // 🔄 BUSCA HÍBRIDA: Icecat + MercadoLibre Paraguay
+        response = await fetch(`/api/hybrid/search?q=${encodeURIComponent(searchText.trim())}&lang=BR`);
         
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(error.message || "Erro ao buscar produtos no Icecat");
+          throw new Error(error.message || "Erro ao buscar produtos");
         }
         
         const data = await response.json();
-        const products = Array.isArray(data.products) ? data.products : [];
-        setSearchResults(products);
+        const combinedProducts = data.results?.combined || [];
+        setSearchResults(combinedProducts);
         
-        if (products.length === 0) {
-          throw new Error("Nenhum produto encontrado para esta busca");
+        if (combinedProducts.length === 0) {
+          throw new Error("Nenhum produto encontrado no Icecat nem no MercadoLibre Paraguay");
         }
         
+        // Mostrar fonte dos resultados
+        const sources = data.sources || {};
+        const sourceText = [];
+        if (sources.icecat > 0) sourceText.push(`${sources.icecat} do Icecat`);
+        if (sources.mercadolibre > 0) sourceText.push(`${sources.mercadolibre} do MercadoLibre PY`);
+        
         toast({
-          title: "✅ Busca concluída!",
-          description: `${products.length} produto(s) encontrado(s). Escolha um para preencher o formulário.`,
+          title: "✅ Busca híbrida concluída!",
+          description: `${combinedProducts.length} produto(s) encontrado(s): ${sourceText.join(' + ')}. Escolha um para preencher o formulário.`,
         });
       }
 
@@ -710,7 +716,7 @@ export default function AdminProducts() {
                   <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-5 rounded-lg border border-blue-200 shadow-sm">
                     <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
                       <Package className="w-5 h-5 mr-2 text-blue-600" />
-                      🔍 Buscar Produto no Catálogo Icecat
+                      🔍 Buscar Produto (Icecat + MercadoLibre Paraguay)
                     </h3>
                     
                     <div className="bg-white p-4 rounded-lg border border-blue-100">
@@ -788,7 +794,7 @@ export default function AdminProducts() {
                         </div>
                       </div>
                       <p className="text-xs text-gray-500 mt-2">
-                        ✨ Preenchimento automático: nome, descrição, categoria e até 3 imagens oficiais + <strong>totem ativado</strong>
+                        ✨ <strong>Busca Híbrida</strong>: Icecat internacional + MercadoLibre Paraguay. Preenchimento automático: nome, descrição, categoria e até 3 imagens + <strong>totem ativado</strong>
                       </p>
 
                       {/* Resultados da busca */}

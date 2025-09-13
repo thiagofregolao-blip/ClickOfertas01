@@ -72,6 +72,7 @@ import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
 import QRCode from "qrcode";
 import { apifyService, type PriceSearchResult } from "./apifyService";
+import { searchMercadoLibreProducts, getMercadoLibreProductDetails, convertMercadoLibreToProduct, hybridProductSearch } from "./mercadolibre";
 
 // Helper function to verify store ownership
 async function verifyStoreOwnership(storeId: string, userId: string): Promise<boolean> {
@@ -847,6 +848,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error searching Icecat by text:", error);
       res.status(500).json({ message: "Erro interno ao buscar produtos no Icecat" });
+    }
+  });
+
+  // MERCADOLIBRE ROUTES - Busca híbrida e produtos paraguaios
+  
+  // Buscar produtos no MercadoLibre Paraguay
+  app.get('/api/mercadolibre/search', isAuthenticated, async (req: any, res) => {
+    try {
+      const { q, limit } = req.query;
+      
+      if (!q || q.trim().length < 2) {
+        return res.status(400).json({ message: "Busca deve ter pelo menos 2 caracteres" });
+      }
+      
+      const products = await searchMercadoLibreProducts(q.trim(), parseInt(limit as string) || 10);
+      
+      res.json({ 
+        products: products.map(convertMercadoLibreToProduct),
+        count: products.length,
+        source: 'mercadolibre'
+      });
+    } catch (error) {
+      console.error("Error searching MercadoLibre:", error);
+      res.status(500).json({ message: "Erro interno ao buscar produtos no MercadoLibre" });
+    }
+  });
+
+  // Buscar detalhes de produto específico no MercadoLibre
+  app.get('/api/mercadolibre/product/:itemId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { itemId } = req.params;
+      
+      if (!itemId) {
+        return res.status(400).json({ message: "ID do produto é obrigatório" });
+      }
+      
+      const product = await getMercadoLibreProductDetails(itemId);
+      const convertedProduct = convertMercadoLibreToProduct(product);
+      
+      res.json(convertedProduct);
+    } catch (error) {
+      console.error("Error getting MercadoLibre product details:", error);
+      res.status(500).json({ message: "Erro interno ao buscar detalhes do produto" });
+    }
+  });
+
+  // Busca híbrida: Icecat + MercadoLibre
+  app.get('/api/hybrid/search', isAuthenticated, async (req: any, res) => {
+    try {
+      const { q, lang } = req.query;
+      
+      if (!q || q.trim().length < 2) {
+        return res.status(400).json({ message: "Busca deve ter pelo menos 2 caracteres" });
+      }
+      
+      const results = {
+        icecat: [] as any[],
+        mercadolibre: [] as any[],
+        combined: [] as any[]
+      };
+      
+      try {
+        // Tentar buscar no Icecat primeiro
+        console.log(`🔍 Tentando buscar "${q}" no Icecat...`);
+        const { searchProductByText } = await import('./icecat');
+        const icecatProducts = await searchProductByText(q.trim(), (lang as string) || 'BR');
+        results.icecat = icecatProducts;
+        console.log(`✅ Icecat encontrou ${icecatProducts.length} produtos`);
+      } catch (icecatError) {
+        console.warn(`⚠️ Falha na busca Icecat: ${icecatError}`);
+      }
+      
+      try {
+        // Buscar no MercadoLibre como complemento
+        console.log(`🔍 Buscando "${q}" no MercadoLibre Paraguay...`);
+        const mlProducts = await hybridProductSearch(q.trim());
+        results.mercadolibre = mlProducts;
+        console.log(`✅ MercadoLibre encontrou ${mlProducts.length} produtos`);
+      } catch (mlError) {
+        console.warn(`⚠️ Falha na busca MercadoLibre: ${mlError}`);
+      }
+      
+      // Combinar resultados priorizando Icecat
+      results.combined = [
+        ...results.icecat.map((p: any) => ({ ...p, source: 'icecat', priority: 1 })),
+        ...results.mercadolibre.map((p: any) => ({ ...p, source: 'mercadolibre', priority: 2 }))
+      ].slice(0, 10); // Limitar a 10 resultados
+      
+      res.json({
+        query: q,
+        results,
+        totalFound: results.combined.length,
+        sources: {
+          icecat: results.icecat.length,
+          mercadolibre: results.mercadolibre.length
+        }
+      });
+      
+    } catch (error) {
+      console.error("Error in hybrid search:", error);
+      res.status(500).json({ message: "Erro interno na busca híbrida" });
     }
   });
 
