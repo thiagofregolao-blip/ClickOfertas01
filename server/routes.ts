@@ -807,6 +807,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Buscar produto no Icecat via GTIN
+  app.get('/api/icecat/product/:gtin', isAuthenticated, async (req: any, res) => {
+    try {
+      const { gtin } = req.params;
+      
+      if (!gtin || gtin.length < 8) {
+        return res.status(400).json({ message: "GTIN deve ter pelo menos 8 dígitos" });
+      }
+      
+      const { searchProductByGTIN } = await import('./icecat');
+      const product = await searchProductByGTIN(gtin);
+      
+      if (!product) {
+        return res.status(404).json({ message: "Produto não encontrado no catálogo Icecat" });
+      }
+      
+      res.json(product);
+    } catch (error) {
+      console.error("Error searching Icecat:", error);
+      res.status(500).json({ message: "Erro ao buscar produto no Icecat" });
+    }
+  });
+
   app.patch('/api/stores/:storeId/products/:productId', isAuthenticated, async (req: any, res) => {
     try {
       const { storeId, productId } = req.params;

@@ -43,6 +43,8 @@ export default function AdminProducts() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [addMoreProducts, setAddMoreProducts] = useState(false);
+  const [icecatSearching, setIcecatSearching] = useState(false);
+  const [gtinInput, setGtinInput] = useState("");
   
   const PRODUCTS_PER_PAGE = 15;
 
@@ -91,6 +93,11 @@ export default function AdminProducts() {
       scratchTimeLimitMinutes: "60",
       maxScratchRedemptions: "10",
       scratchMessage: "Você ganhou um super desconto! Raspe aqui e confira",
+      // Campos Icecat
+      gtin: "",
+      brand: "",
+      productCode: "",
+      sourceType: "manual",
     },
   });
 
