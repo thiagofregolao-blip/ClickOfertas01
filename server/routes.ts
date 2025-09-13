@@ -11,20 +11,22 @@ import fs from "fs";
 // Middleware para verificar autenticação (sessão manual ou Replit Auth)
 const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
   try {
-    // Verificar sessão manual primeiro (usuários registrados via formulário)
+    // 1. Verificar sessão manual primeiro (usuários registrados via formulário)
     if (req.session?.user) {
       return next();
     }
     
-    // Verificar autenticação Replit como fallback
+    // 2. Verificar Replit OIDC Auth (sistema principal do projeto)
     if (req.user?.claims?.sub || req.user?.id) {
       return next();
     }
     
+    // Se nenhuma autenticação foi encontrada, negar acesso
     return res.status(401).json({ message: "Unauthorized" });
+    
   } catch (error) {
-    console.error("Error checking authentication:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error('Erro no middleware de autenticação:', error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -854,7 +856,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // MERCADOLIBRE ROUTES - Busca híbrida e produtos paraguaios
   
   // Buscar produtos no MercadoLibre Paraguay
-  app.get('/api/mercadolibre/search', isAuthenticated, async (req: any, res) => {
+  app.get('/api/mercadolibre/search', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const { q, limit } = req.query;
       
@@ -876,7 +878,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Buscar detalhes de produto específico no MercadoLibre
-  app.get('/api/mercadolibre/product/:itemId', isAuthenticated, async (req: any, res) => {
+  app.get('/api/mercadolibre/product/:itemId', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const { itemId } = req.params;
       
@@ -895,7 +897,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Busca híbrida: Icecat + MercadoLibre
-  app.get('/api/hybrid/search', isAuthenticated, async (req: any, res) => {
+  app.get('/api/hybrid/search', isAuthenticatedCustom, async (req: any, res) => {
     try {
       const { q, lang } = req.query;
       
@@ -930,10 +932,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn(`⚠️ Falha na busca MercadoLibre: ${mlError}`);
       }
       
-      // Combinar resultados priorizando Icecat
+      // Normalizar formatos antes de combinar (garantir compatibilidade frontend)
+      const normalizedIcecat = results.icecat.map((p: any) => ({
+        ...p,
+        source: 'icecat',
+        priority: 1,
+        price: p.price?.toString() || "0", // Garantir string para formulário
+        sourceType: 'icecat'
+      }));
+      
+      const normalizedML = results.mercadolibre.map((p: any) => ({
+        ...p,
+        source: 'mercadolibre', 
+        priority: 2,
+        price: p.price?.toString() || "0", // Garantir string para formulário
+        sourceType: 'mercadolibre'
+      }));
+      
+      // Combinar resultados normalizados
       results.combined = [
-        ...results.icecat.map((p: any) => ({ ...p, source: 'icecat', priority: 1 })),
-        ...results.mercadolibre.map((p: any) => ({ ...p, source: 'mercadolibre', priority: 2 }))
+        ...normalizedIcecat,
+        ...normalizedML
       ].slice(0, 10); // Limitar a 10 resultados
       
       res.json({

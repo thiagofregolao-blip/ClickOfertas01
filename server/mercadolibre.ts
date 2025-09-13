@@ -105,17 +105,57 @@ export async function getMercadoLibreProductDetails(itemId: string): Promise<Mer
  * Converte produto MercadoLibre para formato compatível com nosso sistema
  */
 export function convertMercadoLibreToProduct(mlProduct: MercadoLibreProduct) {
-  // Extrair categoria do MercadoLibre
-  const getCategory = (categoryId: string): string => {
-    if (categoryId.includes('celulares') || categoryId.includes('smartphones')) return 'Smartphones';
-    if (categoryId.includes('audio') || categoryId.includes('parlantes') || categoryId.includes('auriculares')) return 'Áudio';
-    if (categoryId.includes('computacion') || categoryId.includes('notebook') || categoryId.includes('pc')) return 'Computadores';
-    if (categoryId.includes('gaming') || categoryId.includes('juegos') || categoryId.includes('consolas')) return 'Consoles';
-    if (categoryId.includes('casa') || categoryId.includes('hogar') || categoryId.includes('electrodomesticos')) return 'Eletroportáteis';
-    if (categoryId.includes('accesorios') || categoryId.includes('cables') || categoryId.includes('cargadores')) return 'Acessórios';
-    if (categoryId.includes('redes') || categoryId.includes('wifi') || categoryId.includes('router')) return 'Redes';
-    if (categoryId.includes('almacenamiento') || categoryId.includes('pendrive') || categoryId.includes('memoria')) return 'Armazenamento';
-    return 'Eletrônicos'; // fallback
+  // 🎯 MAPEAMENTO INTELIGENTE: usa título (category_id são IDs técnicos como MPY123456)
+  const getCategory = (product: MercadoLibreProduct): string => {
+    const title = product.title.toLowerCase();
+    
+    // Eletrônicos mais populares no Paraguai
+    if (title.includes('celular') || title.includes('móvil') || title.includes('smartphone') || title.includes('iphone') || title.includes('samsung galaxy')) {
+      return 'Eletrônicos > Celulares';
+    }
+    if (title.includes('notebook') || title.includes('laptop') || title.includes('computador') || title.includes('pc') || title.includes('macbook')) {
+      return 'Eletrônicos > Computadores';
+    }
+    if (title.includes('tablet') || title.includes('ipad')) {
+      return 'Eletrônicos > Tablets';
+    }
+    if (title.includes('fone') || title.includes('auricular') || title.includes('headphone') || title.includes('earbuds') || title.includes('airpods')) {
+      return 'Eletrônicos > Áudio';
+    }
+    if (title.includes('tv') || title.includes('televisor') || title.includes('smart tv') || title.includes('led') || title.includes('oled')) {
+      return 'Eletrônicos > TVs';
+    }
+    
+    // Perfumes e cosméticos (muito populares no turismo paraguaio)
+    if (title.includes('perfume') || title.includes('colônia') || title.includes('fragancia') || title.includes('eau de')) {
+      return 'Beleza > Perfumes';
+    }
+    if (title.includes('maquillaje') || title.includes('maquiagem') || title.includes('cosmético') || title.includes('labial') || title.includes('base')) {
+      return 'Beleza > Maquiagem';
+    }
+    
+    // Bebidas (outro forte do Paraguai)
+    if (title.includes('whisky') || title.includes('vodka') || title.includes('gin') || title.includes('rum') || title.includes('licor')) {
+      return 'Bebidas > Destilados';
+    }
+    if (title.includes('vinho') || title.includes('vino') || title.includes('cerveja') || title.includes('cerveza')) {
+      return 'Bebidas > Vinhos e Cervejas';
+    }
+    
+    // Moda
+    if (title.includes('roupa') || title.includes('ropa') || title.includes('camiseta') || title.includes('camisa') || title.includes('vestido') || title.includes('calça')) {
+      return 'Moda > Roupas';
+    }
+    if (title.includes('zapato') || title.includes('sapato') || title.includes('tênis') || title.includes('sneaker') || title.includes('sandália')) {
+      return 'Moda > Calçados';
+    }
+    
+    // Casa
+    if (title.includes('mueble') || title.includes('móvel') || title.includes('mesa') || title.includes('silla') || title.includes('sofá')) {
+      return 'Casa > Móveis';
+    }
+    
+    return 'Geral > Diversos'; // fallback mais neutro
   };
 
   // Extrair marca dos atributos ou título
@@ -157,7 +197,7 @@ export function convertMercadoLibreToProduct(mlProduct: MercadoLibreProduct) {
     id: mlProduct.id,
     name: mlProduct.title,
     description: `Produto encontrado no MercadoLibre Paraguay. Preço: ${mlProduct.currency_id} ${mlProduct.price.toLocaleString()}. Condição: ${mlProduct.condition}`,
-    category: getCategory(mlProduct.category_id),
+    category: getCategory(mlProduct),
     brand: getBrand(mlProduct),
     images: images.filter(Boolean), // Remove URLs vazias
     price: mlProduct.price,
