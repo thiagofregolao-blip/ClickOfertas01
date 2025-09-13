@@ -280,13 +280,11 @@ export default function TotemDisplay() {
                 aspectRatio: (img.naturalWidth / img.naturalHeight).toFixed(2)
               });
 
-              // Rotacionar para horizontal e preencher toda a tela
+              // Rotacionar para horizontal mantendo dimensões simples
               img.style.transform = 'rotate(90deg)';
               img.style.transformOrigin = 'center center';
               img.style.objectFit = 'cover';
               img.style.objectPosition = 'center';
-              img.style.width = '100vh';
-              img.style.height = '100vw';
               img.style.imageRendering = 'optimizeQuality';
             }}
             onError={(e) => {
