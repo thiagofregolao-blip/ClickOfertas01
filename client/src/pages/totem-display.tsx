@@ -280,12 +280,14 @@ export default function TotemDisplay() {
                 aspectRatio: (img.naturalWidth / img.naturalHeight).toFixed(2)
               });
 
-              // Para totem vertical: mostrar imagem completa sem zoom/crop
-              // As imagens 1920x1080 devem aparecer completas na tela vertical
-              img.style.objectFit = 'contain';
+              // Rotacionar para horizontal e preencher toda a tela
+              img.style.transform = 'rotate(90deg)';
+              img.style.transformOrigin = 'center center';
+              img.style.objectFit = 'cover';
               img.style.objectPosition = 'center';
-              img.style.width = '100%';
-              img.style.height = '100%';
+              img.style.width = '100vh';
+              img.style.height = '100vw';
+              img.style.imageRendering = 'optimizeQuality';
             }}
             onError={(e) => {
               console.error('❌ Erro ao carregar imagem:', currentContent.mediaUrl);
