@@ -11,6 +11,7 @@ import AdminStoreConfig from "@/pages/admin-store-config";
 import AdminProducts from "@/pages/admin-products";
 import AdminPromotions from "@/pages/admin-promotions";
 import AdminTotem from "@/pages/admin-totem";
+import AdminStories from "@/pages/admin-stories";
 import Analytics from "@/pages/analytics";
 import TotemDisplay from "@/pages/totem-display";
 import PublicFlyer from "@/pages/public-flyer";
@@ -160,6 +161,7 @@ function Router() {
           <Route path="/admin/products" component={AdminProducts} />
           <Route path="/admin/promotions" component={AdminPromotions} />
           <Route path="/admin/totem" component={AdminTotem} />
+          <Route path="/admin/stories" component={AdminStories} />
           <Route path="/admin/analytics" component={Analytics} />
           <Route path="/super-admin" component={SuperAdminLogin} />
           <Route path="/super-admin-login" component={SuperAdminLogin} />
