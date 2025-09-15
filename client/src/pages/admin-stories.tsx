@@ -2,18 +2,21 @@ import AdminLayout from "@/components/admin-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Eye, Trash2, Clock, Users } from "lucide-react";
+import { Plus, Eye, Trash2, Clock, Users, X } from "lucide-react";
 import { Link } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { InstagramStory } from "@shared/schema";
+import { useState } from "react";
 
 export default function AdminStories() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedStory, setSelectedStory] = useState<InstagramStory | null>(null);
 
   // Buscar stories da loja
   const { data: stories, isLoading } = useQuery<InstagramStory[]>({
@@ -183,12 +186,15 @@ export default function AdminStories() {
                       </div>
                       
                       <div className="flex gap-2 pt-2">
-                        <Link href={`/stories-feed?story=${story.id}`}>
-                          <Button variant="outline" size="sm" data-testid={`button-view-story-${story.id}`}>
-                            <Eye className="w-4 h-4 mr-1" />
-                            Ver
-                          </Button>
-                        </Link>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          data-testid={`button-view-story-${story.id}`}
+                          onClick={() => setSelectedStory(story)}
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          Ver
+                        </Button>
                         
                         <Button
                           variant="destructive"
@@ -282,6 +288,71 @@ export default function AdminStories() {
           </Card>
         )}
       </div>
+
+      {/* Story Preview Dialog */}
+      <Dialog open={!!selectedStory} onOpenChange={(open) => !open && setSelectedStory(null)}>
+        <DialogContent className="max-w-md mx-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Preview do Story</span>
+              <Button variant="ghost" size="sm" onClick={() => setSelectedStory(null)} data-testid="button-close-story">
+                <X className="w-4 h-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedStory && (
+            <div className="space-y-4">
+              {/* Story Media */}
+              {selectedStory.mediaUrl && (
+                <div className="w-full">
+                  {selectedStory.mediaType === 'photo' || selectedStory.mediaType === 'image' ? (
+                    <img
+                      src={selectedStory.mediaUrl}
+                      alt="Story"
+                      className="w-full max-h-96 object-cover rounded-md"
+                      data-testid={`popup-img-story-${selectedStory.id}`}
+                    />
+                  ) : (
+                    <video
+                      src={selectedStory.mediaUrl}
+                      className="w-full max-h-96 object-cover rounded-md"
+                      controls
+                      data-testid={`popup-video-story-${selectedStory.id}`}
+                    />
+                  )}
+                </div>
+              )}
+              
+              {/* Story Caption */}
+              {selectedStory.caption && (
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-700">{selectedStory.caption}</p>
+                </div>
+              )}
+              
+              {/* Story Stats */}
+              <div className="flex items-center justify-between text-sm text-gray-500 pt-2">
+                <div className="flex items-center gap-4">
+                  <span className="flex items-center gap-1">
+                    <Eye className="w-4 h-4" />
+                    {parseInt(selectedStory.viewsCount || "0")} visualizações
+                  </span>
+                  <Badge variant={selectedStory.isActive ? "default" : "outline"}>
+                    {selectedStory.isActive ? "Ativo" : "Expirado"}
+                  </Badge>
+                </div>
+                <span>
+                  {selectedStory.isActive 
+                    ? `Expira ${formatDistanceToNow(new Date(selectedStory.expiresAt), { addSuffix: true, locale: ptBR })}`
+                    : `Expirado ${formatDistanceToNow(new Date(selectedStory.expiresAt), { addSuffix: true, locale: ptBR })}`
+                  }
+                </span>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }
