@@ -9,26 +9,14 @@ import { Plus, Eye, Trash2, Clock, Users } from "lucide-react";
 import { Link } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
-interface Story {
-  id: string;
-  storeId: string;
-  storeName: string;
-  content: string;
-  imageUrl?: string;
-  videoUrl?: string;
-  isActive: boolean;
-  viewCount: number;
-  expiresAt: string;
-  createdAt: string;
-}
+import { InstagramStory } from "@shared/schema";
 
 export default function AdminStories() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Buscar stories da loja
-  const { data: stories, isLoading } = useQuery<Story[]>({
+  const { data: stories, isLoading } = useQuery<InstagramStory[]>({
     queryKey: ["/api/instagram-stories"],
   });
 
@@ -111,7 +99,7 @@ export default function AdminStories() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Total de Visualizações</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {stories?.reduce((sum, story) => sum + story.viewCount, 0) || 0}
+                    {stories?.reduce((sum, story) => sum + parseInt(story.viewsCount || "0"), 0) || 0}
                   </p>
                 </div>
               </div>
@@ -156,7 +144,7 @@ export default function AdminStories() {
                   <div key={story.id} className="border rounded-lg p-4">
                     {story.mediaUrl && (
                       <>
-                        {story.mediaType === 'photo' ? (
+                        {story.mediaType === 'photo' || story.mediaType === 'image' ? (
                           <img
                             src={story.mediaUrl}
                             alt="Story"
@@ -181,11 +169,11 @@ export default function AdminStories() {
                       </Badge>
                       
                       <p className="text-sm text-gray-600 line-clamp-2">
-                        {story.content}
+                        {story.caption}
                       </p>
                       
                       <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>{story.viewCount} visualizações</span>
+                        <span>{story.viewsCount} visualizações</span>
                         <span>
                           Expira {formatDistanceToNow(new Date(story.expiresAt), { 
                             addSuffix: true, 
@@ -236,7 +224,7 @@ export default function AdminStories() {
                   <div key={story.id} className="border rounded-lg p-4 opacity-60">
                     {story.mediaUrl && (
                       <>
-                        {story.mediaType === 'photo' ? (
+                        {story.mediaType === 'photo' || story.mediaType === 'image' ? (
                           <img
                             src={story.mediaUrl}
                             alt="Story"
@@ -261,11 +249,11 @@ export default function AdminStories() {
                       </Badge>
                       
                       <p className="text-sm text-gray-600 line-clamp-2">
-                        {story.content}
+                        {story.caption}
                       </p>
                       
                       <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>{story.viewCount} visualizações</span>
+                        <span>{story.viewsCount} visualizações</span>
                         <span>
                           Expirado {formatDistanceToNow(new Date(story.expiresAt), { 
                             addSuffix: true, 
