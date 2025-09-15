@@ -229,19 +229,6 @@ export default function AdminDashboard() {
                   <ExternalLink className="w-4 h-4 text-gray-400" />
                 </Button>
 
-                <RouterLink href="/admin/preview">
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-between p-4 h-auto hover:bg-gray-100"
-                    data-testid="button-preview"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Eye className="text-accent" />
-                      <span className="font-medium">Visualizar Panfleto</span>
-                    </div>
-                    <ExternalLink className="w-4 h-4 text-gray-400" />
-                  </Button>
-                </RouterLink>
 
                 <RouterLink href="/create-story">
                   <Button 
