@@ -1,0 +1,366 @@
+import { useQuery } from "@tanstack/react-query";
+import { useParams, Link, useLocation } from "wouter";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Star, MapPin, MessageCircle as WhatsApp, Instagram, ShoppingBag, Crown } from "lucide-react";
+import { formatPriceWithCurrency } from "@/lib/priceUtils";
+
+interface Store {
+  id: string;
+  name: string;
+  logoUrl?: string;
+  address?: string;
+  whatsapp?: string;
+  instagram?: string;
+  isPremium: boolean;
+  themeColor: string;
+}
+
+interface ProductInStore {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  imageUrl?: string;
+  imageUrl2?: string;
+  imageUrl3?: string;
+  category?: string;
+  brand?: string;
+  store: Store;
+}
+
+interface ProductComparisonData {
+  productName: string;
+  productImages: string[];
+  category?: string;
+  brand?: string;
+  description?: string;
+  storesWithProduct: ProductInStore[];
+}
+
+export default function ProductCompare() {
+  const { id } = useParams<{ id: string }>();
+  const [, setLocation] = useLocation();
+
+  // Buscar dados de comparação do produto
+  const { data: comparisonData, isLoading } = useQuery<ProductComparisonData>({
+    queryKey: ['/api/product-comparison', id],
+    enabled: !!id,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando comparação...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!comparisonData || !comparisonData.storesWithProduct.length) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Produto não encontrado</h1>
+          <p className="text-gray-600 mb-6">Não conseguimos encontrar este produto em nenhuma loja.</p>
+          <Button onClick={() => setLocation('/cards')} variant="default">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar às lojas
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Ordenar lojas: Premium primeiro, depois por preço
+  const sortedStores = comparisonData.storesWithProduct.sort((a, b) => {
+    // Primeiro critério: lojas premium vêm primeiro
+    if (a.store.isPremium && !b.store.isPremium) return -1;
+    if (!a.store.isPremium && b.store.isPremium) return 1;
+    
+    // Segundo critério: menor preço primeiro
+    return parseFloat(a.price.toString()) - parseFloat(b.price.toString());
+  });
+
+  const minPrice = Math.min(...comparisonData.storesWithProduct.map(p => parseFloat(p.price.toString())));
+  const maxPrice = Math.max(...comparisonData.storesWithProduct.map(p => parseFloat(p.price.toString())));
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b shadow-sm">
+        <div className="mx-auto max-w-6xl px-4 py-4">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => window.history.back()}
+              data-testid="button-back"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar
+            </Button>
+            <div>
+              <h1 className="text-lg font-semibold text-gray-900">
+                Comparar Preços
+              </h1>
+              <p className="text-sm text-gray-600">
+                {comparisonData.storesWithProduct.length} lojas encontradas
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        {/* Seção do Produto */}
+        <Card className="mb-8" data-testid="card-product-details">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Imagens do produto */}
+              <div className="space-y-4">
+                <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                  {comparisonData.productImages[0] ? (
+                    <img 
+                      src={comparisonData.productImages[0]} 
+                      alt={comparisonData.productName}
+                      className="w-full h-full object-cover"
+                      data-testid="img-product-main"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <ShoppingBag className="w-16 h-16" />
+                    </div>
+                  )}
+                </div>
+                
+                {/* Miniaturas das outras imagens */}
+                {comparisonData.productImages.length > 1 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {comparisonData.productImages.slice(1, 4).map((image, index) => (
+                      <div key={index} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                        <img 
+                          src={image} 
+                          alt={`${comparisonData.productName} - ${index + 2}`}
+                          className="w-full h-full object-cover"
+                          data-testid={`img-product-thumb-${index}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Informações do produto */}
+              <div className="md:col-span-2">
+                <div className="space-y-4">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900" data-testid="text-product-name">
+                      {comparisonData.productName}
+                    </h2>
+                    
+                    <div className="flex items-center gap-4 mt-2">
+                      {comparisonData.category && (
+                        <Badge variant="secondary" data-testid="badge-category">
+                          {comparisonData.category}
+                        </Badge>
+                      )}
+                      {comparisonData.brand && (
+                        <span className="text-sm text-gray-600" data-testid="text-brand">
+                          Marca: {comparisonData.brand}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {comparisonData.description && (
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-2">Descrição</h3>
+                      <p className="text-gray-700 text-sm leading-relaxed" data-testid="text-description">
+                        {comparisonData.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Resumo de preços */}
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-orange-900 mb-2">Resumo de Preços</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-sm text-orange-700">Menor preço</span>
+                        <p className="text-lg font-bold text-green-600" data-testid="text-min-price">
+                          {formatPriceWithCurrency(minPrice.toString(), 'US$')}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-sm text-orange-700">Maior preço</span>
+                        <p className="text-lg font-bold text-red-600" data-testid="text-max-price">
+                          {formatPriceWithCurrency(maxPrice.toString(), 'US$')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Lista de Lojas */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold text-gray-900">
+              Onde Comprar ({sortedStores.length} lojas)
+            </h3>
+            <div className="text-sm text-gray-600">
+              Ordenado por: lojas premium primeiro, depois menor preço
+            </div>
+          </div>
+
+          <div className="grid gap-4">
+            {sortedStores.map((productInStore, index) => {
+              const isLowestPrice = parseFloat(productInStore.price.toString()) === minPrice;
+              
+              return (
+                <Card 
+                  key={`${productInStore.store.id}-${productInStore.id}`} 
+                  className={`transition-all hover:shadow-md ${
+                    productInStore.store.isPremium ? 'border-yellow-300 bg-yellow-50' : 'bg-white'
+                  } ${isLowestPrice ? 'ring-2 ring-green-500' : ''}`}
+                  data-testid={`card-store-${productInStore.store.id}`}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      {/* Informações da loja */}
+                      <div className="flex items-center gap-4 flex-1">
+                        {/* Logo da loja */}
+                        <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                          {productInStore.store.logoUrl ? (
+                            <img 
+                              src={productInStore.store.logoUrl} 
+                              alt={productInStore.store.name}
+                              className="w-full h-full object-cover"
+                              data-testid={`img-store-logo-${productInStore.store.id}`}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              <ShoppingBag className="w-8 h-8" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Detalhes da loja */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-gray-900 truncate" data-testid={`text-store-name-${productInStore.store.id}`}>
+                              {productInStore.store.name}
+                            </h4>
+                            {productInStore.store.isPremium && (
+                              <Badge variant="default" className="bg-yellow-500 text-white" data-testid={`badge-premium-${productInStore.store.id}`}>
+                                <Crown className="w-3 h-3 mr-1" />
+                                Premium
+                              </Badge>
+                            )}
+                            {isLowestPrice && (
+                              <Badge variant="default" className="bg-green-500 text-white" data-testid={`badge-best-price-${productInStore.store.id}`}>
+                                <Star className="w-3 h-3 mr-1" />
+                                Melhor Preço
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          {productInStore.store.address && (
+                            <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
+                              <MapPin className="w-3 h-3" />
+                              <span className="truncate" data-testid={`text-store-address-${productInStore.store.id}`}>
+                                {productInStore.store.address}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Contatos da loja */}
+                          <div className="flex items-center gap-4">
+                            {productInStore.store.whatsapp && (
+                              <a 
+                                href={`https://wa.me/${productInStore.store.whatsapp}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-green-600 hover:text-green-700 text-sm"
+                                data-testid={`link-whatsapp-${productInStore.store.id}`}
+                              >
+                                <WhatsApp className="w-4 h-4" />
+                                WhatsApp
+                              </a>
+                            )}
+                            {productInStore.store.instagram && (
+                              <a 
+                                href={`https://instagram.com/${productInStore.store.instagram}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-pink-600 hover:text-pink-700 text-sm"
+                                data-testid={`link-instagram-${productInStore.store.id}`}
+                              >
+                                <Instagram className="w-4 h-4" />
+                                Instagram
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Preço e ações */}
+                      <div className="text-right flex-shrink-0 ml-4">
+                        <div className="mb-3">
+                          <p className="text-2xl font-bold text-gray-900" data-testid={`text-price-${productInStore.store.id}`}>
+                            {formatPriceWithCurrency(productInStore.price.toString(), 'US$')}
+                          </p>
+                          {index > 0 && (
+                            <p className="text-sm text-gray-600">
+                              {formatPriceWithCurrency(
+                                (parseFloat(productInStore.price.toString()) - minPrice).toFixed(2), 
+                                'US$ +'
+                              )} que o menor
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Link href={`/stores/${productInStore.store.id}`}>
+                            <Button 
+                              size="sm" 
+                              className="w-full"
+                              style={{ backgroundColor: productInStore.store.themeColor }}
+                              data-testid={`button-visit-store-${productInStore.store.id}`}
+                            >
+                              Visitar Loja
+                            </Button>
+                          </Link>
+                          
+                          {productInStore.store.whatsapp && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="w-full text-green-600 border-green-600 hover:bg-green-50"
+                              onClick={() => window.open(`https://wa.me/${productInStore.store.whatsapp}?text=Olá! Tenho interesse no produto: ${comparisonData.productName}`, '_blank')}
+                              data-testid={`button-whatsapp-${productInStore.store.id}`}
+                            >
+                              <WhatsApp className="w-4 h-4 mr-2" />
+                              Perguntar
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

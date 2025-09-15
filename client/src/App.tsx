@@ -23,6 +23,7 @@ import CouponDetails from "@/pages/coupon-details";
 import StoriesFeed from "@/pages/stories-feed";
 import CreateStory from "@/pages/create-story";
 import PriceComparison from "@/pages/price-comparison";
+import ProductCompare from "@/pages/product-compare";
 import SignupPage from "@/pages/signup";
 import SuperAdmin from "@/pages/super-admin";
 import SuperAdminLogin from "@/pages/super-admin-login";
@@ -96,6 +97,7 @@ function Router() {
         <Route path="/stories-feed" component={LoadingComponent} />
         <Route path="/create-story" component={LoadingComponent} />
         <Route path="/price-comparison" component={LoadingComponent} />
+        <Route path="/product/:id/compare" component={LoadingComponent} />
         <Route path="/daily-scratch" component={LoadingComponent} />
         <Route path="/apify-demo" component={LoadingComponent} />
         <Route path="/flyer/:slug" component={PublicFlyer} />
@@ -125,6 +127,7 @@ function Router() {
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
           <Route path="/price-comparison" component={PriceComparison} />
+          <Route path="/product/:id/compare" component={ProductCompare} />
           <Route path="/daily-scratch" component={DailyScratchPage} />
           <Route path="/apify-demo" component={ApifyDemo} />
           <Route path="/super-admin-login" component={SuperAdminLogin} />
@@ -171,6 +174,7 @@ function Router() {
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
           <Route path="/price-comparison" component={PriceComparison} />
+          <Route path="/product/:id/compare" component={ProductCompare} />
           <Route path="/daily-scratch" component={DailyScratchPage} />
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
@@ -188,6 +192,7 @@ function Router() {
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
           <Route path="/price-comparison" component={PriceComparison} />
+          <Route path="/product/:id/compare" component={ProductCompare} />
           <Route path="/daily-scratch" component={DailyScratchPage} />
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />

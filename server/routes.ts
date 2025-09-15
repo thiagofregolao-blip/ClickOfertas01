@@ -2723,6 +2723,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ========================
+  // COMPARAÇÃO DE PRODUTO INDIVIDUAL
+  // ========================
+  
+  // Endpoint para comparar um produto específico entre lojas
+  app.get('/api/product-comparison/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      if (!id) {
+        return res.status(400).json({ message: "Product ID é obrigatório" });
+      }
+
+      // Buscar o produto original
+      const originalProduct = await storage.getProductWithStore(id);
+      if (!originalProduct) {
+        return res.status(404).json({ message: "Produto não encontrado" });
+      }
+
+      // Buscar outros produtos com o mesmo nome ou GTIN nas outras lojas
+      const allStores = await storage.getAllActiveStores();
+      const storesWithProduct: Array<{
+        id: string;
+        name: string;
+        description?: string;
+        price: string;
+        imageUrl?: string;
+        imageUrl2?: string;
+        imageUrl3?: string;
+        category?: string;
+        brand?: string;
+        store: {
+          id: string;
+          name: string;
+          logoUrl?: string;
+          address?: string;
+          whatsapp?: string;
+          instagram?: string;
+          isPremium: boolean;
+          themeColor: string;
+        };
+      }> = [];
+
+      for (const store of allStores) {
+        // Buscar produtos da loja
+        const storeProducts = await storage.getStoreProducts(store.id);
+        
+        // Encontrar produtos similares (mesmo nome ou GTIN)
+        const similarProducts = storeProducts.filter(product => {
+          if (!product.isActive) return false;
+          
+          // Comparação por GTIN (se ambos tiverem)
+          if (originalProduct.gtin && product.gtin) {
+            return originalProduct.gtin === product.gtin;
+          }
+          
+          // Comparação por nome similar (normalizado)
+          const originalName = originalProduct.name.toLowerCase().trim();
+          const productName = product.name.toLowerCase().trim();
+          
+          // Verificar se os nomes são muito similares
+          return originalName === productName || 
+                 originalName.includes(productName) || 
+                 productName.includes(originalName) ||
+                 // Comparar palavras-chave importantes
+                 originalName.split(' ').some(word => 
+                   word.length > 3 && productName.includes(word)
+                 );
+        });
+
+        // Adicionar produtos encontrados com informações da loja
+        if (similarProducts.length > 0) {
+          similarProducts.forEach(product => {
+            storesWithProduct.push({
+              id: product.id,
+              name: product.name,
+              description: product.description,
+              price: product.price,
+              imageUrl: product.imageUrl,
+              imageUrl2: product.imageUrl2,
+              imageUrl3: product.imageUrl3,
+              category: product.category,
+              brand: product.brand,
+              store: {
+                id: store.id,
+                name: store.name,
+                logoUrl: store.logoUrl,
+                address: store.address,
+                whatsapp: store.whatsapp,
+                instagram: store.instagram,
+                isPremium: store.isPremium || false,
+                themeColor: store.themeColor || '#E11D48'
+              }
+            });
+          });
+        }
+      }
+
+      if (storesWithProduct.length === 0) {
+        return res.status(404).json({ 
+          message: "Nenhuma loja encontrada vendendo este produto" 
+        });
+      }
+
+      // Montar lista de imagens do produto (usar do produto original primeiro)
+      const productImages = [
+        originalProduct.imageUrl,
+        originalProduct.imageUrl2,
+        originalProduct.imageUrl3
+      ].filter(Boolean);
+
+      // Se não tiver imagens do original, pegar das outras lojas
+      if (productImages.length === 0) {
+        storesWithProduct.forEach(item => {
+          if (item.imageUrl) productImages.push(item.imageUrl);
+          if (item.imageUrl2) productImages.push(item.imageUrl2);
+          if (item.imageUrl3) productImages.push(item.imageUrl3);
+        });
+      }
+
+      // Resposta formatada para a página de comparação
+      const response = {
+        productName: originalProduct.name,
+        productImages: Array.from(new Set(productImages)), // Remover duplicatas
+        category: originalProduct.category,
+        brand: originalProduct.brand,
+        description: originalProduct.description,
+        storesWithProduct: storesWithProduct
+      };
+
+      res.json(response);
+      
+    } catch (error) {
+      console.error("Error in product comparison:", error);
+      res.status(500).json({ message: "Erro ao buscar comparação do produto" });
+    }
+  });
+
+  // ========================
   // ROTAS DO SISTEMA DE TOTEM
   // ========================
 
