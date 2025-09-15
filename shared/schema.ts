@@ -83,6 +83,7 @@ export const stores = pgTable("stores", {
   bannerGradient: varchar("banner_gradient", { length: 50 }).default("purple-to-pink"), // Gradiente: purple-to-pink, blue-to-cyan, etc.
   
   isActive: boolean("is_active").default(true),
+  isPremium: boolean("is_premium").default(false), // Lojas premium aparecem primeiro no comparativo
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
