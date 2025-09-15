@@ -154,12 +154,25 @@ export default function AdminStories() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {activeStories.map((story) => (
                   <div key={story.id} className="border rounded-lg p-4">
-                    {story.imageUrl && (
-                      <img
-                        src={story.imageUrl}
-                        alt="Story"
-                        className="w-full h-32 object-cover rounded-md mb-3"
-                      />
+                    {story.mediaUrl && (
+                      <>
+                        {story.mediaType === 'photo' ? (
+                          <img
+                            src={story.mediaUrl}
+                            alt="Story"
+                            className="w-full h-32 object-cover rounded-md mb-3"
+                            data-testid={`img-story-${story.id}`}
+                          />
+                        ) : (
+                          <video
+                            src={story.mediaUrl}
+                            className="w-full h-32 object-cover rounded-md mb-3"
+                            controls={false}
+                            muted
+                            data-testid={`video-story-${story.id}`}
+                          />
+                        )}
+                      </>
                     )}
                     
                     <div className="space-y-2">
@@ -221,12 +234,25 @@ export default function AdminStories() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {expiredStories.map((story) => (
                   <div key={story.id} className="border rounded-lg p-4 opacity-60">
-                    {story.imageUrl && (
-                      <img
-                        src={story.imageUrl}
-                        alt="Story"
-                        className="w-full h-32 object-cover rounded-md mb-3"
-                      />
+                    {story.mediaUrl && (
+                      <>
+                        {story.mediaType === 'photo' ? (
+                          <img
+                            src={story.mediaUrl}
+                            alt="Story"
+                            className="w-full h-32 object-cover rounded-md mb-3"
+                            data-testid={`img-expired-story-${story.id}`}
+                          />
+                        ) : (
+                          <video
+                            src={story.mediaUrl}
+                            className="w-full h-32 object-cover rounded-md mb-3"
+                            controls={false}
+                            muted
+                            data-testid={`video-expired-story-${story.id}`}
+                          />
+                        )}
+                      </>
                     )}
                     
                     <div className="space-y-2">
