@@ -2723,6 +2723,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ========================
+  // GERENCIAMENTO DE LOJAS PREMIUM (SUPER ADMIN)
+  // ========================
+
+  // Endpoint para listar todas as lojas (Super Admin)
+  app.get('/api/admin/all-stores', isSuperAdmin, async (req, res) => {
+    try {
+      const stores = await storage.getAllActiveStores();
+      
+      // Adicionar contagem de produtos para cada loja
+      const storesWithStats = await Promise.all(
+        stores.map(async (store) => {
+          try {
+            const products = await storage.getStoreProducts(store.id);
+            return {
+              ...store,
+              productCount: products.length,
+              isPremium: store.isPremium || false
+            };
+          } catch (error) {
+            console.error(`Erro ao buscar produtos da loja ${store.id}:`, error);
+            return {
+              ...store,
+              productCount: 0,
+              isPremium: store.isPremium || false
+            };
+          }
+        })
+      );
+
+      res.json(storesWithStats);
+    } catch (error) {
+      console.error("Error fetching all stores:", error);
+      res.status(500).json({ message: "Erro ao buscar lojas" });
+    }
+  });
+
+  // Endpoint para alterar status premium de uma loja (Super Admin)
+  app.patch('/api/admin/stores/:storeId/premium', isSuperAdmin, async (req, res) => {
+    try {
+      const { storeId } = req.params;
+      const { isPremium } = req.body;
+
+      if (typeof isPremium !== 'boolean') {
+        return res.status(400).json({ message: "isPremium deve ser um valor booleano" });
+      }
+
+      // Verificar se a loja existe
+      const store = await storage.getStore(storeId);
+      if (!store) {
+        return res.status(404).json({ message: "Loja não encontrada" });
+      }
+
+      // Atualizar status premium
+      const updatedStore = await storage.updateStore(storeId, { isPremium });
+      
+      res.json({
+        success: true,
+        store: updatedStore,
+        message: isPremium ? "Loja promovida para premium" : "Status premium removido"
+      });
+    } catch (error) {
+      console.error("Error updating store premium status:", error);
+      res.status(500).json({ message: "Erro ao atualizar status premium da loja" });
+    }
+  });
+
+  // ========================
   // COMPARAÇÃO DE PRODUTO INDIVIDUAL
   // ========================
   

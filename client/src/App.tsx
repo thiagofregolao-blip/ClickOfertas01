@@ -10,6 +10,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import AdminStoreConfig from "@/pages/admin-store-config";
 import AdminProducts from "@/pages/admin-products";
 import AdminPromotions from "@/pages/admin-promotions";
+import AdminPremiumStores from "@/pages/admin-premium-stores";
 import AdminTotem from "@/pages/admin-totem";
 import AdminStories from "@/pages/admin-stories";
 import Analytics from "@/pages/analytics";
@@ -155,13 +156,14 @@ function Router() {
           <Route path="/stores/:slug" component={PublicFlyer} />
           <Route path="/:slug" component={PublicFlyer} />
         </>
-      ) : user?.hasStore ? (
-        // Lojista logado - painel admin completo
+      ) : user?.hasStore || user?.isSuperAdmin ? (
+        // Lojista logado ou Super Admin - painel admin completo
         <>
           <Route path="/" component={Landing} />
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/config" component={AdminStoreConfig} />
           <Route path="/admin/products" component={AdminProducts} />
+          <Route path="/admin/premium-stores" component={AdminPremiumStores} />
           <Route path="/admin/promotions" component={AdminPromotions} />
           <Route path="/admin/totem" component={AdminTotem} />
           <Route path="/admin/stories" component={AdminStories} />

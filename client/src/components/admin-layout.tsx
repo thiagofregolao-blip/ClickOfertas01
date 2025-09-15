@@ -2,8 +2,9 @@ import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Settings, Package, Eye, BarChart3, LogOut, Menu, X, Gift, Monitor, Camera } from "lucide-react";
+import { FileText, Settings, Package, Eye, BarChart3, LogOut, Menu, X, Gift, Monitor, Camera, Crown } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import type { Store } from "@shared/schema";
 
 interface AdminLayoutProps {
@@ -13,17 +14,21 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   const { data: store } = useQuery<Store>({
     queryKey: ["/api/stores/me"],
     retry: false,
   });
 
+  // Build navigation array conditionally
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: BarChart3 },
     { name: "Configurações", href: "/admin/config", icon: Settings },
     { name: "Produtos", href: "/admin/products", icon: Package },
     { name: "Promoções", href: "/admin/promotions", icon: Gift },
+    // Only show "Lojas Premium" for super admins
+    ...(user?.isSuperAdmin ? [{ name: "Lojas Premium", href: "/admin/premium-stores", icon: Crown }] : []),
     { name: "Totem", href: "/admin/totem", icon: Monitor },
     { name: "Gerenciar Stories", href: "/admin/stories", icon: Camera },
     { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
