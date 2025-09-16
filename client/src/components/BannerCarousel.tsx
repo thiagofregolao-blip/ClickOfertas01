@@ -29,10 +29,149 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
     return null;
   }
 
-  // Test: Return simple div to verify component is not the issue
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isHover, setIsHover] = useState(false);
+
+  // Analytics - Registrar clique no banner
+  const handleBannerClick = async (banner: Banner) => {
+    try {
+      await fetch('/api/banners/click', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bannerId: banner.id,
+        }),
+      });
+    } catch (error) {
+      console.error('Erro ao registrar clique:', error);
+    }
+
+    // Abrir link se existir
+    if (banner.linkUrl) {
+      window.open(banner.linkUrl, '_blank');
+    }
+  };
+
+  // Auto-play
+  useEffect(() => {
+    if (banners.length <= 1 || isHover) return;
+    
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % banners.length);
+    }, autoPlayInterval);
+
+    return () => clearInterval(interval);
+  }, [banners.length, isHover, autoPlayInterval]);
+
+  // Navigation functions
+  const goToPrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
+  };
+
+  const goToNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % banners.length);
+  };
+
+  // Get visible banners (3 total: center + left + right)
+  const getVisibleBanners = () => {
+    if (banners.length === 1) {
+      return [{ banner: banners[0], position: 'center', index: 0 }];
+    }
+
+    if (banners.length === 2) {
+      return [
+        { banner: banners[(currentIndex - 1 + banners.length) % banners.length], position: 'left', index: (currentIndex - 1 + banners.length) % banners.length },
+        { banner: banners[currentIndex], position: 'center', index: currentIndex }
+      ];
+    }
+
+    return [
+      { banner: banners[(currentIndex - 1 + banners.length) % banners.length], position: 'left', index: (currentIndex - 1 + banners.length) % banners.length },
+      { banner: banners[currentIndex], position: 'center', index: currentIndex },
+      { banner: banners[(currentIndex + 1) % banners.length], position: 'right', index: (currentIndex + 1) % banners.length }
+    ];
+  };
+
+  const visibleBanners = getVisibleBanners();
+
   return (
-    <div className="w-full h-40 md:h-52 lg:h-60 bg-blue-500 flex items-center justify-center text-white">
-      <p>Banner carousel working - {banners.length} banners found</p>
+    <div 
+      className="relative w-full overflow-hidden"
+      style={{ height: "clamp(160px, 28vw, 320px)" }}
+      onMouseEnter={() => setIsHover(true)}
+      onMouseLeave={() => setIsHover(false)}
+      data-testid="banner-carousel"
+    >
+      <div className="flex items-stretch h-full gap-6 px-4">
+        {visibleBanners.map(({ banner, position, index }) => (
+          <div
+            key={`${banner.id}-${position}`}
+            className={`
+              relative rounded-xl overflow-hidden transition-all duration-500 group cursor-pointer
+              ${position === 'center' ? 'flex-[0_0_70%] z-20' : 'flex-[0_0_15%] z-10'}
+              ${position !== 'center' ? 'opacity-60 hover:opacity-80' : ''}
+            `}
+            onClick={() => handleBannerClick(banner)}
+            data-testid={`banner-slide-${banner.id}`}
+          >
+            <img
+              src={banner.imageUrl}
+              alt={banner.title || "Banner"}
+              className="w-full h-full object-cover"
+              loading="lazy"
+              draggable="false"
+            />
+            
+            {/* Overlay effects */}
+            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+
+            {/* Navigation arrows - only on center banner */}
+            {position === 'center' && banners.length > 1 && (
+              <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToPrev();
+                  }}
+                  className="w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
+                  data-testid="banner-prev-btn"
+                >
+                  ←
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToNext();
+                  }}
+                  className="w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
+                  data-testid="banner-next-btn"
+                >
+                  →
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Indicators */}
+      {banners.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                index === currentIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/70'
+              }`}
+              data-testid={`banner-indicator-${index}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
