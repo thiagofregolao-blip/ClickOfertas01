@@ -181,22 +181,21 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
 
   // Carousel rotativo estilo Buscapé - loop contínuo
   return (
-    <div className="max-w-6xl mx-auto px-4">
+    <div 
+      ref={containerRef}
+      className="w-full h-48 md:h-64 lg:h-72 relative overflow-hidden"
+      onMouseEnter={pauseAutoplay}
+      onTouchStart={pauseAutoplay}
+    >
       <div 
-        ref={containerRef}
-        className="w-full h-40 md:h-48 lg:h-56 relative overflow-hidden"
-        onMouseEnter={pauseAutoplay}
-        onTouchStart={pauseAutoplay}
+        ref={trackRef}
+        className="flex h-full gap-4"
+        style={{
+          transform: `translate3d(-${offset}px, 0, 0)`,
+          transition: withTransition ? 'transform 700ms ease' : 'none'
+        }}
+        onTransitionEnd={handleTransitionEnd}
       >
-        <div 
-          ref={trackRef}
-          className="flex h-full gap-4"
-          style={{
-            transform: `translate3d(-${offset}px, 0, 0)`,
-            transition: withTransition ? 'transform 700ms ease' : 'none'
-          }}
-          onTransitionEnd={handleTransitionEnd}
-        >
         {extendedBanners.map((banner, index) => (
           <div
             key={`${banner.id}-${index}`}
@@ -245,29 +244,28 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
             </div>
           </div>
         ))}
-        </div>
-
-        {/* Indicadores */}
-        {banners.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-            {banners.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setCurrentIndex(index + 1); // +1 because of clone at beginning
-                  pauseAutoplay();
-                }}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === ((currentIndex - 1 + banners.length) % banners.length)
-                    ? 'bg-white scale-110'
-                    : 'bg-white/50 hover:bg-white/75'
-                }`}
-                data-testid={`banner-indicator-${index}`}
-              />
-            ))}
-          </div>
-        )}
       </div>
+
+      {/* Indicadores */}
+      {banners.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                setCurrentIndex(index + 1); // +1 because of clone at beginning
+                pauseAutoplay();
+              }}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                index === ((currentIndex - 1 + banners.length) % banners.length)
+                  ? 'bg-white scale-110'
+                  : 'bg-white/50 hover:bg-white/75'
+              }`}
+              data-testid={`banner-indicator-${index}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
