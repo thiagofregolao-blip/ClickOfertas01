@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface Banner {
   id: string;
@@ -66,21 +66,21 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     if (isAnimating) return;
     setIsAnimating(true);
     setCurrentIndex((prev) => (prev + 1) % banners.length);
-    setTimeout(() => setIsAnimating(false), 800);
+    setTimeout(() => setIsAnimating(false), 600);
   };
 
   const prev = () => {
     if (isAnimating) return;
     setIsAnimating(true);
     setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
-    setTimeout(() => setIsAnimating(false), 800);
+    setTimeout(() => setIsAnimating(false), 600);
   };
 
   const goTo = (index: number) => {
     if (isAnimating || index === currentIndex) return;
     setIsAnimating(true);
     setCurrentIndex(index);
-    setTimeout(() => setIsAnimating(false), 800);
+    setTimeout(() => setIsAnimating(false), 600);
   };
 
   // Índices dos banners
@@ -107,70 +107,48 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
         {banners.length > 1 && (
           <>
             {/* Preview Esquerdo - Cortado pela margem */}
-            <motion.div 
+            <div 
               className="absolute left-0 top-0 h-full w-1/3 overflow-hidden cursor-pointer hidden lg:block z-10"
               onClick={() => handleBannerClick(banners[prevIndex])}
               style={{ 
                 transform: "translateX(-47%)",
                 filter: "brightness(0.7)"
               }}
-              key={`left-${prevIndex}`}
-              initial={{ opacity: 0, x: -100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ 
-                duration: 0.8, 
-                ease: [0.25, 0.1, 0.25, 1],
-                type: "tween"
-              }}
             >
               <div className="relative h-full w-full rounded-xl overflow-hidden">
-                <motion.img
+                <img
                   src={banners[prevIndex].imageUrl}
                   alt={banners[prevIndex].title || "banner"}
-                  className="w-full h-full object-cover block"
+                  className="w-full h-full object-cover block transition-transform duration-300"
                   loading="lazy"
                   decoding="async"
                   draggable="false"
-                  initial={{ scale: 1.05 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  style={{ transform: "scale(1)" }}
                 />
               </div>
-            </motion.div>
+            </div>
 
             {/* Preview Direito - Cortado pela margem */}
-            <motion.div 
+            <div 
               className="absolute right-0 top-0 h-full w-1/3 overflow-hidden cursor-pointer hidden lg:block z-10"
               onClick={() => handleBannerClick(banners[nextIndex])}
               style={{ 
                 transform: "translateX(47%)",
                 filter: "brightness(0.7)"
               }}
-              key={`right-${nextIndex}`}
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 100 }}
-              transition={{ 
-                duration: 0.8, 
-                ease: [0.25, 0.1, 0.25, 1],
-                type: "tween"
-              }}
             >
               <div className="relative h-full w-full rounded-xl overflow-hidden">
-                <motion.img
+                <img
                   src={banners[nextIndex].imageUrl}
                   alt={banners[nextIndex].title || "banner"}
-                  className="w-full h-full object-cover block"
+                  className="w-full h-full object-cover block transition-transform duration-300"
                   loading="lazy"
                   decoding="async"
                   draggable="false"
-                  initial={{ scale: 1.05 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  style={{ transform: "scale(1)" }}
                 />
               </div>
-            </motion.div>
+            </div>
           </>
         )}
 
@@ -182,26 +160,18 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
             className="relative h-full w-full rounded-xl overflow-hidden cursor-pointer group z-20"
             onClick={() => handleBannerClick(banners[currentIndex])}
             data-testid={`banner-main-${banners[currentIndex].id}`}
-            key={`main-${currentIndex}`}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: isAnimating ? 0.98 : 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ 
-              duration: 0.8, 
-              ease: [0.25, 0.1, 0.25, 1],
-              type: "tween"
-            }}
+            initial={false}
+            animate={{ scale: isAnimating ? 0.98 : 1 }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
           >
-            <motion.img
+            <img
               src={banners[currentIndex].imageUrl}
               alt={banners[currentIndex].title || "banner"}
-              className="w-full h-full object-cover block"
+              className="w-full h-full object-cover block transition-transform duration-300"
               loading="lazy"
               decoding="async"
               draggable="false"
-              initial={{ scale: 1.05 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              style={{ transform: "scale(1)" }}
             />
 
             {/* Setas de navegação */}
