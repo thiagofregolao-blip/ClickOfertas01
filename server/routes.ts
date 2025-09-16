@@ -75,6 +75,9 @@ import bcrypt from "bcryptjs";
 import QRCode from "qrcode";
 import { apifyService, type PriceSearchResult } from "./apifyService";
 import { searchMercadoLibreProducts, getMercadoLibreProductDetails, convertMercadoLibreToProduct, hybridProductSearch } from "./mercadolibre";
+import { db } from "./db";
+import { products, stores } from "@shared/schema";
+import { eq, and, or, sql, asc, desc, innerJoin } from "drizzle-orm";
 
 // Simple in-memory cache with TTL
 class MemoryCache {
@@ -678,6 +681,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search endpoint with server-side filtering and cache
+  app.get('/api/search', async (req, res) => {
+    try {
+      const { q, limit = '20' } = req.query;
+      
+      if (!q || typeof q !== 'string' || q.trim().length < 2) {
+        return res.json({ results: [], total: 0 });
+      }
+
+      const searchTerm = q.trim().toLowerCase();
+      const resultLimit = Math.min(parseInt(limit as string) || 20, 50);
+      const cacheKey = `search-${searchTerm}-${resultLimit}`;
+      
+      const cached = cache.get(cacheKey);
+      if (cached) {
+        console.log(`🔍 Cache hit for search: "${searchTerm}"`);
+        return res.json(cached);
+      }
+      
+      console.log(`🔍 Cache miss for search: "${searchTerm}" - searching DB`);
+      
+      // Buscar produtos que correspondem ao termo de busca
+      const searchResults = await db
+        .select({
+          id: products.id,
+          name: products.name,
+          price: products.price,
+          imageUrl: products.imageUrl,
+          category: products.category,
+          brand: products.brand,
+          storeId: products.storeId,
+          storeName: stores.name,
+          storeLogoUrl: stores.logoUrl,
+          storeSlug: stores.slug,
+          storeThemeColor: stores.themeColor,
+          storePremium: stores.isPremium
+        })
+        .from(products)
+        .innerJoin(stores, eq(products.storeId, stores.id))
+        .where(and(
+          eq(products.isActive, true),
+          eq(stores.isActive, true),
+          or(
+            sql`LOWER(${products.name}) LIKE ${'%' + searchTerm + '%'}`,
+            sql`LOWER(${products.brand}) LIKE ${'%' + searchTerm + '%'}`,
+            sql`LOWER(${products.category}) LIKE ${'%' + searchTerm + '%'}`,
+            sql`LOWER(${stores.name}) LIKE ${'%' + searchTerm + '%'}`
+          )
+        ))
+        .orderBy(
+          desc(stores.isPremium), // Premium stores first
+          desc(products.isFeatured), // Featured products first
+          asc(products.name) // Then alphabetical
+        )
+        .limit(resultLimit);
+
+      const response = {
+        results: searchResults,
+        total: searchResults.length,
+        searchTerm: searchTerm
+      };
+      
+      // Cache for 2 minutes (search results change more frequently)
+      cache.set(cacheKey, response, 2 * 60 * 1000);
+      
+      res.json(response);
+    } catch (error) {
+      console.error("Error in search:", error);
+      res.status(500).json({ message: "Erro ao realizar busca" });
+    }
+  });
+
   // Public store routes
   app.get('/api/public/stores', async (req, res) => {
     try {
@@ -699,6 +774,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching active stores:", error);
       res.status(500).json({ message: "Failed to fetch stores" });
+    }
+  });
+
+  // Quick search endpoint (for autocomplete/suggestions)
+  app.get('/api/search/suggestions', async (req, res) => {
+    try {
+      const { q } = req.query;
+      
+      if (!q || typeof q !== 'string' || q.trim().length < 2) {
+        return res.json({ suggestions: [] });
+      }
+
+      const searchTerm = q.trim().toLowerCase();
+      const cacheKey = `suggestions-${searchTerm}`;
+      
+      const cached = cache.get(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
+      
+      // Get unique suggestions (product names, brands, categories)
+      const suggestions = await db
+        .select({
+          name: products.name,
+          brand: products.brand,
+          category: products.category
+        })
+        .from(products)
+        .innerJoin(stores, eq(products.storeId, stores.id))
+        .where(and(
+          eq(products.isActive, true),
+          eq(stores.isActive, true),
+          or(
+            sql`LOWER(${products.name}) LIKE ${'%' + searchTerm + '%'}`,
+            sql`LOWER(${products.brand}) LIKE ${'%' + searchTerm + '%'}`,
+            sql`LOWER(${products.category}) LIKE ${'%' + searchTerm + '%'}`
+          )
+        ))
+        .groupBy(products.name, products.brand, products.category)
+        .limit(10);
+
+      const uniqueSuggestions = new Set<string>();
+      suggestions.forEach(item => {
+        if (item.name && item.name.toLowerCase().includes(searchTerm)) {
+          uniqueSuggestions.add(item.name);
+        }
+        if (item.brand && item.brand.toLowerCase().includes(searchTerm)) {
+          uniqueSuggestions.add(item.brand);
+        }
+        if (item.category && item.category.toLowerCase().includes(searchTerm)) {
+          uniqueSuggestions.add(item.category);
+        }
+      });
+
+      const response = {
+        suggestions: Array.from(uniqueSuggestions).slice(0, 8)
+      };
+      
+      // Cache suggestions for 5 minutes
+      cache.set(cacheKey, response, 5 * 60 * 1000);
+      
+      res.json(response);
+    } catch (error) {
+      console.error("Error in search suggestions:", error);
+      res.status(500).json({ suggestions: [] });
     }
   });
 

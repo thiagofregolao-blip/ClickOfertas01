@@ -12,6 +12,27 @@ import { SearchResultItem } from "@/components/search-result-item";
 import { StoreResultItem } from "@/components/store-result-item";
 import type { StoreWithProducts } from "@shared/schema";
 
+interface SearchResult {
+  id: string;
+  name: string;
+  price: string;
+  imageUrl: string | null;
+  category: string | null;
+  brand: string | null;
+  storeId: string;
+  storeName: string;
+  storeLogoUrl: string | null;
+  storeSlug: string | null;
+  storeThemeColor: string | null;
+  storePremium: boolean | null;
+}
+
+interface SearchResponse {
+  results: SearchResult[];
+  total: number;
+  searchTerm: string;
+}
+
 interface GlobalHeaderProps {
   onSearch?: (query: string) => void;
   searchValue?: string;
@@ -32,10 +53,11 @@ export default function GlobalHeader({
   const searchQuery = useDebounce(searchInput, 500);
   const { trackEvent, sessionToken } = useAnalytics();
   
-  // Buscar stores para funcionalidade de busca
-  const { data: stores } = useQuery<StoreWithProducts[]>({
-    queryKey: ["/api/public/stores"],
-    staleTime: 5 * 60 * 1000,
+  // Busca server-side otimizada
+  const { data: searchData, isLoading: isSearchLoading } = useQuery<SearchResponse>({
+    queryKey: [`/api/search?q=${encodeURIComponent(searchQuery)}`],
+    enabled: !!searchQuery && searchQuery.trim().length >= 2,
+    staleTime: 2 * 60 * 1000, // 2 minutes cache
   });
   
   // Frases para placeholder dinâmico
@@ -55,52 +77,41 @@ export default function GlobalHeader({
     backspaceSpeed: 40
   });
 
-  // Criar resultados de busca
+  // Processar resultados de busca server-side
   const searchResults = useMemo(() => {
-    if (!searchQuery.trim() || !stores) return [];
+    if (!searchData?.results) return [];
     
-    const query = searchQuery.toLowerCase();
-    const results: Array<{ type: 'store' | 'product', data: any, store: any }> = [];
-    
-    stores.forEach(store => {
-      // Buscar lojas por nome
-      if (store.name.toLowerCase().includes(query)) {
-        results.push({ type: 'store', data: store, store });
+    return searchData.results.map(result => ({
+      type: 'product' as const,
+      data: {
+        ...result,
+        store: {
+          id: result.storeId,
+          name: result.storeName,
+          logoUrl: result.storeLogoUrl,
+          slug: result.storeSlug,
+          themeColor: result.storeThemeColor,
+          isPremium: result.storePremium
+        }
+      },
+      store: {
+        id: result.storeId,
+        name: result.storeName,
+        logoUrl: result.storeLogoUrl,
+        slug: result.storeSlug,
+        themeColor: result.storeThemeColor,
+        isPremium: result.storePremium
       }
-      
-      // Buscar produtos
-      store.products
-        .filter(product => 
-          product.isActive && (
-            product.name.toLowerCase().includes(query) ||
-            product.description?.toLowerCase().includes(query) ||
-            product.category?.toLowerCase().includes(query)
-          )
-        )
-        .forEach(product => {
-          results.push({ type: 'product', data: { ...product, store }, store });
-        });
-    });
-    
-    // Ordenar: lojas primeiro, depois produtos por preço
-    return results.sort((a, b) => {
-      if (a.type === 'store' && b.type === 'product') return -1;
-      if (a.type === 'product' && b.type === 'store') return 1;
-      if (a.type === 'product' && b.type === 'product') {
-        return Number(a.data.price || 0) - Number(b.data.price || 0);
-      }
-      return 0;
-    });
-  }, [searchQuery, stores]);
+    }));
+  }, [searchData]);
 
   // Capturar evento de busca
   useEffect(() => {
-    if (searchQuery && searchQuery.trim().length > 2 && sessionToken) {
+    if (searchQuery && searchQuery.trim().length > 2 && sessionToken && searchData) {
       // Determinar categoria mais comum nos resultados
-      const categories = searchResults
-        .filter(r => r.type === 'product')
-        .map(r => r.data.category)
-        .filter(Boolean);
+      const categories = searchData.results
+        ?.map(r => r.category)
+        .filter(Boolean) || [];
       const mostCommonCategory = categories.length > 0 
         ? categories.reduce((a, b, i, arr) => 
             arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
@@ -111,10 +122,10 @@ export default function GlobalHeader({
         sessionToken,
         searchTerm: searchQuery,
         category: mostCommonCategory,
-        resultsCount: searchResults.length
+        resultsCount: searchData.total || 0
       });
     }
-  }, [searchQuery, searchResults, sessionToken, trackEvent]);
+  }, [searchQuery, searchData, sessionToken, trackEvent]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,7 +137,7 @@ export default function GlobalHeader({
   };
 
   // Se houver busca ativa e showFullResults for true, mostrar em tela cheia
-  if (showFullResults && searchQuery && searchResults.length > 0) {
+  if (showFullResults && searchQuery && searchResults.length > 0 && !isSearchLoading) {
     return (
       <div className="min-h-screen bg-white">
         {/* Header fixo */}
@@ -208,32 +219,16 @@ export default function GlobalHeader({
             {searchResults.map((result, index) => (
               <Card key={`${result.type}-${result.data.id || index}`} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-0">
-                  {result.type === 'store' ? (
-                    <div 
-                      onClick={() => {
-                        setLocation(`/flyer/${result.data.slug}`);
-                        setSearchInput('');
-                        setIsSearchFocused(false);
-                      }}
-                      className="cursor-pointer"
-                    >
-                      <StoreResultItem
-                        store={result.data}
-                        searchQuery={searchQuery}
-                      />
-                    </div>
-                  ) : (
-                    <SearchResultItem
-                      product={result.data}
-                      store={result.store}
-                      searchTerm={searchQuery}
-                      onClick={() => {
-                        setLocation(`/product/${result.data.id}/compare`);
-                        setSearchInput('');
-                        setIsSearchFocused(false);
-                      }}
-                    />
-                  )}
+                  <SearchResultItem
+                    product={result.data}
+                    store={result.store}
+                    searchTerm={searchQuery}
+                    onClick={() => {
+                      setLocation(`/product/${result.data.id}/compare`);
+                      setSearchInput('');
+                      setIsSearchFocused(false);
+                    }}
+                  />
                 </CardContent>
               </Card>
             ))}
@@ -295,39 +290,24 @@ export default function GlobalHeader({
               </div>
               
               {/* Resultados compactos quando showFullResults = false */}
-              {!showFullResults && (isSearchFocused || searchInput) && searchResults.length > 0 && (
+              {!showFullResults && (isSearchFocused || searchInput) && searchResults.length > 0 && !isSearchLoading && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border z-50 max-h-96 overflow-y-auto">
                   <div className="p-2">
                     <div className="text-sm text-gray-600 mb-2 px-2">
-                      {searchResults.length} resultado{searchResults.length !== 1 ? 's' : ''} encontrado{searchResults.length !== 1 ? 's' : ''}
+                      {searchData?.total || 0} resultado{(searchData?.total || 0) !== 1 ? 's' : ''} encontrado{(searchData?.total || 0) !== 1 ? 's' : ''}
                     </div>
                     {searchResults.slice(0, 8).map((result, index) => (
                       <div key={`${result.type}-${result.data.id || index}`} className="mb-1">
-                        {result.type === 'store' ? (
-                          <div 
-                            onClick={() => {
-                              setLocation(`/flyer/${result.data.slug}`);
-                              setSearchInput('');
-                              setIsSearchFocused(false);
-                            }}
-                          >
-                            <StoreResultItem
-                              store={result.data}
-                              searchQuery={searchQuery}
-                            />
-                          </div>
-                        ) : (
-                          <SearchResultItem
-                            product={result.data}
-                            store={result.store}
-                            searchTerm={searchQuery}
-                            onClick={() => {
-                              setLocation(`/product/${result.data.id}/compare`);
-                              setSearchInput('');
-                              setIsSearchFocused(false);
-                            }}
-                          />
-                        )}
+                        <SearchResultItem
+                          product={result.data}
+                          store={result.store}
+                          searchTerm={searchQuery}
+                          onClick={() => {
+                            setLocation(`/product/${result.data.id}/compare`);
+                            setSearchInput('');
+                            setIsSearchFocused(false);
+                          }}
+                        />
                       </div>
                     ))}
                     {searchResults.length > 8 && (
@@ -341,7 +321,7 @@ export default function GlobalHeader({
                             setIsSearchFocused(false);
                           }}
                         >
-                          Ver todos os {searchResults.length} resultados
+                          Ver todos os {searchData?.total || searchResults.length} resultados
                         </Button>
                       </div>
                     )}
@@ -349,8 +329,18 @@ export default function GlobalHeader({
                 </div>
               )}
               
+              {/* Loading state */}
+              {!showFullResults && (isSearchFocused || searchInput) && searchQuery && isSearchLoading && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border z-50">
+                  <div className="p-4 text-center text-gray-500">
+                    <div className="animate-spin w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                    <p>Buscando...</p>
+                  </div>
+                </div>
+              )}
+              
               {/* Sem resultados */}
-              {!showFullResults && (isSearchFocused || searchInput) && searchQuery && searchResults.length === 0 && (
+              {!showFullResults && (isSearchFocused || searchInput) && searchQuery && searchResults.length === 0 && !isSearchLoading && searchData && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border z-50">
                   <div className="p-4 text-center text-gray-500">
                     <Search className="w-8 h-8 mx-auto mb-2 text-gray-300" />
