@@ -29,58 +29,12 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
     return null;
   }
 
-  // Se só tem um banner, mostrar como antes
-  if (banners.length === 1) {
-    const banner = banners[0];
-    return (
-      <div className="w-full h-40 md:h-52 lg:h-60">
-        <div
-          className="w-full h-full cursor-pointer relative group overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-          onClick={() => handleBannerClick(banner)}
-          data-testid={`banner-single-${banner.id}`}
-        >
-          <div 
-            className="w-full h-full flex items-center relative"
-            style={{ 
-              background: banner.backgroundColor || 'linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%)',
-              backgroundImage: banner.imageUrl ? `url(${banner.imageUrl})` : undefined,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat'
-            }}
-          >
-            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300" />
-            
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Analytics - Registrar clique no banner
-  const handleBannerClick = async (banner: Banner) => {
-    try {
-      await fetch('/api/banners/click', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          bannerId: banner.id,
-        }),
-      });
-    } catch (error) {
-      console.error('Erro ao registrar clique:', error);
-    }
-
-    // Abrir link se existir
-    if (banner.linkUrl) {
-      window.open(banner.linkUrl, '_blank');
-    }
-  };
-
-  return <BannerCarouselCore banners={banners} interval={autoPlayInterval} onBannerClick={handleBannerClick} />;
+  // Test: Return simple div to verify component is not the issue
+  return (
+    <div className="w-full h-40 md:h-52 lg:h-60 bg-blue-500 flex items-center justify-center text-white">
+      <p>Banner carousel working - {banners.length} banners found</p>
+    </div>
+  );
 }
 
 interface BannerCarouselCoreProps {
