@@ -111,7 +111,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               className="absolute left-0 top-0 h-full w-1/3 overflow-hidden cursor-pointer hidden lg:block z-10"
               onClick={() => handleBannerClick(banners[prevIndex])}
               style={{ 
-                transform: "translateX(-25%)",
+                transform: "translateX(-35%)",
                 filter: "brightness(0.7)"
               }}
             >
@@ -133,7 +133,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               className="absolute right-0 top-0 h-full w-1/3 overflow-hidden cursor-pointer hidden lg:block z-10"
               onClick={() => handleBannerClick(banners[nextIndex])}
               style={{ 
-                transform: "translateX(25%)",
+                transform: "translateX(35%)",
                 filter: "brightness(0.7)"
               }}
             >
