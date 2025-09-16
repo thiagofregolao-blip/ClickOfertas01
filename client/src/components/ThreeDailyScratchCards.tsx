@@ -20,16 +20,11 @@ interface MiniScratchCardProps {
   card: DailyScratchCard;
   onScratch: (cardId: string) => void;
   processingCardId?: string;
-}
-
-interface MiniScratchCardProps {
-  card: DailyScratchCard;
-  onScratch: (cardId: string) => void;
-  processingCardId?: string;
   funnyMessage?: FunnyMessage;
+  isCompact?: boolean;
 }
 
-function MiniScratchCard({ card, onScratch, processingCardId, funnyMessage }: MiniScratchCardProps) {
+function MiniScratchCard({ card, onScratch, processingCardId, funnyMessage, isCompact = false }: MiniScratchCardProps) {
   const [isRevealing, setIsRevealing] = useState(false);
   const [isScratching, setIsScratching] = useState(false);
   const [scratchProgress, setScratchProgress] = useState(0);
@@ -342,66 +337,93 @@ function MiniScratchCard({ card, onScratch, processingCardId, funnyMessage }: Mi
   return (
     <div
       className={`
-        relative w-full h-[110px] p-3 rounded-lg border-2 transition-all duration-300
+        relative transition-all duration-300
+        ${isCompact 
+          ? 'w-16 h-16 p-2 rounded-full border-2 flex flex-col items-center justify-center' 
+          : 'w-full h-[110px] p-3 rounded-lg border-2'
+        }
         ${getCardStyle()}
         ${isRevealing ? 'animate-pulse' : ''}
         ${!card.isScratched ? 'shadow-md hover:shadow-xl' : 'shadow-sm'}
       `}
       data-testid={`scratch-card-${card.cardNumber}`}
     >
-      {/* Número da carta */}
-      <div className="absolute top-1 left-1 w-5 h-5 bg-white/80 rounded-full flex items-center justify-center text-xs font-bold text-gray-600">
-        {card.cardNumber}
-      </div>
-
+      {/* Número da carta - apenas em modo normal */}
+      {!isCompact && (
+        <div className="absolute top-1 left-1 w-5 h-5 bg-white/80 rounded-full flex items-center justify-center text-xs font-bold text-gray-600">
+          {card.cardNumber}
+        </div>
+      )}
 
       {/* Conteúdo principal */}
-      <div className="h-full flex flex-col items-center justify-center space-y-2 relative z-0">
-        {getIcon()}
-        
-        {card.isScratched === true ? (
-          card.won === true ? (
-            <div className="text-center animate-bounce-once">
-              <div className="text-xs font-bold text-yellow-700 mb-1">🎉 GANHOU!</div>
-              <div className="text-xs text-yellow-600 font-medium">
-                {card.prizeValue?.includes('%') 
-                  ? `${card.prizeValue} OFF` 
-                  : `R$ ${card.prizeValue}`
-                }
-              </div>
-              <div className="text-xs text-yellow-500 mt-1 font-semibold">✨ Parabéns! ✨</div>
-            </div>
+      <div className={`${isCompact ? 'flex items-center justify-center' : 'h-full flex flex-col items-center justify-center space-y-2'} relative z-0`}>
+        {isCompact ? (
+          // Modo compacto: apenas ícone ou emoji
+          card.isScratched === true ? (
+            card.won === true ? (
+              <div className="text-lg">🎉</div>
+            ) : (
+              <div className="text-lg">{funnyMessage?.emoji || '😔'}</div>
+            )
+          ) : isRevealing === true ? (
+            <div className="text-lg animate-pulse">✨</div>
+          ) : isProcessing === true ? (
+            <div className="text-lg">⏳</div>
+          ) : isScratching === true ? (
+            <div className="text-lg animate-pulse">🔥</div>
           ) : (
-            <div className="text-center">
-              {funnyMessage ? (
-                <div className="text-xs font-medium text-gray-500">
-                  <span>{funnyMessage.emoji}</span> <span>{funnyMessage.message}</span>
+            <div className="text-lg">🎯</div>
+          )
+        ) : (
+          // Modo normal: conteúdo completo
+          <>
+            {getIcon()}
+            
+            {card.isScratched === true ? (
+              card.won === true ? (
+                <div className="text-center animate-bounce-once">
+                  <div className="text-xs font-bold text-yellow-700 mb-1">🎉 GANHOU!</div>
+                  <div className="text-xs text-yellow-600 font-medium">
+                    {card.prizeValue?.includes('%') 
+                      ? `${card.prizeValue} OFF` 
+                      : `R$ ${card.prizeValue}`
+                    }
+                  </div>
+                  <div className="text-xs text-yellow-500 mt-1 font-semibold">✨ Parabéns! ✨</div>
                 </div>
               ) : (
-                <div className="text-xs font-medium text-gray-500">Não foi dessa vez</div>
-              )}
-            </div>
-          )
-        ) : isRevealing === true ? (
-          <div className="text-center animate-pulse">
-            <div className="text-xs font-medium text-blue-700">✨ Revelando...</div>
-            <div className="text-xs font-bold text-blue-600">PRÊMIO</div>
-          </div>
-        ) : isProcessing === true ? (
-          <div className="text-center">
-            <div className="text-xs font-medium text-orange-700">⏳ Processando...</div>
-            <div className="text-xs font-bold text-orange-600">AGUARDE</div>
-          </div>
-        ) : isScratching === true ? (
-          <div className="text-center animate-pulse">
-            <div className="text-xs font-medium text-green-700">🔥 Raspando...</div>
-            <div className="text-xs font-bold text-green-600">CONTINUE!</div>
-          </div>
-        ) : (
-          <div className="text-center">
-            <div className="text-xs font-medium text-purple-700">Clique para</div>
-            <div className="text-xs font-bold text-purple-600">RASPAR</div>
-          </div>
+                <div className="text-center">
+                  {funnyMessage ? (
+                    <div className="text-xs font-medium text-gray-500">
+                      <span>{funnyMessage.emoji}</span> <span>{funnyMessage.message}</span>
+                    </div>
+                  ) : (
+                    <div className="text-xs font-medium text-gray-500">Não foi dessa vez</div>
+                  )}
+                </div>
+              )
+            ) : isRevealing === true ? (
+              <div className="text-center animate-pulse">
+                <div className="text-xs font-medium text-blue-700">✨ Revelando...</div>
+                <div className="text-xs font-bold text-blue-600">PRÊMIO</div>
+              </div>
+            ) : isProcessing === true ? (
+              <div className="text-center">
+                <div className="text-xs font-medium text-orange-700">⏳ Processando...</div>
+                <div className="text-xs font-bold text-orange-600">AGUARDE</div>
+              </div>
+            ) : isScratching === true ? (
+              <div className="text-center animate-pulse">
+                <div className="text-xs font-medium text-green-700">🔥 Raspando...</div>
+                <div className="text-xs font-bold text-green-600">CONTINUE!</div>
+              </div>
+            ) : (
+              <div className="text-center">
+                <div className="text-xs font-medium text-purple-700">Clique para</div>
+                <div className="text-xs font-bold text-purple-600">RASPAR</div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -434,8 +456,8 @@ function MiniScratchCard({ card, onScratch, processingCardId, funnyMessage }: Mi
         </div>
       )}
 
-      {/* Canvas de raspadinha APENAS para cartas não raspadas */}
-      {card.isScratched !== true && isRevealing !== true && isProcessing !== true && (
+      {/* Canvas de raspadinha APENAS para cartas não raspadas e modo normal */}
+      {!isCompact && card.isScratched !== true && isRevealing !== true && isProcessing !== true && (
         <canvas
           ref={canvasRef}
           className="absolute inset-0 w-full h-full rounded-lg cursor-pointer z-30"
@@ -450,8 +472,8 @@ function MiniScratchCard({ card, onScratch, processingCardId, funnyMessage }: Mi
         />
       )}
       
-      {/* Efeito sparkle para cartas não raspadas */}
-      {card.isScratched !== true && isRevealing !== true && isProcessing !== true && (
+      {/* Efeito sparkle para cartas não raspadas - apenas em modo normal */}
+      {!isCompact && card.isScratched !== true && isRevealing !== true && isProcessing !== true && (
         <Sparkles className="absolute top-2 right-2 w-3 h-3 text-purple-400 animate-pulse pointer-events-none z-20" />
       )}
     </div>
@@ -465,7 +487,11 @@ interface FunnyMessage {
   category: string;
 }
 
-export default function ThreeDailyScratchCards() {
+interface ThreeDailyScratchCardsProps {
+  isCompact?: boolean;
+}
+
+export default function ThreeDailyScratchCards({ isCompact = false }: ThreeDailyScratchCardsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [funnyMessages, setFunnyMessages] = useState<{ [cardId: string]: FunnyMessage }>({});
@@ -627,6 +653,25 @@ export default function ThreeDailyScratchCards() {
   const card5 = cards.find((c: DailyScratchCard) => c.cardNumber === '5');
   const card6 = cards.find((c: DailyScratchCard) => c.cardNumber === '6');
 
+  if (isCompact) {
+    // Modo compacto: linha horizontal com apenas as 3 primeiras cartas
+    return (
+      <div className="flex gap-2 items-center">
+        {[card1, card2, card3].filter(Boolean).map((card: DailyScratchCard) => (
+          <MiniScratchCard
+            key={card.id}
+            card={card}
+            onScratch={scratchMutation.mutate}
+            processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
+            funnyMessage={funnyMessages[card.id]}
+            isCompact={true}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // Modo normal: grade 3x2
   return (
     <div className="w-full space-y-[5px]">
       {/* Primeira linha: cartas 1, 2, 3 */}
@@ -637,6 +682,7 @@ export default function ThreeDailyScratchCards() {
             onScratch={scratchMutation.mutate}
             processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
             funnyMessage={funnyMessages[card1.id]}
+            isCompact={false}
           />
         )}
         {card2 && (
@@ -645,6 +691,7 @@ export default function ThreeDailyScratchCards() {
             onScratch={scratchMutation.mutate}
             processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
             funnyMessage={funnyMessages[card2.id]}
+            isCompact={false}
           />
         )}
         {card3 && (
@@ -653,6 +700,7 @@ export default function ThreeDailyScratchCards() {
             onScratch={scratchMutation.mutate}
             processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
             funnyMessage={funnyMessages[card3.id]}
+            isCompact={false}
           />
         )}
       </div>
@@ -665,6 +713,7 @@ export default function ThreeDailyScratchCards() {
             onScratch={scratchMutation.mutate}
             processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
             funnyMessage={funnyMessages[card4.id]}
+            isCompact={false}
           />
         )}
         {card5 && (
@@ -673,6 +722,7 @@ export default function ThreeDailyScratchCards() {
             onScratch={scratchMutation.mutate}
             processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
             funnyMessage={funnyMessages[card5.id]}
+            isCompact={false}
           />
         )}
         {card6 && (
@@ -681,6 +731,7 @@ export default function ThreeDailyScratchCards() {
             onScratch={scratchMutation.mutate}
             processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
             funnyMessage={funnyMessages[card6.id]}
+            isCompact={false}
           />
         )}
       </div>
