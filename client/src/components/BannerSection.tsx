@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { BannerCarousel } from './BannerCarousel';
 import { StaticBanner } from './StaticBanner';
+import ThreeDailyScratchCards from './ThreeDailyScratchCards';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Banner {
@@ -93,6 +94,10 @@ export function BannerSection({ isSearchActive = false }: BannerSectionProps) {
             </div>
           )}
 
+          {/* 3 Rapadinhas diárias para usuários autenticados */}
+          <div className="space-y-[5px]">
+            {isAuthenticated && <ThreeDailyScratchCards />}
+          </div>
         </div>
 
         {/* Layout mobile: banner de tela cheia com padding lateral */}
@@ -104,6 +109,12 @@ export function BannerSection({ isSearchActive = false }: BannerSectionProps) {
             </div>
           )}
 
+          {/* Rapadinhas diárias em mobile para usuários autenticados - ocultar quando busca ativa */}
+          {!isSearchActive && isAuthenticated && (
+            <div className="px-4 mt-4">
+              <ThreeDailyScratchCards />
+            </div>
+          )}
         </div>
       </div>
     </div>
