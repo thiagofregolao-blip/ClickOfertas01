@@ -120,22 +120,25 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
         }}
       >
         {/* Preview esquerdo - Coluna 1 */}
-        <div className="flex items-stretch justify-end h-full opacity-60 pr-4 sm:pr-6 lg:pr-8 pointer-events-auto">
+        <motion.div 
+          className="flex items-stretch justify-end h-full overflow-hidden"
+          animate={{ x: isAnimating ? (dir === 1 ? "-100%" : "100%") : "0%" }}
+          transition={snap ? { duration: 0 } : { duration: 0.6, ease: "easeInOut" }}
+        >
           <div 
-            className="relative h-full w-full max-w-[40rem] rounded-xl overflow-hidden cursor-pointer"
+            className="relative h-full w-full rounded-xl overflow-hidden cursor-pointer"
             onClick={() => handleBannerClick(items[left].banner)}
           >
             <img
               src={items[left]?.image}
               alt={items[left].banner.title || "banner"}
               className="w-full h-full object-cover block"
-              style={{ transform: "scale(0.84)" }}
               loading="lazy"
               decoding="async"
               draggable="false"
             />
           </div>
-        </div>
+        </motion.div>
 
         {/* Banner central - Coluna 2 (limitado pelo container principal) */}
         <div className="relative h-full overflow-hidden px-4 sm:px-6 lg:px-8">
@@ -192,22 +195,25 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
         </div>
 
         {/* Preview direito - Coluna 3 */}
-        <div className="flex items-stretch justify-start h-full opacity-60 pl-4 sm:pl-6 lg:pl-8 pointer-events-auto">
+        <motion.div 
+          className="flex items-stretch justify-start h-full overflow-hidden"
+          animate={{ x: isAnimating ? (dir === 1 ? "-100%" : "100%") : "0%" }}
+          transition={snap ? { duration: 0 } : { duration: 0.6, ease: "easeInOut" }}
+        >
           <div 
-            className="relative h-full w-full max-w-[40rem] rounded-xl overflow-hidden cursor-pointer"
+            className="relative h-full w-full rounded-xl overflow-hidden cursor-pointer"
             onClick={() => handleBannerClick(items[right].banner)}
           >
             <img
               src={items[right]?.image}
               alt={items[right].banner.title || "banner"}
               className="w-full h-full object-cover block"
-              style={{ transform: "scale(0.84)" }}
               loading="lazy"
               decoding="async"
               draggable="false"
             />
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Indicadores */}
