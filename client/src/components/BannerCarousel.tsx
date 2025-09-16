@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 interface Banner {
@@ -18,13 +18,12 @@ interface BannerCarouselProps {
 
 /**
  * Carrossel de Banners – MODELO BUSCAPÉ (3 visíveis com imagens)
- * - Proporção 70% | 15% | 15%
- * - Deslizamento contínuo (sem rebote)
- * - Setas aparecem sobre o banner central no hover
- * - Imagem sem fundo, preenchendo toda a altura (object-cover)
+ * Efeito solicitado: PAUSA (~4s) no banner central e depois desliza para a esquerda,
+ * trazendo o banner da direita para o centro. Sem rebote, sem morph de largura.
+ * Proporção fixa: 70% (centro) | 15% (esq) | 15% (dir)
  */
 
-export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarouselProps) {
+export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarouselProps) {
   if (!banners || banners.length === 0) {
     return null;
   }
@@ -59,42 +58,36 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
   }));
 
   const n = items.length;
-  const [center, setCenter] = useState(0);
-  const [dir, setDir] = useState(1); // 1 = direita->centro (vai para a esquerda); -1 = esquerda->centro
+  const [center, setCenter] = useState(0); // índice do item central
+  const [dir, setDir] = useState(1); // 1 = direita->centro (move trilho para a esquerda); -1 = esquerda->centro
   const [isAnimating, setIsAnimating] = useState(false);
+  const [snap, setSnap] = useState(false); // transição 0 para resetar trilho após animar
   const [isHover, setIsHover] = useState(false);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [snap, setSnap] = useState(false); // transição instantânea para resetar trilho após animar
 
   const i = (k: number) => (k + n) % n;
 
-  // autoplay
-  useEffect(() => {
-    if (isHover) return;
-    const id = setInterval(() => next(), autoPlayInterval);
-    return () => clearInterval(id);
-  }, [center, isHover, autoPlayInterval]);
+  // índices para compor as 3 posições visíveis + 1 buffer
+  const left = i(center - 1);
+  const right = i(center + 1);
+  const nextRight = i(center + 2);
 
-  // teclas ← →
+  // autoplay com PAUSA: espera dwellMs e então dispara uma animação de 15%
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") next();
-      if (e.key === "ArrowLeft") prev();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [center]);
+    if (isHover || isAnimating) return;
+    const id = setTimeout(() => startSlide(1), autoPlayInterval);
+    return () => clearTimeout(id);
+  }, [isHover, isAnimating, center, autoPlayInterval]);
 
-  const next = () => {
+  function startSlide(direction: 1 | -1) {
     if (isAnimating) return;
-    setDir(1);
+    setDir(direction);
     setIsAnimating(true);
-  };
-  const prev = () => {
-    if (isAnimating) return;
-    setDir(-1);
-    setIsAnimating(true);
-  };
+  }
+
+  // Controles manuais
+  const next = () => startSlide(1);
+  const prev = () => startSlide(-1);
 
   // Touch
   const onTouchStart = (e: React.TouchEvent) => setTouchStartX(e.touches[0].clientX);
@@ -107,29 +100,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
     }
   };
 
-  // Índices auxiliares
-  const prevLeft = i(center - 2);
-  const left = i(center - 1);
-  const right = i(center + 1);
-  const nextRight = i(center + 2);
-
-  // 4 cartões: 3 visíveis + 1 fora da viewport para continuidade
-  const slides = dir === 1
-    ? [
-        { idx: left, start: "15%", end: "15%" },
-        { idx: center, start: "70%", end: "15%" },
-        { idx: right, start: "15%", end: "70%" },
-        { idx: nextRight, start: "15%", end: "15%" },
-      ]
-    : [
-        { idx: prevLeft, start: "15%", end: "15%" },
-        { idx: left, start: "15%", end: "70%" },
-        { idx: center, start: "70%", end: "15%" },
-        { idx: right, start: "15%", end: "15%" },
-      ];
-
-  const duration = 0.6;
-
   return (
     <div
       className="relative w-full mx-auto select-none"
@@ -140,36 +110,32 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
       aria-roledescription="carousel"
       data-testid="banner-carousel"
     >
-      {/* Altura responsiva unificada para os três banners */}
+      {/* Altura responsiva unificada */}
       <motion.div className="relative overflow-hidden" style={{ height: "clamp(160px, 28vw, 480px)" }}>
         <motion.div
           className="relative flex items-stretch"
           style={{ gap: "24px", willChange: "transform" }}
           initial={false}
           animate={{ x: isAnimating ? (dir === 1 ? "-15%" : "15%") : "0%" }}
-          transition={snap ? { duration: 0 } : { duration, ease: "easeInOut" }}
+          transition={snap ? { duration: 0 } : { duration: 0.6, ease: "easeInOut" }}
           onAnimationComplete={() => {
             if (isAnimating) {
               setCenter((c) => i(c + dir));
               setIsAnimating(false);
+              // reseta trilho instantaneamente em x:0 para não "voltar"
               setSnap(true);
               requestAnimationFrame(() => setSnap(false));
             }
           }}
         >
-          {slides.map((s, k) => (
-            <Slide
-              key={`${s.idx}-${k}`}
-              item={items[s.idx]}
-              startBasis={s.start}
-              endBasis={s.end}
-              animateWidth={isAnimating}
-              duration={duration}
-              onPrev={prev}
-              onNext={next}
-              onBannerClick={handleBannerClick}
-            />
-          ))}
+          {/* esquerda (15%) */}
+          <Slide item={items[left]} startBasis="15%" onPrev={prev} onNext={next} onBannerClick={handleBannerClick} />
+          {/* centro (70%) */}
+          <Slide item={items[center]} startBasis="70%" onPrev={prev} onNext={next} onBannerClick={handleBannerClick} />
+          {/* direita (15%) */}
+          <Slide item={items[right]} startBasis="15%" onPrev={prev} onNext={next} onBannerClick={handleBannerClick} />
+          {/* buffer (fora da viewport) */}
+          <Slide item={items[nextRight]} startBasis="15%" onPrev={prev} onNext={next} onBannerClick={handleBannerClick} />
         </motion.div>
       </motion.div>
 
@@ -191,35 +157,24 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
   );
 }
 
-// Slide: controla a largura (flex-basis) de cada cartão e as setas quando está no centro visual
+// Slide: largura fixa por posição; setas visíveis quando no centro visual (70%)
 function Slide({
   item,
   startBasis,
-  endBasis,
-  animateWidth,
-  duration,
   onPrev,
   onNext,
   onBannerClick,
 }: {
   item: { id: string; image: string; banner: Banner };
   startBasis: string;
-  endBasis: string;
-  animateWidth: boolean;
-  duration: number;
   onPrev: () => void;
   onNext: () => void;
   onBannerClick: (banner: Banner) => void;
 }) {
-  const isCenterVisual = animateWidth ? endBasis === "70%" : startBasis === "70%";
+  const isCenterVisual = startBasis === "70%";
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ flexBasis: animateWidth ? endBasis : startBasis }}
-      transition={{ duration, ease: "easeInOut" }}
-      className="shrink-0 group"
-    >
+    <div style={{ flexBasis: startBasis }} className="shrink-0 group">
       <div 
         className="relative w-full h-full rounded-xl overflow-hidden cursor-pointer"
         onClick={() => onBannerClick(item.banner)}
@@ -233,10 +188,6 @@ function Slide({
           decoding="async"
           draggable="false"
         />
-
-        {/* Overlay effects */}
-        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300" />
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
 
         {isCenterVisual && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-between px-2 sm:px-3 md:px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -265,6 +216,6 @@ function Slide({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
