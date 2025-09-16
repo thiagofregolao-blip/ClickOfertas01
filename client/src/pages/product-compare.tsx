@@ -314,87 +314,27 @@ export default function ProductCompare() {
                   data-testid={`card-store-${productInStore.store.id}`}
                 >
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      {/* Informações da loja */}
-                      <div className="flex items-center gap-4 flex-1">
-                        {/* Logo da loja */}
-                        <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                          {productInStore.store.logoUrl ? (
+                    <div className="flex items-center gap-6">
+                      {/* Lado Esquerdo: Imagem do produto + Preços */}
+                      <div className="flex items-center gap-4 flex-shrink-0">
+                        {/* Imagem do produto */}
+                        <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                          {productInStore.imageUrl || comparisonData.productImages[0] ? (
                             <img 
-                              src={productInStore.store.logoUrl} 
-                              alt={productInStore.store.name}
+                              src={productInStore.imageUrl || comparisonData.productImages[0]} 
+                              alt={comparisonData.productName}
                               className="w-full h-full object-cover"
-                              data-testid={`img-store-logo-${productInStore.store.id}`}
+                              data-testid={`img-product-${productInStore.store.id}`}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400">
-                              <ShoppingBag className="w-8 h-8" />
+                              <ShoppingBag className="w-10 h-10" />
                             </div>
                           )}
                         </div>
 
-                        {/* Detalhes da loja */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold text-gray-900 truncate" data-testid={`text-store-name-${productInStore.store.id}`}>
-                              {productInStore.store.name}
-                            </h4>
-                            {productInStore.store.isPremium && (
-                              <Badge variant="default" className="bg-yellow-500 text-white" data-testid={`badge-premium-${productInStore.store.id}`}>
-                                <Crown className="w-3 h-3 mr-1" />
-                                Premium
-                              </Badge>
-                            )}
-                            {isLowestPrice && (
-                              <Badge variant="default" className="bg-green-500 text-white" data-testid={`badge-best-price-${productInStore.store.id}`}>
-                                <Star className="w-3 h-3 mr-1" />
-                                Melhor Preço
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          {productInStore.store.address && (
-                            <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
-                              <MapPin className="w-3 h-3" />
-                              <span className="truncate" data-testid={`text-store-address-${productInStore.store.id}`}>
-                                {productInStore.store.address}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Contatos da loja */}
-                          <div className="flex items-center gap-4">
-                            {productInStore.store.whatsapp && (
-                              <a 
-                                href={`https://wa.me/${productInStore.store.whatsapp}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1 text-green-600 hover:text-green-700 text-sm"
-                                data-testid={`link-whatsapp-${productInStore.store.id}`}
-                              >
-                                <WhatsApp className="w-4 h-4" />
-                                WhatsApp
-                              </a>
-                            )}
-                            {productInStore.store.instagram && (
-                              <a 
-                                href={`https://instagram.com/${productInStore.store.instagram}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1 text-pink-600 hover:text-pink-700 text-sm"
-                                data-testid={`link-instagram-${productInStore.store.id}`}
-                              >
-                                <Instagram className="w-4 h-4" />
-                                Instagram
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Preço e ações */}
-                      <div className="text-right flex-shrink-0 ml-4">
-                        <div className="mb-3">
+                        {/* Preços */}
+                        <div className="text-left">
                           <p className="text-2xl font-bold text-gray-900" data-testid={`text-price-${productInStore.store.id}`}>
                             {formatPriceWithCurrency(productInStore.price.toString(), 'US$')}
                           </p>
@@ -410,31 +350,114 @@ export default function ProductCompare() {
                             </p>
                           )}
                         </div>
+                      </div>
 
-                        <div className="flex gap-2">
-                          <Link href={`/stores/${productInStore.store.id}`} className="flex-1">
-                            <Button 
-                              size="sm" 
-                              className="w-full"
-                              style={{ backgroundColor: productInStore.store.themeColor }}
-                              data-testid={`button-visit-store-${productInStore.store.id}`}
-                            >
-                              Visitar Loja
-                            </Button>
-                          </Link>
-                          
-                          {productInStore.store.whatsapp && (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="flex-1 text-green-600 border-green-600 hover:bg-green-50"
-                              onClick={() => window.open(`https://wa.me/${productInStore.store.whatsapp}?text=Olá! Tenho interesse no produto: ${comparisonData.productName}`, '_blank')}
-                              data-testid={`button-whatsapp-${productInStore.store.id}`}
-                            >
-                              <WhatsApp className="w-4 h-4 mr-2" />
-                              Perguntar
-                            </Button>
-                          )}
+                      {/* Lado Direito: Informações da loja */}
+                      <div className="flex items-center justify-between flex-1 min-w-0">
+                        {/* Informações da loja */}
+                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                          {/* Logo da loja */}
+                          <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                            {productInStore.store.logoUrl ? (
+                              <img 
+                                src={productInStore.store.logoUrl} 
+                                alt={productInStore.store.name}
+                                className="w-full h-full object-cover"
+                                data-testid={`img-store-logo-${productInStore.store.id}`}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                <ShoppingBag className="w-8 h-8" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Detalhes da loja */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-semibold text-gray-900 truncate" data-testid={`text-store-name-${productInStore.store.id}`}>
+                                {productInStore.store.name}
+                              </h4>
+                              {productInStore.store.isPremium && (
+                                <Badge variant="default" className="bg-yellow-500 text-white" data-testid={`badge-premium-${productInStore.store.id}`}>
+                                  <Crown className="w-3 h-3 mr-1" />
+                                  Premium
+                                </Badge>
+                              )}
+                              {isLowestPrice && (
+                                <Badge variant="default" className="bg-green-500 text-white" data-testid={`badge-best-price-${productInStore.store.id}`}>
+                                  <Star className="w-3 h-3 mr-1" />
+                                  Melhor Preço
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            {productInStore.store.address && (
+                              <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
+                                <MapPin className="w-3 h-3" />
+                                <span className="truncate" data-testid={`text-store-address-${productInStore.store.id}`}>
+                                  {productInStore.store.address}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Contatos da loja */}
+                            <div className="flex items-center gap-4">
+                              {productInStore.store.whatsapp && (
+                                <a 
+                                  href={`https://wa.me/${productInStore.store.whatsapp}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 text-green-600 hover:text-green-700 text-sm"
+                                  data-testid={`link-whatsapp-${productInStore.store.id}`}
+                                >
+                                  <WhatsApp className="w-4 h-4" />
+                                  WhatsApp
+                                </a>
+                              )}
+                              {productInStore.store.instagram && (
+                                <a 
+                                  href={`https://instagram.com/${productInStore.store.instagram}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 text-pink-600 hover:text-pink-700 text-sm"
+                                  data-testid={`link-instagram-${productInStore.store.id}`}
+                                >
+                                  <Instagram className="w-4 h-4" />
+                                  Instagram
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Ações */}
+                        <div className="flex-shrink-0 ml-4">
+                          <div className="flex gap-2">
+                            <Link href={`/stores/${productInStore.store.id}`}>
+                              <Button 
+                                size="sm" 
+                                className="whitespace-nowrap"
+                                style={{ backgroundColor: productInStore.store.themeColor }}
+                                data-testid={`button-visit-store-${productInStore.store.id}`}
+                              >
+                                Visitar Loja
+                              </Button>
+                            </Link>
+                            
+                            {productInStore.store.whatsapp && (
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="text-green-600 border-green-600 hover:bg-green-50 whitespace-nowrap"
+                                onClick={() => window.open(`https://wa.me/${productInStore.store.whatsapp}?text=Olá! Tenho interesse no produto: ${comparisonData.productName}`, '_blank')}
+                                data-testid={`button-whatsapp-${productInStore.store.id}`}
+                              >
+                                <WhatsApp className="w-4 h-4 mr-2" />
+                                Perguntar
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
