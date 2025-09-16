@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ import { StoreResultItem } from "@/components/store-result-item";
 import { BannerSection } from "@/components/BannerSection";
 import { BannerCarousel } from "@/components/BannerCarousel";
 import ThreeDailyScratchCards from "@/components/ThreeDailyScratchCards";
+import { CircularScratchCard } from "@/components/CircularScratchCard";
 import GlobalHeader from "@/components/global-header";
 import type { StoreWithProducts, Product, InstagramStoryWithDetails } from "@shared/schema";
 import logoUrl from '../assets/logo.jpg';
@@ -240,6 +242,61 @@ export default function StoresGallery() {
     queryKey: ['/api/instagram-stories'],
     staleTime: 2 * 60 * 1000, // 2 minutos
   });
+
+  // Scratch Cards data
+  const { data: scratchCardsData } = useQuery({
+    queryKey: ['/api/daily-scratch/cards'],
+    refetchOnWindowFocus: false,
+    staleTime: 30 * 1000, // 30 segundos
+  });
+
+  const scratchCards = scratchCardsData?.cards || [];
+  const [funnyMessages, setFunnyMessages] = useState<{ [cardId: string]: any }>({});
+  const [processingCardId, setProcessingCardId] = useState<string | null>(null);
+
+  // Função para buscar mensagem engraçada aleatória
+  const fetchFunnyMessage = async () => {
+    const response = await fetch('/api/funny-messages/random');
+    if (!response.ok) {
+      throw new Error('Failed to fetch funny message');
+    }
+    return await response.json();
+  };
+
+  // Mutation para raspar uma carta
+  const scratchMutation = useMutation({
+    mutationFn: async (cardId: string) => {
+      const res = await apiRequest('POST', `/api/daily-scratch/cards/${cardId}/scratch`);
+      const data = await res.json();
+      return data;
+    },
+    onMutate: (cardId) => {
+      setProcessingCardId(cardId);
+    },
+    onSuccess: async (data: any, cardId: string) => {
+      setProcessingCardId(null);
+      
+      // Se perdeu, buscar uma mensagem engraçada
+      if (!data.won) {
+        try {
+          const funnyMessage = await fetchFunnyMessage();
+          setFunnyMessages(prev => ({
+            ...prev,
+            [cardId]: funnyMessage
+          }));
+        } catch (error) {
+          console.error('Failed to fetch funny message:', error);
+        }
+      }
+    },
+    onError: () => {
+      setProcessingCardId(null);
+    },
+  });
+
+  const handleScratchCard = (cardId: string) => {
+    scratchMutation.mutate(cardId);
+  };
   
   // Banners data para usar o BannerCarousel separadamente
   const { data: banners = [] } = useQuery({
@@ -514,6 +571,17 @@ export default function StoresGallery() {
                 </div>
               </div>
 
+              {/* Raspadinhas circulares - apenas para usuários autenticados */}
+              {isAuthenticated && scratchCards.slice(0, 3).map((card: any) => (
+                <CircularScratchCard
+                  key={card.id}
+                  card={card}
+                  onScratch={handleScratchCard}
+                  processingCardId={processingCardId}
+                  funnyMessage={funnyMessages[card.id]}
+                />
+              ))}
+
               {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
                 <div 
                   key={storyStore.id} 
@@ -750,6 +818,17 @@ export default function StoresGallery() {
                   <span className="block truncate">Criar Story</span>
                 </div>
               </div>
+
+              {/* Raspadinhas circulares - apenas para usuários autenticados */}
+              {isAuthenticated && scratchCards.slice(0, 3).map((card: any) => (
+                <CircularScratchCard
+                  key={card.id}
+                  card={card}
+                  onScratch={handleScratchCard}
+                  processingCardId={processingCardId}
+                  funnyMessage={funnyMessages[card.id]}
+                />
+              ))}
 
               {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
                 <div 
@@ -1103,12 +1182,6 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
         ) : (
           // Layout de Feed Normal
           <>
-            {/* Raspadinhas na mesma barra dos stores - apenas se não há busca ativa e usuário autenticado */}
-            {!searchQuery.trim() && isAuthenticated && (
-              <div className={`${isMobile ? 'px-3 mb-4' : 'px-2 mb-6'}`}>
-                <ThreeDailyScratchCards />
-              </div>
-            )}
             
             {stores.map((store) => (
               <StorePost 

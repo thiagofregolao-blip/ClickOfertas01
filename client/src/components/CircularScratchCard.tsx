@@ -1,0 +1,386 @@
+import { useState, useEffect, useRef } from 'react';
+import { Gift, Star, Sparkles } from 'lucide-react';
+import mascoteImage from '@/assets/mascote-click.png';
+
+interface DailyScratchCard {
+  id: string;
+  cardNumber: string;
+  isScratched: boolean;
+  won: boolean;
+  prizeType?: string;
+  prizeValue?: string;
+  prizeDescription?: string;
+  couponCode?: string;
+}
+
+interface FunnyMessage {
+  id: string;
+  message: string;
+  emoji: string;
+  category: string;
+}
+
+interface CircularScratchCardProps {
+  card: DailyScratchCard;
+  onScratch: (cardId: string) => void;
+  processingCardId?: string;
+  funnyMessage?: FunnyMessage;
+}
+
+export function CircularScratchCard({ card, onScratch, processingCardId, funnyMessage }: CircularScratchCardProps) {
+  const [isRevealing, setIsRevealing] = useState(false);
+  const [isScratching, setIsScratching] = useState(false);
+  const [scratchProgress, setScratchProgress] = useState(0);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const lastPoint = useRef<{ x: number; y: number } | null>(null);
+  const rafId = useRef<number | null>(null);
+  const needsProgressCalc = useRef<boolean>(false);
+  const lastScratchTime = useRef<number>(0);
+  const revelationStarted = useRef<boolean>(false);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const lastSoundTime = useRef<number>(0);
+
+  const SCRATCH_THROTTLE = 16; // ~60fps
+  const SOUND_COOLDOWN = 120; // ms entre sons
+  
+  // Reset scratching state when card changes
+  useEffect(() => {
+    if (card.isScratched) {
+      setIsScratching(false);
+      revelationStarted.current = false;
+    }
+  }, [card.isScratched, card.id]);
+
+  // Inicializar canvas circular com mascote
+  useEffect(() => {
+    if (card.isScratched || revelationStarted.current) return;
+    
+    setTimeout(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      const size = 80; // Tamanho circular fixo
+      
+      canvas.width = Math.round(size * dpr);
+      canvas.height = Math.round(size * dpr);
+      ctx.scale(dpr, dpr);
+      
+      canvas.style.width = size + 'px';
+      canvas.style.height = size + 'px';
+      
+      // Criar clipping circular
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI);
+      ctx.clip();
+
+      // Desenhar mascote como fundo circular
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, size, size);
+        
+        // Texto "RASPE" com contorno para contraste
+        ctx.font = 'bold 11px Arial';
+        ctx.textAlign = 'center';
+        
+        // Contorno preto para destacar sobre o mascote
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.lineJoin = 'round';
+        ctx.strokeText('RASPE', size / 2, size / 2 - 5);
+        ctx.strokeText('AQUI', size / 2, size / 2 + 8);
+        
+        // Texto branco por cima
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText('RASPE', size / 2, size / 2 - 5);
+        ctx.fillText('AQUI', size / 2, size / 2 + 8);
+      };
+      img.src = mascoteImage;
+      
+      startProgressLoop();
+    }, 100);
+  }, [card.id, card.isScratched]);
+
+  // Medir progresso real por alpha
+  const measureRealProgress = () => {
+    if (!canvasRef.current || !needsProgressCalc.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    try {
+      needsProgressCalc.current = false;
+      const step = 10;
+      
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      
+      let transparent = 0;
+      let total = 0;
+      
+      for (let i = 3; i < data.length; i += 4 * step) {
+        total++;
+        if (data[i] === 0) transparent++;
+      }
+      
+      const progress = total > 0 ? transparent / total : 0;
+      setScratchProgress(progress);
+      
+      // Revelar quando raspou 70%
+      if (progress >= 0.7 && !card.isScratched && !isRevealing && !revelationStarted.current) {
+        revelationStarted.current = true;
+        setIsRevealing(true);
+        setIsScratching(false);
+        
+        if (rafId.current) {
+          cancelAnimationFrame(rafId.current);
+          rafId.current = null;
+        }
+        
+        setTimeout(() => {
+          onScratch(card.id);
+          setIsRevealing(false);
+        }, 500);
+      }
+    } catch (e) {
+      // Fallback silencioso
+    }
+  };
+  
+  // Loop de RAF para medição
+  const startProgressLoop = () => {
+    if (rafId.current) return;
+    
+    const loop = () => {
+      measureRealProgress();
+      rafId.current = requestAnimationFrame(loop);
+    };
+    
+    rafId.current = requestAnimationFrame(loop);
+  };
+  
+  // Cleanup do RAF
+  useEffect(() => {
+    return () => {
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = null;
+      }
+    };
+  }, []);
+
+  // Determinar se esta carta específica está sendo processada
+  const isProcessing = processingCardId === card.id;
+
+  // Função de scratch circular
+  const handleScratch = (clientX: number, clientY: number) => {
+    if (!canvasRef.current || card.isScratched || isProcessing || revelationStarted.current) return;
+    
+    if (!isScratching) {
+      setIsScratching(true);
+    }
+
+    const now = Date.now();
+    if (now - lastScratchTime.current < SCRATCH_THROTTLE) return;
+    lastScratchTime.current = now;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    const scratchRadius = 8; // Raio menor para circular
+
+    // Som de raspagem
+    const soundNow = Date.now();
+    if (soundNow - lastSoundTime.current >= SOUND_COOLDOWN) {
+      try {
+        if (!audioCtxRef.current) {
+          audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        
+        const audioCtx = audioCtxRef.current;
+        const bufferSize = audioCtx.sampleRate * 0.1;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+        
+        const noiseSource = audioCtx.createBufferSource();
+        noiseSource.buffer = noiseBuffer;
+        
+        const highPassFilter = audioCtx.createBiquadFilter();
+        highPassFilter.type = 'highpass';
+        highPassFilter.frequency.setValueAtTime(2000, audioCtx.currentTime);
+        
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        
+        noiseSource.connect(highPassFilter);
+        highPassFilter.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        noiseSource.start();
+        noiseSource.stop(audioCtx.currentTime + 0.1);
+        
+        lastSoundTime.current = soundNow;
+      } catch (e) {
+        // Fallback silencioso para erros de audio
+      }
+    }
+
+    // Aplicar efeito de raspagem circular
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, scratchRadius, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    needsProgressCalc.current = true;
+  };
+
+  // Event handlers para mouse
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    lastPoint.current = { x: e.clientX, y: e.clientY };
+    handleScratch(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!lastPoint.current) return;
+    e.preventDefault();
+    handleScratch(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+  };
+
+  const handleMouseUp = () => {
+    lastPoint.current = null;
+  };
+
+  // Event handlers para touch
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    lastPoint.current = { x: touch.clientX, y: touch.clientY };
+    handleScratch(x, y);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!lastPoint.current) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    handleScratch(x, y);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    lastPoint.current = null;
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-1 flex-shrink-0">
+      <div className="relative w-20 h-20 rounded-full overflow-hidden">
+        {/* Fundo do resultado */}
+        <div className="absolute inset-0 w-full h-full rounded-full flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500">
+          {card.isScratched ? (
+            card.won ? (
+              <div className="text-center text-white">
+                <Gift className="w-6 h-6 mx-auto mb-1" />
+                <div className="text-xs font-bold">GANHOU!</div>
+              </div>
+            ) : (
+              <div className="text-center text-white">
+                <div className="text-lg">{funnyMessage?.emoji || '😔'}</div>
+                <div className="text-xs">{funnyMessage?.message || 'Tente novamente!'}</div>
+              </div>
+            )
+          ) : (
+            <div className="text-center text-white">
+              <Star className="w-6 h-6 mx-auto mb-1" />
+              <div className="text-xs">Card {card.cardNumber}</div>
+            </div>
+          )}
+        </div>
+
+        {/* Loading overlay para processamento */}
+        {isProcessing && (
+          <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+
+        {/* Overlay de revelação */}
+        {isRevealing && (
+          <div className="absolute inset-0 bg-yellow-400/30 rounded-full flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+
+        {/* Animação de confete para prêmios ganhos */}
+        {card.isScratched && card.won && !isRevealing && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-full">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-1 h-1 rounded-full animate-bounce"
+                style={{
+                  left: `${20 + (i * 12)}%`,
+                  top: `${15 + (i % 3) * 15}%`,
+                  backgroundColor: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'][i % 6],
+                  animationDelay: `${i * 100}ms`,
+                  animationDuration: '1.5s'
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Canvas de raspadinha APENAS para cartas não raspadas */}
+        {card.isScratched !== true && isRevealing !== true && isProcessing !== true && (
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full rounded-full cursor-pointer z-30"
+            style={{ touchAction: 'none' }}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onTouchMove={handleTouchMove}
+          />
+        )}
+        
+        {/* Efeito sparkle para cartas não raspadas */}
+        {card.isScratched !== true && isRevealing !== true && isProcessing !== true && (
+          <Sparkles className="absolute top-1 right-1 w-3 h-3 text-purple-400 animate-pulse pointer-events-none z-20" />
+        )}
+      </div>
+
+      {/* Nome da raspadinha */}
+      <span className="text-xs font-medium text-gray-800 text-center max-w-20 truncate">
+        Card {card.cardNumber}
+      </span>
+    </div>
+  );
+}
