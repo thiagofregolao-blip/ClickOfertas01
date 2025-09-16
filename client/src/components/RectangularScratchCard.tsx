@@ -25,9 +25,10 @@ interface RectangularScratchCardProps {
   onScratch: (cardId: string) => void;
   processingCardId?: string;
   funnyMessage?: FunnyMessage;
+  fetchingFunnyMessage?: boolean;
 }
 
-export function RectangularScratchCard({ card, onScratch, processingCardId, funnyMessage }: RectangularScratchCardProps) {
+export function RectangularScratchCard({ card, onScratch, processingCardId, funnyMessage, fetchingFunnyMessage }: RectangularScratchCardProps) {
   const [isRevealing, setIsRevealing] = useState(false);
   const [isScratching, setIsScratching] = useState(false);
   const [scratchProgress, setScratchProgress] = useState(0);
@@ -333,6 +334,13 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
               <div className="text-center text-white">
                 <Gift className="w-8 h-8 mx-auto mb-1" />
                 <div className="text-base font-bold">WIN!</div>
+              </div>
+            ) : fetchingFunnyMessage ? (
+              <div className="text-center text-white px-1 flex flex-col items-center justify-center h-full">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mb-1" />
+                <div className="text-xs leading-3 break-words text-center max-w-full">
+                  Buscando...
+                </div>
               </div>
             ) : (
               <div className="text-center text-white px-1 flex flex-col items-center justify-center h-full">

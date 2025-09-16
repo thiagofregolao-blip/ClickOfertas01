@@ -253,6 +253,7 @@ export default function StoresGallery() {
   const scratchCards = scratchCardsData?.cards || [];
   const [funnyMessages, setFunnyMessages] = useState<{ [cardId: string]: any }>({});
   const [processingCardId, setProcessingCardId] = useState<string | null>(null);
+  const [fetchingFunnyMessages, setFetchingFunnyMessages] = useState<Set<string>>(new Set());
 
 
   // Função para buscar mensagem engraçada aleatória
@@ -277,11 +278,10 @@ export default function StoresGallery() {
     onSuccess: async (data: any, cardId: string) => {
       setProcessingCardId(null);
       
-      // Invalidar cache para atualizar UI imediatamente
-      queryClient.invalidateQueries({ queryKey: ['/api/daily-scratch/cards'] });
-      
-      // Se perdeu, buscar uma mensagem engraçada
+      // Se perdeu, buscar mensagem engraçada ANTES de invalidar cache
       if (!data.won) {
+        setFetchingFunnyMessages(prev => new Set(Array.from(prev).concat([cardId])));
+        
         try {
           const funnyMessage = await fetchFunnyMessage();
           setFunnyMessages(prev => ({
@@ -290,11 +290,30 @@ export default function StoresGallery() {
           }));
         } catch (error) {
           console.error('Failed to fetch funny message:', error);
+          // Definir mensagem fallback em caso de erro
+          setFunnyMessages(prev => ({
+            ...prev,
+            [cardId]: { emoji: '😔', message: 'Tente novamente!' }
+          }));
+        } finally {
+          setFetchingFunnyMessages(prev => {
+            const newSet = new Set(Array.from(prev));
+            newSet.delete(cardId);
+            return newSet;
+          });
         }
       }
+      
+      // Invalidar cache após buscar mensagem engraçada (ou imediatamente se ganhou)
+      queryClient.invalidateQueries({ queryKey: ['/api/daily-scratch/cards'] });
     },
-    onError: () => {
+    onError: (error, cardId) => {
       setProcessingCardId(null);
+      setFetchingFunnyMessages(prev => {
+        const newSet = new Set(Array.from(prev));
+        newSet.delete(cardId);
+        return newSet;
+      });
     },
   });
 
@@ -583,6 +602,7 @@ export default function StoresGallery() {
                   onScratch={handleScratchCard}
                   processingCardId={processingCardId || undefined}
                   funnyMessage={funnyMessages[card.id]}
+                  fetchingFunnyMessage={fetchingFunnyMessages.has(card.id)}
                 />
               ))}
 
@@ -831,6 +851,7 @@ export default function StoresGallery() {
                   onScratch={handleScratchCard}
                   processingCardId={processingCardId || undefined}
                   funnyMessage={funnyMessages[card.id]}
+                  fetchingFunnyMessage={fetchingFunnyMessages.has(card.id)}
                 />
               ))}
 
