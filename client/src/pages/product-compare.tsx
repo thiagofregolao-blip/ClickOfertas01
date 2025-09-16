@@ -141,6 +141,32 @@ export default function ProductCompare() {
               {/* Informações do produto - Lado Direito */}
               <div className="p-8 flex flex-col justify-center">
                 <div className="space-y-6">
+                  {/* Logo da loja com menor preço */}
+                  {sortedStores[0]?.store && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gray-100 rounded-full overflow-hidden flex-shrink-0">
+                        {sortedStores[0].store.logoUrl ? (
+                          <img 
+                            src={sortedStores[0].store.logoUrl} 
+                            alt={sortedStores[0].store.name}
+                            className="w-full h-full object-cover"
+                            data-testid="img-best-store-logo"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <ShoppingBag className="w-6 h-6" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-600">Melhor oferta</span>
+                        <p className="font-semibold text-gray-900" data-testid="text-best-store-name">
+                          {sortedStores[0].store.name}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Nome do produto */}
                   <h1 className="text-3xl font-bold text-blue-600" data-testid="text-product-name">
                     {comparisonData.productName}
