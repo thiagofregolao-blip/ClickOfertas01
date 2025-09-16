@@ -67,24 +67,36 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     if (isAnimating) return;
     setIsAnimating(true);
     setSlideDirection('left');
-    setCurrentIndex((prev) => (prev + 1) % banners.length);
-    setTimeout(() => setIsAnimating(false), 600);
+    
+    // Após a animação, atualizar o índice
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev + 1) % banners.length);
+      setIsAnimating(false);
+    }, 600);
   };
 
   const prev = () => {
     if (isAnimating) return;
     setIsAnimating(true);
     setSlideDirection('right');
-    setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
-    setTimeout(() => setIsAnimating(false), 600);
+    
+    // Após a animação, atualizar o índice
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
+      setIsAnimating(false);
+    }, 600);
   };
 
   const goTo = (index: number) => {
     if (isAnimating || index === currentIndex) return;
     setIsAnimating(true);
     setSlideDirection(index > currentIndex ? 'left' : 'right');
-    setCurrentIndex(index);
-    setTimeout(() => setIsAnimating(false), 600);
+    
+    // Após a animação, atualizar o índice
+    setTimeout(() => {
+      setCurrentIndex(index);
+      setIsAnimating(false);
+    }, 600);
   };
 
   // Índices dos banners
@@ -99,23 +111,26 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       aria-roledescription="carousel"
       data-testid="banner-carousel"
     >
-      {/* Layout Mobile/Tablet - Carrossel com deslizamento */}
+      {/* Layout Mobile/Tablet - Carrossel com deslizamento contínuo */}
       <div className="xl:hidden relative w-full overflow-hidden" style={{ height: "clamp(80px, 15vw, 220px)" }}>
         <div className="relative h-full max-w-4xl mx-auto px-4">
           {/* Container dos banners deslizantes */}
-          <div className="relative h-full w-full">
+          <div className="relative h-full w-full overflow-hidden">
             <motion.div
-              className="flex h-full absolute top-0 left-0"
+              className="flex h-full"
               style={{ width: '300%' }}
               animate={{
-                x: slideDirection === 'left' && isAnimating ? '-33.333%' : 
-                   slideDirection === 'right' && isAnimating ? '33.333%' : '0%'
+                x: isAnimating 
+                  ? slideDirection === 'left' 
+                    ? '-100%'  // Todos deslizam para esquerda
+                    : '0%'     // Todos deslizam para direita  
+                  : '-33.333%' // Posição central (banner atual no meio)
               }}
               transition={{ duration: 0.6, ease: "easeInOut" }}
             >
               {/* Banner Anterior */}
               <div 
-                className="w-1/3 h-full px-2 cursor-pointer"
+                className="w-1/3 h-full px-2 cursor-pointer flex-shrink-0"
                 onClick={() => handleBannerClick(banners[prevIndex])}
               >
                 <div className="relative h-full w-full rounded-xl overflow-hidden">
@@ -133,7 +148,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               
               {/* Banner Atual */}
               <div 
-                className="w-1/3 h-full px-2 cursor-pointer group"
+                className="w-1/3 h-full px-2 cursor-pointer group flex-shrink-0"
                 onClick={() => handleBannerClick(banners[currentIndex])}
                 data-testid={`banner-main-mobile-${banners[currentIndex].id}`}
               >
@@ -177,7 +192,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               
               {/* Banner Próximo */}
               <div 
-                className="w-1/3 h-full px-2 cursor-pointer"
+                className="w-1/3 h-full px-2 cursor-pointer flex-shrink-0"
                 onClick={() => handleBannerClick(banners[nextIndex])}
               >
                 <div className="relative h-full w-full rounded-xl overflow-hidden">
@@ -218,11 +233,11 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               animate={{
                 x: isAnimating 
                   ? slideDirection === 'left' 
-                    ? 'calc(-47% + 33.333%)' 
+                    ? 'calc(-47% - 100%)' // Desliza para esquerda (sai da tela)
                     : slideDirection === 'right' 
-                      ? 'calc(-47% - 33.333%)'
+                      ? '53%' // Vem da direita para fechar o ciclo
                       : '-47%'
-                  : '-47%'
+                  : '-47%' // Posição normal
               }}
               transition={{ duration: 0.6, ease: "easeInOut" }}
             >
@@ -249,11 +264,11 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               animate={{
                 x: isAnimating 
                   ? slideDirection === 'left' 
-                    ? 'calc(47% + 33.333%)' 
+                    ? '0%' // Vem para o centro
                     : slideDirection === 'right' 
-                      ? 'calc(47% - 33.333%)'
+                      ? 'calc(47% + 100%)' // Desliza para direita (sai da tela)
                       : '47%'
-                  : '47%'
+                  : '47%' // Posição normal
               }}
               transition={{ duration: 0.6, ease: "easeInOut" }}
             >
@@ -283,11 +298,11 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
             animate={{
               x: isAnimating 
                 ? slideDirection === 'left' 
-                  ? '33.333%' 
+                  ? '-100%' // Desliza para esquerda (sai da tela)
                   : slideDirection === 'right' 
-                    ? '-33.333%'
+                    ? '100%' // Desliza para direita (sai da tela)
                     : '0%'
-                : '0%'
+                : '0%' // Posição central normal
             }}
             transition={{ duration: 0.6, ease: "easeInOut" }}
           >
