@@ -318,7 +318,7 @@ export default function ProductCompare() {
                       {/* Lado Esquerdo: Imagem do produto + Preços */}
                       <div className="flex items-center gap-4 flex-shrink-0">
                         {/* Imagem do produto */}
-                        <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                        <div className="relative w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                           {productInStore.imageUrl || comparisonData.productImages[0] ? (
                             <img 
                               src={productInStore.imageUrl || comparisonData.productImages[0]} 
@@ -330,6 +330,18 @@ export default function ProductCompare() {
                             <div className="w-full h-full flex items-center justify-center text-gray-400">
                               <ShoppingBag className="w-10 h-10" />
                             </div>
+                          )}
+                          
+                          {/* Badge Melhor Preço */}
+                          {isLowestPrice && (
+                            <Badge 
+                              variant="default" 
+                              className="absolute -top-1 -left-1 bg-green-500 text-white text-xs px-1 py-0.5 z-10" 
+                              data-testid={`badge-best-price-${productInStore.store.id}`}
+                            >
+                              <Star className="w-2 h-2 mr-1" />
+                              Melhor
+                            </Badge>
                           )}
                         </div>
 
@@ -390,20 +402,14 @@ export default function ProductCompare() {
                                 {productInStore.store.name}
                               </h4>
                               
-                              <div className="flex gap-1 mt-1">
-                                {productInStore.store.isPremium && (
+                              {productInStore.store.isPremium && (
+                                <div className="flex gap-1 mt-1">
                                   <Badge variant="default" className="bg-yellow-500 text-white text-xs" data-testid={`badge-premium-${productInStore.store.id}`}>
                                     <Crown className="w-2 h-2 mr-1" />
                                     Premium
                                   </Badge>
-                                )}
-                                {isLowestPrice && (
-                                  <Badge variant="default" className="bg-green-500 text-white text-xs" data-testid={`badge-best-price-${productInStore.store.id}`}>
-                                    <Star className="w-2 h-2 mr-1" />
-                                    Melhor Preço
-                                  </Badge>
-                                )}
-                              </div>
+                                </div>
+                              )}
                             </div>
                           </div>
                           
