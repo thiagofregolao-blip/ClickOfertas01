@@ -74,28 +74,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
     setCurrentIndex((prev) => (prev + 1) % banners.length);
   };
 
-  // Get visible banners (3 total: center + left + right)
-  const getVisibleBanners = () => {
-    if (banners.length === 1) {
-      return [{ banner: banners[0], position: 'center', index: 0 }];
-    }
-
-    if (banners.length === 2) {
-      return [
-        { banner: banners[(currentIndex - 1 + banners.length) % banners.length], position: 'left', index: (currentIndex - 1 + banners.length) % banners.length },
-        { banner: banners[currentIndex], position: 'center', index: currentIndex }
-      ];
-    }
-
-    return [
-      { banner: banners[(currentIndex - 1 + banners.length) % banners.length], position: 'left', index: (currentIndex - 1 + banners.length) % banners.length },
-      { banner: banners[currentIndex], position: 'center', index: currentIndex },
-      { banner: banners[(currentIndex + 1) % banners.length], position: 'right', index: (currentIndex + 1) % banners.length }
-    ];
-  };
-
-  const visibleBanners = getVisibleBanners();
-
   return (
     <div 
       className="relative w-full overflow-hidden"
@@ -104,22 +82,40 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
       onMouseLeave={() => setIsHover(false)}
       data-testid="banner-carousel"
     >
-      <div className="flex items-stretch h-full gap-6 px-4">
-        {visibleBanners.map(({ banner, position, index }) => (
+      {/* Container principal com 3 posições fixas */}
+      <div className="relative w-full h-full flex items-center justify-center gap-4 px-4">
+        
+        {/* Banner Esquerda (15%) */}
+        <div className="w-[15%] h-full relative">
+          {banners.length > 1 && (
+            <div
+              className="w-full h-full rounded-xl overflow-hidden cursor-pointer opacity-60 hover:opacity-80 transition-all duration-500 group"
+              onClick={() => handleBannerClick(banners[(currentIndex - 1 + banners.length) % banners.length])}
+              data-testid={`banner-slide-left`}
+            >
+              <img
+                src={banners[(currentIndex - 1 + banners.length) % banners.length].imageUrl}
+                alt="Banner anterior"
+                className="w-full h-full object-cover transition-transform duration-500"
+                loading="lazy"
+                draggable="false"
+              />
+              <div className="absolute inset-0 bg-black/20" />
+            </div>
+          )}
+        </div>
+
+        {/* Banner Centro (70%) */}
+        <div className="w-[70%] h-full relative">
           <div
-            key={`${banner.id}-${position}`}
-            className={`
-              relative rounded-xl overflow-hidden transition-all duration-500 group cursor-pointer
-              ${position === 'center' ? 'flex-[0_0_70%] z-20' : 'flex-[0_0_15%] z-10'}
-              ${position !== 'center' ? 'opacity-60 hover:opacity-80' : ''}
-            `}
-            onClick={() => handleBannerClick(banner)}
-            data-testid={`banner-slide-${banner.id}`}
+            className="w-full h-full rounded-xl overflow-hidden cursor-pointer transition-all duration-500 group relative z-10"
+            onClick={() => handleBannerClick(banners[currentIndex])}
+            data-testid={`banner-slide-center`}
           >
             <img
-              src={banner.imageUrl}
-              alt={banner.title || "Banner"}
-              className="w-full h-full object-cover"
+              src={banners[currentIndex].imageUrl}
+              alt={banners[currentIndex].title || "Banner central"}
+              className="w-full h-full object-cover transition-transform duration-500"
               loading="lazy"
               draggable="false"
             />
@@ -128,8 +124,8 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
             <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300" />
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
 
-            {/* Navigation arrows - only on center banner */}
-            {position === 'center' && banners.length > 1 && (
+            {/* Navigation arrows */}
+            {banners.length > 1 && (
               <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 <button
                   onClick={(e) => {
@@ -154,8 +150,40 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
               </div>
             )}
           </div>
-        ))}
+        </div>
+
+        {/* Banner Direita (15%) */}
+        <div className="w-[15%] h-full relative">
+          {banners.length > 1 && (
+            <div
+              className="w-full h-full rounded-xl overflow-hidden cursor-pointer opacity-60 hover:opacity-80 transition-all duration-500 group"
+              onClick={() => handleBannerClick(banners[(currentIndex + 1) % banners.length])}
+              data-testid={`banner-slide-right`}
+            >
+              <img
+                src={banners[(currentIndex + 1) % banners.length].imageUrl}
+                alt="Próximo banner"
+                className="w-full h-full object-cover transition-transform duration-500"
+                loading="lazy"
+                draggable="false"
+              />
+              <div className="absolute inset-0 bg-black/20" />
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Efeito deslizante overlay */}
+      {banners.length > 1 && (
+        <div 
+          className="absolute inset-0 pointer-events-none transition-transform duration-500 ease-in-out"
+          style={{
+            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 45%, transparent 55%, transparent 100%)',
+            transform: `translateX(${currentIndex * 100}px)`,
+            animation: 'slideEffect 0.5s ease-in-out'
+          }}
+        />
+      )}
 
       {/* Indicators */}
       {banners.length > 1 && (
