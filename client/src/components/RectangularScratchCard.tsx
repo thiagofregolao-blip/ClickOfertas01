@@ -335,9 +335,11 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
                 <div className="text-base font-bold">WIN!</div>
               </div>
             ) : (
-              <div className="text-center text-white px-1">
-                <div className="text-xl">{funnyMessage?.emoji || '😔'}</div>
-                <div className="text-xs leading-tight truncate">{funnyMessage?.message || 'Tente!'}</div>
+              <div className="text-center text-white px-1 flex flex-col items-center justify-center h-full">
+                <div className="text-lg mb-1">{funnyMessage?.emoji || '😔'}</div>
+                <div className="text-xs leading-3 break-words text-center max-w-full">
+                  {funnyMessage?.message || 'Tente!'}
+                </div>
               </div>
             )
           ) : (
