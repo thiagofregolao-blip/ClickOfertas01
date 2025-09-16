@@ -66,9 +66,8 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   const next = () => {
     if (isAnimating) return;
     setIsAnimating(true);
-    setSlideDirection('left');
     
-    // Após a animação, atualizar o índice
+    // Atualizar índice imediatamente para que os banners se reorganizem após animação
     setTimeout(() => {
       setCurrentIndex((prev) => (prev + 1) % banners.length);
       setIsAnimating(false);
@@ -78,9 +77,8 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   const prev = () => {
     if (isAnimating) return;
     setIsAnimating(true);
-    setSlideDirection('right');
     
-    // Após a animação, atualizar o índice
+    // Atualizar índice imediatamente para que os banners se reorganizem após animação
     setTimeout(() => {
       setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
       setIsAnimating(false);
@@ -121,10 +119,8 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               style={{ width: '300%' }}
               animate={{
                 x: isAnimating 
-                  ? slideDirection === 'left' 
-                    ? '-100%'  // Todos deslizam para esquerda
-                    : '0%'     // Todos deslizam para direita  
-                  : '-33.333%' // Posição central (banner atual no meio)
+                  ? '-66.666%'  // Todos deslizam para esquerda (próximo banner vem para centro)
+                  : '-33.333%'   // Posição normal (banner atual no meio)
               }}
               transition={{ duration: 0.6, ease: "easeInOut" }}
             >
@@ -232,11 +228,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               }}
               animate={{
                 x: isAnimating 
-                  ? slideDirection === 'left' 
-                    ? 'calc(-47% - 100%)' // Desliza para esquerda (sai da tela)
-                    : slideDirection === 'right' 
-                      ? '53%' // Vem da direita para fechar o ciclo
-                      : '-47%'
+                  ? 'calc(-47% - 100%)' // Desliza para esquerda (sai da tela)
                   : '-47%' // Posição normal
               }}
               transition={{ duration: 0.6, ease: "easeInOut" }}
@@ -263,12 +255,8 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               }}
               animate={{
                 x: isAnimating 
-                  ? slideDirection === 'left' 
-                    ? '0%' // Vem para o centro
-                    : slideDirection === 'right' 
-                      ? 'calc(47% + 100%)' // Desliza para direita (sai da tela)
-                      : '47%'
-                  : '47%' // Posição normal
+                  ? '0%'   // Vem para o centro (sem brilho reduzido)
+                  : '47%'  // Posição normal
               }}
               transition={{ duration: 0.6, ease: "easeInOut" }}
             >
@@ -297,12 +285,8 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
             initial={false}
             animate={{
               x: isAnimating 
-                ? slideDirection === 'left' 
-                  ? '-100%' // Desliza para esquerda (sai da tela)
-                  : slideDirection === 'right' 
-                    ? '100%' // Desliza para direita (sai da tela)
-                    : '0%'
-                : '0%' // Posição central normal
+                ? '-100%' // Desliza para esquerda (sai da tela)
+                : '0%'    // Posição central normal
             }}
             transition={{ duration: 0.6, ease: "easeInOut" }}
           >
