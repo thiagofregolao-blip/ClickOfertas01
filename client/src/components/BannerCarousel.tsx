@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 
 interface Banner {
   id: string;
@@ -15,41 +16,18 @@ interface BannerCarouselProps {
   autoPlayInterval?: number;
 }
 
-export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarouselProps) {
-  const [currentIndex, setCurrentIndex] = useState(1); // Start at 1 because of clones
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [withTransition, setWithTransition] = useState(true);
-  const [containerWidth, setContainerWidth] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const pauseTimeoutRef = useRef<number | null>(null);
-  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+/**
+ * Carrossel de Banners – MODELO BUSCAPÉ (3 visíveis com imagens)
+ * - Proporção 70% | 15% | 15%
+ * - Deslizamento contínuo (sem rebote)
+ * - Setas aparecem sobre o banner central no hover
+ * - Imagem sem fundo, preenchendo toda a altura (object-cover)
+ */
 
+export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarouselProps) {
   if (!banners || banners.length === 0) {
     return null;
   }
-
-  const handleBannerClick = async (banner: Banner) => {
-    // Registrar clique no banner
-    try {
-      await fetch('/api/banners/click', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          bannerId: banner.id,
-        }),
-      });
-    } catch (error) {
-      console.error('Erro ao registrar clique:', error);
-    }
-
-    // Abrir link se existir
-    if (banner.linkUrl) {
-      window.open(banner.linkUrl, '_blank');
-    }
-  };
 
   // Se só tem um banner, mostrar como antes
   if (banners.length === 1) {
@@ -80,180 +58,248 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     );
   }
 
-  // Configuração da esteira: peek responsivo - mais em desktop, menos em mobile
-  const getResponsivePeek = () => {
-    if (containerWidth <= 640) return 0.15; // sm: 15% peek
-    if (containerWidth <= 768) return 0.18; // md: 18% peek  
-    if (containerWidth <= 1024) return 0.2; // lg: 20% peek
-    return 0.22; // xl+: 22% peek
-  };
-  
-  const peek = getResponsivePeek();
-  const slideWidth = containerWidth > 0 ? containerWidth / (1 + 2 * peek) : 0;
-  const offset = (currentIndex - peek) * slideWidth;
-
-  // Criar slides com clones para loop infinito: [último, ...originais, primeiro]
-  const extendedBanners = [
-    banners[banners.length - 1], // Clone do último
-    ...banners,                   // Banners originais
-    banners[0]                    // Clone do primeiro
-  ];
-
-  // ResizeObserver para medir largura do container
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    resizeObserverRef.current = new ResizeObserver((entries) => {
-      const { width } = entries[0].contentRect;
-      setContainerWidth(width);
-    });
-
-    resizeObserverRef.current.observe(containerRef.current);
-
-    return () => {
-      if (resizeObserverRef.current) {
-        resizeObserverRef.current.disconnect();
-      }
-    };
-  }, []);
-
-  // Auto-play functionality com reset infinito
-  useEffect(() => {
-    if (!isAutoPlaying || banners.length <= 1) return;
-
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => prevIndex + 1);
-    }, autoPlayInterval);
-
-    return () => clearInterval(interval);
-  }, [isAutoPlaying, banners.length, autoPlayInterval]);
-
-  // Pausar autoplay temporariamente
-  const pauseAutoplay = useCallback(() => {
-    setIsAutoPlaying(false);
-    
-    if (pauseTimeoutRef.current) {
-      clearTimeout(pauseTimeoutRef.current);
-    }
-    
-    pauseTimeoutRef.current = window.setTimeout(() => {
-      setIsAutoPlaying(true);
-    }, 3000);
-  }, []);
-
-  // Handle transition end para loop infinito
-  const handleTransitionEnd = useCallback(() => {
-    if (currentIndex === banners.length + 1) {
-      // Chegou ao clone do primeiro, resetar para o primeiro real
-      setWithTransition(false);
-      setCurrentIndex(1);
-      requestAnimationFrame(() => {
-        setWithTransition(true);
+  // Analytics - Registrar clique no banner
+  const handleBannerClick = async (banner: Banner) => {
+    try {
+      await fetch('/api/banners/click', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bannerId: banner.id,
+        }),
       });
-    } else if (currentIndex === 0) {
-      // Chegou ao clone do último, resetar para o último real
-      setWithTransition(false);
-      setCurrentIndex(banners.length);
-      requestAnimationFrame(() => {
-        setWithTransition(true);
-      });
+    } catch (error) {
+      console.error('Erro ao registrar clique:', error);
     }
-  }, [currentIndex, banners.length]);
 
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      if (pauseTimeoutRef.current) {
-        clearTimeout(pauseTimeoutRef.current);
-      }
-      if (resizeObserverRef.current) {
-        resizeObserverRef.current.disconnect();
-      }
-    };
-  }, []);
-
-  // Gap responsivo entre banners
-  const getResponsiveGap = () => {
-    if (containerWidth <= 640) return 8; // sm: 8px gap
-    if (containerWidth <= 768) return 12; // md: 12px gap  
-    if (containerWidth <= 1024) return 16; // lg: 16px gap
-    return 20; // xl+: 20px gap
+    // Abrir link se existir
+    if (banner.linkUrl) {
+      window.open(banner.linkUrl, '_blank');
+    }
   };
 
-  // Carousel rotativo estilo Buscapé - loop contínuo
+  return <BannerCarouselCore banners={banners} interval={autoPlayInterval} onBannerClick={handleBannerClick} />;
+}
+
+interface BannerCarouselCoreProps {
+  banners: Banner[];
+  interval: number;
+  onBannerClick: (banner: Banner) => void;
+}
+
+function BannerCarouselCore({ banners, interval, onBannerClick }: BannerCarouselCoreProps) {
+  const n = banners.length;
+  const [center, setCenter] = useState(0);
+  const [dir, setDir] = useState(1); // 1 = direita->centro (vai para a esquerda); -1 = esquerda->centro
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [isHover, setIsHover] = useState(false);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [snap, setSnap] = useState(false); // transição instantânea para resetar trilho após animar
+
+  const i = (k: number) => (k + n) % n;
+
+  // autoplay
+  useEffect(() => {
+    if (!isHover) {
+      const id = setInterval(() => next(), interval);
+      return () => clearInterval(id);
+    }
+  }, [center, isHover, interval]);
+
+  // teclas ← →
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [center]);
+
+  const next = () => {
+    if (isAnimating) return;
+    setDir(1);
+    setIsAnimating(true);
+  };
+  const prev = () => {
+    if (isAnimating) return;
+    setDir(-1);
+    setIsAnimating(true);
+  };
+
+  // Touch
+  const onTouchStart = (e: React.TouchEvent) => setTouchStartX(e.touches[0].clientX);
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX == null) return;
+    const dx = e.touches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) {
+      dx < 0 ? next() : prev();
+      setTouchStartX(null);
+    }
+  };
+
+  // Índices auxiliares
+  const prevLeft = i(center - 2);
+  const left = i(center - 1);
+  const right = i(center + 1);
+  const nextRight = i(center + 2);
+
+  // 4 cartões: 3 visíveis + 1 fora da viewport para continuidade
+  const slides = dir === 1
+    ? [
+        { idx: left, start: "15%", end: "15%" },
+        { idx: center, start: "70%", end: "15%" },
+        { idx: right, start: "15%", end: "70%" },
+        { idx: nextRight, start: "15%", end: "15%" },
+      ]
+    : [
+        { idx: prevLeft, start: "15%", end: "15%" },
+        { idx: left, start: "15%", end: "70%" },
+        { idx: center, start: "70%", end: "15%" },
+        { idx: right, start: "15%", end: "15%" },
+      ];
+
+  const duration = 0.6;
+
   return (
-    <div 
-      ref={containerRef}
-      className="w-full h-40 md:h-52 lg:h-60 relative overflow-hidden"
-      onMouseEnter={pauseAutoplay}
-      onTouchStart={pauseAutoplay}
+    <div
+      className="relative w-full mx-auto select-none"
+      onMouseEnter={() => setIsHover(true)}
+      onMouseLeave={() => setIsHover(false)}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      aria-roledescription="carousel"
+      data-testid="banner-carousel"
     >
-      <div 
-        ref={trackRef}
-        className="flex h-full"
-        style={{
-          transform: `translate3d(-${offset}px, 0, 0)`,
-          transition: withTransition ? 'transform 700ms ease' : 'none',
-          gap: `${getResponsiveGap()}px`
-        }}
-        onTransitionEnd={handleTransitionEnd}
-      >
-        {extendedBanners.map((banner, index) => (
-          <div
-            key={`${banner.id}-${index}`}
-            className="h-full flex-shrink-0"
-            style={{ 
-              width: `${slideWidth}px`
-            }}
-          >
-            <div
-              className="w-full h-full cursor-pointer relative group overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-              onClick={() => handleBannerClick(banner)}
-              data-testid={`banner-slide-${banner.id}-${index}`}
-            >
-              <div 
-                className="w-full h-full flex items-center relative"
-                style={{ 
-                  background: banner.backgroundColor || (
-                    index % 3 === 0 ? 'linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%)' :
-                    index % 3 === 1 ? 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' :
-                    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                  ),
-                  backgroundImage: banner.imageUrl ? `url(${banner.imageUrl})` : undefined,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat'
-                }}
-              >
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300" />
-                
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Indicadores */}
-      {banners.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => {
-                setCurrentIndex(index + 1); // +1 because of clone at beginning
-                pauseAutoplay();
-              }}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                index === ((currentIndex - 1 + banners.length) % banners.length)
-                  ? 'bg-white scale-110'
-                  : 'bg-white/50 hover:bg-white/75'
-              }`}
-              data-testid={`banner-indicator-${index}`}
+      {/* Altura responsiva unificada para os três banners */}
+      <motion.div className="relative overflow-hidden" style={{ height: "clamp(160px, 28vw, 480px)" }}>
+        <motion.div
+          className="relative flex items-stretch"
+          style={{ gap: "24px", willChange: "transform" }}
+          initial={false}
+          animate={{ x: isAnimating ? (dir === 1 ? "-15%" : "15%") : "0%" }}
+          transition={snap ? { duration: 0 } : { duration, ease: "easeInOut" }}
+          onAnimationComplete={() => {
+            if (isAnimating) {
+              setCenter((c) => i(c + dir));
+              setIsAnimating(false);
+              setSnap(true);
+              requestAnimationFrame(() => setSnap(false));
+            }
+          }}
+        >
+          {slides.map((s, k) => (
+            <Slide
+              key={`${s.idx}-${k}`}
+              banner={banners[s.idx]}
+              startBasis={s.start}
+              endBasis={s.end}
+              animateWidth={isAnimating}
+              duration={duration}
+              onPrev={prev}
+              onNext={next}
+              onBannerClick={onBannerClick}
             />
           ))}
-        </div>
-      )}
+        </motion.div>
+      </motion.div>
+
+      {/* Indicadores */}
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
+        {banners.map((_, iDot) => (
+          <button
+            key={iDot}
+            aria-label={`Ir para o banner ${iDot + 1}`}
+            onClick={() => !isAnimating && setCenter(iDot)}
+            className={`h-2.5 w-2.5 rounded-full transition-all ${
+              center === iDot ? "scale-125 bg-white" : "bg-white/50 hover:bg-white/70"
+            }`}
+            data-testid={`banner-indicator-${iDot}`}
+          />
+        ))}
+      </div>
     </div>
+  );
+}
+
+// Slide: controla a largura (flex-basis) de cada cartão e as setas quando está no centro visual
+function Slide({
+  banner,
+  startBasis,
+  endBasis,
+  animateWidth,
+  duration,
+  onPrev,
+  onNext,
+  onBannerClick,
+}: {
+  banner: Banner;
+  startBasis: string;
+  endBasis: string;
+  animateWidth: boolean;
+  duration: number;
+  onPrev: () => void;
+  onNext: () => void;
+  onBannerClick: (banner: Banner) => void;
+}) {
+  const isCenterVisual = animateWidth ? endBasis === "70%" : startBasis === "70%";
+
+  return (
+    <motion.div
+      initial={false}
+      animate={{ flexBasis: animateWidth ? endBasis : startBasis }}
+      transition={{ duration, ease: "easeInOut" }}
+      className="shrink-0 group"
+    >
+      <div 
+        className="relative w-full h-full rounded-xl overflow-hidden cursor-pointer"
+        onClick={() => onBannerClick(banner)}
+        data-testid={`banner-slide-${banner.id}`}
+      >
+        <img
+          src={banner.imageUrl}
+          alt={banner.title || "Banner"}
+          className="w-full h-full object-cover block"
+          loading="lazy"
+          decoding="async"
+          draggable="false"
+        />
+
+        {/* Overlay hover effect */}
+        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300" />
+        
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+
+        {/* Setas de navegação apenas no banner central */}
+        {isCenterVisual && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-between px-2 sm:px-3 md:px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onPrev();
+              }}
+              aria-label="Anterior"
+              className="pointer-events-auto rounded-full bg-black/45 hover:bg-black/65 text-white w-9 h-9 flex items-center justify-center transition-colors"
+              data-testid="banner-prev-btn"
+            >
+              ←
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onNext();
+              }}
+              aria-label="Próximo"
+              className="pointer-events-auto rounded-full bg-black/45 hover:bg-black/65 text-white w-9 h-9 flex items-center justify-center transition-colors"
+              data-testid="banner-next-btn"
+            >
+              →
+            </button>
+          </div>
+        )}
+      </div>
+    </motion.div>
   );
 }
