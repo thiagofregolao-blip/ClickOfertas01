@@ -369,8 +369,8 @@ export default function ProductCompare() {
                         {/* Informações da loja + Ações */}
                         <div className="flex-shrink-0 ml-4 text-center">
                           {/* Logo e nome da loja */}
-                          <div className="flex flex-col items-center mb-3">
-                            <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 mb-2">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                               {productInStore.store.logoUrl ? (
                                 <img 
                                   src={productInStore.store.logoUrl} 
@@ -385,8 +385,8 @@ export default function ProductCompare() {
                               )}
                             </div>
                             
-                            <div className="flex flex-col items-center">
-                              <h4 className="font-semibold text-gray-900 text-sm text-center" data-testid={`text-store-name-${productInStore.store.id}`}>
+                            <div className="flex flex-col">
+                              <h4 className="font-semibold text-gray-900 text-sm" data-testid={`text-store-name-${productInStore.store.id}`}>
                                 {productInStore.store.name}
                               </h4>
                               
