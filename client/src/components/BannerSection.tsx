@@ -85,7 +85,9 @@ export function BannerSection({ isSearchActive = false }: BannerSectionProps) {
     <div className="w-full mt-6" data-testid="banner-section">
       {/* Banner ocupando toda a largura da tela */}
       {rotatingBanners.length > 0 && (
-        <BannerCarousel banners={rotatingBanners} />
+        <div className="px-3 sm:px-4 md:px-6 lg:px-8">
+          <BannerCarousel banners={rotatingBanners} />
+        </div>
       )}
     </div>
   );
