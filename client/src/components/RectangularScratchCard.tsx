@@ -331,19 +331,19 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
           {card.isScratched ? (
             card.won ? (
               <div className="text-center text-white">
-                <Gift className="w-4 h-4 mx-auto mb-1" />
-                <div className="text-xs font-bold">WIN!</div>
+                <Gift className="w-8 h-8 mx-auto mb-1" />
+                <div className="text-base font-bold">WIN!</div>
               </div>
             ) : (
               <div className="text-center text-white px-1">
-                <div className="text-sm">{funnyMessage?.emoji || '😔'}</div>
+                <div className="text-xl">{funnyMessage?.emoji || '😔'}</div>
                 <div className="text-xs leading-tight truncate">{funnyMessage?.message || 'Tente!'}</div>
               </div>
             )
           ) : (
             <div className="text-center text-white">
-              <Star className="w-4 h-4 mx-auto mb-1" />
-              <div className="text-xs">#{card.cardNumber}</div>
+              <Star className="w-8 h-8 mx-auto mb-1" />
+              <div className="text-sm">#{card.cardNumber}</div>
             </div>
           )}
         </div>
