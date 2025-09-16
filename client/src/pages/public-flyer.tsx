@@ -348,7 +348,13 @@ export default function PublicFlyer() {
     maxScratchRedemptions: null,
     currentScratchRedemptions: null,
     createdAt: new Date(promotion.createdAt),
-    updatedAt: new Date(promotion.updatedAt)
+    updatedAt: new Date(promotion.updatedAt),
+    // Propriedades em falta para o tipo Product
+    brand: null,
+    gtin: null,
+    productCode: null,
+    sourceType: "manual" as const,
+    showInTotem: false
   }));
   
 
