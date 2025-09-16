@@ -310,6 +310,9 @@ export default function ProductCompare() {
                           <p className="text-2xl font-bold text-gray-900" data-testid={`text-price-${productInStore.store.id}`}>
                             {formatPriceWithCurrency(productInStore.price.toString(), 'US$')}
                           </p>
+                          <p className="text-lg text-gray-600" data-testid={`text-price-brl-${productInStore.store.id}`}>
+                            R$ {(parseFloat(productInStore.price.toString()) * 5.39).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </p>
                           {index > 0 && (
                             <p className="text-sm text-gray-600">
                               {formatPriceWithCurrency(
