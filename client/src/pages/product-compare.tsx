@@ -406,6 +406,34 @@ export default function ProductCompare() {
 
                         {/* Ações */}
                         <div className="flex-shrink-0 ml-4">
+                          {/* Contatos da loja */}
+                          <div className="flex items-center gap-4 mb-2">
+                            {productInStore.store.whatsapp && (
+                              <a 
+                                href={`https://wa.me/${productInStore.store.whatsapp}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-green-600 hover:text-green-700 text-sm"
+                                data-testid={`link-whatsapp-${productInStore.store.id}`}
+                              >
+                                <WhatsApp className="w-4 h-4" />
+                                WhatsApp
+                              </a>
+                            )}
+                            {productInStore.store.instagram && (
+                              <a 
+                                href={`https://instagram.com/${productInStore.store.instagram}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-pink-600 hover:text-pink-700 text-sm"
+                                data-testid={`link-instagram-${productInStore.store.id}`}
+                              >
+                                <Instagram className="w-4 h-4" />
+                                Instagram
+                              </a>
+                            )}
+                          </div>
+                          
                           <div className="flex gap-2">
                             <Link href={`/stores/${productInStore.store.id}`}>
                               <Button 
