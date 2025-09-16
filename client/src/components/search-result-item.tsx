@@ -28,7 +28,10 @@ export function SearchResultItem({
 }: SearchResultItemProps) {
   const { trackEvent, sessionToken } = useAnalytics();
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     // Capturar evento de clique em produto desde busca
     if (sessionToken && searchTerm) {
       trackEvent('searchClick', {
