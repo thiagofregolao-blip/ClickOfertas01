@@ -719,12 +719,8 @@ export default function StoresGallery() {
       {/* SEÇÃO DE BANNERS - Desktop apenas */}
       {!searchQuery.trim() && !isMobile && (
         <div className="bg-white border-b -mt-4">
-          <div className="mx-auto px-2 max-w-6xl py-2">
-            {/* Banner ocupando toda a largura */}
-            <div className="w-full">
-              <BannerSection isSearchActive={false} />
-            </div>
-          </div>
+          {/* Banner ocupando toda a largura da tela */}
+          <BannerSection isSearchActive={false} />
         </div>
       )}
 
