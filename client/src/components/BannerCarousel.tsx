@@ -184,6 +184,7 @@ function Slide({
           src={item?.image}
           alt={item.banner.title || "banner"}
           className="w-full h-full object-cover block"
+          style={{ transform: "scale(0.8)" }}
           loading="lazy"
           decoding="async"
           draggable="false"
