@@ -228,7 +228,7 @@ export default function GlobalHeader({
                       store={result.store}
                       searchTerm={searchQuery}
                       onClick={() => {
-                        setLocation(`/flyer/${result.store.slug}`);
+                        setLocation(`/product/${result.data.id}/compare`);
                         setSearchInput('');
                         setIsSearchFocused(false);
                       }}
@@ -322,7 +322,7 @@ export default function GlobalHeader({
                             store={result.store}
                             searchTerm={searchQuery}
                             onClick={() => {
-                              setLocation(`/flyer/${result.store.slug}`);
+                              setLocation(`/product/${result.data.id}/compare`);
                               setSearchInput('');
                               setIsSearchFocused(false);
                             }}

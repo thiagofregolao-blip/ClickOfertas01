@@ -814,7 +814,8 @@ export default function StoresGallery() {
         searchResults={searchResults} 
         isMobile={isMobile}
         onProductSelect={(product, store) => {
-          setLocation(`/product/${product.id}/compare`);
+          setSelectedProduct(product);
+          setSelectedStore(store);
         }}
       />
       

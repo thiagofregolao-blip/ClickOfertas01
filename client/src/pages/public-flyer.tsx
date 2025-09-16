@@ -805,7 +805,8 @@ export default function PublicFlyer() {
                       themeColor={store?.themeColor || '#E11D48'}
                       logoUrl={store?.logoUrl || undefined}
                       onClick={(product) => {
-                        setLocation(`/product/${product.id}/compare`);
+                        setSelectedProduct(product);
+                        setSelectedStore(store);
                       }}
                     />
                   ) : (
@@ -821,7 +822,8 @@ export default function PublicFlyer() {
                         boxShadow: 'inset 0 0 0 1px #ef4444'
                       } : {}}
                       onClick={() => {
-                        setLocation(`/product/${product.id}/compare`);
+                        setSelectedProduct(product);
+                        setSelectedStore(store);
                       }}
                     >
                       <div className={`relative ${product.isFeatured ? 'bg-white rounded-md' : ''}`}>
@@ -1041,7 +1043,8 @@ export default function PublicFlyer() {
                           : 'border border-gray-200'
                       }`}
                       onClick={() => {
-                        setLocation(`/product/${product.id}/compare`);
+                        setSelectedProduct(product);
+                        setSelectedStore(store);
                       }}
                     >
                       <div className="relative">
