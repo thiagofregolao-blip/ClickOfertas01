@@ -352,60 +352,62 @@ export default function ProductCompare() {
                         </div>
                       </div>
 
-                      {/* Lado Direito: Informações da loja */}
+                      {/* Lado Direito: Endereço da loja */}
                       <div className="flex items-center justify-between flex-1 min-w-0">
-                        {/* Informações da loja */}
-                        <div className="flex items-center gap-4 flex-1 min-w-0">
-                          {/* Logo da loja */}
-                          <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                            {productInStore.store.logoUrl ? (
-                              <img 
-                                src={productInStore.store.logoUrl} 
-                                alt={productInStore.store.name}
-                                className="w-full h-full object-cover"
-                                data-testid={`img-store-logo-${productInStore.store.id}`}
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                <ShoppingBag className="w-8 h-8" />
-                              </div>
-                            )}
-                          </div>
+                        {/* Endereço da loja */}
+                        <div className="flex-1 min-w-0">
+                          {productInStore.store.address && (
+                            <div className="flex items-center gap-1 text-sm text-gray-600">
+                              <MapPin className="w-3 h-3" />
+                              <span className="truncate" data-testid={`text-store-address-${productInStore.store.id}`}>
+                                {productInStore.store.address}
+                              </span>
+                            </div>
+                          )}
+                        </div>
 
-                          {/* Detalhes da loja */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-semibold text-gray-900 truncate" data-testid={`text-store-name-${productInStore.store.id}`}>
-                                {productInStore.store.name}
-                              </h4>
-                              {productInStore.store.isPremium && (
-                                <Badge variant="default" className="bg-yellow-500 text-white" data-testid={`badge-premium-${productInStore.store.id}`}>
-                                  <Crown className="w-3 h-3 mr-1" />
-                                  Premium
-                                </Badge>
-                              )}
-                              {isLowestPrice && (
-                                <Badge variant="default" className="bg-green-500 text-white" data-testid={`badge-best-price-${productInStore.store.id}`}>
-                                  <Star className="w-3 h-3 mr-1" />
-                                  Melhor Preço
-                                </Badge>
+                        {/* Informações da loja + Ações */}
+                        <div className="flex-shrink-0 ml-4 text-center">
+                          {/* Logo e nome da loja */}
+                          <div className="flex flex-col items-center mb-3">
+                            <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 mb-2">
+                              {productInStore.store.logoUrl ? (
+                                <img 
+                                  src={productInStore.store.logoUrl} 
+                                  alt={productInStore.store.name}
+                                  className="w-full h-full object-cover"
+                                  data-testid={`img-store-logo-${productInStore.store.id}`}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                  <ShoppingBag className="w-6 h-6" />
+                                </div>
                               )}
                             </div>
                             
-                            {productInStore.store.address && (
-                              <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
-                                <MapPin className="w-3 h-3" />
-                                <span className="truncate" data-testid={`text-store-address-${productInStore.store.id}`}>
-                                  {productInStore.store.address}
-                                </span>
+                            <div className="flex flex-col items-center">
+                              <h4 className="font-semibold text-gray-900 text-sm text-center" data-testid={`text-store-name-${productInStore.store.id}`}>
+                                {productInStore.store.name}
+                              </h4>
+                              
+                              <div className="flex gap-1 mt-1">
+                                {productInStore.store.isPremium && (
+                                  <Badge variant="default" className="bg-yellow-500 text-white text-xs" data-testid={`badge-premium-${productInStore.store.id}`}>
+                                    <Crown className="w-2 h-2 mr-1" />
+                                    Premium
+                                  </Badge>
+                                )}
+                                {isLowestPrice && (
+                                  <Badge variant="default" className="bg-green-500 text-white text-xs" data-testid={`badge-best-price-${productInStore.store.id}`}>
+                                    <Star className="w-2 h-2 mr-1" />
+                                    Melhor Preço
+                                  </Badge>
+                                )}
                               </div>
-                            )}
-
+                            </div>
                           </div>
-                        </div>
-
-                        {/* Ações */}
-                        <div className="flex-shrink-0 ml-4">
+                          
+                          {/* Botões */}
                           <div className="flex gap-2">
                             <Link href={`/stores/${productInStore.store.id}`}>
                               <Button 
