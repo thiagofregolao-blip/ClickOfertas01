@@ -1337,12 +1337,12 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
     // Pegar produtos regulares (não em destaque) 
     const nonFeaturedProducts = filteredProducts.filter(p => !p.isFeatured);
     
-    // 4 produtos aleatórios do restante (com rotação a cada 1 minuto)
+    // 3 produtos aleatórios do restante (com rotação a cada 1 minuto)
     const rotationSeed = getCurrentRotationSeed() + store.id.charCodeAt(0);
-    const randomProducts = getRandomProducts(nonFeaturedProducts, 4, rotationSeed);
+    const randomProducts = getRandomProducts(nonFeaturedProducts, 3, rotationSeed);
     
-    // Combinar: 2 destaque + 4 regulares = 6 produtos total
-    return [...featuredProducts, ...randomProducts].slice(0, 6);
+    // Combinar: 2 destaque + 3 regulares = 5 produtos total
+    return [...featuredProducts, ...randomProducts].slice(0, 5);
   })();
 
   return (
@@ -1400,7 +1400,7 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
                     boxShadow: `0 4px 12px ${store.themeColor || '#E11D48'}30`
                   }}
                 >
-                  💰 Ver {filteredProducts.length > 4 ? `+${filteredProducts.length - 4} ofertas` : 'panfleto'}
+                  💰 Ver {filteredProducts.length > displayProducts.length ? `+${filteredProducts.length - displayProducts.length} ofertas` : 'panfleto'}
                 </button>
               </Link>
             </div>
