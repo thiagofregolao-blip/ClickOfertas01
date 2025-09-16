@@ -103,12 +103,61 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
           marginLeft: "calc(50% - 50vw)"
         }}
       >
+        {/* Banners laterais atrás */}
+        {banners.length > 1 && (
+          <>
+            {/* Preview Esquerdo - Cortado pela margem */}
+            <div 
+              className="absolute left-0 top-0 h-full w-1/3 overflow-hidden cursor-pointer hidden lg:block z-10"
+              onClick={() => handleBannerClick(banners[prevIndex])}
+              style={{ 
+                transform: "translateX(-25%)",
+                filter: "brightness(0.7)"
+              }}
+            >
+              <div className="relative h-full w-full rounded-xl overflow-hidden">
+                <img
+                  src={banners[prevIndex].imageUrl}
+                  alt={banners[prevIndex].title || "banner"}
+                  className="w-full h-full object-cover block transition-transform duration-300"
+                  loading="lazy"
+                  decoding="async"
+                  draggable="false"
+                  style={{ transform: "scale(1)" }}
+                />
+              </div>
+            </div>
+
+            {/* Preview Direito - Cortado pela margem */}
+            <div 
+              className="absolute right-0 top-0 h-full w-1/3 overflow-hidden cursor-pointer hidden lg:block z-10"
+              onClick={() => handleBannerClick(banners[nextIndex])}
+              style={{ 
+                transform: "translateX(25%)",
+                filter: "brightness(0.7)"
+              }}
+            >
+              <div className="relative h-full w-full rounded-xl overflow-hidden">
+                <img
+                  src={banners[nextIndex].imageUrl}
+                  alt={banners[nextIndex].title || "banner"}
+                  className="w-full h-full object-cover block transition-transform duration-300"
+                  loading="lazy"
+                  decoding="async"
+                  draggable="false"
+                  style={{ transform: "scale(1)" }}
+                />
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Layout do Buscapé: Banner central + Previews laterais */}
-        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-20">
           
           {/* Banner Central */}
           <motion.div
-            className="relative h-full w-full rounded-xl overflow-hidden cursor-pointer group"
+            className="relative h-full w-full rounded-xl overflow-hidden cursor-pointer group z-20"
             onClick={() => handleBannerClick(banners[currentIndex])}
             data-testid={`banner-main-${banners[currentIndex].id}`}
             initial={false}
@@ -153,53 +202,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
           </motion.div>
         </div>
 
-        {/* Preview Esquerdo - Cortado pela margem */}
-        {banners.length > 1 && (
-          <div 
-            className="absolute left-0 top-0 h-full w-1/3 overflow-hidden cursor-pointer hidden lg:block"
-            onClick={() => handleBannerClick(banners[prevIndex])}
-            style={{ 
-              transform: "translateX(-15%)",
-              filter: "brightness(0.7)"
-            }}
-          >
-            <div className="relative h-full w-full rounded-xl overflow-hidden">
-              <img
-                src={banners[prevIndex].imageUrl}
-                alt={banners[prevIndex].title || "banner"}
-                className="w-full h-full object-cover block transition-transform duration-300"
-                loading="lazy"
-                decoding="async"
-                draggable="false"
-                style={{ transform: "scale(1)" }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Preview Direito - Cortado pela margem */}
-        {banners.length > 1 && (
-          <div 
-            className="absolute right-0 top-0 h-full w-1/3 overflow-hidden cursor-pointer hidden lg:block"
-            onClick={() => handleBannerClick(banners[nextIndex])}
-            style={{ 
-              transform: "translateX(15%)",
-              filter: "brightness(0.7)"
-            }}
-          >
-            <div className="relative h-full w-full rounded-xl overflow-hidden">
-              <img
-                src={banners[nextIndex].imageUrl}
-                alt={banners[nextIndex].title || "banner"}
-                className="w-full h-full object-cover block transition-transform duration-300"
-                loading="lazy"
-                decoding="async"
-                draggable="false"
-                style={{ transform: "scale(1)" }}
-              />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Indicadores */}
