@@ -131,6 +131,7 @@ export function SearchResultItem({
               </div>
               <Link href={`/flyer/${store.slug}`}>
                 <button
+                  onClick={(e) => e.stopPropagation()}
                   className={`${isMobile ? 'text-xs py-1 px-2' : 'text-xs py-1 px-3'} font-medium rounded-full border transition-all hover:scale-105`}
                   style={{ 
                     borderColor: store.themeColor || '#E11D48',
