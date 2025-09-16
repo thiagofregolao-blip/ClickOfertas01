@@ -366,21 +366,8 @@ export default function ProductCompare() {
                         </div>
                       </div>
 
-                      {/* Lado Direito: Endereço da loja */}
-                      <div className="flex items-center justify-between flex-1 min-w-0">
-                        {/* Endereço da loja */}
-                        <div className="flex-1 min-w-0">
-                          {productInStore.store.address && (
-                            <div className="flex items-center gap-1 text-sm text-gray-600">
-                              <MapPin className="w-3 h-3" />
-                              <span className="truncate" data-testid={`text-store-address-${productInStore.store.id}`}>
-                                {productInStore.store.address}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Informações da loja + Ações */}
+                      {/* Lado Direito: Informações da loja + Ações */}
+                      <div className="flex items-center justify-end flex-1 min-w-0">
                         <div className="flex-shrink-0 ml-4 text-center">
                           {/* Logo e nome da loja */}
                           <div className="flex items-center gap-3 mb-3">
@@ -416,7 +403,7 @@ export default function ProductCompare() {
                           </div>
                           
                           {/* Botões */}
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 mb-2">
                             <Link href={`/stores/${productInStore.store.id}`}>
                               <Button 
                                 size="sm" 
@@ -441,6 +428,16 @@ export default function ProductCompare() {
                               </Button>
                             )}
                           </div>
+                          
+                          {/* Endereço da loja */}
+                          {productInStore.store.address && (
+                            <div className="flex items-center gap-1 text-sm text-gray-600 justify-center">
+                              <MapPin className="w-3 h-3" />
+                              <span className="truncate" data-testid={`text-store-address-${productInStore.store.id}`}>
+                                {productInStore.store.address}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
