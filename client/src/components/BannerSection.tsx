@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { BannerCarousel } from './BannerCarousel';
 import { StaticBanner } from './StaticBanner';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,9 +23,12 @@ interface BannerSectionProps {
 
 export function BannerSection({ isSearchActive = false }: BannerSectionProps) {
   const { isAuthenticated } = useAuth();
+  const viewedRef = useRef(new Set<string>());
+  
   const { data: banners = [] } = useQuery<Banner[]>({
     queryKey: ['/api/banners/active'],
     refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
 
@@ -63,15 +66,17 @@ export function BannerSection({ isSearchActive = false }: BannerSectionProps) {
     banner.bannerType === 'static_right' && banner.isActive
   ).sort((a, b) => parseInt(a.priority) - parseInt(b.priority));
 
-  // Registrar views quando os banners carregarem
+  // Registrar views quando os banners carregarem (apenas uma vez por banner por sessão)
   useEffect(() => {
     if (banners.length > 0) {
-      const visibleBannerIds = banners
-        .filter(banner => banner.isActive)
+      const newBannerIds = banners
+        .filter(banner => banner.isActive && !viewedRef.current.has(banner.id))
         .map(banner => banner.id);
       
-      if (visibleBannerIds.length > 0) {
-        registerBannerViews(visibleBannerIds);
+      if (newBannerIds.length > 0) {
+        registerBannerViews(newBannerIds).finally(() => {
+          newBannerIds.forEach(id => viewedRef.current.add(id));
+        });
       }
     }
   }, [banners]);
