@@ -160,7 +160,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
   };
 
   return (
-    <div className="relative w-full aspect-[3/1] md:aspect-auto md:w-[790px] md:h-[230px] shadow-lg group md:rounded-lg overflow-hidden">
+    <div className="relative w-full h-32 md:h-40 shadow-lg group rounded-lg overflow-hidden">
       {/* Container com scroll snap */}
       <div 
         ref={containerRef}
@@ -177,17 +177,64 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
         {banners.map((banner, index) => (
           <div
             key={banner.id}
-            className="min-w-full h-full shrink-0 snap-start cursor-pointer"
-            style={{ backgroundColor: banner.backgroundColor }}
+            className="min-w-full h-full shrink-0 snap-start cursor-pointer relative"
             onClick={() => handleBannerClick(banner)}
             data-testid={`banner-carousel-${banner.id}`}
           >
-            <img
-              src={banner.imageUrl}
-              alt={banner.title}
-              className="w-full h-full block select-none object-cover object-center md:object-contain md:object-center"
-              draggable={false}
-            />
+            <div 
+              className="w-full h-full flex items-center relative rounded-lg"
+              style={{ 
+                background: banner.backgroundColor || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                backgroundImage: banner.imageUrl ? `url(${banner.imageUrl})` : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            >
+              {/* Overlay escuro para melhor contraste se tiver imagem */}
+              {banner.imageUrl && (
+                <div className="absolute inset-0 bg-black/30 rounded-lg" />
+              )}
+              
+              {/* Conteúdo do banner - estilo Buscapé */}
+              <div className="relative z-10 flex items-center justify-between w-full px-6">
+                <div className="flex-1">
+                  <h2 
+                    className="text-lg md:text-xl font-bold mb-1 leading-tight"
+                    style={{ 
+                      color: banner.textColor || '#FFFFFF',
+                      textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
+                    }}
+                  >
+                    {banner.title}
+                  </h2>
+                  
+                  {banner.description && (
+                    <p 
+                      className="text-sm opacity-90"
+                      style={{ 
+                        color: banner.textColor || '#FFFFFF',
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
+                      }}
+                    >
+                      {banner.description}
+                    </p>
+                  )}
+                </div>
+                
+                {/* Botão ou call-to-action lado direito */}
+                <div className="flex-shrink-0 ml-4">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2 hover:bg-white/30 transition-all">
+                    <span 
+                      className="text-sm font-medium"
+                      style={{ color: banner.textColor || '#FFFFFF' }}
+                    >
+                      Ver Ofertas
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         ))}
       </div>

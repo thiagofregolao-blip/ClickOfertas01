@@ -78,7 +78,7 @@ export default function StoresGallery() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
-  const { trackEvent, sessionToken } = useAnalytics();
+  const analytics = useAnalytics();
   
   // Instagram Stories state
   const [viewingStory, setViewingStory] = useState<InstagramStoryWithDetails | null>(null);
@@ -360,7 +360,7 @@ export default function StoresGallery() {
 
   // Capturar evento de busca no stores gallery (após declaração das variáveis)
   useEffect(() => {
-    if (searchQuery && searchQuery.trim().length > 2 && sessionToken) {
+    if (searchQuery && searchQuery.trim().length > 2) {
       // Determinar categoria mais comum nos resultados
       const searchResultsData = searchResults
         .filter(r => r.type === 'product')
@@ -372,14 +372,13 @@ export default function StoresGallery() {
           ) 
         : undefined;
 
-      trackEvent('search', {
-        sessionToken,
-        searchTerm: searchQuery,
-        category: mostCommonCategory,
-        resultsCount: searchResults.length
+      analytics.trackSearch({
+        query: searchQuery.trim(),
+        category: mostCommonCategory || 'Geral',
+        resultCount: searchResults.length
       });
     }
-  }, [searchQuery, searchResults, sessionToken, trackEvent]);
+  }, [searchQuery, searchResults, analytics]);
 
   if (isLoading) {
     return (
@@ -559,12 +558,6 @@ export default function StoresGallery() {
         </div>
       )}
       
-      {/* Mobile: Raspadinhas depois das stories */}
-      {isMobile && !searchQuery.trim() && isAuthenticated && (
-        <div className="px-4 mb-4">
-          <ThreeDailyScratchCards />
-        </div>
-      )}
       
       {/* Desktop: Header completo */}
       {!isMobile && (
@@ -1061,6 +1054,8 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
   isMobile: boolean,
   onProductSelect: (product: Product, store: StoreWithProducts) => void
 }) {
+  const { isAuthenticated } = useAuth();
+  
   return (
     <div className={`mx-auto ${isMobile ? 'px-1 max-w-full' : 'px-2 max-w-6xl'}`}>
         {searchQuery.trim() ? (
@@ -1111,15 +1106,24 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
           )
         ) : (
           // Layout de Feed Normal
-          stores.map((store) => (
-            <StorePost 
-              key={store.id} 
-              store={store} 
-              searchQuery={searchQuery} 
-              isMobile={isMobile}
-              onProductClick={(product) => onProductSelect(product, store)}
-            />
-          ))
+          <>
+            {/* Raspadinhas na mesma barra dos stores - apenas se não há busca ativa e usuário autenticado */}
+            {!searchQuery.trim() && isAuthenticated && (
+              <div className={`${isMobile ? 'px-3 mb-4' : 'px-2 mb-6'}`}>
+                <ThreeDailyScratchCards />
+              </div>
+            )}
+            
+            {stores.map((store) => (
+              <StorePost 
+                key={store.id} 
+                store={store} 
+                searchQuery={searchQuery} 
+                isMobile={isMobile}
+                onProductClick={(product) => onProductSelect(product, store)}
+              />
+            ))}
+          </>
         )}
         
         {/* Footer do Feed */}
