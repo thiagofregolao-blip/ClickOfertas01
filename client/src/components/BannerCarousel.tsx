@@ -99,7 +99,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       <div 
         className="relative w-screen overflow-hidden"
         style={{ 
-          height: "clamp(100px, 17.59vw, 299px)",
+          height: "clamp(80px, 14vw, 240px)",
           marginLeft: "calc(50% - 50vw)"
         }}
       >
