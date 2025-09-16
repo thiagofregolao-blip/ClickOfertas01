@@ -96,7 +96,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       data-testid="banner-carousel"
     >
       {/* Layout Mobile/Tablet - Apenas banner central */}
-      <div className="xl:hidden relative w-full overflow-hidden" style={{ height: "clamp(60px, 12vw, 160px)" }}>
+      <div className="xl:hidden relative w-full overflow-hidden" style={{ height: "clamp(80px, 15vw, 220px)" }}>
         <div className="relative h-full max-w-4xl mx-auto px-4">
           {/* Banner Central Mobile */}
           <motion.div
@@ -150,7 +150,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       <div 
         className="hidden xl:block relative w-screen overflow-hidden"
         style={{ 
-          height: "clamp(80px, 14vw, 200px)",
+          height: "clamp(100px, 16vw, 260px)",
           marginLeft: "calc(50% - 50vw)"
         }}
       >
