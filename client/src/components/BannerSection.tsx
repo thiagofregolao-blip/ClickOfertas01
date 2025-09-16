@@ -82,30 +82,11 @@ export function BannerSection({ isSearchActive = false }: BannerSectionProps) {
   }
 
   return (
-    <div className="w-full mb-6 mt-4 md:mt-8 md:px-4" data-testid="banner-section">
-      <div className="max-w-6xl mx-auto">
-        {/* Layout desktop: carousel + banners estáticos lado a lado */}
-        <div className="hidden md:flex gap-[5px]">
-          {/* Banner rotativo (790x230px) */}
-          {rotatingBanners.length > 0 && (
-            <div>
-              <BannerCarousel banners={rotatingBanners} />
-            </div>
-          )}
-
-        </div>
-
-        {/* Layout mobile: banner de tela cheia com padding lateral */}
-        <div className="md:hidden">
-          {/* Banner rotativo - ocultar quando busca ativa */}
-          {!isSearchActive && rotatingBanners.length > 0 && (
-            <div className="px-4">
-              <BannerCarousel banners={rotatingBanners} />
-            </div>
-          )}
-
-        </div>
-      </div>
+    <div className="w-full mb-6 mt-4 md:mt-8" data-testid="banner-section">
+      {/* Banner ocupando toda a largura da tela */}
+      {rotatingBanners.length > 0 && (
+        <BannerCarousel banners={rotatingBanners} />
+      )}
     </div>
   );
 }
