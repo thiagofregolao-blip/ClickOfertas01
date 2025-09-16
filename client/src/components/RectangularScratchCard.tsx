@@ -300,7 +300,7 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
 
   return (
     <div className="flex flex-col items-center gap-1 flex-shrink-0">
-      <div className="relative w-18 h-14 rounded-lg overflow-hidden">
+      <div className="relative w-16 h-14 rounded-lg overflow-hidden">
         {/* Fundo do resultado */}
         <div className="absolute inset-0 w-full h-full rounded-lg flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500">
           {card.isScratched ? (
@@ -379,7 +379,7 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
       </div>
 
       {/* Nome da raspadinha */}
-      <span className="text-xs font-medium text-gray-800 text-center max-w-18 truncate">
+      <span className="text-xs font-medium text-gray-800 text-center max-w-16 truncate">
         Card {card.cardNumber}
       </span>
     </div>
