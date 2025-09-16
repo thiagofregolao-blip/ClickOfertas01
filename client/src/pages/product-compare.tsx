@@ -49,6 +49,11 @@ export default function ProductCompare() {
     enabled: !!id,
   });
 
+  // Buscar banners ativos
+  const { data: banners } = useQuery({
+    queryKey: ['/api/banners/active'],
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -88,6 +93,11 @@ export default function ProductCompare() {
   const minPrice = Math.min(...comparisonData.storesWithProduct.map(p => parseFloat(p.price.toString())));
   const maxPrice = Math.max(...comparisonData.storesWithProduct.map(p => parseFloat(p.price.toString())));
 
+  // Filtrar banners verticais ativos
+  const verticalBanners = banners?.filter((banner: any) => 
+    banner.isActive && banner.format === 'vertical'
+  ) || [];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -116,117 +126,169 @@ export default function ProductCompare() {
       </div>
 
       <div className="mx-auto max-w-6xl px-4 py-8">
-        {/* Seção do Produto - Layout do Modal */}
-        <Card className="mb-8" data-testid="card-product-details">
-          <CardContent className="p-0">
-            <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[500px]">
-              {/* Imagem do produto - Lado Esquerdo */}
-              <div className="bg-gray-50 flex items-center justify-center p-8">
-                <div className="w-full max-w-md aspect-square">
-                  {comparisonData.productImages[0] ? (
-                    <img 
-                      src={comparisonData.productImages[0]} 
-                      alt={comparisonData.productName}
-                      className="w-full h-full object-contain rounded-lg"
-                      data-testid="img-product-main"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 bg-white rounded-lg">
-                      <ShoppingBag className="w-24 h-24" />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Informações do produto - Lado Direito */}
-              <div className="p-8 flex flex-col justify-center">
-                <div className="space-y-6">
-                  {/* Logo da loja com menor preço */}
-                  {sortedStores[0]?.store && (
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gray-100 rounded-full overflow-hidden flex-shrink-0">
-                        {sortedStores[0].store.logoUrl ? (
-                          <img 
-                            src={sortedStores[0].store.logoUrl} 
-                            alt={sortedStores[0].store.name}
-                            className="w-full h-full object-cover"
-                            data-testid="img-best-store-logo"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            <ShoppingBag className="w-6 h-6" />
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <span className="text-sm text-gray-600">Melhor oferta</span>
-                        <p className="font-semibold text-gray-900" data-testid="text-best-store-name">
-                          {sortedStores[0].store.name}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Nome do produto */}
-                  <h1 className="text-3xl font-bold text-blue-600" data-testid="text-product-name">
-                    {comparisonData.productName}
-                  </h1>
-
-                  {/* Categoria */}
-                  {comparisonData.category && (
-                    <Badge variant="secondary" className="w-fit" data-testid="badge-category">
-                      {comparisonData.category}
-                    </Badge>
-                  )}
-
-                  {/* Preço - A partir de */}
-                  <div>
-                    <p className="text-gray-600 text-sm mb-1">A partir de</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-red-600 text-4xl font-bold" data-testid="text-min-price">
-                        US$ {minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
-                      {maxPrice !== minPrice && (
-                        <span className="text-gray-500 text-lg">
-                          R$ {(minPrice * 5.39).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-8">
+          {/* Seção do Produto - Layout do Modal */}
+          <div className="xl:col-span-10">
+            <Card data-testid="card-product-details">
+              <CardContent className="p-0">
+                <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[500px]">
+                  {/* Imagem do produto - Lado Esquerdo */}
+                  <div className="bg-gray-50 flex items-center justify-center p-8">
+                    <div className="w-full max-w-md aspect-square">
+                      {comparisonData.productImages[0] ? (
+                        <img 
+                          src={comparisonData.productImages[0]} 
+                          alt={comparisonData.productName}
+                          className="w-full h-full object-contain rounded-lg"
+                          data-testid="img-product-main"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 bg-white rounded-lg">
+                          <ShoppingBag className="w-24 h-24" />
+                        </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Descrição */}
-                  {comparisonData.description && (
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-3">Descrição</h3>
-                      <p className="text-gray-700 leading-relaxed" data-testid="text-description">
-                        {comparisonData.description}
-                      </p>
-                    </div>
-                  )}
+                  {/* Informações do produto - Lado Direito */}
+                  <div className="p-8 flex flex-col justify-center">
+                    <div className="space-y-6">
+                      {/* Logo da loja com menor preço */}
+                      {sortedStores[0]?.store && (
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gray-100 rounded-full overflow-hidden flex-shrink-0">
+                            {sortedStores[0].store.logoUrl ? (
+                              <img 
+                                src={sortedStores[0].store.logoUrl} 
+                                alt={sortedStores[0].store.name}
+                                className="w-full h-full object-cover"
+                                data-testid="img-best-store-logo"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                <ShoppingBag className="w-6 h-6" />
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-600">Melhor oferta</span>
+                            <p className="font-semibold text-gray-900" data-testid="text-best-store-name">
+                              {sortedStores[0].store.name}
+                            </p>
+                          </div>
+                        </div>
+                      )}
 
-                  {/* Resumo de preços */}
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-orange-900 mb-3">Resumo de Preços</h3>
-                    <div className="grid grid-cols-2 gap-4">
+                      {/* Nome do produto */}
+                      <h1 className="text-3xl font-bold text-blue-600" data-testid="text-product-name">
+                        {comparisonData.productName}
+                      </h1>
+
+                      {/* Categoria */}
+                      {comparisonData.category && (
+                        <Badge variant="secondary" className="w-fit" data-testid="badge-category">
+                          {comparisonData.category}
+                        </Badge>
+                      )}
+
+                      {/* Preço - A partir de */}
                       <div>
-                        <span className="text-sm text-orange-700">Menor preço</span>
-                        <p className="text-lg font-bold text-green-600" data-testid="text-summary-min-price">
-                          US$ {minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
+                        <p className="text-gray-600 text-sm mb-1">A partir de</p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-red-600 text-4xl font-bold" data-testid="text-min-price">
+                            US$ {minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                          {maxPrice !== minPrice && (
+                            <span className="text-gray-500 text-lg">
+                              R$ {(minPrice * 5.39).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-sm text-orange-700">Maior preço</span>
-                        <p className="text-lg font-bold text-red-600" data-testid="text-max-price">
-                          US$ {maxPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
+
+                      {/* Descrição */}
+                      {comparisonData.description && (
+                        <div>
+                          <h3 className="font-semibold text-gray-900 mb-3">Descrição</h3>
+                          <p className="text-gray-700 leading-relaxed" data-testid="text-description">
+                            {comparisonData.description}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Resumo de preços */}
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                        <h3 className="font-semibold text-orange-900 mb-3">Resumo de Preços</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-orange-700">Menor preço</span>
+                            <p className="text-lg font-bold text-green-600" data-testid="text-summary-min-price">
+                              US$ {minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-orange-700">Maior preço</span>
+                            <p className="text-lg font-bold text-red-600" data-testid="text-max-price">
+                              US$ {maxPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Banner Vertical - Lado Direito */}
+          {verticalBanners.length > 0 && (
+            <div className="xl:col-span-2">
+              <div className="sticky top-24">
+                {verticalBanners.slice(0, 1).map((banner: any) => (
+                  <Card key={banner.id} className="overflow-hidden" data-testid="card-vertical-banner">
+                    <CardContent className="p-0">
+                      {banner.link ? (
+                        <a 
+                          href={banner.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          <img
+                            src={banner.imageUrl}
+                            alt={banner.title || 'Banner'}
+                            className="w-full h-auto object-cover"
+                            data-testid="img-vertical-banner"
+                          />
+                        </a>
+                      ) : (
+                        <img
+                          src={banner.imageUrl}
+                          alt={banner.title || 'Banner'}
+                          className="w-full h-auto object-cover"
+                          data-testid="img-vertical-banner"
+                        />
+                      )}
+                      {banner.title && (
+                        <div className="p-3">
+                          <h3 className="text-sm font-semibold text-gray-900" data-testid="text-banner-title">
+                            {banner.title}
+                          </h3>
+                          {banner.description && (
+                            <p className="text-xs text-gray-600 mt-1" data-testid="text-banner-description">
+                              {banner.description}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </div>
 
         {/* Lista de Lojas */}
         <div className="space-y-4">
