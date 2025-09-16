@@ -76,6 +76,33 @@ import QRCode from "qrcode";
 import { apifyService, type PriceSearchResult } from "./apifyService";
 import { searchMercadoLibreProducts, getMercadoLibreProductDetails, convertMercadoLibreToProduct, hybridProductSearch } from "./mercadolibre";
 
+// Simple in-memory cache with TTL
+class MemoryCache {
+  private cache = new Map<string, { data: any; expires: number }>();
+  
+  get(key: string): any | null {
+    const item = this.cache.get(key);
+    if (!item || Date.now() > item.expires) {
+      this.cache.delete(key);
+      return null;
+    }
+    return item.data;
+  }
+  
+  set(key: string, data: any, ttlMs: number): void {
+    this.cache.set(key, {
+      data,
+      expires: Date.now() + ttlMs
+    });
+  }
+  
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+const cache = new MemoryCache();
+
 // Helper function to verify store ownership
 async function verifyStoreOwnership(storeId: string, userId: string): Promise<boolean> {
   try {
@@ -654,7 +681,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public store routes
   app.get('/api/public/stores', async (req, res) => {
     try {
+      const cacheKey = 'public-stores';
+      const cached = cache.get(cacheKey);
+      
+      if (cached) {
+        console.log('📦 Cache hit for /api/public/stores');
+        return res.json(cached);
+      }
+      
+      console.log('📦 Cache miss for /api/public/stores - fetching from DB');
       const stores = await storage.getAllActiveStores();
+      
+      // Cache for 5 minutes (300,000ms)
+      cache.set(cacheKey, stores, 5 * 60 * 1000);
+      
       res.json(stores);
     } catch (error) {
       console.error("Error fetching active stores:", error);
@@ -2802,6 +2842,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Product ID é obrigatório" });
       }
 
+      const cacheKey = `product-comparison-${id}`;
+      const cached = cache.get(cacheKey);
+      
+      if (cached) {
+        console.log(`📦 Cache hit for /api/product-comparison/${id}`);
+        return res.json(cached);
+      }
+      
+      console.log(`📦 Cache miss for /api/product-comparison/${id} - fetching from DB`);
+
       // Buscar o produto original
       const originalProduct = await storage.getProductWithStore(id);
       if (!originalProduct) {
@@ -2918,6 +2968,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: originalProduct.description,
         storesWithProduct: storesWithProduct
       };
+
+      // Cache for 10 minutes (600,000ms)
+      cache.set(cacheKey, response, 10 * 60 * 1000);
 
       res.json(response);
       
