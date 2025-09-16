@@ -74,10 +74,26 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
     
-    // Iniciar jobs de limpeza automática após o servidor estar rodando
-    startCleanupJobs();
+    // Modo desenvolvimento rápido: pular jobs pesados para evitar travamentos durante HMR
+    const isDevelopment = app.get("env") === "development";
+    const fastDev = process.env.FAST_DEV !== 'false'; // true por padrão
     
-    // Iniciar job de análise de tendências
-    startTrendingAnalysisJob();
+    if (!isDevelopment || !fastDev) {
+      // Executar jobs de forma assíncrona após um pequeno delay
+      setTimeout(() => {
+        // Guard global para evitar execução duplicada
+        if (!(globalThis as any).__jobsStarted) {
+          (globalThis as any).__jobsStarted = true;
+          
+          // Iniciar jobs de limpeza automática
+          startCleanupJobs();
+          
+          // Iniciar job de análise de tendências
+          startTrendingAnalysisJob();
+        }
+      }, 100);
+    } else {
+      log(`🚀 Modo desenvolvimento rápido ativado - jobs em background desabilitados`);
+    }
   });
 })();
