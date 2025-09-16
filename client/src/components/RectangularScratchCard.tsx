@@ -66,7 +66,7 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
       const dpr = window.devicePixelRatio || 1;
       
       const width = 64; // Largura retangular (w-16 = 64px)
-      const height = 72; // Altura retangular (h-18 = 72px)
+      const height = 80; // Altura retangular (h-20 = 80px)
       
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
@@ -325,7 +325,7 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
 
   return (
     <div className="flex flex-col items-center gap-1 flex-shrink-0">
-      <div className="relative w-16 h-18 rounded-lg overflow-hidden">
+      <div className="relative w-16 h-20 rounded-lg overflow-hidden">
         {/* Fundo do resultado */}
         <div className="absolute inset-0 w-full h-full rounded-lg flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500">
           {card.isScratched ? (
