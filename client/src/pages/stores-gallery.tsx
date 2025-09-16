@@ -762,6 +762,13 @@ export default function StoresGallery() {
                 </div>
               </div>
 
+              {/* Raspadinhas em formato redondo para usuários autenticados */}
+              {isAuthenticated && (
+                <div className="flex gap-4">
+                  <ThreeDailyScratchCards />
+                </div>
+              )}
+
               {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
                 <div 
                   key={storyStore.id} 

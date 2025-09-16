@@ -340,120 +340,63 @@ function MiniScratchCard({ card, onScratch, processingCardId, funnyMessage }: Mi
   };
 
   return (
-    <div
-      className={`
-        relative w-full h-[110px] p-3 rounded-lg border-2 transition-all duration-300
-        ${getCardStyle()}
-        ${isRevealing ? 'animate-pulse' : ''}
-        ${!card.isScratched ? 'shadow-md hover:shadow-xl' : 'shadow-sm'}
-      `}
-      data-testid={`scratch-card-${card.cardNumber}`}
-    >
-      {/* Número da carta */}
-      <div className="absolute top-1 left-1 w-5 h-5 bg-white/80 rounded-full flex items-center justify-center text-xs font-bold text-gray-600">
-        {card.cardNumber}
-      </div>
-
-
-      {/* Conteúdo principal */}
-      <div className="h-full flex flex-col items-center justify-center space-y-2 relative z-0">
-        {getIcon()}
-        
-        {card.isScratched === true ? (
-          card.won === true ? (
-            <div className="text-center animate-bounce-once">
-              <div className="text-xs font-bold text-yellow-700 mb-1">🎉 GANHOU!</div>
-              <div className="text-xs text-yellow-600 font-medium">
-                {card.prizeValue?.includes('%') 
-                  ? `${card.prizeValue} OFF` 
-                  : `R$ ${card.prizeValue}`
-                }
-              </div>
-              <div className="text-xs text-yellow-500 mt-1 font-semibold">✨ Parabéns! ✨</div>
-            </div>
-          ) : (
-            <div className="text-center">
-              {funnyMessage ? (
-                <div className="text-xs font-medium text-gray-500">
-                  <span>{funnyMessage.emoji}</span> <span>{funnyMessage.message}</span>
-                </div>
+    <div className="flex flex-col items-center gap-2 flex-shrink-0">
+      {/* Círculo da raspaldinha */}
+      <div className="relative">
+        <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 p-0.5 hover:scale-105 transition-transform cursor-pointer">
+          <div 
+            className={`
+              w-full h-full rounded-full overflow-hidden flex items-center justify-center relative transition-all duration-300
+              ${card.isScratched 
+                ? card.won 
+                  ? 'bg-gradient-to-br from-yellow-100 to-yellow-200' 
+                  : 'bg-gradient-to-br from-gray-100 to-gray-200'
+                : 'bg-gradient-to-br from-purple-100 to-pink-100'
+              }
+              ${isRevealing ? 'animate-pulse' : ''}
+            `}
+            data-testid={`scratch-card-${card.cardNumber}`}
+          >
+            {/* Ícone central */}
+            <div className="flex flex-col items-center justify-center">
+              {card.isScratched === true ? (
+                card.won === true ? (
+                  <Star className="w-8 h-8 text-yellow-600" />
+                ) : (
+                  <div className="w-8 h-8 flex items-center justify-center text-gray-500 text-xl">😔</div>
+                )
+              ) : isRevealing === true ? (
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : isProcessing === true ? (
+                <div className="w-6 h-6 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
               ) : (
-                <div className="text-xs font-medium text-gray-500">Não foi dessa vez</div>
+                <Gift className="w-8 h-8 text-purple-600" />
               )}
             </div>
-          )
-        ) : isRevealing === true ? (
-          <div className="text-center animate-pulse">
-            <div className="text-xs font-medium text-blue-700">✨ Revelando...</div>
-            <div className="text-xs font-bold text-blue-600">PRÊMIO</div>
+
+            {/* Canvas de raspadinha para círculo */}
+            {card.isScratched !== true && isRevealing !== true && isProcessing !== true && (
+              <canvas
+                ref={canvasRef}
+                className="absolute inset-0 w-full h-full rounded-full cursor-pointer z-30"
+                style={{ touchAction: 'none' }}
+                onMouseDown={handleMouseDown}
+                onMouseUp={handleMouseUp}
+                onMouseMove={handleMouseMove}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                onTouchMove={handleTouchMove}
+              />
+            )}
           </div>
-        ) : isProcessing === true ? (
-          <div className="text-center">
-            <div className="text-xs font-medium text-orange-700">⏳ Processando...</div>
-            <div className="text-xs font-bold text-orange-600">AGUARDE</div>
-          </div>
-        ) : isScratching === true ? (
-          <div className="text-center animate-pulse">
-            <div className="text-xs font-medium text-green-700">🔥 Raspando...</div>
-            <div className="text-xs font-bold text-green-600">CONTINUE!</div>
-          </div>
-        ) : (
-          <div className="text-center">
-            <div className="text-xs font-medium text-purple-700">Clique para</div>
-            <div className="text-xs font-bold text-purple-600">RASPAR</div>
-          </div>
-        )}
+        </div>
       </div>
 
-      {/* Animação de raspagem aprimorada */}
-      {isRevealing && (
-        <>
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 opacity-60 rounded-lg animate-pulse" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
-          </div>
-        </>
-      )}
-
-      {/* Animação de confete para prêmios ganhos */}
-      {card.isScratched && card.won && !isRevealing && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg">
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-2 h-2 rounded-full animate-bounce"
-              style={{
-                left: `${20 + (i * 10)}%`,
-                top: `${10 + (i % 3) * 20}%`,
-                backgroundColor: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'][i % 6],
-                animationDelay: `${i * 100}ms`,
-                animationDuration: '1.5s'
-              }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Canvas de raspadinha APENAS para cartas não raspadas */}
-      {card.isScratched !== true && isRevealing !== true && isProcessing !== true && (
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full rounded-lg cursor-pointer z-30"
-          style={{ touchAction: 'none' }}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          onTouchMove={handleTouchMove}
-        />
-      )}
-      
-      {/* Efeito sparkle para cartas não raspadas */}
-      {card.isScratched !== true && isRevealing !== true && isProcessing !== true && (
-        <Sparkles className="absolute top-2 right-2 w-3 h-3 text-purple-400 animate-pulse pointer-events-none z-20" />
-      )}
+      {/* Label */}
+      <div className="text-xs text-gray-600 w-20 text-center leading-tight">
+        <span className="block truncate">Raspadinha {card.cardNumber}</span>
+      </div>
+    </div>
     </div>
   );
 }
@@ -628,62 +571,32 @@ export default function ThreeDailyScratchCards() {
   const card6 = cards.find((c: DailyScratchCard) => c.cardNumber === '6');
 
   return (
-    <div className="w-full space-y-[5px]">
-      {/* Primeira linha: cartas 1, 2, 3 */}
-      <div className="grid grid-cols-3 gap-[5px] w-full h-[110px]">
-        {card1 && (
-          <MiniScratchCard
-            card={card1}
-            onScratch={scratchMutation.mutate}
-            processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
-            funnyMessage={funnyMessages[card1.id]}
-          />
-        )}
-        {card2 && (
-          <MiniScratchCard
-            card={card2}
-            onScratch={scratchMutation.mutate}
-            processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
-            funnyMessage={funnyMessages[card2.id]}
-          />
-        )}
-        {card3 && (
-          <MiniScratchCard
-            card={card3}
-            onScratch={scratchMutation.mutate}
-            processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
-            funnyMessage={funnyMessages[card3.id]}
-          />
-        )}
-      </div>
-      
-      {/* Segunda linha: cartas 4, 5, 6 */}
-      <div className="grid grid-cols-3 gap-[5px] w-full h-[110px]">
-        {card4 && (
-          <MiniScratchCard
-            card={card4}
-            onScratch={scratchMutation.mutate}
-            processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
-            funnyMessage={funnyMessages[card4.id]}
-          />
-        )}
-        {card5 && (
-          <MiniScratchCard
-            card={card5}
-            onScratch={scratchMutation.mutate}
-            processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
-            funnyMessage={funnyMessages[card5.id]}
-          />
-        )}
-        {card6 && (
-          <MiniScratchCard
-            card={card6}
-            onScratch={scratchMutation.mutate}
-            processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
-            funnyMessage={funnyMessages[card6.id]}
-          />
-        )}
-      </div>
-    </div>
+    <>
+      {/* Apenas 3 raspadinhas em linha horizontal */}
+      {card1 && (
+        <MiniScratchCard
+          card={card1}
+          onScratch={scratchMutation.mutate}
+          processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
+          funnyMessage={funnyMessages[card1.id]}
+        />
+      )}
+      {card2 && (
+        <MiniScratchCard
+          card={card2}
+          onScratch={scratchMutation.mutate}
+          processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
+          funnyMessage={funnyMessages[card2.id]}
+        />
+      )}
+      {card3 && (
+        <MiniScratchCard
+          card={card3}
+          onScratch={scratchMutation.mutate}
+          processingCardId={scratchMutation.isPending ? scratchMutation.variables : undefined}
+          funnyMessage={funnyMessages[card3.id]}
+        />
+      )}
+    </>
   );
 }
