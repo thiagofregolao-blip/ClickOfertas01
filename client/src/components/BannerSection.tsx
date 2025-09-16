@@ -74,12 +74,18 @@ export function BannerSection({ isSearchActive = false }: BannerSectionProps) {
         .map(banner => banner.id);
       
       if (newBannerIds.length > 0) {
-        registerBannerViews(newBannerIds).finally(() => {
-          newBannerIds.forEach(id => viewedRef.current.add(id));
+        // Marcar como visualizado imediatamente para evitar duplicação
+        newBannerIds.forEach(id => viewedRef.current.add(id));
+        
+        // Registrar views de forma assíncrona
+        registerBannerViews(newBannerIds).catch(error => {
+          // Em caso de erro, remover da lista de visualizados para retry
+          newBannerIds.forEach(id => viewedRef.current.delete(id));
+          console.error('Erro ao registrar views:', error);
         });
       }
     }
-  }, [banners]);
+  }, [banners.length, banners.map(b => b.id).join(',')]);
 
   // Se não há banners ativos, não renderizar nada
   if (banners.length === 0) {

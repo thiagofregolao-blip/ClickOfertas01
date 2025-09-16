@@ -9,35 +9,26 @@ const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
-// Serve attached assets statically
-app.use('/attached_assets', express.static(path.resolve(process.cwd(), 'attached_assets')));
+// Serve attached assets statically with cache headers
+app.use('/attached_assets', express.static(path.resolve(process.cwd(), 'attached_assets'), {
+  maxAge: '10m', // Cache por 10 minutos
+  etag: true,
+  lastModified: true
+}));
 
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
+  // Só aplicar logging detalhado para rotas /api
+  if (path.startsWith("/api")) {
+    res.on("finish", () => {
+      const duration = Date.now() - start;
+      // Log apenas essenciais: method, path, status, duration
+      const logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       log(logLine);
-    }
-  });
+    });
+  }
 
   next();
 });

@@ -130,14 +130,24 @@ async function verifyStoreOwnershipByProduct(productId: string, userId: string):
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware BEFORE routes
   const session = (await import('express-session')).default;
-  const connectPg = (await import('connect-pg-simple')).default(session);
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const fastDev = process.env.FAST_DEV !== 'false';
   
-  const pgStore = new connectPg({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: 7 * 24 * 60 * 60, // 1 week in seconds
-    tableName: "sessions",
-  });
+  let sessionStore;
+  if (isDevelopment && fastDev) {
+    // Usar MemoryStore em desenvolvimento para performance
+    sessionStore = new session.MemoryStore();
+    console.log('🚀 Usando MemoryStore para sessões (desenvolvimento rápido)');
+  } else {
+    // Usar PostgreSQL store em produção
+    const connectPg = (await import('connect-pg-simple')).default(session);
+    sessionStore = new connectPg({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: false,
+      ttl: 7 * 24 * 60 * 60, // 1 week in seconds
+      tableName: "sessions",
+    });
+  }
   
   app.set("trust proxy", 1);
   // Verificar se SESSION_SECRET está definido em produção
@@ -150,7 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.use(session({
     secret: sessionSecret || 'dev-only-fallback-' + Math.random().toString(36),
-    store: pgStore,
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -249,8 +259,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Auth routes
+  // Auth routes with cache
   app.get('/api/auth/user', async (req: any, res) => {
+    // Cache key baseado na sessão/user ID
+    const cacheKey = `auth-user-${req.session?.user?.id || req.user?.claims?.sub || 'anon'}`;
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
     try {
       // Verificar sessão manual primeiro (sistema de email/senha)
       if (req.session?.user?.id) {
@@ -269,6 +285,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...fullUser,
           hasStore: !!userStore
         };
+        // Cache por 60s
+        cache.set(cacheKey, userWithStoreInfo, 60000);
         return res.json(userWithStoreInfo);
       }
 
@@ -289,6 +307,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           hasStore: !!userStore
         };
         
+        // Cache por 60s
+        cache.set(cacheKey, userWithStoreInfo, 60000);
         return res.json(userWithStoreInfo);
       }
 
@@ -4539,10 +4559,18 @@ Keep the overall composition and maintain the same visual quality. This is for a
   // SISTEMA DE MODO MANUTENÇÃO
   // ==========================================
 
-  // API routes para modo manutenção
+  // API routes para modo manutenção with cache
   app.get('/api/maintenance/status', async (req, res) => {
     try {
+      const cacheKey = 'maintenance-status';
+      const cached = cache.get(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
+      
       const maintenanceStatus = await storage.getMaintenanceStatus();
+      // Cache por 60s
+      cache.set(cacheKey, maintenanceStatus, 60000);
       res.json(maintenanceStatus);
     } catch (error) {
       console.error("Erro ao buscar status de manutenção:", error);
