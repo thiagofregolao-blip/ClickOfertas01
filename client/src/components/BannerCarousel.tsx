@@ -74,6 +74,15 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
     setCurrentIndex((prev) => (prev + 1) % banners.length);
   };
 
+  // Crear array extendido para loop infinito
+  const extendedBanners = [...banners, ...banners, ...banners];
+  const totalBanners = extendedBanners.length;
+  const centerIndex = banners.length + currentIndex;
+  
+  // Cálculo do deslocamento para mostrar 3 banners (15% + 70% + 15%)
+  const slideWidth = 100 / 3; // Cada posição = 33.33%
+  const translateX = -(centerIndex - 1) * slideWidth; // -1 para centralizar
+
   return (
     <div 
       className="relative w-full overflow-hidden"
@@ -82,108 +91,79 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
       onMouseLeave={() => setIsHover(false)}
       data-testid="banner-carousel"
     >
-      {/* Container principal com 3 posições fixas */}
-      <div className="relative w-full h-full flex items-center justify-center gap-4 px-4">
-        
-        {/* Banner Esquerda (15%) */}
-        <div className="w-[15%] h-full relative">
-          {banners.length > 1 && (
+      <div 
+        className="flex h-full transition-transform duration-500 ease-in-out"
+        style={{
+          transform: `translateX(${translateX}%)`,
+          width: `${totalBanners * slideWidth}%`
+        }}
+      >
+        {extendedBanners.map((banner, index) => {
+          const relativeIndex = index - banners.length; // -length, -length+1, ..., 0, 1, ..., length-1, length, length+1
+          const distanceFromCenter = Math.abs(relativeIndex - currentIndex);
+          const isCenter = relativeIndex === currentIndex;
+          const isLeft = relativeIndex === currentIndex - 1;
+          const isRight = relativeIndex === currentIndex + 1;
+          const isVisible = isCenter || isLeft || isRight;
+
+          return (
             <div
-              className="w-full h-full rounded-xl overflow-hidden cursor-pointer opacity-60 hover:opacity-80 transition-all duration-500 group"
-              onClick={() => handleBannerClick(banners[(currentIndex - 1 + banners.length) % banners.length])}
-              data-testid={`banner-slide-left`}
+              key={`${banner.id}-${index}`}
+              className={`
+                relative h-full flex-shrink-0 px-2 transition-all duration-500
+                ${isCenter ? 'opacity-100' : 'opacity-60 hover:opacity-80'}
+              `}
+              style={{ 
+                width: `${slideWidth}%`
+              }}
             >
-              <img
-                src={banners[(currentIndex - 1 + banners.length) % banners.length].imageUrl}
-                alt="Banner anterior"
-                className="w-full h-full object-cover transition-transform duration-500"
-                loading="lazy"
-                draggable="false"
-              />
-              <div className="absolute inset-0 bg-black/20" />
-            </div>
-          )}
-        </div>
+              <div
+                className="w-full h-full rounded-xl overflow-hidden cursor-pointer group relative"
+                onClick={() => handleBannerClick(banner)}
+                data-testid={`banner-slide-${banner.id}-${index}`}
+              >
+                <img
+                  src={banner.imageUrl}
+                  alt={banner.title || "Banner"}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  draggable="false"
+                />
+                
+                {/* Overlay effects */}
+                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
 
-        {/* Banner Centro (70%) */}
-        <div className="w-[70%] h-full relative">
-          <div
-            className="w-full h-full rounded-xl overflow-hidden cursor-pointer transition-all duration-500 group relative z-10"
-            onClick={() => handleBannerClick(banners[currentIndex])}
-            data-testid={`banner-slide-center`}
-          >
-            <img
-              src={banners[currentIndex].imageUrl}
-              alt={banners[currentIndex].title || "Banner central"}
-              className="w-full h-full object-cover transition-transform duration-500"
-              loading="lazy"
-              draggable="false"
-            />
-            
-            {/* Overlay effects */}
-            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300" />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
-
-            {/* Navigation arrows */}
-            {banners.length > 1 && (
-              <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goToPrev();
-                  }}
-                  className="w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
-                  data-testid="banner-prev-btn"
-                >
-                  ←
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goToNext();
-                  }}
-                  className="w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
-                  data-testid="banner-next-btn"
-                >
-                  →
-                </button>
+                {/* Navigation arrows - only on center banner */}
+                {isCenter && banners.length > 1 && (
+                  <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        goToPrev();
+                      }}
+                      className="w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
+                      data-testid="banner-prev-btn"
+                    >
+                      ←
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        goToNext();
+                      }}
+                      className="w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
+                      data-testid="banner-next-btn"
+                    >
+                      →
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Banner Direita (15%) */}
-        <div className="w-[15%] h-full relative">
-          {banners.length > 1 && (
-            <div
-              className="w-full h-full rounded-xl overflow-hidden cursor-pointer opacity-60 hover:opacity-80 transition-all duration-500 group"
-              onClick={() => handleBannerClick(banners[(currentIndex + 1) % banners.length])}
-              data-testid={`banner-slide-right`}
-            >
-              <img
-                src={banners[(currentIndex + 1) % banners.length].imageUrl}
-                alt="Próximo banner"
-                className="w-full h-full object-cover transition-transform duration-500"
-                loading="lazy"
-                draggable="false"
-              />
-              <div className="absolute inset-0 bg-black/20" />
             </div>
-          )}
-        </div>
+          );
+        })}
       </div>
-
-      {/* Efeito deslizante overlay */}
-      {banners.length > 1 && (
-        <div 
-          className="absolute inset-0 pointer-events-none transition-transform duration-500 ease-in-out"
-          style={{
-            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 45%, transparent 55%, transparent 100%)',
-            transform: `translateX(${currentIndex * 100}px)`,
-            animation: 'slideEffect 0.5s ease-in-out'
-          }}
-        />
-      )}
 
       {/* Indicators */}
       {banners.length > 1 && (
