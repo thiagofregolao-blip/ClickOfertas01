@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { LazyImage } from "@/components/lazy-image";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useAnalytics } from "@/lib/analytics";
 import type { StoreWithProducts, Product } from "@shared/schema";
 
 // Função para limitar nome a duas palavras no mobile

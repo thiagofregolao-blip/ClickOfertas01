@@ -8,6 +8,57 @@ const ICECAT_USER = process.env.ICECAT_USER;            // seu username (shopnam
 const API_TOKEN   = process.env.ICECAT_API_TOKEN;       // datasheet
 const CONTENT_TOK = process.env.ICECAT_CONTENT_TOKEN;   // assets/imagens
 
+// Cache in-memory para chamadas Icecat (5min TTL)
+class IcecatCache {
+  private cache = new Map<string, { data: any; expires: number }>();
+
+  set(key: string, data: any, ttlMs: number = 5 * 60 * 1000) {
+    this.cache.set(key, {
+      data,
+      expires: Date.now() + ttlMs
+    });
+  }
+
+  get(key: string): any | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    
+    if (Date.now() > entry.expires) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return entry.data;
+  }
+
+  clear() {
+    this.cache.clear();
+  }
+}
+
+const icecatCache = new IcecatCache();
+
+// Fetch com timeout para Icecat
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number = 10000): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (controller.signal.aborted) {
+      throw new Error(`Icecat API timeout after ${timeoutMs}ms`);
+    }
+    throw error;
+  }
+}
+
 /**
  * Interface para produto do Icecat
  */

@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Search, BarChart3, X } from "lucide-react";
 import { useTypewriter } from "@/hooks/use-typewriter";
 import { useDebounce } from "@/hooks/use-debounce";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useAnalytics } from "@/lib/analytics";
 import { SearchResultItem } from "@/components/search-result-item";
 import { StoreResultItem } from "@/components/store-result-item";
 import type { StoreWithProducts } from "@shared/schema";

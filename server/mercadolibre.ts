@@ -3,6 +3,57 @@
  * Busca produtos e extrai imagens/dados para complementar Icecat
  */
 
+// Cache in-memory para chamadas MercadoLibre (5min TTL)
+class MercadoLibreCache {
+  private cache = new Map<string, { data: any; expires: number }>();
+
+  set(key: string, data: any, ttlMs: number = 5 * 60 * 1000) {
+    this.cache.set(key, {
+      data,
+      expires: Date.now() + ttlMs
+    });
+  }
+
+  get(key: string): any | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    
+    if (Date.now() > entry.expires) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return entry.data;
+  }
+
+  clear() {
+    this.cache.clear();
+  }
+}
+
+const mlCache = new MercadoLibreCache();
+
+// Fetch com timeout
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number = 10000): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (controller.signal.aborted) {
+      throw new Error(`MercadoLibre API timeout after ${timeoutMs}ms`);
+    }
+    throw error;
+  }
+}
+
 export interface MercadoLibreProduct {
   id: string;
   title: string;
@@ -44,15 +95,24 @@ export interface MercadoLibreSearchResult {
 export async function searchMercadoLibreProducts(query: string, limit: number = 10): Promise<MercadoLibreProduct[]> {
   try {
     const encodedQuery = encodeURIComponent(query.trim());
+    const cacheKey = `ml_search:${encodedQuery}:${limit}`;
+    
+    // Check cache first
+    const cached = mlCache.get(cacheKey);
+    if (cached) {
+      console.log(`📦 Cache hit for MercadoLibre search: "${query}"`);
+      return cached;
+    }
+
     const searchUrl = `https://api.mercadolibre.com/sites/MPY/search?q=${encodedQuery}&limit=${limit}`;
     
     console.log(`🔍 Buscando no MercadoLibre Paraguay: "${query}"`);
     
-    const response = await fetch(searchUrl, {
+    const response = await fetchWithTimeout(searchUrl, {
       headers: {
         'User-Agent': 'ClickOfertas/1.0',
       },
-    });
+    }, 10000); // 10 second timeout
 
     if (!response.ok) {
       throw new Error(`MercadoLibre API error: ${response.status} ${response.statusText}`);
@@ -61,6 +121,9 @@ export async function searchMercadoLibreProducts(query: string, limit: number = 
     const data: MercadoLibreSearchResult = await response.json();
     
     console.log(`✅ MercadoLibre encontrou ${data.results.length} produtos para "${query}"`);
+    
+    // Cache results for 5 minutes
+    mlCache.set(cacheKey, data.results);
     
     return data.results;
     
@@ -75,15 +138,24 @@ export async function searchMercadoLibreProducts(query: string, limit: number = 
  */
 export async function getMercadoLibreProductDetails(itemId: string): Promise<MercadoLibreProduct> {
   try {
+    const cacheKey = `ml_details:${itemId}`;
+    
+    // Check cache first
+    const cached = mlCache.get(cacheKey);
+    if (cached) {
+      console.log(`📦 Cache hit for MercadoLibre details: ${itemId}`);
+      return cached;
+    }
+
     console.log(`🔍 Buscando detalhes do produto MercadoLibre: ${itemId}`);
     
     const detailUrl = `https://api.mercadolibre.com/items/${itemId}`;
     
-    const response = await fetch(detailUrl, {
+    const response = await fetchWithTimeout(detailUrl, {
       headers: {
         'User-Agent': 'ClickOfertas/1.0',
       },
-    });
+    }, 10000); // 10 second timeout
 
     if (!response.ok) {
       throw new Error(`MercadoLibre item API error: ${response.status} ${response.statusText}`);
@@ -92,6 +164,9 @@ export async function getMercadoLibreProductDetails(itemId: string): Promise<Mer
     const product: MercadoLibreProduct = await response.json();
     
     console.log(`✅ Detalhes carregados para produto: ${product.title}`);
+    
+    // Cache results for 5 minutes
+    mlCache.set(cacheKey, product);
     
     return product;
     

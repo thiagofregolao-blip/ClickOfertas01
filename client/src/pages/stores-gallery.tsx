@@ -17,7 +17,7 @@ import { useAppVersion, type AppVersionType } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useTypewriter } from "@/hooks/use-typewriter";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useAnalytics } from "@/lib/analytics";
 import { LazyImage } from "@/components/lazy-image";
 import { SearchResultItem } from "@/components/search-result-item";
 import { StoreResultItem } from "@/components/store-result-item";

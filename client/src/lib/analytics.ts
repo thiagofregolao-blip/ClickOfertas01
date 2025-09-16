@@ -38,6 +38,8 @@ class AnalyticsManager {
   private session: UserSession | null = null;
   private pageStartTime: number = 0;
   private currentProductView: { productId: string; startTime: number } | null = null;
+  private lastUpdateTime: number = 0;
+  private updateThrottleMs: number = 60 * 1000; // 1 minute throttle
 
   constructor() {
     this.initSession();
@@ -138,10 +140,19 @@ class AnalyticsManager {
 
   private async updateSessionData() {
     if (!this.session) return;
-
+    
+    // Throttling: só permite update a cada 1 minuto
+    const now = Date.now();
+    if (now - this.lastUpdateTime < this.updateThrottleMs) {
+      console.debug('🚫 Analytics update throttled - too frequent');
+      return;
+    }
+    
+    this.lastUpdateTime = now;
     const visitDuration = (Date.now() - this.session.startTime) / 1000;
 
     try {
+      console.debug('📊 Sending throttled analytics update');
       await fetch('/api/analytics/session/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

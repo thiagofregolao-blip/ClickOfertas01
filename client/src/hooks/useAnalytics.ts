@@ -108,13 +108,9 @@ export const useAnalytics = () => {
       pagesViewed++;
     }
 
-    // Configurar atualizações periódicas da sessão
-    updateIntervalRef.current = setInterval(() => {
-      if (sessionData) {
-        const visitDuration = Math.floor((Date.now() - sessionStartTime) / 1000);
-        updateSession({ visitDuration, pagesViewed });
-      }
-    }, 30000); // Atualizar a cada 30 segundos
+    // ⚠️ REMOVIDO: setInterval que causava flood de analytics 
+    // O singleton AnalyticsManager já gerencia as atualizações com throttling
+    console.debug('🚫 Analytics setInterval REMOVIDO para evitar flood');
 
     // Cleanup
     return () => {

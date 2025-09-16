@@ -5,7 +5,7 @@ import type { Product } from "@shared/schema";
 import { Likeable } from "@/components/heart-animation";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAuth } from "@/hooks/useAuth";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useAnalytics } from "@/lib/analytics";
 import ScratchCard from "./scratch-card";
 import { formatBrazilianPrice } from "@/lib/priceUtils";
 import PriceComparisonPopup from "./price-comparison-popup";
