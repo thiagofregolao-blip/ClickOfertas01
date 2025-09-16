@@ -55,7 +55,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   if (banners.length === 1) {
     const banner = banners[0];
     return (
-      <div className="w-full h-48 md:h-64 lg:h-72">
+      <div className="w-full h-40 md:h-52 lg:h-60">
         <div
           className="w-full h-full cursor-pointer relative group overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
           onClick={() => handleBannerClick(banner)}
@@ -184,7 +184,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   return (
     <div 
       ref={containerRef}
-      className="w-full h-48 md:h-64 lg:h-72 relative overflow-hidden"
+      className="w-full h-40 md:h-52 lg:h-60 relative overflow-hidden"
       onMouseEnter={pauseAutoplay}
       onTouchStart={pauseAutoplay}
     >
