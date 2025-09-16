@@ -111,7 +111,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       data-testid="banner-carousel"
     >
       {/* Altura responsiva unificada - otimizada */}
-      <motion.div className="relative overflow-hidden" style={{ height: "clamp(109px, 19.2vw, 326px)" }}>
+      <motion.div className="relative overflow-hidden" style={{ height: "clamp(87px, 15.36vw, 261px)" }}>
         <motion.div
           className="relative flex items-stretch"
           style={{ gap: "24px", willChange: "transform" }}
