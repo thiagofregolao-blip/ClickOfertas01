@@ -183,13 +183,13 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   return (
     <div 
       ref={containerRef}
-      className="w-full h-48 md:h-64 lg:h-72 relative overflow-hidden rounded-lg"
+      className="w-full h-48 md:h-64 lg:h-72 relative overflow-hidden"
       onMouseEnter={pauseAutoplay}
       onTouchStart={pauseAutoplay}
     >
       <div 
         ref={trackRef}
-        className="flex h-full"
+        className="flex h-full gap-4"
         style={{
           transform: `translate3d(-${offset}px, 0, 0)`,
           transition: withTransition ? 'transform 700ms ease' : 'none'
@@ -199,13 +199,13 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
         {extendedBanners.map((banner, index) => (
           <div
             key={`${banner.id}-${index}`}
-            className="h-full"
+            className="h-full flex-shrink-0"
             style={{ 
-              flex: `0 0 ${slideWidth}px`
+              width: `${slideWidth}px`
             }}
           >
             <div
-              className="w-full h-full cursor-pointer relative group overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 mx-1"
+              className="w-full h-full cursor-pointer relative group overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
               onClick={() => handleBannerClick(banner)}
               data-testid={`banner-slide-${banner.id}-${index}`}
             >
