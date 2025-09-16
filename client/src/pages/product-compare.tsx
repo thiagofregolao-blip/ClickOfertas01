@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link, useLocation } from "wouter";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Star, MapPin, MessageCircle as WhatsApp, Instagram, ShoppingBag, Crown } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Star, MapPin, MessageCircle as WhatsApp, Instagram, ShoppingBag, Crown, Search, BarChart3, X } from "lucide-react";
 import { formatPriceWithCurrency } from "@/lib/priceUtils";
 
 interface Store {
@@ -42,6 +44,19 @@ interface ProductComparisonData {
 export default function ProductCompare() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
+  const [searchInput, setSearchInput] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchInput.trim()) {
+      setLocation(`/cards?search=${encodeURIComponent(searchInput)}`);
+    }
+  };
+
+  const handlePriceComparison = () => {
+    setLocation('/price-comparison');
+  };
 
   // Buscar dados de comparação do produto
   const { data: comparisonData, isLoading } = useQuery<ProductComparisonData>({
@@ -100,7 +115,67 @@ export default function ProductCompare() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Barra de Busca Global */}
+      <header className="bg-gradient-to-r from-red-500 to-orange-500 shadow-md">
+        <div className="max-w-7xl mx-auto px-3 py-3">
+          <div className="flex items-center gap-4">
+            {/* Logo/Nome do App - Oculto no mobile */}
+            <Link href="/cards" className="hidden sm:block">
+              <div className="flex-shrink-0 cursor-pointer">
+                <h1 className="text-white font-bold text-lg md:text-xl whitespace-nowrap">
+                  Click Ofertas.PY
+                </h1>
+              </div>
+            </Link>
+
+            {/* Barra de Busca */}
+            <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md mx-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  placeholder="Buscar produtos..."
+                  className="pl-10 pr-10 py-2 w-full bg-white border-0 rounded-lg shadow-sm focus:ring-2 focus:ring-white/20 text-gray-700 placeholder-gray-400"
+                  data-testid="global-search-input"
+                />
+                {searchInput && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchInput('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </form>
+
+            {/* Botão Comparar Preços */}
+            <Button
+              onClick={handlePriceComparison}
+              className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-3 py-2 rounded-lg shadow-sm flex-shrink-0 hidden sm:flex items-center gap-2"
+              data-testid="button-price-comparison"
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span className="hidden md:inline">Comparar Preços</span>
+            </Button>
+
+            {/* Mobile: Apenas ícone de comparação */}
+            <Button
+              onClick={handlePriceComparison}
+              className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 p-2 rounded-lg shadow-sm sm:hidden"
+              data-testid="button-price-comparison-mobile"
+            >
+              <BarChart3 className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Header da Página */}
       <div className="bg-white border-b shadow-sm">
         <div className="mx-auto max-w-6xl px-4 py-4">
           <div className="flex items-center gap-4">
