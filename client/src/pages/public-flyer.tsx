@@ -75,6 +75,7 @@ export default function PublicFlyer() {
   const [, storeParams] = useRoute("/stores/:slug");
   const [, directSlugParams] = useRoute("/:slug");  // Nova rota para slugs diretos
   const params = flyerParams || storeParams || directSlugParams;
+  const [, setLocation] = useLocation();
   
   const isStoriesView = !!storeParams; // Detecta se é acesso via stories
   const { isMobile, isDesktop, version, versionName } = useAppVersion();
@@ -804,8 +805,7 @@ export default function PublicFlyer() {
                       themeColor={store?.themeColor || '#E11D48'}
                       logoUrl={store?.logoUrl || undefined}
                       onClick={(product) => {
-                        setSelectedProduct(product);
-                        setSelectedStore(store || null);
+                        setLocation(`/product/${product.id}/compare`);
                       }}
                     />
                   ) : (
@@ -821,8 +821,7 @@ export default function PublicFlyer() {
                         boxShadow: 'inset 0 0 0 1px #ef4444'
                       } : {}}
                       onClick={() => {
-                        setSelectedProduct(product);
-                        setSelectedStore(store || null);
+                        setLocation(`/product/${product.id}/compare`);
                       }}
                     >
                       <div className={`relative ${product.isFeatured ? 'bg-white rounded-md' : ''}`}>
@@ -943,8 +942,7 @@ export default function PublicFlyer() {
                       currency={store?.currency || "USD"}
                       themeColor={store?.themeColor || "#E11D48"}
                       onClick={(product) => {
-                        setSelectedProduct(product);
-                        setSelectedStore(store || null);
+                        setLocation(`/product/${product.id}/compare`);
                       }}
                     />
                   </div>
@@ -1043,8 +1041,7 @@ export default function PublicFlyer() {
                           : 'border border-gray-200'
                       }`}
                       onClick={() => {
-                        setSelectedProduct(product);
-                        setSelectedStore(store || null);
+                        setLocation(`/product/${product.id}/compare`);
                       }}
                     >
                       <div className="relative">
@@ -1164,8 +1161,7 @@ export default function PublicFlyer() {
                       currency={store?.currency || "USD"}
                       themeColor={store?.themeColor || "#E11D48"}
                       onClick={(product) => {
-                        setSelectedProduct(product);
-                        setSelectedStore(store || null);
+                        setLocation(`/product/${product.id}/compare`);
                       }}
                     />
                   </div>
