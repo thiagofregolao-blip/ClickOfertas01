@@ -65,8 +65,8 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
       const rect = canvas.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
       
-      const width = 72; // Largura retangular
-      const height = 56; // Altura retangular
+      const width = 64; // Largura retangular (w-16 = 64px)
+      const height = 56; // Altura retangular (h-14 = 56px)
       
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
@@ -180,7 +180,7 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
   const isProcessing = processingCardId === card.id;
 
   // Função de scratch retangular
-  const handleScratch = (clientX: number, clientY: number) => {
+  const handleScratch = (x: number, y: number) => {
     if (!canvasRef.current || card.isScratched || isProcessing || revelationStarted.current) return;
     
     if (!isScratching) {
@@ -194,10 +194,6 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
 
     const scratchRadius = 10; // Raio de raspagem
 
@@ -254,14 +250,22 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
   // Event handlers para mouse
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     lastPoint.current = { x: e.clientX, y: e.clientY };
-    handleScratch(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+    handleScratch(x, y);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!lastPoint.current) return;
     e.preventDefault();
-    handleScratch(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    handleScratch(x, y);
   };
 
   const handleMouseUp = () => {

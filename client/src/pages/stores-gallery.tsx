@@ -254,13 +254,6 @@ export default function StoresGallery() {
   const [funnyMessages, setFunnyMessages] = useState<{ [cardId: string]: any }>({});
   const [processingCardId, setProcessingCardId] = useState<string | null>(null);
 
-  // Debug das raspadinhas
-  console.log('🃏 Debug raspadinhas:', {
-    isAuthenticated,
-    scratchCardsCount: scratchCards.length,
-    scratchCards: scratchCards.slice(0, 3),
-    scratchCardsData
-  });
 
   // Função para buscar mensagem engraçada aleatória
   const fetchFunnyMessage = async () => {
@@ -578,16 +571,6 @@ export default function StoresGallery() {
                   <span className="block truncate">Criar</span>
                 </div>
               </div>
-
-              {/* TESTE - Verificar se auth funciona */}
-              {isAuthenticated && (
-                <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                  <div className="w-16 h-14 bg-red-500 rounded-lg flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">AUTH OK</span>
-                  </div>
-                  <span className="text-xs">Debug</span>
-                </div>
-              )}
 
               {/* Raspadinhas retangulares - apenas para usuários autenticados */}
               {isAuthenticated && scratchCards.slice(0, 3).map((card: any) => (
