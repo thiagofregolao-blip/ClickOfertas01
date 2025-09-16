@@ -1106,7 +1106,7 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
             {/* Raspadinhas na mesma barra dos stores - apenas se não há busca ativa e usuário autenticado */}
             {!searchQuery.trim() && isAuthenticated && (
               <div className={`${isMobile ? 'px-3 mb-4' : 'px-2 mb-6'}`}>
-                <ThreeDailyScratchCards isCompact={true} />
+                <ThreeDailyScratchCards />
               </div>
             )}
             
