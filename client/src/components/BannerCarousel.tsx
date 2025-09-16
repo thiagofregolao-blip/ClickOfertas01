@@ -110,17 +110,35 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       aria-roledescription="carousel"
       data-testid="banner-carousel"
     >
-      {/* Container que ocupa toda a largura da tela */}
-      <motion.div 
-        className="relative overflow-hidden" 
+      {/* Container full-bleed com grid de 3 colunas */}
+      <div 
+        className="relative w-screen grid h-full overflow-visible"
         style={{ 
           height: "clamp(100px, 17.59vw, 299px)",
-          width: "100vw",
-          marginLeft: "calc(-50vw + 50%)"
+          marginLeft: "calc(50% - 50vw)",
+          gridTemplateColumns: "1fr min(100%, 80rem) 1fr"
         }}
       >
-        {/* Container interno alinhado com o layout principal (max-w-7xl) */}
-        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Preview esquerdo - Coluna 1 */}
+        <div className="flex items-stretch justify-end h-full opacity-60 pr-4 sm:pr-6 lg:pr-8 pointer-events-auto">
+          <div 
+            className="relative h-full w-full max-w-[40rem] rounded-xl overflow-hidden cursor-pointer"
+            onClick={() => handleBannerClick(items[left].banner)}
+          >
+            <img
+              src={items[left]?.image}
+              alt={items[left].banner.title || "banner"}
+              className="w-full h-full object-cover block"
+              style={{ transform: "scale(0.84)" }}
+              loading="lazy"
+              decoding="async"
+              draggable="false"
+            />
+          </div>
+        </div>
+
+        {/* Banner central - Coluna 2 (limitado pelo container principal) */}
+        <div className="relative h-full overflow-hidden px-4 sm:px-6 lg:px-8">
           <motion.div
             className="relative flex items-stretch h-full group"
             style={{ willChange: "transform" }}
@@ -172,52 +190,25 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
             </button>
           </div>
         </div>
-        
-        {/* Banners laterais fixos para mostrar previews */}
-        <div className="absolute inset-0 pointer-events-none">
-          {/* Banner esquerdo - preview */}
+
+        {/* Preview direito - Coluna 3 */}
+        <div className="flex items-stretch justify-start h-full opacity-60 pl-4 sm:pl-6 lg:pl-8 pointer-events-auto">
           <div 
-            className="absolute left-0 top-0 h-full opacity-60 pointer-events-auto"
-            style={{ width: "calc((100vw - 100%) / 2 + 2rem)" }}
+            className="relative h-full w-full max-w-[40rem] rounded-xl overflow-hidden cursor-pointer"
+            onClick={() => handleBannerClick(items[right].banner)}
           >
-            <div 
-              className="relative w-full h-full rounded-xl overflow-hidden cursor-pointer"
-              onClick={() => handleBannerClick(items[left].banner)}
-            >
-              <img
-                src={items[left]?.image}
-                alt={items[left].banner.title || "banner"}
-                className="w-full h-full object-cover block"
-                style={{ transform: "scale(0.84)" }}
-                loading="lazy"
-                decoding="async"
-                draggable="false"
-              />
-            </div>
-          </div>
-          
-          {/* Banner direito - preview */}
-          <div 
-            className="absolute right-0 top-0 h-full opacity-60 pointer-events-auto"
-            style={{ width: "calc((100vw - 100%) / 2 + 2rem)" }}
-          >
-            <div 
-              className="relative w-full h-full rounded-xl overflow-hidden cursor-pointer"
-              onClick={() => handleBannerClick(items[right].banner)}
-            >
-              <img
-                src={items[right]?.image}
-                alt={items[right].banner.title || "banner"}
-                className="w-full h-full object-cover block"
-                style={{ transform: "scale(0.84)" }}
-                loading="lazy"
-                decoding="async"
-                draggable="false"
-              />
-            </div>
+            <img
+              src={items[right]?.image}
+              alt={items[right].banner.title || "banner"}
+              className="w-full h-full object-cover block"
+              style={{ transform: "scale(0.84)" }}
+              loading="lazy"
+              decoding="async"
+              draggable="false"
+            />
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Indicadores */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
