@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -276,6 +276,9 @@ export default function StoresGallery() {
     },
     onSuccess: async (data: any, cardId: string) => {
       setProcessingCardId(null);
+      
+      // Invalidar cache para atualizar UI imediatamente
+      queryClient.invalidateQueries({ queryKey: ['/api/daily-scratch/cards'] });
       
       // Se perdeu, buscar uma mensagem engraçada
       if (!data.won) {

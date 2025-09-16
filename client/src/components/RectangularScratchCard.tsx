@@ -240,6 +240,23 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
 
     // Aplicar efeito de raspagem
     ctx.globalCompositeOperation = 'destination-out';
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = scratchRadius * 2;
+    
+    // Desenhar linha conectando pontos para evitar lacunas
+    if (lastPoint.current) {
+      const lastRect = canvas.getBoundingClientRect();
+      const lastX = lastPoint.current.x - lastRect.left;
+      const lastY = lastPoint.current.y - lastRect.top;
+      
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+    
+    // Desenhar círculo no ponto atual
     ctx.beginPath();
     ctx.arc(x, y, scratchRadius, 0, 2 * Math.PI);
     ctx.fill();
@@ -254,8 +271,9 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
     if (!rect) return;
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    lastPoint.current = { x: e.clientX, y: e.clientY };
+    lastPoint.current = null; // Reset para não desenhar linha no primeiro ponto
     handleScratch(x, y);
+    lastPoint.current = { x: e.clientX, y: e.clientY };
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -266,6 +284,7 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     handleScratch(x, y);
+    lastPoint.current = { x: e.clientX, y: e.clientY };
   };
 
   const handleMouseUp = () => {
@@ -281,8 +300,9 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
     
     const x = touch.clientX - rect.left;
     const y = touch.clientY - rect.top;
-    lastPoint.current = { x: touch.clientX, y: touch.clientY };
+    lastPoint.current = null; // Reset para não desenhar linha no primeiro ponto
     handleScratch(x, y);
+    lastPoint.current = { x: touch.clientX, y: touch.clientY };
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -295,6 +315,7 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
     const x = touch.clientX - rect.left;
     const y = touch.clientY - rect.top;
     handleScratch(x, y);
+    lastPoint.current = { x: touch.clientX, y: touch.clientY };
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -382,10 +403,6 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
         )}
       </div>
 
-      {/* Nome da raspadinha */}
-      <span className="text-xs font-medium text-gray-800 text-center max-w-16 truncate">
-        Card {card.cardNumber}
-      </span>
     </div>
   );
 }
