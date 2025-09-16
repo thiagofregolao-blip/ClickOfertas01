@@ -73,20 +73,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
           >
             <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300" />
             
-            <div className="relative z-10 w-full h-full flex items-center justify-center px-6 md:px-8 lg:px-12">
-              <div className="text-center">
-                <h2 
-                  className="text-xl md:text-3xl lg:text-4xl font-bold leading-tight"
-                  style={{ 
-                    color: banner.textColor || '#FFFFFF',
-                    textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
-                  }}
-                >
-                  {banner.title}
-                </h2>
-              </div>
-            </div>
-            
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
           </div>
         </div>
@@ -240,20 +226,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
                 }}
               >
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300" />
-                
-                <div className="relative z-10 w-full h-full flex items-center justify-center px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8">
-                  <div className="text-center max-w-full">
-                    <h2 
-                      className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl 2xl:text-3xl font-bold leading-tight break-words"
-                      style={{ 
-                        color: banner.textColor || '#FFFFFF',
-                        textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
-                      }}
-                    >
-                      {banner.title}
-                    </h2>
-                  </div>
-                </div>
                 
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
               </div>
