@@ -1,0 +1,2444 @@
+================================================================================
+                           CLICK OFERTAS PARAGUAI - CÓDIGO COMPLETO
+================================================================================
+
+PROJETO: Click Ofertas Paraguai
+DESCRIÇÃO: PWA para gerenciamento de ofertas e produtos do Paraguai
+TECNOLOGIAS: React, TypeScript, Express.js, PostgreSQL, Drizzle ORM, Tailwind CSS
+
+================================================================================
+1. CONFIGURAÇÕES DO PROJETO
+================================================================================
+
+=== package.json ===
+{
+  "name": "rest-express",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "NODE_ENV=development tsx server/index.ts",
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "start": "NODE_ENV=production node dist/index.js",
+    "check": "tsc",
+    "db:push": "drizzle-kit push"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^7.17.0",
+    "@google/genai": "^1.18.0",
+    "@google/generative-ai": "^0.24.1",
+    "@hookform/resolvers": "^3.10.0",
+    "@jridgewell/trace-mapping": "^0.3.25",
+    "@neondatabase/serverless": "^0.10.4",
+    "@radix-ui/react-accordion": "^1.2.4",
+    "@radix-ui/react-alert-dialog": "^1.1.7",
+    "@radix-ui/react-aspect-ratio": "^1.1.3",
+    "@radix-ui/react-avatar": "^1.1.4",
+    "@radix-ui/react-checkbox": "^1.1.5",
+    "@radix-ui/react-collapsible": "^1.1.4",
+    "@radix-ui/react-context-menu": "^2.2.7",
+    "@radix-ui/react-dialog": "^1.1.7",
+    "@radix-ui/react-dropdown-menu": "^2.1.7",
+    "@radix-ui/react-hover-card": "^1.1.7",
+    "@radix-ui/react-label": "^2.1.3",
+    "@radix-ui/react-menubar": "^1.1.7",
+    "@radix-ui/react-navigation-menu": "^1.2.6",
+    "@radix-ui/react-popover": "^1.1.7",
+    "@radix-ui/react-progress": "^1.1.3",
+    "@radix-ui/react-radio-group": "^1.2.4",
+    "@radix-ui/react-scroll-area": "^1.2.4",
+    "@radix-ui/react-select": "^2.1.7",
+    "@radix-ui/react-separator": "^1.1.3",
+    "@radix-ui/react-slider": "^1.2.4",
+    "@radix-ui/react-slot": "^1.2.0",
+    "@radix-ui/react-switch": "^1.1.4",
+    "@radix-ui/react-tabs": "^1.1.4",
+    "@radix-ui/react-toast": "^1.2.7",
+    "@radix-ui/react-toggle": "^1.1.3",
+    "@radix-ui/react-toggle-group": "^1.1.3",
+    "@radix-ui/react-tooltip": "^1.2.0",
+    "@tanstack/react-query": "^5.60.5",
+    "axios": "^1.11.0",
+    "bcryptjs": "^3.0.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
+    "connect-pg-simple": "^10.0.0",
+    "date-fns": "^3.6.0",
+    "drizzle-orm": "^0.39.1",
+    "drizzle-zod": "^0.7.0",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "framer-motion": "^11.13.1",
+    "html2canvas": "^1.4.1",
+    "lucide-react": "^0.453.0",
+    "multer": "^2.0.2",
+    "nanoid": "^5.1.5",
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.55.0",
+    "react-icons": "^5.4.0",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss-animate": "^1.0.7",
+    "wouter": "^3.3.5",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@replit/vite-plugin-cartographer": "^0.3.0",
+    "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
+    "@tailwindcss/typography": "^0.5.15",
+    "@tailwindcss/vite": "^4.1.3",
+    "@vitejs/plugin-react": "^4.3.2",
+    "autoprefixer": "^10.4.20",
+    "drizzle-kit": "^0.30.4",
+    "esbuild": "^0.25.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.1",
+    "typescript": "5.6.3",
+    "vite": "^5.4.19"
+  }
+}
+
+=== vite.config.ts ===
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+
+export default defineConfig({
+  plugins: [
+    react(),
+    runtimeErrorOverlay(),
+    ...(process.env.NODE_ENV !== "production" &&
+    process.env.REPL_ID !== undefined
+      ? [
+          await import("@replit/vite-plugin-cartographer").then((m) =>
+            m.cartographer(),
+          ),
+        ]
+      : []),
+  ],
+  resolve: {
+    alias: {
+      "@": path.resolve(import.meta.dirname, "client", "src"),
+      "@shared": path.resolve(import.meta.dirname, "shared"),
+      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+    },
+  },
+  root: path.resolve(import.meta.dirname, "client"),
+  build: {
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    emptyOutDir: true,
+  },
+  server: {
+    fs: {
+      strict: true,
+      deny: ["**/.*"],
+    },
+  },
+});
+
+=== tailwind.config.ts ===
+import type { Config } from "tailwindcss";
+
+export default {
+  darkMode: ["class"],
+  content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
+  theme: {
+    extend: {
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      colors: {
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        card: {
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
+        },
+        popover: {
+          DEFAULT: "var(--popover)",
+          foreground: "var(--popover-foreground)",
+        },
+        primary: {
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
+        },
+        secondary: {
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
+        },
+        muted: {
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
+        },
+        destructive: {
+          DEFAULT: "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
+        },
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
+        chart: {
+          "1": "var(--chart-1)",
+          "2": "var(--chart-2)",
+          "3": "var(--chart-3)",
+          "4": "var(--chart-4)",
+          "5": "var(--chart-5)",
+        },
+        sidebar: {
+          DEFAULT: "var(--sidebar)",
+          foreground: "var(--sidebar-foreground)",
+          primary: "var(--sidebar-primary)",
+          "primary-foreground": "var(--sidebar-primary-foreground)",
+          accent: "var(--sidebar-accent)",
+          "accent-foreground": "var(--sidebar-accent-foreground)",
+          border: "var(--sidebar-border)",
+          ring: "var(--sidebar-ring)",
+        },
+      },
+      fontFamily: {
+        sans: ["var(--font-sans)", "Inter", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
+        mono: ["var(--font-mono)", "Menlo", "monospace"],
+      },
+      keyframes: {
+        "accordion-down": {
+          from: {
+            height: "0",
+          },
+          to: {
+            height: "var(--radix-accordion-content-height)",
+          },
+        },
+        "accordion-up": {
+          from: {
+            height: "var(--radix-accordion-content-height)",
+          },
+          to: {
+            height: "0",
+          },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+} satisfies Config;
+
+================================================================================
+2. SCHEMA DO BANCO DE DADOS (shared/schema.ts)
+================================================================================
+
+import { sql } from 'drizzle-orm';
+import {
+  boolean,
+  index,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  varchar,
+  decimal,
+  unique,
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+// Session storage table for Replit Auth
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// Funny messages for scratch cards
+export const funnyMessages = pgTable("funny_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  message: text("message").notNull(),
+  emoji: text("emoji").notNull(),
+  category: varchar("category", { length: 10 }).default("lose"), // 'lose', 'win'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User storage table for Replit Auth
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").unique().notNull(),
+  password: varchar("password"), // Hash da senha
+  storeName: varchar("store_name"), // Nome da loja
+  phone: varchar("phone"),
+  address: text("address"), // Endereço completo
+  city: varchar("city"),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  fullName: varchar("full_name"),
+  state: varchar("state"),
+  country: varchar("country"),
+  profileImageUrl: varchar("profile_image_url"),
+  provider: varchar("provider").default("email"), // 'email', 'google', 'apple', 'replit'
+  providerId: varchar("provider_id"),
+  isEmailVerified: boolean("is_email_verified").default(false),
+  storeOwnerToken: varchar("store_owner_token"),
+  isSuperAdmin: boolean("is_super_admin").default(false), // Super admin do sistema
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Store configuration table
+export const stores = pgTable("stores", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  logoUrl: text("logo_url"),
+  themeColor: varchar("theme_color", { length: 7 }).default("#E11D48"),
+  currency: varchar("currency", { length: 10 }).default("Gs."),
+  displayCurrency: varchar("display_currency", { length: 10 }).default("local"), // "usd", "local", "both"
+  dollarRate: decimal("dollar_rate", { precision: 10, scale: 2 }).default("7500.00"),
+  customUsdBrlRate: decimal("custom_usd_brl_rate", { precision: 10, scale: 4 }), // Taxa personalizada da loja
+  whatsapp: varchar("whatsapp"),
+  instagram: varchar("instagram"),
+  address: text("address"),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }),
+  slug: varchar("slug").unique(),
+  
+  // Banner YouTube-style fields
+  bannerUrl: text("banner_url"), // URL da imagem de fundo do banner
+  bannerText: text("banner_text"), // Texto principal do banner (ex: "IURI INDICA")
+  bannerSubtext: text("banner_subtext"), // Texto secundário/descrição
+  bannerGradient: varchar("banner_gradient", { length: 50 }).default("purple-to-pink"), // Gradiente: purple-to-pink, blue-to-cyan, etc.
+  
+  isActive: boolean("is_active").default(true),
+  isPremium: boolean("is_premium").default(false), // Lojas premium aparecem primeiro no comparativo
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Products table
+export const products = pgTable("products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  price: decimal("price", { precision: 12, scale: 2 }).notNull(),
+  imageUrl: text("image_url"),
+  imageUrl2: text("image_url2"),
+  imageUrl3: text("image_url3"),
+  category: varchar("category").default("Perfumaria"),
+  gtin: varchar("gtin", { length: 14 }), // GTIN/EAN/UPC para busca no Icecat
+  brand: varchar("brand"), // Marca do produto (do Icecat)
+  productCode: varchar("product_code"), // Código do produto (do Icecat)
+  sourceType: varchar("source_type").default("manual"), // "manual", "icecat"
+  isFeatured: boolean("is_featured").default(false),
+  showInStories: boolean("show_in_stories").default(false),
+  showInTotem: boolean("show_in_totem").default(false), // NOVO: Controla exibição no totem
+  isActive: boolean("is_active").default(true),
+  sortOrder: varchar("sort_order").default("0"),
+  // Campos para funcionalidade de Raspadinha
+  isScratchCard: boolean("is_scratch_card").default(false),
+  scratchPrice: decimal("scratch_price", { precision: 12, scale: 2 }), // Preço especial após raspar
+  scratchExpiresAt: timestamp("scratch_expires_at"), // Quando expira a oferta global
+  scratchTimeLimitMinutes: varchar("scratch_time_limit_minutes").default("60"), // Tempo limite após raspar (em minutos)
+  maxScratchRedemptions: varchar("max_scratch_redemptions").default("10"), // Quantas pessoas podem raspar
+  currentScratchRedemptions: varchar("current_scratch_redemptions").default("0"), // Quantas já rasparam
+  scratchMessage: text("scratch_message").default("Raspe aqui e ganhe um super desconto!"), // Mensagem na raspadinha
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// [SCHEMA CONTINUA COM MAIS TABELAS...]
+
+================================================================================
+3. SERVIDOR BACKEND
+================================================================================
+
+=== server/index.ts ===
+import express, { type Request, Response, NextFunction } from "express";
+import { registerRoutes } from "./routes";
+import { setupVite, serveStatic, log } from "./vite";
+import { startCleanupJobs, startTrendingAnalysisJob } from "./cleanupJobs";
+import path from "path";
+
+const app = express();
+// Aumentar limite de payload para suportar upload de imagens/vídeos maiores
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+
+// Serve attached assets statically
+app.use('/attached_assets', express.static(path.resolve(process.cwd(), 'attached_assets')));
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path = req.path;
+  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+
+  const originalResJson = res.json;
+  res.json = function (bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path.startsWith("/api")) {
+      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      if (capturedJsonResponse) {
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      }
+
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "…";
+      }
+
+      log(logLine);
+    }
+  });
+
+  next();
+});
+
+(async () => {
+  const server = await registerRoutes(app);
+
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+
+    res.status(status).json({ message });
+    throw err;
+  });
+
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
+
+  // ALWAYS serve the app on the port specified in the environment variable PORT
+  // Other ports are firewalled. Default to 5000 if not specified.
+  // this serves both the API and the client.
+  // It is the only port that is not firewalled.
+  const port = parseInt(process.env.PORT || '5000', 10);
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, () => {
+    log(`serving on port ${port}`);
+    
+    // Modo desenvolvimento rápido: pular jobs pesados para evitar travamentos durante HMR
+    const isDevelopment = app.get("env") === "development";
+    const fastDev = process.env.FAST_DEV !== 'false'; // true por padrão
+    
+    if (!isDevelopment || !fastDev) {
+      // Executar jobs de forma assíncrona após um pequeno delay
+      setTimeout(() => {
+        // Guard global para evitar execução duplicada
+        if (!(globalThis as any).__jobsStarted) {
+          (globalThis as any).__jobsStarted = true;
+          
+          // Iniciar jobs de limpeza automática
+          startCleanupJobs();
+          
+          // Iniciar job de análise de tendências
+          startTrendingAnalysisJob();
+        }
+      }, 100);
+    } else {
+      log(`🚀 Modo desenvolvimento rápido ativado - jobs em background desabilitados`);
+    }
+  });
+})();
+
+================================================================================
+4. FRONTEND PRINCIPAL
+================================================================================
+
+=== client/index.html ===
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    
+    <!-- PWA Meta Tags -->
+    <title>Click Ofertas Paraguai</title>
+    <meta name="description" content="Crie e compartilhe panfletos digitais das suas ofertas. Encontre as melhores promoções do Paraguai.">
+    <meta name="theme-color" content="#21409A">
+    <meta name="application-name" content="Click Ofertas">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+    <meta name="msapplication-TileColor" content="#21409A">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- PWA Manifest embutido no HTML -->
+    <script>
+      // Criar manifest dinamicamente
+      const manifestData = {
+        "name": "Click Ofertas Paraguai",
+        "short_name": "Click Ofertas", 
+        "description": "Crie e compartilhe panfletos digitais das suas ofertas",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#ffffff",
+        "theme_color": "#21409A",
+        "orientation": "portrait-primary",
+        "scope": "/",
+        "icons": [
+          {
+            "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%2321409A' d='M0 0h512v512H0z'/%3E%3Cpath fill='white' d='M128 128h256v64H128zm0 96h256v64H128zm0 96h192v64H128z'/%3E%3C/svg%3E",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any"
+          }
+        ]
+      };
+      
+      const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+      const manifestURL = URL.createObjectURL(manifestBlob);
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = manifestURL;
+      document.head.appendChild(link);
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
+=== client/src/main.tsx ===
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import "./index.css";
+
+// Registro do Service Worker para PWA - APENAS EM PRODUÇÃO
+if ('serviceWorker' in navigator) {
+  if (import.meta.env.PROD) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registrado com sucesso:', registration);
+        })
+        .catch((registrationError) => {
+          console.log('Falha no registro do Service Worker:', registrationError);
+        });
+    });
+  } else {
+    // DESENVOLVIMENTO: Desregistrar qualquer Service Worker existente
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => {
+        registration.unregister();
+        console.log('DEV: Service Worker desregistrado');
+      });
+    });
+  }
+}
+
+createRoot(document.getElementById("root")!).render(<App />);
+
+=== client/src/App.tsx ===
+import { Switch, Route } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
+import Landing from "@/pages/landing";
+import AdminDashboard from "@/pages/admin-dashboard";
+import AdminStoreConfig from "@/pages/admin-store-config";
+import AdminProducts from "@/pages/admin-products";
+import AdminPromotions from "@/pages/admin-promotions";
+import AdminPremiumStores from "@/pages/admin-premium-stores";
+import AdminTotem from "@/pages/admin-totem";
+import AdminStories from "@/pages/admin-stories";
+import Analytics from "@/pages/analytics";
+import TotemDisplay from "@/pages/totem-display";
+import PublicFlyer from "@/pages/public-flyer";
+import StoresGallery from "@/pages/stores-gallery";
+import UserSettingsPage from "@/pages/user-settings";
+import ShoppingList from "@/pages/shopping-list";
+import MyCoupons from "@/pages/my-coupons";
+import CouponDetails from "@/pages/coupon-details";
+import StoriesFeed from "@/pages/stories-feed";
+import CreateStory from "@/pages/create-story";
+import PriceComparison from "@/pages/price-comparison";
+import ProductCompare from "@/pages/product-compare";
+import SignupPage from "@/pages/signup";
+import SuperAdmin from "@/pages/super-admin";
+import SuperAdminLogin from "@/pages/super-admin-login";
+import DailyScratchPage from "@/pages/daily-scratch";
+import ApifyDemo from "@/pages/apify-demo";
+import MaintenancePage from "@/pages/maintenance";
+import NotFound from "@/pages/not-found";
+
+function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
+  const [bypassMaintenance, setBypassMaintenance] = useState(() => {
+    return localStorage.getItem('maintenance_bypass') === 'true';
+  });
+
+  // Hook para verificar status de manutenção
+  const { data: maintenanceStatus, isLoading: isLoadingMaintenance } = useQuery({
+    queryKey: ['/api/maintenance/status'],
+    refetchInterval: 30000, // Verifica a cada 30 segundos
+    staleTime: 0, // Sem cache para forçar nova consulta
+    gcTime: 0, // Não manter em cache (v5 usa gcTime ao invés de cacheTime)
+  });
+
+  const { user } = useAuth();
+
+  // Se está carregando, mostra um loading simples
+  if (isLoadingMaintenance) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Verificar se há um parâmetro de força de teste na URL
+  const forceMaintenanceTest = new URLSearchParams(window.location.search).get('test-maintenance') === 'true';
+  
+  // Se modo manutenção está ativo E usuário não tem bypass E (não é super admin OU está forçando teste)
+  if ((maintenanceStatus as any)?.isActive && !bypassMaintenance && (!user?.isSuperAdmin || forceMaintenanceTest)) {
+    return (
+      <MaintenancePage 
+        onAccessGranted={() => {
+          setBypassMaintenance(true);
+        }}
+      />
+    );
+  }
+
+  return <>{children}</>;
+}
+
+function Router() {
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    // Durante carregamento, registrar todas as rotas mas mostrar loading
+    const LoadingComponent = () => (
+      <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+
+    return (
+      <Switch>
+        <Route path="/" component={Landing} />
+        <Route path="/cards" component={LoadingComponent} />
+        <Route path="/stories-feed" component={LoadingComponent} />
+        <Route path="/create-story" component={LoadingComponent} />
+        <Route path="/price-comparison" component={LoadingComponent} />
+        <Route path="/product/:id/compare" component={LoadingComponent} />
+        <Route path="/daily-scratch" component={LoadingComponent} />
+        <Route path="/apify-demo" component={LoadingComponent} />
+        <Route path="/flyer/:slug" component={PublicFlyer} />
+        <Route path="/stores/:slug" component={PublicFlyer} />
+        <Route path="/super-admin" component={SuperAdminLogin} />
+        <Route path="/super-admin-login" component={SuperAdminLogin} />
+        <Route path="/admin-panel" component={SuperAdmin} />
+        <Route path="/admin" component={LoadingComponent} />
+        <Route path="/admin/:rest*" component={LoadingComponent} />
+        <Route path="/settings" component={LoadingComponent} />
+        <Route path="/shopping-list" component={LoadingComponent} />
+        <Route path="/my-coupons" component={LoadingComponent} />
+        <Route path="/coupon" component={LoadingComponent} />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
+
+  return (
+    <Switch>
+      {!isAuthenticated ? (
+        // Usuário não logado - acesso público
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/signup" component={SignupPage} />
+          <Route path="/cards" component={StoresGallery} />
+          <Route path="/stories-feed" component={StoriesFeed} />
+          <Route path="/create-story" component={CreateStory} />
+          <Route path="/price-comparison" component={PriceComparison} />
+          <Route path="/product/:id/compare" component={ProductCompare} />
+          <Route path="/daily-scratch" component={DailyScratchPage} />
+          <Route path="/apify-demo" component={ApifyDemo} />
+          <Route path="/super-admin-login" component={SuperAdminLogin} />
+          <Route path="/super-admin" component={SuperAdminLogin} />
+          <Route path="/admin-panel" component={SuperAdmin} />
+          <Route path="/totem/:storeId" component={TotemDisplay} />
+          <Route path="/flyer/:slug" component={PublicFlyer} />
+          <Route path="/stores/:slug" component={PublicFlyer} />
+          <Route path="/:slug" component={PublicFlyer} />
+        </>
+      ) : user?.hasStore || user?.isSuperAdmin ? (
+        // Lojista logado ou Super Admin - painel admin completo
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin/config" component={AdminStoreConfig} />
+          <Route path="/admin/products" component={AdminProducts} />
+          <Route path="/admin/premium-stores" component={AdminPremiumStores} />
+          <Route path="/admin/promotions" component={AdminPromotions} />
+          <Route path="/admin/totem" component={AdminTotem} />
+          <Route path="/admin/stories" component={AdminStories} />
+          <Route path="/admin/analytics" component={Analytics} />
+          <Route path="/super-admin" component={SuperAdminLogin} />
+          <Route path="/super-admin-login" component={SuperAdminLogin} />
+          <Route path="/admin-panel" component={SuperAdmin} />
+          <Route path="/totem/:storeId" component={TotemDisplay} />
+          <Route path="/cards" component={StoresGallery} />
+          <Route path="/stories-feed" component={StoriesFeed} />
+          <Route path="/create-story" component={CreateStory} />
+          <Route path="/price-comparison" component={PriceComparison} />
+          <Route path="/product/:id/compare" component={ProductCompare} />
+          <Route path="/daily-scratch" component={DailyScratchPage} />
+          <Route path="/settings" component={UserSettingsPage} />
+          <Route path="/shopping-list" component={ShoppingList} />
+          <Route path="/my-coupons" component={MyCoupons} />
+          <Route path="/coupon" component={CouponDetails} />
+          <Route path="/flyer/:slug" component={PublicFlyer} />
+          <Route path="/stores/:slug" component={PublicFlyer} />
+          <Route path="/:slug" component={PublicFlyer} />
+        </>
+      ) : (
+        // Usuário normal logado - sem acesso ao admin
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/cards" component={StoresGallery} />
+          <Route path="/stories-feed" component={StoriesFeed} />
+          <Route path="/create-story" component={CreateStory} />
+          <Route path="/price-comparison" component={PriceComparison} />
+          <Route path="/product/:id/compare" component={ProductCompare} />
+          <Route path="/daily-scratch" component={DailyScratchPage} />
+          <Route path="/settings" component={UserSettingsPage} />
+          <Route path="/shopping-list" component={ShoppingList} />
+          <Route path="/my-coupons" component={MyCoupons} />
+          <Route path="/coupon" component={CouponDetails} />
+          <Route path="/super-admin" component={SuperAdminLogin} />
+          <Route path="/super-admin-login" component={SuperAdminLogin} />
+          <Route path="/admin-panel" component={SuperAdmin} />
+          <Route path="/totem/:storeId" component={TotemDisplay} />
+          <Route path="/flyer/:slug" component={PublicFlyer} />
+          <Route path="/stores/:slug" component={PublicFlyer} />
+          <Route path="/:slug" component={PublicFlyer} />
+          {/* Usuário normal não tem acesso ao admin - redireciona para /cards */}
+          <Route path="/admin" component={() => { window.location.href = '/cards'; return null; }} />
+          <Route path="/admin/:rest*" component={() => { window.location.href = '/cards'; return null; }} />
+        </>
+      )}
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <MaintenanceWrapper>
+          <Router />
+        </MaintenanceWrapper>
+        <Toaster />
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
+
+=== client/src/pages/landing.tsx ===
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { FileText, ShoppingBag, TrendingUp, Users, Globe, LogIn } from "lucide-react";
+import { useAppVersion } from "@/hooks/use-mobile";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import GlobalHeader from "@/components/global-header";
+
+/**
+ * Página de Aterrissagem - Click Ofertas Paraguai
+ * Design inspirado na Shopee - Área laranja com formulário sobreposto
+ */
+export default function Landing() {
+  const { versionName, version } = useAppVersion();
+  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha email e senha",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Login realizado com sucesso",
+          description: "Redirecionando..."
+        });
+
+        // Redirecionar baseado no tipo de usuário
+        if (data.user?.isSuperAdmin) {
+          window.location.href = '/admin-panel';
+        } else if (data.user?.hasStore) {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/cards';
+        }
+      } else {
+        toast({
+          title: "Erro no login",
+          description: data.message || "Email ou senha incorretos",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro no login",
+        description: "Erro de conexão",
+        variant: "destructive"
+      });
+    }
+    setIsLoading(false);
+  };
+  
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Header Branco Superior */}
+      <header className="bg-white border-b border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          {/* Logo/Nome à esquerda */}
+          <div className="flex items-center">
+            <h1 className="text-xl font-bold text-gray-900">
+              Click Ofertas <span className="text-orange-500">PY</span>
+            </h1>
+          </div>
+          
+          {/* Precisa de Ajuda à direita */}
+          <div>
+            <a 
+              href="#" 
+              className="text-base text-orange-500 hover:text-orange-600 font-medium transition-colors"
+            >
+              Precisa de Ajuda?
+            </a>
+          </div>
+        </div>
+      </header>
+
+      {/* Área Promocional de fundo (estilo Shopee) */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#F04940] to-[#FA7D22] min-h-[85vh]">
+        <div className="absolute inset-0 bg-black/20"></div>
+        
+        {/* Layout Mobile vs Desktop */}
+        <div className="relative z-10 w-full h-full">
+          {/* Mobile Layout */}
+          <div className="block lg:hidden">
+            <div className="flex flex-col min-h-screen">
+              {/* Header com logo */}
+              <div className="p-6 pt-12">
+                <div className="text-center text-white">
+                  <div className="flex items-center justify-center gap-3 mb-2">
+                    <img 
+                      src="/attached_assets/logo%20certo%2001_1756853766080.png" 
+                      alt="Mascote Click Ofertas" 
+                      className="w-12 h-12 object-contain"
+                    />
+                    <h1 className="text-3xl font-bold">Click Ofertas</h1>
+                  </div>
+                  <p className="text-white/90 text-sm">Paraguai</p>
+                </div>
+              </div>
+
+              {/* Conteúdo principal mobile */}
+              <div className="flex-1 flex flex-col justify-center px-6">
+                <div className="text-center text-white mb-8">
+                  <h2 className="text-2xl font-bold mb-4 leading-tight">
+                    Descubra as melhores{" "}
+                    <span className="text-yellow-300">ofertas</span>{" "}
+                    do Paraguai
+                  </h2>
+                  <p className="text-white/90 text-sm mb-6">
+                    Conectamos você às melhores lojas com ofertas exclusivas e cupons digitais
+                  </p>
+                </div>
+
+                {/* Cards de benefícios */}
+                <div className="grid grid-cols-2 gap-3 mb-8">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                    <div className="w-8 h-8 bg-yellow-300 rounded-full mb-2 flex items-center justify-center">
+                      <ShoppingBag className="w-4 h-4 text-gray-900" />
+                    </div>
+                    <p className="text-white text-xs font-medium">Ofertas verificadas</p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                    <div className="w-8 h-8 bg-yellow-300 rounded-full mb-2 flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4 text-gray-900" />
+                    </div>
+                    <p className="text-white text-xs font-medium">Cupons exclusivos</p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                    <div className="w-8 h-8 bg-yellow-300 rounded-full mb-2 flex items-center justify-center">
+                      <Globe className="w-4 h-4 text-gray-900" />
+                    </div>
+                    <p className="text-white text-xs font-medium">BR vs PY</p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                    <div className="w-8 h-8 bg-yellow-300 rounded-full mb-2 flex items-center justify-center">
+                      <Users className="w-4 h-4 text-gray-900" />
+                    </div>
+                    <p className="text-white text-xs font-medium">Lojas confiáveis</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Formulário de login mobile */}
+              <div className="px-6 pb-8">
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl">
+                  <div className="text-center mb-6">
+                    <div className="flex items-center justify-center gap-3 mb-2">
+                      <img 
+                        src="/attached_assets/logo%20certo%2001_1756853766080.png" 
+                        alt="Mascote Click Ofertas" 
+                        className="w-12 h-12 object-contain"
+                      />
+                      <h3 className="text-xl font-bold text-gray-900">Entre agora</h3>
+                    </div>
+                    <p className="text-gray-600 text-sm">Acesse as melhores ofertas</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Campo de Email/Telefone/Usuário */}
+                    <div>
+                      <Input 
+                        placeholder="Email/Telefone/Usuário"
+                        className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
+                        data-testid="input-login-mobile"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
+
+                    {/* Campo de Senha */}
+                    <div>
+                      <Input 
+                        type="password"
+                        placeholder="Senha"
+                        className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
+                        data-testid="input-password-mobile"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                    </div>
+
+                    {/* Botão principal de login */}
+                    <Button 
+                      onClick={handleLogin}
+                      disabled={isLoading}
+                      className="w-full bg-gradient-to-r from-[#F04940] to-[#FA7D22] hover:from-[#E03A32] hover:to-[#E96D1D] text-white py-4 rounded-xl font-semibold text-base shadow-lg"
+                      data-testid="button-login"
+                    >
+                      <LogIn className="w-5 h-5 mr-2" />
+                      {isLoading ? 'ENTRANDO...' : 'ENTRAR'}
+                    </Button>
+
+                    {/* Links de apoio */}
+                    <div className="flex flex-row justify-between text-sm mt-4">
+                      <Button variant="link" className="p-0 h-auto text-[#F04940] text-left">
+                        Esqueci minha senha
+                      </Button>
+                      <Button variant="link" className="p-0 h-auto text-[#F04940] text-right">
+                        Login com SMS
+                      </Button>
+                    </div>
+
+                    {/* Link para cadastro */}
+                    <div className="text-center mt-6 pt-4 border-t border-gray-200">
+                      <span className="text-gray-600 text-sm mb-3 block">Novo por aqui? Escolha seu tipo:</span>
+                      <div className="space-y-2">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => window.location.href = '/signup?type=user'}
+                          className="w-full text-[#F04940] border-[#F04940] hover:bg-[#F04940] hover:text-white text-sm"
+                          data-testid="button-signup-user"
+                        >
+                          👤 Cadastrar como Usuário
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => window.location.href = '/signup?type=store'}
+                          className="w-full text-[#F04940] border-[#F04940] hover:bg-[#F04940] hover:text-white text-sm"
+                          data-testid="button-signup-store"
+                        >
+                          🏪 Cadastrar como Loja
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => window.location.href = '/signup?type=admin'}
+                          className="w-full text-[#F04940] border-[#F04940] hover:bg-[#F04940] hover:text-white text-sm"
+                          data-testid="button-signup-admin"
+                        >
+                          ⚡ Cadastrar como Super Admin
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden lg:flex items-start justify-between h-full max-w-7xl mx-auto px-8 xl:px-16 py-6 pt-8">
+            {/* Conteúdo do lado esquerdo */}
+            <div className="text-left text-white max-w-2xl flex-1 pr-8">
+              <div className="mb-4 text-center relative">
+                
+                <h1 className="text-6xl font-bold mb-4 leading-tight">
+                  Descubra as melhores{" "}
+                  <span className="text-yellow-300">ofertas</span>{" "}
+                  do Paraguai
+                </h1>
+              </div>
+
+              {/* Descrição do que somos */}
+              <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-white/20">
+                <h3 className="text-xl font-bold mb-3 text-yellow-300">Quem Somos</h3>
+                <p className="text-base text-white/95 leading-relaxed mb-4">
+                  Conectamos você às <strong>melhores lojas do Paraguai</strong> com ofertas exclusivas, 
+                  cupons digitais e comparação de preços inteligente.
+                </p>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                    <span>Ofertas verificadas</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                    <span>Cupons exclusivos</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                    <span>Comparação BR vs PY</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                    <span>Lojas confiáveis</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Elementos decorativos */}
+              <div className="absolute top-20 left-10 opacity-20 pointer-events-none">
+                <ShoppingBag className="w-16 h-16" />
+              </div>
+              <div className="absolute bottom-20 left-32 opacity-20 pointer-events-none">
+                <TrendingUp className="w-20 h-20" />
+              </div>
+              <div className="absolute top-1/3 left-64 opacity-20 pointer-events-none">
+                <Users className="w-20 h-20" />
+              </div>
+            </div>
+
+            {/* Formulário de Login Desktop */}
+            <div className="w-[360px] max-w-md bg-white rounded-xl shadow-2xl p-8 flex-shrink-0">
+              <div className="w-full">
+                <div className="mb-8">
+                  <div className="flex items-center justify-center gap-3 mb-2">
+                    <h2 className="text-3xl font-bold text-gray-900">Entre</h2>
+                    <img 
+                      src="/attached_assets/logo%20certo%2001_1756853766080.png" 
+                      alt="Mascote Click Ofertas" 
+                      className="w-16 h-16 object-contain"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div>
+                    <Input 
+                      placeholder="Email/Telefone/Usuário"
+                      className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-lg"
+                      data-testid="input-login-desktop"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Input 
+                      type="password"
+                      placeholder="Senha"
+                      className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-lg"
+                      data-testid="input-password-desktop"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </div>
+
+                  <Button 
+                    onClick={handleLogin}
+                    disabled={isLoading}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-lg font-medium text-lg"
+                    data-testid="button-login-desktop"
+                  >
+                    {isLoading ? 'ENTRANDO...' : 'ENTRE'}
+                  </Button>
+
+                  <div className="flex flex-row justify-between text-base">
+                    <Button variant="link" className="p-0 h-auto text-orange-500 text-left">
+                      Esqueci minha senha
+                    </Button>
+                    <Button variant="link" className="p-0 h-auto text-orange-500 text-right">
+                      Fazer login com SMS
+                    </Button>
+                  </div>
+
+                  {/* Divisor */}
+                  <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white text-gray-500">OU</span>
+                    </div>
+                  </div>
+
+                  {/* Botões de Login Social */}
+                  <div className="grid grid-cols-2 gap-3 mb-6">
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center justify-center gap-2 p-3 border border-gray-300 hover:bg-gray-50"
+                    >
+                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#1877F2">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                      </svg>
+                      <span className="text-sm font-medium">Facebook</span>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center justify-center gap-2 p-3 border border-gray-300 hover:bg-gray-50"
+                    >
+                      <svg className="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                      </svg>
+                      <span className="text-sm font-medium">Google</span>
+                    </Button>
+                  </div>
+
+                  <div className="text-center">
+                    <span className="text-gray-600 text-base mb-3 block">Novo na Click Ofertas? Escolha seu tipo:</span>
+                    <div className="flex gap-2 justify-center">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.location.href = '/signup?type=user'}
+                        className="text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                        data-testid="button-signup-user-desktop"
+                      >
+                        👤 Usuário
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.location.href = '/signup?type=store'}
+                        className="text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                        data-testid="button-signup-store-desktop"
+                      >
+                        🏪 Loja
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.location.href = '/signup?type=admin'}
+                        className="text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                        data-testid="button-signup-admin-desktop"
+                      >
+                        ⚡ Super Admin
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Rodapé estilo Shopee com informações de contato e links úteis */}
+      <footer className="bg-gray-100 py-6 sm:py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
+            {/* Seções do rodapé com links organizados */}
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2 sm:mb-4 text-xs sm:text-sm">ATENDIMENTO AO CLIENTE</h3>
+              <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-600">
+                <li><a href="#" className="hover:text-orange-500">Central de Ajuda</a></li>
+                <li><a href="#" className="hover:text-orange-500">Como Comprar</a></li>
+                <li><a href="#" className="hover:text-orange-500">Métodos de Pagamento</a></li>
+                <li><a href="#" className="hover:text-orange-500">Garantia Click Ofertas</a></li>
+                <li><a href="#" className="hover:text-orange-500">Devolução e Reembolso</a></li>
+                <li><a href="#" className="hover:text-orange-500">Fale Conosco</a></li>
+                <li><a href="#" className="hover:text-orange-500">Ouvidoria</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2 sm:mb-4 text-xs sm:text-sm">SOBRE A CLICK OFERTAS</h3>
+              <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-600">
+                <li><a href="#" className="hover:text-orange-500">Sobre Nós</a></li>
+                <li><a href="#" className="hover:text-orange-500">Políticas</a></li>
+                <li><a href="#" className="hover:text-orange-500">Política de Privacidade</a></li>
+                <li><a href="#" className="hover:text-orange-500">Programa de Afiliados</a></li>
+                <li><a href="#" className="hover:text-orange-500">Seja um Entregador</a></li>
+                <li><a href="#" className="hover:text-orange-500">Ofertas Relâmpago</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+=== BannerCarousel.tsx ===
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+
+interface Banner {
+  id: string;
+  title: string;
+  description?: string;
+  imageUrl: string;
+  linkUrl?: string;
+  backgroundColor: string;
+  textColor: string;
+}
+
+interface BannerCarouselProps {
+  banners: Banner[];
+  autoPlayInterval?: number;
+}
+
+/**
+ * Carrossel de Banners – MODELO BUSCAPÉ (3 visíveis com imagens)
+ * Efeito solicitado: PAUSA (~4s) no banner central e depois desliza para a esquerda,
+ * trazendo o banner da direita para o centro. Sem rebote, sem morph de largura.
+ * Proporção fixa: 70% (centro) | 15% (esq) | 15% (dir)
+ */
+
+export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarouselProps) {
+  if (!banners || banners.length === 0) {
+    return null;
+  }
+
+  // Analytics - Registrar clique no banner
+  const handleBannerClick = async (banner: Banner) => {
+    try {
+      await fetch('/api/banners/click', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bannerId: banner.id,
+        }),
+      });
+    } catch (error) {
+      console.error('Erro ao registrar clique:', error);
+    }
+
+    // Abrir link se existir
+    if (banner.linkUrl) {
+      window.open(banner.linkUrl, '_blank');
+    }
+  };
+
+  // Converter banners para formato do carrossel
+  const items = banners.map(banner => ({
+    id: banner.id,
+    image: banner.imageUrl,
+    banner: banner
+  }));
+
+  const n = items.length;
+  const [center, setCenter] = useState(0); // índice do item central
+  const [dir, setDir] = useState(1); // 1 = direita->centro (move trilho para a esquerda); -1 = esquerda->centro
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [snap, setSnap] = useState(false); // transição 0 para resetar trilho após animar
+  const [isHover, setIsHover] = useState(false);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  const i = (k: number) => (k + n) % n;
+
+  // índices para compor as 3 posições visíveis + 1 buffer
+  const left = i(center - 1);
+  const right = i(center + 1);
+  const nextRight = i(center + 2);
+
+  // autoplay com PAUSA: espera dwellMs e então dispara uma animação de 15%
+  useEffect(() => {
+    if (isHover || isAnimating) return;
+    const id = setTimeout(() => startSlide(1), autoPlayInterval);
+    return () => clearTimeout(id);
+  }, [isHover, isAnimating, center, autoPlayInterval]);
+
+  function startSlide(direction: 1 | -1) {
+    if (isAnimating) return;
+    setDir(direction);
+    setIsAnimating(true);
+  }
+
+  // Controles manuais
+  const next = () => startSlide(1);
+  const prev = () => startSlide(-1);
+
+  // Touch
+  const onTouchStart = (e: React.TouchEvent) => setTouchStartX(e.touches[0].clientX);
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX == null) return;
+    const dx = e.touches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) {
+      dx < 0 ? next() : prev();
+      setTouchStartX(null);
+    }
+  };
+
+  return (
+    <div
+      className="relative w-full mx-auto select-none"
+      onMouseEnter={() => setIsHover(true)}
+      onMouseLeave={() => setIsHover(false)}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      aria-roledescription="carousel"
+      data-testid="banner-carousel"
+    >
+      {/* Altura responsiva unificada - otimizada */}
+      <motion.div className="relative overflow-hidden" style={{ height: "clamp(136px, 24vw, 408px)" }}>
+        <motion.div
+          className="relative flex items-stretch"
+          style={{ gap: "24px", willChange: "transform" }}
+          initial={false}
+          animate={{ x: isAnimating ? (dir === 1 ? "-15%" : "15%") : "0%" }}
+          transition={snap ? { duration: 0 } : { duration: 0.6, ease: "easeInOut" }}
+          onAnimationComplete={() => {
+            if (isAnimating) {
+              setCenter((c) => i(c + dir));
+              setIsAnimating(false);
+              // reseta trilho instantaneamente em x:0 para não "voltar"
+              setSnap(true);
+              requestAnimationFrame(() => setSnap(false));
+            }
+          }}
+        >
+          {/* esquerda (15%) */}
+          <Slide item={items[left]} startBasis="15%" onPrev={prev} onNext={next} onBannerClick={handleBannerClick} />
+          {/* centro (70%) */}
+          <Slide item={items[center]} startBasis="70%" onPrev={prev} onNext={next} onBannerClick={handleBannerClick} />
+          {/* direita (15%) */}
+          <Slide item={items[right]} startBasis="15%" onPrev={prev} onNext={next} onBannerClick={handleBannerClick} />
+          {/* buffer (fora da viewport) */}
+          <Slide item={items[nextRight]} startBasis="15%" onPrev={prev} onNext={next} onBannerClick={handleBannerClick} />
+        </motion.div>
+      </motion.div>
+
+      {/* Indicadores */}
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
+        {items.map((_, iDot) => (
+          <button
+            key={iDot}
+            aria-label={`Ir para o banner ${iDot + 1}`}
+            onClick={() => !isAnimating && setCenter(iDot)}
+            className={`h-2.5 w-2.5 rounded-full transition-all ${
+              center === iDot ? "scale-125 bg-white" : "bg-white/50 hover:bg-white/70"
+            }`}
+            data-testid={`banner-indicator-${iDot}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Slide: largura fixa por posição; setas visíveis quando no centro visual (70%)
+function Slide({
+  item,
+  startBasis,
+  onPrev,
+  onNext,
+  onBannerClick,
+}: {
+  item: { id: string; image: string; banner: Banner };
+  startBasis: string;
+  onPrev: () => void;
+  onNext: () => void;
+  onBannerClick: (banner: Banner) => void;
+}) {
+  const isCenterVisual = startBasis === "70%";
+
+  return (
+    <div style={{ flexBasis: startBasis }} className="shrink-0 group">
+      <div 
+        className="relative w-full h-full rounded-xl overflow-hidden cursor-pointer"
+        onClick={() => onBannerClick(item.banner)}
+        data-testid={`banner-slide-${item.id}`}
+      >
+        <img
+          src={item?.image}
+          alt={item.banner.title || "banner"}
+          className="w-full h-full object-cover block"
+          loading="lazy"
+          decoding="async"
+          draggable="false"
+        />
+
+        {isCenterVisual && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-between px-2 sm:px-3 md:px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onPrev();
+              }}
+              aria-label="Anterior"
+              className="pointer-events-auto rounded-full bg-black/45 hover:bg-black/65 text-white w-9 h-9 flex items-center justify-center"
+              data-testid="banner-prev-btn"
+            >
+              ←
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onNext();
+              }}
+              aria-label="Próximo"
+              className="pointer-events-auto rounded-full bg-black/45 hover:bg-black/65 text-white w-9 h-9 flex items-center justify-center"
+              data-testid="banner-next-btn"
+            >
+              →
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+================================================================================
+5. COMPONENTES PRINCIPAIS
+================================================================================
+
+=== global-header.tsx ===
+import { useState, useMemo, useEffect } from "react";
+import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Search, BarChart3, X } from "lucide-react";
+import { useTypewriter } from "@/hooks/use-typewriter";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useAnalytics } from "@/lib/analytics";
+import { SearchResultItem } from "@/components/search-result-item";
+import { StoreResultItem } from "@/components/store-result-item";
+import type { StoreWithProducts } from "@shared/schema";
+
+interface SearchResult {
+  id: string;
+  name: string;
+  price: string;
+  imageUrl: string | null;
+  category: string | null;
+  brand: string | null;
+  storeId: string;
+  storeName: string;
+  storeLogoUrl: string | null;
+  storeSlug: string | null;
+  storeThemeColor: string | null;
+  storePremium: boolean | null;
+}
+
+interface SearchResponse {
+  results: SearchResult[];
+  total: number;
+  searchTerm: string;
+}
+
+interface GlobalHeaderProps {
+  onSearch?: (query: string) => void;
+  searchValue?: string;
+  showPriceComparison?: boolean;
+  showFullResults?: boolean;
+}
+
+export default function GlobalHeader({ 
+  onSearch, 
+  searchValue = "", 
+  showPriceComparison = true,
+  showFullResults = true
+}: GlobalHeaderProps) {
+  const [searchInput, setSearchInput] = useState(searchValue);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [, setLocation] = useLocation();
+  
+  const searchQuery = useDebounce(searchInput, 500);
+  const { trackEvent, sessionToken } = useAnalytics();
+  
+  // Busca server-side otimizada
+  const { data: searchData, isLoading: isSearchLoading } = useQuery<SearchResponse>({
+    queryKey: [`/api/search?q=${encodeURIComponent(searchQuery)}`],
+    enabled: !!searchQuery && searchQuery.trim().length >= 2,
+    staleTime: 2 * 60 * 1000, // 2 minutes cache
+  });
+  
+  // Frases para placeholder dinâmico
+  const typewriterPhrases = [
+    "Produtos em promoção...",
+    "Eletrônicos importados...",
+    "Perfumes originais...",
+    "Ofertas imperdíveis...",
+    "Lojas do Paraguay...",
+    "Preços especiais..."
+  ];
+  
+  const { currentText } = useTypewriter({ 
+    phrases: isSearchFocused || searchInput ? [] : typewriterPhrases,
+    speed: 80,
+    pauseTime: 2500,
+    backspaceSpeed: 40
+  });
+
+  // Processar resultados de busca server-side
+  const searchResults = useMemo(() => {
+    if (!searchData?.results) return [];
+    
+    return searchData.results.map(result => ({
+      type: 'product' as const,
+      data: {
+        ...result,
+        store: {
+          id: result.storeId,
+          name: result.storeName,
+          logoUrl: result.storeLogoUrl,
+          slug: result.storeSlug,
+          themeColor: result.storeThemeColor,
+          isPremium: result.storePremium
+        }
+      },
+      store: {
+        id: result.storeId,
+        name: result.storeName,
+        logoUrl: result.storeLogoUrl,
+        slug: result.storeSlug,
+        themeColor: result.storeThemeColor,
+        isPremium: result.storePremium
+      }
+    }));
+  }, [searchData]);
+
+  // Capturar evento de busca
+  useEffect(() => {
+    if (searchQuery && searchQuery.trim().length > 2 && sessionToken && searchData) {
+      // Determinar categoria mais comum nos resultados
+      const categories = searchData.results
+        ?.map(r => r.category)
+        .filter(Boolean) || [];
+      const mostCommonCategory = categories.length > 0 
+        ? categories.reduce((a, b, i, arr) => 
+            arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
+          ) 
+        : undefined;
+
+      trackEvent('search', {
+        sessionToken,
+        searchTerm: searchQuery,
+        category: mostCommonCategory,
+        resultsCount: searchData.total || 0
+      });
+    }
+  }, [searchQuery, searchData, sessionToken, trackEvent]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Não fazer nada no submit, a busca já funciona em tempo real
+  };
+
+  const handlePriceComparison = () => {
+    setLocation('/price-comparison');
+  };
+
+  // Se houver busca ativa e showFullResults for true, mostrar em tela cheia
+  if (showFullResults && searchQuery && searchResults.length > 0 && !isSearchLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        {/* Header fixo */}
+        <header className="bg-gradient-to-r from-red-500 to-orange-500 shadow-md sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-3 py-3">
+            <div className="flex items-center gap-4">
+              {/* Logo/Nome do App - Oculto no mobile */}
+              <Link href="/cards" className="hidden sm:block">
+                <div className="flex-shrink-0 cursor-pointer">
+                  <h1 className="text-white font-bold text-lg md:text-xl whitespace-nowrap">
+                    Click Ofertas.PY
+                  </h1>
+                </div>
+              </Link>
+
+              {/* Barra de Busca */}
+              <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md mx-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    type="text"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onFocus={() => setIsSearchFocused(true)}
+                    placeholder="Buscar produtos..."
+                    className="pl-10 pr-10 py-2 w-full bg-white border-0 rounded-lg shadow-sm focus:ring-2 focus:ring-white/20 text-gray-700 placeholder-gray-400"
+                    data-testid="global-search-input"
+                  />
+                  {searchInput && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchInput('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </form>
+
+              {/* Botão Comparar Preços */}
+              {showPriceComparison && (
+                <Button
+                  onClick={handlePriceComparison}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-3 py-2 rounded-lg shadow-sm flex-shrink-0 hidden sm:flex items-center gap-2"
+                  data-testid="button-price-comparison"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span className="hidden md:inline">Comparar Preços</span>
+                </Button>
+              )}
+
+              {/* Mobile: Apenas ícone de comparação */}
+              {showPriceComparison && (
+                <Button
+                  onClick={handlePriceComparison}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 p-2 rounded-lg shadow-sm sm:hidden"
+                  data-testid="button-price-comparison-mobile"
+                >
+                  <BarChart3 className="w-5 h-5" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Resultados em tela cheia */}
+        <div className="max-w-4xl mx-auto p-4">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              Resultados da busca: "{searchQuery}"
+            </h2>
+            <p className="text-gray-600">
+              {searchResults.length} resultado{searchResults.length !== 1 ? 's' : ''} encontrado{searchResults.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {searchResults.map((result, index) => (
+              <Card key={`${result.type}-${result.data.id || index}`} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-0">
+                  <SearchResultItem
+                    product={result.data}
+                    store={result.store}
+                    searchTerm={searchQuery}
+                    onClick={() => {
+                      setLocation(`/product/${result.data.id}/compare`);
+                      setSearchInput('');
+                      setIsSearchFocused(false);
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {searchResults.length === 0 && (
+            <div className="text-center py-12">
+              <Search className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Nenhum resultado encontrado
+              </h3>
+              <p className="text-gray-600">
+                Tente pesquisar por outros termos
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <header className="bg-gradient-to-r from-red-500 to-orange-500 shadow-md fixed top-0 left-0 right-0 z-50">
+        <div className="max-w-7xl mx-auto px-3 py-3">
+          <div className="flex items-center gap-4">
+            {/* Logo/Nome do App - Oculto no mobile */}
+            <Link href="/cards" className="hidden sm:block">
+              <div className="flex-shrink-0 cursor-pointer">
+                <h1 className="text-white font-bold text-lg md:text-xl whitespace-nowrap">
+                  Click Ofertas.PY
+                </h1>
+              </div>
+            </Link>
+
+            {/* Barra de Busca */}
+            <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md mx-4 relative">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                  placeholder={searchInput || isSearchFocused ? "Buscar produtos..." : currentText}
+                  className="pl-10 pr-10 py-2 w-full bg-white border-0 rounded-lg shadow-sm focus:ring-2 focus:ring-white/20 text-gray-700 placeholder-gray-400"
+                  data-testid="global-search-input"
+                />
+                {searchInput && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchInput('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              
+              {/* Resultados compactos quando showFullResults = false */}
+              {!showFullResults && (isSearchFocused || searchInput) && searchResults.length > 0 && !isSearchLoading && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border z-50 max-h-96 overflow-y-auto">
+                  <div className="p-2">
+                    <div className="text-sm text-gray-600 mb-2 px-2">
+                      {searchData?.total || 0} resultado{(searchData?.total || 0) !== 1 ? 's' : ''} encontrado{(searchData?.total || 0) !== 1 ? 's' : ''}
+                    </div>
+                    {searchResults.slice(0, 8).map((result, index) => (
+                      <div key={`${result.type}-${result.data.id || index}`} className="mb-1">
+                        <SearchResultItem
+                          product={result.data}
+                          store={result.store}
+                          searchTerm={searchQuery}
+                          onClick={() => {
+                            setLocation(`/product/${result.data.id}/compare`);
+                            setSearchInput('');
+                            setIsSearchFocused(false);
+                          }}
+                        />
+                      </div>
+                    ))}
+                    {searchResults.length > 8 && (
+                      <div className="text-center py-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setLocation(`/cards?search=${encodeURIComponent(searchInput)}`);
+                            setSearchInput('');
+                            setIsSearchFocused(false);
+                          }}
+                        >
+                          Ver todos os {searchData?.total || searchResults.length} resultados
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Loading state */}
+              {!showFullResults && (isSearchFocused || searchInput) && searchQuery && isSearchLoading && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border z-50">
+                  <div className="p-4 text-center text-gray-500">
+                    <div className="animate-spin w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                    <p>Buscando...</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Sem resultados */}
+              {!showFullResults && (isSearchFocused || searchInput) && searchQuery && searchResults.length === 0 && !isSearchLoading && searchData && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border z-50">
+                  <div className="p-4 text-center text-gray-500">
+                    <Search className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                    <p>Nenhum resultado encontrado para "{searchQuery}"</p>
+                    <p className="text-sm mt-1">Tente pesquisar por outros termos</p>
+                  </div>
+                </div>
+              )}
+            </form>
+
+            {/* Botão Comparar Preços */}
+            {showPriceComparison && (
+              <Button
+                onClick={handlePriceComparison}
+                className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-3 py-2 rounded-lg shadow-sm flex-shrink-0 hidden sm:flex items-center gap-2"
+                data-testid="button-price-comparison"
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span className="hidden md:inline">Comparar Preços</span>
+              </Button>
+            )}
+
+            {/* Mobile: Apenas ícone de comparação */}
+            {showPriceComparison && (
+              <Button
+                onClick={handlePriceComparison}
+                className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 p-2 rounded-lg shadow-sm sm:hidden"
+                data-testid="button-price-comparison-mobile"
+              >
+                <BarChart3 className="w-5 h-5" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </header>
+    </div>
+  );
+}
+
+=== BannerSection.tsx ===
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
+import { BannerCarousel } from './BannerCarousel';
+import { StaticBanner } from './StaticBanner';
+import { useAuth } from '@/hooks/useAuth';
+
+interface Banner {
+  id: string;
+  title: string;
+  description?: string;
+  imageUrl: string;
+  linkUrl?: string;
+  backgroundColor: string;
+  textColor: string;
+  bannerType: 'rotating' | 'static_left' | 'static_right';
+  isActive: boolean;
+  priority: string;
+}
+
+interface BannerSectionProps {
+  isSearchActive?: boolean;
+}
+
+export function BannerSection({ isSearchActive = false }: BannerSectionProps) {
+  const { isAuthenticated } = useAuth();
+  const viewedRef = useRef(new Set<string>());
+  
+  const { data: banners = [] } = useQuery<Banner[]>({
+    queryKey: ['/api/banners/active'],
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
+
+  // Registrar visualização dos banners
+  const registerBannerViews = async (bannerIds: string[]) => {
+    try {
+      await Promise.all(
+        bannerIds.map(bannerId =>
+          fetch('/api/banners/view', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              bannerId,
+            }),
+          })
+        )
+      );
+    } catch (error) {
+      console.error('Erro ao registrar views:', error);
+    }
+  };
+
+  // Separar banners por tipo
+  const rotatingBanners = banners.filter(banner => 
+    banner.bannerType === 'rotating' && banner.isActive
+  ).sort((a, b) => parseInt(a.priority) - parseInt(b.priority));
+
+  const staticLeftBanners = banners.filter(banner => 
+    banner.bannerType === 'static_left' && banner.isActive
+  ).sort((a, b) => parseInt(a.priority) - parseInt(b.priority));
+
+  const staticRightBanners = banners.filter(banner => 
+    banner.bannerType === 'static_right' && banner.isActive
+  ).sort((a, b) => parseInt(a.priority) - parseInt(b.priority));
+
+  // Registrar views quando os banners carregarem (apenas uma vez por banner por sessão)
+  useEffect(() => {
+    if (banners.length > 0) {
+      const newBannerIds = banners
+        .filter(banner => banner.isActive && !viewedRef.current.has(banner.id))
+        .map(banner => banner.id);
+      
+      if (newBannerIds.length > 0) {
+        registerBannerViews(newBannerIds).finally(() => {
+          newBannerIds.forEach(id => viewedRef.current.add(id));
+        });
+      }
+    }
+  }, [banners]);
+
+  // Se não há banners ativos, não renderizar nada
+  if (banners.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="w-full mt-8" data-testid="banner-section">
+      {/* Banner ocupando toda a largura da tela */}
+      {rotatingBanners.length > 0 && (
+        <BannerCarousel banners={rotatingBanners} />
+      )}
+    </div>
+  );
+}
+
+================================================================================
+6. ESTILOS CSS (client/src/index.css)
+================================================================================
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(222.2, 84%, 4.9%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(222.2, 84%, 4.9%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(222.2, 84%, 4.9%);
+  --primary: hsl(224, 76%, 48%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(210, 40%, 96%);
+  --secondary-foreground: hsl(222.2, 84%, 4.9%);
+  --muted: hsl(210, 40%, 96%);
+  --muted-foreground: hsl(215.4, 16.3%, 46.9%);
+  --accent: hsl(210, 40%, 96%);
+  --accent-foreground: hsl(222.2, 84%, 4.9%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --border: hsl(214.3, 31.8%, 91.4%);
+  --input: hsl(214.3, 31.8%, 91.4%);
+  --ring: hsl(224, 76%, 48%);
+  --chart-1: hsl(12, 76%, 61%);
+  --chart-2: hsl(173, 58%, 39%);
+  --chart-3: hsl(197, 37%, 24%);
+  --chart-4: hsl(43, 74%, 66%);
+  --chart-5: hsl(27, 87%, 67%);
+  --sidebar: hsl(0, 0%, 100%);
+  --sidebar-foreground: hsl(222.2, 84%, 4.9%);
+  --sidebar-primary: hsl(224, 76%, 48%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(210, 40%, 96%);
+  --sidebar-accent-foreground: hsl(222.2, 84%, 4.9%);
+  --sidebar-border: hsl(214.3, 31.8%, 91.4%);
+  --sidebar-ring: hsl(224, 76%, 48%);
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: hsl(222.2, 84%, 4.9%);
+  --foreground: hsl(210, 40%, 98%);
+  --card: hsl(222.2, 84%, 4.9%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --popover: hsl(222.2, 84%, 4.9%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --primary: hsl(224, 76%, 48%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(217.2, 32.6%, 17.5%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --muted: hsl(217.2, 32.6%, 17.5%);
+  --muted-foreground: hsl(215, 20.2%, 65.1%);
+  --accent: hsl(217.2, 32.6%, 17.5%);
+  --accent-foreground: hsl(210, 40%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --border: hsl(217.2, 32.6%, 17.5%);
+  --input: hsl(217.2, 32.6%, 17.5%);
+  --ring: hsl(224.3, 76.3%, 94.1%);
+  --sidebar: hsl(222.2, 84%, 4.9%);
+  --sidebar-foreground: hsl(210, 40%, 98%);
+  --sidebar-primary: hsl(224, 76%, 48%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(217.2, 32.6%, 17.5%);
+  --sidebar-accent-foreground: hsl(210, 40%, 98%);
+  --sidebar-border: hsl(217.2, 32.6%, 17.5%);
+  --sidebar-ring: hsl(224.3, 76.3%, 94.1%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .flyer-container {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom focus styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+}
+
+/* Custom scrollbar styles */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Animação para corações no double tap */
+@keyframes heartPop {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  15% {
+    transform: scale(1.2) rotate(-5deg);
+    opacity: 1;
+  }
+  30% {
+    transform: scale(1) rotate(5deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1) rotate(-2deg) translateY(-20px);
+    opacity: 0.8;
+  }
+  80% {
+    transform: scale(0.8) rotate(2deg) translateY(-40px);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(0.5) rotate(0deg) translateY(-60px);
+    opacity: 0;
+  }
+}
+
+@keyframes heartFloat {
+  0% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(-30px) scale(1.3);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(0.5);
+  }
+}
+
+/* Animações para carrossel de imagens */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out-left {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-out-right {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes modal-zoom-out {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-slide-out-left {
+  animation: slide-out-left 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-slide-out-right {
+  animation: slide-out-right 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-modal-zoom-out {
+  animation: modal-zoom-out 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Animações suaves para transição entre produtos */
+@keyframes product-slide-out-left {
+  from {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes product-slide-out-right {
+  from {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes product-slide-in-left {
+  from {
+    transform: translateX(-100%) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes product-slide-in-right {
+  from {
+    transform: translateX(100%) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-product-slide-out-left {
+  animation: product-slide-out-left 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-product-slide-out-right {
+  animation: product-slide-out-right 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-product-slide-in-left {
+  animation: product-slide-in-left 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-product-slide-in-right {
+  animation: product-slide-in-right 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Animação da chama para produtos em destaque */
+@keyframes flame {
+  0%, 100% {
+    transform: scale(1) rotate(-2deg);
+    filter: hue-rotate(0deg);
+  }
+  25% {
+    transform: scale(1.1) rotate(2deg);
+    filter: hue-rotate(15deg);
+  }
+  50% {
+    transform: scale(0.95) rotate(-1deg);
+    filter: hue-rotate(-10deg);
+  }
+  75% {
+    transform: scale(1.05) rotate(1deg);
+    filter: hue-rotate(10deg);
+  }
+}
+
+.animate-flame {
+  animation: flame 2s infinite ease-in-out;
+  display: inline-block;
+}
+
+/* Animação de pulsação natural como coração */
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  15% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
+  30% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  45% {
+    transform: scale(1.05);
+    opacity: 0.95;
+  }
+  60% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 2s infinite ease-in-out;
+}
+
+/* Animação de chuva de confetes e cifrões */
+@keyframes rainDrop {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0.3;
+  }
+}
+
+.rain-element {
+  position: absolute;
+  animation: rainDrop linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Diferentes velocidades e delays para variedade - animação mais lenta e suave */
+.rain-element:nth-child(1) { animation-duration: 6s; animation-delay: 0s; left: 10%; transform: translateZ(0); }
+.rain-element:nth-child(2) { animation-duration: 5.5s; animation-delay: 0.5s; left: 20%; transform: translateZ(0); }
+.rain-element:nth-child(3) { animation-duration: 7s; animation-delay: 1s; left: 30%; transform: translateZ(0); }
+.rain-element:nth-child(4) { animation-duration: 6.5s; animation-delay: 1.5s; left: 40%; transform: translateZ(0); }
+.rain-element:nth-child(5) { animation-duration: 5.8s; animation-delay: 2s; left: 50%; transform: translateZ(0); }
+.rain-element:nth-child(6) { animation-duration: 6.2s; animation-delay: 0.3s; left: 60%; transform: translateZ(0); }
+.rain-element:nth-child(7) { animation-duration: 5.7s; animation-delay: 0.8s; left: 70%; transform: translateZ(0); }
+.rain-element:nth-child(8) { animation-duration: 7.2s; animation-delay: 1.3s; left: 80%; transform: translateZ(0); }
+.rain-element:nth-child(9) { animation-duration: 6.8s; animation-delay: 1.8s; left: 90%; transform: translateZ(0); }
+.rain-element:nth-child(10) { animation-duration: 6.3s; animation-delay: 0.1s; left: 15%; transform: translateZ(0); }
+
+/* Chuva sempre ativa - efeito decorativo constante */
+.rain-element {
+  animation-play-state: running;
+}
+
+/* Animação personalizada para cartas de prêmio */
+@keyframes bounce-once {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -15px, 0);
+  }
+  70% {
+    transform: translate3d(0, -5px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+.animate-bounce-once {
+  animation: bounce-once 1.2s ease-out;
+}
+
+================================================================================
+FIM DO ARQUIVO - COMPILAÇÃO COMPLETA
+================================================================================
+
+RESUMO DO PROJETO:
+- PWA completa para gerenciamento de ofertas do Paraguai
+- Sistema de autenticação com múltiplos tipos de usuário (normal, loja, super admin)
+- Carrossel de banners com framer-motion
+- Sistema de promoções e cupons
+- Busca inteligente em tempo real
+- Modo de desenvolvimento otimizado (FAST_DEV)
+- Interface responsiva com Tailwind CSS
+- Banco PostgreSQL com Drizzle ORM
+- Integração com APIs externas (Icecat, MercadoLibre)
+- Sistema completo de analytics e relatórios
+
+ARQUITETURA:
+- Frontend: React + TypeScript + Vite
+- Backend: Express.js + Node.js
+- Banco: PostgreSQL (Neon)
+- Autenticação: Sistema próprio + sessões
+- UI: Shadcn/ui + Radix UI + Tailwind CSS
+- Estado: TanStack Query + React hooks
+- Validação: Zod
+- ORM: Drizzle
+
+FUNCIONALIDADES PRINCIPAIS:
+✅ Sistema de autenticação e autorização
+✅ Painel administrativo para lojistas
+✅ Galeria de lojas e produtos
+✅ Sistema de cupons e promoções
+✅ Carrossel de banners animado
+✅ Busca inteligente de produtos
+✅ Comparação de preços Brasil vs Paraguai
+✅ PWA com suporte offline
+✅ Modo de manutenção
+✅ Sistema de analytics
+✅ Modo desenvolvimento rápido
