@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Banner {
   id: string;
@@ -29,6 +29,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isHover, setIsHover] = useState(false);
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right');
 
   // Analytics - Registrar clique no banner
   const handleBannerClick = async (banner: Banner) => {
@@ -65,6 +66,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   const next = () => {
     if (isAnimating) return;
     setIsAnimating(true);
+    setSlideDirection('left');
     setCurrentIndex((prev) => (prev + 1) % banners.length);
     setTimeout(() => setIsAnimating(false), 600);
   };
@@ -72,6 +74,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   const prev = () => {
     if (isAnimating) return;
     setIsAnimating(true);
+    setSlideDirection('right');
     setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
     setTimeout(() => setIsAnimating(false), 600);
   };
@@ -79,6 +82,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   const goTo = (index: number) => {
     if (isAnimating || index === currentIndex) return;
     setIsAnimating(true);
+    setSlideDirection(index > currentIndex ? 'left' : 'right');
     setCurrentIndex(index);
     setTimeout(() => setIsAnimating(false), 600);
   };
@@ -95,54 +99,101 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       aria-roledescription="carousel"
       data-testid="banner-carousel"
     >
-      {/* Layout Mobile/Tablet - Apenas banner central */}
+      {/* Layout Mobile/Tablet - Carrossel com deslizamento */}
       <div className="xl:hidden relative w-full overflow-hidden" style={{ height: "clamp(80px, 15vw, 220px)" }}>
         <div className="relative h-full max-w-4xl mx-auto px-4">
-          {/* Banner Central Mobile */}
-          <motion.div
-            className="relative h-full w-full rounded-xl overflow-hidden cursor-pointer group z-20"
-            onClick={() => handleBannerClick(banners[currentIndex])}
-            data-testid={`banner-main-mobile-${banners[currentIndex].id}`}
-            initial={false}
-            animate={{ scale: isAnimating ? 0.98 : 1 }}
-            transition={{ duration: 0.6, ease: "easeInOut" }}
-          >
-            <img
-              src={banners[currentIndex].imageUrl}
-              alt={banners[currentIndex].title || "banner"}
-              className="w-full h-full object-cover block transition-transform duration-300"
-              loading="lazy"
-              decoding="async"
-              draggable="false"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
-              style={{ transform: "scale(1)" }}
-            />
-            {/* Setas de navegação mobile */}
-            <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  prev();
-                }}
-                aria-label="Banner anterior"
-                className="rounded-full bg-black/50 hover:bg-black/70 text-white w-8 h-8 flex items-center justify-center transition-colors"
-                data-testid="banner-prev-btn-mobile"
+          {/* Container dos banners deslizantes */}
+          <div className="relative h-full w-full">
+            <motion.div
+              className="flex h-full absolute top-0 left-0"
+              style={{ width: '300%' }}
+              animate={{
+                x: slideDirection === 'left' && isAnimating ? '-33.333%' : 
+                   slideDirection === 'right' && isAnimating ? '33.333%' : '0%'
+              }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+            >
+              {/* Banner Anterior */}
+              <div 
+                className="w-1/3 h-full px-2 cursor-pointer"
+                onClick={() => handleBannerClick(banners[prevIndex])}
               >
-                ←
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  next();
-                }}
-                aria-label="Próximo banner"
-                className="rounded-full bg-black/50 hover:bg-black/70 text-white w-8 h-8 flex items-center justify-center transition-colors"
-                data-testid="banner-next-btn-mobile"
+                <div className="relative h-full w-full rounded-xl overflow-hidden">
+                  <img
+                    src={banners[prevIndex].imageUrl}
+                    alt={banners[prevIndex].title || "banner"}
+                    className="w-full h-full object-cover block"
+                    loading="lazy"
+                    decoding="async"
+                    draggable="false"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
+                  />
+                </div>
+              </div>
+              
+              {/* Banner Atual */}
+              <div 
+                className="w-1/3 h-full px-2 cursor-pointer group"
+                onClick={() => handleBannerClick(banners[currentIndex])}
+                data-testid={`banner-main-mobile-${banners[currentIndex].id}`}
               >
-                →
-              </button>
-            </div>
-          </motion.div>
+                <div className="relative h-full w-full rounded-xl overflow-hidden">
+                  <img
+                    src={banners[currentIndex].imageUrl}
+                    alt={banners[currentIndex].title || "banner"}
+                    className="w-full h-full object-cover block"
+                    loading="lazy"
+                    decoding="async"
+                    draggable="false"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
+                  />
+                  {/* Setas de navegação mobile */}
+                  <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        prev();
+                      }}
+                      aria-label="Banner anterior"
+                      className="rounded-full bg-black/50 hover:bg-black/70 text-white w-8 h-8 flex items-center justify-center transition-colors"
+                      data-testid="banner-prev-btn-mobile"
+                    >
+                      ←
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        next();
+                      }}
+                      aria-label="Próximo banner"
+                      className="rounded-full bg-black/50 hover:bg-black/70 text-white w-8 h-8 flex items-center justify-center transition-colors"
+                      data-testid="banner-next-btn-mobile"
+                    >
+                      →
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Banner Próximo */}
+              <div 
+                className="w-1/3 h-full px-2 cursor-pointer"
+                onClick={() => handleBannerClick(banners[nextIndex])}
+              >
+                <div className="relative h-full w-full rounded-xl overflow-hidden">
+                  <img
+                    src={banners[nextIndex].imageUrl}
+                    alt={banners[nextIndex].title || "banner"}
+                    className="w-full h-full object-cover block"
+                    loading="lazy"
+                    decoding="async"
+                    draggable="false"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
+                  />
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
 
@@ -154,17 +205,26 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
           marginLeft: "calc(50% - 50vw)"
         }}
       >
-        {/* Banners laterais atrás */}
+        {/* Banners laterais atrás com animação coordenada */}
         {banners.length > 1 && (
-          <>
+          <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
             {/* Preview Esquerdo - Cortado pela margem */}
-            <div 
-              className="absolute left-0 top-0 h-full w-1/3 overflow-hidden cursor-pointer z-10"
+            <motion.div 
+              className="absolute left-0 top-0 h-full w-1/3 overflow-hidden cursor-pointer z-10 pointer-events-auto"
               onClick={() => handleBannerClick(banners[prevIndex])}
               style={{ 
-                transform: "translateX(-47%)",
                 filter: "brightness(0.7)"
               }}
+              animate={{
+                x: isAnimating 
+                  ? slideDirection === 'left' 
+                    ? 'calc(-47% + 33.333%)' 
+                    : slideDirection === 'right' 
+                      ? 'calc(-47% - 33.333%)'
+                      : '-47%'
+                  : '-47%'
+              }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
             >
               <div className="relative h-full w-full rounded-xl overflow-hidden">
                 <img
@@ -174,19 +234,28 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
                   loading="lazy"
                   decoding="async"
                   draggable="false"
-                  style={{ transform: "scale(1)" }}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
                 />
               </div>
-            </div>
+            </motion.div>
 
             {/* Preview Direito - Cortado pela margem */}
-            <div 
-              className="absolute right-0 top-0 h-full w-1/3 overflow-hidden cursor-pointer z-10"
+            <motion.div 
+              className="absolute right-0 top-0 h-full w-1/3 overflow-hidden cursor-pointer z-10 pointer-events-auto"
               onClick={() => handleBannerClick(banners[nextIndex])}
               style={{ 
-                transform: "translateX(47%)",
                 filter: "brightness(0.7)"
               }}
+              animate={{
+                x: isAnimating 
+                  ? slideDirection === 'left' 
+                    ? 'calc(47% + 33.333%)' 
+                    : slideDirection === 'right' 
+                      ? 'calc(47% - 33.333%)'
+                      : '47%'
+                  : '47%'
+              }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
             >
               <div className="relative h-full w-full rounded-xl overflow-hidden">
                 <img
@@ -196,22 +265,30 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
                   loading="lazy"
                   decoding="async"
                   draggable="false"
-                  style={{ transform: "scale(1)" }}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
                 />
               </div>
-            </div>
-          </>
+            </motion.div>
+          </div>
         )}
 
         {/* Layout do Buscapé: Banner central */}
         <div className="relative h-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 z-20">
-          {/* Banner Central */}
+          {/* Banner Central com animação coordenada */}
           <motion.div
             className="relative h-full w-full rounded-xl overflow-hidden cursor-pointer group z-20"
             onClick={() => handleBannerClick(banners[currentIndex])}
             data-testid={`banner-main-${banners[currentIndex].id}`}
             initial={false}
-            animate={{ scale: isAnimating ? 0.98 : 1 }}
+            animate={{
+              x: isAnimating 
+                ? slideDirection === 'left' 
+                  ? '33.333%' 
+                  : slideDirection === 'right' 
+                    ? '-33.333%'
+                    : '0%'
+                : '0%'
+            }}
             transition={{ duration: 0.6, ease: "easeInOut" }}
           >
             <img
