@@ -20,14 +20,14 @@ interface FunnyMessage {
   category: string;
 }
 
-interface CircularScratchCardProps {
+interface RectangularScratchCardProps {
   card: DailyScratchCard;
   onScratch: (cardId: string) => void;
   processingCardId?: string;
   funnyMessage?: FunnyMessage;
 }
 
-export function CircularScratchCard({ card, onScratch, processingCardId, funnyMessage }: CircularScratchCardProps) {
+export function RectangularScratchCard({ card, onScratch, processingCardId, funnyMessage }: RectangularScratchCardProps) {
   const [isRevealing, setIsRevealing] = useState(false);
   const [isScratching, setIsScratching] = useState(false);
   const [scratchProgress, setScratchProgress] = useState(0);
@@ -51,7 +51,7 @@ export function CircularScratchCard({ card, onScratch, processingCardId, funnyMe
     }
   }, [card.isScratched, card.id]);
 
-  // Inicializar canvas circular com mascote
+  // Inicializar canvas retangular com mascote
   useEffect(() => {
     if (card.isScratched || revelationStarted.current) return;
     
@@ -59,46 +59,47 @@ export function CircularScratchCard({ card, onScratch, processingCardId, funnyMe
       const canvas = canvasRef.current;
       if (!canvas) return;
 
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
       if (!ctx) return;
 
       const rect = canvas.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
       
-      const size = 80; // Tamanho circular fixo
+      const width = 72; // Largura retangular
+      const height = 56; // Altura retangular
       
-      canvas.width = Math.round(size * dpr);
-      canvas.height = Math.round(size * dpr);
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
       ctx.scale(dpr, dpr);
       
-      canvas.style.width = size + 'px';
-      canvas.style.height = size + 'px';
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
       
-      // Criar clipping circular
-      ctx.beginPath();
-      ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI);
-      ctx.clip();
-
-      // Desenhar mascote como fundo circular
+      // Desenhar fundo retangular com mascote
       const img = new Image();
       img.onload = () => {
-        ctx.drawImage(img, 0, 0, size, size);
+        // Desenhar mascote redimensionado
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Overlay semi-transparente para melhor contraste
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(0, 0, width, height);
         
         // Texto "RASPE" com contorno para contraste
-        ctx.font = 'bold 11px Arial';
+        ctx.font = 'bold 10px Arial';
         ctx.textAlign = 'center';
         
         // Contorno preto para destacar sobre o mascote
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 2;
         ctx.lineJoin = 'round';
-        ctx.strokeText('RASPE', size / 2, size / 2 - 5);
-        ctx.strokeText('AQUI', size / 2, size / 2 + 8);
+        ctx.strokeText('RASPE', width / 2, height / 2 - 3);
+        ctx.strokeText('AQUI', width / 2, height / 2 + 10);
         
         // Texto branco por cima
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText('RASPE', size / 2, size / 2 - 5);
-        ctx.fillText('AQUI', size / 2, size / 2 + 8);
+        ctx.fillText('RASPE', width / 2, height / 2 - 3);
+        ctx.fillText('AQUI', width / 2, height / 2 + 10);
       };
       img.src = mascoteImage;
       
@@ -132,8 +133,8 @@ export function CircularScratchCard({ card, onScratch, processingCardId, funnyMe
       const progress = total > 0 ? transparent / total : 0;
       setScratchProgress(progress);
       
-      // Revelar quando raspou 70%
-      if (progress >= 0.7 && !card.isScratched && !isRevealing && !revelationStarted.current) {
+      // Revelar quando raspou 60%
+      if (progress >= 0.6 && !card.isScratched && !isRevealing && !revelationStarted.current) {
         revelationStarted.current = true;
         setIsRevealing(true);
         setIsScratching(false);
@@ -178,7 +179,7 @@ export function CircularScratchCard({ card, onScratch, processingCardId, funnyMe
   // Determinar se esta carta específica está sendo processada
   const isProcessing = processingCardId === card.id;
 
-  // Função de scratch circular
+  // Função de scratch retangular
   const handleScratch = (clientX: number, clientY: number) => {
     if (!canvasRef.current || card.isScratched || isProcessing || revelationStarted.current) return;
     
@@ -198,7 +199,7 @@ export function CircularScratchCard({ card, onScratch, processingCardId, funnyMe
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
-    const scratchRadius = 8; // Raio menor para circular
+    const scratchRadius = 10; // Raio de raspagem
 
     // Som de raspagem
     const soundNow = Date.now();
@@ -241,7 +242,7 @@ export function CircularScratchCard({ card, onScratch, processingCardId, funnyMe
       }
     }
 
-    // Aplicar efeito de raspagem circular
+    // Aplicar efeito de raspagem
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
     ctx.arc(x, y, scratchRadius, 0, 2 * Math.PI);
@@ -299,54 +300,54 @@ export function CircularScratchCard({ card, onScratch, processingCardId, funnyMe
 
   return (
     <div className="flex flex-col items-center gap-1 flex-shrink-0">
-      <div className="relative w-20 h-20 rounded-full overflow-hidden">
+      <div className="relative w-18 h-14 rounded-lg overflow-hidden">
         {/* Fundo do resultado */}
-        <div className="absolute inset-0 w-full h-full rounded-full flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500">
+        <div className="absolute inset-0 w-full h-full rounded-lg flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500">
           {card.isScratched ? (
             card.won ? (
               <div className="text-center text-white">
-                <Gift className="w-6 h-6 mx-auto mb-1" />
-                <div className="text-xs font-bold">GANHOU!</div>
+                <Gift className="w-4 h-4 mx-auto mb-1" />
+                <div className="text-xs font-bold">WIN!</div>
               </div>
             ) : (
-              <div className="text-center text-white">
-                <div className="text-lg">{funnyMessage?.emoji || '😔'}</div>
-                <div className="text-xs">{funnyMessage?.message || 'Tente novamente!'}</div>
+              <div className="text-center text-white px-1">
+                <div className="text-sm">{funnyMessage?.emoji || '😔'}</div>
+                <div className="text-xs leading-tight truncate">{funnyMessage?.message || 'Tente!'}</div>
               </div>
             )
           ) : (
             <div className="text-center text-white">
-              <Star className="w-6 h-6 mx-auto mb-1" />
-              <div className="text-xs">Card {card.cardNumber}</div>
+              <Star className="w-4 h-4 mx-auto mb-1" />
+              <div className="text-xs">#{card.cardNumber}</div>
             </div>
           )}
         </div>
 
         {/* Loading overlay para processamento */}
         {isProcessing && (
-          <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
           </div>
         )}
 
         {/* Overlay de revelação */}
         {isRevealing && (
-          <div className="absolute inset-0 bg-yellow-400/30 rounded-full flex items-center justify-center">
-            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          <div className="absolute inset-0 bg-yellow-400/30 rounded-lg flex items-center justify-center">
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
           </div>
         )}
 
         {/* Animação de confete para prêmios ganhos */}
         {card.isScratched && card.won && !isRevealing && (
-          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-full">
-            {[...Array(6)].map((_, i) => (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg">
+            {[...Array(4)].map((_, i) => (
               <div
                 key={i}
                 className="absolute w-1 h-1 rounded-full animate-bounce"
                 style={{
-                  left: `${20 + (i * 12)}%`,
-                  top: `${15 + (i % 3) * 15}%`,
-                  backgroundColor: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'][i % 6],
+                  left: `${20 + (i * 15)}%`,
+                  top: `${15 + (i % 2) * 20}%`,
+                  backgroundColor: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1'][i % 4],
                   animationDelay: `${i * 100}ms`,
                   animationDuration: '1.5s'
                 }}
@@ -359,7 +360,7 @@ export function CircularScratchCard({ card, onScratch, processingCardId, funnyMe
         {card.isScratched !== true && isRevealing !== true && isProcessing !== true && (
           <canvas
             ref={canvasRef}
-            className="absolute inset-0 w-full h-full rounded-full cursor-pointer z-50"
+            className="absolute inset-0 w-full h-full rounded-lg cursor-pointer z-50"
             style={{ touchAction: 'none', pointerEvents: 'auto' }}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
@@ -373,12 +374,12 @@ export function CircularScratchCard({ card, onScratch, processingCardId, funnyMe
         
         {/* Efeito sparkle para cartas não raspadas */}
         {card.isScratched !== true && isRevealing !== true && isProcessing !== true && (
-          <Sparkles className="absolute top-1 right-1 w-3 h-3 text-purple-400 animate-pulse pointer-events-none z-20" />
+          <Sparkles className="absolute top-0.5 right-0.5 w-2 h-2 text-purple-400 animate-pulse pointer-events-none z-20" />
         )}
       </div>
 
       {/* Nome da raspadinha */}
-      <span className="text-xs font-medium text-gray-800 text-center max-w-20 truncate">
+      <span className="text-xs font-medium text-gray-800 text-center max-w-18 truncate">
         Card {card.cardNumber}
       </span>
     </div>

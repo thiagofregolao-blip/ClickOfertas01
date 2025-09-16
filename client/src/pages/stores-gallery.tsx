@@ -25,7 +25,7 @@ import { StoreResultItem } from "@/components/store-result-item";
 import { BannerSection } from "@/components/BannerSection";
 import { BannerCarousel } from "@/components/BannerCarousel";
 import ThreeDailyScratchCards from "@/components/ThreeDailyScratchCards";
-import { CircularScratchCard } from "@/components/CircularScratchCard";
+import { RectangularScratchCard } from "@/components/RectangularScratchCard";
 import GlobalHeader from "@/components/global-header";
 import type { StoreWithProducts, Product, InstagramStoryWithDetails } from "@shared/schema";
 import logoUrl from '../assets/logo.jpg';
@@ -244,7 +244,7 @@ export default function StoresGallery() {
   });
 
   // Scratch Cards data
-  const { data: scratchCardsData } = useQuery({
+  const { data: scratchCardsData } = useQuery<{ cards: any[] }>({
     queryKey: ['/api/daily-scratch/cards'],
     refetchOnWindowFocus: false,
     staleTime: 30 * 1000, // 30 segundos
@@ -299,7 +299,7 @@ export default function StoresGallery() {
   };
   
   // Banners data para usar o BannerCarousel separadamente
-  const { data: banners = [] } = useQuery({
+  const { data: banners = [] } = useQuery<any[]>({
     queryKey: ['/api/banners/active'],
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutos
@@ -430,7 +430,7 @@ export default function StoresGallery() {
         : undefined;
 
       analytics.trackSearch({
-        query: searchQuery.trim(),
+        search: searchQuery.trim(),
         category: mostCommonCategory || 'Geral',
         resultCount: searchResults.length
       });
@@ -571,13 +571,13 @@ export default function StoresGallery() {
                 </div>
               </div>
 
-              {/* Raspadinhas circulares - apenas para usuários autenticados */}
+              {/* Raspadinhas retangulares - apenas para usuários autenticados */}
               {isAuthenticated && scratchCards.slice(0, 3).map((card: any) => (
-                <CircularScratchCard
+                <RectangularScratchCard
                   key={card.id}
                   card={card}
                   onScratch={handleScratchCard}
-                  processingCardId={processingCardId}
+                  processingCardId={processingCardId || undefined}
                   funnyMessage={funnyMessages[card.id]}
                 />
               ))}
@@ -819,13 +819,13 @@ export default function StoresGallery() {
                 </div>
               </div>
 
-              {/* Raspadinhas circulares - apenas para usuários autenticados */}
+              {/* Raspadinhas retangulares - apenas para usuários autenticados */}
               {isAuthenticated && scratchCards.slice(0, 3).map((card: any) => (
-                <CircularScratchCard
+                <RectangularScratchCard
                   key={card.id}
                   card={card}
                   onScratch={handleScratchCard}
-                  processingCardId={processingCardId}
+                  processingCardId={processingCardId || undefined}
                   funnyMessage={funnyMessages[card.id]}
                 />
               ))}
