@@ -128,14 +128,14 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
             }
           }}
         >
-          {/* esquerda (15%) */}
-          <Slide item={items[left]} startBasis="15%" onPrev={prev} onNext={next} onBannerClick={handleBannerClick} />
+          {/* esquerda (20%) */}
+          <Slide item={items[left]} startBasis="20%" onPrev={prev} onNext={next} onBannerClick={handleBannerClick} />
           {/* centro (70%) */}
           <Slide item={items[center]} startBasis="70%" onPrev={prev} onNext={next} onBannerClick={handleBannerClick} />
-          {/* direita (15%) */}
-          <Slide item={items[right]} startBasis="15%" onPrev={prev} onNext={next} onBannerClick={handleBannerClick} />
+          {/* direita (20%) */}
+          <Slide item={items[right]} startBasis="20%" onPrev={prev} onNext={next} onBannerClick={handleBannerClick} />
           {/* buffer (fora da viewport) */}
-          <Slide item={items[nextRight]} startBasis="15%" onPrev={prev} onNext={next} onBannerClick={handleBannerClick} />
+          <Slide item={items[nextRight]} startBasis="20%" onPrev={prev} onNext={next} onBannerClick={handleBannerClick} />
         </motion.div>
       </motion.div>
 
