@@ -1,0 +1,164 @@
+boa! como teu app já usa React + Tailwind, dá pra ficar responsivo sem dor de cabeça. segue um guia prático com ajustes diretos no que você já tem.
+
+Fundamentos (o que garantir já)
+
+Viewport: você já definiu <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"> no index.html, isso é essencial para layout fluid em mobile. 
+
+CODIGO_COMPLETO_CLICK_OFERTAS_P…
+
+Utilitários do Tailwind: use as variantes responsivas (sm: md: lg: xl:) em tudo que tiver largura, grid, tipografia e espaçamento.
+
+Evite tamanhos fixos: prefira %, auto, max-w-*, min-w-0, flex-1, grid-cols-* e clamp().
+
+Ajustes cirúrgicos no seu código
+1) Cartão de login (desktop) com largura fluida
+
+Hoje ele usa w-[360px]. Troque por uma largura fluida que escala no mobile e “trava” no desktop.
+
+Antes (em client/src/pages/landing.tsx):
+
+<div className="w-[360px] max-w-md bg-white rounded-xl shadow-2xl p-8 flex-shrink-0">
+
+
+Depois:
+
+<div className="w-full max-w-[420px] md:max-w-[480px] lg:w-[360px] bg-white rounded-xl shadow-2xl p-6 md:p-8 flex-shrink-0">
+
+
+Isso ocupa 100% no mobile, cresce até 480px no tablet e fixa 360px no desktop.
+
+2) Tipografia realmente responsiva com clamp()
+
+Nos títulos grandes, use uma escala fluida que adapta do mobile ao desktop.
+
+Ex.: no hero do desktop:
+
+<h1 className="font-bold leading-tight text-[clamp(1.75rem,4.5vw,3.75rem)]">
+  Descubra as melhores <span className="text-yellow-300">ofertas</span> do Paraguai
+</h1>
+
+
+Substitui text-6xl por algo que se adapta “entre” mobile e telas grandes.
+
+3) Grids adaptáveis (menos colunas no mobile, mais no desktop)
+
+Nos “cards de benefícios” você já usa grid grid-cols-2. Abra espaço no desktop:
+
+<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+
+4) Espaçamento lateral seguro em todas as telas
+
+Você já aplica px-4 sm:px-6 lg:px-8 em alguns contêineres. Padronize nos blocos principais (headers, sections e footers) para evitar “colagem” nas bordas:
+
+<div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+  {/* conteúdo */}
+</div>
+
+5) Alturas móveis usando dvh (corrige 100vh no iOS/Android)
+
+Sempre que usar alturas de tela, prefira 100dvh:
+
+<div className="min-h-[100dvh] flex flex-col">
+
+6) Imagens realmente responsivas (melhor layout shift e rede)
+
+No Landing e no BannerCarousel, acrescente sizes e decoding (você já usa loading="lazy" no banner 👏):
+
+<img
+  src="/attached_assets/logo%20certo%2001_1756853766080.png"
+  alt="Mascote Click Ofertas"
+  className="w-12 h-12 object-contain"
+  decoding="async"
+  loading="lazy"
+  sizes="(max-width: 640px) 48px, (max-width: 1024px) 64px, 96px"
+/>
+
+
+Para banners (quando tiver versões com diferentes larguras), considere srcSet:
+
+<img
+  src={item.image}
+  srcSet={`${item.image}?w=640 640w, ${item.image}?w=1024 1024w, ${item.image}?w=1600 1600w`}
+  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
+  alt={item.banner.title || "banner"}
+  className="w-full h-full object-cover"
+  loading="lazy"
+  decoding="async"
+/>
+
+7) Container Queries para módulos (quando mudar só dentro do bloco)
+
+O Tailwind 3.4 suporta @container. Isso ajuda quando o componente precisa reagir ao seu contêiner, não ao viewport inteiro.
+
+No wrapper do componente:
+
+<div className="@container/card p-4">
+  <div className="grid grid-cols-1 @lg/card:grid-cols-2 gap-4">
+    {/* ... */}
+  </div>
+</div>
+
+
+A classe @container/card ativa o container; @lg/card: aplica a partir de ~lg do contêiner (não da janela).
+
+8) Botões e inputs com toques maiores
+
+Aumente as áreas clicáveis no mobile:
+
+<Button className="h-12 text-base md:h-11 md:text-sm" />
+<Input className="h-12 text-base md:h-11 md:text-sm" />
+
+9) Safe areas em PWA (notch/bordas)
+
+No wrapper top-level, adicione paddings que respeitam áreas seguras:
+
+<div className="pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+
+10) Ajustes no BannerCarousel
+
+Você já usa height: clamp(136px, 24vw, 408px) (perfeito 🎯). Complementos:
+
+Para telas estreitas, deixar as laterais um pouco menores:
+
+<Slide startBasis="12%" .../> {/* esquerda/direita no sm */}
+<Slide startBasis="70%" .../> {/* centro */}
+/* Em telas >= md, volte a 15%/70%/15%. Pode condicionar via props ou múltiplos layouts */
+
+
+Garanta min-w-0 nos contêineres pais do carrossel para evitar overflow em layouts flex:
+
+<div className="relative w-full mx-auto select-none min-w-0">
+
+Checklist rápido por página/área
+
+Landing
+
+Título com clamp().
+
+Login card w-full max-w-[420px] md:max-w-[480px] lg:w-[360px].
+
+Grids com sm:grid-cols-4.
+
+Contêineres com px-4 sm:px-6 lg:px-8.
+
+Headers / Footers
+
+Sempre max-w-7xl mx-auto px-4 sm:px-6 lg:px-8.
+
+Páginas Admin & Galerias
+
+Grids: grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4.
+
+Cards com min-w-0 e aspect-[4/3] (ou Radix Aspect Ratio).
+
+Imagens
+
+loading="lazy" decoding="async" sizes="..." (+ srcSet quando possível).
+
+Alturas
+
+min-h-[100dvh] em telas cheias; evite 100vh.
+
+Interações
+
+Alvos tap-friendly (h-12 no mobile).

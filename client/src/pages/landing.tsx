@@ -70,7 +70,7 @@ export default function Landing() {
   };
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-[100dvh] flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       {/* Header Branco Superior */}
       <header className="bg-white border-b border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -110,6 +110,9 @@ export default function Landing() {
                       src="/attached_assets/logo%20certo%2001_1756853766080.png" 
                       alt="Mascote Click Ofertas" 
                       className="w-12 h-12 object-contain"
+                      loading="lazy"
+                      decoding="async"
+                      sizes="(max-width: 640px) 48px, (max-width: 1024px) 64px, 96px"
                     />
                     <h1 className="text-3xl font-bold">Click Ofertas</h1>
                   </div>
@@ -120,7 +123,7 @@ export default function Landing() {
               {/* Conteúdo principal mobile */}
               <div className="flex-1 flex flex-col justify-center px-6">
                 <div className="text-center text-white mb-8">
-                  <h2 className="text-2xl font-bold mb-4 leading-tight">
+                  <h2 className="font-bold mb-4 leading-tight text-[clamp(1.5rem,4vw,2rem)]">
                     Descubra as melhores{" "}
                     <span className="text-yellow-300">ofertas</span>{" "}
                     do Paraguai
@@ -131,7 +134,7 @@ export default function Landing() {
                 </div>
 
                 {/* Cards de benefícios */}
-                <div className="grid grid-cols-2 gap-3 mb-8">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
                   <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
                     <div className="w-8 h-8 bg-yellow-300 rounded-full mb-2 flex items-center justify-center">
                       <ShoppingBag className="w-4 h-4 text-gray-900" />
@@ -168,6 +171,9 @@ export default function Landing() {
                         src="/attached_assets/logo%20certo%2001_1756853766080.png" 
                         alt="Mascote Click Ofertas" 
                         className="w-12 h-12 object-contain"
+                        loading="lazy"
+                        decoding="async"
+                        sizes="(max-width: 640px) 48px, (max-width: 1024px) 64px, 96px"
                       />
                       <h3 className="text-xl font-bold text-gray-900">Entre agora</h3>
                     </div>
@@ -179,7 +185,7 @@ export default function Landing() {
                     <div>
                       <Input 
                         placeholder="Email/Telefone/Usuário"
-                        className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
+                        className="w-full h-12 text-base md:h-11 md:text-sm p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         data-testid="input-login-mobile"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -191,7 +197,7 @@ export default function Landing() {
                       <Input 
                         type="password"
                         placeholder="Senha"
-                        className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
+                        className="w-full h-12 text-base md:h-11 md:text-sm p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         data-testid="input-password-mobile"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -202,7 +208,7 @@ export default function Landing() {
                     <Button 
                       onClick={handleLogin}
                       disabled={isLoading}
-                      className="w-full bg-gradient-to-r from-[#F04940] to-[#FA7D22] hover:from-[#E03A32] hover:to-[#E96D1D] text-white py-4 rounded-xl font-semibold text-base shadow-lg"
+                      className="w-full h-12 text-base md:h-11 md:text-sm bg-gradient-to-r from-[#F04940] to-[#FA7D22] hover:from-[#E03A32] hover:to-[#E96D1D] text-white py-4 rounded-xl font-semibold shadow-lg"
                       data-testid="button-login"
                     >
                       <LogIn className="w-5 h-5 mr-2" />
@@ -262,7 +268,7 @@ export default function Landing() {
             <div className="text-left text-white max-w-2xl flex-1 pr-8">
               <div className="mb-4 text-center relative">
                 
-                <h1 className="text-6xl font-bold mb-4 leading-tight">
+                <h1 className="font-bold mb-4 leading-tight text-[clamp(1.75rem,4.5vw,3.75rem)]">
                   Descubra as melhores{" "}
                   <span className="text-yellow-300">ofertas</span>{" "}
                   do Paraguai
@@ -310,7 +316,7 @@ export default function Landing() {
             </div>
 
             {/* Formulário de Login Desktop */}
-            <div className="w-[360px] max-w-md bg-white rounded-xl shadow-2xl p-8 flex-shrink-0">
+            <div className="w-full max-w-[420px] md:max-w-[480px] lg:w-[360px] bg-white rounded-xl shadow-2xl p-6 md:p-8 flex-shrink-0 min-w-0">
               <div className="w-full">
                 <div className="mb-8">
                   <div className="flex items-center justify-center gap-3 mb-2">
@@ -327,7 +333,7 @@ export default function Landing() {
                   <div>
                     <Input 
                       placeholder="Email/Telefone/Usuário"
-                      className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-lg"
+                      className="w-full h-12 text-base md:h-11 md:text-sm p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       data-testid="input-login-desktop"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -338,7 +344,7 @@ export default function Landing() {
                     <Input 
                       type="password"
                       placeholder="Senha"
-                      className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-lg"
+                      className="w-full h-12 text-base md:h-11 md:text-sm p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       data-testid="input-password-desktop"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}

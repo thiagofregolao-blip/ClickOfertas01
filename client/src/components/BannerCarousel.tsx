@@ -89,7 +89,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
 
   return (
     <div
-      className="relative w-full select-none"
+      className="relative w-full select-none min-w-0"
       onMouseEnter={() => setIsHover(true)}
       onMouseLeave={() => setIsHover(false)}
       aria-roledescription="carousel"
@@ -114,6 +114,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               loading="lazy"
               decoding="async"
               draggable="false"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
               style={{ transform: "scale(1)" }}
             />
             {/* Setas de navegação mobile */}
@@ -220,6 +221,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               loading="lazy"
               decoding="async"
               draggable="false"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
               style={{ transform: "scale(1)" }}
             />
 
