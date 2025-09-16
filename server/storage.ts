@@ -157,6 +157,7 @@ export interface IStorage {
   updateStore(storeId: string, store: UpdateStore): Promise<Store>;
   getStoreBySlug(slug: string): Promise<StoreWithProducts | undefined>;
   getAllActiveStores(): Promise<StoreWithProducts[]>;
+  getAllActiveStoresOptimized(limit?: number, productsPerStore?: number): Promise<StoreWithProducts[]>;
   getAllStores(): Promise<StoreWithProducts[]>;
   deleteStore(storeId: string, userId: string, isSuperAdmin?: boolean): Promise<void>;
 
@@ -495,6 +496,75 @@ export class DatabaseStorage implements IStorage {
         return {
           ...store,
           products: filteredProducts,
+        };
+      })
+    );
+
+    return storesWithProducts;
+  }
+
+  async getAllActiveStoresOptimized(limit: number = 50, productsPerStore: number = 10): Promise<StoreWithProducts[]> {
+    // Buscar lojas ativas com limit (premium primeiro)
+    const activeStores = await db
+      .select({
+        id: stores.id,
+        name: stores.name, 
+        logoUrl: stores.logoUrl,
+        address: stores.address,
+        whatsapp: stores.whatsapp,
+        instagram: stores.instagram,
+        isPremium: stores.isPremium,
+        themeColor: stores.themeColor,
+        slug: stores.slug,
+        isActive: stores.isActive,
+        userId: stores.userId,
+        createdAt: stores.createdAt,
+        updatedAt: stores.updatedAt,
+        currency: stores.currency,
+        displayCurrency: stores.displayCurrency,
+        dollarRate: stores.dollarRate,
+        bannerUrl: stores.bannerUrl,
+        bannerText: stores.bannerText,
+        bannerSubtext: stores.bannerSubtext,
+        bannerGradient: stores.bannerGradient,
+        customUsdBrlRate: stores.customUsdBrlRate,
+        latitude: stores.latitude,
+        longitude: stores.longitude
+      })
+      .from(stores)
+      .where(eq(stores.isActive, true))
+      .orderBy(desc(stores.isPremium), desc(stores.createdAt))
+      .limit(limit);
+    
+    const storesWithProducts = await Promise.all(
+      activeStores.map(async (store) => {
+        // Buscar apenas produtos essenciais com limite (sem shouldShowProductInGallery para performance)
+        const limitedProducts = await db
+          .select({
+            id: products.id,
+            name: products.name,
+            price: products.price,
+            imageUrl: products.imageUrl,
+            category: products.category,
+            brand: products.brand,
+            isFeatured: products.isFeatured,
+            isActive: products.isActive,
+            storeId: products.storeId,
+            description: products.description,
+            createdAt: products.createdAt,
+            sortOrder: products.sortOrder
+          })
+          .from(products)
+          .where(and(
+            eq(products.storeId, store.id), 
+            eq(products.isActive, true)
+          ))
+          .orderBy(desc(products.isFeatured), products.sortOrder, desc(products.createdAt))
+          .limit(productsPerStore);
+
+        return {
+          ...store,
+          products: limitedProducts,
         };
       })
     );

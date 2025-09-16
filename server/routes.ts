@@ -689,8 +689,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(cached);
       }
       
-      console.log('📦 Cache miss for /api/public/stores - fetching from DB');
-      const stores = await storage.getAllActiveStores();
+      console.log('📦 Cache miss for /api/public/stores - fetching from DB (optimized)');
+      const stores = await storage.getAllActiveStoresOptimized(50, 8);
       
       // Cache for 5 minutes (300,000ms)
       cache.set(cacheKey, stores, 5 * 60 * 1000);
