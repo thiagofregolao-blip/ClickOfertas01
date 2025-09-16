@@ -252,6 +252,7 @@ export function CircularScratchCard({ card, onScratch, processingCardId, funnyMe
 
   // Event handlers para mouse
   const handleMouseDown = (e: React.MouseEvent) => {
+    console.log('🖱️ Mouse down on scratch card:', card.id);
     e.preventDefault();
     lastPoint.current = { x: e.clientX, y: e.clientY };
     handleScratch(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
@@ -269,6 +270,7 @@ export function CircularScratchCard({ card, onScratch, processingCardId, funnyMe
 
   // Event handlers para touch
   const handleTouchStart = (e: React.TouchEvent) => {
+    console.log('👆 Touch start on scratch card:', card.id);
     e.preventDefault();
     const touch = e.touches[0];
     const rect = canvasRef.current?.getBoundingClientRect();
@@ -359,8 +361,8 @@ export function CircularScratchCard({ card, onScratch, processingCardId, funnyMe
         {card.isScratched !== true && isRevealing !== true && isProcessing !== true && (
           <canvas
             ref={canvasRef}
-            className="absolute inset-0 w-full h-full rounded-full cursor-pointer z-30"
-            style={{ touchAction: 'none' }}
+            className="absolute inset-0 w-full h-full rounded-full cursor-pointer z-50"
+            style={{ touchAction: 'none', pointerEvents: 'auto' }}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             onMouseMove={handleMouseMove}
