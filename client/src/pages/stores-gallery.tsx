@@ -1100,8 +1100,9 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
                       key={`product-${result.store.id}-${result.data.id}`} 
                       product={result.data} 
                       store={result.store}
-                      onClick={() => onProductSelect(result.data, result.store)}
+                      onClick={() => window.location.href = `/product/${result.data.id}/compare`}
                       isMobile={isMobile}
+                      searchTerm={searchQuery}
                     />
                   )
                 ))}
