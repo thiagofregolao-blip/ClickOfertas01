@@ -317,32 +317,34 @@ export default function ProductCompare() {
                     <div className="flex items-center gap-6">
                       {/* Lado Esquerdo: Imagem do produto + Preços */}
                       <div className="flex items-center gap-4 flex-shrink-0">
-                        {/* Imagem do produto */}
-                        <div className="relative w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                          {productInStore.imageUrl || comparisonData.productImages[0] ? (
-                            <img 
-                              src={productInStore.imageUrl || comparisonData.productImages[0]} 
-                              alt={comparisonData.productName}
-                              className="w-full h-full object-cover"
-                              data-testid={`img-product-${productInStore.store.id}`}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                              <ShoppingBag className="w-10 h-10" />
-                            </div>
-                          )}
-                          
+                        <div className="flex flex-col">
                           {/* Badge Melhor Preço */}
                           {isLowestPrice && (
                             <Badge 
                               variant="default" 
-                              className="absolute -top-1 -left-1 bg-green-500 text-white text-xs px-1 py-0.5 z-10" 
+                              className="bg-green-500 text-white text-xs px-1 py-0.5 mb-1 self-start" 
                               data-testid={`badge-best-price-${productInStore.store.id}`}
                             >
                               <Star className="w-2 h-2 mr-1" />
-                              Melhor
+                              Melhor Preço
                             </Badge>
                           )}
+                          
+                          {/* Imagem do produto */}
+                          <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                            {productInStore.imageUrl || comparisonData.productImages[0] ? (
+                              <img 
+                                src={productInStore.imageUrl || comparisonData.productImages[0]} 
+                                alt={comparisonData.productName}
+                                className="w-full h-full object-cover"
+                                data-testid={`img-product-${productInStore.store.id}`}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                <ShoppingBag className="w-10 h-10" />
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {/* Preços */}
