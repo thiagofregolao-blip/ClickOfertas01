@@ -85,8 +85,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
 
   return (
     <div 
-      className="relative w-full overflow-hidden"
-      style={{ height: "clamp(160px, 28vw, 320px)" }}
+      className="relative w-full h-40 md:h-52 lg:h-60 overflow-hidden"
       onMouseEnter={() => setIsHover(true)}
       onMouseLeave={() => setIsHover(false)}
       data-testid="banner-carousel"
