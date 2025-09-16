@@ -39,81 +39,69 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
     }
   };
 
-  // Layout estilo Buscapé: múltiplos banners lado a lado
+  // Banner único ocupando toda a largura
+  const banner = banners[0]; // Apenas o primeiro banner
+  
   return (
-    <div className="w-full h-32 md:h-40 gap-1 flex">
-      {banners.map((banner, index) => (
-        <div
-          key={banner.id}
-          className={`
-            ${banners.length === 1 ? 'w-full' : 
-              banners.length === 2 ? 'flex-1' :
-              banners.length === 3 ? 'flex-1' :
-              'flex-1 min-w-[200px]'
-            }
-            h-full cursor-pointer relative group overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300
-          `}
-          onClick={() => handleBannerClick(banner)}
-          data-testid={`banner-grid-${banner.id}`}
+    <div className="w-full h-32 md:h-40">
+      <div
+        className="w-full h-full cursor-pointer relative group overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+        onClick={() => handleBannerClick(banner)}
+        data-testid={`banner-single-${banner.id}`}
+      >
+        <div 
+          className="w-full h-full flex items-center relative"
+          style={{ 
+            background: banner.backgroundColor || 'linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%)',
+            backgroundImage: banner.imageUrl ? `url(${banner.imageUrl})` : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
         >
-          <div 
-            className="w-full h-full flex items-center relative"
-            style={{ 
-              background: banner.backgroundColor || (
-                index === 0 ? 'linear-gradient(135deg, #000000 0%, #333333 100%)' :
-                index === 1 ? 'linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%)' :
-                'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
-              ),
-              backgroundImage: banner.imageUrl ? `url(${banner.imageUrl})` : undefined,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat'
-            }}
-          >
-            {/* Overlay para melhor contraste */}
-            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-300" />
-            
-            {/* Conteúdo estilo Buscapé */}
-            <div className="relative z-10 w-full h-full flex items-center justify-between px-4 md:px-6">
-              <div className="flex-1">
-                <h2 
-                  className="text-sm md:text-lg lg:text-xl font-bold mb-1 leading-tight"
+          {/* Overlay para melhor contraste */}
+          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-300" />
+          
+          {/* Conteúdo centralizado */}
+          <div className="relative z-10 w-full h-full flex items-center justify-between px-6 md:px-8">
+            <div className="flex-1">
+              <h2 
+                className="text-lg md:text-2xl lg:text-3xl font-bold mb-2 leading-tight"
+                style={{ 
+                  color: banner.textColor || '#FFFFFF',
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.7)'
+                }}
+              >
+                {banner.title}
+              </h2>
+              
+              {banner.description && (
+                <p 
+                  className="text-sm md:text-base opacity-90"
                   style={{ 
                     color: banner.textColor || '#FFFFFF',
                     textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
                   }}
                 >
-                  {banner.title}
-                </h2>
-                
-                {banner.description && (
-                  <p 
-                    className="text-xs md:text-sm opacity-90 hidden md:block"
-                    style={{ 
-                      color: banner.textColor || '#FFFFFF',
-                      textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
-                    }}
-                  >
-                    {banner.description}
-                  </p>
-                )}
-              </div>
-              
-              {/* Call-to-action estilo Buscapé */}
-              <div className="flex-shrink-0 ml-2 md:ml-4">
-                <div className="bg-white/90 hover:bg-white backdrop-blur-sm rounded-full md:rounded-lg px-2 md:px-4 py-1 md:py-2 transition-all duration-300 shadow-lg">
-                  <span className="text-xs md:text-sm font-bold text-black">
-                    {index === 0 ? 'Ver Tudo' : index === 1 ? 'Aproveite' : 'Comprar'}
-                  </span>
-                </div>
-              </div>
+                  {banner.description}
+                </p>
+              )}
             </div>
             
-            {/* Efeito hover */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+            {/* Call-to-action */}
+            <div className="flex-shrink-0 ml-4 md:ml-6">
+              <div className="bg-white/90 hover:bg-white backdrop-blur-sm rounded-lg px-4 md:px-6 py-2 md:py-3 transition-all duration-300 shadow-lg">
+                <span className="text-sm md:text-base font-bold text-black">
+                  Ver Ofertas
+                </span>
+              </div>
+            </div>
           </div>
+          
+          {/* Efeito hover */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
         </div>
-      ))}
+      </div>
     </div>
   );
 }
