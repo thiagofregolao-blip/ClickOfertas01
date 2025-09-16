@@ -29,9 +29,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
     return null;
   }
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isHover, setIsHover] = useState(false);
-
   // Analytics - Registrar clique no banner
   const handleBannerClick = async (banner: Banner) => {
     try {
@@ -54,143 +51,14 @@ export function BannerCarousel({ banners, autoPlayInterval = 5000 }: BannerCarou
     }
   };
 
-  // Auto-play
-  useEffect(() => {
-    if (banners.length <= 1 || isHover) return;
-    
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % banners.length);
-    }, autoPlayInterval);
+  // Converter banners para formato do carrossel
+  const items = banners.map(banner => ({
+    id: banner.id,
+    image: banner.imageUrl,
+    banner: banner
+  }));
 
-    return () => clearInterval(interval);
-  }, [banners.length, isHover, autoPlayInterval]);
-
-  // Navigation functions
-  const goToPrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
-  };
-
-  const goToNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % banners.length);
-  };
-
-  // Crear array extendido para loop infinito
-  const extendedBanners = [...banners, ...banners, ...banners];
-  const totalBanners = extendedBanners.length;
-  const centerIndex = banners.length + currentIndex;
-  
-  // Cálculo do deslocamento para mostrar 3 banners (15% + 70% + 15%)
-  const slideWidth = 100 / 3; // Cada posição = 33.33%
-  const translateX = -(centerIndex - 1) * slideWidth; // -1 para centralizar
-
-  return (
-    <div 
-      className="relative w-full h-40 md:h-52 lg:h-60 overflow-hidden"
-      onMouseEnter={() => setIsHover(true)}
-      onMouseLeave={() => setIsHover(false)}
-      data-testid="banner-carousel"
-    >
-      <div 
-        className="flex h-full transition-transform duration-500 ease-in-out"
-        style={{
-          transform: `translateX(${translateX}%)`,
-          width: `${totalBanners * slideWidth}%`
-        }}
-      >
-        {extendedBanners.map((banner, index) => {
-          const relativeIndex = index - banners.length; // -length, -length+1, ..., 0, 1, ..., length-1, length, length+1
-          const distanceFromCenter = Math.abs(relativeIndex - currentIndex);
-          const isCenter = relativeIndex === currentIndex;
-          const isLeft = relativeIndex === currentIndex - 1;
-          const isRight = relativeIndex === currentIndex + 1;
-          const isVisible = isCenter || isLeft || isRight;
-
-          return (
-            <div
-              key={`${banner.id}-${index}`}
-              className={`
-                relative h-full flex-shrink-0 px-2 transition-all duration-500
-                ${isCenter ? 'opacity-100' : 'opacity-60 hover:opacity-80'}
-              `}
-              style={{ 
-                width: `${slideWidth}%`
-              }}
-            >
-              <div
-                className="w-full h-full rounded-xl overflow-hidden cursor-pointer group relative"
-                onClick={() => handleBannerClick(banner)}
-                data-testid={`banner-slide-${banner.id}-${index}`}
-              >
-                <img
-                  src={banner.imageUrl}
-                  alt={banner.title || "Banner"}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                  draggable="false"
-                />
-                
-                {/* Overlay effects */}
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300" />
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
-
-                {/* Navigation arrows - only on center banner */}
-                {isCenter && banners.length > 1 && (
-                  <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        goToPrev();
-                      }}
-                      className="w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
-                      data-testid="banner-prev-btn"
-                    >
-                      ←
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        goToNext();
-                      }}
-                      className="w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
-                      data-testid="banner-next-btn"
-                    >
-                      →
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Indicators */}
-      {banners.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                index === currentIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/70'
-              }`}
-              data-testid={`banner-indicator-${index}`}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-interface BannerCarouselCoreProps {
-  banners: Banner[];
-  interval: number;
-  onBannerClick: (banner: Banner) => void;
-}
-
-function BannerCarouselCore({ banners, interval, onBannerClick }: BannerCarouselCoreProps) {
-  const n = banners.length;
+  const n = items.length;
   const [center, setCenter] = useState(0);
   const [dir, setDir] = useState(1); // 1 = direita->centro (vai para a esquerda); -1 = esquerda->centro
   const [isAnimating, setIsAnimating] = useState(false);
@@ -202,11 +70,10 @@ function BannerCarouselCore({ banners, interval, onBannerClick }: BannerCarousel
 
   // autoplay
   useEffect(() => {
-    if (!isHover) {
-      const id = setInterval(() => next(), interval);
-      return () => clearInterval(id);
-    }
-  }, [center, isHover, interval]);
+    if (isHover) return;
+    const id = setInterval(() => next(), autoPlayInterval);
+    return () => clearInterval(id);
+  }, [center, isHover, autoPlayInterval]);
 
   // teclas ← →
   useEffect(() => {
@@ -293,14 +160,14 @@ function BannerCarouselCore({ banners, interval, onBannerClick }: BannerCarousel
           {slides.map((s, k) => (
             <Slide
               key={`${s.idx}-${k}`}
-              banner={banners[s.idx]}
+              item={items[s.idx]}
               startBasis={s.start}
               endBasis={s.end}
               animateWidth={isAnimating}
               duration={duration}
               onPrev={prev}
               onNext={next}
-              onBannerClick={onBannerClick}
+              onBannerClick={handleBannerClick}
             />
           ))}
         </motion.div>
@@ -308,7 +175,7 @@ function BannerCarouselCore({ banners, interval, onBannerClick }: BannerCarousel
 
       {/* Indicadores */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
-        {banners.map((_, iDot) => (
+        {items.map((_, iDot) => (
           <button
             key={iDot}
             aria-label={`Ir para o banner ${iDot + 1}`}
@@ -326,7 +193,7 @@ function BannerCarouselCore({ banners, interval, onBannerClick }: BannerCarousel
 
 // Slide: controla a largura (flex-basis) de cada cartão e as setas quando está no centro visual
 function Slide({
-  banner,
+  item,
   startBasis,
   endBasis,
   animateWidth,
@@ -335,7 +202,7 @@ function Slide({
   onNext,
   onBannerClick,
 }: {
-  banner: Banner;
+  item: { id: string; image: string; banner: Banner };
   startBasis: string;
   endBasis: string;
   animateWidth: boolean;
@@ -355,24 +222,22 @@ function Slide({
     >
       <div 
         className="relative w-full h-full rounded-xl overflow-hidden cursor-pointer"
-        onClick={() => onBannerClick(banner)}
-        data-testid={`banner-slide-${banner.id}`}
+        onClick={() => onBannerClick(item.banner)}
+        data-testid={`banner-slide-${item.id}`}
       >
         <img
-          src={banner.imageUrl}
-          alt={banner.title || "Banner"}
+          src={item?.image}
+          alt={item.banner.title || "banner"}
           className="w-full h-full object-cover block"
           loading="lazy"
           decoding="async"
           draggable="false"
         />
 
-        {/* Overlay hover effect */}
+        {/* Overlay effects */}
         <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300" />
-        
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
 
-        {/* Setas de navegação apenas no banner central */}
         {isCenterVisual && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-between px-2 sm:px-3 md:px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
@@ -381,7 +246,7 @@ function Slide({
                 onPrev();
               }}
               aria-label="Anterior"
-              className="pointer-events-auto rounded-full bg-black/45 hover:bg-black/65 text-white w-9 h-9 flex items-center justify-center transition-colors"
+              className="pointer-events-auto rounded-full bg-black/45 hover:bg-black/65 text-white w-9 h-9 flex items-center justify-center"
               data-testid="banner-prev-btn"
             >
               ←
@@ -392,7 +257,7 @@ function Slide({
                 onNext();
               }}
               aria-label="Próximo"
-              className="pointer-events-auto rounded-full bg-black/45 hover:bg-black/65 text-white w-9 h-9 flex items-center justify-center transition-colors"
+              className="pointer-events-auto rounded-full bg-black/45 hover:bg-black/65 text-white w-9 h-9 flex items-center justify-center"
               data-testid="banner-next-btn"
             >
               →
