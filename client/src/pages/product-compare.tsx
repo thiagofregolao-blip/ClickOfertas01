@@ -320,8 +320,8 @@ export default function ProductCompare() {
                           )}
                         </div>
 
-                        <div className="space-y-2">
-                          <Link href={`/stores/${productInStore.store.id}`}>
+                        <div className="flex gap-2">
+                          <Link href={`/stores/${productInStore.store.id}`} className="flex-1">
                             <Button 
                               size="sm" 
                               className="w-full"
@@ -336,7 +336,7 @@ export default function ProductCompare() {
                             <Button 
                               size="sm" 
                               variant="outline" 
-                              className="w-full text-green-600 border-green-600 hover:bg-green-50"
+                              className="flex-1 text-green-600 border-green-600 hover:bg-green-50"
                               onClick={() => window.open(`https://wa.me/${productInStore.store.whatsapp}?text=Olá! Tenho interesse no produto: ${comparisonData.productName}`, '_blank')}
                               data-testid={`button-whatsapp-${productInStore.store.id}`}
                             >
