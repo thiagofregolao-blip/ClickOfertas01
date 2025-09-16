@@ -116,70 +116,63 @@ export default function ProductCompare() {
       </div>
 
       <div className="mx-auto max-w-6xl px-4 py-8">
-        {/* Seção do Produto */}
+        {/* Seção do Produto - Layout do Modal */}
         <Card className="mb-8" data-testid="card-product-details">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Imagens do produto */}
-              <div className="space-y-4">
-                <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+          <CardContent className="p-0">
+            <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[500px]">
+              {/* Imagem do produto - Lado Esquerdo */}
+              <div className="bg-gray-50 flex items-center justify-center p-8">
+                <div className="w-full max-w-md aspect-square">
                   {comparisonData.productImages[0] ? (
                     <img 
                       src={comparisonData.productImages[0]} 
                       alt={comparisonData.productName}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain rounded-lg"
                       data-testid="img-product-main"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <ShoppingBag className="w-16 h-16" />
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 bg-white rounded-lg">
+                      <ShoppingBag className="w-24 h-24" />
                     </div>
                   )}
                 </div>
-                
-                {/* Miniaturas das outras imagens */}
-                {comparisonData.productImages.length > 1 && (
-                  <div className="grid grid-cols-3 gap-2">
-                    {comparisonData.productImages.slice(1, 4).map((image, index) => (
-                      <div key={index} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                        <img 
-                          src={image} 
-                          alt={`${comparisonData.productName} - ${index + 2}`}
-                          className="w-full h-full object-cover"
-                          data-testid={`img-product-thumb-${index}`}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
 
-              {/* Informações do produto */}
-              <div className="md:col-span-2">
-                <div className="space-y-4">
+              {/* Informações do produto - Lado Direito */}
+              <div className="p-8 flex flex-col justify-center">
+                <div className="space-y-6">
+                  {/* Nome do produto */}
+                  <h1 className="text-3xl font-bold text-blue-600" data-testid="text-product-name">
+                    {comparisonData.productName}
+                  </h1>
+
+                  {/* Categoria */}
+                  {comparisonData.category && (
+                    <Badge variant="secondary" className="w-fit" data-testid="badge-category">
+                      {comparisonData.category}
+                    </Badge>
+                  )}
+
+                  {/* Preço - A partir de */}
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900" data-testid="text-product-name">
-                      {comparisonData.productName}
-                    </h2>
-                    
-                    <div className="flex items-center gap-4 mt-2">
-                      {comparisonData.category && (
-                        <Badge variant="secondary" data-testid="badge-category">
-                          {comparisonData.category}
-                        </Badge>
-                      )}
-                      {comparisonData.brand && (
-                        <span className="text-sm text-gray-600" data-testid="text-brand">
-                          Marca: {comparisonData.brand}
+                    <p className="text-gray-600 text-sm mb-1">A partir de</p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-red-600 text-4xl font-bold" data-testid="text-min-price">
+                        US$ {minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                      {maxPrice !== minPrice && (
+                        <span className="text-gray-500 text-lg">
+                          R$ {(minPrice * 5.39).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       )}
                     </div>
                   </div>
 
+                  {/* Descrição */}
                   {comparisonData.description && (
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-2">Descrição</h3>
-                      <p className="text-gray-700 text-sm leading-relaxed" data-testid="text-description">
+                      <h3 className="font-semibold text-gray-900 mb-3">Descrição</h3>
+                      <p className="text-gray-700 leading-relaxed" data-testid="text-description">
                         {comparisonData.description}
                       </p>
                     </div>
@@ -187,18 +180,18 @@ export default function ProductCompare() {
 
                   {/* Resumo de preços */}
                   <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-orange-900 mb-2">Resumo de Preços</h3>
+                    <h3 className="font-semibold text-orange-900 mb-3">Resumo de Preços</h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <span className="text-sm text-orange-700">Menor preço</span>
-                        <p className="text-lg font-bold text-green-600" data-testid="text-min-price">
-                          {formatPriceWithCurrency(minPrice.toString(), 'US$')}
+                        <p className="text-lg font-bold text-green-600" data-testid="text-summary-min-price">
+                          US$ {minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                       </div>
                       <div>
                         <span className="text-sm text-orange-700">Maior preço</span>
                         <p className="text-lg font-bold text-red-600" data-testid="text-max-price">
-                          {formatPriceWithCurrency(maxPrice.toString(), 'US$')}
+                          US$ {maxPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                       </div>
                     </div>
