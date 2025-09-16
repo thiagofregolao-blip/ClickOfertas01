@@ -43,7 +43,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
   const banner = banners[0]; // Apenas o primeiro banner
   
   return (
-    <div className="w-full h-32 md:h-40">
+    <div className="w-full h-48 md:h-64 lg:h-72">
       <div
         className="w-full h-full cursor-pointer relative group overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
         onClick={() => handleBannerClick(banner)}
@@ -59,17 +59,17 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
             backgroundRepeat: 'no-repeat'
           }}
         >
-          {/* Overlay para melhor contraste */}
-          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-300" />
+          {/* Overlay reduzido para melhor visualização da imagem */}
+          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300" />
           
           {/* Conteúdo centralizado */}
-          <div className="relative z-10 w-full h-full flex items-center justify-between px-6 md:px-8">
+          <div className="relative z-10 w-full h-full flex items-center justify-between px-6 md:px-8 lg:px-12">
             <div className="flex-1">
               <h2 
-                className="text-lg md:text-2xl lg:text-3xl font-bold mb-2 leading-tight"
+                className="text-xl md:text-3xl lg:text-4xl font-bold mb-3 leading-tight"
                 style={{ 
                   color: banner.textColor || '#FFFFFF',
-                  textShadow: '2px 2px 4px rgba(0,0,0,0.7)'
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
                 }}
               >
                 {banner.title}
@@ -77,10 +77,10 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
               
               {banner.description && (
                 <p 
-                  className="text-sm md:text-base opacity-90"
+                  className="text-base md:text-lg lg:text-xl opacity-95"
                   style={{ 
                     color: banner.textColor || '#FFFFFF',
-                    textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
+                    textShadow: '1px 1px 3px rgba(0,0,0,0.8)'
                   }}
                 >
                   {banner.description}
@@ -88,10 +88,10 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
               )}
             </div>
             
-            {/* Call-to-action */}
-            <div className="flex-shrink-0 ml-4 md:ml-6">
-              <div className="bg-white/90 hover:bg-white backdrop-blur-sm rounded-lg px-4 md:px-6 py-2 md:py-3 transition-all duration-300 shadow-lg">
-                <span className="text-sm md:text-base font-bold text-black">
+            {/* Call-to-action sem blur */}
+            <div className="flex-shrink-0 ml-6 md:ml-8">
+              <div className="bg-white hover:bg-gray-100 rounded-lg px-6 md:px-8 py-3 md:py-4 transition-all duration-300 shadow-lg">
+                <span className="text-base md:text-lg font-bold text-black">
                   Ver Ofertas
                 </span>
               </div>
@@ -99,7 +99,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
           </div>
           
           {/* Efeito hover */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
         </div>
       </div>
     </div>
