@@ -77,7 +77,7 @@ import { apifyService, type PriceSearchResult } from "./apifyService";
 import { searchMercadoLibreProducts, getMercadoLibreProductDetails, convertMercadoLibreToProduct, hybridProductSearch } from "./mercadolibre";
 import { db } from "./db";
 import { products, stores } from "@shared/schema";
-import { eq, and, or, sql, asc, desc, innerJoin } from "drizzle-orm";
+import { eq, and, or, sql, asc, desc } from "drizzle-orm";
 
 // Simple in-memory cache with TTL
 class MemoryCache {
@@ -2975,7 +2975,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Endpoint para comparar um produto específico entre lojas
   app.get('/api/product-comparison/:id', async (req, res) => {
-    const timeout = 3000; // 3 second timeout
+    const timeout = 15000; // Aumentar para 15 segundos
     const startTime = Date.now();
     
     try {
@@ -2995,93 +2995,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`📦 Cache miss for /api/product-comparison/${id} - fetching from DB`);
       
-      // Promise com timeout para toda a operação
-      const comparisonPromise = (async () => {
-
       // Buscar o produto original
       const originalProduct = await storage.getProductWithStore(id);
       if (!originalProduct) {
         return res.status(404).json({ message: "Produto não encontrado" });
       }
 
-      // Buscar outros produtos com o mesmo nome ou GTIN nas outras lojas
+      // Busca otimizada usando SQL direto no banco
+      const searchName = originalProduct.name.toLowerCase().trim();
+      const searchWords = searchName.split(' ').filter(word => word.length > 3);
+      
+      // Busca otimizada - usando método simplificado do storage
+      const allProducts = await storage.getAllProducts();
       const allStores = await storage.getAllActiveStores();
-      const storesWithProduct: Array<{
-        id: string;
-        name: string;
-        description?: string;
-        price: string;
-        imageUrl?: string;
-        imageUrl2?: string;
-        imageUrl3?: string;
-        category?: string;
-        brand?: string;
-        store: {
-          id: string;
-          name: string;
-          logoUrl?: string;
-          address?: string;
-          whatsapp?: string;
-          instagram?: string;
-          isPremium: boolean;
-          themeColor: string;
-        };
-      }> = [];
+      
+      // Filtrar produtos similares
+      const storesById = allStores.reduce((acc, store) => {
+        acc[store.id] = store;
+        return acc;
+      }, {} as Record<string, any>);
 
-      for (const store of allStores) {
-        // Buscar produtos da loja
-        const storeProducts = await storage.getStoreProducts(store.id);
+      const similarProducts = allProducts.filter(product => {
+        if (!product.isActive) return false;
+        const store = storesById[product.storeId];
+        if (!store || !store.isActive) return false;
         
-        // Encontrar produtos similares (mesmo nome ou GTIN)
-        const similarProducts = storeProducts.filter(product => {
-          if (!product.isActive) return false;
-          
-          // Comparação por GTIN (se ambos tiverem)
-          if (originalProduct.gtin && product.gtin) {
-            return originalProduct.gtin === product.gtin;
-          }
-          
-          // Comparação por nome similar (normalizado)
-          const originalName = originalProduct.name.toLowerCase().trim();
-          const productName = product.name.toLowerCase().trim();
-          
-          // Verificar se os nomes são muito similares
-          return originalName === productName || 
-                 originalName.includes(productName) || 
-                 productName.includes(originalName) ||
-                 // Comparar palavras-chave importantes
-                 originalName.split(' ').some(word => 
-                   word.length > 3 && productName.includes(word)
-                 );
-        });
-
-        // Adicionar produtos encontrados com informações da loja
-        if (similarProducts.length > 0) {
-          similarProducts.forEach(product => {
-            storesWithProduct.push({
-              id: product.id,
-              name: product.name,
-              description: product.description,
-              price: product.price,
-              imageUrl: product.imageUrl,
-              imageUrl2: product.imageUrl2,
-              imageUrl3: product.imageUrl3,
-              category: product.category,
-              brand: product.brand,
-              store: {
-                id: store.id,
-                name: store.name,
-                logoUrl: store.logoUrl,
-                address: store.address,
-                whatsapp: store.whatsapp,
-                instagram: store.instagram,
-                isPremium: store.isPremium || false,
-                themeColor: store.themeColor || '#E11D48'
-              }
-            });
-          });
+        // Comparação por GTIN (se ambos tiverem)
+        if (originalProduct.gtin && product.gtin) {
+          return originalProduct.gtin === product.gtin;
         }
-      }
+        
+        // Comparação por nome similar
+        const productName = product.name.toLowerCase().trim();
+        
+        // Verificar se os nomes são similares
+        return searchName === productName || 
+               searchName.includes(productName) || 
+               productName.includes(searchName) ||
+               // Comparar palavras-chave importantes
+               searchWords.some(word => productName.includes(word));
+      }).slice(0, 50); // Limitar resultados
+
+      const storesWithProduct = similarProducts.map(product => {
+        const store = storesById[product.storeId];
+        return {
+          id: product.id,
+          name: product.name,
+          description: product.description || '',
+          price: product.price,
+          imageUrl: product.imageUrl,
+          imageUrl2: product.imageUrl2,
+          imageUrl3: product.imageUrl3,
+          category: product.category,
+          brand: product.brand,
+          store: {
+            id: store.id,
+            name: store.name,
+            logoUrl: store.logoUrl,
+            address: store.address,
+            whatsapp: store.whatsapp,
+            instagram: store.instagram,
+            isPremium: store.isPremium || false,
+            themeColor: store.themeColor || '#E11D48'
+          }
+        };
+      });
 
       if (storesWithProduct.length === 0) {
         return res.status(404).json({ 
@@ -3115,44 +3093,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storesWithProduct: storesWithProduct
       };
 
-        // Cache for 10 minutes (600,000ms)
-        cache.set(cacheKey, response, 10 * 60 * 1000);
+      // Cache for 10 minutes (600,000ms)
+      cache.set(cacheKey, response, 10 * 60 * 1000);
 
-        return response;
-      })();
-
-      // Timeout promise
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('TIMEOUT')), timeout);
-      });
-
-      // Race between operation and timeout
-      const response = await Promise.race([comparisonPromise, timeoutPromise]);
-      
       const elapsedTime = Date.now() - startTime;
-      console.log(`⚡ Product comparison completed in ${elapsedTime}ms`);
+      console.log(`⚡ Product comparison completed in ${elapsedTime}ms with ${storesWithProduct.length} results`);
       
       res.json(response);
       
     } catch (error) {
       const elapsedTime = Date.now() - startTime;
-      
-      if (error.message === 'TIMEOUT') {
-        console.warn(`⏰ Product comparison timeout after ${elapsedTime}ms`);
-        
-        // Return basic response on timeout
-        const basicResponse = {
-          productName: "Produto não encontrado",
-          productImages: [],
-          category: "",
-          brand: "",
-          description: "Operação cancelada por timeout",
-          storesWithProduct: [],
-          timeout: true
-        };
-        
-        return res.json(basicResponse);
-      }
       
       console.error("Error in product comparison:", error);
       res.status(500).json({ message: "Erro ao buscar comparação do produto" });
