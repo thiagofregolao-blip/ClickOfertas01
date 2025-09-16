@@ -2975,6 +2975,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Endpoint para comparar um produto específico entre lojas
   app.get('/api/product-comparison/:id', async (req, res) => {
+    const timeout = 3000; // 3 second timeout
+    const startTime = Date.now();
+    
     try {
       const { id } = req.params;
       
@@ -2991,6 +2994,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log(`📦 Cache miss for /api/product-comparison/${id} - fetching from DB`);
+      
+      // Promise com timeout para toda a operação
+      const comparisonPromise = (async () => {
 
       // Buscar o produto original
       const originalProduct = await storage.getProductWithStore(id);
@@ -3109,12 +3115,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storesWithProduct: storesWithProduct
       };
 
-      // Cache for 10 minutes (600,000ms)
-      cache.set(cacheKey, response, 10 * 60 * 1000);
+        // Cache for 10 minutes (600,000ms)
+        cache.set(cacheKey, response, 10 * 60 * 1000);
 
+        return response;
+      })();
+
+      // Timeout promise
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('TIMEOUT')), timeout);
+      });
+
+      // Race between operation and timeout
+      const response = await Promise.race([comparisonPromise, timeoutPromise]);
+      
+      const elapsedTime = Date.now() - startTime;
+      console.log(`⚡ Product comparison completed in ${elapsedTime}ms`);
+      
       res.json(response);
       
     } catch (error) {
+      const elapsedTime = Date.now() - startTime;
+      
+      if (error.message === 'TIMEOUT') {
+        console.warn(`⏰ Product comparison timeout after ${elapsedTime}ms`);
+        
+        // Return basic response on timeout
+        const basicResponse = {
+          productName: "Produto não encontrado",
+          productImages: [],
+          category: "",
+          brand: "",
+          description: "Operação cancelada por timeout",
+          storesWithProduct: [],
+          timeout: true
+        };
+        
+        return res.json(basicResponse);
+      }
+      
       console.error("Error in product comparison:", error);
       res.status(500).json({ message: "Erro ao buscar comparação do produto" });
     }
