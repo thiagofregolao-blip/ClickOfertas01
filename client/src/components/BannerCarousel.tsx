@@ -80,6 +80,12 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     };
   }, []);
 
+  // Função para obter banner por índice (com loop infinito)
+  const getBanner = (index: number) => {
+    const adjustedIndex = ((index % banners.length) + banners.length) % banners.length;
+    return banners[adjustedIndex];
+  };
+
   // Se só tem um banner, mostrar como antes
   if (banners.length === 1) {
     const banner = banners[0];
@@ -122,66 +128,130 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       </div>
     );
   }
-
-  // Carousel rotativo estilo Buscapé
+  
+  // Carousel rotativo estilo Buscapé - loop contínuo
   return (
-    <div className="w-full h-48 md:h-64 lg:h-72 relative overflow-hidden">
+    <div className="w-full h-48 md:h-64 lg:h-72 relative overflow-hidden rounded-lg">
       <div 
         ref={containerRef}
-        className="flex transition-transform duration-700 ease-in-out h-full"
+        className="flex h-full"
         style={{
-          transform: `translateX(-${currentIndex * 85}%)`, // Move 85% para mostrar partes do próximo
-          width: `${banners.length * 100}%`
+          transform: `translateX(-33.33%)`, // Sempre centralizar o banner do meio
+          transition: 'transform 700ms ease-in-out',
+          width: '300%' // 3 banners visíveis
         }}
         onMouseEnter={pauseAutoplay}
         onTouchStart={pauseAutoplay}
       >
-        {banners.map((banner, index) => (
+        {/* Banner anterior (parcialmente visível à esquerda) */}
+        <div className="w-1/3 h-full flex-shrink-0 px-1">
           <div
-            key={banner.id}
-            className="w-full h-full flex-shrink-0 px-1"
-            style={{ width: `${100 / banners.length}%` }}
+            className="w-full h-full cursor-pointer relative group overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 opacity-75"
+            onClick={() => handleBannerClick(getBanner(currentIndex - 1))}
+            data-testid={`banner-prev-${getBanner(currentIndex - 1).id}`}
           >
-            <div
-              className="w-full h-full cursor-pointer relative group overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-              onClick={() => handleBannerClick(banner)}
-              data-testid={`banner-carousel-${banner.id}`}
+            <div 
+              className="w-full h-full flex items-center relative"
+              style={{ 
+                background: getBanner(currentIndex - 1).backgroundColor || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                backgroundImage: getBanner(currentIndex - 1).imageUrl ? `url(${getBanner(currentIndex - 1).imageUrl})` : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
             >
-              <div 
-                className="w-full h-full flex items-center relative"
-                style={{ 
-                  background: banner.backgroundColor || (
-                    index % 3 === 0 ? 'linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%)' :
-                    index % 3 === 1 ? 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' :
-                    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                  ),
-                  backgroundImage: banner.imageUrl ? `url(${banner.imageUrl})` : undefined,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat'
-                }}
-              >
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300" />
-                
-                <div className="relative z-10 w-full h-full flex items-center justify-center px-4 md:px-8">
-                  <div className="text-center">
-                    <h2 
-                      className="text-lg md:text-2xl lg:text-3xl font-bold leading-tight"
-                      style={{ 
-                        color: banner.textColor || '#FFFFFF',
-                        textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
-                      }}
-                    >
-                      {banner.title}
-                    </h2>
-                  </div>
+              <div className="absolute inset-0 bg-black/20" />
+              
+              <div className="relative z-10 w-full h-full flex items-center justify-center px-2 md:px-4">
+                <div className="text-center">
+                  <h2 
+                    className="text-sm md:text-lg lg:text-xl font-bold leading-tight"
+                    style={{ 
+                      color: getBanner(currentIndex - 1).textColor || '#FFFFFF',
+                      textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
+                    }}
+                  >
+                    {getBanner(currentIndex - 1).title}
+                  </h2>
                 </div>
-                
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
               </div>
             </div>
           </div>
-        ))}
+        </div>
+
+        {/* Banner atual (central, totalmente visível) */}
+        <div className="w-1/3 h-full flex-shrink-0 px-1">
+          <div
+            className="w-full h-full cursor-pointer relative group overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+            onClick={() => handleBannerClick(getBanner(currentIndex))}
+            data-testid={`banner-current-${getBanner(currentIndex).id}`}
+          >
+            <div 
+              className="w-full h-full flex items-center relative"
+              style={{ 
+                background: getBanner(currentIndex).backgroundColor || 'linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%)',
+                backgroundImage: getBanner(currentIndex).imageUrl ? `url(${getBanner(currentIndex).imageUrl})` : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            >
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300" />
+              
+              <div className="relative z-10 w-full h-full flex items-center justify-center px-4 md:px-8">
+                <div className="text-center">
+                  <h2 
+                    className="text-lg md:text-2xl lg:text-3xl font-bold leading-tight"
+                    style={{ 
+                      color: getBanner(currentIndex).textColor || '#FFFFFF',
+                      textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
+                    }}
+                  >
+                    {getBanner(currentIndex).title}
+                  </h2>
+                </div>
+              </div>
+              
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+            </div>
+          </div>
+        </div>
+
+        {/* Banner próximo (parcialmente visível à direita) */}
+        <div className="w-1/3 h-full flex-shrink-0 px-1">
+          <div
+            className="w-full h-full cursor-pointer relative group overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 opacity-75"
+            onClick={() => handleBannerClick(getBanner(currentIndex + 1))}
+            data-testid={`banner-next-${getBanner(currentIndex + 1).id}`}
+          >
+            <div 
+              className="w-full h-full flex items-center relative"
+              style={{ 
+                background: getBanner(currentIndex + 1).backgroundColor || 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                backgroundImage: getBanner(currentIndex + 1).imageUrl ? `url(${getBanner(currentIndex + 1).imageUrl})` : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            >
+              <div className="absolute inset-0 bg-black/20" />
+              
+              <div className="relative z-10 w-full h-full flex items-center justify-center px-2 md:px-4">
+                <div className="text-center">
+                  <h2 
+                    className="text-sm md:text-lg lg:text-xl font-bold leading-tight"
+                    style={{ 
+                      color: getBanner(currentIndex + 1).textColor || '#FFFFFF',
+                      textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
+                    }}
+                  >
+                    {getBanner(currentIndex + 1).title}
+                  </h2>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Indicadores */}
@@ -195,7 +265,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
                 pauseAutoplay();
               }}
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                index === currentIndex
+                index === (currentIndex % banners.length)
                   ? 'bg-white scale-110'
                   : 'bg-white/50 hover:bg-white/75'
               }`}
