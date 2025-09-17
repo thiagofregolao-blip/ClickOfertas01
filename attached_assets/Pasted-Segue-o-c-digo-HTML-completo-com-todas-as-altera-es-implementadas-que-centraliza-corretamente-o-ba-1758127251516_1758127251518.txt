@@ -1,0 +1,261 @@
+Segue o código HTML completo com todas as alterações implementadas, que centraliza corretamente o banner ativo, exibe partes iguais dos banners vizinhos à esquerda e à direita, faz o loop contínuo e é responsivo:
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Carrossel Responsivo com Stage Padding</title>
+<style>
+  :root {
+    /* Padding lateral para exibir partes dos banners vizinhos */
+    --stage-padding-desktop: 10%;
+    --stage-padding-mobile: 5%;
+    /* Espaço entre slides (cada lado) */
+    --slide-gap-desktop: 2%;
+    --slide-gap-mobile: 1%;
+    /* Duração da transição */
+    --transition-duration: 0.8s;
+  }
+
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+
+  .carousel {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    padding-left: var(--stage-padding-desktop);
+    padding-right: var(--stage-padding-desktop);
+    box-sizing: border-box;
+  }
+
+  .carousel-track {
+    display: flex;
+    transition: transform var(--transition-duration) ease-in-out;
+    will-change: transform;
+  }
+
+  .carousel-item {
+    box-sizing: border-box;
+    flex: 0 0 auto; /* a largura é definida via JavaScript */
+  }
+
+  .carousel-item img {
+    width: 100%;
+    display: block;
+    border-radius: 8px;
+  }
+
+  .dots {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    gap: 6px;
+  }
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ccc;
+    cursor: pointer;
+  }
+  .dot.active {
+    background: #333;
+  }
+
+  @media (max-width: 768px) {
+    .carousel {
+      padding-left: var(--stage-padding-mobile);
+      padding-right: var(--stage-padding-mobile);
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="carousel" id="carousel">
+  <div class="carousel-track" id="track">
+    <!-- Slides e clones serão inseridos via script -->
+  </div>
+</div>
+<div class="dots" id="dots"></div>
+
+<script>
+(function() {
+  // Proporção do slide em relação à largura disponível (0 < visibleRatio < 1).
+  // Ex.: 0.9 => o slide (imagem + margens) ocupa 90 % da área útil (entre os paddings).
+  const visibleRatio = 0.9;
+
+  // Proporção do espaço reservado para o gap entre os slides em relação à largura disponível.
+  // A soma das margens esquerda e direita de cada slide será gapRatio * availableWidth.
+  const gapRatio = 0.04; // 4 % do espaço disponível para margens (2 % de cada lado)
+
+  // Banners reais (substitua por seus próprios).
+  const banners = [
+    {
+      src: 'https://s.zst.com.br/prod/brickz/Hero_Buscape_MKTP_30_Desk_51580cfc81.webp',
+      alt: 'Banner MKTP 30%'
+    },
+    {
+      src: 'https://s.zst.com.br/prod/brickz/Home_Aniversario_Magalu_Buscape_Desk_95a5238fc3.webp',
+      alt: 'Aniversário Magalu'
+    },
+    {
+      src: 'https://s.zst.com.br/prod/brickz/Hero_Buscape_Aniversario_Casas_Bahia_Desk_30718a8ec4.webp',
+      alt: 'Aniversário Casas Bahia'
+    }
+  ];
+
+  const carousel = document.getElementById('carousel');
+  const track = document.getElementById('track');
+  const dotsContainer = document.getElementById('dots');
+
+  // Função para criar um slide
+  function createSlide(banner, isClone) {
+    const slide = document.createElement('div');
+    slide.classList.add('carousel-item');
+    if (isClone) slide.dataset.clone = 'true';
+    const img = document.createElement('img');
+    img.src = banner.src;
+    img.alt = banner.alt;
+    slide.appendChild(img);
+    return slide;
+  }
+
+  // Inserção dos clones e slides
+  track.appendChild(createSlide(banners[banners.length - 1], true)); // clone do último
+  banners.forEach(banner => track.appendChild(createSlide(banner, false))); // slides reais
+  track.appendChild(createSlide(banners[0], true)); // clone do primeiro
+
+  let slides = track.querySelectorAll('.carousel-item');
+  const totalSlides = slides.length;
+  const realSlidesCount = banners.length;
+  let currentIndex = 1; // começa no primeiro real
+
+  // Cria os pontos de navegação
+  for (let i = 0; i < realSlidesCount; i++) {
+    const dot = document.createElement('span');
+    dot.classList.add('dot');
+    if (i === 0) dot.classList.add('active');
+    dot.onclick = () => {
+      currentIndex = i + 1;
+      updatePosition(true);
+    };
+    dotsContainer.appendChild(dot);
+  }
+
+  let slideWidth = 0;
+  let slideMargin = 0;
+
+  // Calcula dimensões e aplica a largura/margens via JS
+  function calculateDimensions() {
+    const carouselStyles = getComputedStyle(carousel);
+    const paddingLeft = parseFloat(carouselStyles.paddingLeft) || 0;
+    const paddingRight = parseFloat(carouselStyles.paddingRight) || 0;
+    const carouselWidth = carousel.clientWidth;
+    const availableWidth = carouselWidth - paddingLeft - paddingRight;
+
+    // Metade do gap para cada lado
+    const marginHalf = availableWidth * (gapRatio / 2);
+    slideMargin = marginHalf * 2;
+
+    // Largura total de cada slide (incluindo margens) = visibleRatio * availableWidth
+    const slideTotal = availableWidth * visibleRatio;
+
+    // Conteúdo interno do slide
+    slideWidth = slideTotal - slideMargin;
+
+    slides.forEach(slide => {
+      slide.style.width = `${slideWidth}px`;
+      slide.style.marginLeft = `${marginHalf}px`;
+      slide.style.marginRight = `${marginHalf}px`;
+    });
+  }
+
+  // Posiciona o track de forma que o slide atual fique centralizado
+  function updatePosition(withTransition) {
+    if (!slideWidth) calculateDimensions();
+
+    track.style.transition = withTransition
+      ? `transform var(--transition-duration) ease-in-out`
+      : 'none';
+
+    const slideTotal = slideWidth + slideMargin;
+
+    // Largura disponível (mesma do cálculo acima)
+    const carouselStyles = getComputedStyle(carousel);
+    const paddingLeft = parseFloat(carouselStyles.paddingLeft) || 0;
+    const paddingRight = parseFloat(carouselStyles.paddingRight) || 0;
+    const availableWidth = carousel.clientWidth - paddingLeft - paddingRight;
+
+    // Espaço restante (sobras) a ser dividido igualmente entre as laterais
+    const leftover = availableWidth - slideTotal;
+
+    // O deslocamento que centraliza o slide e mostra a mesma parte dos vizinhos
+    const offset = (currentIndex * slideTotal) - (leftover / 2);
+
+    track.style.transform = `translateX(-${offset}px)`;
+    updateDots();
+  }
+
+  // Atualiza os dots ativos
+  function updateDots() {
+    const dots = dotsContainer.querySelectorAll('.dot');
+    const realIndex = currentIndex - 1;
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle('active', idx === realIndex);
+    });
+  }
+
+  function nextSlide() {
+    currentIndex++;
+    updatePosition(true);
+  }
+
+  let autoplayId;
+  function startAutoPlay() {
+    autoplayId = setInterval(nextSlide, 4000);
+  }
+  function stopAutoPlay() {
+    clearInterval(autoplayId);
+  }
+
+  // Ajusta índices quando chegamos aos clones
+  track.addEventListener('transitionend', e => {
+    if (e.propertyName !== 'transform') return;
+    if (slides[currentIndex].dataset.clone === 'true' && currentIndex === totalSlides - 1) {
+      currentIndex = 1;
+      updatePosition(false);
+    }
+    if (slides[currentIndex].dataset.clone === 'true' && currentIndex === 0) {
+      currentIndex = realSlidesCount;
+      updatePosition(false);
+    }
+  });
+
+  // Recalcula ao redimensionar a janela
+  window.onresize = () => {
+    calculateDimensions();
+    updatePosition(false);
+  };
+
+  // Pausa/retoma auto-play ao passar o mouse
+  carousel.onmouseenter = stopAutoPlay;
+  carousel.onmouseleave = startAutoPlay;
+
+  // Inicializa após carregar imagens
+  window.onload = () => {
+    calculateDimensions();
+    updatePosition(false);
+    startAutoPlay();
+  };
+})();
+</script>
+</body>
+</html>
+
+
+Esse código utiliza JavaScript para definir a largura dos slides e das margens com base na largura real do contêiner, garantindo que sempre haja um espaço igual à esquerda e à direita para que parte do banner anterior e do próximo fiquem visíveis. Ele também implementa clones no início e no fim para permitir um loop infinito sem “saltos” perceptíveis e inclui o auto‑play com pausa ao passar o mouse. Ajuste as proporções (visibleRatio e gapRatio) conforme o efeito visual desejado.
