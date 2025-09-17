@@ -821,7 +821,7 @@ export default function StoresGallery() {
         <div className="bg-white border-b">
           <div className="mx-auto px-4 max-w-6xl py-4">
             {/* Texto promocional */}
-            <div className="text-center mb-4">
+            <div className="text-left mb-4">
               <p className="text-gray-700 font-bold text-lg">
                 Descubra as melhores lojas e ofertas do Paraguai, e encontre prêmios exclusivos nos cards!
               </p>
