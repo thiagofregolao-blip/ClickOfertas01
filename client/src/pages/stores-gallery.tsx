@@ -829,6 +829,18 @@ export default function StoresGallery() {
             
             {/* Stories das Lojas - layout horizontal com scroll */}
             <div className="flex items-start gap-4 overflow-x-auto scrollbar-hide">
+              {/* Raspadinhas retangulares - apenas para usuários autenticados */}
+              {isAuthenticated && scratchCards.slice(0, 3).map((card: any) => (
+                <RectangularScratchCard
+                  key={card.id}
+                  card={card}
+                  onScratch={handleScratchCard}
+                  processingCardId={processingCardId || undefined}
+                  funnyMessage={funnyMessages[card.id]}
+                  fetchingFunnyMessage={fetchingFunnyMessages.has(card.id)}
+                />
+              ))}
+
               {/* Botão Criar Story */}
               <div 
                 className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
@@ -849,18 +861,6 @@ export default function StoresGallery() {
                   <span className="block truncate">Criar Story</span>
                 </div>
               </div>
-
-              {/* Raspadinhas retangulares - apenas para usuários autenticados */}
-              {isAuthenticated && scratchCards.slice(0, 3).map((card: any) => (
-                <RectangularScratchCard
-                  key={card.id}
-                  card={card}
-                  onScratch={handleScratchCard}
-                  processingCardId={processingCardId || undefined}
-                  funnyMessage={funnyMessages[card.id]}
-                  fetchingFunnyMessage={fetchingFunnyMessages.has(card.id)}
-                />
-              ))}
 
               {Object.values(instagramStoriesGrouped).map(({ store: storyStore, stories }) => (
                 <div 
