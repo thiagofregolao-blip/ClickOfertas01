@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
 
 interface Banner {
   id: string;
@@ -29,7 +29,12 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isHover, setIsHover] = useState(false);
-  const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right');
+  
+  // Animation controls for smooth slide without "vai e volta"
+  const mobileControls = useAnimation();
+  const desktopControls = useAnimation();
+  const leftPreviewControls = useAnimation();
+  const rightPreviewControls = useAnimation();
 
   // Analytics - Registrar clique no banner
   const handleBannerClick = async (banner: Banner) => {
@@ -63,38 +68,101 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     return () => clearTimeout(timer);
   }, [currentIndex, isHover, isAnimating, autoPlayInterval, banners.length]);
 
-  const next = () => {
+  const next = async () => {
     if (isAnimating) return;
     setIsAnimating(true);
     
-    // Atualizar índice imediatamente para que os banners se reorganizem após animação
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % banners.length);
-      setIsAnimating(false);
-    }, 600);
+    // Mobile: slide track to left, then reset
+    const mobilePromise = mobileControls.start({ 
+      x: '-66.666%', 
+      transition: { duration: 0.5, ease: 'easeOut' } 
+    });
+    
+    // Desktop: slide all elements to left
+    const desktopPromise = desktopControls.start({ 
+      x: '-100%', 
+      transition: { duration: 0.5, ease: 'easeOut' } 
+    });
+    const leftPreviewPromise = leftPreviewControls.start({ 
+      x: '-100%', 
+      transition: { duration: 0.5, ease: 'easeOut' } 
+    });
+    const rightPreviewPromise = rightPreviewControls.start({ 
+      x: '-47%', 
+      transition: { duration: 0.5, ease: 'easeOut' } 
+    });
+    
+    // Wait for animations to complete
+    await Promise.all([mobilePromise, desktopPromise, leftPreviewPromise, rightPreviewPromise]);
+    
+    // Update index after slide completes
+    setCurrentIndex((prev) => (prev + 1) % banners.length);
+    
+    // Instantly reset positions (no animation)
+    mobileControls.set({ x: '-33.333%' });
+    desktopControls.set({ x: '0%' });
+    leftPreviewControls.set({ x: '-47%' });
+    rightPreviewControls.set({ x: '47%' });
+    
+    setIsAnimating(false);
   };
 
-  const prev = () => {
+  const prev = async () => {
     if (isAnimating) return;
     setIsAnimating(true);
     
-    // Atualizar índice imediatamente para que os banners se reorganizem após animação
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
-      setIsAnimating(false);
-    }, 600);
+    // Mobile: slide track to right, then reset
+    const mobilePromise = mobileControls.start({ 
+      x: '0%', 
+      transition: { duration: 0.5, ease: 'easeOut' } 
+    });
+    
+    // Desktop: slide all elements to right
+    const desktopPromise = desktopControls.start({ 
+      x: '100%', 
+      transition: { duration: 0.5, ease: 'easeOut' } 
+    });
+    const leftPreviewPromise = leftPreviewControls.start({ 
+      x: '0%', 
+      transition: { duration: 0.5, ease: 'easeOut' } 
+    });
+    const rightPreviewPromise = rightPreviewControls.start({ 
+      x: '100%', 
+      transition: { duration: 0.5, ease: 'easeOut' } 
+    });
+    
+    // Wait for animations to complete
+    await Promise.all([mobilePromise, desktopPromise, leftPreviewPromise, rightPreviewPromise]);
+    
+    // Update index after slide completes
+    setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
+    
+    // Instantly reset positions (no animation)
+    mobileControls.set({ x: '-33.333%' });
+    desktopControls.set({ x: '0%' });
+    leftPreviewControls.set({ x: '-47%' });
+    rightPreviewControls.set({ x: '47%' });
+    
+    setIsAnimating(false);
   };
 
-  const goTo = (index: number) => {
+  const goTo = async (index: number) => {
     if (isAnimating || index === currentIndex) return;
-    setIsAnimating(true);
-    setSlideDirection(index > currentIndex ? 'left' : 'right');
     
-    // Após a animação, atualizar o índice
-    setTimeout(() => {
-      setCurrentIndex(index);
-      setIsAnimating(false);
-    }, 600);
+    // For simplicity, use next() or prev() repeatedly to reach target
+    const steps = (index - currentIndex + banners.length) % banners.length;
+    if (steps <= banners.length / 2) {
+      // Go forward
+      for (let i = 0; i < steps; i++) {
+        await next();
+      }
+    } else {
+      // Go backward (shorter path)
+      const backSteps = banners.length - steps;
+      for (let i = 0; i < backSteps; i++) {
+        await prev();
+      }
+    }
   };
 
   // Índices dos banners
@@ -117,12 +185,8 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
             <motion.div
               className="flex h-full"
               style={{ width: '300%' }}
-              animate={{
-                x: isAnimating 
-                  ? '-66.666%'  // Slide da direita para esquerda
-                  : '-33.333%'   // Posição normal (banner atual no meio)
-              }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
+              animate={mobileControls}
+              initial={{ x: '-33.333%' }}
             >
               {/* Banner Anterior */}
               <div 
@@ -226,12 +290,8 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               style={{ 
                 filter: "brightness(0.7)"
               }}
-              animate={{
-                x: isAnimating 
-                  ? '-100%' // Slide para esquerda (sai da tela)
-                  : '-47%' // Posição normal
-              }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
+              animate={leftPreviewControls}
+              initial={{ x: '-47%' }}
             >
               <div className="relative h-full w-full rounded-xl overflow-hidden">
                 <img
@@ -253,12 +313,8 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               style={{ 
                 filter: "brightness(0.7)"
               }}
-              animate={{
-                x: isAnimating 
-                  ? '-47%'  // Slide da direita para centro
-                  : '47%'  // Posição normal (lado direito)
-              }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
+              animate={rightPreviewControls}
+              initial={{ x: '47%' }}
             >
               <div className="relative h-full w-full rounded-xl overflow-hidden">
                 <img
@@ -282,13 +338,8 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
             className="relative h-full w-full rounded-xl overflow-hidden cursor-pointer group z-20"
             onClick={() => handleBannerClick(banners[currentIndex])}
             data-testid={`banner-main-${banners[currentIndex].id}`}
-            initial={false}
-            animate={{
-              x: isAnimating 
-                ? '-100%' // Slide para esquerda (sai da tela)
-                : '0%'    // Posição central normal
-            }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            animate={desktopControls}
+            initial={{ x: '0%' }}
           >
             <img
               src={banners[currentIndex].imageUrl}
