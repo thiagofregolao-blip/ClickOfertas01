@@ -164,38 +164,33 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     track.style.transform = `translateX(-${offset}px)`;
   };
 
-  /*
-    Para garantir um loop infinito estável, o avanço e o reposicionamento dos
-    clones devem acontecer em momentos previsíveis. A função nextSlide apenas
-    incrementa o índice; o reposicionamento é tratado no handleTransitionEnd,
-    mas sem chamar updatePosition diretamente (isso será feito no useEffect
-    relacionado ao currentIndex). Um flag é usado para indicar quando a
-    transição deve ser suprimida (skipTransitionRef).  
-  */
+  // NEXTSLIDE: apenas incrementa o índice. O reset é tratado no
+  // handleTransitionEnd e no useEffect que observa currentIndex.
   const nextSlide = () => {
     setCurrentIndex(prev => prev + 1);
   };
 
-  // Flag para indicar que a próxima atualização de posição deve ocorrer sem
-  // animação. Usamos um ref para persistir o valor entre renders sem causar
-  // re-render.
+  // Flag que indica que a próxima atualização de posição deve ser
+  // executada sem animação. Usamos useRef para manter o valor
+  // persistente entre renders sem causar re-render.
   const skipTransitionRef = useRef(false);
 
+  // Handler de transição: quando a animação termina e estamos em um clone,
+  // ajusta o índice para o slide real correspondente e marca que a próxima
+  // atualização deve ocorrer sem transição.
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.propertyName !== 'transform') return;
 
-    // Quando chegamos ao clone final, ajustamos o índice para o primeiro real.
-    // Marcamos skipTransitionRef para que a próxima chamada a updatePosition
-    // ocorra sem transição. Não chamamos updatePosition aqui para evitar
-    // colisões com o useEffect que observa currentIndex.
     if (currentIndex === totalSlides - 1) {
+      // Estamos no clone final (último item da lista estendida). Volta
+      // para o primeiro slide real e pula a animação na próxima
+      // atualização de posição.
       skipTransitionRef.current = true;
       setCurrentIndex(1);
       return;
     }
-
-    // Quando chegamos ao clone inicial, ajustamos o índice para o último real.
     if (currentIndex === 0) {
+      // Estamos no clone inicial. Volta para o último slide real.
       skipTransitionRef.current = true;
       setCurrentIndex(realSlidesCount);
     }
@@ -233,14 +228,15 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     return () => clearInterval(interval);
   }, [banners.length, autoPlayInterval]);
 
-  // Atualiza posição quando currentIndex muda. Se a transição anterior
-  // terminou em um clone, usamos skipTransitionRef para pular a animação e
-  // reposicionar instantaneamente.
+  // Atualiza a posição sempre que currentIndex muda. Se estamos
+  // retornando de um clone (skipTransitionRef.current === true),
+  // reposicionamos o slide sem animação e limpamos o flag. Caso
+  // contrário, aplicamos a transição normalmente.
   useEffect(() => {
     if (slideWidth > 0) {
       const animate = !skipTransitionRef.current;
       updatePosition(animate);
-      // Depois de reposicionar sem transição, limpamos o flag.
+      // limpa o flag após utilizar.
       skipTransitionRef.current = false;
     }
   }, [currentIndex]);
