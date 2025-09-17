@@ -1,0 +1,221 @@
+Conforme solicitado, segue o código completo do carrossel totalmente funcional, com loop infinito, pausa entre cada transição, espaçamento entre os banners e exibição ampliada dos banners à esquerda e à direita. Esse comportamento se baseia na estrutura observada no carrossel do Buscapé
+buscape.com.br
+.
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrossel com Visão Parcial e Espaçamento</title>
+<style>
+  :root {
+    --transition-duration: 0.8s;   /* tempo da animação */
+    /* padding lateral para mostrar parte dos banners vizinhos */
+    --stage-padding-desktop: 10%;
+    --stage-padding-mobile: 5%;
+    /* gap entre slides (margem) */
+    --slide-gap-desktop: 2%;
+    --slide-gap-mobile: 1%;
+  }
+
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+
+  .carousel {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    /* stage padding cria o espaço onde o próximo e o anterior aparecem parcialmente */
+    padding-left: var(--stage-padding-desktop);
+    padding-right: var(--stage-padding-desktop);
+    box-sizing: border-box;
+  }
+
+  .carousel-track {
+    display: flex;
+    transition: transform var(--transition-duration) ease-in-out;
+  }
+
+  /* cada slide ocupa 100% menos o gap de cada lado.
+     a soma largura + margens = 100%, facilitando o cálculo do translateX */
+  .carousel-item {
+    flex: 0 0 calc(100% - 2 * var(--slide-gap-desktop));
+    margin-left: var(--slide-gap-desktop);
+    margin-right: var(--slide-gap-desktop);
+    box-sizing: border-box;
+  }
+  .carousel-item img {
+    width: 100%;
+    display: block;
+    border-radius: 8px;
+  }
+
+  /* pontos de navegação */
+  .dots {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    gap: 6px;
+  }
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ccc;
+    cursor: pointer;
+  }
+  .dot.active {
+    background: #333;
+  }
+
+  /* Responsividade: ajusta o stage padding e os gaps em telas menores */
+  @media (max-width: 768px) {
+    .carousel {
+      padding-left: var(--stage-padding-mobile);
+      padding-right: var(--stage-padding-mobile);
+    }
+    .carousel-item {
+      flex: 0 0 calc(100% - 2 * var(--slide-gap-mobile));
+      margin-left: var(--slide-gap-mobile);
+      margin-right: var(--slide-gap-mobile);
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Estrutura principal do carrossel -->
+<div class="carousel" id="carousel">
+  <div class="carousel-track" id="track">
+    <!-- Os slides e clones serão inseridos via script -->
+  </div>
+</div>
+<div class="dots" id="dots"></div>
+
+<script>
+// Immediately Invoked Function Expression para encapsular o escopo
+(function() {
+  // Lista de banners – substitua estas URLs pelas imagens desejadas
+  const banners = [
+    {
+      src: 'https://s.zst.com.br/prod/brickz/Hero_Buscape_MKTP_30_Desk_51580cfc81.webp',
+      alt: 'Banner MKTP 30%'
+    },
+    {
+      src: 'https://s.zst.com.br/prod/brickz/Home_Aniversario_Magalu_Buscape_Desk_95a5238fc3.webp',
+      alt: 'Aniversário Magalu'
+    },
+    {
+      src: 'https://s.zst.com.br/prod/brickz/Hero_Buscape_Aniversario_Casas_Bahia_Desk_30718a8ec4.webp',
+      alt: 'Aniversário Casas Bahia'
+    }
+  ];
+
+  const track = document.getElementById('track');
+  const dotsContainer = document.getElementById('dots');
+
+  // Função para criar um slide; o parâmetro clone controla se é um clone
+  function createSlide(banner, isClone) {
+    const slide = document.createElement('div');
+    slide.classList.add('carousel-item');
+    if (isClone) slide.dataset.clone = 'true';
+    const img = document.createElement('img');
+    img.src = banner.src;
+    img.alt = banner.alt;
+    slide.appendChild(img);
+    return slide;
+  }
+
+  // Construção dos slides com clones:
+  // 1. clone do último no início
+  track.appendChild(createSlide(banners[banners.length - 1], true));
+  // 2. slides reais
+  banners.forEach(banner => track.appendChild(createSlide(banner, false)));
+  // 3. clone do primeiro no final
+  track.appendChild(createSlide(banners[0], true));
+
+  const slides = track.querySelectorAll('.carousel-item');
+  const realSlidesCount = banners.length;
+  let currentIndex = 1; // iniciamos no primeiro slide real
+
+  // Cria indicadores (pontos) para cada banner real
+  banners.forEach((_, idx) => {
+    const dot = document.createElement('span');
+    dot.classList.add('dot');
+    if (idx === 0) dot.classList.add('active');
+    dot.addEventListener('click', () => {
+      currentIndex = idx + 1; // +1 por causa do clone inicial
+      updatePosition(true);
+    });
+    dotsContainer.appendChild(dot);
+  });
+
+  // Atualiza a posição do track e pontos ativos
+  function updateDots() {
+    const dots = dotsContainer.querySelectorAll('.dot');
+    const realIndex = currentIndex - 1;
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle('active', idx === realIndex);
+    });
+  }
+
+  function updatePosition(withTransition) {
+    // Ativa ou desativa a animação
+    track.style.transition = withTransition ? 
+      `transform var(--transition-duration) ease-in-out` : 
+      'none';
+    // Cada slide com gap ocupa 100% (largura + margens), então deslocamos 100% por índice
+    track.style.transform = `translateX(-${currentIndex * 100}%)`;
+    updateDots();
+  }
+
+  // Avança para o próximo slide
+  function nextSlide() {
+    currentIndex++;
+    updatePosition(true);
+  }
+
+  // Auto-play: troca a cada 4 segundos
+  const autoPlayTime = 4000;
+  let autoPlayId = setInterval(nextSlide, autoPlayTime);
+
+  // Pausa o auto-play ao passar o mouse e retoma ao sair
+  const carousel = document.getElementById('carousel');
+  carousel.addEventListener('mouseenter', () => clearInterval(autoPlayId));
+  carousel.addEventListener('mouseleave', () => {
+    autoPlayId = setInterval(nextSlide, autoPlayTime);
+  });
+
+  // Trata o loop infinito: quando um clone é alcançado, reposiciona para o slide real correspondente
+  track.addEventListener('transitionend', () => {
+    if (slides[currentIndex].dataset.clone === 'true' && currentIndex === 0) {
+      currentIndex = realSlidesCount;
+      updatePosition(false);
+    } else if (slides[currentIndex].dataset.clone === 'true' && currentIndex === slides.length - 1) {
+      currentIndex = 1;
+      updatePosition(false);
+    }
+  });
+
+  // Posiciona o carrossel inicialmente
+  updatePosition(false);
+})();
+</script>
+</body>
+</html>
+
+
+Esse código gera um carrossel responsivo que:
+
+Mostra parte do banner anterior à esquerda e do próximo à direita, graças ao stage padding.
+
+Possui um espaço entre os banners (gap), para que eles não fiquem colados.
+
+Faz a transição suave entre os slides a cada 4 s e volta ao início sem interrupções.
+
+Pausa a animação quando o usuário passa o mouse sobre o carrossel.
+
+Funciona tanto em telas grandes quanto em telas menores (ajustes com media query).
