@@ -88,7 +88,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       transition: { duration: 0.5, ease: 'easeOut' } 
     });
     const rightPreviewPromise = rightPreviewControls.start({ 
-      x: '-30%', 
+      x: '-47%', 
       transition: { duration: 0.5, ease: 'easeOut' } 
     });
     
@@ -102,7 +102,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     mobileControls.set({ x: '-33.333%' });
     desktopControls.set({ x: '0%' });
     leftPreviewControls.set({ x: '-47%' });
-    rightPreviewControls.set({ x: '30%' });
+    rightPreviewControls.set({ x: '47%' });
     
     setIsAnimating(false);
   };
@@ -141,7 +141,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     mobileControls.set({ x: '-33.333%' });
     desktopControls.set({ x: '0%' });
     leftPreviewControls.set({ x: '-47%' });
-    rightPreviewControls.set({ x: '30%' });
+    rightPreviewControls.set({ x: '47%' });
     
     setIsAnimating(false);
   };
@@ -314,7 +314,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
                 filter: "brightness(0.7)"
               }}
               animate={rightPreviewControls}
-              initial={{ x: '30%' }}
+              initial={{ x: '47%' }}
             >
               <div className="relative h-full w-full rounded-xl overflow-hidden">
                 <img
