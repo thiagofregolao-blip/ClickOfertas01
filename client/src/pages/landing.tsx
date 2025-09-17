@@ -76,7 +76,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo/Nome à esquerda */}
           <div className="flex items-center">
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900">
               Click Ofertas <span className="text-orange-500">PY</span>
             </h1>
           </div>
@@ -114,7 +114,7 @@ export default function Landing() {
                       decoding="async"
                       sizes="(max-width: 640px) 48px, (max-width: 1024px) 64px, 96px"
                     />
-                    <h1 className="text-3xl font-bold">Click Ofertas</h1>
+                    <h1 className="text-4xl font-bold">Click Ofertas</h1>
                   </div>
                   <p className="text-white/90 text-sm">Paraguai</p>
                 </div>

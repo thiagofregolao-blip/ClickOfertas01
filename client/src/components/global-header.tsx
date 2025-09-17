@@ -147,7 +147,7 @@ export default function GlobalHeader({
               {/* Logo/Nome do App - Oculto no mobile */}
               <Link href="/cards" className="hidden sm:block">
                 <div className="flex-shrink-0 cursor-pointer">
-                  <h1 className="text-white font-bold text-lg md:text-xl whitespace-nowrap">
+                  <h1 className="text-white font-bold text-xl md:text-2xl whitespace-nowrap">
                     Click Ofertas.PY
                   </h1>
                 </div>
@@ -258,7 +258,7 @@ export default function GlobalHeader({
             {/* Logo/Nome do App - Oculto no mobile */}
             <Link href="/cards" className="hidden sm:block">
               <div className="flex-shrink-0 cursor-pointer">
-                <h1 className="text-white font-bold text-lg md:text-xl whitespace-nowrap">
+                <h1 className="text-white font-bold text-xl md:text-2xl whitespace-nowrap">
                   Click Ofertas.PY
                 </h1>
               </div>
