@@ -1,30 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-interface Banner {
-  id: string;
-  title: string;
-  description?: string;
-  imageUrl: string;
-  linkUrl?: string;
-  backgroundColor: string;
-  textColor: string;
-}
-
-interface BannerCarouselProps {
-  banners: Banner[];
-  autoPlayInterval?: number;
-}
-
 /**
  * Componente de carrossel com visão parcial de banners vizinhos.
  * 
  * @param {Array} banners - array de objetos com { src, alt } representando cada banner.
  */
-const BannerCarousel = ({ banners }: BannerCarouselProps) => {
-  if (!banners || banners.length === 0) {
-    return null;
-  }
-
+const Carousel = ({ banners }) => {
   // Proporção do tamanho total (slide + margens) em relação à área disponível
   const visibleRatio = 0.9;
   // Porção da área reservada aos gaps (metade em cada lado)
@@ -37,8 +18,8 @@ const BannerCarousel = ({ banners }: BannerCarouselProps) => {
     { ...banners[0], clone: true }
   ];
 
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
+  const carouselRef = useRef(null);
+  const trackRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(1);
   const [dims, setDims] = useState({
     slideWidth: 0,
@@ -46,50 +27,7 @@ const BannerCarousel = ({ banners }: BannerCarouselProps) => {
     slideTotal: 0,
     leftover: 0
   });
-  const autoplayRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Analytics - Registrar clique no banner
-  const handleBannerClick = async (banner: Banner) => {
-    try {
-      await fetch('/api/banners/click', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          bannerId: banner.id,
-        }),
-      });
-    } catch (error) {
-      console.error('Erro ao registrar clique:', error);
-    }
-
-    if (banner.linkUrl) {
-      window.open(banner.linkUrl, '_blank');
-    }
-  };
-
-  // Registrar visualização quando banner for exibido
-  useEffect(() => {
-    if (banners.length > 0) {
-      const realIndex = currentIndex - 1;
-      const currentBanner = banners[realIndex >= 0 && realIndex < banners.length ? realIndex : 0];
-      
-      if (currentBanner) {
-        fetch('/api/banners/view', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            bannerId: currentBanner.id,
-          }),
-        }).catch(error => {
-          console.error('Erro ao registrar visualização:', error);
-        });
-      }
-    }
-  }, [currentIndex, banners]);
+  const autoplayRef = useRef(null);
 
   // Calcula dimensões e aplica margens/larguras aos slides
   const calculateDimensions = () => {
@@ -113,10 +51,9 @@ const BannerCarousel = ({ banners }: BannerCarouselProps) => {
     // Aplica margens/larguras aos slides via estilo inline
     if (trackRef.current) {
       Array.from(trackRef.current.children).forEach((child) => {
-        const element = child as HTMLElement;
-        element.style.width = `${slideWidth}px`;
-        element.style.marginLeft  = `${marginHalf}px`;
-        element.style.marginRight = `${marginHalf}px`;
+        child.style.width = `${slideWidth}px`;
+        child.style.marginLeft  = `${marginHalf}px`;
+        child.style.marginRight = `${marginHalf}px`;
       });
     }
   };
@@ -143,15 +80,10 @@ const BannerCarousel = ({ banners }: BannerCarouselProps) => {
     autoplayRef.current = setInterval(nextSlide, 4000);
   };
   // Pausa o autoplay
-  const stopAutoPlay = () => {
-    if (autoplayRef.current) {
-      clearInterval(autoplayRef.current);
-      autoplayRef.current = null;
-    }
-  };
+  const stopAutoPlay = () => clearInterval(autoplayRef.current);
 
   // Tratamento para reposicionar quando chega ao clone
-  const handleTransitionEnd = (e: TransitionEvent) => {
+  const handleTransitionEnd = (e) => {
     if (e.propertyName !== 'transform') return;
 
     // Se chegamos ao clone final, voltamos ao primeiro real
@@ -202,31 +134,25 @@ const BannerCarousel = ({ banners }: BannerCarouselProps) => {
       ref={carouselRef}
       onMouseEnter={stopAutoPlay}
       onMouseLeave={startAutoPlay}
-      data-testid="banner-carousel"
-      style={{
-        position: 'relative',
-        width: '100%',
-        overflow: 'hidden',
-        paddingLeft: 'var(--stage-padding-desktop)',
-        paddingRight: 'var(--stage-padding-desktop)',
-        boxSizing: 'border-box',
-        height: "clamp(100px, 16vw, 260px)",
-        ['--stage-padding-desktop' as any]: '10%',
-        ['--stage-padding-mobile' as any]: '5%'
-      } as React.CSSProperties}
     >
-      {/* Estilos de apoio */}
+      {/* Estilos de apoio (poderiam estar em um arquivo CSS) */}
       <style>{`
+        .carousel {
+          position: relative;
+          width: 100%;
+          overflow: hidden;
+          padding-left: var(--stage-padding-desktop);
+          padding-right: var(--stage-padding-desktop);
+          box-sizing: border-box;
+        }
         .carousel-track {
           display: flex;
           will-change: transform;
         }
         .carousel-item img {
           width: 100%;
-          height: 100%;
           display: block;
           border-radius: 8px;
-          object-fit: cover;
         }
         .dots {
           display: flex;
@@ -246,33 +172,26 @@ const BannerCarousel = ({ banners }: BannerCarouselProps) => {
         }
         @media (max-width: 768px) {
           .carousel {
-            padding-left: var(--stage-padding-mobile) !important;
-            padding-right: var(--stage-padding-mobile) !important;
+            padding-left: var(--stage-padding-mobile);
+            padding-right: var(--stage-padding-mobile);
           }
         }
       `}</style>
 
       <div className="carousel-track" ref={trackRef}>
         {slides.map((slide, idx) => (
-          <div 
-            className="carousel-item" 
-            key={idx}
-            style={{ height: '100%', cursor: 'pointer' }}
-            onClick={() => handleBannerClick(slide)}
-            data-testid={`banner-${slide.id}`}
-          >
-            <img src={slide.imageUrl} alt={slide.title || "banner"} />
+          <div className="carousel-item" key={idx}>
+            <img src={slide.src} alt={slide.alt} />
           </div>
         ))}
       </div>
 
-      <div className="dots" style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 30 }}>
+      <div className="dots">
         {banners.map((_, idx) => (
           <span
             key={idx}
             className={currentIndex - 1 === idx ? 'dot active' : 'dot'}
             onClick={() => setCurrentIndex(idx + 1)}
-            data-testid={`banner-indicator-${idx}`}
           />
         ))}
       </div>
@@ -280,4 +199,4 @@ const BannerCarousel = ({ banners }: BannerCarouselProps) => {
   );
 };
 
-export { BannerCarousel };
+export default Carousel;
