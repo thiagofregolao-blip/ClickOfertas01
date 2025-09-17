@@ -725,7 +725,7 @@ export default function StoresGallery() {
             </div>
 
             {/* Menu de Navegação - SEGUNDO */}
-            <div className="flex items-center justify-start gap-3">
+            <div className="flex items-center justify-start gap-3 -ml-2">
               
               {/* Botão temporário de acesso Super Admin */}
               <button
