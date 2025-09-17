@@ -818,8 +818,16 @@ export default function StoresGallery() {
 
       {/* SEÇÃO DE STORIES - Desktop apenas (abaixo do banner) */}
       {!searchQuery.trim() && !isMobile && (
-        <div className="bg-white border-b">
-          <div className="mx-auto px-4 max-w-6xl py-4">
+        <>
+          {/* Texto explicativo */}
+          <div className="bg-white px-4 py-3 text-center">
+            <p className="text-gray-800 font-bold text-lg max-w-6xl mx-auto">
+              Descubra as melhores lojas e ofertas do Paraguai, e encontre prêmios exclusivos nos cards!
+            </p>
+          </div>
+          
+          <div className="bg-white border-b">
+            <div className="mx-auto px-4 max-w-6xl py-4">
             {/* Stories das Lojas - layout horizontal com scroll */}
             <div className="flex items-start gap-4 overflow-x-auto scrollbar-hide">
               {/* Botão Criar Story */}
