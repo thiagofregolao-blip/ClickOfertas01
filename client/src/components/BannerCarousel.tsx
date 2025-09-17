@@ -16,8 +16,7 @@ interface BannerCarouselProps {
 }
 
 /**
- * Carrossel de Banners - Implementação exata do código HTML fornecido
- * Usa JavaScript para definir larguras e margens baseado na largura real do container
+ * Carrossel de Banners - Cópia exata do código HTML fornecido
  */
 export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarouselProps) {
   if (!banners || banners.length === 0) {
@@ -25,11 +24,18 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   }
 
   // Proporção do slide em relação à largura disponível (0 < visibleRatio < 1).
+  // Ex.: 0.9 => o slide (imagem + margens) ocupa 90 % da área útil (entre os paddings).
   const visibleRatio = 0.9;
-  // Proporção do espaço reservado para o gap entre os slides em relação à largura disponível.
-  const gapRatio = 0.04; // 4% do espaço disponível para margens (2% de cada lado)
 
-  // Construção dos slides com clones
+  // Proporção do espaço reservado para o gap entre os slides em relação à largura disponível.
+  // A soma das margens esquerda e direita de cada slide será gapRatio * availableWidth.
+  const gapRatio = 0.04; // 4 % do espaço disponível para margens (2 % de cada lado)
+
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const autoplayRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Construção dos slides com clones: clone do último, slides reais, clone do primeiro
   const extendedBanners = useMemo(() => {
     if (banners.length <= 1) return banners;
     return [
@@ -41,15 +47,10 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
 
   const totalSlides = extendedBanners.length;
   const realSlidesCount = banners.length;
-  
-  const [currentIndex, setCurrentIndex] = useState(banners.length > 1 ? 1 : 0); // começa no primeiro real
+  const [currentIndex, setCurrentIndex] = useState(1); // começa no primeiro real
+
   const [slideWidth, setSlideWidth] = useState(0);
   const [slideMargin, setSlideMargin] = useState(0);
-  const [isHover, setIsHover] = useState(false);
-  
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
   // Analytics - Registrar clique no banner
   const handleBannerClick = async (banner: Banner) => {
@@ -94,10 +95,10 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     }
   }, [currentIndex, banners]);
 
-  // Calcula dimensões e aplica a largura/margens
+  // Calcula dimensões e aplica a largura/margens via JS
   const calculateDimensions = () => {
     if (!carouselRef.current) return;
-    
+
     const carousel = carouselRef.current;
     const carouselStyles = getComputedStyle(carousel);
     const paddingLeft = parseFloat(carouselStyles.paddingLeft) || 0;
@@ -121,7 +122,8 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
 
   // Posiciona o track de forma que o slide atual fique centralizado
   const updatePosition = (withTransition: boolean) => {
-    if (!trackRef.current || !carouselRef.current || !slideWidth) return;
+    if (!trackRef.current || !carouselRef.current) return;
+    if (!slideWidth) calculateDimensions();
 
     const track = trackRef.current;
     const carousel = carouselRef.current;
@@ -152,37 +154,33 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   };
 
   const startAutoPlay = () => {
-    if (autoPlayRef.current) clearInterval(autoPlayRef.current);
-    if (!isHover && banners.length > 1) {
-      autoPlayRef.current = setInterval(nextSlide, autoPlayInterval);
-    }
+    if (autoplayRef.current) clearInterval(autoplayRef.current);
+    autoplayRef.current = setInterval(nextSlide, 4000);
   };
 
   const stopAutoPlay = () => {
-    if (autoPlayRef.current) {
-      clearInterval(autoPlayRef.current);
-      autoPlayRef.current = null;
+    if (autoplayRef.current) {
+      clearInterval(autoplayRef.current);
+      autoplayRef.current = null;
     }
   };
 
   // Ajusta índices quando chegamos aos clones
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.propertyName !== 'transform') return;
-    
-    const slides = extendedBanners;
-    if (slides[currentIndex]?.id.includes('clone') && currentIndex === totalSlides - 1) {
+    if (extendedBanners[currentIndex]?.id.includes('clone') && currentIndex === totalSlides - 1) {
       setCurrentIndex(1);
       setTimeout(() => updatePosition(false), 0);
     }
-    if (slides[currentIndex]?.id.includes('clone') && currentIndex === 0) {
+    if (extendedBanners[currentIndex]?.id.includes('clone') && currentIndex === 0) {
       setCurrentIndex(realSlidesCount);
       setTimeout(() => updatePosition(false), 0);
     }
   };
 
   const goTo = (realIndex: number) => {
-    const extendedIndex = realIndex + 1; // +1 por causa do clone inicial
-    setCurrentIndex(extendedIndex);
+    setCurrentIndex(realIndex + 1);
+    setTimeout(() => updatePosition(true), 0);
   };
 
   // Recalcula ao redimensionar a janela
@@ -196,43 +194,44 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     return () => window.removeEventListener('resize', handleResize);
   }, [slideWidth, slideMargin, currentIndex]);
 
-  // Auto-play
-  useEffect(() => {
-    if (isHover) {
-      stopAutoPlay();
-    } else {
-      startAutoPlay();
-    }
+  // Pausa/retoma auto-play ao passar o mouse
+  const handleMouseEnter = () => {
+    stopAutoPlay();
+  };
 
-    return () => stopAutoPlay();
-  }, [isHover, banners.length, autoPlayInterval]);
+  const handleMouseLeave = () => {
+    startAutoPlay();
+  };
 
   // Inicializa após carregar
   useEffect(() => {
     const timer = setTimeout(() => {
       calculateDimensions();
-      setTimeout(() => updatePosition(false), 0);
+      updatePosition(false);
+      startAutoPlay();
     }, 100);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      stopAutoPlay();
+    };
   }, [banners]);
 
-  // Atualiza posição quando currentIndex ou dimensões mudam
+  // Atualiza posição quando currentIndex muda
   useEffect(() => {
     if (slideWidth > 0) {
       updatePosition(true);
     }
-  }, [currentIndex, slideWidth, slideMargin]);
+  }, [currentIndex]);
 
   const currentRealIndex = currentIndex - 1;
 
   return (
     <div
       ref={carouselRef}
-      className="relative w-full select-none min-w-0 overflow-hidden box-border"
-      onMouseEnter={() => setIsHover(true)}
-      onMouseLeave={() => setIsHover(false)}
-      aria-roledescription="carousel"
+      className="relative w-full overflow-hidden box-border"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       data-testid="banner-carousel"
       style={{
         '--stage-padding-desktop': '10%',
@@ -245,15 +244,16 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     >
       <div 
         ref={trackRef}
-        className="flex h-full"
+        className="flex"
         style={{ willChange: 'transform' }}
         onTransitionEnd={handleTransitionEnd}
       >
         {extendedBanners.map((banner, index) => (
           <div 
             key={banner.id}
-            className="h-full cursor-pointer group box-border flex-none"
+            className="box-border cursor-pointer group"
             style={{ 
+              flex: '0 0 auto',
               width: `${slideWidth}px`,
               marginLeft: `${slideMargin / 2}px`,
               marginRight: `${slideMargin / 2}px`
@@ -303,7 +303,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
         ))}
       </div>
 
-      {/* Indicadores - apenas para banners reais */}
+      {/* Indicadores - pontos de navegação apenas para banners reais */}
       {banners.length > 1 && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
           {banners.map((_, realIndex) => (
