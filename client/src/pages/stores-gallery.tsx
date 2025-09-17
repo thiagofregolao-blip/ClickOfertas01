@@ -1313,37 +1313,33 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
     return Math.floor(Date.now() / (1 * 60 * 1000));
   };
   
-  // Função de randomização com seed determinístico  
-  const seededRandom = (seed: number) => {
-    let x = Math.sin(seed) * 10000;
-    return x - Math.floor(x);
-  };
-  
-  // Randomizar produtos usando seed
-  const getRandomProducts = (products: any[], count: number, seed: number) => {
-    const shuffled = [...products];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const randomIndex = Math.floor(seededRandom(seed + i) * (i + 1));
-      [shuffled[i], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[i]];
+  // Função de randomização robusta com seed determinístico  
+  const pickRandom = (arr: any[], n: number, seed: number) => {
+    // cópia + shuffle determinístico
+    const a = [...arr];
+    let s = seed || 0;
+    for (let i = a.length - 1; i > 0; i--) {
+      s = (s * 9301 + 49297) % 233280;
+      const j = Math.floor((s / 233280) * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
     }
-    return shuffled.slice(0, count);
+    return a.slice(0, n);
   };
-  
-  // Criar displayProducts - EXATAMENTE 2 destacados + 3 aleatórios
+
+  // LÓGICA SIMPLES: 2 destacados + 3 do resto (sem repetir)
   const displayProducts = (() => {
-    // Pegar EXATAMENTE 2 produtos em destaque (não mais)
+    const seed = getCurrentRotationSeed() + (String(store.id).charCodeAt?.(0) || 0);
+    
+    // 1. Pegar EXATAMENTE 2 destacados (máximo)
     const featuredProducts = filteredProducts.filter(p => p.isFeatured).slice(0, 2);
-
-    // Pool para os 3 aleatórios: todos os produtos EXCETO os 2 destacados já escolhidos
-    const poolForRandom = filteredProducts.filter(p => !featuredProducts.some(f => f.id === p.id));
-
-    // rotação determinística (1 min) + "sal" por loja
-    const rotationSeed = getCurrentRotationSeed() + String(store.id).charCodeAt(0);
-
-    // Pegar EXATAMENTE 3 produtos aleatórios do pool restante
-    const randomProducts = getRandomProducts(poolForRandom, 3, rotationSeed);
-
-    // Retornar: 2 destacados + 3 aleatórios = 5 produtos
+    
+    // 2. Pool para os restantes: TODOS os produtos exceto os 2 destacados já escolhidos
+    const remainingPool = filteredProducts.filter(p => !featuredProducts.some(f => f.id === p.id));
+    
+    // 3. Pegar 3 aleatórios do pool restante
+    const randomProducts = pickRandom(remainingPool, 3, seed);
+    
+    // 4. Combinar: 2 destacados + 3 aleatórios = 5 produtos
     return [...featuredProducts, ...randomProducts].slice(0, 5);
   })();
 
@@ -1402,7 +1398,12 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
                     boxShadow: `0 4px 12px ${store.themeColor || '#E11D48'}30`
                   }}
                 >
-                  💰 Ver {filteredProducts.length > 5 ? `+${filteredProducts.length - 5} ofertas` : 'panfleto'}
+                  💰 Ver {(() => {
+                    // Calcular produtos restantes baseado nos realmente exibidos
+                    const shownIds = new Set(displayProducts.map(p => p.id));
+                    const remainingCount = Math.max(0, filteredProducts.filter(p => !shownIds.has(p.id)).length);
+                    return remainingCount > 0 ? `+${remainingCount} ofertas` : 'panfleto';
+                  })()}
                 </button>
               </Link>
             </div>

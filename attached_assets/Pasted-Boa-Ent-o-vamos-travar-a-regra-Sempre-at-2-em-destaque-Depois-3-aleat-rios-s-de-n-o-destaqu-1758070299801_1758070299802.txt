@@ -1,0 +1,127 @@
+Boa! Então vamos travar a regra:
+
+Sempre: até 2 em destaque.
+
+Depois: 3 aleatórios só de não-destaque.
+
+Fallback: se faltar não-destaque, aí sim completa com outros (destaque que sobrou) sem repetir.
+
+Aqui vai um bloco pronto (TS/JS) que resolve e evita repetir itens:
+
+// helpers: use suas versões se já existirem
+const pickRandom = (arr: any[], n: number, seed: number) => {
+  // cópia + shuffle determinístico
+  const a = [...arr];
+  let s = seed || 0;
+  for (let i = a.length - 1; i > 0; i--) {
+    s = (s * 9301 + 49297) % 233280;
+    const j = Math.floor((s / 233280) * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a.slice(0, n);
+};
+
+const getRotationSeed = () => Math.floor(Date.now() / 60000); // 1 min
+
+// regra 2 destaque + 3 não-destaque (com fallback)
+const selectProducts = (products: Product[], storeId: string | number) => {
+  const seed = getRotationSeed() + (String(storeId).charCodeAt?.(0) || 0);
+
+  const featuredAll = products.filter(p => p.isFeatured);
+  const nonFeaturedAll = products.filter(p => !p.isFeatured);
+
+  // 1) até 2 destaques
+  const featuredPick = featuredAll.slice(0, 2);
+
+  // 2) tentar 3 aleatórios de não-destaque
+  const needRandom = Math.max(0, 5 - featuredPick.length); // geralmente 3
+  const randomNonFeatured = pickRandom(
+    nonFeaturedAll,
+    Math.min(needRandom, 3),
+    seed
+  );
+
+  // 3) fallback: se faltou, usa destacados restantes (exclui os já escolhidos)
+  const alreadyIds = new Set([...featuredPick, ...randomNonFeatured].map(p => p.id));
+  const leftoverFeatured = featuredAll.filter(p => !alreadyIds.has(p.id));
+
+  const missingAfterNonFeatured = 5 - (featuredPick.length + randomNonFeatured.length);
+  const fallbackFromFeatured = missingAfterNonFeatured > 0
+    ? pickRandom(leftoverFeatured, missingAfterNonFeatured, seed + 7)
+    : [];
+
+  // 4) fallback final: se ainda faltar (pouquíssimo provável), pega do resto sem repetir
+  const remainingMissing = 5 - (featuredPick.length + randomNonFeatured.length + fallbackFromFeatured.length);
+  const leftoversAll = products.filter(p => !alreadyIds.has(p.id) && !fallbackFromFeatured.some(f => f.id === p.id));
+  const fallbackFromAll = remainingMissing > 0
+    ? pickRandom(leftoversAll, remainingMissing, seed + 13)
+    : [];
+
+  const final = [
+    ...featuredPick,
+    ...randomNonFeatured,
+    ...fallbackFromFeatured,
+    ...fallbackFromAll
+  ].slice(0, 5);
+
+  return final;
+};
+
+O que muda
+
+O pool dos 3 aleatórios é somente nonFeaturedAll.
+
+Só se nonFeaturedAll não tiver o suficiente, a função completa com leftoverFeatured.
+
+Nunca repete produto (uso de alreadyIds).
+
+Mantém rotação determinística por minuto.
+
+Plugue essa função onde você monta displayProducts e me diga se ficou 2 destaque + 3 aleatórios certinho.
+
+Você disse:
+outra coisa o botao ver mais ofertas nao esta contabilizando a quantidade certa de produtos cadastrados
+O ChatGPT disse:
+Pensou por 16s
+
+O contador está errado porque o botão faz a conta fixa filteredProducts.length - 5.
+Se, por qualquer motivo, você exibir menos de 5 (ou tiver alguma deduplicação), esse cálculo fica incorreto — ele não subtrai a quantidade realmente exibida, e sim “5” na marra. O próprio trecho mostra isso: “💰 Ver {filteredProducts.length > 5 ? +${filteredProducts.length - 5} ofertas : 'panfleto'}”. 
+
+codigo_exibicao_produtos
+
+Correção
+
+Calcule N com base nos IDs que estão visíveis agora:
+
+// pegue os IDs dos produtos realmente mostrados
+const shownIds = new Set(displayProducts.map(p => p.id));
+
+// quantos produtos ainda sobraram no filtro (excluindo os já exibidos)
+const remainingCount = Math.max(
+  0,
+  filteredProducts.filter(p => !shownIds.has(p.id)).length
+);
+
+// label do botão
+const moreLabel =
+  remainingCount > 0 ? `+${remainingCount} ofertas` : 'panfleto';
+
+
+E no JSX:
+
+<button>
+  💰 Ver {moreLabel}
+</button>
+
+
+Assim o botão sempre reflete “quantos faltam além dos que você mostrou”, independentemente de:
+
+ter exibido 5, 4, 3… (por regra ou fallback),
+
+ter deduplicação,
+
+ter mistura de destaque e não-destaque.
+
+Dica: mantenha a seleção “2 destaques + 3 aleatórios (não-destaque) com fallback” que te passei e nunca repita IDs no displayProducts. Aí o contador acima fica 100% confiável. (O trecho atual do botão está na seção “CÁLCULO DO BOTÃO (LINHA 1404)”.) 
+
+codigo_exibicao_produtos
