@@ -1,0 +1,195 @@
+import React, { useState, useRef, useEffect } from 'react';
+
+const Carousel = ({ banners }) => {
+  // Ajuste o banner e o espaço visível
+  const visibleRatio = 0.96;  // o slide (com margens) ocupa 96% do espaço útil
+  const gapRatio     = 0.02;  // 2% do espaço útil reservado às margens (1% de cada lado)
+
+  // Cria slides com clones (último no início e primeiro no final)
+  const slides = [
+    { ...banners[banners.length - 1], clone: true },
+    ...banners.map((b) => ({ ...b, clone: false })),
+    { ...banners[0], clone: true },
+  ];
+
+  const carouselRef = useRef(null);
+  const trackRef    = useRef(null);
+  const [currentIndex, setCurrentIndex] = useState(1);
+  const [dims, setDims] = useState({
+    slideWidth: 0,
+    slideMargin: 0,
+    slideTotal: 0,
+    leftover: 0,
+  });
+
+  const autoplayRef = useRef(null);
+
+  // Calcula tamanhos e aplica margens/larguras
+  const calculateDimensions = () => {
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+
+    const style = window.getComputedStyle(carousel);
+    const paddingLeft  = parseFloat(style.paddingLeft) || 0;
+    const paddingRight = parseFloat(style.paddingRight) || 0;
+    const availableWidth = carousel.clientWidth - paddingLeft - paddingRight;
+
+    const marginHalf  = availableWidth * (gapRatio / 2);
+    const slideMargin = marginHalf * 2;
+    const slideTotal  = availableWidth * visibleRatio;
+    const slideWidth  = slideTotal - slideMargin;
+    const leftover    = availableWidth - slideTotal;
+
+    // Salva e aplica margens/larguras
+    setDims({ slideWidth, slideMargin, slideTotal, leftover });
+
+    if (trackRef.current) {
+      Array.from(trackRef.current.children).forEach((child) => {
+        child.style.width = `${slideWidth}px`;
+        child.style.marginLeft  = `${marginHalf}px`;
+        child.style.marginRight = `${marginHalf}px`;
+      });
+    }
+  };
+
+  // Atualiza a posição do carrossel com ou sem transição
+  const updatePosition = (withTransition = true) => {
+    const { slideTotal, leftover } = dims;
+    if (!trackRef.current || !slideTotal) return;
+
+    trackRef.current.style.transition = withTransition
+      ? `transform 0.8s ease-in-out`
+      : 'none';
+
+    const offset = currentIndex * slideTotal - leftover / 2;
+    trackRef.current.style.transform = `translateX(-${offset}px)`;
+  };
+
+  // Avança slides no autoplay
+  const nextSlide = () => setCurrentIndex((i) => i + 1);
+
+  // Inicia e pausa o autoplay
+  const startAutoPlay = () => {
+    stopAutoPlay();
+    autoplayRef.current = setInterval(nextSlide, 4000);
+  };
+  const stopAutoPlay = () => clearInterval(autoplayRef.current);
+
+  // Lida com o término da transição para pular para o slide real quando cai em um clone
+  const handleTransitionEnd = (e) => {
+    if (e.propertyName !== 'transform') return;
+    // Se estamos no clone final, volta ao primeiro real
+    if (slides[currentIndex].clone && currentIndex === slides.length - 1) {
+      setCurrentIndex(1);
+      requestAnimationFrame(() => updatePosition(false));
+    }
+    // Se estamos no clone inicial, volta ao último real
+    if (slides[currentIndex].clone && currentIndex === 0) {
+      setCurrentIndex(banners.length);
+      requestAnimationFrame(() => updatePosition(false));
+    }
+  };
+
+  // Efeito para calcular dimensões no carregamento e em resize
+  useEffect(() => {
+    calculateDimensions();
+    window.addEventListener('resize', calculateDimensions);
+    return () => window.removeEventListener('resize', calculateDimensions);
+  }, []);
+
+  // Atualiza a posição quando índice ou dimensões mudam
+  useEffect(() => {
+    updatePosition();
+  }, [currentIndex, dims]);
+
+  // Configura o autoplay e o listener de transição
+  useEffect(() => {
+    const track = trackRef.current;
+    if (track) {
+      track.addEventListener('transitionend', handleTransitionEnd);
+    }
+    startAutoPlay();
+    return () => {
+      stopAutoPlay();
+      if (track) {
+        track.removeEventListener('transitionend', handleTransitionEnd);
+      }
+    };
+  }, [slides.length]);
+
+  return (
+    <div
+      className="carousel"
+      ref={carouselRef}
+      onMouseEnter={stopAutoPlay}
+      onMouseLeave={startAutoPlay}
+    >
+      {/* CSS incorporado: ajuste stage padding conforme necessário */}
+      <style>{`
+        :root {
+          --stage-padding-desktop: 5%;
+          --stage-padding-mobile: 2%;
+        }
+        .carousel {
+          position: relative;
+          width: 100%;
+          overflow: hidden;
+          padding-left: var(--stage-padding-desktop);
+          padding-right: var(--stage-padding-desktop);
+          box-sizing: border-box;
+        }
+        @media (max-width: 768px) {
+          .carousel {
+            padding-left: var(--stage-padding-mobile);
+            padding-right: var(--stage-padding-mobile);
+          }
+        }
+        .carousel-track {
+          display: flex;
+          will-change: transform;
+        }
+        .carousel-item img {
+          width: 100%;
+          display: block;
+          border-radius: 8px;
+        }
+        .dots {
+          display: flex;
+          justify-content: center;
+          margin-top: 10px;
+          gap: 6px;
+        }
+        .dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: #ccc;
+          cursor: pointer;
+        }
+        .dot.active {
+          background: #333;
+        }
+      `}</style>
+
+      <div className="carousel-track" ref={trackRef}>
+        {slides.map((slide, idx) => (
+          <div className="carousel-item" key={idx}>
+            <img src={slide.src} alt={slide.alt} />
+          </div>
+        ))}
+      </div>
+
+      <div className="dots">
+        {banners.map((_, idx) => (
+          <span
+            key={idx}
+            className={currentIndex - 1 === idx ? 'dot active' : 'dot'}
+            onClick={() => setCurrentIndex(idx + 1)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default Carousel;
