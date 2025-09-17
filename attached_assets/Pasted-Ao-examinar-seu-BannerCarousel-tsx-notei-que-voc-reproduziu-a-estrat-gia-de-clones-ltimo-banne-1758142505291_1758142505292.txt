@@ -1,0 +1,28 @@
+Ao examinar seu BannerCarousel.tsx, notei que você reproduziu a estratégia de clones (último + banners reais + primeiro) e atualiza currentIndex a cada 4 s via setInterval. Para que o loop infinito funcione, é preciso detectar quando o carrossel chegou a um clone e reposicioná‑lo imediatamente no banner real correspondente. Isso deve ser feito de forma consistente, pois qualquer interferência no índice ou na animação compromete o ciclo.
+
+Dois pontos do código contribuem para o problema que você descreveu (loop parando e o último banner “voltando” invertido):
+
+Lógica de reset duplicada – você tem duas maneiras de tratar os clones. O onTransitionEnd verifica se currentIndex aponta para um clone e faz setCurrentIndex(1) ou setCurrentIndex(realSlidesCount) e, logo em seguida, chama updatePosition(false). No entanto, logo abaixo há um useEffect separado que também observa currentIndex e dispara um setTimeout de 800 ms para redefinir o índice quando currentIndex === 0 ou currentIndex === totalSlides – 1. Essas duas rotinas podem conflitar: se o intervalo do autoplay disparar uma nova transição enquanto o useEffect ainda está aguardando, o currentIndex salta inesperadamente. Isso faz com que o carrossel “pare” no clone ou retorne de forma errada.
+
+Avanço sem checar limites – o setInterval do autoplay simplesmente faz setCurrentIndex(prev => prev + 1). Ao chegar ao último clone (por exemplo, prev + 1 === totalSlides – 1) ele ainda continuará incrementando nas chamadas seguintes. Embora você tente corrigir isso no onTransitionEnd e no useEffect, a soma dessas atualizações assíncronas causa uma corrida de eventos. Em algumas iterações o índice é ajustado antes que a animação termine e em outras o ajuste ocorre depois, por isso o banner aparece vindo do lado errado.
+
+Para corrigir o comportamento e garantir um loop suave, basta unificar a lógica de reset e tratar o índice de maneira determinística:
+
+Remova o useEffect responsável por “SISTEMA DE CLONES – Detecta quando chegamos nos clones…”. Deixe apenas o onTransitionEnd como ponto de reposicionamento: quando a animação terminar e o currentIndex estiver em 0 (clone do último) ou totalSlides – 1 (clone do primeiro), atualize o índice para o banner real correspondente (realSlidesCount ou 1) e chame updatePosition(false) imediatamente. Assim você garante que o reposicionamento acontece após a transição e não haverá dois resets competindo.
+
+No handler nextSlide ou no setInterval, você pode adicionar uma verificação simples para evitar que o índice ultrapasse os clones. Por exemplo:
+
+const nextSlide = () => {
+  setCurrentIndex(prev => {
+    if (prev + 1 >= totalSlides) {
+      // se atingir o clone final, volta para o primeiro real
+      return 1;
+    }
+    return prev + 1;
+  });
+};
+
+
+Dessa forma, o índice nunca passa de totalSlides – 1 e você não depende de um timer externo para reposicioná‑lo.
+
+Mantenha apenas o cálculo das dimensões e o updatePosition sem alterar currentIndex nele. Evite chamar setCurrentIndex e updatePosition em vários lugares, pois cada chamada gera um re‑render e uma transição diferente. Quanto menos efeitos simultâneos, mais estável ficará o loop.

@@ -156,7 +156,13 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   };
 
   const nextSlide = () => {
-    setCurrentIndex(prev => prev + 1);
+    setCurrentIndex(prev => {
+      if (prev + 1 >= totalSlides) {
+        // se atingir o clone final, volta para o primeiro real
+        return 1;
+      }
+      return prev + 1;
+    });
   };
 
   // Ajusta índices quando chegamos aos clones - EXATAMENTE como no HTML original
@@ -201,7 +207,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   // AUTOPLAY SIMPLES - SÓ ISSO!
   useEffect(() => {
     if (banners.length <= 1) return;
-    const interval = setInterval(() => setCurrentIndex(i => i + 1), autoPlayInterval);
+    const interval = setInterval(nextSlide, autoPlayInterval);
     return () => clearInterval(interval);
   }, [banners.length, autoPlayInterval]);
 
@@ -212,28 +218,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     }
   }, [currentIndex]);
 
-  // SISTEMA DE CLONES - Detecta quando chegamos nos clones e reseta invisível
-  useEffect(() => {
-    if (banners.length <= 1 || slideWidth === 0) return;
-
-    // Clone do primeiro está na última posição (totalSlides - 1)
-    if (currentIndex === totalSlides - 1) {
-      const timer = setTimeout(() => {
-        setCurrentIndex(1); // Volta para o primeiro banner real
-        setTimeout(() => updatePosition(false), 0); // Remove transição
-      }, 800); // Aguarda animação terminar
-      return () => clearTimeout(timer);
-    }
-    
-    // Clone do último está na primeira posição (0)
-    if (currentIndex === 0) {
-      const timer = setTimeout(() => {
-        setCurrentIndex(realSlidesCount); // Volta para o último banner real 
-        setTimeout(() => updatePosition(false), 0); // Remove transição
-      }, 800); // Aguarda animação terminar
-      return () => clearTimeout(timer);
-    }
-  }, [currentIndex, banners.length, slideWidth, totalSlides, realSlidesCount]);
 
   // Recalcula quando dimensões mudam
   useEffect(() => {
