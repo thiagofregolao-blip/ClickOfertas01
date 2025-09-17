@@ -159,16 +159,21 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     setCurrentIndex(prev => prev + 1);
   };
 
-  // Ajusta índices quando chegamos aos clones - EXATAMENTE como no HTML original
+  // Reset IMEDIATO dos clones com requestAnimationFrame
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.propertyName !== 'transform') return;
-    if (extendedBanners[currentIndex]?.id.includes('clone') && currentIndex === totalSlides - 1) {
+    
+    // Se estamos no clone do último banner (final da lista)
+    if (currentIndex === totalSlides - 1) {
       setCurrentIndex(1);
-      setTimeout(() => updatePosition(false), 0);
+      requestAnimationFrame(() => updatePosition(false));
+      return;
     }
-    if (extendedBanners[currentIndex]?.id.includes('clone') && currentIndex === 0) {
+
+    // Se estamos no clone do primeiro banner (início da lista)
+    if (currentIndex === 0) {
       setCurrentIndex(realSlidesCount);
-      setTimeout(() => updatePosition(false), 0);
+      requestAnimationFrame(() => updatePosition(false));
     }
   };
 
