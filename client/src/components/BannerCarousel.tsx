@@ -105,15 +105,15 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
             <div
               className="flex h-full transition-transform duration-500 ease-in-out"
               style={{ 
-                width: `${banners.length * 80}%`,
-                transform: `translateX(-${currentIndex * (80 / banners.length)}%) translateX(10%)`
+                width: `${banners.length * 70}%`,
+                transform: `translateX(-${currentIndex * (70 / banners.length)}%) translateX(15%)`
               }}
             >
               {banners.map((banner, index) => (
                 <div 
                   key={banner.id}
-                  className="h-full px-2 cursor-pointer group flex-shrink-0"
-                  style={{ width: `${80 / banners.length}%` }}
+                  className="h-full px-1 cursor-pointer group flex-shrink-0"
+                  style={{ width: `${70 / banners.length}%` }}
                   onClick={() => handleBannerClick(banner)}
                   data-testid={`banner-mobile-${banner.id}`}
                 >
@@ -171,19 +171,19 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
         }}
       >
         {/* Container com peek lateral */}
-        <div className="relative h-full overflow-hidden px-16">
+        <div className="relative h-full overflow-hidden px-12">
           <div
             className="flex h-full transition-transform duration-500 ease-in-out"
             style={{ 
-              width: `${banners.length * 85}%`,
-              transform: `translateX(-${currentIndex * (85 / banners.length)}%) translateX(7.5%)`
+              width: `${banners.length * 75}%`,
+              transform: `translateX(-${currentIndex * (75 / banners.length)}%) translateX(12.5%)`
             }}
           >
             {banners.map((banner, index) => (
               <div 
                 key={banner.id}
                 className="h-full relative cursor-pointer group flex-shrink-0"
-                style={{ width: `${85 / banners.length}%` }}
+                style={{ width: `${75 / banners.length}%` }}
                 onClick={() => handleBannerClick(banner)}
                 data-testid={`banner-desktop-${banner.id}`}
               >
