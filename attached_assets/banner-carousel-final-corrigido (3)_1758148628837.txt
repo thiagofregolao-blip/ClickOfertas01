@@ -1,3 +1,4 @@
+
 // BannerCarousel.tsx - VERSÃO FINAL DEFINITIVA ✅
 // Todas as correções aplicadas para loop infinito perfeito
 
