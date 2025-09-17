@@ -562,9 +562,21 @@ export class DatabaseStorage implements IStorage {
           .orderBy(desc(products.isFeatured), products.sortOrder, desc(products.createdAt))
           .limit(productsPerStore);
 
+        // Contar total real de produtos ativos para esta loja
+        const totalProductsResult = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(products)
+          .where(and(
+            eq(products.storeId, store.id), 
+            eq(products.isActive, true)
+          ));
+
+        const totalProducts = totalProductsResult[0]?.count || 0;
+
         return {
           ...store,
           products: limitedProducts,
+          totalProducts, // Total real de produtos ativos
         };
       })
     );

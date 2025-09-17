@@ -1,0 +1,72 @@
+Hoje seu front só tem os primeiros 15 itens (o backend pagina/limita), então ele calcula “+10” (= 15 − 5). Por isso o número nunca bate com o total real da loja. Para mostrar o total verdadeiro você precisa que o backend envie esse número.
+
+Como corrigir (2 opções)
+1) Melhor: o backend retorna o total
+
+Altere o endpoint para devolver total (contagem real após os filtros aplicados):
+
+GET /stores/:id/products?limit=15&page=1
+{
+  "items": [ ...15 produtos... ],
+  "total": 243
+}
+
+
+No front:
+
+// vindo da API
+const totalFromApi = data.total;           // 243
+const shownUnique = new Set(displayProducts.map(p => String(p.id))).size; // 5
+
+// se o botão deve mostrar o total cadastrado na loja:
+const label = `${totalFromApi} ofertas`;
+
+// se preferir manter o “+”, mas em cima do TOTAL (não do restante):
+const labelPlus = `+${totalFromApi} ofertas`;
+
+
+Vantagem: mesmo com filtros (categoria, marca, preço), total já reflete “quantos existem na loja sob esse filtro”.
+
+2) Se não puder mudar o endpoint agora
+
+Crie um endpoint leve de stats por loja:
+
+GET /stores/:id/products/count?filters=...
+{ "total": 243 }
+
+
+Ou, se sua API já manda X-Total-Count no header, capture-o na resposta e use como total.
+
+No front, o uso é idêntico ao do item (1).
+
+Troca no botão (JSX)
+
+Substitua o cálculo atual:
+
+// ❌ atual (errado porque usa só o que veio na página inicial):
+// const label = filteredProducts.length > 5 ? `+${filteredProducts.length - 5} ofertas` : 'panfleto';
+
+// ✅ usa o total real da API
+<button>
+  💰 Ver {totalFromApi > 0 ? `+${totalFromApi} ofertas` : 'ofertas'}
+</button>
+
+
+Se preferir mostrar sem “+” (fica até mais claro quando é total):
+
+<button>
+  💰 Ver {totalFromApi} ofertas
+</button>
+
+Importante
+
+Se você mantiver apenas os 15 itens no payload, o front nunca saberá que existem, por exemplo, 243 produtos. Sem total, qualquer conta será um chute.
+
+Se houver deduplicação por ID no front, isso não afeta o total vindo do backend (ele já deve ser a contagem correta).
+
+Para não quebrar nada, mantenha um fallback:
+
+const total = data.total ?? new Set(filteredProducts.map(p => String(p.id))).size;
+
+
+Me diga como está seu endpoint hoje (retorno/headers). Se você colar o trecho da chamada da API eu já ajusto o código do fetch e do componente do botão certinho.

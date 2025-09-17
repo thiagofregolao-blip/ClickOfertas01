@@ -1399,10 +1399,11 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
                   }}
                 >
                   💰 Ver {(() => {
-                    // Calcular produtos restantes baseado nos realmente exibidos
-                    const shownIds = new Set(displayProducts.map(p => p.id));
-                    const remainingCount = Math.max(0, filteredProducts.filter(p => !shownIds.has(p.id)).length);
-                    return remainingCount > 0 ? `+${remainingCount} ofertas` : 'panfleto';
+                    // Usar total real do backend em vez de calcular baseado nos filtrados
+                    const totalProducts = store.totalProducts || 0;
+                    const shownCount = displayProducts.length;
+                    const remainingCount = Math.max(0, totalProducts - shownCount);
+                    return remainingCount > 0 ? `+${remainingCount} ofertas` : `${totalProducts} ofertas`;
                   })()}
                 </button>
               </Link>

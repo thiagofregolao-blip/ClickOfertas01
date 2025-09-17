@@ -931,6 +931,7 @@ export type InsertInstagramStoryLike = z.infer<typeof insertInstagramStoryLikeSc
 
 export type StoreWithProducts = Store & {
   products: Product[];
+  totalProducts?: number; // Total real de produtos ativos na loja
 };
 
 export type ProductWithStore = Product & {
