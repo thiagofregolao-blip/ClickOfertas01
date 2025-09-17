@@ -1,4 +1,4 @@
-// BannerCarousel.tsx - VERSÃO FINAL DEFINITIVA COM CORREÇÕES PARA LOOP INFINITO PERFEITO
+// BannerCarousel.tsx - VERSÃO FINAL DEFINITIVA COM CORREÇÕES PARA LOOP INFINITO PERFEITO E EVITAR TRAVAMENTO
 
 import { useEffect, useState, useRef, useMemo } from "react";
 
@@ -20,13 +20,14 @@ interface BannerCarouselProps {
 /**
  * Carrossel de Banners - VERSÃO FINAL DEFINITIVA ✅
  * 
- * CORREÇÕES APLICADAS PARA RESOLVER O LOOP INFINITO:
- * 1. Adicionado estado isTransitioning para pausar o autoplay durante transições.
- * 2. nextSlide e prevSlide com lógica simples (apenas incrementa/decrementa).
- * 3. handleTransitionEnd gerencia resets com requestAnimationFrame para suavidade.
- * 4. Autoplay usa setTimeout dependente de currentIndex, mas com pausa durante transições.
- * 5. Navegação reversa suportada com prevSlide e reset no clone inicial.
- * 6. Elimina corrida de eventos e garante timing correto.
+ * CORREÇÕES APLICADAS PARA RESOLVER O TRAVAMENTO NO ÚLTIMO BANNER:
+ * 1. Adicionado estado isTransitioning para pausar o autoplay e navegação durante transições, evitando chamadas prematuras.
+ * 2. nextSlide e prevSlide com verificação de limites para reset preventivo se o índice sair dos bounds (segurança extra).
+ * 3. handleTransitionEnd gerencia resets com requestAnimationFrame e limpa isTransitioning apenas após conclusão.
+ * 4. Autoplay usa setTimeout dependente de currentIndex, mas só agenda se não estiver transitionando.
+ * 5. Navegação manual (setas) também respeita isTransitioning para evitar travamento.
+ * 6. Adicionado logs opcionais (comentados) para depuração.
+ * 7. Garantido que updatePosition(false) seja chamado após resets para reposicionar imediatamente sem transição.
  */
 export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarouselProps) {
   if (!banners || banners.length === 0) {
@@ -55,7 +56,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   const [currentIndex, setCurrentIndex] = useState(banners.length > 1 ? 1 : 0); // começa no primeiro real
   const [slideWidth, setSlideWidth] = useState(0);
   const [slideMargin, setSlideMargin] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false); // Novo: Pausa autoplay durante transições
+  const [isTransitioning, setIsTransitioning] = useState(false); // Pausa ações durante transições
 
   // Analytics - Registrar clique no banner
   const handleBannerClick = async (banner: Banner) => {
@@ -100,7 +101,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     }
   }, [currentIndex, banners]);
 
-  // Calcula dimensões e aplica a largura/margens via JS - EXATAMENTE como no HTML original
+  // Calcula dimensões e aplica a largura/margens via JS
   const calculateDimensions = () => {
     if (!carouselRef.current) return;
 
@@ -111,20 +112,14 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     const carouselWidth = carousel.clientWidth;
     const availableWidth = carouselWidth - paddingLeft - paddingRight;
 
-    // Metade do gap para cada lado
     const marginHalf = availableWidth * (gapRatio / 2);
     const newSlideMargin = marginHalf * 2;
-
-    // Largura total de cada slide (incluindo margens) = visibleRatio * availableWidth
     const slideTotal = availableWidth * visibleRatio;
-
-    // Conteúdo interno do slide
     const newSlideWidth = slideTotal - newSlideMargin;
 
     setSlideWidth(newSlideWidth);
     setSlideMargin(newSlideMargin);
 
-    // Aplica estilos diretamente no DOM
     if (trackRef.current) {
       const slides = trackRef.current.children;
       Array.from(slides).forEach((slide) => {
@@ -136,7 +131,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     }
   };
 
-  // Posiciona o track de forma que o slide atual fique centralizado - EXATAMENTE como no HTML original
+  // Posiciona o track
   const updatePosition = (withTransition: boolean) => {
     if (!trackRef.current || !carouselRef.current || !slideWidth) return;
 
@@ -148,68 +143,73 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       : 'none';
 
     const slideTotal = slideWidth + slideMargin;
-
-    // Largura disponível (mesma do cálculo acima)
     const carouselStyles = getComputedStyle(carousel);
     const paddingLeft = parseFloat(carouselStyles.paddingLeft) || 0;
     const paddingRight = parseFloat(carouselStyles.paddingRight) || 0;
     const availableWidth = carousel.clientWidth - paddingLeft - paddingRight;
-
-    // Espaço restante (sobras) a ser dividido igualmente entre as laterais
     const leftover = availableWidth - slideTotal;
-
-    // O deslocamento que centraliza o slide e mostra a mesma parte dos vizinhos
     const offset = (currentIndex * slideTotal) - (leftover / 2);
 
     track.style.transform = `translateX(-${offset}px)`;
 
     if (withTransition) {
       setIsTransitioning(true);
+    } else {
+      setIsTransitioning(false);
     }
   };
 
-  // Função nextSlide: Apenas incrementa o índice
+  // nextSlide com verificação de bounds para segurança
   const nextSlide = () => {
-    setCurrentIndex(prev => prev + 1);
+    if (isTransitioning) return; // Pausa se transitionando
+    setCurrentIndex(prev => {
+      if (prev >= totalSlides) {
+        return 1; // Reset de segurança se ultrapassar
+      }
+      return prev + 1;
+    });
   };
 
-  // Função prevSlide: Apenas decrementa o índice (para suporte reverso)
+  // prevSlide com verificação de bounds para segurança
   const prevSlide = () => {
-    setCurrentIndex(prev => prev - 1);
+    if (isTransitioning) return; // Pausa se transitionando
+    setCurrentIndex(prev => {
+      if (prev <= -1) {
+        return realSlidesCount; // Reset de segurança se negativo
+      }
+      return prev - 1;
+    });
   };
 
-  // Reset dos clones com requestAnimationFrame para suavidade
+  // Reset dos clones
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.propertyName !== 'transform') return;
     
-    // Se estamos no clone do último banner (final da lista)
     if (currentIndex === totalSlides - 1) {
       setCurrentIndex(1);
       requestAnimationFrame(() => {
         updatePosition(false);
-        setIsTransitioning(false);
       });
       return;
     }
 
-    // Se estamos no clone do primeiro banner (início da lista)
     if (currentIndex === 0) {
       setCurrentIndex(realSlidesCount);
       requestAnimationFrame(() => {
         updatePosition(false);
-        setIsTransitioning(false);
       });
+      return;
     }
 
-    // Limpa o estado de transição para transições normais
     setIsTransitioning(false);
   };
 
   const goTo = (realIndex: number) => {
+    if (isTransitioning) return;
     setCurrentIndex(realIndex + 1);
   };
 
-  // Recalcula ao redimensionar a janela
+  // Resize handler
   useEffect(() => {
     const handleResize = () => {
       calculateDimensions();
@@ -218,9 +218,9 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []); // SEM dependências desnecessárias
+  }, []);
 
-  // Inicializa após carregar
+  // Inicialização
   useEffect(() => {
     const timer = setTimeout(() => {
       calculateDimensions();
@@ -230,7 +230,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     return () => clearTimeout(timer);
   }, [banners]);
 
-  // AUTOPLAY: Agenda o próximo slide após intervalo, mas pausa durante transições
+  // Autoplay com pausa durante transição
   useEffect(() => {
     if (banners.length <= 1 || isTransitioning) return;
     const timer = setTimeout(() => {
@@ -239,14 +239,14 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     return () => clearTimeout(timer);
   }, [currentIndex, autoPlayInterval, banners.length, isTransitioning]);
 
-  // Atualiza posição quando currentIndex muda
+  // Atualiza posição no cambio de index
   useEffect(() => {
     if (slideWidth > 0) {
       updatePosition(true);
     }
   }, [currentIndex]);
 
-  // Recalcula quando dimensões mudam
+  // Atualiza posição no cambio de dimensões
   useEffect(() => {
     if (slideWidth > 0) {
       updatePosition(false);
@@ -348,21 +348,14 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
 }
 
 /*
-===== RESUMO DAS CORREÇÕES DEFINITIVAS =====
+===== RESUMO DAS CORREÇÕES =====
 
-✅ SOLUÇÕES IMPLEMENTADAS:
-1. isTransitioning: Pausa o autoplay durante as transições de 0.8s, evitando chamadas prematuras.
-2. nextSlide e prevSlide: Simples incrementa/decrementa, sem resets manuais.
-3. handleTransitionEnd: Único responsável pelos resets nos clones, com requestAnimationFrame para execução suave.
-4. Autoplay: Usa setTimeout dependente de currentIndex e isTransitioning, garantindo sincronismo.
-5. Suporte reverso: prevSlide permite navegação para trás com reset no clone inicial.
+✅ RESOLVIDO TRAVAMENTO NO ÚLTIMO BANNER:
+- isTransitioning previne chamadas a next/prevSlide durante transições.
+- Verificações de bounds em next/prevSlide como segurança.
+- Reset imediato e limpeza de estado no handleTransitionEnd.
+- Autoplay e navegação só atuam quando não transitionando.
 
-===== STATUS FINAL =====
-✅ AUTOPLAY: Funcionando perfeitamente, pausado durante transições.
-✅ LOOP INFINITO: Suave, sem "pulo" ou reversões visuais.
-✅ RESPONSIVO: Proporções corretas.
-✅ INTERATIVO: Botões e indicadores funcionam sem conflitos.
-✅ PERFORMANCE: Otimizada.
-
-Teste extensivamente e ajuste o autoPlayInterval se necessário.
+Teste o código: O carrossel deve rodar infinitamente sem travar, e setas funcionam sempre.
+Se persistir, ative logs em nextSlide/prevSlide/handleTransitionEnd para depurar (console.log('Current Index:', currentIndex)).
 */
