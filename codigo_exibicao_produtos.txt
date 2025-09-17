@@ -1,0 +1,132 @@
+CÓDIGO DE EXIBIÇÃO DE PRODUTOS - PÁGINA CARDS (stores-gallery.tsx)
+================================================================
+
+=== PROBLEMA ATUAL ===
+Shopping China mostra "Ver +6 ofertas" mas só exibe 2 produtos em vez de 5
+
+=== DADOS DE ENTRADA ===
+// Backend: GET /api/public/stores retorna 15 produtos por loja
+// Frontend recebe: store.products (array com 15 produtos)
+// filteredProducts = produtos ativos e visíveis da loja
+
+=== LÓGICA DE SELEÇÃO DE PRODUTOS (LINHAS 1310-1347) ===
+
+// Sistema de rotação simples com timestamp
+const getCurrentRotationSeed = () => {
+  // Muda a cada 1 minuto (60.000 ms)
+  return Math.floor(Date.now() / (1 * 60 * 1000));
+};
+
+// Função de randomização com seed determinístico  
+const seededRandom = (seed: number) => {
+  let x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+};
+
+// Randomizar produtos usando seed
+const getRandomProducts = (products: any[], count: number, seed: number) => {
+  const shuffled = [...products];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const randomIndex = Math.floor(seededRandom(seed + i) * (i + 1));
+    [shuffled[i], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[i]];
+  }
+  return shuffled.slice(0, count);
+};
+
+// Criar displayProducts - 2 produtos em destaque + 3 produtos aleatórios
+const displayProducts = (() => {
+  // Pegar exatamente 2 produtos em destaque
+  const featuredProducts = filteredProducts.filter(p => p.isFeatured).slice(0, 2);
+  
+  // Pegar produtos regulares (não em destaque) 
+  const nonFeaturedProducts = filteredProducts.filter(p => !p.isFeatured);
+  
+  // 3 produtos aleatórios do restante (com rotação a cada 1 minuto)
+  const rotationSeed = getCurrentRotationSeed() + store.id.charCodeAt(0);
+  const randomProducts = getRandomProducts(nonFeaturedProducts, 3, rotationSeed);
+  
+  // Combinar: 2 destaque + 3 regulares = 5 produtos total
+  return [...featuredProducts, ...randomProducts].slice(0, 5);
+})();
+
+=== CÁLCULO DO BOTÃO (LINHA 1404) ===
+💰 Ver {filteredProducts.length > 5 ? `+${filteredProducts.length - 5} ofertas` : 'panfleto'}
+
+=== RENDERIZAÇÃO DOS PRODUTOS (LINHAS 1413-1477) ===
+
+{displayProducts.length > 0 ? (
+  <div className="px-4 pb-3">
+    {isMobile ? (
+      /* Layout Mobile - Carousel horizontal com scroll */
+      <div className="relative">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          {displayProducts.map((product) => (
+            <div key={product.id} className="flex-shrink-0 w-32 sm:w-36 md:w-40 h-64 sm:h-84">
+              <ProductCard
+                product={product}
+                currency={store.currency || 'Gs.'}
+                themeColor={store.themeColor || '#E11D48'}
+                showFeaturedBadge={true}
+                onClick={onProductClick}
+                customUsdBrlRate={store.customUsdBrlRate ? Number(store.customUsdBrlRate) : undefined}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    ) : (
+      /* Layout Desktop - Grid horizontal sem scroll */
+      <div className="grid grid-cols-5 gap-3">
+        {displayProducts.slice(0, 5).map((product) => (
+          <div key={product.id} className="h-72 sm:h-88">
+            <ProductCard
+              product={product}
+              currency={store.currency || 'Gs.'}
+              themeColor={store.themeColor || '#E11D48'}
+              showFeaturedBadge={true}
+              onClick={onProductClick}
+              customUsdBrlRate={store.customUsdBrlRate ? Number(store.customUsdBrlRate) : undefined}
+            />
+          </div>
+        ))}
+        
+        /* Preencher slots vazios se houver menos de 5 produtos */
+        {Array.from({ length: Math.max(0, 5 - displayProducts.length) }).map((_, index) => (
+          <div key={`empty-${index}`} className="h-72 sm:h-88 bg-gray-100 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center">
+            <span className="text-gray-400 text-xs">+</span>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+) : (
+  <div className="px-4 py-6 text-center text-gray-500">
+    <p>Esta loja ainda não tem produtos ativos</p>
+  </div>
+)}
+
+=== PROBLEMA IDENTIFICADO ===
+1. Backend retorna 15 produtos OK ✅
+2. displayProducts deveria ter 5 produtos (2 destacados + 3 aleatórios) ❌
+3. Botão calcula: filteredProducts.length - 5 ✅
+4. Renderização usa displayProducts.map() ✅
+
+=== POSSÍVEIS CAUSAS ===
+1. nonFeaturedProducts está vazio (todos os 15 são destacados?)
+2. getRandomProducts não está funcionando corretamente
+3. Filtro filteredProducts está limitando os produtos antes da seleção
+
+=== DADOS PARA DEBUG ===
+Shopping China no banco:
+- Total: 40 produtos
+- Destacados: 19 produtos
+- Regulares: 21 produtos
+- Ativos: 40 produtos
+
+=== VARIÁVEIS IMPORTANTES ===
+- store.products = dados do backend (15 produtos)
+- filteredProducts = produtos filtrados para exibição
+- featuredProducts = produtos destacados (máximo 2)
+- nonFeaturedProducts = produtos não destacados
+- randomProducts = 3 produtos aleatórios dos não destacados
+- displayProducts = combinação final (2 + 3 = 5 produtos)
