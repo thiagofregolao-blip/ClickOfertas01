@@ -785,7 +785,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log('📦 Cache miss for /api/public/stores - fetching from DB (optimized)');
-      const stores = await storage.getAllActiveStoresOptimized(50, 8);
+      const stores = await storage.getAllActiveStoresOptimized(50, 15);
       
       // Cache for 5 minutes (300,000ms)
       cache.set(cacheKey, stores, 5 * 60 * 1000);
@@ -795,6 +795,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching active stores:", error);
       res.status(500).json({ message: "Failed to fetch stores" });
     }
+  });
+
+  // Temporary cache clear endpoint
+  app.post('/api/cache/clear', (req, res) => {
+    cache.clear();
+    console.log('🧹 Cache limpo manualmente');
+    res.json({ message: 'Cache cleared successfully' });
   });
 
   // Quick search endpoint (for autocomplete/suggestions)

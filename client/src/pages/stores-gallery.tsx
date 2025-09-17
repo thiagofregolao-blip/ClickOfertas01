@@ -1341,6 +1341,7 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
     const rotationSeed = getCurrentRotationSeed() + store.id.charCodeAt(0);
     const randomProducts = getRandomProducts(nonFeaturedProducts, 3, rotationSeed);
     
+    
     // Combinar: 2 destaque + 3 regulares = 5 produtos total
     return [...featuredProducts, ...randomProducts].slice(0, 5);
   })();
@@ -1400,7 +1401,7 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
                     boxShadow: `0 4px 12px ${store.themeColor || '#E11D48'}30`
                   }}
                 >
-                  💰 Ver {filteredProducts.length > displayProducts.length ? `+${filteredProducts.length - displayProducts.length} ofertas` : 'panfleto'}
+                  💰 Ver {filteredProducts.length > 5 ? `+${filteredProducts.length - 5} ofertas` : 'panfleto'}
                 </button>
               </Link>
             </div>
