@@ -61,7 +61,11 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   useEffect(() => {
     if (isHover || banners.length <= 1) return;
     
-    const runConveyorBelt = async () => {
+    let isActive = true;
+    
+    const runNextSlide = async () => {
+      if (!isActive) return;
+      
       setIsAnimating(true);
       
       // 1. Animar banners para próxima posição (2 segundos)
@@ -90,6 +94,8 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       
       await Promise.all(slidePromises);
       
+      if (!isActive) return;
+      
       // 2. Atualizar índice após movimento
       setCurrentIndex((prev) => (prev + 1) % banners.length);
       
@@ -101,18 +107,20 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       
       setIsAnimating(false);
       
-      // 4. Pausa de 5 segundos no centro antes do próximo movimento
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      // 4. Agendar próximo movimento após 5 segundos (pausa no centro)
+      if (isActive) {
+        setTimeout(runNextSlide, 5000);
+      }
     };
     
-    // Iniciar esteira contínua
-    runConveyorBelt();
+    // Iniciar primeira animação após 5 segundos
+    const initialTimer = setTimeout(runNextSlide, 5000);
     
-    // Repetir a cada 7 segundos (2s movimento + 5s pausa)
-    const conveyorInterval = setInterval(runConveyorBelt, 7000);
-    
-    return () => clearInterval(conveyorInterval);
-  }, [currentIndex, isHover, banners.length]);
+    return () => {
+      isActive = false;
+      clearTimeout(initialTimer);
+    };
+  }, [isHover, banners.length]);
 
   // Função manual para avançar (quando usuário clica)
   const next = async () => {
