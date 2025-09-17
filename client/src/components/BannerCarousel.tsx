@@ -66,7 +66,8 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   };
 
   // Handle transitionend for seamless clone jumps
-  const handleTransitionEnd = () => {
+  const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
+    if (e.propertyName !== 'transform') return;
     if (banners.length <= 1) return;
     
     // Jump from clone to real slide without animation
@@ -74,28 +75,22 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       // At clone of last banner, jump to real last
       setIsTransitioning(true);
       setCurrentIndex(banners.length);
-      if (trackRef.current) {
-        trackRef.current.style.transition = 'none';
-        setTimeout(() => {
-          if (trackRef.current) {
-            trackRef.current.style.transition = '';
-          }
-          setIsTransitioning(false);
-        }, 10);
-      }
+      const track = e.currentTarget;
+      track.style.transition = 'none';
+      setTimeout(() => {
+        track.style.transition = '';
+        setIsTransitioning(false);
+      }, 10);
     } else if (currentIndex === extendedBanners.length - 1) {
       // At clone of first banner, jump to real first
       setIsTransitioning(true);
       setCurrentIndex(1);
-      if (trackRef.current) {
-        trackRef.current.style.transition = 'none';
-        setTimeout(() => {
-          if (trackRef.current) {
-            trackRef.current.style.transition = '';
-          }
-          setIsTransitioning(false);
-        }, 10);
-      }
+      const track = e.currentTarget;
+      track.style.transition = 'none';
+      setTimeout(() => {
+        track.style.transition = '';
+        setIsTransitioning(false);
+      }, 10);
     }
   };
 
