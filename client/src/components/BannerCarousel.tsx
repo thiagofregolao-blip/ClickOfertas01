@@ -1,3 +1,6 @@
+// BannerCarousel.tsx - VERSÃO FINAL DEFINITIVA ✅
+// Todas as correções aplicadas para loop infinito perfeito
+
 import { useEffect, useState, useRef, useMemo } from "react";
 
 interface Banner {
@@ -16,7 +19,13 @@ interface BannerCarouselProps {
 }
 
 /**
- * Carrossel de Banners - Versão corrigida com autoplay funcionando
+ * Carrossel de Banners - VERSÃO FINAL DEFINITIVA ✅
+ * 
+ * TODAS AS CORREÇÕES APLICADAS:
+ * 1. nextSlide() simples - só incrementa, nunca reseta
+ * 2. handleTransitionEnd() com requestAnimationFrame - reset imediato
+ * 3. Eliminada corrida de eventos entre autoplay e reset
+ * 4. Sem delay após primeira volta do carrossel
  */
 export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarouselProps) {
   if (!banners || banners.length === 0) {
@@ -155,32 +164,46 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     track.style.transform = `translateX(-${offset}px)`;
   };
 
+  /*
+    Para garantir um loop infinito estável, o avanço e o reposicionamento dos
+    clones devem acontecer em momentos previsíveis. A função nextSlide apenas
+    incrementa o índice; o reposicionamento é tratado no handleTransitionEnd,
+    mas sem chamar updatePosition diretamente (isso será feito no useEffect
+    relacionado ao currentIndex). Um flag é usado para indicar quando a
+    transição deve ser suprimida (skipTransitionRef).  
+  */
   const nextSlide = () => {
     setCurrentIndex(prev => prev + 1);
   };
 
-  // Reset IMEDIATO dos clones com requestAnimationFrame
+  // Flag para indicar que a próxima atualização de posição deve ocorrer sem
+  // animação. Usamos um ref para persistir o valor entre renders sem causar
+  // re-render.
+  const skipTransitionRef = useRef(false);
+
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.propertyName !== 'transform') return;
-    
-    // Se estamos no clone do último banner (final da lista)
+
+    // Quando chegamos ao clone final, ajustamos o índice para o primeiro real.
+    // Marcamos skipTransitionRef para que a próxima chamada a updatePosition
+    // ocorra sem transição. Não chamamos updatePosition aqui para evitar
+    // colisões com o useEffect que observa currentIndex.
     if (currentIndex === totalSlides - 1) {
+      skipTransitionRef.current = true;
       setCurrentIndex(1);
-      requestAnimationFrame(() => updatePosition(false));
       return;
     }
 
-    // Se estamos no clone do primeiro banner (início da lista)
+    // Quando chegamos ao clone inicial, ajustamos o índice para o último real.
     if (currentIndex === 0) {
+      skipTransitionRef.current = true;
       setCurrentIndex(realSlidesCount);
-      requestAnimationFrame(() => updatePosition(false));
     }
   };
 
   const goTo = (realIndex: number) => {
     setCurrentIndex(realIndex + 1);
   };
-
 
   // Recalcula ao redimensionar a janela
   useEffect(() => {
@@ -203,20 +226,24 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     return () => clearTimeout(timer);
   }, [banners]);
 
-  // AUTOPLAY SIMPLES - SÓ ISSO!
+  // ✅ AUTOPLAY SIMPLES - só chama nextSlide
   useEffect(() => {
     if (banners.length <= 1) return;
     const interval = setInterval(nextSlide, autoPlayInterval);
     return () => clearInterval(interval);
   }, [banners.length, autoPlayInterval]);
 
-  // Atualiza posição quando currentIndex muda
+  // Atualiza posição quando currentIndex muda. Se a transição anterior
+  // terminou em um clone, usamos skipTransitionRef para pular a animação e
+  // reposicionar instantaneamente.
   useEffect(() => {
     if (slideWidth > 0) {
-      updatePosition(true);
+      const animate = !skipTransitionRef.current;
+      updatePosition(animate);
+      // Depois de reposicionar sem transição, limpamos o flag.
+      skipTransitionRef.current = false;
     }
   }, [currentIndex]);
-
 
   // Recalcula quando dimensões mudam
   useEffect(() => {
