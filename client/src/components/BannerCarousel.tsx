@@ -25,11 +25,20 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     return null;
   }
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(1); // Começa no primeiro banner real (depois do clone)
   const [isHover, setIsHover] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(true);
   
-  // Ref para o auto-play interval
+  // Ref para o auto-play interval e container
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+  const sliderRef = useRef<HTMLDivElement | null>(null);
+  
+  // Criar banners estendidos com clones para efeito infinito
+  const extendedBanners = [
+    banners[banners.length - 1], // Clone do último banner no início
+    ...banners, // Banners originais
+    banners[0] // Clone do primeiro banner no final
+  ];
 
   // Analytics - Registrar clique no banner
   const handleBannerClick = async (banner: Banner) => {
@@ -52,7 +61,34 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     }
   };
 
-  // Auto-play baseado no Buscapé - setInterval contínuo
+  // Efeito para gerenciar saltos invisíveis nos clones
+  useEffect(() => {
+    if (!isTransitioning) return;
+    
+    const handleTransitionEnd = () => {
+      setIsTransitioning(false);
+      
+      // Se estamos no clone do final, saltar para o início real
+      if (currentIndex === extendedBanners.length - 1) {
+        setCurrentIndex(1);
+      }
+      // Se estamos no clone do início, saltar para o final real
+      else if (currentIndex === 0) {
+        setCurrentIndex(banners.length);
+      }
+    };
+
+    if (sliderRef.current) {
+      const slider = sliderRef.current;
+      slider.addEventListener('transitionend', handleTransitionEnd);
+      
+      return () => {
+        slider.removeEventListener('transitionend', handleTransitionEnd);
+      };
+    }
+  }, [currentIndex, isTransitioning, extendedBanners.length, banners.length]);
+
+  // Auto-play para carrossel infinito
   useEffect(() => {
     if (banners.length <= 1) return;
     
@@ -60,7 +96,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       if (autoPlayRef.current) clearInterval(autoPlayRef.current);
       if (!isHover) {
         autoPlayRef.current = setInterval(() => {
-          setCurrentIndex((prev) => (prev + 1) % banners.length);
+          next();
         }, autoPlayInterval);
       }
     };
@@ -73,16 +109,24 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   }, [isHover, banners.length, autoPlayInterval]);
 
   const next = () => {
-    setCurrentIndex((prev) => (prev + 1) % banners.length);
+    if (!isTransitioning) {
+      setIsTransitioning(true);
+      setCurrentIndex(prev => prev + 1);
+    }
   };
 
   const prev = () => {
-    setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
+    if (!isTransitioning) {
+      setIsTransitioning(true);
+      setCurrentIndex(prev => prev - 1);
+    }
   };
 
   const goTo = (index: number) => {
-    if (index === currentIndex) return;
-    setCurrentIndex(index);
+    const realIndex = index + 1; // Ajustar para posição real (com clone)
+    if (realIndex === currentIndex || !isTransitioning) return;
+    setIsTransitioning(true);
+    setCurrentIndex(realIndex);
   };
 
   // Índices dos banners
@@ -101,19 +145,20 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       <div className="xl:hidden relative w-full" style={{ height: "clamp(80px, 15vw, 220px)" }}>
         <div className="relative h-full max-w-4xl mx-auto">
           <div className="relative h-full w-full overflow-hidden px-8">
-            {/* Container Buscapé - slides com peek lateral */}
+            {/* Container Buscapé - slides com peek lateral infinitos */}
             <div
-              className="flex h-full transition-transform duration-500 ease-in-out"
+              ref={sliderRef}
+              className={`flex h-full duration-500 ease-in-out ${isTransitioning ? 'transition-transform' : ''}`}
               style={{ 
-                width: `${banners.length * 80}%`,
-                transform: `translateX(-${currentIndex * (80 / banners.length)}%) translateX(10%)`
+                width: `${extendedBanners.length * 80}%`,
+                transform: `translateX(-${currentIndex * (80 / extendedBanners.length)}%) translateX(10%)`
               }}
             >
-              {banners.map((banner, index) => (
+              {extendedBanners.map((banner, index) => (
                 <div 
-                  key={banner.id}
+                  key={`mobile-${banner.id}-${index}`}
                   className="h-full px-2 cursor-pointer group flex-shrink-0"
-                  style={{ width: `${80 / banners.length}%` }}
+                  style={{ width: `${80 / extendedBanners.length}%` }}
                   onClick={() => handleBannerClick(banner)}
                   data-testid={`banner-mobile-${banner.id}`}
                 >
@@ -173,17 +218,17 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
         {/* Container com peek lateral */}
         <div className="relative h-full overflow-hidden px-16">
           <div
-            className="flex h-full transition-transform duration-500 ease-in-out"
+            className={`flex h-full duration-500 ease-in-out ${isTransitioning ? 'transition-transform' : ''}`}
             style={{ 
-              width: `${banners.length * 85}%`,
-              transform: `translateX(-${currentIndex * (85 / banners.length)}%) translateX(7.5%)`
+              width: `${extendedBanners.length * 85}%`,
+              transform: `translateX(-${currentIndex * (85 / extendedBanners.length)}%) translateX(7.5%)`
             }}
           >
-            {banners.map((banner, index) => (
+            {extendedBanners.map((banner, index) => (
               <div 
-                key={banner.id}
+                key={`desktop-${banner.id}-${index}`}
                 className="h-full relative cursor-pointer group flex-shrink-0"
-                style={{ width: `${85 / banners.length}%` }}
+                style={{ width: `${85 / extendedBanners.length}%` }}
                 onClick={() => handleBannerClick(banner)}
                 data-testid={`banner-desktop-${banner.id}`}
               >
@@ -238,19 +283,25 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       {/* Indicadores */}
       {banners.length > 1 && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              aria-label={`Ir para banner ${index + 1}`}
-              onClick={() => goTo(index)}
-              className={`h-2.5 w-2.5 rounded-full transition-all duration-200 ${
-                currentIndex === index 
-                  ? "scale-125 bg-white" 
-                  : "bg-white/50 hover:bg-white/70"
-              }`}
-              data-testid={`banner-indicator-${index}`}
-            />
-          ))}
+          {banners.map((_, index) => {
+            // Calcular índice real do banner (sem contar clones)
+            const realCurrentIndex = currentIndex === 0 ? banners.length - 1 : 
+                                   currentIndex === extendedBanners.length - 1 ? 0 : 
+                                   currentIndex - 1;
+            return (
+              <button
+                key={index}
+                aria-label={`Ir para banner ${index + 1}`}
+                onClick={() => goTo(index)}
+                className={`h-2.5 w-2.5 rounded-full transition-all duration-200 ${
+                  realCurrentIndex === index 
+                    ? "scale-125 bg-white" 
+                    : "bg-white/50 hover:bg-white/70"
+                }`}
+                data-testid={`banner-indicator-${index}`}
+              />
+            );
+          })}
         </div>
       )}
     </div>
