@@ -1329,22 +1329,21 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
     return shuffled.slice(0, count);
   };
   
-  // Criar displayProducts - 2 produtos em destaque + até 3 aleatórios (com fallback)
+  // Criar displayProducts - EXATAMENTE 2 destacados + 3 aleatórios
   const displayProducts = (() => {
-    // 2 produtos em destaque (se existirem)
+    // Pegar EXATAMENTE 2 produtos em destaque (não mais)
     const featuredProducts = filteredProducts.filter(p => p.isFeatured).slice(0, 2);
 
-    // pool para aleatórios: tudo que sobrou (inclui destaque se necessário)
-    const pool = filteredProducts.filter(p => !featuredProducts.some(f => f.id === p.id));
+    // Pool para os 3 aleatórios: todos os produtos EXCETO os 2 destacados já escolhidos
+    const poolForRandom = filteredProducts.filter(p => !featuredProducts.some(f => f.id === p.id));
 
     // rotação determinística (1 min) + "sal" por loja
     const rotationSeed = getCurrentRotationSeed() + String(store.id).charCodeAt(0);
 
-    // quantos ainda faltam para chegar em 5
-    const missing = Math.max(0, 5 - featuredProducts.length);
+    // Pegar EXATAMENTE 3 produtos aleatórios do pool restante
+    const randomProducts = getRandomProducts(poolForRandom, 3, rotationSeed);
 
-    const randomProducts = getRandomProducts(pool, missing, rotationSeed);
-
+    // Retornar: 2 destacados + 3 aleatórios = 5 produtos
     return [...featuredProducts, ...randomProducts].slice(0, 5);
   })();
 
