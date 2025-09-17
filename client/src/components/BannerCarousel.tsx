@@ -29,7 +29,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
-  const autoplayRef = useRef<NodeJS.Timeout | null>(null);
 
   // Construção dos slides com clones
   const extendedBanners = useMemo(() => {
@@ -48,7 +47,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   // Separar dimensões para evitar loops infinitos
   const [slideWidth, setSlideWidth] = useState(0);
   const [slideMargin, setSlideMargin] = useState(0);
-  const [isHover, setIsHover] = useState(false);
 
   // Analytics - Registrar clique no banner
   const handleBannerClick = async (banner: Banner) => {
@@ -161,20 +159,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     setCurrentIndex(prev => prev + 1);
   };
 
-  const startAutoPlay = () => {
-    if (autoplayRef.current) clearInterval(autoplayRef.current);
-    if (banners.length > 1 && !isHover) {
-      autoplayRef.current = setInterval(nextSlide, autoPlayInterval);
-    }
-  };
-
-  const stopAutoPlay = () => {
-    if (autoplayRef.current) {
-      clearInterval(autoplayRef.current);
-      autoplayRef.current = null;
-    }
-  };
-
   // Ajusta índices quando chegamos aos clones - EXATAMENTE como no HTML original
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.propertyName !== 'transform') return;
@@ -192,16 +176,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     setCurrentIndex(realIndex + 1);
   };
 
-  // Handle mouse events
-  const handleMouseEnter = () => {
-    setIsHover(true);
-    stopAutoPlay();
-  };
-
-  const handleMouseLeave = () => {
-    setIsHover(false);
-    startAutoPlay();
-  };
 
   // Recalcula ao redimensionar a janela
   useEffect(() => {
@@ -214,31 +188,22 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     return () => window.removeEventListener('resize', handleResize);
   }, []); // SEM dependências desnecessárias
 
-  // Inicializa após carregar - CORRIGIDO
+  // Inicializa após carregar
   useEffect(() => {
     const timer = setTimeout(() => {
       calculateDimensions();
       updatePosition(false);
-      startAutoPlay(); // Inicia autoplay
     }, 100);
 
-    return () => {
-      clearTimeout(timer);
-      // NÃO para o autoplay aqui - apenas o timer
-    };
+    return () => clearTimeout(timer);
   }, [banners]);
 
-  // Gerencia autoplay baseado no hover - CORRIGIDO
+  // AUTOPLAY SIMPLES - SÓ ISSO!
   useEffect(() => {
-    if (isHover) {
-      stopAutoPlay();
-    } else if (banners.length > 1) {
-      startAutoPlay();
-    }
-    
-    // Cleanup quando o componente desmonta
-    return () => stopAutoPlay();
-  }, [isHover, banners.length]);
+    if (banners.length <= 1) return;
+    const interval = setInterval(() => setCurrentIndex(i => i + 1), autoPlayInterval);
+    return () => clearInterval(interval);
+  }, [banners.length, autoPlayInterval]);
 
   // Atualiza posição quando currentIndex muda
   useEffect(() => {
@@ -260,8 +225,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     <div
       ref={carouselRef}
       className="relative w-full overflow-hidden box-border"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       data-testid="banner-carousel"
       style={{
         paddingLeft: '10%',
