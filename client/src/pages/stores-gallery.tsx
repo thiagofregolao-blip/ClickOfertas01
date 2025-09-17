@@ -1329,20 +1329,22 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
     return shuffled.slice(0, count);
   };
   
-  // Criar displayProducts - 2 produtos em destaque + 3 produtos aleatórios
+  // Criar displayProducts - 2 produtos em destaque + até 3 aleatórios (com fallback)
   const displayProducts = (() => {
-    // Pegar exatamente 2 produtos em destaque
+    // 2 produtos em destaque (se existirem)
     const featuredProducts = filteredProducts.filter(p => p.isFeatured).slice(0, 2);
-    
-    // Pegar produtos regulares (não em destaque) 
-    const nonFeaturedProducts = filteredProducts.filter(p => !p.isFeatured);
-    
-    // 3 produtos aleatórios do restante (com rotação a cada 1 minuto)
-    const rotationSeed = getCurrentRotationSeed() + store.id.charCodeAt(0);
-    const randomProducts = getRandomProducts(nonFeaturedProducts, 3, rotationSeed);
-    
-    
-    // Combinar: 2 destaque + 3 regulares = 5 produtos total
+
+    // pool para aleatórios: tudo que sobrou (inclui destaque se necessário)
+    const pool = filteredProducts.filter(p => !featuredProducts.some(f => f.id === p.id));
+
+    // rotação determinística (1 min) + "sal" por loja
+    const rotationSeed = getCurrentRotationSeed() + String(store.id).charCodeAt(0);
+
+    // quantos ainda faltam para chegar em 5
+    const missing = Math.max(0, 5 - featuredProducts.length);
+
+    const randomProducts = getRandomProducts(pool, missing, rotationSeed);
+
     return [...featuredProducts, ...randomProducts].slice(0, 5);
   })();
 

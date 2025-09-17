@@ -1,0 +1,61 @@
+Achei o porquê: o pool para os “3 aleatórios” está ficando vazio.
+O backend limita store.products a 15 itens e, para o Shopping China, os 15 que chegam podem ser todos isFeatured = true. Com isso:
+
+featuredProducts = 2
+
+nonFeaturedProducts = 0
+
+randomProducts = 0
+
+displayProducts = 2, e os outros 3 slots viram “+” (como na sua captura).
+
+Isso bate com o que está no arquivo: vocês pegam 2 em destaque e depois tentam sortear 3 apenas entre os não-destaque; se não houver nenhum, não há fallback. 
+
+codigo_exibicao_produtos
+
+ 
+
+codigo_exibicao_produtos
+
+Correção rápida (fallback quando faltar “não-destaque”)
+
+Troque a montagem do pool para sortear dentre todos os produtos, exceto os 2 já escolhidos, garantindo sempre 5 cartões:
+
+const displayProducts = (() => {
+  // 2 produtos em destaque (se existirem)
+  const featuredProducts = filteredProducts.filter(p => p.isFeatured).slice(0, 2);
+
+  // pool para aleatórios: tudo que sobrou (inclui destaque se necessário)
+  const pool = filteredProducts.filter(p => !featuredProducts.some(f => f.id === p.id));
+
+  // rotação determinística (1 min) + “sal” por loja
+  const rotationSeed = getCurrentRotationSeed() + String(store.id).charCodeAt(0);
+
+  // quantos ainda faltam para chegar em 5
+  const missing = Math.max(0, 5 - featuredProducts.length);
+
+  const randomProducts = getRandomProducts(pool, missing, rotationSeed);
+
+  return [...featuredProducts, ...randomProducts].slice(0, 5);
+})();
+
+
+Por que funciona?
+
+Se houver “não-destaque”, eles entram primeiro naturalmente (o shuffle não privilegia destaque).
+
+Se não houver, o pool usa os demais destaques (sem repetir os 2 selecionados) para completar 5.
+
+Continua respeitando a rotação com seed. (Também protegi store.id com String(...) para evitar edge cases.) 
+
+codigo_exibicao_produtos
+
+Alternativas (se preferir manter “3 aleatórios” só de não-destaque)
+
+Garanta diversidade no backend: quando limitar a 15 itens, traga pelo menos 3 não-destaque.
+
+Duplo fetch: aumentar o limite por loja ou fazer uma segunda busca só de não-destaque.
+
+Fallback parcial: tentar 3 não-destaque; se vier <3, completar com destaque (código acima já cobre isso).
+
+Com a mudança acima, a grade de 5 cartões deixa de mostrar os “+” vazios e você entrega sempre 2 destaque + 3 aleatórios (ou os melhores disponíveis). O botão “Ver +N ofertas” continua correto, pois é baseado no total filtrado.
