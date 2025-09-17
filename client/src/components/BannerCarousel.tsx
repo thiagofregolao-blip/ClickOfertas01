@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useState, useRef, useMemo } from "react";
 
 interface Banner {
   id: string;
@@ -15,14 +15,39 @@ interface BannerCarouselProps {
   autoPlayInterval?: number;
 }
 
-export function BannerCarousel({ banners }: BannerCarouselProps) {
+/**
+ * Carrossel de Banners - Versão corrigida baseada no HTML original
+ */
+export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarouselProps) {
   if (!banners || banners.length === 0) {
     return null;
   }
 
-  // Ajuste o banner e o espaço visível
-  const visibleRatio = 0.96;  // o slide (com margens) ocupa 96% do espaço útil
-  const gapRatio     = 0.02;  // 2% do espaço útil reservado às margens (1% de cada lado)
+  // Proporções exatas do HTML original
+  const visibleRatio = 0.9;
+  const gapRatio = 0.04;
+
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const autoplayRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Construção dos slides com clones
+  const extendedBanners = useMemo(() => {
+    if (banners.length <= 1) return banners;
+    return [
+      { ...banners[banners.length - 1], id: `clone-last-${banners[banners.length - 1].id}` }, // clone do último
+      ...banners, // slides reais
+      { ...banners[0], id: `clone-first-${banners[0].id}` } // clone do primeiro
+    ];
+  }, [banners]);
+
+  const totalSlides = extendedBanners.length;
+  const realSlidesCount = banners.length;
+  const [currentIndex, setCurrentIndex] = useState(banners.length > 1 ? 1 : 0); // começa no primeiro real
+
+  // Separar dimensões para evitar loops infinitos
+  const [slideWidth, setSlideWidth] = useState(0);
+  const [slideMargin, setSlideMargin] = useState(0);
 
   // Analytics - Registrar clique no banner
   const handleBannerClick = async (banner: Banner) => {
@@ -44,25 +69,6 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
       window.open(banner.linkUrl, '_blank');
     }
   };
-
-  // Cria slides com clones (último no início e primeiro no final)
-  const slides = [
-    { ...banners[banners.length - 1], clone: true, id: `clone-last-${banners[banners.length - 1].id}` },
-    ...banners.map((b) => ({ ...b, clone: false })),
-    { ...banners[0], clone: true, id: `clone-first-${banners[0].id}` },
-  ];
-
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [currentIndex, setCurrentIndex] = useState(1);
-  const [dims, setDims] = useState({
-    slideWidth: 0,
-    slideMargin: 0,
-    slideTotal: 0,
-    leftover: 0,
-  });
-
-  const autoplayRef = useRef<NodeJS.Timeout | null>(null);
 
   // Registrar visualização quando banner for exibido
   useEffect(() => {
@@ -86,56 +92,81 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
     }
   }, [currentIndex, banners]);
 
-  // Calcula tamanhos e aplica margens/larguras
+  // Calcula dimensões e aplica a largura/margens via JS - EXATAMENTE como no HTML original
   const calculateDimensions = () => {
+    if (!carouselRef.current) return;
+
     const carousel = carouselRef.current;
-    if (!carousel) return;
+    const carouselStyles = getComputedStyle(carousel);
+    const paddingLeft = parseFloat(carouselStyles.paddingLeft) || 0;
+    const paddingRight = parseFloat(carouselStyles.paddingRight) || 0;
+    const carouselWidth = carousel.clientWidth;
+    const availableWidth = carouselWidth - paddingLeft - paddingRight;
 
-    const style = window.getComputedStyle(carousel);
-    const paddingLeft  = parseFloat(style.paddingLeft) || 0;
-    const paddingRight = parseFloat(style.paddingRight) || 0;
-    const availableWidth = carousel.clientWidth - paddingLeft - paddingRight;
+    // Metade do gap para cada lado
+    const marginHalf = availableWidth * (gapRatio / 2);
+    const newSlideMargin = marginHalf * 2;
 
-    const marginHalf  = availableWidth * (gapRatio / 2);
-    const slideMargin = marginHalf * 2;
-    const slideTotal  = availableWidth * visibleRatio;
-    const slideWidth  = slideTotal - slideMargin;
-    const leftover    = availableWidth - slideTotal;
+    // Largura total de cada slide (incluindo margens) = visibleRatio * availableWidth
+    const slideTotal = availableWidth * visibleRatio;
 
-    // Salva e aplica margens/larguras
-    setDims({ slideWidth, slideMargin, slideTotal, leftover });
+    // Conteúdo interno do slide
+    const newSlideWidth = slideTotal - newSlideMargin;
 
+    setSlideWidth(newSlideWidth);
+    setSlideMargin(newSlideMargin);
+
+    // Aplica estilos diretamente no DOM
     if (trackRef.current) {
-      Array.from(trackRef.current.children).forEach((child: HTMLElement) => {
-        child.style.width = `${slideWidth}px`;
-        child.style.marginLeft  = `${marginHalf}px`;
-        child.style.marginRight = `${marginHalf}px`;
+      const slides = trackRef.current.children;
+      Array.from(slides).forEach((slide) => {
+        const htmlSlide = slide as HTMLElement;
+        htmlSlide.style.width = `${newSlideWidth}px`;
+        htmlSlide.style.marginLeft = `${marginHalf}px`;
+        htmlSlide.style.marginRight = `${marginHalf}px`;
       });
     }
   };
 
-  // Atualiza a posição do carrossel com ou sem transição
-  const updatePosition = (withTransition = true) => {
-    const { slideTotal, leftover } = dims;
-    if (!trackRef.current || !slideTotal) return;
+  // Posiciona o track de forma que o slide atual fique centralizado - EXATAMENTE como no HTML original
+  const updatePosition = (withTransition: boolean) => {
+    if (!trackRef.current || !carouselRef.current || !slideWidth) return;
 
-    trackRef.current.style.transition = withTransition
+    const track = trackRef.current;
+    const carousel = carouselRef.current;
+
+    track.style.transition = withTransition
       ? `transform 0.8s ease-in-out`
       : 'none';
 
-    const offset = currentIndex * slideTotal - leftover / 2;
-    trackRef.current.style.transform = `translateX(-${offset}px)`;
+    const slideTotal = slideWidth + slideMargin;
+
+    // Largura disponível (mesma do cálculo acima)
+    const carouselStyles = getComputedStyle(carousel);
+    const paddingLeft = parseFloat(carouselStyles.paddingLeft) || 0;
+    const paddingRight = parseFloat(carouselStyles.paddingRight) || 0;
+    const availableWidth = carousel.clientWidth - paddingLeft - paddingRight;
+
+    // Espaço restante (sobras) a ser dividido igualmente entre as laterais
+    const leftover = availableWidth - slideTotal;
+
+    // O deslocamento que centraliza o slide e mostra a mesma parte dos vizinhos
+    const offset = (currentIndex * slideTotal) - (leftover / 2);
+
+    track.style.transform = `translateX(-${offset}px)`;
   };
 
-  // Avança slides no autoplay
-  const nextSlide = () => setCurrentIndex((i) => i + 1);
+  const nextSlide = () => {
+    setCurrentIndex(prev => prev + 1);
+  };
 
-  // Inicia e pausa o autoplay
   const startAutoPlay = () => {
-    stopAutoPlay();
     if (autoplayRef.current) clearInterval(autoplayRef.current);
-    autoplayRef.current = setInterval(nextSlide, 4000);
+    if (banners.length > 1) {
+      autoplayRef.current = setInterval(nextSlide, autoPlayInterval);
+    }
   };
+
   const stopAutoPlay = () => {
     if (autoplayRef.current) {
       clearInterval(autoplayRef.current);
@@ -143,145 +174,154 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
     }
   };
 
-  // Lida com o término da transição para pular para o slide real quando cai em um clone
-  const handleTransitionEnd = (e: React.TransitionEvent) => {
+  // Ajusta índices quando chegamos aos clones - EXATAMENTE como no HTML original
+  const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.propertyName !== 'transform') return;
-    // Se estamos no clone final, volta ao primeiro real
-    if (slides[currentIndex].clone && currentIndex === slides.length - 1) {
+    if (extendedBanners[currentIndex]?.id.includes('clone') && currentIndex === totalSlides - 1) {
       setCurrentIndex(1);
-      requestAnimationFrame(() => updatePosition(false));
+      setTimeout(() => updatePosition(false), 0);
     }
-    // Se estamos no clone inicial, volta ao último real
-    if (slides[currentIndex].clone && currentIndex === 0) {
-      setCurrentIndex(banners.length);
-      requestAnimationFrame(() => updatePosition(false));
+    if (extendedBanners[currentIndex]?.id.includes('clone') && currentIndex === 0) {
+      setCurrentIndex(realSlidesCount);
+      setTimeout(() => updatePosition(false), 0);
     }
   };
 
-  // Efeito para calcular dimensões no carregamento e em resize
-  useEffect(() => {
-    calculateDimensions();
-    window.addEventListener('resize', calculateDimensions);
-    return () => window.removeEventListener('resize', calculateDimensions);
-  }, []);
+  const goTo = (realIndex: number) => {
+    setCurrentIndex(realIndex + 1);
+  };
 
-  // Atualiza a posição quando índice ou dimensões mudam
+  // Recalcula ao redimensionar a janela
   useEffect(() => {
-    updatePosition();
-  }, [currentIndex, dims]);
-
-  // Configura o autoplay e o listener de transição
-  useEffect(() => {
-    const track = trackRef.current;
-    if (track) {
-      track.addEventListener('transitionend', handleTransitionEnd as any);
-    }
-    startAutoPlay();
-    return () => {
-      stopAutoPlay();
-      if (track) {
-        track.removeEventListener('transitionend', handleTransitionEnd as any);
-      }
+    const handleResize = () => {
+      calculateDimensions();
+      setTimeout(() => updatePosition(false), 0);
     };
-  }, [slides.length]);
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [slideWidth, slideMargin, currentIndex]);
+
+  // Inicializa após carregar - EXATAMENTE como no HTML original
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      calculateDimensions();
+      updatePosition(false);
+      startAutoPlay();
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      stopAutoPlay();
+    };
+  }, [banners]);
+
+  // Atualiza posição quando currentIndex muda
+  useEffect(() => {
+    if (slideWidth > 0) {
+      updatePosition(true);
+    }
+  }, [currentIndex]);
+
+  // Recalcula quando dimensões mudam
+  useEffect(() => {
+    if (slideWidth > 0) {
+      updatePosition(false);
+    }
+  }, [slideWidth, slideMargin]);
+
+  const currentRealIndex = currentIndex - 1;
 
   return (
     <div
-      className="carousel"
       ref={carouselRef}
+      className="relative w-full overflow-hidden box-border"
       onMouseEnter={stopAutoPlay}
       onMouseLeave={startAutoPlay}
       data-testid="banner-carousel"
+      style={{
+        paddingLeft: '10%',
+        paddingRight: '10%',
+        height: "clamp(100px, 16vw, 260px)"
+      }}
     >
-      {/* CSS incorporado: ajuste stage padding conforme necessário */}
-      <style>{`
-        :root {
-          --stage-padding-desktop: 5%;
-          --stage-padding-mobile: 2%;
-        }
-        .carousel {
-          position: relative;
-          width: 100%;
-          overflow: hidden;
-          padding-left: var(--stage-padding-desktop);
-          padding-right: var(--stage-padding-desktop);
-          box-sizing: border-box;
-          height: clamp(100px, 16vw, 260px);
-        }
-        @media (max-width: 768px) {
-          .carousel {
-            padding-left: var(--stage-padding-mobile);
-            padding-right: var(--stage-padding-mobile);
-          }
-        }
-        .carousel-track {
-          display: flex;
-          will-change: transform;
-          height: 100%;
-        }
-        .carousel-item {
-          height: 100%;
-          cursor: pointer;
-          position: relative;
-        }
-        .carousel-item img {
-          width: 100%;
-          height: 100%;
-          display: block;
-          border-radius: 8px;
-          object-fit: cover;
-        }
-        .dots {
-          display: flex;
-          justify-content: center;
-          margin-top: 10px;
-          gap: 6px;
-          position: absolute;
-          bottom: 10px;
-          left: 50%;
-          transform: translateX(-50%);
-          z-index: 10;
-        }
-        .dot {
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.5);
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        .dot.active {
-          background: white;
-          transform: scale(1.25);
-        }
-        .dot:hover {
-          background: rgba(255, 255, 255, 0.7);
-        }
-      `}</style>
-
-      <div className="carousel-track" ref={trackRef} onTransitionEnd={handleTransitionEnd}>
-        {slides.map((slide, idx) => (
+      <div 
+        ref={trackRef}
+        className="flex"
+        style={{ willChange: 'transform', height: '100%' }}
+        onTransitionEnd={handleTransitionEnd}
+      >
+        {extendedBanners.map((banner, index) => (
           <div 
-            className="carousel-item" 
-            key={slide.id}
-            onClick={() => handleBannerClick(slide)}
-            data-testid={`banner-${slide.id}`}
+            key={banner.id}
+            className="box-border cursor-pointer group h-full"
+            style={{ 
+              flex: '0 0 auto'
+            }}
+            onClick={() => handleBannerClick(banner)}
+            data-testid={`banner-${banner.id}`}
           >
-            <img src={slide.imageUrl} alt={slide.title} />
+            <div className="relative h-full w-full rounded-xl overflow-hidden">
+              <img
+                src={banner.imageUrl}
+                alt={banner.title || "banner"}
+                className="w-full h-full object-cover block"
+                loading="lazy"
+                decoding="async"
+                draggable="false"
+                style={{ borderRadius: '8px' }}
+              />
+              
+              {/* Controles apenas no slide ativo real */}
+              {index === currentIndex && index > 0 && index < extendedBanners.length - 1 && (
+                <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentIndex(prev => prev - 1);
+                    }}
+                    aria-label="Banner anterior"
+                    className="rounded-full bg-black/50 hover:bg-black/70 text-white w-10 h-10 flex items-center justify-center transition-colors"
+                    data-testid="banner-prev-btn"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentIndex(prev => prev + 1);
+                    }}
+                    aria-label="Próximo banner"
+                    className="rounded-full bg-black/50 hover:bg-black/70 text-white w-10 h-10 flex items-center justify-center transition-colors"
+                    data-testid="banner-next-btn"
+                  >
+                    →
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="dots">
-        {banners.map((_, idx) => (
-          <span
-            key={idx}
-            className={currentIndex - 1 === idx ? 'dot active' : 'dot'}
-            onClick={() => setCurrentIndex(idx + 1)}
-            data-testid={`banner-indicator-${idx}`}
-          />
-        ))}
-      </div>
+      {/* Indicadores - pontos de navegação apenas para banners reais */}
+      {banners.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
+          {banners.map((_, realIndex) => (
+            <button
+              key={realIndex}
+              aria-label={`Ir para banner ${realIndex + 1}`}
+              onClick={() => goTo(realIndex)}
+              className={`h-2.5 w-2.5 rounded-full transition-all duration-200 ${
+                currentRealIndex === realIndex 
+                  ? "scale-125 bg-white" 
+                  : "bg-white/50 hover:bg-white/70"
+              }`}
+              data-testid={`banner-indicator-${realIndex}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
