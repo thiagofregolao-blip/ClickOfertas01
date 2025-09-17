@@ -156,13 +156,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   };
 
   const nextSlide = () => {
-    setCurrentIndex(prev => {
-      if (prev + 1 >= totalSlides) {
-        // se atingir o clone final, volta para o primeiro real
-        return 1;
-      }
-      return prev + 1;
-    });
+    setCurrentIndex(prev => prev + 1);
   };
 
   // Ajusta índices quando chegamos aos clones - EXATAMENTE como no HTML original

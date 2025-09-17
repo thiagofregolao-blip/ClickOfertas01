@@ -1,0 +1,47 @@
+Examinando a versão corrigida que você enviou, reparei que ainda há um mecanismo concorrente de reset entre o nextSlide e o onTransitionEnd. Embora você tenha removido o useEffect duplicado, o nextSlide ainda tenta “pular” para o índice 1 quando chega ao último clone:
+
+const nextSlide = () => {
+  setCurrentIndex(prev => {
+    if (prev + 1 >= totalSlides) {
+      // se atingir o clone final, volta para o primeiro real
+      return 1;
+    }
+    return prev + 1;
+  });
+};
+
+
+Esse trecho faz com que o índice seja alterado duas vezes em sequência: primeiro pelo nextSlide, depois pelo onTransitionEnd – e, dependendo do momento em que o setInterval dispara, pode acontecer de a transição acabar antes que o próximo ciclo do autoplay seja iniciado, causando o “pulo” que você descreveu (o último banner escorrega de volta da esquerda para a direita).
+
+Para eliminar a corrida de eventos, o reset para o banner real deve acontecer só em um lugar, como no HTML puro. A solução é simplificar o nextSlide para apenas avançar o índice e deixar o onTransitionEnd cuidar do reposicionamento quando o carrossel chegar aos clones. Assim:
+
+// Avança sempre um slide; quem cuida do reset é o onTransitionEnd
+const nextSlide = () => {
+  setCurrentIndex(prev => prev + 1);
+};
+
+
+E no onTransitionEnd você já tem a lógica que detecta o clone inicial/final e ajusta o índice:
+
+const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
+  if (e.propertyName !== 'transform') return;
+  if (extendedBanners[currentIndex]?.id.includes('clone') && currentIndex === totalSlides - 1) {
+    setCurrentIndex(1);
+    setTimeout(() => updatePosition(false), 0);
+  }
+  if (extendedBanners[currentIndex]?.id.includes('clone') && currentIndex === 0) {
+    setCurrentIndex(realSlidesCount);
+    setTimeout(() => updatePosition(false), 0);
+  }
+};
+
+
+Com isso, o setInterval nunca concorre com o reposicionamento: ele apenas incrementa o índice, e a transição termina antes de o próximo incremento ocorrer. O carrossel avança para o clone na última posição, o onTransitionEnd o reposiciona silenciosamente para o primeiro banner real, e o autoplay segue a partir daí – sem “voltar” o último banner de forma errada.
+
+Além disso, para ajustar a quantidade de banner visível nas laterais, você continua podendo alterar:
+
+Linha 29–30: const visibleRatio = 0.9; const gapRatio = 0.04; – reduza visibleRatio (por exemplo, para 0.85) e/ou aumente gapRatio para que as margens ocupem uma fração maior do espaço útil.
+
+Linhas 255–256: paddingLeft: '10%', paddingRight: '10%' – aumente esses valores (para 15 % ou 20 %) se quiser ver trechos maiores dos banners de entrada/saída.
+
+Se você aplicar a simplificação no nextSlide e ajustar apenas um ponto de reset (no onTransitionEnd), o loop infinito volta a funcionar de forma suave, e os ajustes mencionados acima controlam a área visível dos banners adjacentes.
