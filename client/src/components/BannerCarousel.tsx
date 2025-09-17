@@ -205,30 +205,35 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     return () => clearInterval(interval);
   }, [banners.length, autoPlayInterval]);
 
-  // Atualiza posição quando currentIndex muda e verifica clones
+  // Atualiza posição quando currentIndex muda
   useEffect(() => {
     if (slideWidth > 0) {
       updatePosition(true);
-      
-      // Verifica se chegamos aos clones e faz reset invisível
-      if (banners.length > 1) {
-        // Se chegou no clone do primeiro (última posição)
-        if (currentIndex === totalSlides - 1) {
-          setTimeout(() => {
-            setCurrentIndex(1); // volta pro primeiro real
-            updatePosition(false); // sem transição
-          }, 800); // aguarda a transição terminar
-        }
-        // Se chegou no clone do último (primeira posição)
-        else if (currentIndex === 0) {
-          setTimeout(() => {
-            setCurrentIndex(realSlidesCount); // volta pro último real
-            updatePosition(false); // sem transição
-          }, 800); // aguarda a transição terminar
-        }
-      }
     }
-  }, [currentIndex, slideWidth, totalSlides, realSlidesCount, banners.length]);
+  }, [currentIndex]);
+
+  // SISTEMA DE CLONES - Detecta quando chegamos nos clones e reseta invisível
+  useEffect(() => {
+    if (banners.length <= 1 || slideWidth === 0) return;
+
+    // Clone do primeiro está na última posição (totalSlides - 1)
+    if (currentIndex === totalSlides - 1) {
+      const timer = setTimeout(() => {
+        setCurrentIndex(1); // Volta para o primeiro banner real
+        setTimeout(() => updatePosition(false), 0); // Remove transição
+      }, 800); // Aguarda animação terminar
+      return () => clearTimeout(timer);
+    }
+    
+    // Clone do último está na primeira posição (0)
+    if (currentIndex === 0) {
+      const timer = setTimeout(() => {
+        setCurrentIndex(realSlidesCount); // Volta para o último banner real 
+        setTimeout(() => updatePosition(false), 0); // Remove transição
+      }, 800); // Aguarda animação terminar
+      return () => clearTimeout(timer);
+    }
+  }, [currentIndex, banners.length, slideWidth, totalSlides, realSlidesCount]);
 
   // Recalcula quando dimensões mudam
   useEffect(() => {
