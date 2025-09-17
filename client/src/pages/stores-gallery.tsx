@@ -682,7 +682,7 @@ export default function StoresGallery() {
               </Link>
               
               {/* Barra de Busca */}
-              <div className="flex-1 max-w-lg">
+              <div className="flex-1 max-w-4xl">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
