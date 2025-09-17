@@ -57,112 +57,79 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     }
   };
 
-  // Autoplay
+  // Esteira contínua - movimento automático e constante
   useEffect(() => {
-    if (isHover || isAnimating || banners.length <= 1) return;
+    if (isHover || banners.length <= 1) return;
+    
+    const runConveyorBelt = async () => {
+      setIsAnimating(true);
+      
+      // 1. Animar banners para próxima posição (2 segundos)
+      const slidePromises = [
+        // Mobile: deslizar track
+        mobileControls.start({ 
+          x: '-66.666%', 
+          transition: { duration: 2, ease: 'easeInOut' } 
+        }),
+        // Desktop: banner central sai para esquerda
+        desktopControls.start({ 
+          x: '-100%', 
+          transition: { duration: 2, ease: 'easeInOut' } 
+        }),
+        // Preview esquerdo sai da tela
+        leftPreviewControls.start({ 
+          x: '-100%', 
+          transition: { duration: 2, ease: 'easeInOut' } 
+        }),
+        // Preview direito vem para o centro  
+        rightPreviewControls.start({ 
+          x: '-47%', 
+          transition: { duration: 2, ease: 'easeInOut' } 
+        })
+      ];
+      
+      await Promise.all(slidePromises);
+      
+      // 2. Atualizar índice após movimento
+      setCurrentIndex((prev) => (prev + 1) % banners.length);
+      
+      // 3. Reset instantâneo para próxima iteração
+      mobileControls.set({ x: '-33.333%' });
+      desktopControls.set({ x: '0%' });
+      leftPreviewControls.set({ x: '-47%' });
+      rightPreviewControls.set({ x: '47%' });
+      
+      setIsAnimating(false);
+      
+      // 4. Pausa de 5 segundos no centro antes do próximo movimento
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    };
+    
+    // Iniciar esteira contínua
+    runConveyorBelt();
+    
+    // Repetir a cada 7 segundos (2s movimento + 5s pausa)
+    const conveyorInterval = setInterval(runConveyorBelt, 7000);
+    
+    return () => clearInterval(conveyorInterval);
+  }, [currentIndex, isHover, banners.length]);
 
-    const timer = setTimeout(() => {
-      next();
-    }, autoPlayInterval);
-
-    return () => clearTimeout(timer);
-  }, [currentIndex, isHover, isAnimating, autoPlayInterval, banners.length]);
-
+  // Função manual para avançar (quando usuário clica)
   const next = async () => {
     if (isAnimating) return;
-    setIsAnimating(true);
-    
-    // Mobile: slide track to left, then reset
-    const mobilePromise = mobileControls.start({ 
-      x: '-66.666%', 
-      transition: { duration: 0.5, ease: 'easeOut' } 
-    });
-    
-    // Desktop: slide all elements to left
-    const desktopPromise = desktopControls.start({ 
-      x: '-100%', 
-      transition: { duration: 0.5, ease: 'easeOut' } 
-    });
-    const leftPreviewPromise = leftPreviewControls.start({ 
-      x: '-100%', 
-      transition: { duration: 0.5, ease: 'easeOut' } 
-    });
-    const rightPreviewPromise = rightPreviewControls.start({ 
-      x: '-47%', 
-      transition: { duration: 0.5, ease: 'easeOut' } 
-    });
-    
-    // Wait for animations to complete
-    await Promise.all([mobilePromise, desktopPromise, leftPreviewPromise, rightPreviewPromise]);
-    
-    // Update index after slide completes
     setCurrentIndex((prev) => (prev + 1) % banners.length);
-    
-    // Instantly reset positions (no animation)
-    mobileControls.set({ x: '-33.333%' });
-    desktopControls.set({ x: '0%' });
-    leftPreviewControls.set({ x: '-47%' });
-    rightPreviewControls.set({ x: '47%' });
-    
-    setIsAnimating(false);
   };
 
+  // Função manual para voltar (quando usuário clica)
   const prev = async () => {
     if (isAnimating) return;
-    setIsAnimating(true);
-    
-    // Mobile: slide track to right, then reset
-    const mobilePromise = mobileControls.start({ 
-      x: '0%', 
-      transition: { duration: 0.5, ease: 'easeOut' } 
-    });
-    
-    // Desktop: slide all elements to right
-    const desktopPromise = desktopControls.start({ 
-      x: '100%', 
-      transition: { duration: 0.5, ease: 'easeOut' } 
-    });
-    const leftPreviewPromise = leftPreviewControls.start({ 
-      x: '0%', 
-      transition: { duration: 0.5, ease: 'easeOut' } 
-    });
-    const rightPreviewPromise = rightPreviewControls.start({ 
-      x: '100%', 
-      transition: { duration: 0.5, ease: 'easeOut' } 
-    });
-    
-    // Wait for animations to complete
-    await Promise.all([mobilePromise, desktopPromise, leftPreviewPromise, rightPreviewPromise]);
-    
-    // Update index after slide completes
     setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
-    
-    // Instantly reset positions (no animation)
-    mobileControls.set({ x: '-33.333%' });
-    desktopControls.set({ x: '0%' });
-    leftPreviewControls.set({ x: '-47%' });
-    rightPreviewControls.set({ x: '47%' });
-    
-    setIsAnimating(false);
   };
 
-  const goTo = async (index: number) => {
+  // Função para ir para banner específico (indicadores)
+  const goTo = (index: number) => {
     if (isAnimating || index === currentIndex) return;
-    
-    // For simplicity, use next() or prev() repeatedly to reach target
-    const steps = (index - currentIndex + banners.length) % banners.length;
-    if (steps <= banners.length / 2) {
-      // Go forward
-      for (let i = 0; i < steps; i++) {
-        await next();
-      }
-    } else {
-      // Go backward (shorter path)
-      const backSteps = banners.length - steps;
-      for (let i = 0; i < backSteps; i++) {
-        await prev();
-      }
-    }
+    setCurrentIndex(index);
   };
 
   // Índices dos banners
