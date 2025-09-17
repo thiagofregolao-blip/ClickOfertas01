@@ -66,8 +66,9 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
       const rect = canvas.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
       
-      const width = 80; // Largura retangular (w-20 = 80px)
-      const height = 80; // Altura retangular (h-20 = 80px)
+      // Usar as dimensões reais do elemento pai (w-28 h-28 = 112px)
+      const width = rect.width;
+      const height = rect.height;
       
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
