@@ -655,7 +655,7 @@ export default function StoresGallery() {
       {!isMobile && (
         <div className="sticky top-0 z-50" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
           {/* Desktop: Layout original */}
-          <div className={`py-4 px-2 ml-[15%]`}>
+          <div className={`py-4 px-2 ml-[5%]`}>
             {/* Logo e Barra de Busca - PRIMEIRO */}
             <div className="flex items-center gap-4 mb-6">
               {/* Título */}
