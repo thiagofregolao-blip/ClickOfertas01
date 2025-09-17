@@ -205,12 +205,30 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     return () => clearInterval(interval);
   }, [banners.length, autoPlayInterval]);
 
-  // Atualiza posição quando currentIndex muda
+  // Atualiza posição quando currentIndex muda e verifica clones
   useEffect(() => {
     if (slideWidth > 0) {
       updatePosition(true);
+      
+      // Verifica se chegamos aos clones e faz reset invisível
+      if (banners.length > 1) {
+        // Se chegou no clone do primeiro (última posição)
+        if (currentIndex === totalSlides - 1) {
+          setTimeout(() => {
+            setCurrentIndex(1); // volta pro primeiro real
+            updatePosition(false); // sem transição
+          }, 800); // aguarda a transição terminar
+        }
+        // Se chegou no clone do último (primeira posição)
+        else if (currentIndex === 0) {
+          setTimeout(() => {
+            setCurrentIndex(realSlidesCount); // volta pro último real
+            updatePosition(false); // sem transição
+          }, 800); // aguarda a transição terminar
+        }
+      }
     }
-  }, [currentIndex]);
+  }, [currentIndex, slideWidth, totalSlides, realSlidesCount, banners.length]);
 
   // Recalcula quando dimensões mudam
   useEffect(() => {
