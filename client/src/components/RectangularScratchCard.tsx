@@ -326,8 +326,8 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
   };
 
   return (
-    <div className="flex flex-col items-center gap-1 flex-shrink-0">
-      <div className="relative w-28 h-28 rounded-lg overflow-hidden">
+    <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+      <div className="relative w-24 h-28 rounded-lg overflow-hidden">
         {/* Fundo do resultado */}
         <div className="absolute inset-0 w-full h-full rounded-lg flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500">
           {card.isScratched ? (
