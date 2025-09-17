@@ -30,11 +30,9 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   const [isAnimating, setIsAnimating] = useState(false);
   const [isHover, setIsHover] = useState(false);
   
-  // Animation controls for smooth slide without "vai e volta"
-  const mobileControls = useAnimation();
-  const desktopControls = useAnimation();
-  const leftPreviewControls = useAnimation();
-  const rightPreviewControls = useAnimation();
+  // Container track control - sistema baseado no Buscapé
+  const trackControls = useAnimation();
+  const [translateX, setTranslateX] = useState(0);
 
   // Analytics - Registrar clique no banner
   const handleBannerClick = async (banner: Banner) => {
@@ -57,87 +55,72 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     }
   };
 
-  // Esteira contínua - movimento automático e constante
+  // Esteira contínua - sistema baseado no Buscapé
   useEffect(() => {
     if (isHover || banners.length <= 1) return;
     
-    let isActive = true;
+    let timeoutId: NodeJS.Timeout;
     
-    const runNextSlide = async () => {
-      if (!isActive) return;
-      
+    const runConveyorBelt = () => {
       setIsAnimating(true);
       
-      // 1. Animar banners para próxima posição (2 segundos)
-      const slidePromises = [
-        // Mobile: deslizar track
-        mobileControls.start({ 
-          x: '-66.666%', 
-          transition: { duration: 2, ease: 'easeInOut' } 
-        }),
-        // Desktop: banner central sai para esquerda
-        desktopControls.start({ 
-          x: '-100%', 
-          transition: { duration: 2, ease: 'easeInOut' } 
-        }),
-        // Preview esquerdo sai da tela
-        leftPreviewControls.start({ 
-          x: '-100%', 
-          transition: { duration: 2, ease: 'easeInOut' } 
-        }),
-        // Preview direito vem para o centro  
-        rightPreviewControls.start({ 
-          x: '-47%', 
-          transition: { duration: 2, ease: 'easeInOut' } 
-        })
-      ];
+      // Próximo banner
+      const nextIndex = (currentIndex + 1) % banners.length;
+      const newTranslateX = -nextIndex * 100;
       
-      await Promise.all(slidePromises);
-      
-      if (!isActive) return;
-      
-      // 2. Atualizar índice após movimento
-      setCurrentIndex((prev) => (prev + 1) % banners.length);
-      
-      // 3. Reset instantâneo para próxima iteração
-      mobileControls.set({ x: '-33.333%' });
-      desktopControls.set({ x: '0%' });
-      leftPreviewControls.set({ x: '-47%' });
-      rightPreviewControls.set({ x: '47%' });
-      
-      setIsAnimating(false);
-      
-      // 4. Agendar próximo movimento após 5 segundos (pausa no centro)
-      if (isActive) {
-        setTimeout(runNextSlide, 5000);
-      }
+      // Animar o track (como no Buscapé)
+      trackControls.start({
+        x: `${newTranslateX}%`,
+        transition: { duration: 2, ease: 'easeInOut' }
+      }).then(() => {
+        // Atualizar estado após animação
+        setCurrentIndex(nextIndex);
+        setTranslateX(newTranslateX);
+        setIsAnimating(false);
+        
+        // Agendar próximo movimento (5s pausa + 2s animação = 7s total)
+        timeoutId = setTimeout(runConveyorBelt, 5000);
+      });
     };
     
     // Iniciar primeira animação após 5 segundos
-    const initialTimer = setTimeout(runNextSlide, 5000);
+    timeoutId = setTimeout(runConveyorBelt, 5000);
     
     return () => {
-      isActive = false;
-      clearTimeout(initialTimer);
+      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [isHover, banners.length]);
+  }, [currentIndex, isHover, banners.length, trackControls]);
 
   // Função manual para avançar (quando usuário clica)
-  const next = async () => {
+  const next = () => {
     if (isAnimating) return;
-    setCurrentIndex((prev) => (prev + 1) % banners.length);
+    const newIndex = (currentIndex + 1) % banners.length;
+    setCurrentIndex(newIndex);
+    // Atualizar posição do track
+    const newTranslateX = -newIndex * 100;
+    setTranslateX(newTranslateX);
+    trackControls.start({ x: `${newTranslateX}%`, transition: { duration: 0.5 } });
   };
 
   // Função manual para voltar (quando usuário clica)
-  const prev = async () => {
+  const prev = () => {
     if (isAnimating) return;
-    setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
+    const newIndex = (currentIndex - 1 + banners.length) % banners.length;
+    setCurrentIndex(newIndex);
+    // Atualizar posição do track
+    const newTranslateX = -newIndex * 100;
+    setTranslateX(newTranslateX);
+    trackControls.start({ x: `${newTranslateX}%`, transition: { duration: 0.5 } });
   };
 
   // Função para ir para banner específico (indicadores)
   const goTo = (index: number) => {
     if (isAnimating || index === currentIndex) return;
     setCurrentIndex(index);
+    // Atualizar posição do track
+    const newTranslateX = -index * 100;
+    setTranslateX(newTranslateX);
+    trackControls.start({ x: `${newTranslateX}%`, transition: { duration: 0.5 } });
   };
 
   // Índices dos banners
@@ -160,7 +143,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
             <motion.div
               className="flex h-full"
               style={{ width: '300%' }}
-              animate={mobileControls}
+              animate={trackControls}
               initial={{ x: '-33.333%' }}
             >
               {/* Banner Anterior */}
@@ -265,7 +248,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               style={{ 
                 filter: "brightness(0.7)"
               }}
-              animate={leftPreviewControls}
+              animate={trackControls}
               initial={{ x: '-47%' }}
             >
               <div className="relative h-full w-full rounded-xl overflow-hidden">
@@ -288,7 +271,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               style={{ 
                 filter: "brightness(0.7)"
               }}
-              animate={rightPreviewControls}
+              animate={trackControls}
               initial={{ x: '47%' }}
             >
               <div className="relative h-full w-full rounded-xl overflow-hidden">
@@ -313,7 +296,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
             className="relative h-full w-full rounded-xl overflow-hidden cursor-pointer group z-20"
             onClick={() => handleBannerClick(banners[currentIndex])}
             data-testid={`banner-main-${banners[currentIndex].id}`}
-            animate={desktopControls}
+            animate={trackControls}
             initial={{ x: '0%' }}
           >
             <img
