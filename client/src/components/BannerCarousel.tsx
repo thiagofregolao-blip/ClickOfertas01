@@ -119,10 +119,10 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               style={{ width: '300%' }}
               animate={{
                 x: isAnimating 
-                  ? '-66.666%'  // Todos deslizam para esquerda (próximo banner vem para centro)
+                  ? '-66.666%'  // Slide da direita para esquerda
                   : '-33.333%'   // Posição normal (banner atual no meio)
               }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
             >
               {/* Banner Anterior */}
               <div 
@@ -228,10 +228,10 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               }}
               animate={{
                 x: isAnimating 
-                  ? 'calc(-47% - 100%)' // Desliza para esquerda (sai da tela)
+                  ? '-100%' // Slide para esquerda (sai da tela)
                   : '-47%' // Posição normal
               }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
             >
               <div className="relative h-full w-full rounded-xl overflow-hidden">
                 <img
@@ -255,10 +255,10 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
               }}
               animate={{
                 x: isAnimating 
-                  ? '0%'   // Vem para o centro (sem brilho reduzido)
-                  : '47%'  // Posição normal
+                  ? '-47%'  // Slide da direita para centro
+                  : '47%'  // Posição normal (lado direito)
               }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
             >
               <div className="relative h-full w-full rounded-xl overflow-hidden">
                 <img
@@ -285,10 +285,10 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
             initial={false}
             animate={{
               x: isAnimating 
-                ? '-100%' // Desliza para esquerda (sai da tela)
+                ? '-100%' // Slide para esquerda (sai da tela)
                 : '0%'    // Posição central normal
             }}
-            transition={{ duration: 0.6, ease: "easeInOut" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
           >
             <img
               src={banners[currentIndex].imageUrl}
