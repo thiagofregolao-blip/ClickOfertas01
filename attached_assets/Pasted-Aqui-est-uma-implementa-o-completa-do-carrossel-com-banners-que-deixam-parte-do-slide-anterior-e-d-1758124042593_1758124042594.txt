@@ -1,0 +1,152 @@
+Aqui está uma implementação completa do carrossel com banners que deixam parte do slide anterior e do próximo visível, imitando o efeito usado na página do Buscapé
+buscape.com.br
+. O código utiliza HTML, CSS e JavaScript puro para que funcione em qualquer site:
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrossel Responsivo com Visão Parcial</title>
+<style>
+  :root {
+    --slide-width-desktop: 90%;   /* largura do slide em telas grandes */
+    --slide-margin-desktop: 5%;   /* margens em telas grandes */
+    --slide-width-mobile: 95%;    /* largura do slide em telas menores */
+    --slide-margin-mobile: 2.5%;  /* margens em telas menores */
+    --transition-duration: 0.6s;  /* duração da transição */
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+  }
+
+  .carousel {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  .carousel-track {
+    display: flex;
+    transition: transform var(--transition-duration) ease-in-out;
+  }
+
+  /* Cada slide ocupa 90% da largura com margens de 5%,
+     assim a soma (slide + margens) é 100% e parte dos slides vizinhos fica visível */
+  .carousel-item {
+    flex: 0 0 var(--slide-width-desktop);
+    margin: 0 var(--slide-margin-desktop);
+    box-sizing: border-box;
+  }
+
+  .carousel-item img {
+    width: 100%;
+    display: block;
+    border-radius: 8px;
+  }
+
+  /* Navegação por pontos */
+  .dots {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    gap: 6px;
+  }
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ccc;
+    cursor: pointer;
+  }
+  .dot.active {
+    background: #333;
+  }
+
+  /* Em telas menores, reduzimos as margens para aproveitar melhor o espaço */
+  @media (max-width: 768px) {
+    .carousel-item {
+      flex: 0 0 var(--slide-width-mobile);
+      margin: 0 var(--slide-margin-mobile);
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="carousel" id="carousel">
+  <div class="carousel-track" id="track">
+    <!-- Substitua as URLs abaixo pelos seus banners -->
+    <div class="carousel-item"><img src="https://via.placeholder.com/800x400/FFCC00/000000?text=Banner+1" alt="Banner 1"></div>
+    <div class="carousel-item"><img src="https://via.placeholder.com/800x400/66CCFF/000000?text=Banner+2" alt="Banner 2"></div>
+    <div class="carousel-item"><img src="https://via.placeholder.com/800x400/FF6699/000000?text=Banner+3" alt="Banner 3"></div>
+    <div class="carousel-item"><img src="https://via.placeholder.com/800x400/99CC00/000000?text=Banner+4" alt="Banner 4"></div>
+  </div>
+</div>
+<div class="dots" id="dots"></div>
+
+<script>
+(function() {
+  const track = document.getElementById('track');
+  const slides = document.querySelectorAll('.carousel-item');
+  const dotsContainer = document.getElementById('dots');
+  const totalSlides = slides.length;
+  let currentIndex = 0;
+
+  // Cria os pontos de navegação
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('span');
+    dot.classList.add('dot');
+    if (i === 0) dot.classList.add('active');
+    dot.addEventListener('click', () => {
+      currentIndex = i;
+      updateSlide();
+    });
+    dotsContainer.appendChild(dot);
+  }
+
+  function updateSlide() {
+    // Cada “faixa” de slide com margens ocupa 100%, então deslocamos 100% por índice
+    track.style.transform = `translateX(-${currentIndex * 100}%)`;
+    // Atualiza a aparência dos pontos
+    document.querySelectorAll('.dot').forEach((dot, idx) => {
+      dot.classList.toggle('active', idx === currentIndex);
+    });
+  }
+
+  function nextSlide() {
+    currentIndex = (currentIndex + 1) % totalSlides;
+    updateSlide();
+  }
+
+  // Auto-play a cada 4 segundos
+  const intervalTime = 4000;
+  let autoPlay = setInterval(nextSlide, intervalTime);
+
+  // Pausa o auto-play ao passar o mouse sobre o carrossel
+  const carousel = document.getElementById('carousel');
+  carousel.addEventListener('mouseenter', () => clearInterval(autoPlay));
+  carousel.addEventListener('mouseleave', () => {
+    autoPlay = setInterval(nextSlide, intervalTime);
+  });
+})();
+</script>
+
+</body>
+</html>
+
+
+Cada slide ocupa 90 % da largura do contêiner e tem margens de 5 %, de modo que sempre aparecem 5 % do slide anterior e 5 % do próximo.
+
+O código desloca o contêiner (translateX) em incrementos de 100 % — cada “faixa” de slide (largura + margens) — para mostrar o próximo banner
+buscape.com.br
+.
+
+Um temporizador faz a mudança automática a cada 4 s, e ao chegar ao último banner recomeça desde o primeiro, criando uma transição contínua.
+
+Em telas mais estreitas, as margens são reduzidas para aproveitar melhor o espaço sem perder o efeito de “visão parcial”.

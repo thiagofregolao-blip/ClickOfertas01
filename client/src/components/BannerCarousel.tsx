@@ -25,20 +25,11 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     return null;
   }
 
-  const [currentIndex, setCurrentIndex] = useState(1); // Começa no primeiro banner real (depois do clone)
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isHover, setIsHover] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(true);
   
-  // Ref para o auto-play interval e container
+  // Ref para o auto-play interval
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
-  const sliderRef = useRef<HTMLDivElement | null>(null);
-  
-  // Criar banners estendidos com clones para efeito infinito
-  const extendedBanners = [
-    banners[banners.length - 1], // Clone do último banner no início
-    ...banners, // Banners originais
-    banners[0] // Clone do primeiro banner no final
-  ];
 
   // Analytics - Registrar clique no banner
   const handleBannerClick = async (banner: Banner) => {
@@ -61,34 +52,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     }
   };
 
-  // Efeito para gerenciar saltos invisíveis nos clones
-  useEffect(() => {
-    if (!isTransitioning) return;
-    
-    const handleTransitionEnd = () => {
-      setIsTransitioning(false);
-      
-      // Se estamos no clone do final, saltar para o início real
-      if (currentIndex === extendedBanners.length - 1) {
-        setCurrentIndex(1);
-      }
-      // Se estamos no clone do início, saltar para o final real
-      else if (currentIndex === 0) {
-        setCurrentIndex(banners.length);
-      }
-    };
-
-    if (sliderRef.current) {
-      const slider = sliderRef.current;
-      slider.addEventListener('transitionend', handleTransitionEnd);
-      
-      return () => {
-        slider.removeEventListener('transitionend', handleTransitionEnd);
-      };
-    }
-  }, [currentIndex, isTransitioning, extendedBanners.length, banners.length]);
-
-  // Auto-play para carrossel infinito
+  // Auto-play simples baseado no código anexado
   useEffect(() => {
     if (banners.length <= 1) return;
     
@@ -96,7 +60,7 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       if (autoPlayRef.current) clearInterval(autoPlayRef.current);
       if (!isHover) {
         autoPlayRef.current = setInterval(() => {
-          next();
+          setCurrentIndex((prev) => (prev + 1) % banners.length);
         }, autoPlayInterval);
       }
     };
@@ -109,24 +73,16 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   }, [isHover, banners.length, autoPlayInterval]);
 
   const next = () => {
-    if (!isTransitioning) {
-      setIsTransitioning(true);
-      setCurrentIndex(prev => prev + 1);
-    }
+    setCurrentIndex((prev) => (prev + 1) % banners.length);
   };
 
   const prev = () => {
-    if (!isTransitioning) {
-      setIsTransitioning(true);
-      setCurrentIndex(prev => prev - 1);
-    }
+    setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
   };
 
   const goTo = (index: number) => {
-    const realIndex = index + 1; // Ajustar para posição real (com clone)
-    if (realIndex === currentIndex || !isTransitioning) return;
-    setIsTransitioning(true);
-    setCurrentIndex(realIndex);
+    if (index === currentIndex) return;
+    setCurrentIndex(index);
   };
 
   // Índices dos banners
@@ -141,138 +97,65 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       aria-roledescription="carousel"
       data-testid="banner-carousel"
     >
-      {/* Layout Mobile - Sistema Buscapé com Peek */}
-      <div className="xl:hidden relative w-full" style={{ height: "clamp(80px, 15vw, 220px)" }}>
+      {/* Layout Mobile - Sistema Peek Simples */}
+      <div className="xl:hidden relative w-full overflow-hidden" style={{ height: "clamp(80px, 15vw, 220px)" }}>
         <div className="relative h-full max-w-4xl mx-auto">
-          <div className="relative h-full w-full overflow-hidden px-8">
-            {/* Container Buscapé - slides com peek lateral infinitos */}
-            <div
-              ref={sliderRef}
-              className={`flex h-full duration-500 ease-in-out ${isTransitioning ? 'transition-transform' : ''}`}
-              style={{ 
-                width: `${extendedBanners.length * 80}%`,
-                transform: `translateX(-${currentIndex * (80 / extendedBanners.length)}%) translateX(10%)`
-              }}
-            >
-              {extendedBanners.map((banner, index) => (
-                <div 
-                  key={`mobile-${banner.id}-${index}`}
-                  className="h-full px-2 cursor-pointer group flex-shrink-0"
-                  style={{ width: `${80 / extendedBanners.length}%` }}
-                  onClick={() => handleBannerClick(banner)}
-                  data-testid={`banner-mobile-${banner.id}`}
-                >
-                  <div className="relative h-full w-full rounded-xl overflow-hidden">
-                    <img
-                      src={banner.imageUrl}
-                      alt={banner.title || "banner"}
-                      className="w-full h-full object-cover block"
-                      loading="lazy"
-                      decoding="async"
-                      draggable="false"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
-                    />
-                    {/* Controles apenas no slide ativo */}
-                    {index === currentIndex && (
-                      <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            prev();
-                          }}
-                          aria-label="Banner anterior"
-                          className="rounded-full bg-black/50 hover:bg-black/70 text-white w-8 h-8 flex items-center justify-center transition-colors"
-                          data-testid="banner-prev-btn-mobile"
-                        >
-                          ←
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            next();
-                          }}
-                          aria-label="Próximo banner"
-                          className="rounded-full bg-black/50 hover:bg-black/70 text-white w-8 h-8 flex items-center justify-center transition-colors"
-                          data-testid="banner-next-btn-mobile"
-                        >
-                          →
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Layout Desktop - Sistema Buscapé com Peek */}
-      <div 
-        className="hidden xl:block relative w-screen"
-        style={{ 
-          height: "clamp(100px, 16vw, 260px)",
-          marginLeft: "calc(50% - 50vw)"
-        }}
-      >
-        {/* Container com peek lateral */}
-        <div className="relative h-full overflow-hidden px-16">
-          <div
-            className={`flex h-full duration-500 ease-in-out ${isTransitioning ? 'transition-transform' : ''}`}
+          {/* Container com slides 90% + margens 5% para peek automático */}
+          <div 
+            className="flex h-full transition-transform duration-500 ease-in-out"
             style={{ 
-              width: `${extendedBanners.length * 85}%`,
-              transform: `translateX(-${currentIndex * (85 / extendedBanners.length)}%) translateX(7.5%)`
+              width: `${banners.length * 100}%`,
+              transform: `translateX(-${currentIndex * 100}%)`
             }}
           >
-            {extendedBanners.map((banner, index) => (
+            {banners.map((banner, index) => (
               <div 
-                key={`desktop-${banner.id}-${index}`}
-                className="h-full relative cursor-pointer group flex-shrink-0"
-                style={{ width: `${85 / extendedBanners.length}%` }}
+                key={banner.id}
+                className="h-full cursor-pointer group"
+                style={{ 
+                  flex: '0 0 90%',
+                  margin: '0 5%'
+                }}
                 onClick={() => handleBannerClick(banner)}
-                data-testid={`banner-desktop-${banner.id}`}
+                data-testid={`banner-mobile-${banner.id}`}
               >
-                {/* Container centralizado com margens laterais */}
-                <div className="relative h-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
-                  <div className="relative h-full w-full rounded-xl overflow-hidden">
-                    <img
-                      src={banner.imageUrl}
-                      alt={banner.title || "banner"}
-                      className="w-full h-full object-cover block"
-                      loading="lazy"
-                      decoding="async"
-                      draggable="false"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
-                    />
-                    
-                    {/* Controles apenas no slide ativo */}
-                    {index === currentIndex && (
-                      <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            prev();
-                          }}
-                          aria-label="Banner anterior"
-                          className="rounded-full bg-black/50 hover:bg-black/70 text-white w-10 h-10 flex items-center justify-center transition-colors"
-                          data-testid="banner-prev-btn"
-                        >
-                          ←
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            next();
-                          }}
-                          aria-label="Próximo banner"
-                          className="rounded-full bg-black/50 hover:bg-black/70 text-white w-10 h-10 flex items-center justify-center transition-colors"
-                          data-testid="banner-next-btn"
-                        >
-                          →
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                <div className="relative h-full w-full rounded-xl overflow-hidden">
+                  <img
+                    src={banner.imageUrl}
+                    alt={banner.title || "banner"}
+                    className="w-full h-full object-cover block"
+                    loading="lazy"
+                    decoding="async"
+                    draggable="false"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
+                  />
+                  {/* Controles apenas no slide ativo */}
+                  {index === currentIndex && (
+                    <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          prev();
+                        }}
+                        aria-label="Banner anterior"
+                        className="rounded-full bg-black/50 hover:bg-black/70 text-white w-8 h-8 flex items-center justify-center transition-colors"
+                        data-testid="banner-prev-btn-mobile"
+                      >
+                        ←
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          next();
+                        }}
+                        aria-label="Próximo banner"
+                        className="rounded-full bg-black/50 hover:bg-black/70 text-white w-8 h-8 flex items-center justify-center transition-colors"
+                        data-testid="banner-next-btn-mobile"
+                      >
+                        →
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -280,28 +163,96 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
         </div>
       </div>
 
+      {/* Layout Desktop - Sistema Peek Simples */}
+      <div 
+        className="hidden xl:block relative w-screen overflow-hidden"
+        style={{ 
+          height: "clamp(100px, 16vw, 260px)",
+          marginLeft: "calc(50% - 50vw)"
+        }}
+      >
+        {/* Container com slides 90% + margens 5% para peek automático */}
+        <div 
+          className="flex h-full transition-transform duration-500 ease-in-out"
+          style={{ 
+            width: `${banners.length * 100}%`,
+            transform: `translateX(-${currentIndex * 100}%)`
+          }}
+        >
+          {banners.map((banner, index) => (
+            <div 
+              key={banner.id}
+              className="h-full relative cursor-pointer group"
+              style={{ 
+                flex: '0 0 90%',
+                margin: '0 5%'
+              }}
+              onClick={() => handleBannerClick(banner)}
+              data-testid={`banner-desktop-${banner.id}`}
+            >
+              {/* Container centralizado com margens laterais */}
+              <div className="relative h-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
+                <div className="relative h-full w-full rounded-xl overflow-hidden">
+                  <img
+                    src={banner.imageUrl}
+                    alt={banner.title || "banner"}
+                    className="w-full h-full object-cover block"
+                    loading="lazy"
+                    decoding="async"
+                    draggable="false"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
+                  />
+                  
+                  {/* Controles apenas no slide ativo */}
+                  {index === currentIndex && (
+                    <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          prev();
+                        }}
+                        aria-label="Banner anterior"
+                        className="rounded-full bg-black/50 hover:bg-black/70 text-white w-10 h-10 flex items-center justify-center transition-colors"
+                        data-testid="banner-prev-btn"
+                      >
+                        ←
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          next();
+                        }}
+                        aria-label="Próximo banner"
+                        className="rounded-full bg-black/50 hover:bg-black/70 text-white w-10 h-10 flex items-center justify-center transition-colors"
+                        data-testid="banner-next-btn"
+                      >
+                        →
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Indicadores */}
       {banners.length > 1 && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
-          {banners.map((_, index) => {
-            // Calcular índice real do banner (sem contar clones)
-            const realCurrentIndex = currentIndex === 0 ? banners.length - 1 : 
-                                   currentIndex === extendedBanners.length - 1 ? 0 : 
-                                   currentIndex - 1;
-            return (
-              <button
-                key={index}
-                aria-label={`Ir para banner ${index + 1}`}
-                onClick={() => goTo(index)}
-                className={`h-2.5 w-2.5 rounded-full transition-all duration-200 ${
-                  realCurrentIndex === index 
-                    ? "scale-125 bg-white" 
-                    : "bg-white/50 hover:bg-white/70"
-                }`}
-                data-testid={`banner-indicator-${index}`}
-              />
-            );
-          })}
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              aria-label={`Ir para banner ${index + 1}`}
+              onClick={() => goTo(index)}
+              className={`h-2.5 w-2.5 rounded-full transition-all duration-200 ${
+                currentIndex === index 
+                  ? "scale-125 bg-white" 
+                  : "bg-white/50 hover:bg-white/70"
+              }`}
+              data-testid={`banner-indicator-${index}`}
+            />
+          ))}
         </div>
       )}
     </div>
