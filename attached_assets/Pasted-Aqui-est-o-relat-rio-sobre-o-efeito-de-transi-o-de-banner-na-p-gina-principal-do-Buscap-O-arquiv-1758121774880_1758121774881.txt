@@ -1,0 +1,138 @@
+Aqui está o relatório sobre o efeito de transição de banner na página principal do Buscapé. O arquivo inclui uma explicação detalhada da estrutura do carrossel, como funciona a animação e um exemplo de código HTML/CSS/JS para reproduzi-lo. Sinta-se à vontade para ler e adaptar conforme necessário:
+
+Efeito de transição do banner da página principal do Buscapé
+Estrutura do slider
+
+Quando se visualiza o código‑fonte da página inicial do Buscapé, o banner principal é construído com uma estrutura de carousel. A marcação HTML contém um contêiner div com classe CarouselWrapper_Hero__nDzhu e, dentro dele, uma lista (ul) com classe react‑multi‑carousel‑track. Esta lista reúne vários itens (li), cada um representando um banner. Cada item tem largura de 1 100 – 1 200 px e é marcado com a classe react‑multi‑carousel‑item. Para cada banner, o código inclui um <a> com um <picture> ou <img> contendo a imagem da campanha
+buscape.com.br
+.
+buscape.com.br
+.
+
+O elemento <ul> que agrupa as imagens possui um estilo inline que utiliza a transformação 3D para mover a lista horizontalmente: transform: translate3d(‑2264px, 0px, 0px)
+buscape.com.br
+. Essa transformação é aplicada de forma dinâmica para deslocar o contêiner de banners, de modo que o banner ativo fique no centro enquanto os outros ficam fora da tela. O estilo do contêiner também contém a propriedade transition, que controla a velocidade de transição entre as imagens. No HTML enviado pelo servidor essa propriedade aparece como transition: none
+buscape.com.br
+, mas o código JavaScript do site (compilado com Next.js) sobrescreve essa propriedade para adicionar uma animação suave quando os slides mudam.
+
+A biblioteca utilizada para implementar esse carrossel é a react‑multi‑carousel. Trata‑se de um componente React que suporta renderização no lado do servidor e define elementos como react‑multi‑carousel‑list e react‑multi‑carousel‑item. O código do Buscapé aplica opções como auto‑play e infinite loop para que os banners mudem automaticamente após alguns segundos.
+
+Como funciona o efeito de transição
+
+Lista horizontal deslizante – todos os banners ficam dentro de uma lista (ul). Cada item (li) é definido com flex: 1 1 auto; e possui largura fixa para ocupar a largura total do contêiner. A lista é colocada dentro de um contêiner com overflow: hidden para esconder os banners que não estão ativos. A classe react‑multi‑carousel‑track recebe uma transformação horizontal (translate3d) que posiciona o conjunto de slides de forma que o banner ativo fique visível
+buscape.com.br
+. Quando o índice do slide muda, o JavaScript atualiza a transformação, deslocando todos os itens para a esquerda ou direita.
+
+Transição suave – a biblioteca adiciona a propriedade CSS transition ao contêiner da lista para animar a mudança de transform. Geralmente usa‑se algo como transition: transform 0.5s ease‑in‑out, o que proporciona um deslocamento suave de 0,5 s cada vez que o banner muda.
+
+Auto‑play e loop – um temporizador no código JavaScript incrementa o índice do slide ativo em intervalos regulares (por exemplo, a cada 5 s). Quando o último banner é exibido, o índice retorna ao início para criar um loop infinito.
+
+Navegação por pontos e setas – o Buscapé também inclui pequenos botões (pontos) abaixo do banner, permitindo que o usuário selecione diretamente qualquer slide. Setas nos lados podem ser usadas para avançar ou retroceder manualmente. Esses controles atualizam o índice do slide e, consequentemente, a transformação da lista.
+
+Copiando o efeito (exemplo em HTML, CSS e JavaScript)
+
+Abaixo está um exemplo simplificado (sem dependências de React) que reproduz o mesmo efeito de transição. Ele utiliza CSS para posicionar os banners lado a lado e JavaScript para alterar a propriedade transform do contêiner conforme o índice atual.
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF‑8">
+  <title>Carrossel semelhante ao Buscapé</title>
+  <style>
+    /* contêiner principal */
+    .slider {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      height: 250px; /* altura do banner */
+    }
+    /* lista de slides */
+    .slider ul {
+      display: flex;
+      padding: 0;
+      margin: 0;
+      list‑style: none;
+      width: 100%;
+      transition: transform 0.6s ease‑in‑out; /* suaviza a transição */
+    }
+    .slider li {
+      flex: 0 0 100%; /* cada slide ocupa 100% do contêiner */
+      position: relative;
+    }
+    .slider img {
+      width: 100%;
+      height: 100%;
+      object‑fit: cover;
+    }
+    /* pontos de navegação */
+    .dots {
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+      gap: 6px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ccc;
+      cursor: pointer;
+    }
+    .dot.active { background: #333; }
+  </style>
+</head>
+<body>
+  <div class="slider" id="bannerSlider">
+    <ul>
+      <li><img src="banner1.webp" alt="Banner 1"></li>
+      <li><img src="banner2.webp" alt="Banner 2"></li>
+      <li><img src="banner3.webp" alt="Banner 3"></li>
+      <!-- adicione outros banners aqui -->
+    </ul>
+  </div>
+  <div class="dots" id="sliderDots"></div>
+
+  <script>
+    const slider = document.querySelector('#bannerSlider ul');
+    const totalSlides = slider.children.length;
+    let currentIndex = 0;
+    const dotsContainer = document.getElementById('sliderDots');
+
+    // Criar indicadores
+    for (let i = 0; i < totalSlides; i++) {
+      const dot = document.createElement('div');
+      dot.classList.add('dot');
+      if (i === 0) dot.classList.add('active');
+      dot.addEventListener('click', () => moveToSlide(i));
+      dotsContainer.appendChild(dot);
+    }
+
+    function moveToSlide(index) {
+      currentIndex = index;
+      slider.style.transform = `translateX(-${index * 100}%)`;
+      // atualizar classe ativa nos pontos
+      Array.from(dotsContainer.children).forEach((dot, i) => {
+        dot.classList.toggle('active', i === index);
+      });
+    }
+
+    // Auto‑play
+    setInterval(() => {
+      currentIndex = (currentIndex + 1) % totalSlides;
+      moveToSlide(currentIndex);
+    }, 5000); // muda a cada 5 segundos
+  </script>
+</body>
+</html>
+
+Como adaptar
+
+Para React – você pode usar o componente react‑multi‑carousel, semelhante ao que o Buscapé usa. Basta instalar o pacote (npm install react‑multi‑carousel) e adicionar <Carousel additionalTransfrom={0} autoPlay={true} autoPlaySpeed={5000} infinite responsive={…}>…</Carousel> com imagens dentro. O componente aplica a animação de transição automaticamente e exibe setas e pontos de navegação.
+
+Ajustar velocidade – altere a duração da propriedade transition (no CSS) ou o parâmetro autoPlaySpeed (na biblioteca) para controlar o tempo de animação.
+
+Imagens responsivas – o Buscapé usa o elemento <picture> com srcset para carregar imagens diferentes conforme a largura da tela. Se quiser copiar essa abordagem, envolva cada <img> em <picture> com source media="(min-width: 768px)" srcset="…"> para servir imagens otimizadas para desktop e mobile.
+
+Conclusão
+
+O efeito de transição do banner da página principal do Buscapé é implementado com a biblioteca react‑multi‑carousel. A animação consiste em um contêiner de slides que se desloca horizontalmente usando translate3d e uma transição suave no transform. As setas e os pontos de navegação atualizam o índice atual, e um temporizador avança o carrossel automaticamente. Com um pouco de HTML, CSS e JavaScript, ou utilizando a mesma biblioteca, você pode reproduzir esse efeito em seu próprio site

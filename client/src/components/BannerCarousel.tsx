@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { useEffect, useState, useRef } from "react";
 
 interface Banner {
   id: string;
@@ -27,14 +26,10 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   }
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
   const [isHover, setIsHover] = useState(false);
   
-  // Animation controls separados para cada layout
-  const mobileControls = useAnimation();
-  const desktopControls = useAnimation();
-  const leftPreviewControls = useAnimation();
-  const rightPreviewControls = useAnimation();
+  // Ref para o auto-play interval
+  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
   // Analytics - Registrar clique no banner
   const handleBannerClick = async (banner: Banner) => {
@@ -57,29 +52,36 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
     }
   };
 
-  // Autoplay simples - sem animações automáticas
+  // Auto-play baseado no Buscapé - setInterval contínuo
   useEffect(() => {
-    if (isHover || isAnimating || banners.length <= 1) return;
-
-    const timer = setTimeout(() => {
-      next();
-    }, autoPlayInterval);
-
-    return () => clearTimeout(timer);
-  }, [currentIndex, isHover, isAnimating, autoPlayInterval, banners.length]);
+    if (banners.length <= 1) return;
+    
+    const startAutoPlay = () => {
+      if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+      if (!isHover) {
+        autoPlayRef.current = setInterval(() => {
+          setCurrentIndex((prev) => (prev + 1) % banners.length);
+        }, autoPlayInterval);
+      }
+    };
+    
+    startAutoPlay();
+    
+    return () => {
+      if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+    };
+  }, [isHover, banners.length, autoPlayInterval]);
 
   const next = () => {
-    if (isAnimating) return;
     setCurrentIndex((prev) => (prev + 1) % banners.length);
   };
 
   const prev = () => {
-    if (isAnimating) return;
     setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
   };
 
   const goTo = (index: number) => {
-    if (isAnimating || index === currentIndex) return;
+    if (index === currentIndex) return;
     setCurrentIndex(index);
   };
 
@@ -95,102 +97,72 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       aria-roledescription="carousel"
       data-testid="banner-carousel"
     >
-      {/* Layout Mobile/Tablet - Carrossel com deslizamento contínuo */}
+      {/* Layout Mobile - Sistema Buscapé */}
       <div className="xl:hidden relative w-full overflow-hidden" style={{ height: "clamp(80px, 15vw, 220px)" }}>
         <div className="relative h-full max-w-4xl mx-auto px-4">
-          {/* Container dos banners deslizantes */}
           <div className="relative h-full w-full overflow-hidden">
-            <motion.div
-              className="flex h-full"
-              style={{ width: '300%' }}
-              animate={mobileControls}
-              initial={{ x: '-33.333%' }}
+            {/* Container Buscapé - slides únicos em linha */}
+            <div
+              className="flex h-full transition-transform duration-500 ease-in-out"
+              style={{ 
+                width: `${banners.length * 100}%`,
+                transform: `translateX(-${currentIndex * (100 / banners.length)}%)`
+              }}
             >
-              {/* Banner Anterior */}
-              <div 
-                className="w-1/3 h-full px-2 cursor-pointer flex-shrink-0"
-                onClick={() => handleBannerClick(banners[prevIndex])}
-              >
-                <div className="relative h-full w-full rounded-xl overflow-hidden">
-                  <img
-                    src={banners[prevIndex].imageUrl}
-                    alt={banners[prevIndex].title || "banner"}
-                    className="w-full h-full object-cover block"
-                    loading="lazy"
-                    decoding="async"
-                    draggable="false"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
-                  />
-                </div>
-              </div>
-              
-              {/* Banner Atual */}
-              <div 
-                className="w-1/3 h-full px-2 cursor-pointer group flex-shrink-0"
-                onClick={() => handleBannerClick(banners[currentIndex])}
-                data-testid={`banner-main-mobile-${banners[currentIndex].id}`}
-              >
-                <div className="relative h-full w-full rounded-xl overflow-hidden">
-                  <img
-                    src={banners[currentIndex].imageUrl}
-                    alt={banners[currentIndex].title || "banner"}
-                    className="w-full h-full object-cover block"
-                    loading="lazy"
-                    decoding="async"
-                    draggable="false"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
-                  />
-                  {/* Setas de navegação mobile */}
-                  <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        prev();
-                      }}
-                      aria-label="Banner anterior"
-                      className="rounded-full bg-black/50 hover:bg-black/70 text-white w-8 h-8 flex items-center justify-center transition-colors"
-                      data-testid="banner-prev-btn-mobile"
-                    >
-                      ←
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        next();
-                      }}
-                      aria-label="Próximo banner"
-                      className="rounded-full bg-black/50 hover:bg-black/70 text-white w-8 h-8 flex items-center justify-center transition-colors"
-                      data-testid="banner-next-btn-mobile"
-                    >
-                      →
-                    </button>
+              {banners.map((banner, index) => (
+                <div 
+                  key={banner.id}
+                  className="h-full px-4 cursor-pointer group"
+                  style={{ width: `${100 / banners.length}%` }}
+                  onClick={() => handleBannerClick(banner)}
+                  data-testid={`banner-mobile-${banner.id}`}
+                >
+                  <div className="relative h-full w-full rounded-xl overflow-hidden">
+                    <img
+                      src={banner.imageUrl}
+                      alt={banner.title || "banner"}
+                      className="w-full h-full object-cover block"
+                      loading="lazy"
+                      decoding="async"
+                      draggable="false"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
+                    />
+                    {/* Controles apenas no slide ativo */}
+                    {index === currentIndex && (
+                      <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            prev();
+                          }}
+                          aria-label="Banner anterior"
+                          className="rounded-full bg-black/50 hover:bg-black/70 text-white w-8 h-8 flex items-center justify-center transition-colors"
+                          data-testid="banner-prev-btn-mobile"
+                        >
+                          ←
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            next();
+                          }}
+                          aria-label="Próximo banner"
+                          className="rounded-full bg-black/50 hover:bg-black/70 text-white w-8 h-8 flex items-center justify-center transition-colors"
+                          data-testid="banner-next-btn-mobile"
+                        >
+                          →
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-              
-              {/* Banner Próximo */}
-              <div 
-                className="w-1/3 h-full px-2 cursor-pointer flex-shrink-0"
-                onClick={() => handleBannerClick(banners[nextIndex])}
-              >
-                <div className="relative h-full w-full rounded-xl overflow-hidden">
-                  <img
-                    src={banners[nextIndex].imageUrl}
-                    alt={banners[nextIndex].title || "banner"}
-                    className="w-full h-full object-cover block"
-                    loading="lazy"
-                    decoding="async"
-                    draggable="false"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
-                  />
-                </div>
-              </div>
-            </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Layout Desktop - Banner central + laterais */}
+      {/* Layout Desktop - Sistema Buscapé */}
       <div 
         className="hidden xl:block relative w-screen overflow-hidden"
         style={{ 
@@ -198,104 +170,68 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
           marginLeft: "calc(50% - 50vw)"
         }}
       >
-        {/* Banners laterais atrás com animação coordenada */}
-        {banners.length > 1 && (
-          <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-            {/* Preview Esquerdo - Cortado pela margem */}
-            <motion.div 
-              className="absolute left-0 top-0 h-full w-1/3 overflow-hidden cursor-pointer z-10 pointer-events-auto"
-              onClick={() => handleBannerClick(banners[prevIndex])}
-              style={{ 
-                filter: "brightness(0.7)"
-              }}
-              animate={leftPreviewControls}
-              initial={{ x: '-47%' }}
-            >
-              <div className="relative h-full w-full rounded-xl overflow-hidden">
-                <img
-                  src={banners[prevIndex].imageUrl}
-                  alt={banners[prevIndex].title || "banner"}
-                  className="w-full h-full object-cover block transition-transform duration-300"
-                  loading="lazy"
-                  decoding="async"
-                  draggable="false"
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
-                />
-              </div>
-            </motion.div>
-
-            {/* Preview Direito - Cortado pela margem */}
-            <motion.div 
-              className="absolute right-0 top-0 h-full w-1/3 overflow-hidden cursor-pointer z-10 pointer-events-auto"
-              onClick={() => handleBannerClick(banners[nextIndex])}
-              style={{ 
-                filter: "brightness(0.7)"
-              }}
-              animate={rightPreviewControls}
-              initial={{ x: '47%' }}
-            >
-              <div className="relative h-full w-full rounded-xl overflow-hidden">
-                <img
-                  src={banners[nextIndex].imageUrl}
-                  alt={banners[nextIndex].title || "banner"}
-                  className="w-full h-full object-cover block transition-transform duration-300"
-                  loading="lazy"
-                  decoding="async"
-                  draggable="false"
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
-                />
-              </div>
-            </motion.div>
-          </div>
-        )}
-
-        {/* Layout do Buscapé: Banner central */}
-        <div className="relative h-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 z-20">
-          {/* Banner Central com animação coordenada */}
-          <motion.div
-            className="relative h-full w-full rounded-xl overflow-hidden cursor-pointer group z-20"
-            onClick={() => handleBannerClick(banners[currentIndex])}
-            data-testid={`banner-main-${banners[currentIndex].id}`}
-            animate={desktopControls}
-            initial={{ x: '0%' }}
+        {/* Container único com slides lado a lado */}
+        <div className="relative h-full overflow-hidden">
+          <div
+            className="flex h-full transition-transform duration-500 ease-in-out"
+            style={{ 
+              width: `${banners.length * 100}%`,
+              transform: `translateX(-${currentIndex * (100 / banners.length)}%)`
+            }}
           >
-            <img
-              src={banners[currentIndex].imageUrl}
-              alt={banners[currentIndex].title || "banner"}
-              className="w-full h-full object-cover block transition-transform duration-300"
-              loading="lazy"
-              decoding="async"
-              draggable="false"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
-              style={{ transform: "scale(1)" }}
-            />
-
-            {/* Setas de navegação */}
-            <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  prev();
-                }}
-                aria-label="Banner anterior"
-                className="rounded-full bg-black/50 hover:bg-black/70 text-white w-10 h-10 flex items-center justify-center transition-colors"
-                data-testid="banner-prev-btn"
+            {banners.map((banner, index) => (
+              <div 
+                key={banner.id}
+                className="h-full relative cursor-pointer group"
+                style={{ width: `${100 / banners.length}%` }}
+                onClick={() => handleBannerClick(banner)}
+                data-testid={`banner-desktop-${banner.id}`}
               >
-                ←
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  next();
-                }}
-                aria-label="Próximo banner"
-                className="rounded-full bg-black/50 hover:bg-black/70 text-white w-10 h-10 flex items-center justify-center transition-colors"
-                data-testid="banner-next-btn"
-              >
-                →
-              </button>
-            </div>
-          </motion.div>
+                {/* Container centralizado com margens laterais */}
+                <div className="relative h-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
+                  <div className="relative h-full w-full rounded-xl overflow-hidden">
+                    <img
+                      src={banner.imageUrl}
+                      alt={banner.title || "banner"}
+                      className="w-full h-full object-cover block"
+                      loading="lazy"
+                      decoding="async"
+                      draggable="false"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 70vw"
+                    />
+                    
+                    {/* Controles apenas no slide ativo */}
+                    {index === currentIndex && (
+                      <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            prev();
+                          }}
+                          aria-label="Banner anterior"
+                          className="rounded-full bg-black/50 hover:bg-black/70 text-white w-10 h-10 flex items-center justify-center transition-colors"
+                          data-testid="banner-prev-btn"
+                        >
+                          ←
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            next();
+                          }}
+                          aria-label="Próximo banner"
+                          className="rounded-full bg-black/50 hover:bg-black/70 text-white w-10 h-10 flex items-center justify-center transition-colors"
+                          data-testid="banner-next-btn"
+                        >
+                          →
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
