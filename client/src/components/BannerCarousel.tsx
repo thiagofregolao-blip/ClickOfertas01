@@ -97,23 +97,23 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
       aria-roledescription="carousel"
       data-testid="banner-carousel"
     >
-      {/* Layout Mobile - Sistema Buscapé */}
-      <div className="xl:hidden relative w-full overflow-hidden" style={{ height: "clamp(80px, 15vw, 220px)" }}>
-        <div className="relative h-full max-w-4xl mx-auto px-4">
-          <div className="relative h-full w-full overflow-hidden">
-            {/* Container Buscapé - slides únicos em linha */}
+      {/* Layout Mobile - Sistema Buscapé com Peek */}
+      <div className="xl:hidden relative w-full" style={{ height: "clamp(80px, 15vw, 220px)" }}>
+        <div className="relative h-full max-w-4xl mx-auto">
+          <div className="relative h-full w-full overflow-hidden px-8">
+            {/* Container Buscapé - slides com peek lateral */}
             <div
               className="flex h-full transition-transform duration-500 ease-in-out"
               style={{ 
-                width: `${banners.length * 100}%`,
-                transform: `translateX(-${currentIndex * (100 / banners.length)}%)`
+                width: `${banners.length * 80}%`,
+                transform: `translateX(-${currentIndex * (80 / banners.length)}%) translateX(10%)`
               }}
             >
               {banners.map((banner, index) => (
                 <div 
                   key={banner.id}
-                  className="h-full px-4 cursor-pointer group"
-                  style={{ width: `${100 / banners.length}%` }}
+                  className="h-full px-2 cursor-pointer group flex-shrink-0"
+                  style={{ width: `${80 / banners.length}%` }}
                   onClick={() => handleBannerClick(banner)}
                   data-testid={`banner-mobile-${banner.id}`}
                 >
@@ -162,28 +162,28 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
         </div>
       </div>
 
-      {/* Layout Desktop - Sistema Buscapé */}
+      {/* Layout Desktop - Sistema Buscapé com Peek */}
       <div 
-        className="hidden xl:block relative w-screen overflow-hidden"
+        className="hidden xl:block relative w-screen"
         style={{ 
           height: "clamp(100px, 16vw, 260px)",
           marginLeft: "calc(50% - 50vw)"
         }}
       >
-        {/* Container único com slides lado a lado */}
-        <div className="relative h-full overflow-hidden">
+        {/* Container com peek lateral */}
+        <div className="relative h-full overflow-hidden px-16">
           <div
             className="flex h-full transition-transform duration-500 ease-in-out"
             style={{ 
-              width: `${banners.length * 100}%`,
-              transform: `translateX(-${currentIndex * (100 / banners.length)}%)`
+              width: `${banners.length * 85}%`,
+              transform: `translateX(-${currentIndex * (85 / banners.length)}%) translateX(7.5%)`
             }}
           >
             {banners.map((banner, index) => (
               <div 
                 key={banner.id}
-                className="h-full relative cursor-pointer group"
-                style={{ width: `${100 / banners.length}%` }}
+                className="h-full relative cursor-pointer group flex-shrink-0"
+                style={{ width: `${85 / banners.length}%` }}
                 onClick={() => handleBannerClick(banner)}
                 data-testid={`banner-desktop-${banner.id}`}
               >
