@@ -104,7 +104,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
           <div 
             className="flex h-full transition-transform duration-500 ease-in-out"
             style={{ 
-              width: `${banners.length * 100}%`,
               transform: `translateX(-${currentIndex * 100}%)`
             }}
           >
@@ -175,7 +174,6 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
         <div 
           className="flex h-full transition-transform duration-500 ease-in-out"
           style={{ 
-            width: `${banners.length * 100}%`,
             transform: `translateX(-${currentIndex * 100}%)`
           }}
         >
