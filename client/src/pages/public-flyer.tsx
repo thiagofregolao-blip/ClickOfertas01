@@ -797,7 +797,7 @@ export default function PublicFlyer() {
                           storeName={store.name}
                           onClick={() => setIsMapModalOpen(true)}
                           size="custom"
-                          className="w-28 h-16 border-0 rounded shadow-none cursor-pointer hover:shadow-md transition-shadow"
+                          className="w-36 h-20 border-0 rounded shadow-none cursor-pointer hover:shadow-md transition-shadow"
                         />
                       </div>
                     </div>
@@ -883,7 +883,7 @@ export default function PublicFlyer() {
                           storeName={store.name}
                           onClick={() => setIsMapModalOpen(true)}
                           size="custom"
-                          className="w-32 h-20 border-0 rounded shadow-none cursor-pointer hover:shadow-md transition-shadow"
+                          className="w-40 h-24 border-0 rounded shadow-none cursor-pointer hover:shadow-md transition-shadow"
                         />
                       </div>
                     </div>
