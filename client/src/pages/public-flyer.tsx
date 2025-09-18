@@ -547,6 +547,13 @@ export default function PublicFlyer() {
       {/* Spacer for fixed header - TwoPartHeader usa 128px (duas partes) */}
       <div className="h-[128px]"></div>
       
+      {/* FlyerHeader - Informações da loja com MiniMap */}
+      {!isStoriesView && store && (
+        <div className="max-w-4xl mx-auto mb-6">
+          <FlyerHeader store={store} />
+        </div>
+      )}
+      
       {/* Action Buttons - Hidden on print */}
       <div className="fixed top-4 right-4 z-50 no-print">
         <div className="relative" ref={menuRef}>
