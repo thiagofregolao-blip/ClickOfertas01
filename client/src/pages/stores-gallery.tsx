@@ -44,7 +44,11 @@ export default function StoresGallery() {
   
   const [searchInput, setSearchInput] = useState(urlSearch);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const searchQuery = useDebounce(searchInput, 500); // Debounce de 500ms
+  
+  // Categorias disponíveis
+  const categories = ['Celulares', 'Perfumes', 'Notebooks', 'TVs'];
   
   // Remover parâmetro de busca da URL após aplicar
   useEffect(() => {
@@ -364,26 +368,45 @@ export default function StoresGallery() {
     });
   }, []);
 
+  // Função para filtrar por categoria
+  const handleCategoryFilter = useCallback((category: string | null) => {
+    setSelectedCategory(category);
+  }, []);
+
   // Filtrar e ordenar lojas com memoização
   const filteredStores = useMemo(() => {
     if (!stores) return [];
     
     return stores.filter(store => {
-      if (!searchQuery.trim()) return true;
+      // Filtro por busca de texto
+      let matchesSearch = true;
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        
+        // Buscar no nome da loja
+        const storeNameMatch = store.name.toLowerCase().includes(query);
+        
+        // Buscar nos produtos
+        const productMatch = store.products.some(product => 
+          product.isActive && (
+            product.name.toLowerCase().includes(query) ||
+            product.description?.toLowerCase().includes(query) ||
+            product.category?.toLowerCase().includes(query)
+          )
+        );
+        
+        matchesSearch = storeNameMatch || productMatch;
+      }
       
-      const query = searchQuery.toLowerCase();
+      // Filtro por categoria
+      let matchesCategory = true;
+      if (selectedCategory) {
+        matchesCategory = store.products.some(product => 
+          product.isActive && product.category === selectedCategory
+        );
+      }
       
-      // Buscar no nome da loja
-      if (store.name.toLowerCase().includes(query)) return true;
-      
-      // Buscar nos produtos
-      return store.products.some(product => 
-        product.isActive && (
-          product.name.toLowerCase().includes(query) ||
-          product.description?.toLowerCase().includes(query) ||
-          product.category?.toLowerCase().includes(query)
-        )
-      );
+      return matchesSearch && matchesCategory;
     }).sort((a, b) => {
       // Priorizar lojas que postaram produtos hoje
       const aHasToday = hasProductsToday(a);
@@ -398,7 +421,7 @@ export default function StoresGallery() {
       
       return bLatest - aLatest;
     });
-  }, [stores, searchQuery, hasProductsToday]);
+  }, [stores, searchQuery, selectedCategory, hasProductsToday]);
 
   // Criar resultados de busca combinados com memoização
   const searchResults = useMemo(() => {
@@ -557,6 +580,42 @@ export default function StoresGallery() {
         </div>
       )}
       
+      {/* Mobile: Filtros de Categoria */}
+      {isMobile && (
+        <div className="bg-white border-b px-4 py-3">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+            {/* Botão "Todos" */}
+            <button
+              onClick={() => handleCategoryFilter(null)}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                selectedCategory === null
+                  ? 'bg-red-500 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              data-testid="category-filter-todos"
+            >
+              Todos
+            </button>
+            
+            {/* Botões das categorias */}
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => handleCategoryFilter(category)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                  selectedCategory === category
+                    ? 'bg-red-500 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                data-testid={`category-filter-${category.toLowerCase()}`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Mobile: Banner rotativo primeiro */}
       {isMobile && !searchQuery.trim() && (
         <div className="w-full mb-4">
@@ -777,6 +836,93 @@ export default function StoresGallery() {
                         <line x1="16" y1="2" x2="16" y2="22"/>
                       </svg>
                       Meus Cupons
+                    </button>
+
+                    {/* Separador visual */}
+                    <span className="text-gray-400 text-sm">|</span>
+                    
+                    {/* Botão "Todos" */}
+                    <button
+                      onClick={() => handleCategoryFilter(null)}
+                      className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
+                        selectedCategory === null
+                          ? 'bg-yellow-400 text-gray-900 shadow-sm'
+                          : 'text-white hover:text-gray-200'
+                      }`}
+                      data-testid="button-category-todos-desktop"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="m9 12 2 2 4-4"/>
+                      </svg>
+                      Todos
+                    </button>
+                    
+                    {/* Categorias de Produtos */}
+                    <button
+                      onClick={() => handleCategoryFilter('Celulares')}
+                      className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
+                        selectedCategory === 'Celulares'
+                          ? 'bg-yellow-400 text-gray-900 shadow-sm'
+                          : 'text-white hover:text-gray-200'
+                      }`}
+                      data-testid="button-category-celulares"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                        <line x1="12" y1="18" x2="12.01" y2="18"/>
+                      </svg>
+                      Celulares
+                    </button>
+                    
+                    <button
+                      onClick={() => handleCategoryFilter('Perfumes')}
+                      className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
+                        selectedCategory === 'Perfumes'
+                          ? 'bg-yellow-400 text-gray-900 shadow-sm'
+                          : 'text-white hover:text-gray-200'
+                      }`}
+                      data-testid="button-category-perfumes"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M7 7h10l4 12H3l4-12Z"/>
+                        <path d="M12 2v4"/>
+                      </svg>
+                      Perfumes
+                    </button>
+                    
+                    <button
+                      onClick={() => handleCategoryFilter('Notebooks')}
+                      className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
+                        selectedCategory === 'Notebooks'
+                          ? 'bg-yellow-400 text-gray-900 shadow-sm'
+                          : 'text-white hover:text-gray-200'
+                      }`}
+                      data-testid="button-category-notebooks"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                      </svg>
+                      Notebooks
+                    </button>
+                    
+                    <button
+                      onClick={() => handleCategoryFilter('TVs')}
+                      className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
+                        selectedCategory === 'TVs'
+                          ? 'bg-yellow-400 text-gray-900 shadow-sm'
+                          : 'text-white hover:text-gray-200'
+                      }`}
+                      data-testid="button-category-tvs"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                      </svg>
+                      TVs
                     </button>
                     
                     <button
