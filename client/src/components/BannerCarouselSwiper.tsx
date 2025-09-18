@@ -71,7 +71,7 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
         transitionDuration={600}
       >
         {banners.map((banner) => (
-          <div key={banner.id} style={{ padding: '0 6px' }}>
+          <div key={banner.id} style={{ padding: '0 8px' }}>
             <div
               onClick={() => banner.linkUrl && window.open(banner.linkUrl, "_blank")}
               style={{
