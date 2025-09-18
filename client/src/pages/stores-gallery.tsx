@@ -1042,7 +1042,7 @@ export default function StoresGallery() {
             <img
               src="https://cdn2.newtail.com.br/retail_media/ads/2025/09/04/c279bef7b93b1a84d6aa559c19a0cfa9.jpeg"
               alt="Banner Publicitário"
-              className="h-auto max-h-16 object-cover rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+              className="h-auto max-h-20 object-cover rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
               style={{ width: '85%' }}
               onClick={() => {
                 // Aqui será implementado o clique do banner quando necessário
