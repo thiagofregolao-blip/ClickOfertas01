@@ -4,9 +4,10 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Star, MapPin, MessageCircle as WhatsApp, Instagram, ShoppingBag, Crown } from "lucide-react";
+import { ArrowLeft, Star, MapPin, MessageCircle as WhatsApp, Instagram, ShoppingBag, Crown, User, Settings, LogOut, ShoppingCart, Smartphone, Droplets, Laptop, Monitor, Grid } from "lucide-react";
 import { formatPriceWithCurrency } from "@/lib/priceUtils";
 import { TwoPartHeader } from "@/components/TwoPartHeader";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Store {
   id: string;
@@ -41,9 +42,27 @@ interface ProductComparisonData {
   storesWithProduct: ProductInStore[];
 }
 
+// Função para obter ícone da categoria
+function getCategoryIcon(slug: string) {
+  switch (slug.toLowerCase()) {
+    case 'celulares':
+      return <Smartphone className="w-4 h-4" />;
+    case 'perfumes':
+      return <Droplets className="w-4 h-4" />;
+    case 'notebooks':
+      return <Laptop className="w-4 h-4" />;
+    case 'tvs':
+      return <Monitor className="w-4 h-4" />;
+    default:
+      return <Grid className="w-4 h-4" />;
+  }
+}
+
 export default function ProductCompare() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
+  const { user, isAuthenticated } = useAuth();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // Buscar dados de comparação do produto
   const { data: comparisonData, isLoading } = useQuery<ProductComparisonData>({
@@ -55,6 +74,18 @@ export default function ProductCompare() {
   const { data: banners = [] } = useQuery<any[]>({
     queryKey: ['/api/banners/active'],
   });
+
+  // Buscar categorias ativas do backend
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery<{id: string; name: string; slug: string; sortOrder: number}[]>({
+    queryKey: ['/api/categories'],
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
+
+  // Handlers para filtros de categoria
+  const handleCategoryFilter = (categorySlug: string | null) => {
+    setSelectedCategory(categorySlug);
+    // Implementar lógica de filtro se necessário
+  };
 
   if (isLoading) {
     return (
@@ -107,17 +138,123 @@ export default function ProductCompare() {
         showSearch={false}
         showNotifications={true}
       >
-        {/* Menu com botão Voltar às lojas */}
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => setLocation('/cards')}
-          className="text-white hover:bg-white/20 transition-colors"
-          data-testid="button-back-to-stores"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar às lojas
-        </Button>
+        {isAuthenticated ? (
+          // Desktop - menu na mesma linha
+          <div className="flex items-center gap-4">
+            {/* Saudação */}
+            <div className="text-white font-medium flex items-center gap-2">
+              <User className="w-5 h-5" />
+              <span className="text-sm">
+                Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
+              </span>
+            </div>
+            
+            {/* Botões do menu */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setLocation('/settings')}
+                className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
+                data-testid="button-user-config"
+              >
+                <Settings className="w-4 h-4" />
+                Configurações
+              </button>
+              
+              <button
+                onClick={() => setLocation('/shopping-list')}
+                className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
+                data-testid="button-shopping-list"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                Lista de Compras
+              </button>
+              
+              <button
+                onClick={() => setLocation('/my-coupons')}
+                className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
+                data-testid="button-my-coupons"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+                  <line x1="8" y1="2" x2="8" y2="22"/>
+                  <line x1="16" y1="2" x2="16" y2="22"/>
+                </svg>
+                Meus Cupons
+              </button>
+
+              {/* Separador visual */}
+              <span className="text-gray-400 text-sm">|</span>
+              
+              {/* Botão "Todos" */}
+              <button
+                onClick={() => handleCategoryFilter(null)}
+                className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
+                  selectedCategory === null
+                    ? 'bg-yellow-400 text-gray-900 shadow-sm'
+                    : 'text-white hover:text-gray-200'
+                }`}
+                data-testid="button-category-todos-desktop"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="m9 12 2 2 4-4"/>
+                </svg>
+                Todos
+              </button>
+              
+              {/* Categorias Dinâmicas do Backend */}
+              {categoriesLoading ? (
+                <div className="text-white/70 text-sm">Carregando categorias...</div>
+              ) : (
+                categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => handleCategoryFilter(category.slug)}
+                    className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
+                      selectedCategory === category.slug || selectedCategory === category.name
+                        ? 'bg-yellow-400 text-gray-900 shadow-sm'
+                        : 'text-white hover:text-gray-200'
+                    }`}
+                    data-testid={`button-category-${category.slug}`}
+                  >
+                    {getCategoryIcon(category.slug)}
+                    {category.name}
+                  </button>
+                ))
+              )}
+              
+              <button
+                onClick={() => window.location.href = '/api/auth/logout'}
+                className="text-red-300 hover:text-red-100 font-medium flex items-center gap-1 text-sm"
+                data-testid="button-user-logout"
+              >
+                <LogOut className="w-4 h-4" />
+                Sair
+              </button>
+            </div>
+          </div>
+        ) : (
+          // Usuário não logado - mostrar botão entrar com volta
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setLocation('/cards')}
+              className="text-white hover:bg-white/20 transition-colors"
+              data-testid="button-back-to-stores"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar às lojas
+            </Button>
+            <button
+              className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
+              data-testid="button-user-login"
+            >
+              <User className="w-4 h-4" />
+              Entrar
+            </button>
+          </div>
+        )}
       </TwoPartHeader>
 
       <div className="mx-auto max-w-6xl px-4 py-8">

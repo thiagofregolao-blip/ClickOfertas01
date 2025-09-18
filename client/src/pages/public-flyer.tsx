@@ -3,7 +3,7 @@ import { useRoute, useLocation, Link } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Share, Download, Printer, MoreVertical, Filter, Gift, Camera, Heart, Eye, Bookmark, BarChart3, Settings, ShoppingCart, LogOut, ArrowLeft, Home, Star } from "lucide-react";
+import { Share, Download, Printer, MoreVertical, Filter, Gift, Camera, Heart, Eye, Bookmark, BarChart3, Settings, ShoppingCart, LogOut, ArrowLeft, Home, Star, User, Smartphone, Droplets, Laptop, Monitor, Grid } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +70,22 @@ interface InstagramStory {
  * - Grid de produtos otimizado para mouse
  * - Mais informações visíveis simultaneamente
  */
+// Função para obter ícone da categoria
+function getCategoryIcon(slug: string) {
+  switch (slug.toLowerCase()) {
+    case 'celulares':
+      return <Smartphone className="w-4 h-4" />;
+    case 'perfumes':
+      return <Droplets className="w-4 h-4" />;
+    case 'notebooks':
+      return <Laptop className="w-4 h-4" />;
+    case 'tvs':
+      return <Monitor className="w-4 h-4" />;
+    default:
+      return <Grid className="w-4 h-4" />;
+  }
+}
+
 export default function PublicFlyer() {
   const [, flyerParams] = useRoute("/flyer/:slug");
   const [, storeParams] = useRoute("/stores/:slug");
@@ -94,7 +110,7 @@ export default function PublicFlyer() {
   const [showPriceComparison, setShowPriceComparison] = useState(false);
   const [comparisonProductId, setComparisonProductId] = useState<string>("");
   const [comparisonProductName, setComparisonProductName] = useState<string>("");
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   // Log da versão e modo de acesso (para desenvolvimento)
   useEffect(() => {
@@ -211,6 +227,18 @@ export default function PublicFlyer() {
   const handlePromotionRevealed = (product: any) => {
     console.log('🎯 Promoção removida localmente:', product.id);
     setRemovedPromotions(prev => [...prev, product.id]);
+  };
+
+  // Buscar categorias ativas do backend
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery<{id: string; name: string; slug: string; sortOrder: number}[]>({
+    queryKey: ['/api/categories'],
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
+
+  // Handlers para filtros de categoria
+  const handleCategoryFilter = (categorySlug: string | null) => {
+    // Implementar lógica de filtro se necessário
+    // Para esta página, pode apenas atualizar o estado local ou navegar
   };
 
   // Registrar visualização do panfleto/loja quando carregado
@@ -415,58 +443,129 @@ export default function PublicFlyer() {
         showNotifications={true}
         searchPlaceholder="Buscar produtos..."
       >
-        {/* Menu children - navegação relevante */}
-        <Link href="/cards">
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
-          </Button>
-        </Link>
-        
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={handleShare}
-          className="text-white hover:bg-white/20"
-        >
-          <Share className="w-4 h-4 mr-2" />
-          Compartilhar
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => setShowActions(!showActions)}
-          className="text-white hover:bg-white/20"
-        >
-          <MoreVertical className="w-4 h-4 mr-2" />
-          Ações
-        </Button>
-        
-        {/* Filtro de categoria (apenas para desktop/panfleto) */}
-        {!isStoriesView && (
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-48 bg-white/90 border-white/30 text-gray-700">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Filtrar categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as categorias</SelectItem>
-              {sortedCategories.map(category => (
-                <SelectItem key={category} value={category}>
-                  {category} ({productsByCategory[category].length})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-        
-        {/* Badge do store */}
-        {store && (
-          <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-            <Star className="w-3 h-3 mr-1" />
-            {store.name}
-          </Badge>
+        {isAuthenticated ? (
+          // Desktop - menu na mesma linha
+          <div className="flex items-center gap-4">
+            {/* Saudação */}
+            <div className="text-white font-medium flex items-center gap-2">
+              <User className="w-5 h-5" />
+              <span className="text-sm">
+                Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
+              </span>
+            </div>
+            
+            {/* Botões do menu */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setLocation('/settings')}
+                className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
+                data-testid="button-user-config"
+              >
+                <Settings className="w-4 h-4" />
+                Configurações
+              </button>
+              
+              <button
+                onClick={() => setLocation('/shopping-list')}
+                className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
+                data-testid="button-shopping-list"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                Lista de Compras
+              </button>
+              
+              <button
+                onClick={() => setLocation('/my-coupons')}
+                className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
+                data-testid="button-my-coupons"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+                  <line x1="8" y1="2" x2="8" y2="22"/>
+                  <line x1="16" y1="2" x2="16" y2="22"/>
+                </svg>
+                Meus Cupons
+              </button>
+
+              {/* Separador visual */}
+              <span className="text-gray-400 text-sm">|</span>
+              
+              {/* Botão "Todos" */}
+              <button
+                onClick={() => handleCategoryFilter(null)}
+                className="font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors text-white hover:text-gray-200"
+                data-testid="button-category-todos-desktop"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="m9 12 2 2 4-4"/>
+                </svg>
+                Todos
+              </button>
+              
+              {/* Categorias Dinâmicas do Backend */}
+              {categoriesLoading ? (
+                <div className="text-white/70 text-sm">Carregando categorias...</div>
+              ) : (
+                categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => handleCategoryFilter(category.slug)}
+                    className="font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors text-white hover:text-gray-200"
+                    data-testid={`button-category-${category.slug}`}
+                  >
+                    {getCategoryIcon(category.slug)}
+                    {category.name}
+                  </button>
+                ))
+              )}
+              
+              <button
+                onClick={() => window.location.href = '/api/auth/logout'}
+                className="text-red-300 hover:text-red-100 font-medium flex items-center gap-1 text-sm"
+                data-testid="button-user-logout"
+              >
+                <LogOut className="w-4 h-4" />
+                Sair
+              </button>
+            </div>
+          </div>
+        ) : (
+          // Usuário não logado - mostrar menu simples com volta
+          <div className="flex items-center gap-4">
+            <Link href="/cards">
+              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar
+              </Button>
+            </Link>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleShare}
+              className="text-white hover:bg-white/20"
+            >
+              <Share className="w-4 h-4 mr-2" />
+              Compartilhar
+            </Button>
+            
+            {/* Badge do store */}
+            {store && (
+              <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                <Star className="w-3 h-3 mr-1" />
+                {store.name}
+              </Badge>
+            )}
+            
+            <button
+              className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
+              data-testid="button-user-login"
+            >
+              <User className="w-4 h-4" />
+              Entrar
+            </button>
+          </div>
         )}
       </TwoPartHeader>
       
