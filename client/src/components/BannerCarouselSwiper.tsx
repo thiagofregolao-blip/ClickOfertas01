@@ -118,8 +118,8 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
       </Carousel>
 
       <style>{`
-        .banner-carousel-container { overflow: visible; max-width: 1250px; margin: 0 auto; padding-inline: 12px; }
-        .banner-carousel-slider { overflow: visible; }
+        .banner-carousel-container { overflow: hidden; max-width: 1250px; margin: 0 auto; padding-inline: 12px; }
+        .banner-carousel-slider { overflow: hidden; }
         .banner-carousel-item   { padding-right: 0; }
         
         /* NOVO: controla visibilidade das setas */
