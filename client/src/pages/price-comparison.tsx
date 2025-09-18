@@ -13,6 +13,7 @@ import { useLocation, Link } from "wouter";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import StandardHeader from "@/components/StandardHeader";
+import LoginPage from "@/components/login-page";
 
 interface BrazilianPrice {
   store: string;
@@ -50,8 +51,9 @@ export default function PriceComparison() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedProductDetail, setSelectedProductDetail] = useState<any | null>(null);
   const [selectedStore, setSelectedStore] = useState<any | null>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [, setLocation] = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   // Buscar produtos disponíveis no Paraguay para comparação
   const { data: paraguayProducts = [], isLoading: loadingProducts } = useQuery<any[]>({
@@ -170,7 +172,12 @@ export default function PriceComparison() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Padrão */}
-      <StandardHeader />
+      <StandardHeader 
+        isAuthenticated={isAuthenticated}
+        user={user}
+        onLogin={() => setIsLoginModalOpen(true)}
+        onLogout={() => window.location.href = '/api/auth/logout'}
+      />
       
       {/* Cabeçalho da Página */}
       <div className="border-b bg-white shadow-sm">
@@ -593,6 +600,13 @@ export default function PriceComparison() {
           )}
         </div>
       </div>
+
+      {/* Login Modal */}
+      <LoginPage 
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        mode="user"
+      />
     </div>
   );
 }

@@ -44,8 +44,24 @@ const getCategoryIcon = (categorySlug: string) => {
   }
 };
 
-export default function StandardHeader() {
-  const { user, isAuthenticated } = useAuth();
+interface StandardHeaderProps {
+  onLogin?: () => void;
+  onLogout?: () => void;
+  isAuthenticated?: boolean;
+  user?: any;
+}
+
+export default function StandardHeader({ 
+  onLogin,
+  onLogout,
+  isAuthenticated: authProp,
+  user: userProp
+}: StandardHeaderProps = {}) {
+  const authData = useAuth();
+  const { user, isAuthenticated } = {
+    user: userProp ?? authData.user,
+    isAuthenticated: authProp ?? authData.isAuthenticated
+  };
   const [, setLocation] = useLocation();
   const [searchInput, setSearchInput] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -277,7 +293,7 @@ export default function StandardHeader() {
                 )}
                 
                 <button
-                  onClick={() => window.location.href = '/api/auth/logout'}
+                  onClick={() => onLogout ? onLogout() : (window.location.href = '/api/auth/logout')}
                   className="text-red-300 hover:text-red-100 font-medium flex items-center gap-1 text-sm"
                   data-testid="button-user-logout"
                 >
@@ -289,7 +305,7 @@ export default function StandardHeader() {
           ) : (
             // Usuário não logado - mostrar botão entrar
             <button
-              onClick={() => window.location.href = '/api/auth/login'}
+              onClick={() => onLogin ? onLogin() : (window.location.href = '/api/auth/login')}
               className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
               data-testid="button-user-login"
             >

@@ -4,7 +4,8 @@ import { FileText, ShoppingBag, TrendingUp, Users, Globe, LogIn } from "lucide-r
 import { useAppVersion } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import GlobalHeader from "@/components/global-header";
+import { useAuth } from "@/hooks/useAuth";
+import LoginPage from "@/components/login-page";
 
 /**
  * Página de Aterrissagem - Click Ofertas Paraguai
@@ -13,9 +14,11 @@ import GlobalHeader from "@/components/global-header";
 export default function Landing() {
   const { versionName, version } = useAppVersion();
   const { toast } = useToast();
+  const { isAuthenticated, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -206,8 +209,7 @@ export default function Landing() {
 
                     {/* Botão principal de login */}
                     <Button 
-                      onClick={handleLogin}
-                      disabled={isLoading}
+                      onClick={() => setIsLoginModalOpen(true)}
                       className="w-full h-12 text-base md:h-11 md:text-sm bg-gradient-to-r from-[#F04940] to-[#FA7D22] hover:from-[#E03A32] hover:to-[#E96D1D] text-white py-4 rounded-xl font-semibold shadow-lg"
                       data-testid="button-login"
                     >
@@ -352,12 +354,11 @@ export default function Landing() {
                   </div>
 
                   <Button 
-                    onClick={handleLogin}
-                    disabled={isLoading}
+                    onClick={() => setIsLoginModalOpen(true)}
                     className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-lg font-medium text-lg"
                     data-testid="button-login-desktop"
                   >
-                    {isLoading ? 'ENTRANDO...' : 'ENTRE'}
+                    ENTRE
                   </Button>
 
                   <div className="flex flex-row justify-between text-base">
@@ -556,6 +557,13 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* Login Modal */}
+      <LoginPage 
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        mode="user"
+      />
     </div>
   );
 }
