@@ -876,7 +876,7 @@ export default function PublicFlyer() {
                   {/* MiniMap - Posicionado na área branca à direita */}
                   {store.latitude && store.longitude && (
                     <div className="flex-shrink-0">
-                      <div className="bg-white border-2 border-gray-300 rounded-md p-1 shadow-sm">
+                      <div className="bg-white border-2 border-gray-300 rounded-md p-1 shadow-sm relative overflow-hidden">
                         <MiniMap
                           latitude={store.latitude}
                           longitude={store.longitude}
