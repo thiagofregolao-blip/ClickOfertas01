@@ -3,7 +3,7 @@ import { useRoute, useLocation, Link } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Share, Download, Printer, MoreVertical, Filter, Gift, Camera, Heart, Eye, Bookmark, BarChart3, Settings, ShoppingCart, LogOut } from "lucide-react";
+import { Share, Download, Printer, MoreVertical, Filter, Gift, Camera, Heart, Eye, Bookmark, BarChart3, Settings, ShoppingCart, LogOut, ArrowLeft, Home, Star } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,7 @@ import PriceComparisonPopup from "@/components/price-comparison-popup";
 import { downloadFlyerAsPNG } from "@/lib/flyer-utils";
 import type { StoreWithProducts, Product, PromotionWithDetails } from "@shared/schema";
 import { InstagramStories } from "@/components/instagram-stories";
-import StandardHeader from "@/components/StandardHeader";
+import { TwoPartHeader } from "@/components/TwoPartHeader";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAppVersion } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
@@ -409,11 +409,69 @@ export default function PublicFlyer() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Global Header */}
-      <StandardHeader />
+      {/* TwoPartHeader */}
+      <TwoPartHeader
+        showSearch={true}
+        showNotifications={true}
+        searchPlaceholder="Buscar produtos..."
+      >
+        {/* Menu children - navegação relevante */}
+        <Link href="/cards">
+          <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar
+          </Button>
+        </Link>
+        
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleShare}
+          className="text-white hover:bg-white/20"
+        >
+          <Share className="w-4 h-4 mr-2" />
+          Compartilhar
+        </Button>
+        
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setShowActions(!showActions)}
+          className="text-white hover:bg-white/20"
+        >
+          <MoreVertical className="w-4 h-4 mr-2" />
+          Ações
+        </Button>
+        
+        {/* Filtro de categoria (apenas para desktop/panfleto) */}
+        {!isStoriesView && (
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-48 bg-white/90 border-white/30 text-gray-700">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Filtrar categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as categorias</SelectItem>
+              {sortedCategories.map(category => (
+                <SelectItem key={category} value={category}>
+                  {category} ({productsByCategory[category].length})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        
+        {/* Badge do store */}
+        {store && (
+          <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+            <Star className="w-3 h-3 mr-1" />
+            {store.name}
+          </Badge>
+        )}
+      </TwoPartHeader>
       
-      {/* Spacer for fixed header */}
-      <div className="h-16"></div>
+      {/* Spacer for fixed header - TwoPartHeader usa 72px por padrão */}
+      <div className="h-[72px]"></div>
       
       {/* Action Buttons - Hidden on print */}
       <div className="fixed top-4 right-4 z-50 no-print">
