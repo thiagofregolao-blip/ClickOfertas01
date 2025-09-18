@@ -108,12 +108,10 @@ export function TwoPartHeader({
                 </span>
                 {title.includes('.') && (
                   <span className="font-bold text-2xl tracking-normal">
-                    <span className="text-white">.{title.split('.')[1]?.split(/(?=[A-Z])/)[0]}</span>
-                    {title.split('.')[1]?.match(/[A-Z]+$/) && (
-                      <span style={{color: '#FFE600'}}>
-                        {title.split('.')[1].match(/[A-Z]+$/)?.[0]}
-                      </span>
-                    )}
+                    <span className="text-white">.</span>
+                    <span style={{color: '#FFE600'}}>
+                      {title.split('.')[1]}
+                    </span>
                   </span>
                 )}
               </div>
