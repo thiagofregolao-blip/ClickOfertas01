@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, Download, Trash2, MapPin, Store, DollarSign } from "lucide-react";
+import { ShoppingCart, Download, Trash2, MapPin, Store, DollarSign, Settings, BarChart3, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation, Link } from "wouter";
