@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, TrendingDown, TrendingUp, ExternalLink, RefreshCw, AlertCircle, Zap, DollarSign, ChevronDown, ArrowRightLeft, Bell, Filter, Settings, ShoppingCart, BarChart3, LogOut } from "lucide-react";
+import { Search, TrendingDown, TrendingUp, ExternalLink, RefreshCw, AlertCircle, Zap, DollarSign, ChevronDown, ArrowRightLeft, Bell, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatPriceWithCurrency } from "@/lib/priceUtils";
@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocation, Link } from "wouter";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
+import StandardHeader from "@/components/StandardHeader";
 
 interface BrazilianPrice {
   store: string;
@@ -168,14 +169,18 @@ export default function PriceComparison() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="border-b shadow-sm" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
+      {/* Header Padrão */}
+      <StandardHeader />
+      
+      {/* Cabeçalho da Página */}
+      <div className="border-b bg-white shadow-sm">
         <div className="mx-auto max-w-6xl px-4 py-6">
           <div className="text-center">
-            <h1 className="text-xl font-bold text-white mb-2">
+            <h1 className="text-xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
+              <ArrowRightLeft className="w-6 h-6 text-blue-600" />
               Comparação de Preços Internacional
             </h1>
-            <p className="text-white max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto">
               Compare preços entre Paraguay e Brasil. Encontre as melhores ofertas e economize em suas compras internacionais.
             </p>
           </div>

@@ -4,13 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, Download, Trash2, MapPin, Store, DollarSign, Settings, BarChart3, LogOut } from "lucide-react";
+import { ShoppingCart, Download, Trash2, MapPin, Store, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation, Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import type { SavedProductWithDetails } from "@shared/schema";
 import jsPDF from 'jspdf';
+import StandardHeader from "@/components/StandardHeader";
 
 // Agrupar produtos por loja
 function groupProductsByStore(savedProducts: SavedProductWithDetails[]) {
@@ -227,16 +228,19 @@ export default function ShoppingList() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="border-b shadow-sm" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
+      {/* Header Padrão */}
+      <StandardHeader />
+      
+      {/* Cabeçalho da Página */}
+      <div className="border-b bg-white shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                <ShoppingCart className="h-7 w-7 text-white" />
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <ShoppingCart className="h-7 w-7 text-blue-600" />
                 Lista de Compras
               </h1>
-              <p className="text-white/90 mt-1">
+              <p className="text-gray-600 mt-1">
                 {savedProducts.length} produto{savedProducts.length !== 1 ? 's' : ''} em {groupedProducts.length} loja{groupedProducts.length !== 1 ? 's' : ''}
               </p>
             </div>
@@ -245,7 +249,7 @@ export default function ShoppingList() {
               <Button 
                 onClick={generatePDF}
                 disabled={isGeneratingPDF}
-                className="bg-white hover:bg-gray-100 text-gray-900 border border-white/20"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Download className="h-4 w-4 mr-2" />
                 {isGeneratingPDF ? 'Gerando...' : 'Baixar PDF'}

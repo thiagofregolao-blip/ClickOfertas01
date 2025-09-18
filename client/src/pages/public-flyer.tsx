@@ -18,7 +18,7 @@ import PriceComparisonPopup from "@/components/price-comparison-popup";
 import { downloadFlyerAsPNG } from "@/lib/flyer-utils";
 import type { StoreWithProducts, Product, PromotionWithDetails } from "@shared/schema";
 import { InstagramStories } from "@/components/instagram-stories";
-import GlobalHeader from "@/components/global-header";
+import StandardHeader from "@/components/StandardHeader";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAppVersion } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
@@ -410,7 +410,7 @@ export default function PublicFlyer() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Global Header */}
-      <GlobalHeader showPriceComparison={false} />
+      <StandardHeader />
       
       {/* Spacer for fixed header */}
       <div className="h-16"></div>

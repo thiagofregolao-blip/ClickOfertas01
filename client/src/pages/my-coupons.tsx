@@ -4,11 +4,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Download, Share2, QrCode, CheckCircle, XCircle, ArrowLeft, Trash2, Settings, ShoppingCart, BarChart3, LogOut } from "lucide-react";
+import { Clock, Download, Share2, QrCode, CheckCircle, XCircle, ArrowLeft, Trash2 } from "lucide-react";
 import { formatBrazilianPrice, formatPriceWithCurrency } from "@/lib/priceUtils";
 import jsPDF from "jspdf";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation, Link } from "wouter";
+import StandardHeader from "@/components/StandardHeader";
 
 interface CouponWithDetails {
   id: string;
@@ -199,49 +200,57 @@ export default function MyCoupons() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="border-b shadow-sm text-white p-4" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
-        <div className="max-w-4xl mx-auto">
+      {/* Header Padrão */}
+      <StandardHeader />
+      
+      {/* Cabeçalho da Página */}
+      <div className="border-b bg-white shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <QrCode className="h-7 w-7 text-blue-600" />
+                Meus Cupons
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {coupons.length === 0 ? 'Nenhum cupom encontrado' : `${coupons.length} cupom${coupons.length > 1 ? 's' : ''} disponível${coupons.length > 1 ? 'eis' : ''}`}
+              </p>
+            </div>
+            <div className="flex gap-2">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => setLocation('/')}
-                className="text-white hover:bg-white/10"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar
+                Voltar às Ofertas
               </Button>
-              <h1 className="text-2xl font-bold">🎫 Meus Cupons</h1>
-            </div>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={async () => {
-                try {
-                  const response = await fetch('/api/coupons/user/all', { 
-                    method: 'DELETE',
-                    credentials: 'include'
-                  });
-                  if (response.ok) {
-                    toast({ title: "✅ Todos os cupons excluídos", description: "Limpeza realizada com sucesso" });
-                    queryClient.invalidateQueries({ queryKey: ["/api/coupons/user"] });
-                  } else {
-                    throw new Error('Erro ao excluir cupons');
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/coupons/user/all', { 
+                      method: 'DELETE',
+                      credentials: 'include'
+                    });
+                    if (response.ok) {
+                      toast({ title: "✅ Todos os cupons excluídos", description: "Limpeza realizada com sucesso" });
+                      queryClient.invalidateQueries({ queryKey: ["/api/coupons/user"] });
+                    } else {
+                      throw new Error('Erro ao excluir cupons');
+                    }
+                  } catch (error) {
+                    toast({ title: "❌ Erro", description: "Falha ao excluir cupons", variant: "destructive" });
                   }
-                } catch (error) {
-                  toast({ title: "❌ Erro", description: "Falha ao excluir cupons", variant: "destructive" });
-                }
-              }}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              🧹 Excluir Todos (TESTE)
-            </Button>
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Excluir Todos (TESTE)
+              </Button>
+            </div>
           </div>
-          <p className="text-white/90 mt-2">
-            {coupons.length === 0 ? 'Nenhum cupom encontrado' : `${coupons.length} cupom${coupons.length > 1 ? 's' : ''} disponível${coupons.length > 1 ? 'eis' : ''}`}
-          </p>
         </div>
       </div>
 
