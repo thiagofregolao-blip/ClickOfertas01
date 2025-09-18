@@ -94,7 +94,7 @@ export function MiniMap({
         border border-gray-200 dark:border-gray-700
         shadow-sm
         transition-all duration-200
-        ${onClick ? 'cursor-pointer hover:shadow-md hover:scale-105' : ''}
+        ${onClick ? 'cursor-pointer hover:shadow-md' : ''}
         ${className}
       `}
       onClick={handleClick}
@@ -129,7 +129,7 @@ export function MiniMap({
       
       {/* Blue button overlay when onClick is provided */}
       {onClick && (
-        <div className="absolute inset-0 z-[1000] flex items-center justify-center">
+        <div className="absolute inset-0 z-10 flex items-center justify-center">
           <button
             className="
               bg-blue-600 hover:bg-blue-700 
