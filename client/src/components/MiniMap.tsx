@@ -130,11 +130,14 @@ export function MiniMap({
       {/* Clickable overlay for the entire map */}
       {onClick && (
         <div 
-          className="absolute inset-0 bg-blue-600/20 hover:bg-blue-600/30 transition-all cursor-pointer flex items-center justify-center"
+          className="absolute inset-0 bg-blue-600/20 hover:bg-blue-600/30 transition-all cursor-pointer flex flex-col items-center justify-center"
           onClick={handleClick}
           title="Clique para ver no mapa"
           data-testid="minimap-clickable-overlay"
         >
+          <div className="text-white text-xs font-medium mb-1 text-center">
+            Localização
+          </div>
           <div className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-2 py-1 rounded shadow-lg transition-all">
             📍 Ver mapa
           </div>
