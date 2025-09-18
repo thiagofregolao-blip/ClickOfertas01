@@ -1032,7 +1032,7 @@ export default function StoresGallery() {
       {/* Texto promocional */}
       <div className="bg-white border-b">
         <div className="mx-auto px-4 max-w-6xl py-3">
-          <p className="text-center text-gray-800 font-bold text-lg">
+          <p className="text-left text-gray-800 font-bold text-lg">
             Aqui você encontra as melhores marcas!
           </p>
         </div>
