@@ -1,0 +1,148 @@
+Banner Carousel (react-multi-carousel) — Replit/react
+· typescript
+import React from 'react';
+import Carousel from 'react-multi-carousel';
+import 'react-multi-carousel/lib/styles.css';
+
+
+type Banner = { id: string | number; imageUrl: string; title?: string; linkUrl?: string };
+
+
+// --- Demo data (as requested) ---
+const demoBanners: Banner[] = [
+  { id: 1, imageUrl: 'https://s.zst.com.br/prod/brickz/Hero_Buscape_Amazon_50_off_Desk_7fbd2ae30c.webp' },
+  { id: 2, imageUrl: 'https://s.zst.com.br/prod/brickz/buscap_kabum_7_cb_desk_1f92043e65.webp' },
+  { id: 3, imageUrl: 'https://s.zst.com.br/prod/brickz/Hero_Buscape_iphone_17_Desk_fee2cd8ee7.webp' },
+];
+
+
+function BannerCarousel({
+  banners,
+  autoPlayInterval = 4000,
+  showDots = true,
+  peekPx = 48,
+}: {
+  banners: Banner[];
+  autoPlayInterval?: number;
+  showDots?: boolean;
+  peekPx?: number;
+}) {
+  if (!banners || banners.length === 0) return null;
+
+
+  const responsive = {
+    desktop: { breakpoint: { max: 3000, min: 1280 }, items: 1, partialVisibilityGutter: 40 },
+    tablet:  { breakpoint: { max: 1280, min: 768 },  items: 1, partialVisibilityGutter: 32 },
+    mobile:  { breakpoint: { max: 768,  min: 0 },    items: 1, partialVisibilityGutter: 20 },
+  } as const;
+
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <Carousel
+        responsive={responsive}
+        infinite
+        autoPlay
+        autoPlaySpeed={autoPlayInterval}
+        arrows
+        showDots={showDots}
+        keyBoardControl
+        pauseOnHover
+        partialVisible
+        centerMode
+        containerClass="banner-carousel-container"
+        itemClass="banner-carousel-item"
+        sliderClass="banner-carousel-slider"
+        customTransition="transform 600ms ease"
+        transitionDuration={600}
+      >
+        {banners.map((b) => (
+          <div key={b.id} style={{ padding: '0 8px' }}>
+            <div
+              onClick={() => b.linkUrl && window.open(b.linkUrl, '_blank')}
+              style={{
+                maxWidth: '90%',
+                margin: '0 auto',
+                height: 'clamp(180px, 28vw, 320px)',
+                position: 'relative',
+                borderRadius: 12,
+                overflow: 'hidden',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                cursor: b.linkUrl ? 'pointer' : 'default',
+                background: '#eee',
+              }}
+            >
+              <img
+                src={b.imageUrl}
+                alt={b.title ?? 'banner'}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+              />
+            </div>
+          </div>
+        ))}
+      </Carousel>
+
+
+      <style>{`
+        .banner-carousel-container { overflow: visible; padding-inline: 12px; }
+        .banner-carousel-slider { overflow: visible; }
+        .banner-carousel-item   { padding-right: 0; }
+      `}</style>
+    </div>
+  );
+}
+
+
+// --- Default export for Canvas preview ---
+export default function DemoCarousel() {
+  return (
+    <div style={{ maxWidth: 1200, margin: '40px auto' }}>
+      <BannerCarousel banners={demoBanners} autoPlayInterval={4000} showDots peekPx={48} />
+    </div>
+  );
+}
+
+
+
+Valeu pelo retorno — já ajustei o componente no canvas para resolver exatamente esses pontos:
+
+#Tamanho do banner
+Troquei aspectRatio: '16 / 9' por height: 'clamp(180px, 28vw, 320px)'.
+Assim o banner fica responsivo, mas nunca fica gigante (limite máx. ~320px de altura).
+
+#Slide central colado à esquerda
+Ativei centerMode no react-multi-carousel.
+Com isso, o slide ativo fica centralizado e, combinado com partialVisible, você enxerga um pedaço do anterior (saída) e um pedaço do próximo (entrada).
+
+#Peek dos lados
+Mantive partialVisible e ajustei o partialVisibilityGutter por breakpoint para um “peek” agradável:
+
+desktop: 40px
+
+tablet: 32px
+
+mobile: 20px
+
+#Espaçamento interno do trilho
+Adicionei padding-inline: 12px no .banner-carousel-container para garantir um respiro nas laterais sem “empurrar” o slide ativo para as bordas.
+
+O que mudei no código (resumo):
+
+<Carousel ... partialVisible centerMode ... />
+
+height: 'clamp(180px, 28vw, 320px)' no card do banner (antes era aspectRatio).
+
+Gutters responsivos menores.
+
+CSS do container com padding-inline.
+
+Se quiser o “peek” maior/menor, mexa só nos gutters do responsive:
+
+partialVisibilityGutter: 48 // mais peek
+partialVisibilityGutter: 16 // menos peek
+
+
+Testa aí e me diz se agora você vê os três contextos: o banner ativo central, o de entrada à direita e o de saída à esquerda. Se quiser, ajusto a altura máxima (ex.: 280px) ou centralizo tudo dentro de um maxWidth menor (ex.: 980px) pra ficar mais compacto.

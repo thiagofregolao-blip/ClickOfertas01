@@ -32,12 +32,7 @@ export interface BannerCarouselSwiperProps {
 }
 
 /**
- * BannerCarousel – versão com react-multi-carousel
- * 
- * Correções aplicadas:
- * 1) items: 1 em todos os breakpoints (nada fracionário)
- * 2) partialVisible + partialVisibilityGutter para o "peek"
- * 3) autoPlay, infinite, pauseOnHover ativados
+ * BannerCarousel – versão com react-multi-carousel otimizada
  */
 export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
   banners,
@@ -48,25 +43,13 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
   }
 
   const responsive = {
-    desktop: {
-      breakpoint: { max: 3000, min: 1280 },
-      items: 1,
-      partialVisibilityGutter: 60,
-    },
-    tablet: {
-      breakpoint: { max: 1280, min: 768 },
-      items: 1,
-      partialVisibilityGutter: 50,
-    },
-    mobile: {
-      breakpoint: { max: 768, min: 0 },
-      items: 1,
-      partialVisibilityGutter: 40,
-    },
-  };
+    desktop: { breakpoint: { max: 3000, min: 1280 }, items: 1, partialVisibilityGutter: 40 },
+    tablet:  { breakpoint: { max: 1280, min: 768 },  items: 1, partialVisibilityGutter: 32 },
+    mobile:  { breakpoint: { max: 768,  min: 0 },    items: 1, partialVisibilityGutter: 20 },
+  } as const;
 
   return (
-    <div style={{ width: "100%", position: "relative", overflow: "visible" }}>
+    <div style={{ position: 'relative', width: '100%' }}>
       <Carousel
         responsive={responsive}
         infinite
@@ -77,61 +60,66 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
         keyBoardControl
         pauseOnHover
         partialVisible
-        containerClass="banner-carousel"
-        itemClass="banner-item"
-        renderButtonGroupOutside={false}
+        centerMode
+        containerClass="banner-carousel-container"
+        itemClass="banner-carousel-item"
+        sliderClass="banner-carousel-slider"
+        customTransition="transform 600ms ease"
+        transitionDuration={600}
       >
         {banners.map((banner) => (
-          <div
-            key={banner.id}
-            onClick={() => banner.linkUrl && window.open(banner.linkUrl, "_blank")}
-            style={{
-              cursor: banner.linkUrl ? "pointer" : "default",
-              width: "100%",
-              height: 'clamp(100px, 12vw, 180px)',
-              borderRadius: 12,
-              overflow: "hidden",
-              boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-              position: "relative",
-            }}
-          >
-            <img
-              src={banner.imageUrl}
-              alt={banner.title ?? "banner"}
+          <div key={banner.id} style={{ padding: '0 8px' }}>
+            <div
+              onClick={() => banner.linkUrl && window.open(banner.linkUrl, "_blank")}
               style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                display: "block",
-                transition: "none",
-                transform: "none",
+                maxWidth: '90%',
+                margin: '0 auto',
+                height: 'clamp(180px, 28vw, 320px)',
+                position: 'relative',
+                borderRadius: 12,
+                overflow: 'hidden',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                cursor: banner.linkUrl ? 'pointer' : 'default',
+                background: '#eee',
               }}
-              loading="lazy"
-              decoding="async"
-              draggable={false}
-            />
+            >
+              <img
+                src={banner.imageUrl}
+                alt={banner.title ?? "banner"}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+              />
 
-            {/* Overlay opcional */}
-            {/* {banner.title && (
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: 16,
-                  left: 16,
-                  right: 16,
-                  backgroundColor: banner.backgroundColor || "rgba(0,0,0,0.5)",
-                  color: banner.textColor || "#fff",
-                  padding: "8px 12px",
-                  borderRadius: 8,
-                }}
-              >
-                <h3 style={{ margin: 0 }}>{banner.title}</h3>
-                {banner.description && <p style={{ margin: 0 }}>{banner.description}</p>}
-              </div>
-            )} */}
+              {/* Overlay opcional */}
+              {/* {banner.title && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 16,
+                    left: 16,
+                    right: 16,
+                    backgroundColor: banner.backgroundColor || "rgba(0,0,0,0.5)",
+                    color: banner.textColor || "#fff",
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                  }}
+                >
+                  <h3 style={{ margin: 0 }}>{banner.title}</h3>
+                  {banner.description && <p style={{ margin: 0 }}>{banner.description}</p>}
+                </div>
+              )} */}
+            </div>
           </div>
         ))}
       </Carousel>
+
+      <style>{`
+        .banner-carousel-container { overflow: visible; padding-inline: 12px; }
+        .banner-carousel-slider { overflow: visible; }
+        .banner-carousel-item   { padding-right: 0; }
+      `}</style>
     </div>
   );
 };
