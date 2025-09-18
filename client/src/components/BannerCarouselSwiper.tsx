@@ -88,7 +88,7 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
             style={{
               cursor: banner.linkUrl ? "pointer" : "default",
               width: "100%",
-              height: 'clamp(140px, 22vw, 360px)',
+              height: 'clamp(120px, 15vw, 240px)',
               borderRadius: 12,
               overflow: "hidden",
               boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
