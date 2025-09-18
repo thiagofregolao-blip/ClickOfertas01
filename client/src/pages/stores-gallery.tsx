@@ -737,7 +737,7 @@ export default function StoresGallery() {
       
       {/* Desktop: Header completo */}
       {!isMobile && (
-        <div className="sticky top-0 z-50" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
+        <div className="fixed top-0 left-0 right-0 z-50" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
           {/* Desktop: Layout original */}
           <div className={`py-4 px-2 ml-[5%]`}>
             {/* Logo e Barra de Busca - PRIMEIRO */}
@@ -933,7 +933,7 @@ export default function StoresGallery() {
 
       {/* SEÇÃO DE BANNERS - Desktop apenas */}
       {!searchQuery.trim() && !isMobile && (
-        <div className="bg-white border-b -mt-4">
+        <div className="bg-white border-b pt-40">
           {/* Banner ocupando toda a largura da tela */}
           <BannerSection isSearchActive={false} />
         </div>
@@ -1064,16 +1064,18 @@ export default function StoresGallery() {
       </div>
 
       {/* Feed Unificado */}
-      <UnifiedFeedView 
-        stores={searchQuery.trim() ? stores || [] : filteredStores} 
-        searchQuery={searchQuery} 
-        searchResults={searchResults} 
-        isMobile={isMobile}
-        onProductSelect={(product, store) => {
-          setSelectedProduct(product);
-          setSelectedStore(store);
-        }}
-      />
+      <div className={searchQuery.trim() && !isMobile ? 'pt-40' : ''}>
+        <UnifiedFeedView 
+          stores={searchQuery.trim() ? stores || [] : filteredStores} 
+          searchQuery={searchQuery} 
+          searchResults={searchResults} 
+          isMobile={isMobile}
+          onProductSelect={(product, store) => {
+            setSelectedProduct(product);
+            setSelectedStore(store);
+          }}
+        />
+      </div>
       
       {/* Product Detail Modal */}
       <ProductDetailModal
