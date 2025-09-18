@@ -66,24 +66,11 @@ export default function ProductCard({
 }: ProductCardProps) {
   const { hearts, handleDoubleTap, handleSaveProduct, isSaving, isProductLiked, isProductSaved, toggleLike } = useEngagement();
   const { isAuthenticated } = useAuth();
-  const { trackEvent, sessionToken } = useAnalytics();
+  const analytics = useAnalytics();
   const categoryColors = getCategoryColors(product.category || undefined);
   const [showPriceComparison, setShowPriceComparison] = useState(false);
   
   const handleCardClick = () => {
-    // Capturar visualização de produto
-    if (sessionToken) {
-      trackEvent('productView', {
-        sessionToken,
-        productId: product.id,
-        productName: product.name,
-        category: product.category || undefined,
-        price: product.price,
-        storeId: storeId || undefined,
-        source
-      });
-    }
-
     if (onClick) {
       onClick(product);
     }
@@ -91,30 +78,7 @@ export default function ProductCard({
 
   // Override handleSaveProduct para incluir analytics
   const handleSaveWithAnalytics = async (productId: string) => {
-    // Capturar evento de save
-    if (sessionToken) {
-      trackEvent('productSave', {
-        sessionToken,
-        productId
-      });
-    }
-    
     return handleSaveProduct(productId);
-  };
-
-  // Handler para comparação de preços com analytics
-  const handlePriceComparisonClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    // Capturar evento de compare
-    if (sessionToken) {
-      trackEvent('productCompare', {
-        sessionToken,
-        productId: product.id
-      });
-    }
-    
-    setShowPriceComparison(true);
   };
 
   // CORRIGIDO: Produto original SEMPRE aparece normal
@@ -165,6 +129,8 @@ export default function ProductCard({
           
           {/* Preço */}
           <div className="mb-4 sm:mb-2 text-left">
+            {/* Texto "A partir de:" */}
+            <p className="text-xs text-gray-500 mb-1">A partir de:</p>
             {/* Preço USD em vermelho - mobile e desktop */}
             <p className="text-base text-red-600 font-medium mb-1">
               {currency} {formatBrazilianPrice(product.price || '0')}
