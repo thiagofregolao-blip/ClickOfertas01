@@ -1029,6 +1029,29 @@ export default function StoresGallery() {
         </div>
       )}
 
+      {/* Banner Estático */}
+      <div className="bg-white">
+        <div className="mx-auto px-4 max-w-6xl py-4">
+          {/* Texto PUBLICIDADE */}
+          <div className="text-left mb-2">
+            <span className="text-xs text-gray-500 uppercase tracking-wide">PUBLICIDADE</span>
+          </div>
+          
+          {/* Banner */}
+          <div className="w-full">
+            <img
+              src="https://cdn2.newtail.com.br/retail_media/ads/2025/09/04/c279bef7b93b1a84d6aa559c19a0cfa9.jpeg"
+              alt="Banner Publicitário"
+              className="w-full h-auto rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => {
+                // Aqui será implementado o clique do banner quando necessário
+                console.log('Banner clicado');
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Texto promocional */}
       <div className="bg-white">
         <div className="mx-auto px-4 max-w-6xl py-3">
