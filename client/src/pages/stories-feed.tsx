@@ -7,10 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Heart, Share2, Plus, Eye, X, ArrowLeft, ArrowRight } from 'lucide-react';
-import { Link, useLocation } from 'wouter';
+import { Link } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { TwoPartHeader, TOTAL_HEADER_HEIGHT } from '@/components/TwoPartHeader';
 
 interface InstagramStory {
   id: string;
@@ -49,7 +48,6 @@ export default function StoriesFeed() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
 
   const [selectedStoryIndex, setSelectedStoryIndex] = useState<number | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
@@ -205,31 +203,21 @@ export default function StoriesFeed() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950">
-      {/* TwoPartHeader with categories support */}
-      <TwoPartHeader
-        variant="full"
-        title="Stories"
-        isAuthenticated={isAuthenticated}
-        user={user}
-        onLogin={() => setLocation('/login')}
-        onLogout={() => window.location.href = '/api/auth/logout'}
-        showBack={true}
-        onBack={() => setLocation('/')}
-        gradient="bg-gradient-to-r from-purple-500 to-pink-500"
-        data-testid="header-stories-feed"
-      >
-        {/* Botão de criar story no header */}
-        {isAuthenticated && (
-          <Button asChild data-testid="button-create-story" size="sm" className="bg-purple-600 hover:bg-purple-700">
-            <Link href="/create-story" className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Criar Story
-            </Link>
-          </Button>
-        )}
-      </TwoPartHeader>
-      
-      <div className="container mx-auto px-4" style={{ paddingTop: `${TOTAL_HEADER_HEIGHT + 24}px` }}>
+      <div className="container mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Stories
+          </h1>
+          {isAuthenticated && (
+            <Button asChild data-testid="button-create-story">
+              <Link href="/create-story" className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Criar Story
+              </Link>
+            </Button>
+          )}
+        </div>
 
         {/* Barra de Stories (horizontal scroll) */}
         <div className="mb-8">

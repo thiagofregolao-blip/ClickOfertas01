@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Star, MapPin, MessageCircle as WhatsApp, Instagram, ShoppingBag, Crown, User, Settings, LogOut, ShoppingCart, Smartphone, Droplets, Laptop, Monitor, Grid } from "lucide-react";
 import { formatPriceWithCurrency } from "@/lib/priceUtils";
 import { TwoPartHeader } from "@/components/TwoPartHeader";
-import LoginPage from "@/components/login-page";
 import { useAuth } from "@/hooks/useAuth";
 
 interface Store {
@@ -64,7 +63,6 @@ export default function ProductCompare() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   // Buscar dados de comparação do produto
   const { data: comparisonData, isLoading } = useQuery<ProductComparisonData>({
@@ -139,32 +137,20 @@ export default function ProductCompare() {
       <TwoPartHeader 
         showSearch={false}
         showNotifications={true}
-        isAuthenticated={isAuthenticated}
-        user={user ? {
-          firstName: user.firstName || undefined,
-          fullName: user.fullName || undefined,
-          email: user.email || undefined
-        } : undefined}
-        onLogin={() => setIsLoginModalOpen(true)}
-        onLogout={() => window.location.href = '/api/auth/logout'}
       >
-        {/* Menu de navegação - sem login duplicado */}
-        <div className="flex items-center gap-4">
-          {/* Botão de volta */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setLocation('/cards')}
-            className="text-white hover:bg-white/20 transition-colors"
-            data-testid="button-back-to-stores"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar às lojas
-          </Button>
-          
-          {/* Botões de navegação para usuários autenticados */}
-          {isAuthenticated && (
-            <>
+        {isAuthenticated ? (
+          // Desktop - menu na mesma linha
+          <div className="flex items-center gap-4">
+            {/* Saudação */}
+            <div className="text-white font-medium flex items-center gap-2">
+              <User className="w-5 h-5" />
+              <span className="text-sm">
+                Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
+              </span>
+            </div>
+            
+            {/* Botões do menu */}
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => setLocation('/settings')}
                 className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
@@ -198,47 +184,77 @@ export default function ProductCompare() {
 
               {/* Separador visual */}
               <span className="text-gray-400 text-sm">|</span>
-            </>
-          )}
-          
-          {/* Botão "Todos" */}
-          <button
-            onClick={() => handleCategoryFilter(null)}
-            className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
-              selectedCategory === null
-                ? 'bg-yellow-400 text-gray-900 shadow-sm'
-                : 'text-white hover:text-gray-200'
-            }`}
-            data-testid="button-category-todos-desktop"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="m9 12 2 2 4-4"/>
-            </svg>
-            Todos
-          </button>
-          
-          {/* Categorias Dinâmicas do Backend */}
-          {categoriesLoading ? (
-            <div className="text-white/70 text-sm">Carregando categorias...</div>
-          ) : (
-            categories.map((category) => (
+              
+              {/* Botão "Todos" */}
               <button
-                key={category.id}
-                onClick={() => handleCategoryFilter(category.slug)}
+                onClick={() => handleCategoryFilter(null)}
                 className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
-                  selectedCategory === category.slug || selectedCategory === category.name
+                  selectedCategory === null
                     ? 'bg-yellow-400 text-gray-900 shadow-sm'
                     : 'text-white hover:text-gray-200'
                 }`}
-                data-testid={`button-category-${category.slug}`}
+                data-testid="button-category-todos-desktop"
               >
-                {getCategoryIcon(category.slug)}
-                {category.name}
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="m9 12 2 2 4-4"/>
+                </svg>
+                Todos
               </button>
-            ))
-          )}
-        </div>
+              
+              {/* Categorias Dinâmicas do Backend */}
+              {categoriesLoading ? (
+                <div className="text-white/70 text-sm">Carregando categorias...</div>
+              ) : (
+                categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => handleCategoryFilter(category.slug)}
+                    className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
+                      selectedCategory === category.slug || selectedCategory === category.name
+                        ? 'bg-yellow-400 text-gray-900 shadow-sm'
+                        : 'text-white hover:text-gray-200'
+                    }`}
+                    data-testid={`button-category-${category.slug}`}
+                  >
+                    {getCategoryIcon(category.slug)}
+                    {category.name}
+                  </button>
+                ))
+              )}
+              
+              <button
+                onClick={() => window.location.href = '/api/auth/logout'}
+                className="text-red-300 hover:text-red-100 font-medium flex items-center gap-1 text-sm"
+                data-testid="button-user-logout"
+              >
+                <LogOut className="w-4 h-4" />
+                Sair
+              </button>
+            </div>
+          </div>
+        ) : (
+          // Usuário não logado - mostrar botão entrar com volta
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setLocation('/cards')}
+              className="text-white hover:bg-white/20 transition-colors"
+              data-testid="button-back-to-stores"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar às lojas
+            </Button>
+            <button
+              className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
+              data-testid="button-user-login"
+            >
+              <User className="w-4 h-4" />
+              Entrar
+            </button>
+          </div>
+        )}
       </TwoPartHeader>
 
       <div className="mx-auto max-w-6xl px-4 py-8">
@@ -564,13 +580,6 @@ export default function ProductCompare() {
           </div>
         </div>
       </div>
-      
-      {/* Login Modal */}
-      <LoginPage 
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        mode="user"
-      />
     </div>
   );
 }

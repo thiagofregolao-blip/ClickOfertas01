@@ -4,14 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, Download, Trash2, MapPin, Store, DollarSign } from "lucide-react";
+import { ShoppingCart, Download, Trash2, MapPin, Store, DollarSign, Settings, BarChart3, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import type { SavedProductWithDetails } from "@shared/schema";
 import jsPDF from 'jspdf';
-import { TwoPartHeader, HEADER_HEIGHT } from "@/components/TwoPartHeader";
+import StandardHeader from "@/components/StandardHeader";
 
 // Agrupar produtos por loja
 function groupProductsByStore(savedProducts: SavedProductWithDetails[]) {
@@ -31,23 +31,11 @@ function groupProductsByStore(savedProducts: SavedProductWithDetails[]) {
 }
 
 export default function ShoppingList() {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [, setLocation] = useLocation();
-
-  const handleLogin = () => {
-    window.location.href = '/api/auth/login';
-  };
-
-  const handleLogout = () => {
-    window.location.href = '/api/auth/logout';
-  };
-
-  const handleBack = () => {
-    setLocation('/cards');
-  };
 
   const { data: savedProducts = [], isLoading, error } = useQuery<SavedProductWithDetails[]>({
     queryKey: ['/api/saved-products'],
@@ -240,48 +228,38 @@ export default function ShoppingList() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <TwoPartHeader
-        variant="primaryOnly"
-        title="Lista de Compras"
-        showSearch={false}
-        showBack={true}
-        onBack={handleBack}
-        isAuthenticated={isAuthenticated}
-        user={user}
-        onLogin={handleLogin}
-        onLogout={handleLogout}
-      />
-
-      <div className="max-w-4xl mx-auto p-4" style={{ marginTop: `${HEADER_HEIGHT}px` }}>
-        {/* Cabeçalho da Página */}
-        <div className="border-b bg-white shadow-sm rounded-lg mb-6">
-          <div className="px-4 py-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                  <ShoppingCart className="h-7 w-7 text-blue-600" />
-                  Minha Lista de Compras
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  {savedProducts.length} produto{savedProducts.length !== 1 ? 's' : ''} em {groupedProducts.length} loja{groupedProducts.length !== 1 ? 's' : ''}
-                </p>
-              </div>
-              
-              {savedProducts.length > 0 && (
-                <Button 
-                  onClick={generatePDF}
-                  disabled={isGeneratingPDF}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  {isGeneratingPDF ? 'Gerando...' : 'Baixar PDF'}
-                </Button>
-              )}
+      {/* Header Padrão */}
+      <StandardHeader />
+      
+      {/* Cabeçalho da Página */}
+      <div className="border-b bg-white shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <ShoppingCart className="h-7 w-7 text-blue-600" />
+                Lista de Compras
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {savedProducts.length} produto{savedProducts.length !== 1 ? 's' : ''} em {groupedProducts.length} loja{groupedProducts.length !== 1 ? 's' : ''}
+              </p>
             </div>
+            
+            {savedProducts.length > 0 && (
+              <Button 
+                onClick={generatePDF}
+                disabled={isGeneratingPDF}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {isGeneratingPDF ? 'Gerando...' : 'Baixar PDF'}
+              </Button>
+            )}
           </div>
         </div>
+      </div>
 
+      <div className="max-w-4xl mx-auto p-4">
         <div className="mb-6">
 
           {/* Resumo */}
@@ -417,6 +395,74 @@ export default function ShoppingList() {
             </Card>
           );
         })}
+      </div>
+      
+      {/* Menu do Rodapé Mobile */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+        <div className="flex items-center justify-around py-2 px-4">
+          {/* Home */}
+          <Link href="/cards">
+            <button
+              className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-primary"
+              data-testid="button-mobile-home"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9,22 9,12 15,12 15,22"/>
+              </svg>
+              <span className="text-xs">Home</span>
+            </button>
+          </Link>
+          
+          {/* Configurações */}
+          <button
+            onClick={() => setLocation('/settings')}
+            className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-primary"
+            data-testid="button-mobile-settings"
+          >
+            <Settings className="w-5 h-5" />
+            <span className="text-xs">Config</span>
+          </button>
+          
+          {/* Comparar Preços */}
+          <Link href="/price-comparison">
+            <button
+              className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-primary"
+              data-testid="button-mobile-comparison"
+            >
+              <BarChart3 className="w-5 h-5" />
+              <span className="text-xs">Comparar</span>
+            </button>
+          </Link>
+          
+          {/* Meus Cupons */}
+          <button
+            onClick={() => setLocation('/my-coupons')}
+            className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-primary"
+            data-testid="button-mobile-coupons"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+              <line x1="8" y1="2" x2="8" y2="22"/>
+              <line x1="16" y1="2" x2="16" y2="22"/>
+            </svg>
+            <span className="text-xs">Cupons</span>
+          </button>
+          
+          {/* Sair */}
+          {isAuthenticated && (
+            <button
+              onClick={() => {
+                window.location.href = '/api/logout';
+              }}
+              className="flex flex-col items-center gap-1 p-2 text-red-600 hover:text-red-700"
+              data-testid="button-mobile-logout"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="text-xs">Sair</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -12,8 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocation, Link } from "wouter";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
-import { TwoPartHeader, TOTAL_HEADER_HEIGHT } from "@/components/TwoPartHeader";
-import LoginPage from "@/components/login-page";
+import StandardHeader from "@/components/StandardHeader";
 
 interface BrazilianPrice {
   store: string;
@@ -51,9 +50,8 @@ export default function PriceComparison() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedProductDetail, setSelectedProductDetail] = useState<any | null>(null);
   const [selectedStore, setSelectedStore] = useState<any | null>(null);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [, setLocation] = useLocation();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   // Buscar produtos disponíveis no Paraguay para comparação
   const { data: paraguayProducts = [], isLoading: loadingProducts } = useQuery<any[]>({
@@ -171,18 +169,8 @@ export default function PriceComparison() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* TwoPartHeader with back navigation */}
-      <TwoPartHeader 
-        variant="primaryOnly"
-        title="Comparação de Preços"
-        isAuthenticated={isAuthenticated}
-        user={user}
-        onLogin={() => setIsLoginModalOpen(true)}
-        onLogout={() => window.location.href = '/api/auth/logout'}
-        showBack={true}
-        onBack={() => setLocation('/')}
-        data-testid="header-price-comparison"
-      />
+      {/* Header Padrão */}
+      <StandardHeader />
       
       {/* Cabeçalho da Página */}
       <div className="border-b bg-white shadow-sm">
@@ -605,13 +593,6 @@ export default function PriceComparison() {
           )}
         </div>
       </div>
-
-      {/* Login Modal */}
-      <LoginPage 
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        mode="user"
-      />
     </div>
   );
 }

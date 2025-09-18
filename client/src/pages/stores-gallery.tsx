@@ -26,7 +26,7 @@ import { BannerSection } from "@/components/BannerSection";
 import BannerCarouselSwiper from "@/components/BannerCarouselSwiper";
 import ThreeDailyScratchCards from "@/components/ThreeDailyScratchCards";
 import { RectangularScratchCard } from "@/components/RectangularScratchCard";
-import { TwoPartHeader, TOTAL_HEADER_HEIGHT } from "@/components/TwoPartHeader";
+import GlobalHeader from "@/components/global-header";
 import type { StoreWithProducts, Product, InstagramStoryWithDetails } from "@shared/schema";
 import logoUrl from '../assets/logo.jpg';
 
@@ -114,11 +114,31 @@ export default function StoresGallery() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const progressRef = useRef(0);
   
-  // Removido: Estado para controle do header scroll (agora gerenciado pelo TwoPartHeader)
+  // Estado para controle do header scroll
+  const [isMenuVisible, setIsMenuVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   
   const STORY_DURATION = 5000; // 5 segundos
 
-  // Removido: Scroll listener (agora gerenciado pelo TwoPartHeader)
+  // Scroll listener para esconder/mostrar menu
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY < lastScrollY) {
+        // Rolando para cima - mostrar menu
+        setIsMenuVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Rolando para baixo e passou de 100px - esconder menu
+        setIsMenuVisible(false);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   // Timer para progresso do story
   useEffect(() => {
@@ -558,7 +578,89 @@ export default function StoresGallery() {
   return (
     <div className="min-h-screen bg-white">
       
-      {/* Removido: Header customizado mobile (agora usando TwoPartHeader) */}
+      {/* Mobile: Header com logo, busca e banner */}
+      {isMobile && (
+        <div className="bg-gradient-to-r from-red-500 to-orange-500">
+          <div className="px-4 py-3">
+            {/* Logo e Busca */}
+            <div className="flex items-center gap-3 mb-3">
+              {/* Logo - removido para mobile */}
+              
+              {/* Barra de Busca Mobile */}
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder={isSearchFocused || searchInput ? "Buscar produtos..." : currentText}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onFocus={() => setIsSearchFocused(true)}
+                    onBlur={() => setIsSearchFocused(false)}
+                    className="pl-10 pr-10 py-2 w-full bg-white border-0 rounded-lg shadow-sm text-gray-900 placeholder-gray-400"
+                    data-testid="mobile-search-input"
+                  />
+                  {searchInput && (
+                    <button
+                      onClick={() => setSearchInput('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      title="Limpar busca"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              {/* Botão Comparar Preços Mobile */}
+              <Link href="/price-comparison">
+                <Button
+                  size="sm"
+                  className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-medium px-2 py-2 rounded-lg shadow-sm"
+                  data-testid="button-price-comparison-mobile"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Mobile: Filtros de Categoria */}
+      {isMobile && (
+        <div className="bg-white border-b px-4 py-3">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+            {/* Botão "Todos" */}
+            <button
+              onClick={() => handleCategoryFilter(null)}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                selectedCategory === null
+                  ? 'bg-red-500 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              data-testid="category-filter-todos"
+            >
+              Todos
+            </button>
+            
+            {/* Botões das categorias */}
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => handleCategoryFilter(category.slug)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                  selectedCategory === category.slug || selectedCategory === category.name
+                    ? 'bg-red-500 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                data-testid={`category-filter-${category.slug}`}
+              >
+                {getCategoryIcon(category.slug)} {category.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Mobile: Banner rotativo primeiro */}
       {isMobile && !searchQuery.trim() && (
@@ -657,31 +759,218 @@ export default function StoresGallery() {
       )}
       
       
-      {/* TwoPartHeader - Substituindo header customizado */}
-      <TwoPartHeader 
-        variant="full"
-        selectedCategory={selectedCategory}
-        onCategorySelect={handleCategoryFilter}
-        searchValue={searchInput}
-        onSearchChange={setSearchInput}
-        searchPlaceholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
-        onLoginClick={() => setIsLoginModalOpen(true)}
-      />
+      {/* Desktop: Header dividido em duas partes */}
+      {!isMobile && (
+        <>
+          {/* PARTE 1: Header superior fixo (sempre visível) */}
+          <div className="fixed top-0 left-0 right-0 z-50" style={{background: 'linear-gradient(135deg, #F04940 0%, #FA7D22 100%)'}}>
+            <div className={`py-4 px-2 ml-[5%]`}>
+              {/* Logo e Barra de Busca */}
+              <div className="flex items-center gap-4">
+                {/* Título */}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <span className="text-white font-bold text-2xl tracking-normal" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: '700'}}>Click</span>
+                  <span className="font-bold text-2xl tracking-normal">
+                    <span className="text-white">Ofertas.</span>
+                    <span style={{color: '#FFE600'}}>PY</span>
+                  </span>
+                </div>
 
-      {/* Botão temporário de acesso Super Admin */}
-      <button
-        onClick={() => {
-          window.location.href = '/super-admin-login';
-        }}
-        className="fixed bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium z-50"
-        data-testid="button-super-admin"
-      >
-        🔧 Super Admin
-      </button>
+                {/* Botão Comparar Preços */}
+                <Link href="/price-comparison">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-2 text-black font-semibold hover:opacity-90 backdrop-blur-sm"
+                    style={{ backgroundColor: '#FFE600', borderColor: '#FFE600' }}
+                    data-testid="button-price-comparison"
+                  >
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Comparar Preços
+                  </Button>
+                </Link>
+                
+                {/* Barra de Busca */}
+                <div className="flex-1 max-w-4xl">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      onFocus={() => setIsSearchFocused(true)}
+                      onBlur={() => setIsSearchFocused(false)}
+                      className="pl-10 pr-10 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
+                    />
+                    {searchInput && (
+                      <button
+                        onClick={() => setSearchInput('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        title="Limpar busca"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Sino de notificações - Desktop */}
+                <button
+                  className="bg-white/90 backdrop-blur-sm text-gray-600 hover:text-orange-500 p-2 rounded-lg shadow-sm transition-colors relative"
+                  title="Notificações"
+                  data-testid="button-notifications-desktop"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                  </svg>
+                  {/* Badge de notificação */}
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    3
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* PARTE 2: Menu de navegação (deslizante) */}
+          <div 
+            className={`fixed left-0 right-0 z-40 transition-transform duration-300 ease-in-out ${
+              isMenuVisible ? 'translate-y-0' : '-translate-y-full'
+            }`}
+            style={{
+              top: '72px', // Altura exata da primeira parte do header
+              background: 'linear-gradient(135deg, #F04940 0%, #FA7D22 100%)'
+            }}
+          >
+            <div className="py-3 px-2 ml-[5%]">
+              <div className="flex items-center justify-start gap-3 -ml-2">
+              
+              {/* Botão temporário de acesso Super Admin */}
+              <button
+                onClick={() => {
+                  window.location.href = '/super-admin-login';
+                }}
+                className="fixed bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium z-50"
+              >
+                🔧 Super Admin
+              </button>
+              
+              {isAuthenticated ? (
+                // Desktop - menu na mesma linha
+                <div className="flex items-center gap-4">
+                  {/* Saudação */}
+                  <div className="text-white font-medium flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    <span className="text-sm">
+                      Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
+                    </span>
+                  </div>
+                  
+                  {/* Botões do menu */}
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => setLocation('/settings')}
+                      className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
+                      data-testid="button-user-config"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Configurações
+                    </button>
+                    
+                    <button
+                      onClick={() => setLocation('/shopping-list')}
+                      className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
+                      data-testid="button-shopping-list"
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                      Lista de Compras
+                    </button>
+                    
+                    <button
+                      onClick={() => setLocation('/my-coupons')}
+                      className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
+                      data-testid="button-my-coupons"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+                        <line x1="8" y1="2" x2="8" y2="22"/>
+                        <line x1="16" y1="2" x2="16" y2="22"/>
+                      </svg>
+                      Meus Cupons
+                    </button>
+
+                    {/* Separador visual */}
+                    <span className="text-gray-400 text-sm">|</span>
+                    
+                    {/* Botão "Todos" */}
+                    <button
+                      onClick={() => handleCategoryFilter(null)}
+                      className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
+                        selectedCategory === null
+                          ? 'bg-yellow-400 text-gray-900 shadow-sm'
+                          : 'text-white hover:text-gray-200'
+                      }`}
+                      data-testid="button-category-todos-desktop"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="m9 12 2 2 4-4"/>
+                      </svg>
+                      Todos
+                    </button>
+                    
+                    {/* Categorias Dinâmicas do Backend */}
+                    {categoriesLoading ? (
+                      <div className="text-white/70 text-sm">Carregando categorias...</div>
+                    ) : (
+                      categories.map((category) => (
+                        <button
+                          key={category.id}
+                          onClick={() => handleCategoryFilter(category.slug)}
+                          className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
+                            selectedCategory === category.slug || selectedCategory === category.name
+                              ? 'bg-yellow-400 text-gray-900 shadow-sm'
+                              : 'text-white hover:text-gray-200'
+                          }`}
+                          data-testid={`button-category-${category.slug}`}
+                        >
+                          {getCategoryIcon(category.slug)}
+                          {category.name}
+                        </button>
+                      ))
+                    )}
+                    
+                    <button
+                      onClick={() => window.location.href = '/api/auth/logout'}
+                      className="text-red-300 hover:text-red-100 font-medium flex items-center gap-1 text-sm"
+                      data-testid="button-user-logout"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sair
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                // Usuário não logado - mostrar botão entrar
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
+                  data-testid="button-user-login"
+                >
+                  <User className="w-4 h-4" />
+                  Entrar
+                </button>
+              )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* SEÇÃO DE BANNERS - Desktop apenas */}
       {!searchQuery.trim() && !isMobile && (
-        <div className="bg-white border-b" style={{ paddingTop: TOTAL_HEADER_HEIGHT }}>
+        <div className="bg-white border-b pt-32">
           {/* Banner ocupando toda a largura da tela */}
           <BannerSection isSearchActive={false} />
         </div>
@@ -812,7 +1101,7 @@ export default function StoresGallery() {
       </div>
 
       {/* Feed Unificado */}
-      <div className={searchQuery.trim() && !isMobile ? '' : ''} style={searchQuery.trim() && !isMobile ? { paddingTop: TOTAL_HEADER_HEIGHT } : {}}>
+      <div className={searchQuery.trim() && !isMobile ? 'pt-32' : ''}>
         <UnifiedFeedView 
           stores={searchQuery.trim() ? stores || [] : filteredStores} 
           searchQuery={searchQuery} 

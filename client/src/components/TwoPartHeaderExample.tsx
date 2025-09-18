@@ -2,8 +2,6 @@ import { useState } from "react";
 import { TwoPartHeader } from "@/components/TwoPartHeader";
 import { Button } from "@/components/ui/button";
 import { User, Settings, ShoppingCart, LogOut, Smartphone, Droplets, Laptop, Monitor, Grid } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import LoginPage from "@/components/login-page";
 
 // Função para obter ícone da categoria (copiada do stores-gallery)
 function getCategoryIcon(slug: string) {
@@ -29,8 +27,6 @@ export function TwoPartHeaderExample() {
   const [searchValue, setSearchValue] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [notificationCount] = useState(5);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const { isAuthenticated, user } = useAuth();
   
   // Dados de exemplo para categorias
   const categories = [
@@ -67,35 +63,14 @@ export function TwoPartHeaderExample() {
         onNotificationClick={handleNotificationClick}
         gradient="linear-gradient(135deg, #F04940 0%, #FA7D22 100%)"
         scrollThreshold={100}
-        isAuthenticated={isAuthenticated}
-        user={user ? {
-          firstName: user.firstName || undefined,
-          fullName: user.fullName || undefined,
-          email: user.email || undefined
-        } : undefined}
-        onLogin={() => setIsLoginModalOpen(true)}
-        onLogout={() => window.location.href = '/api/auth/logout'}
       >
         {/* Menu customizado com categorias */}
         <div className="flex items-center gap-4">
-          {/* Saudação baseada no estado de autenticação */}
-          {isAuthenticated ? (
-            <div className="text-white font-medium flex items-center gap-2">
-              <User className="w-5 h-5" />
-              <span className="text-sm">
-                Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
-              </span>
-            </div>
-          ) : (
-            <button
-              onClick={() => setIsLoginModalOpen(true)}
-              className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
-              data-testid="button-login-example"
-            >
-              <User className="w-4 h-4" />
-              Entrar
-            </button>
-          )}
+          {/* Saudação de exemplo */}
+          <div className="text-white font-medium flex items-center gap-2">
+            <User className="w-5 h-5" />
+            <span className="text-sm">Olá, Usuário</span>
+          </div>
           
           {/* Botões do menu */}
           <div className="flex items-center gap-4">
@@ -156,18 +131,15 @@ export function TwoPartHeaderExample() {
               </button>
             ))}
             
-            {isAuthenticated && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.location.href = '/api/auth/logout'}
-                className="text-red-300 hover:text-red-100 font-medium flex items-center gap-1 text-sm"
-                data-testid="button-logout-example"
-              >
-                <LogOut className="w-4 h-4" />
-                Sair
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-red-300 hover:text-red-100 font-medium flex items-center gap-1 text-sm"
+              data-testid="button-logout-example"
+            >
+              <LogOut className="w-4 h-4" />
+              Sair
+            </Button>
           </div>
         </div>
       </TwoPartHeader>
@@ -213,13 +185,6 @@ export function TwoPartHeaderExample() {
           ))}
         </div>
       </div>
-
-      {/* Login Modal */}
-      <LoginPage 
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        mode="user"
-      />
     </div>
   );
 }
