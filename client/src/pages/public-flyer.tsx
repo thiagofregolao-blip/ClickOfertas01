@@ -531,33 +531,8 @@ export default function PublicFlyer() {
             </div>
           </div>
         ) : (
-          // Usuário não logado - mostrar menu simples com volta
+          // Usuário não logado - menu limpo
           <div className="flex items-center gap-4">
-            <Link href="/cards">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar
-              </Button>
-            </Link>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleShare}
-              className="text-white hover:bg-white/20"
-            >
-              <Share className="w-4 h-4 mr-2" />
-              Compartilhar
-            </Button>
-            
-            {/* Badge do store */}
-            {store && (
-              <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                <Star className="w-3 h-3 mr-1" />
-                {store.name}
-              </Badge>
-            )}
-            
             <button
               className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
               data-testid="button-user-login"
