@@ -432,3 +432,64 @@ html {
   animation: bounce-once 1.2s ease-out;
 }
 
+/* Estilos personalizados para o Banner Carousel Swiper */
+.banner-carousel-swiper {
+  --swiper-theme-color: #FFE600;
+  --swiper-navigation-size: 32px;
+}
+
+.banner-carousel-swiper .swiper-button-next,
+.banner-carousel-swiper .swiper-button-prev {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.banner-carousel-swiper .swiper-button-next:hover,
+.banner-carousel-swiper .swiper-button-prev:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.05);
+}
+
+.banner-carousel-swiper .swiper-button-next:after,
+.banner-carousel-swiper .swiper-button-prev:after {
+  color: #1f2937;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.banner-carousel-swiper .swiper-pagination {
+  bottom: 16px;
+}
+
+.banner-carousel-swiper .swiper-pagination-bullet {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(4px);
+  width: 12px;
+  height: 12px;
+  transition: all 0.3s ease;
+}
+
+.banner-carousel-swiper .swiper-pagination-bullet-active {
+  background: #FFE600;
+  transform: scale(1.2);
+}
+
+@media (max-width: 768px) {
+  .banner-carousel-swiper .swiper-button-next,
+  .banner-carousel-swiper .swiper-button-prev {
+    width: 36px;
+    height: 36px;
+    margin-top: -18px;
+  }
+  
+  .banner-carousel-swiper .swiper-button-next:after,
+  .banner-carousel-swiper .swiper-button-prev:after {
+    font-size: 14px;
+  }
+}
+

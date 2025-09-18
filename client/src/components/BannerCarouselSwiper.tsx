@@ -46,10 +46,11 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
 
   // Definição de breakpoints para ajuste responsivo: a fração de slide visível
   // (slidesPerView) e o espaço entre slides (spaceBetween) mudam conforme a largura.
+  // Valores ajustados para evitar corte do banner da direita
   const breakpoints = {
-    1280: { slidesPerView: 1.5, spaceBetween: 30 },
-    768:  { slidesPerView: 1.3, spaceBetween: 24 },
-    0:    { slidesPerView: 1.1, spaceBetween: 16 },
+    1280: { slidesPerView: 1.2, spaceBetween: 24, centeredSlides: false },
+    768:  { slidesPerView: 1.15, spaceBetween: 20, centeredSlides: false },
+    0:    { slidesPerView: 1.05, spaceBetween: 16, centeredSlides: true },
   };
 
   return (
@@ -57,7 +58,6 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
       <Swiper
         modules={[Navigation, Pagination, Autoplay]}
         loop={activeBanners.length > 1} // loop infinito apenas se há mais de 1 banner
-        centeredSlides={true}          // slide ativo centralizado
         breakpoints={breakpoints}
         autoplay={
           autoPlayInterval && activeBanners.length > 1
@@ -153,68 +153,6 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
           </SwiperSlide>
         ))}
       </Swiper>
-      
-      <style jsx global>{`
-        .banner-carousel-swiper {
-          --swiper-theme-color: #FFE600;
-          --swiper-navigation-size: 32px;
-        }
-        
-        .banner-carousel-swiper .swiper-button-next,
-        .banner-carousel-swiper .swiper-button-prev {
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(8px);
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          transition: all 0.3s ease;
-        }
-        
-        .banner-carousel-swiper .swiper-button-next:hover,
-        .banner-carousel-swiper .swiper-button-prev:hover {
-          background: rgba(255, 255, 255, 1);
-          transform: scale(1.05);
-        }
-        
-        .banner-carousel-swiper .swiper-button-next:after,
-        .banner-carousel-swiper .swiper-button-prev:after {
-          color: #1f2937;
-          font-size: 16px;
-          font-weight: bold;
-        }
-        
-        .banner-carousel-swiper .swiper-pagination {
-          bottom: 16px;
-        }
-        
-        .banner-carousel-swiper .swiper-pagination-bullet {
-          background: rgba(255, 255, 255, 0.6);
-          backdrop-filter: blur(4px);
-          width: 12px;
-          height: 12px;
-          transition: all 0.3s ease;
-        }
-        
-        .banner-carousel-swiper .swiper-pagination-bullet-active {
-          background: #FFE600;
-          transform: scale(1.2);
-        }
-        
-        @media (max-width: 768px) {
-          .banner-carousel-swiper .swiper-button-next,
-          .banner-carousel-swiper .swiper-button-prev {
-            width: 36px;
-            height: 36px;
-            margin-top: -18px;
-          }
-          
-          .banner-carousel-swiper .swiper-button-next:after,
-          .banner-carousel-swiper .swiper-button-prev:after {
-            font-size: 14px;
-          }
-        }
-      `}</style>
     </div>
   );
 };
