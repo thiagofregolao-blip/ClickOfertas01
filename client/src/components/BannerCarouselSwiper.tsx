@@ -96,8 +96,8 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
               style={{
                 cursor: banner.linkUrl ? 'pointer' : 'default',
                 width: '100%',
-                // 👇 Garantimos altura do slide:
-                aspectRatio: '16 / 9', // ou substitua por: height: 320
+                // 👇 Altura responsiva com limite máximo:
+                height: 'clamp(140px, 22vw, 360px)',
                 position: 'relative',
                 overflow: 'hidden',
                 borderRadius: 12,
