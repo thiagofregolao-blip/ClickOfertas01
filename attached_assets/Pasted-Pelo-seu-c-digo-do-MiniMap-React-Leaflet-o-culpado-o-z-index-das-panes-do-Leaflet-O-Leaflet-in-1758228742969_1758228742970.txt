@@ -1,0 +1,50 @@
+Pelo seu código do MiniMap (React-Leaflet), o culpado é o z-index das panes do Leaflet.
+O Leaflet injeta elementos .leaflet-*-pane com position:absolute e z-index bem alto (≈400–700). Seu header é sticky/fixed com z-index menor, então quando você rola, o mapa “ganha” a pilha e fica por cima do header. Isso acontece mesmo com overflow-hidden no contêiner, porque os filhos têm z-index próprio e competem fora do contexto do pai (o pai não cria um stacking context “fechado” se não tiver z-index).
+
+Como corrigir (qualquer uma já resolve)
+
+Aumentar o z-index do header
+
+<header class="sticky top-0 z-[1000]">...</header>
+
+
+Confinar o z-index do MiniMap criando um stacking context no contêiner
+Adicione relative z-0 isolate no wrapper do mapa (ou no próprio componente):
+
+// dentro do retorno do MiniMap
+<div
+  className={`
+    relative z-0 isolate overflow-hidden
+    ${getSizeClasses()}
+    rounded-lg border shadow-sm transition-all
+    ${onClick ? 'cursor-pointer hover:shadow-md' : ''}
+    ${className}
+  `}
+>
+  ...
+</div>
+
+
+isolate (CSS isolation:isolate) + z-0 faz o pai virar um novo stacking context; assim, os altos z-index internos do Leaflet não ultrapassam o do pai.
+
+Baixar o z-index das panes do Leaflet (escopado ao MiniMap)
+
+/* em um CSS global carregado no app */
+.minimap-leaflet .leaflet-tile-pane,
+.minimap-leaflet .leaflet-overlay-pane,
+.minimap-leaflet .leaflet-shadow-pane,
+.minimap-leaflet .leaflet-marker-pane,
+.minimap-leaflet .leaflet-popup-pane {
+  z-index: 0 !important; /* ou 1/2 conforme necessidade */
+}
+
+
+(Você já define className="minimap-leaflet" no MapContainer, então o escopo está ok.)
+
+Dicas rápidas
+
+Evite transform em ancestrais do header ou do mapa se não precisar (cria stacking contexts adicionais).
+
+Se usar o overlay clicável do MiniMap, deixe sem z-index explícito ou com z-10, desde que o contêiner do mapa esteja em z-0 e o header em z-[1000].
+
+Em resumo: o mapa sobrepõe o header por causa do z-index agressivo do Leaflet. Suba o z do header ou crie um stacking context para “prender” o z do mapa (minha favorita: relative z-0 isolate no contêiner do MiniMap).

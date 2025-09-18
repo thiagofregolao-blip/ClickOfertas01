@@ -87,7 +87,7 @@ export function MiniMap({
   return (
     <div 
       className={`
-        relative
+        relative z-0 isolate
         ${getSizeClasses()}
         rounded-lg 
         overflow-hidden 
