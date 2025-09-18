@@ -19,6 +19,8 @@ import { downloadFlyerAsPNG } from "@/lib/flyer-utils";
 import type { StoreWithProducts, Product, PromotionWithDetails } from "@shared/schema";
 import { InstagramStories } from "@/components/instagram-stories";
 import { TwoPartHeader } from "@/components/TwoPartHeader";
+import { MapModal } from "@/components/MapModal";
+import { MiniMap } from "@/components/MiniMap";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAppVersion } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
@@ -110,6 +112,7 @@ export default function PublicFlyer() {
   const [showPriceComparison, setShowPriceComparison] = useState(false);
   const [comparisonProductId, setComparisonProductId] = useState<string>("");
   const [comparisonProductName, setComparisonProductName] = useState<string>("");
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
 
   // Log da versão e modo de acesso (para desenvolvimento)
@@ -790,6 +793,22 @@ export default function PublicFlyer() {
                       </a>
                     )}
                   </div>
+
+                  {/* MiniMap - Mobile version */}
+                  {store.latitude && store.longitude && (
+                    <div className="mt-4">
+                      <div className="bg-white border-2 border-gray-300 rounded-md p-2 shadow-sm w-fit">
+                        <MiniMap
+                          latitude={store.latitude}
+                          longitude={store.longitude}
+                          storeName={store.name}
+                          onClick={() => setIsMapModalOpen(true)}
+                          size="custom"
+                          className="w-28 h-16 border-0 rounded shadow-none cursor-pointer hover:shadow-md transition-shadow"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Desktop Layout - Original */}
@@ -860,6 +879,22 @@ export default function PublicFlyer() {
                       )}
                     </div>
                   </div>
+
+                  {/* MiniMap - Posicionado na área branca à direita */}
+                  {store.latitude && store.longitude && (
+                    <div className="flex-shrink-0">
+                      <div className="bg-white border-2 border-gray-300 rounded-md p-2 shadow-sm">
+                        <MiniMap
+                          latitude={store.latitude}
+                          longitude={store.longitude}
+                          storeName={store.name}
+                          onClick={() => setIsMapModalOpen(true)}
+                          size="custom"
+                          className="w-32 h-20 border-0 rounded shadow-none cursor-pointer hover:shadow-md transition-shadow"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1577,6 +1612,18 @@ export default function PublicFlyer() {
           </Link>
         </div>
       </div>
+
+      {/* Map Modal - Movido do FlyerHeader */}
+      {store && store.latitude && store.longitude && (
+        <MapModal
+          isOpen={isMapModalOpen}
+          onClose={() => setIsMapModalOpen(false)}
+          storeName={store.name}
+          address={store.address || 'Endereço não informado'}
+          latitude={store.latitude}
+          longitude={store.longitude}
+        />
+      )}
     </div>
   );
 }

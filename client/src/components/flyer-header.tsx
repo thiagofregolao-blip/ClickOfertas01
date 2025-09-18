@@ -1,29 +1,15 @@
-import { useState } from 'react';
 import type { Store } from "@shared/schema";
-import { MiniMap } from './MiniMap';
-import { MapModal } from './MapModal';
 
 interface FlyerHeaderProps {
   store: Store;
 }
 
 export default function FlyerHeader({ store }: FlyerHeaderProps) {
-  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   
   const gradientStyle = {
     background: `linear-gradient(135deg, ${store.themeColor} 0%, ${store.themeColor}dd 100%)`
   };
   
-  const hasValidCoordinates = () => {
-    const lat = typeof store.latitude === 'string' ? parseFloat(store.latitude) : store.latitude;
-    const lng = typeof store.longitude === 'string' ? parseFloat(store.longitude) : store.longitude;
-    return lat !== null && lat !== undefined && lng !== null && lng !== undefined && 
-           !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
-  };
-  
-  const handleMapClick = () => {
-    setIsMapModalOpen(true);
-  };
 
   return (
     <div className="text-white p-8 rounded-t-2xl" style={gradientStyle}>
@@ -73,35 +59,9 @@ export default function FlyerHeader({ store }: FlyerHeaderProps) {
               <p className="text-lg font-semibold">Promoções Válidas</p>
               <p className="text-white/90">Até acabar o estoque</p>
             </div>
-            
-            {/* MiniMap com frame preto conforme especificado */}
-            {hasValidCoordinates() && (
-              <div className="border-2 border-black rounded-md bg-white p-1">
-                <MiniMap
-                  latitude={store.latitude!}
-                  longitude={store.longitude!}
-                  storeName={store.name}
-                  onClick={handleMapClick}
-                  size="custom"
-                  className="w-28 h-[4.5rem] sm:w-32 sm:h-20 border-0 rounded shadow-none"
-                />
-              </div>
-            )}
           </div>
         </div>
       </div>
-      
-      {/* Map Modal */}
-      {hasValidCoordinates() && (
-        <MapModal
-          isOpen={isMapModalOpen}
-          onClose={() => setIsMapModalOpen(false)}
-          storeName={store.name}
-          address={store.address || 'Endereço não informado'}
-          latitude={store.latitude!}
-          longitude={store.longitude!}
-        />
-      )}
     </div>
   );
 }

@@ -21,6 +21,7 @@ interface TwoPartHeaderProps {
   // Segunda parte - Menu deslizante
   children?: ReactNode;
   
+  
   // Personalização visual
   gradient?: string;
   className?: string;
@@ -82,6 +83,7 @@ export function TwoPartHeader({
     setSearchInput('');
     onSearchChange?.('');
   };
+
 
   return (
     <>
@@ -153,6 +155,7 @@ export function TwoPartHeader({
             >
               <span className="text-sm">👋 Olá!</span>
             </button>
+
 
             {/* Sino de notificações */}
             {showNotifications && (
