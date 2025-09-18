@@ -60,7 +60,6 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
         keyBoardControl
         pauseOnHover
         partialVisible
-        centerMode
         containerClass="banner-carousel-container"
         itemClass="banner-carousel-item"
         sliderClass="banner-carousel-slider"
