@@ -137,17 +137,27 @@ export default function StandardHeader() {
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
                 onKeyPress={handleKeyPress}
-                className="pl-10 pr-10 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
+                className="pl-10 pr-20 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
               />
-              {searchInput && (
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                {searchInput && (
+                  <button
+                    onClick={() => setSearchInput('')}
+                    className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                    title="Limpar busca"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
                 <button
-                  onClick={() => setSearchInput('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  title="Limpar busca"
+                  onClick={handleSearch}
+                  disabled={!searchInput.trim()}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white p-1 rounded transition-colors"
+                  title="Buscar"
                 >
-                  <X className="w-4 h-4" />
+                  <Search className="w-4 h-4" />
                 </button>
-              )}
+              </div>
             </div>
           </div>
 
