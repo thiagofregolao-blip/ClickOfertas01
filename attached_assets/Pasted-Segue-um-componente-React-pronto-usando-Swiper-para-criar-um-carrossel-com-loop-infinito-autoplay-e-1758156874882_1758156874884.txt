@@ -1,0 +1,120 @@
+Segue um componente React pronto usando Swiper para criar um carrossel com loop infinito, autoplay e exibição parcial dos banners vizinhos. O código importa os módulos necessários de Swiper, configura os breakpoints para ajustar a largura e o espaço entre slides e ativa o modo de repetição contínuo (loop) e o centro do slide (centeredSlides), que fazem aparecer partes do banner anterior e do próximo
+swiperjs.com
+swiperjs.com
+. As setas de navegação e os pontos de paginação também estão ativados. Substitua as imagens e textos pelo seu conteúdo:
+
+import React from 'react';
+// Importa os módulos principais e os módulos de navegação, paginação e autoplay
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+
+// Importa os estilos do Swiper (obrigatório)
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+
+export interface Banner {
+  id: string;
+  title?: string;
+  description?: string;
+  imageUrl: string;
+  linkUrl?: string;
+  backgroundColor?: string;
+  textColor?: string;
+}
+
+export interface BannerCarouselSwiperProps {
+  banners: Banner[];
+  autoPlayInterval?: number; // milissegundos entre cada slide (padrão 4000)
+}
+
+export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
+  banners,
+  autoPlayInterval = 4000,
+}) => {
+  if (!banners || banners.length === 0) {
+    return null;
+  }
+
+  // Definição de breakpoints para ajuste responsivo: a fração de slide visível
+  // (slidesPerView) e o espaço entre slides (spaceBetween) mudam conforme a largura.
+  const breakpoints = {
+    1280: { slidesPerView: 1.5, spaceBetween: 30 },
+    768:  { slidesPerView: 1.3, spaceBetween: 24 },
+    0:    { slidesPerView: 1.1, spaceBetween: 16 },
+  };
+
+  return (
+    <Swiper
+      modules={[Navigation, Pagination, Autoplay]}
+      loop={true}                  // loop infinito:contentReference[oaicite:2]{index=2}
+      centeredSlides={true}        // slide ativo centralizado:contentReference[oaicite:3]{index=3}
+      breakpoints={breakpoints}
+      autoplay={
+        autoPlayInterval
+          ? { delay: autoPlayInterval, disableOnInteraction: false }
+          : false
+      }
+      navigation={true}            // mostra as setas padrão
+      pagination={{ clickable: true }} // pontos clicáveis
+      className="banner-carousel-swiper"
+    >
+      {banners.map((banner) => (
+        <SwiperSlide key={banner.id}>
+          <div
+            onClick={() => {
+              if (banner.linkUrl) {
+                window.open(banner.linkUrl, '_blank');
+              }
+            }}
+            style={{
+              cursor: banner.linkUrl ? 'pointer' : 'default',
+              width: '100%',
+              height: '100%',
+              position: 'relative',
+              overflow: 'hidden',
+              borderRadius: '8px',
+            }}
+          >
+            <img
+              src={banner.imageUrl}
+              alt={banner.title ?? 'banner'}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                borderRadius: '8px',
+              }}
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+            />
+            {/* Caso queira sobrepor título/descrição, remova os comentários abaixo 
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 16,
+                left: 16,
+                right: 16,
+                backgroundColor: banner.backgroundColor || 'rgba(0,0,0,0.5)',
+                color: banner.textColor || '#fff',
+                padding: '8px 12px',
+                borderRadius: '4px',
+              }}
+            >
+              <h3 style={{ margin: 0 }}>{banner.title}</h3>
+              {banner.description && <p style={{ margin: 0 }}>{banner.description}</p>}
+            </div>
+            */}
+          </div>
+        </SwiperSlide>
+      ))}
+    </Swiper>
+  );
+};
+
+export default BannerCarouselSwiper;
+
+
+O código está salvo como banner-carousel-swiper.tsx Para usar em seu projeto, instale a biblioteca Swiper (npm install swiper) e importe o componente BannerCarouselSwiper passando um array de banners. Ajuste os valores de slidesPerView e spaceBetween nos breakpoints para controlar a quantidade do banner vizinho que aparece. Se preferir, é possível alterar o intervalo do autoplay ou desabilitá-lo passando autoPlayInterval={undefined}.
