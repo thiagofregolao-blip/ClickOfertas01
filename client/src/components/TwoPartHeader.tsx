@@ -1,7 +1,7 @@
 import { useState, ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, X } from "lucide-react";
+import { Search, X, User, LogOut } from "lucide-react";
 import { useScrollDetection } from "@/hooks/use-scroll-detection";
 
 interface TwoPartHeaderProps {
@@ -17,6 +17,12 @@ interface TwoPartHeaderProps {
   showNotifications?: boolean;
   notificationCount?: number;
   onNotificationClick?: () => void;
+  
+  // Props para autenticação
+  isAuthenticated?: boolean;
+  user?: { firstName?: string; fullName?: string; email?: string };
+  onLogin?: () => void;
+  onLogout?: () => void;
   
   // Segunda parte - Menu deslizante
   children?: ReactNode;
@@ -48,6 +54,10 @@ export function TwoPartHeader({
   showNotifications = true,
   notificationCount = 0,
   onNotificationClick,
+  isAuthenticated = false,
+  user,
+  onLogin,
+  onLogout,
   children,
   gradient = "linear-gradient(135deg, #F04940 0%, #FA7D22 100%)",
   className = "",
@@ -169,6 +179,38 @@ export function TwoPartHeader({
                   </span>
                 )}
               </button>
+            )}
+            
+            {/* Botão de Login/Logout */}
+            {isAuthenticated ? (
+              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-2 rounded-lg border border-white/30">
+                <User className="w-4 h-4 text-white" />
+                {user && (
+                  <span className="text-white text-sm font-medium">
+                    {user.firstName || user.fullName || user.email?.split('@')[0] || 'Usuário'}
+                  </span>
+                )}
+                <Button
+                  onClick={onLogout}
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20 p-1"
+                  data-testid="logout-button"
+                >
+                  <LogOut className="w-3 h-3" />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                onClick={onLogin}
+                variant="ghost"
+                size="sm"
+                className="bg-white/20 text-white hover:bg-white/30 border border-white/30 backdrop-blur-sm"
+                data-testid="login-button"
+              >
+                <User className="w-4 h-4 mr-2" />
+                Entrar
+              </Button>
             )}
           </div>
         </div>

@@ -19,6 +19,7 @@ import { downloadFlyerAsPNG } from "@/lib/flyer-utils";
 import type { StoreWithProducts, Product, PromotionWithDetails } from "@shared/schema";
 import { InstagramStories } from "@/components/instagram-stories";
 import { TwoPartHeader } from "@/components/TwoPartHeader";
+import LoginPage from "@/components/login-page";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useAppVersion } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
@@ -110,6 +111,7 @@ export default function PublicFlyer() {
   const [showPriceComparison, setShowPriceComparison] = useState(false);
   const [comparisonProductId, setComparisonProductId] = useState<string>("");
   const [comparisonProductName, setComparisonProductName] = useState<string>("");
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
 
   // Log da versão e modo de acesso (para desenvolvimento)
@@ -442,110 +444,18 @@ export default function PublicFlyer() {
         showSearch={true}
         showNotifications={true}
         searchPlaceholder="Buscar produtos..."
-      >
-        {isAuthenticated ? (
-          // Desktop - menu na mesma linha
-          <div className="flex items-center gap-4">
-            {/* Saudação */}
-            <div className="text-white font-medium flex items-center gap-2">
-              <User className="w-5 h-5" />
-              <span className="text-sm">
-                Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
-              </span>
-            </div>
-            
-            {/* Botões do menu */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setLocation('/settings')}
-                className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
-                data-testid="button-user-config"
-              >
-                <Settings className="w-4 h-4" />
-                Configurações
-              </button>
-              
-              <button
-                onClick={() => setLocation('/shopping-list')}
-                className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
-                data-testid="button-shopping-list"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                Lista de Compras
-              </button>
-              
-              <button
-                onClick={() => setLocation('/my-coupons')}
-                className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
-                data-testid="button-my-coupons"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
-                  <line x1="8" y1="2" x2="8" y2="22"/>
-                  <line x1="16" y1="2" x2="16" y2="22"/>
-                </svg>
-                Meus Cupons
-              </button>
-
-              {/* Separador visual */}
-              <span className="text-gray-400 text-sm">|</span>
-              
-              {/* Botão "Todos" */}
-              <button
-                onClick={() => handleCategoryFilter(null)}
-                className="font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors text-white hover:text-gray-200"
-                data-testid="button-category-todos-desktop"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <path d="m9 12 2 2 4-4"/>
-                </svg>
-                Todos
-              </button>
-              
-              {/* Categorias Dinâmicas do Backend */}
-              {categoriesLoading ? (
-                <div className="text-white/70 text-sm">Carregando categorias...</div>
-              ) : (
-                categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => handleCategoryFilter(category.slug)}
-                    className="font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors text-white hover:text-gray-200"
-                    data-testid={`button-category-${category.slug}`}
-                  >
-                    {getCategoryIcon(category.slug)}
-                    {category.name}
-                  </button>
-                ))
-              )}
-              
-              <button
-                onClick={() => window.location.href = '/api/auth/logout'}
-                className="text-red-300 hover:text-red-100 font-medium flex items-center gap-1 text-sm"
-                data-testid="button-user-logout"
-              >
-                <LogOut className="w-4 h-4" />
-                Sair
-              </button>
-            </div>
-          </div>
-        ) : (
-          // Usuário não logado - menu limpo
-          <div className="flex items-center gap-4">
-            <button
-              className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
-              data-testid="button-user-login"
-            >
-              <User className="w-4 h-4" />
-              Entrar
-            </button>
-          </div>
-        )}
-      </TwoPartHeader>
+        isAuthenticated={isAuthenticated}
+        user={user ? {
+          firstName: user.firstName || undefined,
+          fullName: user.fullName || undefined,
+          email: user.email || undefined
+        } : undefined}
+        onLogin={() => setIsLoginModalOpen(true)}
+        onLogout={() => window.location.href = '/api/auth/logout'}
+      />
       
-      {/* Spacer for fixed header - TwoPartHeader usa 128px (duas partes) */}
-      <div className="h-[128px]"></div>
+      {/* Spacer for fixed header - TwoPartHeader sem segunda parte */}
+      <div className="h-[72px]"></div>
       
       {/* Action Buttons - Hidden on print */}
       <div className="fixed top-4 right-4 z-50 no-print">
@@ -1570,6 +1480,13 @@ export default function PublicFlyer() {
           </Link>
         </div>
       </div>
+      
+      {/* Login Modal */}
+      <LoginPage 
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        mode="user"
+      />
     </div>
   );
 }
