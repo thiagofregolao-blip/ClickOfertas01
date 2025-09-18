@@ -391,8 +391,11 @@ export default function PublicFlyer() {
   // Mesclar produtos normais com promoções
   const allProductsWithPromotions = [...(store?.products || []), ...promotionsAsProducts];
 
+  // Se estamos na view de stories, verificar se há produtos para stories
+  // Se não houver, mostrar todos os produtos ativos
+  const storiesProducts = allProductsWithPromotions.filter(p => p.isActive && p.showInStories);
   const activeProducts = isStoriesView 
-    ? allProductsWithPromotions.filter(p => p.isActive && p.showInStories) // Só produtos dos stories
+    ? (storiesProducts.length > 0 ? storiesProducts : allProductsWithPromotions.filter(p => p.isActive)) // Fallback para todos os produtos se não houver stories
     : allProductsWithPromotions.filter(p => p.isActive); // Todos produtos ativos
   
   
@@ -455,7 +458,7 @@ export default function PublicFlyer() {
       />
       
       {/* Spacer for fixed header - TwoPartHeader sem segunda parte */}
-      <div className="h-[72px]"></div>
+      <div className="h-[128px]"></div>
       
       {/* Action Buttons - Hidden on print */}
       <div className="fixed top-4 right-4 z-50 no-print">
