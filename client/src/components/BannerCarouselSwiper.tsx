@@ -53,7 +53,7 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
   } as const;
 
   return (
-    <div style={{ position: 'relative', width: '100%', maxWidth: 1280, margin: '0 auto' }}>
+    <div style={{ position: 'relative', width: '100%', maxWidth: 1250, margin: '0 auto' }}>
       <Carousel
         responsive={responsive}
         infinite
@@ -118,7 +118,7 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
       </Carousel>
 
       <style>{`
-        .banner-carousel-container { overflow: visible; max-width: 1280px; margin: 0 auto; padding-inline: 12px; }
+        .banner-carousel-container { overflow: visible; max-width: 1250px; margin: 0 auto; padding-inline: 12px; }
         .banner-carousel-slider { overflow: visible; }
         .banner-carousel-item   { padding-right: 0; }
       `}</style>
