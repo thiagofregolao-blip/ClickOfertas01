@@ -39,27 +39,13 @@ export interface BannerCarouselSwiperProps {
 }
 
 /**
- * BannerCarouselSwiper – A simple wrapper around the Swiper component
- * configured to mimic the behaviour of the Buscapé banner carousel.  It
- * supports infinite looping, partial visibility of the adjacent banners and
- * automatic playback.  Navigation arrows and pagination dots are enabled
- * out of the box.
+ * BannerCarouselSwiper – versão ajustada para Replit/React
  *
- * Key features implemented:
- *  - Continuous loop (`loop=true`) so the carousel cycles endlessly【232212359592295†L910-L918】.
- *  - Active slide is centred by setting `centeredSlides=true`, which causes
- *    the next and previous slides to peek in on either side【232212359592295†L358-L366】.
- *  - `slidesPerView` uses fractional values (e.g. 1.2) along with
- *    `centeredSlides=true` so that a portion of the neighbouring slides is
- *    visible.  This approach is recommended for creating a "stage padding"
- *    effect similar to Buscapé.  Responsive breakpoints adjust these values
- *    on smaller screens.
- *  - Automatic playback with configurable delay and the `Autoplay` module.
- *  - Navigation arrows and clickable pagination dots via the `Navigation` and
- *    `Pagination` modules.
- *
- * For more details on these options see the Swiper documentation for
- * `loop`【232212359592295†L910-L918】 and `centeredSlides`【232212359592295†L358-L366】.
+ * Correções aplicadas:
+ * 1) Altura/ratio do slide garantindo layout: usamos aspectRatio 16/9 no contêiner do slide.
+ * 2) overflow visível no wrapper e no Swiper para o "peek" do banner da direita.
+ * 3) Autoplay ativo com pauseOnMouseEnter e disableOnInteraction=false.
+ * 4) Mantido loop + centeredSlides + slides fracionários.
  */
 export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
   banners,
@@ -69,81 +55,53 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
     return null;
   }
 
-  // Keep a reference to the Swiper instance.  This allows the custom
-  // navigation buttons to programmatically advance or rewind the carousel
-  // using `slideNext()` and `slidePrev()`.
   const swiperRef = useRef<any>(null);
 
-  // Swiper breakpoints control how many slides are visible at different
-  // viewport widths.  Using fractional values for `slidesPerView` allows
-  // portions of the neighbouring slides to appear on either side of the
-  // centre slide.  The `spaceBetween` property adds a small gap between
-  // slides to enhance the peek effect.
   const breakpoints = {
-    // screens >= 1280px
-    1280: {
-      slidesPerView: 1.5,
-      spaceBetween: 30,
-    },
-    // screens >= 768px and < 1280px
-    768: {
-      slidesPerView: 1.3,
-      spaceBetween: 24,
-    },
-    // screens >= 0px and < 768px
-    0: {
-      slidesPerView: 1.1,
-      spaceBetween: 16,
-    },
-  };
+    1280: { slidesPerView: 1.5, spaceBetween: 30 },
+    768: { slidesPerView: 1.3, spaceBetween: 24 },
+    0: { slidesPerView: 1.1, spaceBetween: 16 },
+  } as const;
 
   return (
-    <div className="banner-carousel-wrapper" style={{ position: 'relative', width: '100%' }}>
+    <div
+      className="banner-carousel-wrapper"
+      style={{ position: 'relative', width: '100%', overflow: 'visible' }}
+    >
       <Swiper
-        // Enable required modules
         modules={[Navigation, Pagination, Autoplay]}
-        // Ensure continuous looping of slides【232212359592295†L910-L918】
-        loop={true}
-        // Add extra duplicated slides to ensure there are enough slides in the
-        // loop when using fractional `slidesPerView`.  Without this, Swiper may
-        // occasionally hide the next slide on the right when there are few
-        // banners.  See Swiper documentation for `loopAdditionalSlides`【232212359592295†L910-L918】.
+        loop
         loopAdditionalSlides={banners.length}
-        // Center the active slide so adjacent slides peek from both sides【232212359592295†L358-L366】
-        centeredSlides={true}
-        // Use breakpoints to control the size of visible slides and gaps
+        centeredSlides
         breakpoints={breakpoints}
-        // Enable autoplay only if autoPlayInterval is provided
         autoplay={
           autoPlayInterval
-            ? { delay: autoPlayInterval, disableOnInteraction: false }
+            ? { delay: autoPlayInterval, disableOnInteraction: false, pauseOnMouseEnter: true }
             : false
         }
-        // Disable default navigation arrows.  We provide custom arrows below.
         navigation={false}
-        // Enable clickable pagination dots
         pagination={{ clickable: true }}
-        // Capture Swiper instance when it is ready
         onSwiper={(swiper) => {
           swiperRef.current = swiper;
         }}
         className="banner-carousel-swiper"
+        style={{ overflow: 'visible' }}
       >
         {banners.map((banner) => (
           <SwiperSlide key={banner.id}>
             <div
               onClick={() => {
-                if (banner.linkUrl) {
-                  window.open(banner.linkUrl, '_blank');
-                }
+                if (banner.linkUrl) window.open(banner.linkUrl, '_blank');
               }}
               style={{
                 cursor: banner.linkUrl ? 'pointer' : 'default',
                 width: '100%',
-                height: '100%',
+                // 👇 Garantimos altura do slide:
+                aspectRatio: '16 / 9', // ou substitua por: height: 320
                 position: 'relative',
                 overflow: 'hidden',
-                borderRadius: '8px',
+                borderRadius: 12,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
               }}
             >
               <img
@@ -154,37 +112,30 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
                   height: '100%',
                   objectFit: 'cover',
                   display: 'block',
-                  borderRadius: '8px',
                 }}
                 loading="lazy"
                 decoding="async"
                 draggable={false}
               />
-              {/* Optional overlay with title/description.  Uncomment and style as needed.
-              {banner.title && (
+
+              {/* Overlay opcional */}
+              {/* {banner.title && (
                 <div
                   style={{
-                    position: 'absolute',
-                    bottom: 16,
-                    left: 16,
-                    right: 16,
+                    position: 'absolute', bottom: 16, left: 16, right: 16,
                     backgroundColor: banner.backgroundColor || 'rgba(0,0,0,0.5)',
-                    color: banner.textColor || '#fff',
-                    padding: '8px 12px',
-                    borderRadius: '4px',
+                    color: banner.textColor || '#fff', padding: '8px 12px', borderRadius: 8,
                   }}
                 >
                   <h3 style={{ margin: 0 }}>{banner.title}</h3>
                   {banner.description && <p style={{ margin: 0 }}>{banner.description}</p>}
                 </div>
-              )}
-              */}
+              )} */}
             </div>
           </SwiperSlide>
         ))}
       </Swiper>
-      {/* Custom navigation arrows.  These buttons call slidePrev/slideNext on the Swiper instance.
-          They are positioned absolutely over the carousel and only appear when there are multiple banners. */}
+
       {banners.length > 1 && (
         <>
           <button
@@ -192,45 +143,24 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
             onClick={() => swiperRef.current?.slidePrev()}
             className="carousel-prev"
             style={{
-              position: 'absolute',
-              top: '50%',
-              left: 0,
-              transform: 'translateY(-50%)',
-              background: 'rgba(0,0,0,0.5)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '50%',
-              width: '32px',
-              height: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              zIndex: 2,
+              position: 'absolute', top: '50%', left: -8, transform: 'translateY(-50%)',
+              background: 'rgba(0,0,0,0.55)', color: '#fff', border: 'none', borderRadius: '50%',
+              width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', zIndex: 5,
             }}
           >
             ←
           </button>
+
           <button
             aria-label="Próximo banner"
             onClick={() => swiperRef.current?.slideNext()}
             className="carousel-next"
             style={{
-              position: 'absolute',
-              top: '50%',
-              right: 0,
-              transform: 'translateY(-50%)',
-              background: 'rgba(0,0,0,0.5)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '50%',
-              width: '32px',
-              height: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              zIndex: 2,
+              position: 'absolute', top: '50%', right: -8, transform: 'translateY(-50%)',
+              background: 'rgba(0,0,0,0.55)', color: '#fff', border: 'none', borderRadius: '50%',
+              width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', zIndex: 5,
             }}
           >
             →
