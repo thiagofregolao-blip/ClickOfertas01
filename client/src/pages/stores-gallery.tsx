@@ -839,7 +839,7 @@ export default function StoresGallery() {
               isMenuVisible ? 'translate-y-0' : '-translate-y-full'
             }`}
             style={{
-              top: '88px', // Altura da primeira parte do header
+              top: '80px', // Altura da primeira parte do header sem padding
               background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'
             }}
           >
