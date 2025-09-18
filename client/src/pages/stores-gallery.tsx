@@ -23,7 +23,7 @@ import { LazyImage } from "@/components/lazy-image";
 import { SearchResultItem } from "@/components/search-result-item";
 import { StoreResultItem } from "@/components/store-result-item";
 import { BannerSection } from "@/components/BannerSection";
-import { BannerCarousel } from "@/components/BannerCarousel";
+import BannerCarouselSwiper from "@/components/BannerCarouselSwiper";
 import ThreeDailyScratchCards from "@/components/ThreeDailyScratchCards";
 import { RectangularScratchCard } from "@/components/RectangularScratchCard";
 import GlobalHeader from "@/components/global-header";
@@ -642,7 +642,11 @@ export default function StoresGallery() {
       {isMobile && !searchQuery.trim() && (
         <div className="w-full mb-4">
           <div className="-mx-4 w-screen">
-            <BannerCarousel banners={banners.filter(banner => banner.bannerType === 'rotating' && banner.isActive)} />
+            <BannerCarouselSwiper 
+              banners={banners.filter(banner => banner.bannerType === 'rotating' && banner.isActive)} 
+              height="200px"
+              autoPlayInterval={4000}
+            />
           </div>
         </div>
       )}

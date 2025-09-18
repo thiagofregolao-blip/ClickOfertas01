@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
-import { BannerCarousel } from './BannerCarousel';
+import BannerCarouselSwiper from './BannerCarouselSwiper';
 import { StaticBanner } from './StaticBanner';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -96,7 +96,11 @@ export function BannerSection({ isSearchActive = false }: BannerSectionProps) {
     <div className="w-full mt-8 mb-12" data-testid="banner-section">
       {/* Banner ocupando toda a largura da tela */}
       {rotatingBanners.length > 0 && (
-        <BannerCarousel banners={rotatingBanners} />
+        <BannerCarouselSwiper 
+          banners={rotatingBanners} 
+          height="300px"
+          autoPlayInterval={4000}
+        />
       )}
     </div>
   );

@@ -1,0 +1,222 @@
+import React from 'react';
+// Importa os módulos principais e os módulos de navegação, paginação e autoplay
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+
+// Importa os estilos do Swiper (obrigatório)
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+
+export interface Banner {
+  id: string;
+  title?: string;
+  description?: string;
+  imageUrl: string;
+  linkUrl?: string;
+  backgroundColor?: string;
+  textColor?: string;
+  isActive?: boolean;
+  bannerType?: string;
+}
+
+export interface BannerCarouselSwiperProps {
+  banners: Banner[];
+  autoPlayInterval?: number; // milissegundos entre cada slide (padrão 4000)
+  height?: string; // altura do carrossel
+  className?: string;
+}
+
+export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
+  banners,
+  autoPlayInterval = 4000,
+  height = '300px',
+  className = '',
+}) => {
+  if (!banners || banners.length === 0) {
+    return null;
+  }
+
+  // Filtrar apenas banners ativos
+  const activeBanners = banners.filter(banner => banner.isActive !== false);
+  
+  if (activeBanners.length === 0) {
+    return null;
+  }
+
+  // Definição de breakpoints para ajuste responsivo: a fração de slide visível
+  // (slidesPerView) e o espaço entre slides (spaceBetween) mudam conforme a largura.
+  const breakpoints = {
+    1280: { slidesPerView: 1.5, spaceBetween: 30 },
+    768:  { slidesPerView: 1.3, spaceBetween: 24 },
+    0:    { slidesPerView: 1.1, spaceBetween: 16 },
+  };
+
+  return (
+    <div className={className} style={{ height, width: '100%' }}>
+      <Swiper
+        modules={[Navigation, Pagination, Autoplay]}
+        loop={activeBanners.length > 1} // loop infinito apenas se há mais de 1 banner
+        centeredSlides={true}          // slide ativo centralizado
+        breakpoints={breakpoints}
+        autoplay={
+          autoPlayInterval && activeBanners.length > 1
+            ? { 
+                delay: autoPlayInterval, 
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true // pausa no hover desktop
+              }
+            : false
+        }
+        navigation={true}              // mostra as setas padrão
+        pagination={{ clickable: true, dynamicBullets: true }} // pontos clicáveis com bullets dinâmicos
+        className="banner-carousel-swiper h-full"
+        style={{ height: '100%' }}
+      >
+        {activeBanners.map((banner) => (
+          <SwiperSlide key={banner.id} className="h-full">
+            <div
+              onClick={() => {
+                if (banner.linkUrl) {
+                  window.open(banner.linkUrl, '_blank');
+                }
+              }}
+              style={{
+                cursor: banner.linkUrl ? 'pointer' : 'default',
+                width: '100%',
+                height: '100%',
+                position: 'relative',
+                overflow: 'hidden',
+                borderRadius: '12px',
+                backgroundColor: banner.backgroundColor || '#f3f4f6',
+              }}
+              className="banner-slide"
+            >
+              <img
+                src={banner.imageUrl}
+                alt={banner.title ?? 'Banner promocional'}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                  borderRadius: '12px',
+                }}
+                className="select-none"
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+              />
+              
+              {/* Overlay com título e descrição se existirem */}
+              {(banner.title || banner.description) && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
+                    color: banner.textColor || '#fff',
+                    padding: '24px 16px 16px',
+                    borderBottomLeftRadius: '12px',
+                    borderBottomRightRadius: '12px',
+                  }}
+                >
+                  {banner.title && (
+                    <h3 
+                      style={{ 
+                        margin: 0, 
+                        fontSize: '1.125rem', 
+                        fontWeight: '600',
+                        marginBottom: banner.description ? '4px' : 0
+                      }}
+                    >
+                      {banner.title}
+                    </h3>
+                  )}
+                  {banner.description && (
+                    <p 
+                      style={{ 
+                        margin: 0, 
+                        fontSize: '0.875rem', 
+                        opacity: 0.9,
+                        lineHeight: '1.4'
+                      }}
+                    >
+                      {banner.description}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+      
+      <style jsx global>{`
+        .banner-carousel-swiper {
+          --swiper-theme-color: #FFE600;
+          --swiper-navigation-size: 32px;
+        }
+        
+        .banner-carousel-swiper .swiper-button-next,
+        .banner-carousel-swiper .swiper-button-prev {
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(8px);
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          transition: all 0.3s ease;
+        }
+        
+        .banner-carousel-swiper .swiper-button-next:hover,
+        .banner-carousel-swiper .swiper-button-prev:hover {
+          background: rgba(255, 255, 255, 1);
+          transform: scale(1.05);
+        }
+        
+        .banner-carousel-swiper .swiper-button-next:after,
+        .banner-carousel-swiper .swiper-button-prev:after {
+          color: #1f2937;
+          font-size: 16px;
+          font-weight: bold;
+        }
+        
+        .banner-carousel-swiper .swiper-pagination {
+          bottom: 16px;
+        }
+        
+        .banner-carousel-swiper .swiper-pagination-bullet {
+          background: rgba(255, 255, 255, 0.6);
+          backdrop-filter: blur(4px);
+          width: 12px;
+          height: 12px;
+          transition: all 0.3s ease;
+        }
+        
+        .banner-carousel-swiper .swiper-pagination-bullet-active {
+          background: #FFE600;
+          transform: scale(1.2);
+        }
+        
+        @media (max-width: 768px) {
+          .banner-carousel-swiper .swiper-button-next,
+          .banner-carousel-swiper .swiper-button-prev {
+            width: 36px;
+            height: 36px;
+            margin-top: -18px;
+          }
+          
+          .banner-carousel-swiper .swiper-button-next:after,
+          .banner-carousel-swiper .swiper-button-prev:after {
+            font-size: 14px;
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default BannerCarouselSwiper;
