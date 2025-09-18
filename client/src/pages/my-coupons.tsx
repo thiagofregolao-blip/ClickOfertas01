@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Download, Share2, QrCode, CheckCircle, XCircle, ArrowLeft, Trash2 } from "lucide-react";
+import { Clock, Download, Share2, QrCode, CheckCircle, XCircle, ArrowLeft, Trash2, ShoppingCart, Settings, BarChart3, LogOut } from "lucide-react";
 import { formatBrazilianPrice, formatPriceWithCurrency } from "@/lib/priceUtils";
 import jsPDF from "jspdf";
 import { useToast } from "@/hooks/use-toast";
