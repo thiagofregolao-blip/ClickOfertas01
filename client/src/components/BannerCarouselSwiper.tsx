@@ -51,22 +51,22 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
     desktop: {
       breakpoint: { max: 3000, min: 1280 },
       items: 1,
-      partialVisibilityGutter: 48,
+      partialVisibilityGutter: 60,
     },
     tablet: {
       breakpoint: { max: 1280, min: 768 },
       items: 1,
-      partialVisibilityGutter: 36,
+      partialVisibilityGutter: 50,
     },
     mobile: {
       breakpoint: { max: 768, min: 0 },
       items: 1,
-      partialVisibilityGutter: 28,
+      partialVisibilityGutter: 40,
     },
   };
 
   return (
-    <div style={{ width: "100%", position: "relative" }}>
+    <div style={{ width: "100%", position: "relative", overflow: "visible" }}>
       <Carousel
         responsive={responsive}
         infinite
