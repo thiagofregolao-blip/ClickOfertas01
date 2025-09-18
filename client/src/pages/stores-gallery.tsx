@@ -1029,6 +1029,14 @@ export default function StoresGallery() {
         </div>
       )}
 
+      {/* Texto promocional */}
+      <div className="bg-white border-b">
+        <div className="mx-auto px-4 max-w-6xl py-3">
+          <p className="text-center text-gray-800 font-bold text-lg">
+            Aqui você encontra as melhores marcas!
+          </p>
+        </div>
+      </div>
 
       {/* Feed Unificado */}
       <UnifiedFeedView 
@@ -1542,12 +1550,6 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
         </div>
       </div>
 
-      {/* Texto promocional */}
-      <div className="px-4 py-2 bg-gray-50">
-        <p className="text-center text-gray-800 font-bold text-sm">
-          Aqui você encontra as melhores marcas!
-        </p>
-      </div>
 
       {/* Products Horizontal Cards */}
       {displayProducts.length > 0 ? (
