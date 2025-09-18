@@ -68,7 +68,7 @@ const isSuperAdmin = async (req: any, res: any, next: any) => {
 };
 import { getCurrentExchangeRate, convertUsdToBrl, formatBRL, formatUSD, clearExchangeRateCache } from "./exchange-rate";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema, insertBudgetConfigSchema, insertTotemContentSchema, updateTotemContentSchema, insertTotemSettingsSchema, updateTotemSettingsSchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema, insertBudgetConfigSchema, insertTotemContentSchema, updateTotemContentSchema, insertTotemSettingsSchema, updateTotemSettingsSchema, insertCategorySchema, updateCategorySchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
@@ -881,6 +881,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching public store:", error);
       res.status(500).json({ message: "Failed to fetch store" });
+    }
+  });
+
+  // PUBLIC: Listar categorias ativas (ordenadas por sortOrder)
+  app.get('/api/categories', async (req, res) => {
+    try {
+      const categories = await storage.getActiveCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching active categories:", error);
+      res.status(500).json({ message: "Erro ao buscar categorias" });
     }
   });
 
@@ -5162,6 +5173,100 @@ Keep the overall composition and maintain the same visual quality. This is for a
     } catch (error) {
       console.error('Erro ao buscar produtos para totem:', error);
       res.status(500).json({ error: 'Erro ao buscar produtos para totem' });
+    }
+  });
+
+  // =================================
+  // SUPER ADMIN CATEGORIES ROUTES
+  // =================================
+
+  // Listar todas as categorias (Super Admin)
+  app.get('/api/super-admin/categories', isSuperAdmin, async (req, res) => {
+    try {
+      const categories = await storage.getAllCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      res.status(500).json({ message: "Erro ao buscar categorias" });
+    }
+  });
+
+  // Criar nova categoria (Super Admin)
+  app.post('/api/super-admin/categories', isSuperAdmin, async (req, res) => {
+    try {
+      const categoryData = insertCategorySchema.parse(req.body);
+      const category = await storage.createCategory(categoryData);
+      res.status(201).json(category);
+    } catch (error: any) {
+      console.error("Error creating category:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      } else if (error?.message?.includes('UNIQUE constraint failed') || error?.code === 'SQLITE_CONSTRAINT_UNIQUE' || error?.message?.includes('duplicate key')) {
+        res.status(409).json({ message: "Já existe uma categoria com este slug" });
+      } else {
+        res.status(500).json({ message: "Erro ao criar categoria" });
+      }
+    }
+  });
+
+  // Atualizar categoria (Super Admin)
+  app.put('/api/super-admin/categories/:id', isSuperAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const categoryData = updateCategorySchema.parse(req.body);
+      
+      // Verificar se categoria existe
+      const existingCategory = await storage.getCategoryById(id);
+      if (!existingCategory) {
+        return res.status(404).json({ message: "Categoria não encontrada" });
+      }
+      
+      const category = await storage.updateCategory(id, categoryData);
+      res.json(category);
+    } catch (error: any) {
+      console.error("Error updating category:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      } else if (error?.message?.includes('UNIQUE constraint failed') || error?.code === 'SQLITE_CONSTRAINT_UNIQUE' || error?.message?.includes('duplicate key')) {
+        res.status(409).json({ message: "Já existe uma categoria com este slug" });
+      } else {
+        res.status(500).json({ message: "Erro ao atualizar categoria" });
+      }
+    }
+  });
+
+  // Excluir categoria (Super Admin)
+  app.delete('/api/super-admin/categories/:id', isSuperAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Verificar se categoria existe
+      const existingCategory = await storage.getCategoryById(id);
+      if (!existingCategory) {
+        return res.status(404).json({ message: "Categoria não encontrada" });
+      }
+      
+      await storage.deleteCategory(id);
+      res.json({ success: true, message: "Categoria excluída com sucesso" });
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      res.status(500).json({ message: "Erro ao excluir categoria" });
+    }
+  });
+
+  // Alternar status ativo/inativo da categoria (Super Admin)
+  app.patch('/api/super-admin/categories/:id/toggle', isSuperAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const category = await storage.toggleCategoryStatus(id);
+      res.json(category);
+    } catch (error: any) {
+      console.error("Error toggling category status:", error);
+      if (error?.message === 'Category not found') {
+        res.status(404).json({ message: "Categoria não encontrada" });
+      } else {
+        res.status(500).json({ message: "Erro ao alterar status da categoria" });
+      }
     }
   });
 

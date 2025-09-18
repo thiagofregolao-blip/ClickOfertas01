@@ -47,8 +47,11 @@ export default function StoresGallery() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const searchQuery = useDebounce(searchInput, 500); // Debounce de 500ms
   
-  // Categorias disponíveis
-  const categories = ['Celulares', 'Perfumes', 'Notebooks', 'TVs'];
+  // Buscar categorias ativas do backend
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery<{id: string; name: string; slug: string; sortOrder: number}[]>({
+    queryKey: ['/api/categories'],
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
   
   // Remover parâmetro de busca da URL após aplicar
   useEffect(() => {
@@ -401,8 +404,11 @@ export default function StoresGallery() {
       // Filtro por categoria
       let matchesCategory = true;
       if (selectedCategory) {
+        // Buscar categoria pelo slug ou nome para compatibilidade
+        const categoryObj = categories.find(cat => cat.slug === selectedCategory || cat.name === selectedCategory);
         matchesCategory = store.products.some(product => 
-          product.isActive && product.category === selectedCategory
+          product.isActive && (product.category === selectedCategory || 
+                              (categoryObj && product.category === categoryObj.name))
         );
       }
       
@@ -421,7 +427,7 @@ export default function StoresGallery() {
       
       return bLatest - aLatest;
     });
-  }, [stores, searchQuery, selectedCategory, hasProductsToday]);
+  }, [stores, searchQuery, selectedCategory, hasProductsToday, categories]);
 
   // Criar resultados de busca combinados com memoização
   const searchResults = useMemo(() => {
@@ -858,72 +864,30 @@ export default function StoresGallery() {
                       Todos
                     </button>
                     
-                    {/* Categorias de Produtos */}
-                    <button
-                      onClick={() => handleCategoryFilter('Celulares')}
-                      className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
-                        selectedCategory === 'Celulares'
-                          ? 'bg-yellow-400 text-gray-900 shadow-sm'
-                          : 'text-white hover:text-gray-200'
-                      }`}
-                      data-testid="button-category-celulares"
-                    >
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-                        <line x1="12" y1="18" x2="12.01" y2="18"/>
-                      </svg>
-                      Celulares
-                    </button>
-                    
-                    <button
-                      onClick={() => handleCategoryFilter('Perfumes')}
-                      className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
-                        selectedCategory === 'Perfumes'
-                          ? 'bg-yellow-400 text-gray-900 shadow-sm'
-                          : 'text-white hover:text-gray-200'
-                      }`}
-                      data-testid="button-category-perfumes"
-                    >
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M7 7h10l4 12H3l4-12Z"/>
-                        <path d="M12 2v4"/>
-                      </svg>
-                      Perfumes
-                    </button>
-                    
-                    <button
-                      onClick={() => handleCategoryFilter('Notebooks')}
-                      className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
-                        selectedCategory === 'Notebooks'
-                          ? 'bg-yellow-400 text-gray-900 shadow-sm'
-                          : 'text-white hover:text-gray-200'
-                      }`}
-                      data-testid="button-category-notebooks"
-                    >
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                        <line x1="8" y1="21" x2="16" y2="21"/>
-                        <line x1="12" y1="17" x2="12" y2="21"/>
-                      </svg>
-                      Notebooks
-                    </button>
-                    
-                    <button
-                      onClick={() => handleCategoryFilter('TVs')}
-                      className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
-                        selectedCategory === 'TVs'
-                          ? 'bg-yellow-400 text-gray-900 shadow-sm'
-                          : 'text-white hover:text-gray-200'
-                      }`}
-                      data-testid="button-category-tvs"
-                    >
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                        <line x1="8" y1="21" x2="16" y2="21"/>
-                        <line x1="12" y1="17" x2="12" y2="21"/>
-                      </svg>
-                      TVs
-                    </button>
+                    {/* Categorias Dinâmicas do Backend */}
+                    {categoriesLoading ? (
+                      <div className="text-white/70 text-sm">Carregando categorias...</div>
+                    ) : (
+                      categories.map((category) => (
+                        <button
+                          key={category.id}
+                          onClick={() => handleCategoryFilter(category.slug)}
+                          className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
+                            selectedCategory === category.slug || selectedCategory === category.name
+                              ? 'bg-yellow-400 text-gray-900 shadow-sm'
+                              : 'text-white hover:text-gray-200'
+                          }`}
+                          data-testid={`button-category-${category.slug}`}
+                        >
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v6m0 6v6"/>
+                            <path d="m9 9 3 3 3-3"/>
+                          </svg>
+                          {category.name}
+                        </button>
+                      ))
+                    )}
                     
                     <button
                       onClick={() => window.location.href = '/api/auth/logout'}

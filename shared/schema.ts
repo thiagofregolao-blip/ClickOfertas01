@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   boolean,
   index,
+  integer,
   jsonb,
   pgTable,
   text,
@@ -87,6 +88,21 @@ export const stores = pgTable("stores", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+// Categories table - gerenciado centralmente pelo Super Admin
+export const categories = pgTable("categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  slug: varchar("slug", { length: 100 }).unique().notNull(),
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_categories_active").on(table.isActive),
+  index("idx_categories_sort").on(table.sortOrder),
+]);
 
 // Products table
 export const products = pgTable("products", {
@@ -1698,3 +1714,17 @@ export type InsertProductSearch = z.infer<typeof insertProductSearchSchema>;
 export type InsertProductView = z.infer<typeof insertProductViewSchema>;
 export type InsertTrendingProduct = z.infer<typeof insertTrendingProductSchema>;
 export type InsertGeneratedTotemArt = z.infer<typeof insertGeneratedTotemArtSchema>;
+
+// Categories schemas
+export const insertCategorySchema = createInsertSchema(categories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateCategorySchema = insertCategorySchema.partial();
+
+// Categories types
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
+export type UpdateCategory = z.infer<typeof updateCategorySchema>;

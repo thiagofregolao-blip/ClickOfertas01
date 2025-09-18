@@ -42,6 +42,7 @@ import {
   productViews,
   trendingProducts,
   generatedTotemArts,
+  categories,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -137,6 +138,10 @@ import {
   type InsertTrendingProduct,
   type GeneratedTotemArt,
   type InsertGeneratedTotemArt,
+  // Categories
+  type Category,
+  type InsertCategory,
+  type UpdateCategory,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, gte, lte, lt, sql, inArray, or, isNull } from "drizzle-orm";
@@ -324,6 +329,15 @@ export interface IStorage {
   generateTrendingProducts(date: Date): Promise<TrendingProduct[]>;
   createGeneratedTotemArt(art: InsertGeneratedTotemArt): Promise<GeneratedTotemArt>;
   getGeneratedTotemArts(storeId: string): Promise<GeneratedTotemArt[]>;
+
+  // Categories operations
+  getAllCategories(): Promise<Category[]>;
+  getActiveCategories(): Promise<Category[]>;
+  getCategoryById(id: string): Promise<Category | undefined>;
+  createCategory(category: InsertCategory): Promise<Category>;
+  updateCategory(id: string, category: UpdateCategory): Promise<Category>;
+  deleteCategory(id: string): Promise<void>;
+  toggleCategoryStatus(id: string): Promise<Category>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3699,6 +3713,78 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(products)
       .where(eq(products.storeId, storeId));
+  }
+
+  // =====================================
+  // CATEGORIES OPERATIONS (SUPER ADMIN)
+  // =====================================
+
+  async getAllCategories(): Promise<Category[]> {
+    return await db
+      .select()
+      .from(categories)
+      .orderBy(categories.sortOrder, categories.name);
+  }
+
+  async getActiveCategories(): Promise<Category[]> {
+    return await db
+      .select()
+      .from(categories)
+      .where(eq(categories.isActive, true))
+      .orderBy(categories.sortOrder, categories.name);
+  }
+
+  async getCategoryById(id: string): Promise<Category | undefined> {
+    const [category] = await db
+      .select()
+      .from(categories)
+      .where(eq(categories.id, id));
+    return category;
+  }
+
+  async createCategory(categoryData: InsertCategory): Promise<Category> {
+    const [category] = await db
+      .insert(categories)
+      .values({
+        ...categoryData,
+      })
+      .returning();
+    return category;
+  }
+
+  async updateCategory(id: string, categoryData: UpdateCategory): Promise<Category> {
+    const [category] = await db
+      .update(categories)
+      .set({
+        ...categoryData,
+        updatedAt: new Date(),
+      })
+      .where(eq(categories.id, id))
+      .returning();
+    return category;
+  }
+
+  async deleteCategory(id: string): Promise<void> {
+    await db.delete(categories).where(eq(categories.id, id));
+  }
+
+  async toggleCategoryStatus(id: string): Promise<Category> {
+    // Primeiro buscar o status atual
+    const current = await this.getCategoryById(id);
+    if (!current) {
+      throw new Error('Category not found');
+    }
+
+    // Alternar o status
+    const [category] = await db
+      .update(categories)
+      .set({
+        isActive: !current.isActive,
+        updatedAt: new Date(),
+      })
+      .where(eq(categories.id, id))
+      .returning();
+    return category;
   }
 }
 
