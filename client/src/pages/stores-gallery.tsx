@@ -829,6 +829,40 @@ export default function StoresGallery() {
                     3
                   </span>
                 </button>
+                
+                {/* Botão de Login/Saudação - Desktop */}
+                {isAuthenticated ? (
+                  // Usuário logado - mostrar saudação
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="bg-white/90 backdrop-blur-sm text-gray-600 hover:text-orange-500 p-2 rounded-lg shadow-sm transition-colors flex items-center gap-2"
+                      data-testid="button-user-greeting-desktop"
+                    >
+                      <User className="w-4 h-4" />
+                      <span className="text-sm font-medium">
+                        Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => window.location.href = '/api/auth/logout'}
+                      className="bg-red-500/90 backdrop-blur-sm text-white hover:bg-red-600 p-2 rounded-lg shadow-sm transition-colors"
+                      title="Sair"
+                      data-testid="button-logout-desktop"
+                    >
+                      <LogOut className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  // Usuário não logado - mostrar botão entrar
+                  <button
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className="bg-white/90 backdrop-blur-sm text-gray-600 hover:text-orange-500 p-2 rounded-lg shadow-sm transition-colors flex items-center gap-2"
+                    data-testid="button-user-login-desktop"
+                  >
+                    <User className="w-4 h-4" />
+                    <span className="text-sm font-medium">Entrar</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -856,19 +890,11 @@ export default function StoresGallery() {
                 🔧 Super Admin
               </button>
               
-              {isAuthenticated ? (
-                // Desktop - menu na mesma linha
-                <div className="flex items-center gap-4">
-                  {/* Saudação */}
-                  <div className="text-white font-medium flex items-center gap-2">
-                    <User className="w-5 h-5" />
-                    <span className="text-sm">
-                      Olá, {user?.firstName || user?.fullName || user?.email?.split('@')[0] || 'Usuário'}
-                    </span>
-                  </div>
-                  
-                  {/* Botões do menu */}
-                  <div className="flex items-center gap-4">
+              {/* Menu de navegação - sem login */}
+              <div className="flex items-center gap-4">
+                {/* Botões de navegação para usuários autenticados */}
+                {isAuthenticated && (
+                  <>
                     <button
                       onClick={() => setLocation('/settings')}
                       className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
@@ -902,66 +928,47 @@ export default function StoresGallery() {
 
                     {/* Separador visual */}
                     <span className="text-gray-400 text-sm">|</span>
-                    
-                    {/* Botão "Todos" */}
+                  </>
+                )}
+                
+                {/* Botão "Todos" */}
+                <button
+                  onClick={() => handleCategoryFilter(null)}
+                  className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
+                    selectedCategory === null
+                      ? 'bg-yellow-400 text-gray-900 shadow-sm'
+                      : 'text-white hover:text-gray-200'
+                  }`}
+                  data-testid="button-category-todos-desktop"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="m9 12 2 2 4-4"/>
+                  </svg>
+                  Todos
+                </button>
+                
+                {/* Categorias Dinâmicas do Backend */}
+                {categoriesLoading ? (
+                  <div className="text-white/70 text-sm">Carregando categorias...</div>
+                ) : (
+                  categories.map((category) => (
                     <button
-                      onClick={() => handleCategoryFilter(null)}
+                      key={category.id}
+                      onClick={() => handleCategoryFilter(category.slug)}
                       className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
-                        selectedCategory === null
+                        selectedCategory === category.slug || selectedCategory === category.name
                           ? 'bg-yellow-400 text-gray-900 shadow-sm'
                           : 'text-white hover:text-gray-200'
                       }`}
-                      data-testid="button-category-todos-desktop"
+                      data-testid={`button-category-${category.slug}`}
                     >
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="m9 12 2 2 4-4"/>
-                      </svg>
-                      Todos
+                      {getCategoryIcon(category.slug)}
+                      {category.name}
                     </button>
-                    
-                    {/* Categorias Dinâmicas do Backend */}
-                    {categoriesLoading ? (
-                      <div className="text-white/70 text-sm">Carregando categorias...</div>
-                    ) : (
-                      categories.map((category) => (
-                        <button
-                          key={category.id}
-                          onClick={() => handleCategoryFilter(category.slug)}
-                          className={`font-medium flex items-center gap-1 text-sm px-2 py-1 rounded transition-colors ${
-                            selectedCategory === category.slug || selectedCategory === category.name
-                              ? 'bg-yellow-400 text-gray-900 shadow-sm'
-                              : 'text-white hover:text-gray-200'
-                          }`}
-                          data-testid={`button-category-${category.slug}`}
-                        >
-                          {getCategoryIcon(category.slug)}
-                          {category.name}
-                        </button>
-                      ))
-                    )}
-                    
-                    <button
-                      onClick={() => window.location.href = '/api/auth/logout'}
-                      className="text-red-300 hover:text-red-100 font-medium flex items-center gap-1 text-sm"
-                      data-testid="button-user-logout"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Sair
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                // Usuário não logado - mostrar botão entrar
-                <button
-                  onClick={() => setIsLoginModalOpen(true)}
-                  className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
-                  data-testid="button-user-login"
-                >
-                  <User className="w-4 h-4" />
-                  Entrar
-                </button>
-              )}
+                  ))
+                )}
+              </div>
               </div>
             </div>
           </div>
