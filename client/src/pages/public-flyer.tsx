@@ -569,8 +569,8 @@ export default function PublicFlyer() {
         )}
       </TwoPartHeader>
       
-      {/* Spacer for fixed header - TwoPartHeader usa 72px por padrão */}
-      <div className="h-[72px]"></div>
+      {/* Spacer for fixed header - TwoPartHeader usa 128px (duas partes) */}
+      <div className="h-[128px]"></div>
       
       {/* Action Buttons - Hidden on print */}
       <div className="fixed top-4 right-4 z-50 no-print">
