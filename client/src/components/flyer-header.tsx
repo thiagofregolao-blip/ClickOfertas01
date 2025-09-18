@@ -29,27 +29,42 @@ export default function FlyerHeader({ store }: FlyerHeaderProps) {
     <div className="text-white p-8 rounded-t-2xl" style={gradientStyle}>
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center space-x-4">
-          {store.logoUrl ? (
-            <img 
-              src={store.logoUrl} 
-              alt={`Logo ${store.name}`}
-              className="w-16 h-16 rounded-full object-cover border-3 border-white shadow-lg"
-              data-testid="img-store-logo"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-              }}
-            />
-          ) : (
-            <div 
-              className="w-16 h-16 rounded-full bg-white/20 border-3 border-white shadow-lg flex items-center justify-center"
-              data-testid="div-store-logo-placeholder"
-            >
-              <span className="text-2xl font-bold text-white">
-                {store.name.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
+          <div className="relative">
+            {store.logoUrl ? (
+              <img 
+                src={store.logoUrl} 
+                alt={`Logo ${store.name}`}
+                className="w-16 h-16 rounded-full object-cover border-3 border-white shadow-lg"
+                data-testid="img-store-logo"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
+              />
+            ) : (
+              <div 
+                className="w-16 h-16 rounded-full bg-white/20 border-3 border-white shadow-lg flex items-center justify-center"
+                data-testid="div-store-logo-placeholder"
+              >
+                <span className="text-2xl font-bold text-white">
+                  {store.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+            
+            {/* MiniMap sobreposto no canto superior esquerdo do logo */}
+            {hasValidCoordinates() && (
+              <div className="absolute -top-1 -left-1 z-10">
+                <MiniMap
+                  latitude={store.latitude!}
+                  longitude={store.longitude!}
+                  storeName={store.name}
+                  onClick={handleMapClick}
+                  className="w-8 h-6 border-2 border-white shadow-md"
+                />
+              </div>
+            )}
+          </div>
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
@@ -59,17 +74,6 @@ export default function FlyerHeader({ store }: FlyerHeaderProps) {
               >
                 {store.name}
               </h1>
-              {hasValidCoordinates() && (
-                <div className="flex-shrink-0">
-                  <MiniMap
-                    latitude={store.latitude!}
-                    longitude={store.longitude!}
-                    storeName={store.name}
-                    onClick={handleMapClick}
-                    className="ml-1"
-                  />
-                </div>
-              )}
             </div>
             <p className="text-white/90 mt-1">Ofertas imperdíveis para você!</p>
           </div>
