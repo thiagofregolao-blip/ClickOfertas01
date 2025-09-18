@@ -88,7 +88,7 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
             style={{
               cursor: banner.linkUrl ? "pointer" : "default",
               width: "100%",
-              height: 'clamp(120px, 15vw, 240px)',
+              height: 'clamp(100px, 12vw, 180px)',
               borderRadius: 12,
               overflow: "hidden",
               boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
@@ -103,6 +103,8 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
                 height: "100%",
                 objectFit: "cover",
                 display: "block",
+                transition: "none",
+                transform: "none",
               }}
               loading="lazy"
               decoding="async"
