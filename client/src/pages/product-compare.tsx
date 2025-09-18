@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Star, MapPin, MessageCircle as WhatsApp, Instagram, ShoppingBag, Crown } from "lucide-react";
 import { formatPriceWithCurrency } from "@/lib/priceUtils";
-import StandardHeader from "@/components/StandardHeader";
+import { TwoPartHeader } from "@/components/TwoPartHeader";
 
 interface Store {
   id: string;
@@ -101,34 +101,24 @@ export default function ProductCompare() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header Padrão */}
-      <StandardHeader />
-      
-      {/* Cabeçalho da Página */}
-      <div className="bg-white border-b shadow-sm">
-        <div className="mx-auto max-w-6xl px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => window.history.back()}
-              data-testid="button-back"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
-            </Button>
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900">
-                Comparar Preços
-              </h1>
-              <p className="text-sm text-gray-600">
-                {comparisonData.storesWithProduct.length} lojas encontradas
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50 pt-32">
+      {/* Header com TwoPartHeader */}
+      <TwoPartHeader 
+        showSearch={false}
+        showNotifications={true}
+      >
+        {/* Menu com botão Voltar às lojas */}
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setLocation('/cards')}
+          className="text-white hover:bg-white/20 transition-colors"
+          data-testid="button-back-to-stores"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar às lojas
+        </Button>
+      </TwoPartHeader>
 
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-8">
@@ -249,7 +239,7 @@ export default function ProductCompare() {
           {/* Banner Vertical - Lado Direito */}
           {verticalBanners.length > 0 && (
             <div className="xl:col-span-2">
-              <div className="sticky top-24">
+              <div className="sticky top-32">
                 {verticalBanners.slice(0, 1).map((banner: any) => (
                   <Card key={banner.id} className="overflow-hidden" data-testid="card-vertical-banner">
                     <CardContent className="p-0">
