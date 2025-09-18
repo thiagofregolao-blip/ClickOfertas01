@@ -933,7 +933,7 @@ export default function StoresGallery() {
 
       {/* SEÇÃO DE BANNERS - Desktop apenas */}
       {!searchQuery.trim() && !isMobile && (
-        <div className="bg-white border-b pt-40">
+        <div className="bg-white border-b pt-32">
           {/* Banner ocupando toda a largura da tela */}
           <BannerSection isSearchActive={false} />
         </div>
@@ -1064,7 +1064,7 @@ export default function StoresGallery() {
       </div>
 
       {/* Feed Unificado */}
-      <div className={searchQuery.trim() && !isMobile ? 'pt-40' : ''}>
+      <div className={searchQuery.trim() && !isMobile ? 'pt-32' : ''}>
         <UnifiedFeedView 
           stores={searchQuery.trim() ? stores || [] : filteredStores} 
           searchQuery={searchQuery} 
