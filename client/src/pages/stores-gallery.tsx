@@ -1034,8 +1034,8 @@ export default function StoresGallery() {
         <div className="mx-auto px-4 max-w-6xl py-4">
           {/* Texto PUBLICIDADE */}
           <div className="text-left mb-2 flex items-center gap-2">
-            <div className="h-px bg-gray-300 w-8"></div>
             <span className="text-xs text-gray-500 uppercase tracking-wide">PUBLICIDADE</span>
+            <div className="h-px bg-gray-300 w-8"></div>
           </div>
           
           {/* Banner */}
