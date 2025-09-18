@@ -127,27 +127,17 @@ export function MiniMap({
         />
       </MapContainer>
       
-      {/* Blue button overlay when onClick is provided */}
+      {/* Clickable overlay for the entire map */}
       {onClick && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <button
-            className="
-              bg-blue-600 hover:bg-blue-700 
-              text-white text-xs font-medium
-              px-3 py-1.5
-              rounded-md
-              shadow-lg
-              transition-all duration-200
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
-              min-w-max
-              max-w-[90%]
-              pointer-events-auto
-            "
-            onClick={handleClick}
-            data-testid="minimap-show-button"
-          >
-            Mostrar no mapa
-          </button>
+        <div 
+          className="absolute inset-0 bg-blue-600/20 hover:bg-blue-600/30 transition-all cursor-pointer flex items-center justify-center"
+          onClick={handleClick}
+          title="Clique para ver no mapa"
+          data-testid="minimap-clickable-overlay"
+        >
+          <div className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-2 py-1 rounded shadow-lg transition-all">
+            📍 Ver mapa
+          </div>
         </div>
       )}
     </div>
