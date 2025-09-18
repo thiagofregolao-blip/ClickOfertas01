@@ -644,7 +644,6 @@ export default function StoresGallery() {
           <div className="-mx-4 w-screen">
             <BannerCarouselSwiper 
               banners={banners.filter(banner => banner.bannerType === 'rotating' && banner.isActive)} 
-              height="200px"
               autoPlayInterval={4000}
             />
           </div>

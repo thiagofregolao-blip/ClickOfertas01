@@ -98,7 +98,6 @@ export function BannerSection({ isSearchActive = false }: BannerSectionProps) {
       {rotatingBanners.length > 0 && (
         <BannerCarouselSwiper 
           banners={rotatingBanners} 
-          height="300px"
           autoPlayInterval={4000}
         />
       )}

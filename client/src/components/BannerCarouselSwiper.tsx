@@ -30,7 +30,7 @@ export interface BannerCarouselSwiperProps {
 export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
   banners,
   autoPlayInterval = 4000,
-  height = '300px',
+  height = 'clamp(100px, 16vw, 260px)',
   className = '',
 }) => {
   if (!banners || banners.length === 0) {
@@ -44,13 +44,11 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
     return null;
   }
 
-  // Definição de breakpoints para ajuste responsivo: a fração de slide visível
-  // (slidesPerView) e o espaço entre slides (spaceBetween) mudam conforme a largura.
-  // Valores ajustados para evitar corte do banner da direita
-  const breakpoints = {
-    1280: { slidesPerView: 1.2, spaceBetween: 24, centeredSlides: false },
-    768:  { slidesPerView: 1.15, spaceBetween: 20, centeredSlides: false },
-    0:    { slidesPerView: 1.05, spaceBetween: 16, centeredSlides: true },
+  // Configuração EXATA do carrossel original (apenas um slide visível por vez)
+  const swiperConfig = {
+    slidesPerView: 1,
+    spaceBetween: 0,
+    centeredSlides: true
   };
 
   return (
@@ -58,7 +56,7 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
       <Swiper
         modules={[Navigation, Pagination, Autoplay]}
         loop={activeBanners.length > 1} // loop infinito apenas se há mais de 1 banner
-        breakpoints={breakpoints}
+        {...swiperConfig}
         autoplay={
           autoPlayInterval && activeBanners.length > 1
             ? { 
