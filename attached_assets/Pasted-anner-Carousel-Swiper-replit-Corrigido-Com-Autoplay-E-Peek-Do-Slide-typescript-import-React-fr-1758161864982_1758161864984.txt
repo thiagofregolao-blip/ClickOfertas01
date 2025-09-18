@@ -1,0 +1,193 @@
+anner Carousel Swiper (replit) — Corrigido Com Autoplay E Peek Do Slide
+· typescript
+import React from "react";
+    mobile: {
+      breakpoint: { max: 768, min: 0 },
+      items: 1,
+      partialVisibilityGutter: 28,
+    },
+  };
+
+
+  return (
+    <div style={{ width: "100%", position: "relative" }}>
+      <Carousel
+        responsive={responsive}
+        infinite
+        autoPlay
+        autoPlaySpeed={autoPlayInterval}
+        arrows
+        showDots
+        keyBoardControl
+        pauseOnHover
+        partialVisible
+        containerClass="banner-carousel"
+        itemClass="banner-item"
+        renderButtonGroupOutside={false}
+      >
+        {banners.map((banner) => (
+          <div
+            key={banner.id}
+            onClick={() => banner.linkUrl && window.open(banner.linkUrl, "_blank")}
+            style={{
+              cursor: banner.linkUrl ? "pointer" : "default",
+              width: "100%",
+              aspectRatio: "16 / 9",
+              borderRadius: 12,
+              overflow: "hidden",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+              position: "relative",
+            }}
+          >
+            <img
+              src={banner.imageUrl}
+              alt={banner.title ?? "banner"}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                display: "block",
+              }}
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+            />
+
+
+            {/* Overlay opcional */}
+            {/* {banner.title && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 16,
+                  left: 16,
+                  right: 16,
+                  backgroundColor: banner.backgroundColor || "rgba(0,0,0,0.5)",
+                  color: banner.textColor || "#fff",
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                }}
+              >
+                <h3 style={{ margin: 0 }}>{banner.title}</h3>
+                {banner.description && <p style={{ margin: 0 }}>{banner.description}</p>}
+              </div>
+            )} */}
+          </div>
+        ))}
+      </Carousel>
+    </div>
+  );
+};
+
+
+export default BannerCarousel;
+
+
+
+Feito! Ajustei o componente para o react-multi-carousel direitinho e corrigi o que provavelmente estava quebrando a prévia:
+
+Nada de items fracionário (1.5 / 1.3 / 1.1) — essa lib espera inteiro. Isso pode fazer a preview ficar vazia.
+
+Mantive items: 1 em todos os breakpoints e ativei o “peek” com partialVisible + partialVisibilityGutter.
+
+Removi centerMode (não é necessário com partialVisible e às vezes atrapalha).
+
+Deixei autoPlay, infinite, pauseOnHover, showDots e transição padrão.
+
+Onde está a versão corrigida:
+
+No canvas “Banner Carousel Swiper (replit) — Corrigido Com Autoplay E Peek Do Slide” (o seu arquivo principal já atualizado).
+
+No canvas “Banner Carousel (react-multi-carousel) — Replit/react” você também tem um export default DemoCarousel() com as 3 imagens que você passou — dá pra ver a prévia.
+
+Como usar no seu projeto (Replit):
+
+npm i react-multi-carousel
+
+// BannerCarousel.tsx
+import React from 'react';
+import Carousel from 'react-multi-carousel';
+import 'react-multi-carousel/lib/styles.css';
+
+type Banner = { id: string | number; imageUrl: string; title?: string; linkUrl?: string };
+
+const responsive = {
+  desktop: { breakpoint: { max: 3000, min: 1280 }, items: 1, partialVisibilityGutter: 48 },
+  tablet:  { breakpoint: { max: 1280, min: 768 },  items: 1, partialVisibilityGutter: 36 },
+  mobile:  { breakpoint: { max: 768,  min: 0 },    items: 1, partialVisibilityGutter: 28 },
+} as const;
+
+export default function BannerCarousel({
+  banners,
+  autoPlayInterval = 4000,
+  showDots = true,
+  peekPx = 48,
+}: {
+  banners: Banner[];
+  autoPlayInterval?: number;
+  showDots?: boolean;
+  peekPx?: number;
+}) {
+  if (!banners?.length) return null;
+
+  // opcional: sobrescrever gutter via prop
+  const resp = {
+    desktop: { ...responsive.desktop, partialVisibilityGutter: peekPx },
+    tablet:  { ...responsive.tablet,  partialVisibilityGutter: Math.max(32, peekPx - 12) },
+    mobile:  { ...responsive.mobile,  partialVisibilityGutter: Math.max(24, peekPx - 20) },
+  };
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <Carousel
+        responsive={resp}
+        infinite
+        autoPlay
+        autoPlaySpeed={autoPlayInterval}
+        partialVisible
+        swipeable
+        draggable
+        keyBoardControl
+        pauseOnHover
+        arrows
+        showDots={showDots}
+        containerClass="banner-carousel-container"
+        itemClass="banner-carousel-item"
+        sliderClass="banner-carousel-slider"
+      >
+        {banners.map((b) => (
+          <div key={b.id}>
+            <div
+              onClick={() => b.linkUrl && window.open(b.linkUrl, '_blank')}
+              style={{
+                width: '100%',
+                aspectRatio: '16 / 9', // ou troque por height: 320
+                position: 'relative',
+                borderRadius: 12,
+                overflow: 'hidden',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                cursor: b.linkUrl ? 'pointer' : 'default',
+                background: '#eee',
+              }}
+            >
+              <img
+                src={b.imageUrl}
+                alt={b.title ?? 'banner'}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+              />
+            </div>
+          </div>
+        ))}
+      </Carousel>
+
+      <style>{`
+        .banner-carousel-container { overflow: visible; }
+        .banner-carousel-slider { overflow: visible; }
+        .banner-carousel-item   { padding-right: 0; }
+      `}</style>
+    </div>
+  );
+}

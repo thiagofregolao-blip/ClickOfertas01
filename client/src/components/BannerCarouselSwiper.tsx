@@ -1,13 +1,6 @@
-import React, { useRef } from 'react';
-// Import Swiper React components and required modules
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-
-// Import Swiper styles.  These CSS files are required for proper styling of
-// the carousel, including navigation arrows and pagination dots.
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
+import React from 'react';
+import Carousel from 'react-multi-carousel';
+import 'react-multi-carousel/lib/styles.css';
 
 /**
  * Types for an individual banner.  A banner can optionally have a title,
@@ -39,13 +32,12 @@ export interface BannerCarouselSwiperProps {
 }
 
 /**
- * BannerCarouselSwiper – versão ajustada para Replit/React
- *
+ * BannerCarousel – versão com react-multi-carousel
+ * 
  * Correções aplicadas:
- * 1) Altura/ratio do slide garantindo layout: usamos aspectRatio 16/9 no contêiner do slide.
- * 2) overflow visível no wrapper e no Swiper para o "peek" do banner da direita.
- * 3) Autoplay ativo com pauseOnMouseEnter e disableOnInteraction=false.
- * 4) Mantido loop + centeredSlides + slides fracionários.
+ * 1) items: 1 em todos os breakpoints (nada fracionário)
+ * 2) partialVisible + partialVisibilityGutter para o "peek"
+ * 3) autoPlay, infinite, pauseOnHover ativados
  */
 export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
   banners,
@@ -55,118 +47,89 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
     return null;
   }
 
-  const swiperRef = useRef<any>(null);
-
-  const breakpoints = {
-    1280: { slidesPerView: 1.5, spaceBetween: 30 },
-    768: { slidesPerView: 1.3, spaceBetween: 24 },
-    0: { slidesPerView: 1.1, spaceBetween: 16 },
-  } as const;
+  const responsive = {
+    desktop: {
+      breakpoint: { max: 3000, min: 1280 },
+      items: 1,
+      partialVisibilityGutter: 48,
+    },
+    tablet: {
+      breakpoint: { max: 1280, min: 768 },
+      items: 1,
+      partialVisibilityGutter: 36,
+    },
+    mobile: {
+      breakpoint: { max: 768, min: 0 },
+      items: 1,
+      partialVisibilityGutter: 28,
+    },
+  };
 
   return (
-    <div
-      className="banner-carousel-wrapper"
-      style={{ position: 'relative', width: '100%', overflow: 'visible' }}
-    >
-      <Swiper
-        modules={[Navigation, Pagination, Autoplay]}
-        loop
-        loopAdditionalSlides={banners.length}
-        centeredSlides
-        breakpoints={breakpoints}
-        autoplay={
-          autoPlayInterval
-            ? { delay: autoPlayInterval, disableOnInteraction: false, pauseOnMouseEnter: true }
-            : false
-        }
-        navigation={false}
-        pagination={{ clickable: true }}
-        onSwiper={(swiper) => {
-          swiperRef.current = swiper;
-        }}
-        className="banner-carousel-swiper"
-        style={{ overflow: 'visible' }}
+    <div style={{ width: "100%", position: "relative" }}>
+      <Carousel
+        responsive={responsive}
+        infinite
+        autoPlay
+        autoPlaySpeed={autoPlayInterval}
+        arrows
+        showDots
+        keyBoardControl
+        pauseOnHover
+        partialVisible
+        containerClass="banner-carousel"
+        itemClass="banner-item"
+        renderButtonGroupOutside={false}
       >
         {banners.map((banner) => (
-          <SwiperSlide key={banner.id}>
-            <div
-              onClick={() => {
-                if (banner.linkUrl) window.open(banner.linkUrl, '_blank');
-              }}
+          <div
+            key={banner.id}
+            onClick={() => banner.linkUrl && window.open(banner.linkUrl, "_blank")}
+            style={{
+              cursor: banner.linkUrl ? "pointer" : "default",
+              width: "100%",
+              aspectRatio: "16 / 9",
+              borderRadius: 12,
+              overflow: "hidden",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+              position: "relative",
+            }}
+          >
+            <img
+              src={banner.imageUrl}
+              alt={banner.title ?? "banner"}
               style={{
-                cursor: banner.linkUrl ? 'pointer' : 'default',
-                width: '100%',
-                // 👇 Altura responsiva com limite máximo:
-                height: 'clamp(140px, 22vw, 360px)',
-                position: 'relative',
-                overflow: 'hidden',
-                borderRadius: 12,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                display: "block",
               }}
-            >
-              <img
-                src={banner.imageUrl}
-                alt={banner.title ?? 'banner'}
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+            />
+
+            {/* Overlay opcional */}
+            {/* {banner.title && (
+              <div
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
+                  position: "absolute",
+                  bottom: 16,
+                  left: 16,
+                  right: 16,
+                  backgroundColor: banner.backgroundColor || "rgba(0,0,0,0.5)",
+                  color: banner.textColor || "#fff",
+                  padding: "8px 12px",
+                  borderRadius: 8,
                 }}
-                loading="lazy"
-                decoding="async"
-                draggable={false}
-              />
-
-              {/* Overlay opcional */}
-              {/* {banner.title && (
-                <div
-                  style={{
-                    position: 'absolute', bottom: 16, left: 16, right: 16,
-                    backgroundColor: banner.backgroundColor || 'rgba(0,0,0,0.5)',
-                    color: banner.textColor || '#fff', padding: '8px 12px', borderRadius: 8,
-                  }}
-                >
-                  <h3 style={{ margin: 0 }}>{banner.title}</h3>
-                  {banner.description && <p style={{ margin: 0 }}>{banner.description}</p>}
-                </div>
-              )} */}
-            </div>
-          </SwiperSlide>
+              >
+                <h3 style={{ margin: 0 }}>{banner.title}</h3>
+                {banner.description && <p style={{ margin: 0 }}>{banner.description}</p>}
+              </div>
+            )} */}
+          </div>
         ))}
-      </Swiper>
-
-      {banners.length > 1 && (
-        <>
-          <button
-            aria-label="Banner anterior"
-            onClick={() => swiperRef.current?.slidePrev()}
-            className="carousel-prev"
-            style={{
-              position: 'absolute', top: '50%', left: -8, transform: 'translateY(-50%)',
-              background: 'rgba(0,0,0,0.55)', color: '#fff', border: 'none', borderRadius: '50%',
-              width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', zIndex: 5,
-            }}
-          >
-            ←
-          </button>
-
-          <button
-            aria-label="Próximo banner"
-            onClick={() => swiperRef.current?.slideNext()}
-            className="carousel-next"
-            style={{
-              position: 'absolute', top: '50%', right: -8, transform: 'translateY(-50%)',
-              background: 'rgba(0,0,0,0.55)', color: '#fff', border: 'none', borderRadius: '50%',
-              width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', zIndex: 5,
-            }}
-          >
-            →
-          </button>
-        </>
-      )}
+      </Carousel>
     </div>
   );
 };
