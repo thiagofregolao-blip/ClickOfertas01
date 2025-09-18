@@ -39,8 +39,8 @@ export function MapModal({
   const lng = typeof longitude === 'string' ? parseFloat(longitude) : longitude;
 
   useEffect(() => {
-    const isValidLat = lat && !isNaN(lat) && lat >= -90 && lat <= 90;
-    const isValidLng = lng && !isNaN(lng) && lng >= -180 && lng <= 180;
+    const isValidLat = lat !== null && lat !== undefined && !isNaN(lat) && lat >= -90 && lat <= 90;
+    const isValidLng = lng !== null && lng !== undefined && !isNaN(lng) && lng >= -180 && lng <= 180;
     setHasValidCoordinates(Boolean(isValidLat && isValidLng));
   }, [lat, lng]);
 
@@ -52,23 +52,23 @@ export function MapModal({
   }, [isOpen]);
 
   const handleOpenInGoogleMaps = () => {
-    if (hasValidCoordinates && lat && lng) {
+    if (hasValidCoordinates && lat !== null && lat !== undefined && lng !== null && lng !== undefined) {
       const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
       window.open(googleMapsUrl, '_blank');
     }
   };
 
   const handleGetDirections = () => {
-    if (hasValidCoordinates && lat && lng) {
+    if (hasValidCoordinates && lat !== null && lat !== undefined && lng !== null && lng !== undefined) {
       const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
       window.open(directionsUrl, '_blank');
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent 
-        className="w-full h-full max-w-none max-h-none m-0 p-0 bg-white dark:bg-gray-900 
+        className="flex flex-col w-full h-full max-w-none max-h-none m-0 p-0 bg-white dark:bg-gray-900 
                    md:w-[95vw] md:h-[90vh] md:max-w-6xl md:rounded-lg md:m-auto"
         data-testid="map-modal-content"
       >
@@ -123,8 +123,8 @@ export function MapModal({
         </div>
 
         {/* Map Container */}
-        <div className="flex-1 relative">
-          {hasValidCoordinates && lat && lng ? (
+        <div className="flex-1 min-h-0 relative">
+          {hasValidCoordinates && lat !== null && lat !== undefined && lng !== null && lng !== undefined ? (
             <MapContainer
               key={mapKey}
               center={[lat, lng]}

@@ -34,8 +34,8 @@ export function MiniMap({
   const lng = typeof longitude === 'string' ? parseFloat(longitude) : longitude;
 
   useEffect(() => {
-    const isValidLat = lat && !isNaN(lat) && lat >= -90 && lat <= 90;
-    const isValidLng = lng && !isNaN(lng) && lng >= -180 && lng <= 180;
+    const isValidLat = lat !== null && lat !== undefined && !isNaN(lat) && lat >= -90 && lat <= 90;
+    const isValidLng = lng !== null && lng !== undefined && !isNaN(lng) && lng >= -180 && lng <= 180;
     setHasValidCoordinates(Boolean(isValidLat && isValidLng));
     
     // Force map re-render when coordinates change
@@ -74,6 +74,7 @@ export function MiniMap({
   return (
     <div 
       className={`
+        relative
         w-16 h-10 sm:w-20 sm:h-12 
         rounded-lg 
         overflow-hidden 

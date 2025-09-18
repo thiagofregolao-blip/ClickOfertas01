@@ -17,7 +17,8 @@ export default function FlyerHeader({ store }: FlyerHeaderProps) {
   const hasValidCoordinates = () => {
     const lat = typeof store.latitude === 'string' ? parseFloat(store.latitude) : store.latitude;
     const lng = typeof store.longitude === 'string' ? parseFloat(store.longitude) : store.longitude;
-    return lat && lng && !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    return lat !== null && lat !== undefined && lng !== null && lng !== undefined && 
+           !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
   };
   
   const handleMapClick = () => {
