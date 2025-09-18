@@ -759,84 +759,92 @@ export default function StoresGallery() {
       )}
       
       
-      {/* Desktop: Header completo */}
+      {/* Desktop: Header dividido em duas partes */}
       {!isMobile && (
-        <div className="fixed top-0 left-0 right-0 z-50" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
-          {/* Desktop: Layout original */}
-          <div className={`py-4 px-2 ml-[5%]`}>
-            {/* Logo e Barra de Busca - PRIMEIRO */}
-            <div className="flex items-center gap-4 mb-6">
-              {/* Título */}
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <span className="text-white font-bold text-2xl tracking-normal" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: '700'}}>Click</span>
-                <span className="font-bold text-2xl tracking-normal">
-                  <span className="text-white">Ofertas.</span>
-                  <span style={{color: '#FFE600'}}>PY</span>
-                </span>
-              </div>
-
-              {/* Botão Comparar Preços */}
-              <Link href="/price-comparison">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-2 text-black font-semibold hover:opacity-90 backdrop-blur-sm"
-                  style={{ backgroundColor: '#FFE600', borderColor: '#FFE600' }}
-                  data-testid="button-price-comparison"
-                >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Comparar Preços
-                </Button>
-              </Link>
-              
-              {/* Barra de Busca */}
-              <div className="flex-1 max-w-4xl">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    onFocus={() => setIsSearchFocused(true)}
-                    onBlur={() => setIsSearchFocused(false)}
-                    className="pl-10 pr-10 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
-                  />
-                  {searchInput && (
-                    <button
-                      onClick={() => setSearchInput('')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                      title="Limpar busca"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
+        <>
+          {/* PARTE 1: Header superior fixo (sempre visível) */}
+          <div className="fixed top-0 left-0 right-0 z-50" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
+            <div className={`py-4 px-2 ml-[5%]`}>
+              {/* Logo e Barra de Busca */}
+              <div className="flex items-center gap-4">
+                {/* Título */}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <span className="text-white font-bold text-2xl tracking-normal" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: '700'}}>Click</span>
+                  <span className="font-bold text-2xl tracking-normal">
+                    <span className="text-white">Ofertas.</span>
+                    <span style={{color: '#FFE600'}}>PY</span>
+                  </span>
                 </div>
+
+                {/* Botão Comparar Preços */}
+                <Link href="/price-comparison">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-2 text-black font-semibold hover:opacity-90 backdrop-blur-sm"
+                    style={{ backgroundColor: '#FFE600', borderColor: '#FFE600' }}
+                    data-testid="button-price-comparison"
+                  >
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Comparar Preços
+                  </Button>
+                </Link>
+                
+                {/* Barra de Busca */}
+                <div className="flex-1 max-w-4xl">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      onFocus={() => setIsSearchFocused(true)}
+                      onBlur={() => setIsSearchFocused(false)}
+                      className="pl-10 pr-10 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
+                    />
+                    {searchInput && (
+                      <button
+                        onClick={() => setSearchInput('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        title="Limpar busca"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Sino de notificações - Desktop */}
+                <button
+                  className="bg-white/90 backdrop-blur-sm text-gray-600 hover:text-orange-500 p-2 rounded-lg shadow-sm transition-colors relative"
+                  title="Notificações"
+                  data-testid="button-notifications-desktop"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                  </svg>
+                  {/* Badge de notificação */}
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    3
+                  </span>
+                </button>
               </div>
-
-              {/* Sino de notificações - Desktop */}
-              <button
-                className="bg-white/90 backdrop-blur-sm text-gray-600 hover:text-orange-500 p-2 rounded-lg shadow-sm transition-colors relative"
-                title="Notificações"
-                data-testid="button-notifications-desktop"
-              >
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-                </svg>
-                {/* Badge de notificação */}
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  3
-                </span>
-              </button>
             </div>
+          </div>
 
-            {/* Menu de Navegação - SEGUNDO */}
-            <div 
-              className="flex items-center justify-start gap-3 -ml-2 transition-transform duration-300 ease-in-out"
-              style={{
-                transform: isMenuVisible ? 'translateY(0)' : 'translateY(-100%)',
-              }}
-            >
+          {/* PARTE 2: Menu de navegação (deslizante) */}
+          <div 
+            className={`fixed left-0 right-0 z-40 transition-transform duration-300 ease-in-out ${
+              isMenuVisible ? 'translate-y-0' : '-translate-y-full'
+            }`}
+            style={{
+              top: '88px', // Altura da primeira parte do header
+              background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'
+            }}
+          >
+            <div className="py-3 px-2 ml-[5%]">
+              <div className="flex items-center justify-start gap-3 -ml-2">
               
               {/* Botão temporário de acesso Super Admin */}
               <button
@@ -954,10 +962,10 @@ export default function StoresGallery() {
                   Entrar
                 </button>
               )}
-
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* SEÇÃO DE BANNERS - Desktop apenas */}
