@@ -351,6 +351,15 @@ export default function GlobalHeader({
               )}
             </form>
 
+            {/* Botão de Saudação */}
+            <button
+              className="bg-white/90 backdrop-blur-sm text-gray-600 hover:text-blue-500 px-3 py-2 rounded-lg shadow-sm transition-colors font-medium hidden sm:block"
+              title="Saudação"
+              data-testid="greeting-button"
+            >
+              <span className="text-sm">👋 Olá!</span>
+            </button>
+
             {/* Botão Comparar Preços */}
             {showPriceComparison && (
               <Button
