@@ -1,0 +1,152 @@
+Banner Carousel (react-multi-carousel) — Replit/react
+· typescript
+import React from 'react';
+import Carousel from 'react-multi-carousel';
+import 'react-multi-carousel/lib/styles.css';
+
+
+type Banner = { id: string | number; imageUrl: string; title?: string; linkUrl?: string };
+
+
+// --- Demo data (as requested) ---
+const demoBanners: Banner[] = [
+  { id: 1, imageUrl: 'https://s.zst.com.br/prod/brickz/Hero_Buscape_Amazon_50_off_Desk_7fbd2ae30c.webp' },
+  { id: 2, imageUrl: 'https://s.zst.com.br/prod/brickz/buscap_kabum_7_cb_desk_1f92043e65.webp' },
+  { id: 3, imageUrl: 'https://s.zst.com.br/prod/brickz/Hero_Buscape_iphone_17_Desk_fee2cd8ee7.webp' },
+];
+
+
+function BannerCarousel({
+  banners,
+  autoPlayInterval = 4000,
+  showDots = true,
+  peekPx = 48,
+}: {
+  banners: Banner[];
+  autoPlayInterval?: number;
+  showDots?: boolean;
+  peekPx?: number;
+}) {
+  if (!banners || banners.length === 0) return null;
+
+
+  const responsive = {
+    desktop: { breakpoint: { max: 3000, min: 1280 }, items: 1, partialVisibilityGutter: 96 },
+    tablet:  { breakpoint: { max: 1280, min: 768 },  items: 1, partialVisibilityGutter: 64 },
+    mobile:  { breakpoint: { max: 768,  min: 0 },    items: 1, partialVisibilityGutter: 40 },
+  } as const;
+
+
+  return (
+    <div style={{ position: 'relative', width: '100%', maxWidth: 1100, margin: '0 auto' }}>
+      <Carousel
+        responsive={responsive}
+        infinite
+        autoPlay
+        autoPlaySpeed={autoPlayInterval}
+        arrows
+        showDots={showDots}
+        keyBoardControl
+        pauseOnHover
+        partialVisible
+        centerMode
+        containerClass="banner-carousel-container"
+        itemClass="banner-carousel-item"
+        sliderClass="banner-carousel-slider"
+        customTransition="transform 600ms ease"
+        transitionDuration={600}
+      >
+        {banners.map((b) => (
+          <div key={b.id} style={{ padding: '0 8px' }}>
+            <div
+              onClick={() => b.linkUrl && window.open(b.linkUrl, '_blank')}
+              style={{
+                maxWidth: '90%',
+                margin: '0 auto',
+                height: 'clamp(160px, 22vw, 260px)',
+                position: 'relative',
+                borderRadius: 12,
+                overflow: 'hidden',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                cursor: b.linkUrl ? 'pointer' : 'default',
+                background: '#eee',
+              }}
+            >
+              <img
+                src={b.imageUrl}
+                alt={b.title ?? 'banner'}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+              />
+            </div>
+          </div>
+        ))}
+      </Carousel>
+
+
+      <style>{`
+        .banner-carousel-container { overflow: visible; padding-inline: 12px; }
+        .banner-carousel-slider { overflow: visible; }
+        .banner-carousel-item   { padding-right: 0; }
+      `}</style>
+    </div>
+  );
+}
+
+
+// --- Default export for Canvas preview ---
+export default function DemoCarousel() {
+  return (
+    <div style={{ maxWidth: 1200, margin: '40px auto' }}>
+      <BannerCarousel banners={demoBanners} autoPlayInterval={4000} showDots peekPx={48} />
+    </div>
+  );
+}
+
+
+
+Perfeito — vi o que você quer: banner menor (entre as marcas vermelhas) e mostrar entrada e saída ao mesmo tempo.
+
+Já apliquei no componente do canvas (“Banner Carousel (react-multi-carousel) — Replit/react”) estes ajustes:
+
+O que mudei
+
+Largura máxima + centralização
+
+Wrapper agora tem maxWidth: 1100 e margin: '0 auto'.
+
+Isso “puxa” o carrossel para ficar entre as marcas vermelhas (ajusto esse valor se quiser outro).
+
+Altura reduzida (e responsiva, sem ficar enorme)
+
+Troquei para height: 'clamp(160px, 22vw, 260px)'.
+
+Fica menor no desktop e não estoura no mobile.
+
+Peek real dos dois lados (entrada e saída)
+
+Subi o partialVisibilityGutter para dar folga:
+
+desktop: 96px
+
+tablet: 64px
+
+mobile: 40px
+
+Com centerMode + partialVisible + esses gutters, você vê um pedaço do anterior (esq.) e um pedaço do próximo (dir.) ao mesmo tempo.
+
+Se ainda não aparecer o “de saída” (esquerda)
+
+Geralmente é algum CSS externo cortando as laterais. Confira rápido:
+
+O pai do carrossel (seu container de página) não deve ter overflow: hidden.
+
+Deixe o nosso CSS como está (no componente):
+
+.banner-carousel-container { overflow: visible; }
+.banner-carousel-slider { overflow: visible; }
+
+
+Se o layout tiver um grid/coluna muito estreito, o maxWidth: 1100 pode passar do container. Ajuste o maxWidth (ex.: 1000 ou 980).

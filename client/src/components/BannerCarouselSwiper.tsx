@@ -43,13 +43,13 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
   }
 
   const responsive = {
-    desktop: { breakpoint: { max: 3000, min: 1280 }, items: 1, partialVisibilityGutter: 40 },
-    tablet:  { breakpoint: { max: 1280, min: 768 },  items: 1, partialVisibilityGutter: 32 },
-    mobile:  { breakpoint: { max: 768,  min: 0 },    items: 1, partialVisibilityGutter: 20 },
+    desktop: { breakpoint: { max: 3000, min: 1280 }, items: 1, partialVisibilityGutter: 96 },
+    tablet:  { breakpoint: { max: 1280, min: 768 },  items: 1, partialVisibilityGutter: 64 },
+    mobile:  { breakpoint: { max: 768,  min: 0 },    items: 1, partialVisibilityGutter: 40 },
   } as const;
 
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', maxWidth: 1100, margin: '0 auto' }}>
       <Carousel
         responsive={responsive}
         infinite
@@ -73,7 +73,7 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
               style={{
                 maxWidth: '90%',
                 margin: '0 auto',
-                height: 'clamp(180px, 28vw, 320px)',
+                height: 'clamp(160px, 22vw, 260px)',
                 position: 'relative',
                 borderRadius: 12,
                 overflow: 'hidden',
