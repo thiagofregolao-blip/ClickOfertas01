@@ -790,14 +790,14 @@ export default function PublicFlyer() {
                   {/* MiniMap - Mobile version */}
                   {store.latitude && store.longitude && (
                     <div className="mt-4">
-                      <div className="bg-white border-2 border-gray-300 rounded-md p-2 shadow-sm w-fit">
+                      <div className="bg-white border-2 border-gray-300 rounded-md p-1 shadow-sm w-fit">
                         <MiniMap
                           latitude={store.latitude}
                           longitude={store.longitude}
                           storeName={store.name}
                           onClick={() => setIsMapModalOpen(true)}
                           size="custom"
-                          className="w-36 h-20 border-0 rounded shadow-none cursor-pointer hover:shadow-md transition-shadow"
+                          className="w-40 h-24 border-0 rounded shadow-none cursor-pointer hover:shadow-md transition-shadow"
                         />
                       </div>
                     </div>
@@ -876,14 +876,14 @@ export default function PublicFlyer() {
                   {/* MiniMap - Posicionado na área branca à direita */}
                   {store.latitude && store.longitude && (
                     <div className="flex-shrink-0">
-                      <div className="bg-white border-2 border-gray-300 rounded-md p-2 shadow-sm">
+                      <div className="bg-white border-2 border-gray-300 rounded-md p-1 shadow-sm">
                         <MiniMap
                           latitude={store.latitude}
                           longitude={store.longitude}
                           storeName={store.name}
                           onClick={() => setIsMapModalOpen(true)}
                           size="custom"
-                          className="w-40 h-24 border-0 rounded shadow-none cursor-pointer hover:shadow-md transition-shadow"
+                          className="w-44 h-28 border-0 rounded shadow-none cursor-pointer hover:shadow-md transition-shadow"
                         />
                       </div>
                     </div>
