@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Star, MapPin, MessageCircle as WhatsApp, Instagram, ShoppingBag, Crown, User, Settings, LogOut, ShoppingCart, Smartphone, Droplets, Laptop, Monitor, Grid } from "lucide-react";
 import { formatPriceWithCurrency } from "@/lib/priceUtils";
 import { TwoPartHeader } from "@/components/TwoPartHeader";
+import LoginPage from "@/components/login-page";
 import { useAuth } from "@/hooks/useAuth";
 
 interface Store {
@@ -63,6 +64,7 @@ export default function ProductCompare() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   // Buscar dados de comparação do produto
   const { data: comparisonData, isLoading } = useQuery<ProductComparisonData>({
@@ -137,6 +139,14 @@ export default function ProductCompare() {
       <TwoPartHeader 
         showSearch={false}
         showNotifications={true}
+        isAuthenticated={isAuthenticated}
+        user={user ? {
+          firstName: user.firstName || undefined,
+          fullName: user.fullName || undefined,
+          email: user.email || undefined
+        } : undefined}
+        onLogin={() => setIsLoginModalOpen(true)}
+        onLogout={() => window.location.href = '/api/auth/logout'}
       >
         {isAuthenticated ? (
           // Desktop - menu na mesma linha
@@ -580,6 +590,13 @@ export default function ProductCompare() {
           </div>
         </div>
       </div>
+      
+      {/* Login Modal */}
+      <LoginPage 
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        mode="user"
+      />
     </div>
   );
 }
