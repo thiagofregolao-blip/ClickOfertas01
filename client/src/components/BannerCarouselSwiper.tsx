@@ -134,7 +134,7 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
         }
 
         /* Ajustes de posição das setas */
-        .banner-carousel-container .react-multiple-carousel__arrow--right { right: 30px; }
+        .banner-carousel-container .react-multiple-carousel__arrow--right { right: 60px; }
         .banner-carousel-container .react-multiple-carousel__arrow--left  { left: 16px; }
       `}</style>
     </div>
