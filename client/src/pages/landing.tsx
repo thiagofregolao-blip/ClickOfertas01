@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import LoginPage from "@/components/login-page";
+import { TwoPartHeader, TOTAL_HEADER_HEIGHT } from "@/components/TwoPartHeader";
 
 /**
  * Página de Aterrissagem - Click Ofertas Paraguai
@@ -74,30 +75,19 @@ export default function Landing() {
   
   return (
     <div className="min-h-[100dvh] flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
-      {/* Header Branco Superior */}
-      <header className="bg-white border-b border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo/Nome à esquerda */}
-          <div className="flex items-center">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Click Ofertas <span className="text-orange-500">PY</span>
-            </h1>
-          </div>
-          
-          {/* Precisa de Ajuda à direita */}
-          <div>
-            <a 
-              href="#" 
-              className="text-base text-orange-500 hover:text-orange-600 font-medium transition-colors"
-            >
-              Precisa de Ajuda?
-            </a>
-          </div>
-        </div>
-      </header>
+      {/* TwoPartHeader com variant primaryOnly para landing page */}
+      <TwoPartHeader
+        variant="primaryOnly"
+        title="Click Ofertas PY"
+        isAuthenticated={isAuthenticated}
+        user={user}
+        onLogin={() => setIsLoginModalOpen(true)}
+        onLogout={() => window.location.href = '/api/auth/logout'}
+        data-testid="header-landing"
+      />
 
-      {/* Área Promocional de fundo (estilo Shopee) */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#F04940] to-[#FA7D22] min-h-[85vh]">
+      {/* Área Promocional de fundo (estilo Shopee) - ajustado para o header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#F04940] to-[#FA7D22]" style={{ minHeight: `calc(100vh - ${TOTAL_HEADER_HEIGHT}px)` }}>
         <div className="absolute inset-0 bg-black/20"></div>
         
         {/* Layout Mobile vs Desktop */}

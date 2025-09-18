@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocation, Link } from "wouter";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
-import StandardHeader from "@/components/StandardHeader";
+import { TwoPartHeader, TOTAL_HEADER_HEIGHT } from "@/components/TwoPartHeader";
 import LoginPage from "@/components/login-page";
 
 interface BrazilianPrice {
@@ -171,12 +171,17 @@ export default function PriceComparison() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header Padrão */}
-      <StandardHeader 
+      {/* TwoPartHeader with back navigation */}
+      <TwoPartHeader 
+        variant="primaryOnly"
+        title="Comparação de Preços"
         isAuthenticated={isAuthenticated}
         user={user}
         onLogin={() => setIsLoginModalOpen(true)}
         onLogout={() => window.location.href = '/api/auth/logout'}
+        showBack={true}
+        onBack={() => setLocation('/')}
+        data-testid="header-price-comparison"
       />
       
       {/* Cabeçalho da Página */}
