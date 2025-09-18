@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share, BarChart3, Plus } from "lucide-react";
+import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share, BarChart3, Plus, Smartphone, Droplets, Laptop, Monitor } from "lucide-react";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import LoginPage from "@/components/login-page";
@@ -29,6 +29,22 @@ import { RectangularScratchCard } from "@/components/RectangularScratchCard";
 import GlobalHeader from "@/components/global-header";
 import type { StoreWithProducts, Product, InstagramStoryWithDetails } from "@shared/schema";
 import logoUrl from '../assets/logo.jpg';
+
+// Função para obter ícone da categoria
+function getCategoryIcon(slug: string) {
+  switch (slug.toLowerCase()) {
+    case 'celulares':
+      return <Smartphone className="w-4 h-4" />;
+    case 'perfumes':
+      return <Droplets className="w-4 h-4" />;
+    case 'notebooks':
+      return <Laptop className="w-4 h-4" />;
+    case 'tvs':
+      return <Monitor className="w-4 h-4" />;
+    default:
+      return <Grid className="w-4 h-4" />;
+  }
+}
 
 // Função para limitar nome a duas palavras no mobile
 function limitStoreName(name: string, isMobile: boolean): string {
@@ -606,16 +622,16 @@ export default function StoresGallery() {
             {/* Botões das categorias */}
             {categories.map((category) => (
               <button
-                key={category}
-                onClick={() => handleCategoryFilter(category)}
+                key={category.id}
+                onClick={() => handleCategoryFilter(category.slug)}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                  selectedCategory === category
+                  selectedCategory === category.slug || selectedCategory === category.name
                     ? 'bg-red-500 text-white shadow-sm'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
-                data-testid={`category-filter-${category.toLowerCase()}`}
+                data-testid={`category-filter-${category.slug}`}
               >
-                {category}
+                {getCategoryIcon(category.slug)} {category.name}
               </button>
             ))}
           </div>
@@ -879,11 +895,7 @@ export default function StoresGallery() {
                           }`}
                           data-testid={`button-category-${category.slug}`}
                         >
-                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="12" cy="12" r="3"/>
-                            <path d="M12 1v6m0 6v6"/>
-                            <path d="m9 9 3 3 3-3"/>
-                          </svg>
+                          {getCategoryIcon(category.slug)}
                           {category.name}
                         </button>
                       ))
