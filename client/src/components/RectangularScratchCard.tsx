@@ -396,7 +396,7 @@ export function RectangularScratchCard({ card, onScratch, processingCardId, funn
         {card.isScratched !== true && isRevealing !== true && isProcessing !== true && (
           <canvas
             ref={canvasRef}
-            className="absolute inset-0 w-full h-full rounded-lg cursor-pointer z-50"
+            className="absolute inset-0 w-full h-full rounded-lg cursor-pointer z-10"
             style={{ touchAction: 'none', pointerEvents: 'auto' }}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
