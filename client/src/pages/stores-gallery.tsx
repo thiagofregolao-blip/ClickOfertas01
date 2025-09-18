@@ -114,7 +114,31 @@ export default function StoresGallery() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const progressRef = useRef(0);
   
+  // Estado para controle do header scroll
+  const [isMenuVisible, setIsMenuVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  
   const STORY_DURATION = 5000; // 5 segundos
+
+  // Scroll listener para esconder/mostrar menu
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY < lastScrollY) {
+        // Rolando para cima - mostrar menu
+        setIsMenuVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Rolando para baixo e passou de 100px - esconder menu
+        setIsMenuVisible(false);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   // Timer para progresso do story
   useEffect(() => {
@@ -807,7 +831,12 @@ export default function StoresGallery() {
             </div>
 
             {/* Menu de Navegação - SEGUNDO */}
-            <div className="flex items-center justify-start gap-3 -ml-2">
+            <div 
+              className="flex items-center justify-start gap-3 -ml-2 transition-transform duration-300 ease-in-out"
+              style={{
+                transform: isMenuVisible ? 'translateY(0)' : 'translateY(-100%)',
+              }}
+            >
               
               {/* Botão temporário de acesso Super Admin */}
               <button
