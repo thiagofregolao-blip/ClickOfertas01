@@ -1491,13 +1491,6 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
           }}
         />
         
-        {/* Texto promocional */}
-        <div className="relative px-4 pt-2">
-          <p className="text-center text-gray-800 font-bold text-sm">
-            Aqui você encontra as melhores marcas!
-          </p>
-        </div>
-        
         {/* Content */}
         <div className="relative px-4 py-3 flex items-center backdrop-blur-[0.5px]">
           <Link href={`/flyer/${store.slug}`}>
@@ -1547,6 +1540,13 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Texto promocional */}
+      <div className="px-4 py-2 bg-gray-50">
+        <p className="text-center text-gray-800 font-bold text-sm">
+          Aqui você encontra as melhores marcas!
+        </p>
       </div>
 
       {/* Products Horizontal Cards */}
