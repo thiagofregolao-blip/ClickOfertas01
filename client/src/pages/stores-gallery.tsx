@@ -941,7 +941,7 @@ export default function StoresGallery() {
 
       {/* SEÇÃO DE STORIES - Desktop apenas (abaixo do banner) */}
       {!searchQuery.trim() && !isMobile && (
-        <div className="bg-white border-b">
+        <div className="bg-white">
           <div className="mx-auto px-4 max-w-6xl py-4">
             {/* Texto promocional */}
             <div className="text-left mb-4">
@@ -1030,7 +1030,7 @@ export default function StoresGallery() {
       )}
 
       {/* Texto promocional */}
-      <div className="bg-white border-b">
+      <div className="bg-white">
         <div className="mx-auto px-4 max-w-6xl py-3">
           <p className="text-left text-gray-800 font-bold text-lg">
             Aqui você encontra as melhores marcas!
@@ -1360,7 +1360,7 @@ function UnifiedFeedView({ stores, searchQuery, searchResults, isMobile, onProdu
         
         {/* Footer do Feed */}
         {!searchQuery.trim() && (
-          <div className="bg-white border-b p-6 text-center">
+          <div className="bg-white p-6 text-center">
             <p className="text-gray-500">
               {stores.length} {stores.length === 1 ? 'loja disponível' : 'lojas disponíveis'}
             </p>
@@ -1482,7 +1482,7 @@ function StorePost({ store, searchQuery = '', isMobile = true, onProductClick }:
   })();
 
   return (
-    <div className="bg-white mb-3 border-b">
+    <div className="bg-white mb-3">
       {/* Post Header with Background Effect */}
       <div className="relative overflow-hidden">
         {/* Background Effect */}
