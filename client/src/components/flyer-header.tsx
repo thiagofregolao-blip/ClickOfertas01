@@ -52,18 +52,6 @@ export default function FlyerHeader({ store }: FlyerHeaderProps) {
               </div>
             )}
             
-            {/* MiniMap sobreposto no canto superior esquerdo do logo */}
-            {hasValidCoordinates() && (
-              <div className="absolute -top-1 -left-1 z-10">
-                <MiniMap
-                  latitude={store.latitude!}
-                  longitude={store.longitude!}
-                  storeName={store.name}
-                  onClick={handleMapClick}
-                  className="w-8 h-6 border-2 border-white shadow-md"
-                />
-              </div>
-            )}
           </div>
           
           <div className="flex-1 min-w-0">
@@ -80,8 +68,26 @@ export default function FlyerHeader({ store }: FlyerHeaderProps) {
         </div>
         
         <div className="text-right">
-          <p className="text-lg font-semibold">Promoções Válidas</p>
-          <p className="text-white/90">Até acabar o estoque</p>
+          <div className="flex flex-col items-end space-y-2">
+            <div>
+              <p className="text-lg font-semibold">Promoções Válidas</p>
+              <p className="text-white/90">Até acabar o estoque</p>
+            </div>
+            
+            {/* MiniMap com frame preto conforme especificado */}
+            {hasValidCoordinates() && (
+              <div className="border-2 border-black rounded-md bg-white p-1">
+                <MiniMap
+                  latitude={store.latitude!}
+                  longitude={store.longitude!}
+                  storeName={store.name}
+                  onClick={handleMapClick}
+                  size="custom"
+                  className="w-28 h-[4.5rem] sm:w-32 sm:h-20 border-0 rounded shadow-none"
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
       

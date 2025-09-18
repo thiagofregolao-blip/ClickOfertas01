@@ -17,6 +17,7 @@ interface MiniMapProps {
   storeName?: string;
   onClick?: () => void;
   className?: string;
+  size?: 'small' | 'medium' | 'large' | 'custom';
 }
 
 export function MiniMap({ 
@@ -24,7 +25,8 @@ export function MiniMap({
   longitude, 
   storeName = 'Loja', 
   onClick,
-  className = ''
+  className = '',
+  size = 'medium'
 }: MiniMapProps) {
   const [hasValidCoordinates, setHasValidCoordinates] = useState(false);
   const [mapKey, setMapKey] = useState(0);
@@ -48,11 +50,22 @@ export function MiniMap({
     }
   };
 
+  // Get default size classes if not using custom
+  const getSizeClasses = () => {
+    if (size === 'custom') return '';
+    const sizeMap = {
+      small: 'w-12 h-8 sm:w-14 sm:h-10',
+      medium: 'w-16 h-10 sm:w-20 sm:h-12',
+      large: 'w-24 h-16 sm:w-28 sm:h-20'
+    };
+    return sizeMap[size] || sizeMap.medium;
+  };
+
   if (!hasValidCoordinates) {
     return (
       <div 
         className={`
-          w-16 h-10 sm:w-20 sm:h-12 
+          ${getSizeClasses()}
           rounded-lg 
           bg-gray-100 dark:bg-gray-800 
           border border-gray-200 dark:border-gray-700
@@ -75,7 +88,7 @@ export function MiniMap({
     <div 
       className={`
         relative
-        w-16 h-10 sm:w-20 sm:h-12 
+        ${getSizeClasses()}
         rounded-lg 
         overflow-hidden 
         border border-gray-200 dark:border-gray-700
