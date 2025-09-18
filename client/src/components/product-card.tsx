@@ -151,16 +151,6 @@ export default function ProductCard({
           
           {/* Overlay limpo */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all">
-            {/* Price comparison button - Hidden on mobile */}
-            <div className="absolute top-2 right-2 hidden sm:block">
-              <button
-                onClick={handlePriceComparisonClick}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded transition-all duration-200"
-                title="Comparar preços no Brasil"
-              >
-                BR
-              </button>
-            </div>
           </div>
         </div>
         
