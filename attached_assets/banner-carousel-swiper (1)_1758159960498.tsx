@@ -51,7 +51,7 @@ export interface BannerCarouselSwiperProps {
  *    the next and previous slides to peek in on either side【232212359592295†L358-L366】.
  *  - `slidesPerView` uses fractional values (e.g. 1.2) along with
  *    `centeredSlides=true` so that a portion of the neighbouring slides is
- *    visible.  This approach is recommended for creating a "stage padding"
+ *    visible.  This approach is recommended for creating a “stage padding”
  *    effect similar to Buscapé.  Responsive breakpoints adjust these values
  *    on smaller screens.
  *  - Automatic playback with configurable delay and the `Autoplay` module.
