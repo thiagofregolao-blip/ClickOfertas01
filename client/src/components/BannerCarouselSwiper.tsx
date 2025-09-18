@@ -122,21 +122,15 @@ export const BannerCarouselSwiper: React.FC<BannerCarouselSwiperProps> = ({
         .banner-carousel-slider { overflow: visible; }
         .banner-carousel-item   { padding-right: 0; }
         
-        /* Esconder setas por padrão */
-        .banner-carousel-container .react-multi-carousel-arrow,
-        .banner-carousel-container .react-multi-carousel-arrow--left,
-        .banner-carousel-container .react-multi-carousel-arrow--right {
-          opacity: 0 !important;
-          visibility: hidden !important;
-          transition: opacity 0.3s ease, visibility 0.3s ease;
+        /* NOVO: controla visibilidade das setas */
+        .banner-carousel-container .react-multiple-carousel__arrow {
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity 0.3s ease;
         }
-        
-        /* Mostrar setas no hover */
-        .banner-carousel-container:hover .react-multi-carousel-arrow,
-        .banner-carousel-container:hover .react-multi-carousel-arrow--left,
-        .banner-carousel-container:hover .react-multi-carousel-arrow--right {
-          opacity: 1 !important;
-          visibility: visible !important;
+        .banner-carousel-container:hover .react-multiple-carousel__arrow {
+          opacity: 1;
+          visibility: visible;
         }
       `}</style>
     </div>
