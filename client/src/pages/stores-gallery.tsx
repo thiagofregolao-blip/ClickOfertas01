@@ -763,7 +763,7 @@ export default function StoresGallery() {
       {!isMobile && (
         <>
           {/* PARTE 1: Header superior fixo (sempre visível) */}
-          <div className="fixed top-0 left-0 right-0 z-50" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
+          <div className="fixed top-0 left-0 right-0 z-50" style={{background: 'linear-gradient(135deg, #F04940 0%, #FA7D22 100%)'}}>
             <div className={`py-4 px-2 ml-[5%]`}>
               {/* Logo e Barra de Busca */}
               <div className="flex items-center gap-4">
@@ -840,7 +840,7 @@ export default function StoresGallery() {
             }`}
             style={{
               top: '72px', // Altura exata da primeira parte do header
-              background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'
+              background: 'linear-gradient(135deg, #F04940 0%, #FA7D22 100%)'
             }}
           >
             <div className="py-3 px-2 ml-[5%]">
