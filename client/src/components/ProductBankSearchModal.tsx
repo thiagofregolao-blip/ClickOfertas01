@@ -34,14 +34,15 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
   // Buscar produtos do banco
   const { data: searchData, isLoading: isSearching } = useQuery({
     queryKey: ['/api/product-banks/items', searchQuery, selectedCategory, currentPage, pageSize],
-    queryFn: () => {
+    queryFn: async () => {
       const params = new URLSearchParams();
       if (searchQuery) params.append('q', searchQuery);
       if (selectedCategory && selectedCategory !== 'Todos') params.append('category', selectedCategory);
       params.append('page', currentPage.toString());
       params.append('pageSize', pageSize.toString());
       
-      return apiRequest('GET', `/api/product-banks/items?${params.toString()}`);
+      const response = await apiRequest('GET', `/api/product-banks/items?${params.toString()}`);
+      return await response.json();
     },
     enabled: isOpen,
   });
