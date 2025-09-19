@@ -43,6 +43,8 @@ import {
   trendingProducts,
   generatedTotemArts,
   categories,
+  productBanks,
+  productBankItems,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -142,6 +144,14 @@ import {
   type Category,
   type InsertCategory,
   type UpdateCategory,
+  // Product Banks
+  type ProductBank,
+  type InsertProductBank,
+  type UpdateProductBank,
+  type ProductBankItem,
+  type InsertProductBankItem,
+  type UpdateProductBankItem,
+  type ProductBankWithItems,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, gte, lte, lt, sql, inArray, or, isNull } from "drizzle-orm";
@@ -338,6 +348,22 @@ export interface IStorage {
   updateCategory(id: string, category: UpdateCategory): Promise<Category>;
   deleteCategory(id: string): Promise<void>;
   toggleCategoryStatus(id: string): Promise<Category>;
+
+  // Product Banks operations
+  getAllProductBanks(): Promise<ProductBankWithItems[]>;
+  getActiveProductBanks(): Promise<ProductBankWithItems[]>;
+  getProductBankById(id: string): Promise<ProductBankWithItems | undefined>;
+  createProductBank(bank: InsertProductBank): Promise<ProductBank>;
+  updateProductBank(id: string, bank: UpdateProductBank): Promise<ProductBank>;
+  deleteProductBank(id: string): Promise<void>;
+  
+  getProductBankItems(bankId: string): Promise<ProductBankItem[]>;
+  getProductBankItemById(id: string): Promise<ProductBankItem | undefined>;
+  createProductBankItem(item: InsertProductBankItem): Promise<ProductBankItem>;
+  updateProductBankItem(id: string, item: UpdateProductBankItem): Promise<ProductBankItem>;
+  deleteProductBankItem(id: string): Promise<void>;
+  searchProductBankItems(query: string, category?: string, brand?: string): Promise<ProductBankItem[]>;
+  incrementProductBankItemUsage(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3785,6 +3811,225 @@ export class DatabaseStorage implements IStorage {
       .where(eq(categories.id, id))
       .returning();
     return category;
+  }
+
+  // =====================================
+  // PRODUCT BANKS OPERATIONS
+  // =====================================
+
+  async getAllProductBanks(): Promise<ProductBankWithItems[]> {
+    const banks = await db
+      .select()
+      .from(productBanks)
+      .orderBy(desc(productBanks.createdAt));
+
+    // Buscar quantidade de itens para cada banco
+    const banksWithItems = await Promise.all(
+      banks.map(async (bank) => {
+        const itemsCount = await db
+          .select({ count: count() })
+          .from(productBankItems)
+          .where(eq(productBankItems.bankId, bank.id));
+
+        return {
+          ...bank,
+          itemsCount: itemsCount[0]?.count || 0,
+        } as ProductBankWithItems;
+      })
+    );
+
+    return banksWithItems;
+  }
+
+  async getActiveProductBanks(): Promise<ProductBankWithItems[]> {
+    const banks = await db
+      .select()
+      .from(productBanks)
+      .where(eq(productBanks.isActive, true))
+      .orderBy(desc(productBanks.createdAt));
+
+    // Buscar quantidade de itens para cada banco
+    const banksWithItems = await Promise.all(
+      banks.map(async (bank) => {
+        const itemsCount = await db
+          .select({ count: count() })
+          .from(productBankItems)
+          .where(and(
+            eq(productBankItems.bankId, bank.id),
+            eq(productBankItems.isActive, true)
+          ));
+
+        return {
+          ...bank,
+          itemsCount: itemsCount[0]?.count || 0,
+        } as ProductBankWithItems;
+      })
+    );
+
+    return banksWithItems;
+  }
+
+  async getProductBankById(id: string): Promise<ProductBankWithItems | undefined> {
+    const [bank] = await db
+      .select()
+      .from(productBanks)
+      .where(eq(productBanks.id, id));
+
+    if (!bank) return undefined;
+
+    // Buscar itens do banco
+    const items = await this.getProductBankItems(id);
+
+    return {
+      ...bank,
+      items,
+      itemsCount: items.length,
+    } as ProductBankWithItems;
+  }
+
+  async createProductBank(bankData: InsertProductBank): Promise<ProductBank> {
+    const [bank] = await db
+      .insert(productBanks)
+      .values({
+        ...bankData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return bank;
+  }
+
+  async updateProductBank(id: string, bankData: UpdateProductBank): Promise<ProductBank> {
+    const [bank] = await db
+      .update(productBanks)
+      .set({
+        ...bankData,
+        updatedAt: new Date(),
+      })
+      .where(eq(productBanks.id, id))
+      .returning();
+    return bank;
+  }
+
+  async deleteProductBank(id: string): Promise<void> {
+    // Primeiro deletar todos os itens do banco (cascata)
+    await db.delete(productBankItems).where(eq(productBankItems.bankId, id));
+    // Depois deletar o banco
+    await db.delete(productBanks).where(eq(productBanks.id, id));
+  }
+
+  async getProductBankItems(bankId: string): Promise<ProductBankItem[]> {
+    return await db
+      .select()
+      .from(productBankItems)
+      .where(and(
+        eq(productBankItems.bankId, bankId),
+        eq(productBankItems.isActive, true)
+      ))
+      .orderBy(productBankItems.name);
+  }
+
+  async getProductBankItemById(id: string): Promise<ProductBankItem | undefined> {
+    const [item] = await db
+      .select()
+      .from(productBankItems)
+      .where(eq(productBankItems.id, id));
+    return item;
+  }
+
+  async createProductBankItem(itemData: InsertProductBankItem): Promise<ProductBankItem> {
+    const [item] = await db
+      .insert(productBankItems)
+      .values({
+        ...itemData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    // Incrementar contador do banco
+    await db
+      .update(productBanks)
+      .set({
+        totalProducts: sql`${productBanks.totalProducts} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(productBanks.id, itemData.bankId));
+
+    return item;
+  }
+
+  async updateProductBankItem(id: string, itemData: UpdateProductBankItem): Promise<ProductBankItem> {
+    const [item] = await db
+      .update(productBankItems)
+      .set({
+        ...itemData,
+        updatedAt: new Date(),
+      })
+      .where(eq(productBankItems.id, id))
+      .returning();
+    return item;
+  }
+
+  async deleteProductBankItem(id: string): Promise<void> {
+    // Buscar o item para pegar o bankId
+    const item = await this.getProductBankItemById(id);
+    
+    // Deletar o item
+    await db.delete(productBankItems).where(eq(productBankItems.id, id));
+    
+    // Decrementar contador do banco se o item existia
+    if (item) {
+      await db
+        .update(productBanks)
+        .set({
+          totalProducts: sql`GREATEST(${productBanks.totalProducts} - 1, 0)`,
+          updatedAt: new Date(),
+        })
+        .where(eq(productBanks.id, item.bankId));
+    }
+  }
+
+  async searchProductBankItems(query: string, category?: string, brand?: string): Promise<ProductBankItem[]> {
+    let whereConditions = [eq(productBankItems.isActive, true)];
+
+    // Adicionar filtro de busca por nome ou descrição
+    if (query.trim()) {
+      whereConditions.push(
+        or(
+          sql`LOWER(${productBankItems.name}) LIKE LOWER(${`%${query}%`})`,
+          sql`LOWER(${productBankItems.description}) LIKE LOWER(${`%${query}%`})`,
+          sql`LOWER(${productBankItems.model}) LIKE LOWER(${`%${query}%`})`
+        )
+      );
+    }
+
+    // Adicionar filtro de categoria se especificado
+    if (category) {
+      whereConditions.push(eq(productBankItems.category, category));
+    }
+
+    // Adicionar filtro de marca se especificado
+    if (brand) {
+      whereConditions.push(eq(productBankItems.brand, brand));
+    }
+
+    return await db
+      .select()
+      .from(productBankItems)
+      .where(and(...whereConditions))
+      .orderBy(productBankItems.timesUsed, productBankItems.name)
+      .limit(50); // Limitar resultados para performance
+  }
+
+  async incrementProductBankItemUsage(id: string): Promise<void> {
+    await db
+      .update(productBankItems)
+      .set({
+        timesUsed: sql`${productBankItems.timesUsed} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(productBankItems.id, id));
   }
 }
 

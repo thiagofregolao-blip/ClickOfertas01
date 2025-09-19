@@ -7,6 +7,7 @@ import { generatePromotionalArt } from "../gemini.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import AdmZip from "adm-zip";
 
 // Middleware para verificar autenticação (sessão manual ou Replit Auth)
 const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
@@ -68,7 +69,7 @@ const isSuperAdmin = async (req: any, res: any, next: any) => {
 };
 import { getCurrentExchangeRate, convertUsdToBrl, formatBRL, formatUSD, clearExchangeRateCache } from "./exchange-rate";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema, insertBudgetConfigSchema, insertTotemContentSchema, updateTotemContentSchema, insertTotemSettingsSchema, updateTotemSettingsSchema, insertCategorySchema, updateCategorySchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema, insertBudgetConfigSchema, insertTotemContentSchema, updateTotemContentSchema, insertTotemSettingsSchema, updateTotemSettingsSchema, insertCategorySchema, updateCategorySchema, insertProductBankSchema, updateProductBankSchema, insertProductBankItemSchema, updateProductBankItemSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
@@ -105,6 +106,87 @@ class MemoryCache {
 }
 
 const cache = new MemoryCache();
+
+// Helper function to extract product information from folder name
+function extractProductInfo(folderName: string): {
+  name: string;
+  category: string;
+  brand: string;
+  model: string;
+  color: string;
+  storage: string;
+  ram: string;
+  metadata: any;
+} {
+  // Exemplo: celular-honor-x7c-alt-lx2-8gb-256gb-verde-foresta
+  const parts = folderName.toLowerCase().split('-');
+  
+  let category = 'Celulares';
+  let brand = '';
+  let model = '';
+  let color = '';
+  let storage = '';
+  let ram = '';
+  
+  // Extrair categoria
+  if (parts[0] === 'celular') {
+    category = 'Celulares';
+  }
+  
+  // Extrair marca (segundo elemento após categoria)
+  if (parts.length > 1) {
+    brand = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
+  }
+  
+  // Extrair model (elementos seguintes até encontrar specs)
+  const modelParts: string[] = [];
+  let i = 2;
+  
+  while (i < parts.length) {
+    const part = parts[i];
+    
+    // Parar se encontrar RAM (ex: 8gb, 12gb)
+    if (/^\d+gb$/.test(part) && parseInt(part) <= 32) {
+      ram = part.toUpperCase();
+      i++;
+      break;
+    }
+    
+    modelParts.push(part);
+    i++;
+  }
+  
+  model = modelParts.join(' ').toUpperCase();
+  
+  // Extrair storage (próximo elemento após RAM)
+  if (i < parts.length && /^\d+gb$/.test(parts[i])) {
+    storage = parts[i].toUpperCase();
+    i++;
+  }
+  
+  // Extrair cor (elementos restantes)
+  const colorParts = parts.slice(i);
+  if (colorParts.length > 0) {
+    color = colorParts.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(' ');
+  }
+  
+  // Gerar nome do produto
+  const name = `${brand} ${model} ${ram} ${storage} ${color}`.trim();
+  
+  return {
+    name,
+    category,
+    brand,
+    model,
+    color,
+    storage,
+    ram,
+    metadata: {
+      originalFolderName: folderName,
+      extractedParts: parts
+    }
+  };
+}
 
 // Helper function to verify store ownership
 async function verifyStoreOwnership(storeId: string, userId: string): Promise<boolean> {
@@ -5267,6 +5349,348 @@ Keep the overall composition and maintain the same visual quality. This is for a
       } else {
         res.status(500).json({ message: "Erro ao alterar status da categoria" });
       }
+    }
+  });
+
+  // =================================
+  // SUPER ADMIN PRODUCT BANKS ROUTES
+  // =================================
+
+  // Configurar multer para upload de ZIP
+  const zipUpload = multer({
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => {
+        const uploadDir = './uploads/product-banks/';
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+      },
+      filename: (req, file, cb) => {
+        const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}.zip`;
+        cb(null, uniqueName);
+      }
+    }),
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB máximo
+    fileFilter: (req: any, file: any, cb: any) => {
+      if (file.mimetype === 'application/zip' || file.mimetype === 'application/x-zip-compressed') {
+        cb(null, true);
+      } else {
+        cb(new Error('Apenas arquivos ZIP são permitidos'));
+      }
+    }
+  }).single('zipFile');
+
+  // Listar todos os bancos de produtos (Super Admin)
+  app.get('/api/super-admin/product-banks', isSuperAdmin, async (req, res) => {
+    try {
+      const banks = await storage.getAllProductBanks();
+      res.json(banks);
+    } catch (error) {
+      console.error("Error fetching product banks:", error);
+      res.status(500).json({ message: "Erro ao buscar bancos de produtos" });
+    }
+  });
+
+  // Obter banco específico com itens (Super Admin)
+  app.get('/api/super-admin/product-banks/:id', isSuperAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const bank = await storage.getProductBankById(id);
+      
+      if (!bank) {
+        return res.status(404).json({ message: "Banco de produtos não encontrado" });
+      }
+
+      res.json(bank);
+    } catch (error) {
+      console.error("Error fetching product bank:", error);
+      res.status(500).json({ message: "Erro ao buscar banco de produtos" });
+    }
+  });
+
+  // Upload de ZIP com produtos (Super Admin)
+  app.post('/api/super-admin/product-banks/upload', isSuperAdmin, async (req: any, res) => {
+    try {
+      zipUpload(req, res, async (err: any) => {
+        if (err) {
+          console.error('ZIP upload error:', err);
+          return res.status(400).json({ 
+            success: false, 
+            message: err.message || 'Erro no upload do arquivo ZIP' 
+          });
+        }
+
+        if (!req.file) {
+          return res.status(400).json({ 
+            success: false, 
+            message: 'Nenhum arquivo ZIP foi enviado' 
+          });
+        }
+
+        const { name, description } = req.body;
+        if (!name || name.trim() === '') {
+          return res.status(400).json({
+            success: false,
+            message: 'Nome do banco é obrigatório'
+          });
+        }
+
+        // Obter usuário atual
+        const user = req.session?.user || req.user;
+        if (!user || !user.id) {
+          return res.status(401).json({ message: "Usuário não autenticado" });
+        }
+
+        const zipPath = req.file.path;
+        const zipFileName = req.file.filename;
+
+        try {
+          // Processar o ZIP
+          const zip = new AdmZip(zipPath);
+          const entries = zip.getEntries();
+          
+          // Agrupar entradas por pasta
+          const productFolders = new Map<string, any[]>();
+          
+          entries.forEach(entry => {
+            if (!entry.isDirectory) {
+              const pathParts = entry.entryName.split('/');
+              if (pathParts.length >= 2) {
+                const folderName = pathParts[0];
+                if (!productFolders.has(folderName)) {
+                  productFolders.set(folderName, []);
+                }
+                productFolders.get(folderName)!.push(entry);
+              }
+            }
+          });
+
+          // Criar banco de produtos
+          const bank = await storage.createProductBank({
+            name: name.trim(),
+            description: description?.trim() || null,
+            zipFileName,
+            uploadedBy: user.id,
+            totalProducts: productFolders.size,
+          });
+
+          // Processar cada produto
+          let processedItems = 0;
+          for (const [folderName, files] of productFolders) {
+            try {
+              // Extrair informações do nome da pasta
+              const productInfo = extractProductInfo(folderName);
+              
+              // Buscar description.txt
+              const descriptionFile = files.find(f => f.entryName.endsWith('description.txt'));
+              let description = '';
+              if (descriptionFile) {
+                description = zip.readAsText(descriptionFile).trim();
+              }
+
+              // Extrair e salvar imagens
+              const imageFiles = files.filter(f => 
+                /\.(jpg|jpeg|png|webp|gif)$/i.test(f.entryName)
+              );
+
+              const imageUrls: string[] = [];
+              let primaryImageUrl = '';
+
+              for (const imageFile of imageFiles) {
+                const buffer = zip.readFile(imageFile);
+                if (buffer) {
+                  const ext = path.extname(imageFile.entryName).toLowerCase();
+                  const imageName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}${ext}`;
+                  const imagePath = `./uploads/product-banks/images/${imageName}`;
+                  
+                  // Criar diretório se não existir
+                  const imageDir = path.dirname(imagePath);
+                  if (!fs.existsSync(imageDir)) {
+                    fs.mkdirSync(imageDir, { recursive: true });
+                  }
+                  
+                  fs.writeFileSync(imagePath, buffer);
+                  const imageUrl = `/uploads/product-banks/images/${imageName}`;
+                  imageUrls.push(imageUrl);
+                  
+                  if (!primaryImageUrl) {
+                    primaryImageUrl = imageUrl;
+                  }
+                }
+              }
+
+              // Criar item do banco
+              await storage.createProductBankItem({
+                bankId: bank.id,
+                name: productInfo.name,
+                description,
+                category: productInfo.category,
+                brand: productInfo.brand,
+                model: productInfo.model,
+                color: productInfo.color,
+                storage: productInfo.storage,
+                ram: productInfo.ram,
+                folderName,
+                imageUrls,
+                primaryImageUrl,
+                metadata: productInfo.metadata,
+              });
+
+              processedItems++;
+            } catch (itemError) {
+              console.error(`Erro ao processar produto ${folderName}:`, itemError);
+            }
+          }
+
+          // Limpar arquivo ZIP
+          fs.unlinkSync(zipPath);
+
+          res.json({
+            success: true,
+            bank,
+            processedItems,
+            totalFolders: productFolders.size,
+            message: `Banco criado com sucesso! ${processedItems} produtos processados.`
+          });
+
+        } catch (zipError) {
+          console.error('Erro ao processar ZIP:', zipError);
+          // Limpar arquivo ZIP em caso de erro
+          if (fs.existsSync(zipPath)) {
+            fs.unlinkSync(zipPath);
+          }
+          res.status(500).json({
+            success: false,
+            message: 'Erro ao processar arquivo ZIP: ' + zipError.message
+          });
+        }
+      });
+    } catch (error) {
+      console.error("Error in ZIP upload:", error);
+      res.status(500).json({ success: false, message: "Erro interno do servidor" });
+    }
+  });
+
+  // Buscar produtos do banco (para seleção do lojista)
+  app.get('/api/product-banks/:bankId/items', isAuthenticatedCustom, async (req, res) => {
+    try {
+      const { bankId } = req.params;
+      const { search, category, brand, limit = 20, offset = 0 } = req.query;
+      
+      let items;
+      if (search || category || brand) {
+        items = await storage.searchProductBankItems(
+          (search as string) || '',
+          category as string,
+          brand as string
+        );
+      } else {
+        items = await storage.getProductBankItems(bankId);
+      }
+
+      // Aplicar paginação
+      const startIndex = parseInt(offset as string) || 0;
+      const limitNum = parseInt(limit as string) || 20;
+      const paginatedItems = items.slice(startIndex, startIndex + limitNum);
+
+      res.json({
+        items: paginatedItems,
+        total: items.length,
+        hasMore: startIndex + limitNum < items.length
+      });
+    } catch (error) {
+      console.error("Error fetching product bank items:", error);
+      res.status(500).json({ message: "Erro ao buscar produtos do banco" });
+    }
+  });
+
+  // Listar bancos ativos (para lojistas)
+  app.get('/api/product-banks/active', isAuthenticatedCustom, async (req, res) => {
+    try {
+      const banks = await storage.getActiveProductBanks();
+      res.json(banks);
+    } catch (error) {
+      console.error("Error fetching active product banks:", error);
+      res.status(500).json({ message: "Erro ao buscar bancos de produtos ativos" });
+    }
+  });
+
+  // Criar produto a partir do banco (lojista)
+  app.post('/api/products/from-bank', isAuthenticatedCustom, async (req, res) => {
+    try {
+      const { bankItemId, price, storeId } = req.body;
+      
+      if (!bankItemId || !price || !storeId) {
+        return res.status(400).json({ 
+          message: "ID do item do banco, preço e ID da loja são obrigatórios" 
+        });
+      }
+
+      // Verificar se o usuário é dono da loja
+      const user = req.session?.user || req.user;
+      if (!user) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      const store = await storage.getUserStore(user.id);
+      if (!store || store.id !== storeId) {
+        return res.status(403).json({ message: "Acesso negado à loja" });
+      }
+
+      // Buscar item do banco
+      const bankItem = await storage.getProductBankItemById(bankItemId);
+      if (!bankItem) {
+        return res.status(404).json({ message: "Produto do banco não encontrado" });
+      }
+
+      // Criar produto a partir do item do banco
+      const productData = {
+        name: bankItem.name,
+        description: bankItem.description || '',
+        price: price.toString(),
+        imageUrl: bankItem.primaryImageUrl || (bankItem.imageUrls?.[0] || ''),
+        imageUrl2: bankItem.imageUrls?.[1] || null,
+        imageUrl3: bankItem.imageUrls?.[2] || null,
+        category: bankItem.category || 'Celulares',
+        brand: bankItem.brand || '',
+        productCode: bankItem.folderName,
+        sourceType: 'bank' as const,
+      };
+
+      const product = await storage.createProduct(storeId, productData);
+      
+      // Incrementar uso do item do banco
+      await storage.incrementProductBankItemUsage(bankItemId);
+
+      res.status(201).json({
+        success: true,
+        product,
+        message: 'Produto criado com sucesso a partir do banco!'
+      });
+
+    } catch (error) {
+      console.error("Error creating product from bank:", error);
+      res.status(500).json({ message: "Erro ao criar produto a partir do banco" });
+    }
+  });
+
+  // Excluir banco de produtos (Super Admin)
+  app.delete('/api/super-admin/product-banks/:id', isSuperAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const bank = await storage.getProductBankById(id);
+      if (!bank) {
+        return res.status(404).json({ message: "Banco de produtos não encontrado" });
+      }
+
+      await storage.deleteProductBank(id);
+      
+      res.json({ success: true, message: "Banco de produtos excluído com sucesso" });
+    } catch (error) {
+      console.error("Error deleting product bank:", error);
+      res.status(500).json({ message: "Erro ao excluir banco de produtos" });
     }
   });
 

@@ -104,6 +104,49 @@ export const categories = pgTable("categories", {
   index("idx_categories_sort").on(table.sortOrder),
 ]);
 
+// Product Banks - Sistema de banco de imagens para produtos
+export const productBanks = pgTable("product_banks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 255 }).notNull(), // Nome do banco/pasta ZIP
+  description: text("description"),
+  zipFileName: varchar("zip_file_name"), // Nome original do arquivo ZIP
+  uploadedBy: varchar("uploaded_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  totalProducts: integer("total_products").default(0), // Quantidade de produtos no banco
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_product_banks_active").on(table.isActive),
+  index("idx_product_banks_uploaded_by").on(table.uploadedBy),
+]);
+
+// Product Bank Items - Produtos individuais do banco
+export const productBankItems = pgTable("product_bank_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  bankId: varchar("bank_id").notNull().references(() => productBanks.id, { onDelete: "cascade" }),
+  name: text("name").notNull(), // Extraído do nome da pasta
+  description: text("description"), // Conteúdo do description.txt
+  category: varchar("category").default("Celulares"), // Categoria inferida do nome
+  brand: varchar("brand"), // Marca extraída do nome
+  model: varchar("model"), // Modelo extraído do nome
+  color: varchar("color"), // Cor extraída do nome
+  storage: varchar("storage"), // Armazenamento extraído do nome (ex: 256gb)
+  ram: varchar("ram"), // RAM extraída do nome (ex: 8gb)
+  folderName: varchar("folder_name").notNull(), // Nome da pasta original
+  imageUrls: text("image_urls").array().notNull(), // Array de URLs das imagens
+  primaryImageUrl: text("primary_image_url"), // URL da primeira imagem
+  metadata: jsonb("metadata"), // Dados adicionais extraídos
+  timesUsed: integer("times_used").default(0), // Quantas vezes foi usado por lojistas
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_product_bank_items_bank_id").on(table.bankId),
+  index("idx_product_bank_items_active").on(table.isActive),
+  index("idx_product_bank_items_category").on(table.category),
+  index("idx_product_bank_items_brand").on(table.brand),
+]);
+
 // Products table
 export const products = pgTable("products", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1728,3 +1771,35 @@ export const updateCategorySchema = insertCategorySchema.partial();
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type UpdateCategory = z.infer<typeof updateCategorySchema>;
+
+// Product Banks schemas
+export const insertProductBankSchema = createInsertSchema(productBanks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateProductBankSchema = insertProductBankSchema.partial();
+
+export const insertProductBankItemSchema = createInsertSchema(productBankItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateProductBankItemSchema = insertProductBankItemSchema.partial();
+
+// Product Banks types
+export type ProductBank = typeof productBanks.$inferSelect;
+export type InsertProductBank = z.infer<typeof insertProductBankSchema>;
+export type UpdateProductBank = z.infer<typeof updateProductBankSchema>;
+
+export type ProductBankItem = typeof productBankItems.$inferSelect;
+export type InsertProductBankItem = z.infer<typeof insertProductBankItemSchema>;
+export type UpdateProductBankItem = z.infer<typeof updateProductBankItemSchema>;
+
+// Product Banks with relations
+export type ProductBankWithItems = ProductBank & {
+  items?: ProductBankItem[];
+  itemsCount?: number;
+};

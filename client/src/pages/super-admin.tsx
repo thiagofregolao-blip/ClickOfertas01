@@ -71,6 +71,38 @@ interface Category {
   updatedAt: string;
 }
 
+interface ProductBank {
+  id: string;
+  name: string;
+  description?: string;
+  zipFileName: string;
+  uploadedBy: string;
+  totalProducts: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ProductBankItem {
+  id: string;
+  bankId: string;
+  name: string;
+  description?: string;
+  category: string;
+  brand?: string;
+  model?: string;
+  color?: string;
+  storage?: string;
+  ram?: string;
+  folderName: string;
+  imageUrls: string[];
+  primaryImageUrl: string;
+  metadata: any;
+  usageCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface MaintenanceMode {
   id: string;
   isActive: boolean;
@@ -2038,7 +2070,7 @@ export default function SuperAdmin() {
         </div>
 
         <Tabs defaultValue="banners" className="w-full">
-          <TabsList className="grid w-full grid-cols-10">
+          <TabsList className="grid w-full grid-cols-11">
             <TabsTrigger value="banners" className="flex items-center gap-2">
               <Image className="w-4 h-4" />
               Banners
@@ -2074,6 +2106,10 @@ export default function SuperAdmin() {
             <TabsTrigger value="categories" className="flex items-center gap-2">
               <Tag className="w-4 h-4" />
               Categorias
+            </TabsTrigger>
+            <TabsTrigger value="product-banks" className="flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              Banco de Produtos
             </TabsTrigger>
             <TabsTrigger value="system" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
@@ -4606,6 +4642,48 @@ export default function SuperAdmin() {
             </Card>
           </TabsContent>
 
+          {/* ABA DE BANCO DE PRODUTOS */}
+          <TabsContent value="product-banks" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                Gerenciamento de Banco de Produtos
+              </h2>
+              
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button data-testid="button-add-product-bank" className="flex items-center gap-2">
+                    <Plus className="w-4 h-4" />
+                    Upload ZIP
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>Upload Banco de Produtos</DialogTitle>
+                    <DialogDescription>
+                      Faça upload de um arquivo ZIP contendo pastas de produtos com imagens e descrições.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <ProductBankUploadForm />
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="w-5 h-5" />
+                  Bancos de Produtos
+                </CardTitle>
+                <CardDescription>
+                  Gerencie os bancos de produtos disponíveis para os lojistas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ProductBanksList />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="system" className="space-y-6">
             <MaintenanceControls />
           </TabsContent>
@@ -4812,6 +4890,393 @@ export default function SuperAdmin() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+// Componente para upload de ZIP com produtos
+function ProductBankUploadForm() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const productBankSchema = z.object({
+    name: z.string().min(1, "Nome é obrigatório"),
+    description: z.string().optional(),
+    zipFile: z.any().optional(),
+  });
+
+  const form = useForm<z.infer<typeof productBankSchema>>({
+    resolver: zodResolver(productBankSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+    },
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: async (data: { name: string; description?: string; file: File }) => {
+      const formData = new FormData();
+      formData.append('name', data.name);
+      if (data.description) {
+        formData.append('description', data.description);
+      }
+      formData.append('zipFile', data.file);
+
+      const response = await fetch('/api/super-admin/product-banks/upload', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro no upload');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Upload realizado com sucesso!",
+        description: data.message || `Banco "${data.bank?.name}" criado com ${data.processedItems} produtos.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/product-banks'] });
+      form.reset();
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      setIsUploading(false);
+      setUploadProgress(0);
+    },
+    onError: (error: Error) => {
+      console.error('Upload error:', error);
+      toast({
+        title: "Erro no upload",
+        description: error.message,
+        variant: "destructive",
+      });
+      setIsUploading(false);
+      setUploadProgress(0);
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof productBankSchema>) => {
+    const fileInput = fileInputRef.current;
+    const file = fileInput?.files?.[0];
+    
+    if (!file) {
+      toast({
+        title: "Erro",
+        description: "Selecione um arquivo ZIP",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!file.name.toLowerCase().endsWith('.zip')) {
+      toast({
+        title: "Erro",
+        description: "Apenas arquivos ZIP são permitidos",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    // Simular progresso
+    const progressInterval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 90) return prev;
+        return prev + Math.random() * 10;
+      });
+    }, 500);
+
+    uploadMutation.mutate(
+      { 
+        name: values.name, 
+        description: values.description, 
+        file 
+      },
+      {
+        onSettled: () => {
+          clearInterval(progressInterval);
+        }
+      }
+    );
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nome do Banco</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  placeholder="Ex: Produtos Samsung Janeiro 2025"
+                  data-testid="input-bank-name"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Descrição (opcional)</FormLabel>
+              <FormControl>
+                <Textarea 
+                  {...field} 
+                  placeholder="Descrição do banco de produtos..."
+                  data-testid="textarea-bank-description"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Arquivo ZIP</label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".zip"
+            className="w-full p-2 border border-gray-300 rounded-md"
+            data-testid="input-zip-file"
+          />
+          <p className="text-xs text-gray-500">
+            Upload um arquivo ZIP contendo pastas de produtos com imagens e description.txt
+          </p>
+        </div>
+
+        {isUploading && (
+          <div className="space-y-2">
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+            <p className="text-sm text-center text-gray-600">
+              Processando arquivo... {Math.round(uploadProgress)}%
+            </p>
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button 
+            type="submit" 
+            disabled={isUploading}
+            data-testid="button-submit-upload"
+          >
+            {isUploading ? 'Processando...' : 'Fazer Upload'}
+          </Button>
+        </DialogFooter>
+      </form>
+    </Form>
+  );
+}
+
+// Componente para listar bancos de produtos
+function ProductBanksList() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: productBanks, isLoading, error } = useQuery({
+    queryKey: ['/api/super-admin/product-banks'],
+    queryFn: async () => {
+      const response = await fetch('/api/super-admin/product-banks', {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Erro ao buscar bancos de produtos');
+      }
+      return response.json();
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (bankId: string) => {
+      const response = await fetch(`/api/super-admin/product-banks/${bankId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao deletar banco');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Banco excluído",
+        description: "Banco de produtos excluído com sucesso",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/product-banks'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao excluir",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  if (isLoading) {
+    return <div className="text-center py-4">Carregando bancos de produtos...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-4 text-red-600">Erro ao carregar bancos de produtos</div>;
+  }
+
+  if (!productBanks || productBanks.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <p className="text-gray-500">Nenhum banco de produtos encontrado</p>
+        <p className="text-sm text-gray-400 mt-1">
+          Faça upload de um arquivo ZIP para criar seu primeiro banco
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {productBanks.map((bank: ProductBank) => (
+        <div key={bank.id} className="border rounded-lg p-4">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <Package className="w-5 h-5 text-blue-600" />
+                <h3 className="font-semibold text-lg">{bank.name}</h3>
+                <Badge variant={bank.isActive ? "default" : "secondary"}>
+                  {bank.isActive ? "Ativo" : "Inativo"}
+                </Badge>
+              </div>
+              
+              {bank.description && (
+                <p className="text-gray-600 mb-3">{bank.description}</p>
+              )}
+              
+              <div className="flex items-center gap-6 text-sm text-gray-500">
+                <span className="flex items-center gap-1">
+                  <Package className="w-4 h-4" />
+                  {bank.totalProducts} produtos
+                </span>
+                <span>ZIP: {bank.zipFileName}</span>
+                <span>
+                  Criado: {new Date(bank.createdAt).toLocaleDateString('pt-BR')}
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 ml-4">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    data-testid={`button-view-bank-${bank.id}`}
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Produtos do Banco: {bank.name}</DialogTitle>
+                    <DialogDescription>
+                      Visualizar produtos disponíveis neste banco
+                    </DialogDescription>
+                  </DialogHeader>
+                  <ProductBankItemsList bankId={bank.id} />
+                </DialogContent>
+              </Dialog>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (confirm('Tem certeza que deseja excluir este banco de produtos?')) {
+                    deleteMutation.mutate(bank.id);
+                  }
+                }}
+                disabled={deleteMutation.isPending}
+                data-testid={`button-delete-bank-${bank.id}`}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Componente para listar items de um banco específico
+function ProductBankItemsList({ bankId }: { bankId: string }) {
+  const { data: items, isLoading } = useQuery({
+    queryKey: ['/api/product-banks', bankId, 'items'],
+    queryFn: async () => {
+      const response = await fetch(`/api/product-banks/${bankId}/items`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Erro ao buscar produtos');
+      }
+      const data = await response.json();
+      return data.items || [];
+    }
+  });
+
+  if (isLoading) {
+    return <div className="text-center py-4">Carregando produtos...</div>;
+  }
+
+  if (!items || items.length === 0) {
+    return <div className="text-center py-4">Nenhum produto encontrado neste banco</div>;
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+      {items.map((item: ProductBankItem) => (
+        <div key={item.id} className="border rounded-lg overflow-hidden">
+          {item.primaryImageUrl && (
+            <img 
+              src={item.primaryImageUrl} 
+              alt={item.name}
+              className="w-full h-32 object-cover"
+            />
+          )}
+          <div className="p-3">
+            <h4 className="font-medium text-sm mb-1">{item.name}</h4>
+            <div className="text-xs text-gray-500 space-y-1">
+              <div>Marca: {item.brand}</div>
+              <div>Categoria: {item.category}</div>
+              {item.color && <div>Cor: {item.color}</div>}
+              {item.storage && <div>Armazenamento: {item.storage}</div>}
+              <div>Usado: {item.usageCount} vezes</div>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
