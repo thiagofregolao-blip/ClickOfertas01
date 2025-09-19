@@ -4247,6 +4247,202 @@ export class DatabaseStorage implements IStorage {
       clickedAt: new Date(),
     });
   }
+
+  // ===================================
+  // Analytics Reports Methods
+  // ===================================
+
+  async getAnalyticsOverview(period: string, storeId?: string): Promise<any> {
+    const startDate = this.getPeriodStartDate(period);
+    const conditions = [gte(userSessions.createdAt, startDate)];
+    
+    if (storeId) {
+      conditions.push(eq(userSessions.ipHash, storeId)); // Usar outro campo para filtrar por loja
+    }
+
+    // Sessões totais
+    const sessionsResult = await db
+      .select({ count: count(userSessions.id) })
+      .from(userSessions)
+      .where(and(...conditions));
+
+    // Visualizações de produtos
+    const viewsConditions = [gte(productViews.viewedAt, startDate)];
+    if (storeId) {
+      viewsConditions.push(eq(productViews.storeId, storeId));
+    }
+
+    const viewsResult = await db
+      .select({ count: count(productViews.id) })
+      .from(productViews)
+      .where(and(...viewsConditions));
+
+    // Buscas totais
+    const searchesConditions = [gte(productSearches.searchAt, startDate)];
+    if (storeId) {
+      searchesConditions.push(eq(productSearches.storeId, storeId));
+    }
+
+    const searchesResult = await db
+      .select({ count: count(productSearches.id) })
+      .from(productSearches)
+      .where(and(...searchesConditions));
+
+    // Duração média de sessões (em segundos)
+    const durationResult = await db
+      .select({ 
+        avg: sql<number>`avg(case when ${userSessions.visitDuration} ~ '^[0-9]+$' then ${userSessions.visitDuration}::integer else 0 end)` 
+      })
+      .from(userSessions)
+      .where(and(...conditions));
+
+    return {
+      totalSessions: sessionsResult[0]?.count || 0,
+      totalPageViews: viewsResult[0]?.count || 0,
+      totalSearches: searchesResult[0]?.count || 0,
+      totalProductViews: viewsResult[0]?.count || 0,
+      averageSessionDuration: Math.round(durationResult[0]?.avg || 0),
+      topProducts: await this.getTopProductsByViews(period, storeId, 5),
+      topSearches: await this.getTopSearchTerms(period, storeId, 5),
+      bannerMetrics: await this.getBannerMetrics(period, storeId),
+      utmSources: await this.getTrafficSources(period, storeId),
+    };
+  }
+
+  async getTopProductsByViews(period: string, storeId?: string, limit: number = 10): Promise<any[]> {
+    const startDate = this.getPeriodStartDate(period);
+    const conditions = [gte(productViews.viewedAt, startDate)];
+    
+    if (storeId) {
+      conditions.push(eq(productViews.storeId, storeId));
+    }
+
+    const result = await db
+      .select({
+        id: productViews.productId,
+        name: productViews.productName,
+        storeName: productViews.storeName,
+        viewCount: count(productViews.id),
+        clickCount: sql<number>`count(case when ${productViews.wasCompared} or ${productViews.wasSaved} then 1 end)`,
+      })
+      .from(productViews)
+      .where(and(...conditions))
+      .groupBy(productViews.productId, productViews.productName, productViews.storeName)
+      .orderBy(desc(count(productViews.id)))
+      .limit(limit);
+
+    return result.map(row => ({
+      ...row,
+      ctr: row.viewCount > 0 ? row.clickCount / row.viewCount : 0,
+    }));
+  }
+
+  async getTopSearchTerms(period: string, storeId?: string, limit: number = 10): Promise<any[]> {
+    const startDate = this.getPeriodStartDate(period);
+    const conditions = [gte(productSearches.searchAt, startDate)];
+    
+    if (storeId) {
+      conditions.push(eq(productSearches.storeId, storeId));
+    }
+
+    const result = await db
+      .select({
+        term: productSearches.searchTerm,
+        count: count(productSearches.id),
+        clickCount: sql<number>`count(case when ${productSearches.clickedProductId} is not null then 1 end)`,
+      })
+      .from(productSearches)
+      .where(and(...conditions))
+      .groupBy(productSearches.searchTerm)
+      .orderBy(desc(count(productSearches.id)))
+      .limit(limit);
+
+    return result.map(row => ({
+      ...row,
+      clickRate: row.count > 0 ? row.clickCount / row.count : 0,
+    }));
+  }
+
+  async getBannerMetrics(period: string, storeId?: string): Promise<any[]> {
+    const startDate = this.getPeriodStartDate(period);
+    
+    // Buscar métricas de banners
+    const bannerViewsQuery = db
+      .select({
+        bannerId: bannerViews.bannerId,
+        views: count(bannerViews.id),
+      })
+      .from(bannerViews)
+      .where(gte(bannerViews.viewedAt, startDate))
+      .groupBy(bannerViews.bannerId);
+
+    const bannerClicksQuery = db
+      .select({
+        bannerId: bannerClicks.bannerId,
+        clicks: count(bannerClicks.id),
+      })
+      .from(bannerClicks)
+      .where(gte(bannerClicks.clickedAt, startDate))
+      .groupBy(bannerClicks.bannerId);
+
+    const [viewsResult, clicksResult] = await Promise.all([
+      bannerViewsQuery,
+      bannerClicksQuery,
+    ]);
+
+    // Combinar resultados
+    const bannerIds = [...new Set([
+      ...viewsResult.map(v => v.bannerId),
+      ...clicksResult.map(c => c.bannerId),
+    ])];
+
+    return bannerIds.map(bannerId => {
+      const views = viewsResult.find(v => v.bannerId === bannerId)?.views || 0;
+      const clicks = clicksResult.find(c => c.bannerId === bannerId)?.clicks || 0;
+      
+      return {
+        id: bannerId,
+        title: `Banner ${bannerId}`,
+        views,
+        clicks,
+        ctr: views > 0 ? clicks / views : 0,
+      };
+    });
+  }
+
+  async getTrafficSources(period: string, storeId?: string): Promise<any[]> {
+    const startDate = this.getPeriodStartDate(period);
+    const conditions = [gte(userSessions.createdAt, startDate)];
+
+    const result = await db
+      .select({
+        source: sql<string>`coalesce(${userSessions.utmSource}, 'Direct')`,
+        sessions: count(userSessions.id),
+        conversions: sql<number>`count(case when ${userSessions.pagesViewed}::integer > 2 then 1 end)`,
+      })
+      .from(userSessions)
+      .where(and(...conditions))
+      .groupBy(sql`coalesce(${userSessions.utmSource}, 'Direct')`)
+      .orderBy(desc(count(userSessions.id)));
+
+    return result;
+  }
+
+  private getPeriodStartDate(period: string): Date {
+    const now = new Date();
+    switch (period) {
+      case '24h':
+        return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      case '7d':
+        return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      case '30d':
+        return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      case '90d':
+        return new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      default:
+        return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

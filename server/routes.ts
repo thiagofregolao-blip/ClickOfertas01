@@ -4683,7 +4683,16 @@ Keep the overall composition and maintain the same visual quality. This is for a
   // Registrar busca de produto
   app.post('/api/analytics/search', async (req, res) => {
     try {
-      const searchData = req.body;
+      const searchData = {
+        sessionToken: req.body.sessionToken || 'anonymous',
+        searchTerm: req.body.searchTerm || req.body.query || '',
+        category: req.body.category || null,
+        storeId: req.body.storeId || null,
+        resultsCount: req.body.resultsCount ? String(req.body.resultsCount) : null,
+        position: req.body.position ? Number(req.body.position) : null,
+        query: req.body.query || req.body.searchTerm || '',
+        extra: req.body.extra || null,
+      };
       const search = await storage.createProductSearch(searchData);
       res.json({ success: true, search });
     } catch (error) {
@@ -4761,6 +4770,106 @@ Keep the overall composition and maintain the same visual quality. This is for a
     } catch (error) {
       console.error('Error generating trending products:', error);
       res.status(500).json({ success: false });
+    }
+  });
+
+  // =============================================
+  // ANALYTICS REPORTS - ENDPOINTS PARA DASHBOARD
+  // =============================================
+
+  // Relatório geral de analytics (para lojistas e super admins)
+  app.get('/api/analytics/reports/overview', isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const { period = '7d', storeId } = req.query;
+      const user = req.user || req.session?.user;
+      
+      // Para lojistas normais, filtrar apenas sua loja
+      let targetStoreId = storeId;
+      if (!user?.isSuperAdmin && user?.storeId) {
+        targetStoreId = user.storeId;
+      }
+
+      const analyticsData = await storage.getAnalyticsOverview(period, targetStoreId);
+      res.json(analyticsData);
+    } catch (error) {
+      console.error('Error getting analytics overview:', error);
+      res.status(500).json({ message: 'Failed to get analytics overview' });
+    }
+  });
+
+  // Top produtos por visualizações
+  app.get('/api/analytics/reports/products', isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const { period = '7d', storeId, limit = '10' } = req.query;
+      const user = req.user || req.session?.user;
+      
+      let targetStoreId = storeId;
+      if (!user?.isSuperAdmin && user?.storeId) {
+        targetStoreId = user.storeId;
+      }
+
+      const products = await storage.getTopProductsByViews(period, targetStoreId, parseInt(limit));
+      res.json({ products });
+    } catch (error) {
+      console.error('Error getting top products:', error);
+      res.status(500).json({ message: 'Failed to get top products' });
+    }
+  });
+
+  // Top buscas por frequência
+  app.get('/api/analytics/reports/searches', isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const { period = '7d', storeId, limit = '10' } = req.query;
+      const user = req.user || req.session?.user;
+      
+      let targetStoreId = storeId;
+      if (!user?.isSuperAdmin && user?.storeId) {
+        targetStoreId = user.storeId;
+      }
+
+      const searches = await storage.getTopSearchTerms(period, targetStoreId, parseInt(limit));
+      res.json({ searches });
+    } catch (error) {
+      console.error('Error getting top searches:', error);
+      res.status(500).json({ message: 'Failed to get top searches' });
+    }
+  });
+
+  // Performance de banners
+  app.get('/api/analytics/reports/banners', isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const { period = '7d', storeId } = req.query;
+      const user = req.user || req.session?.user;
+      
+      let targetStoreId = storeId;
+      if (!user?.isSuperAdmin && user?.storeId) {
+        targetStoreId = user.storeId;
+      }
+
+      const banners = await storage.getBannerMetrics(period, targetStoreId);
+      res.json({ banners });
+    } catch (error) {
+      console.error('Error getting banner metrics:', error);
+      res.status(500).json({ message: 'Failed to get banner metrics' });
+    }
+  });
+
+  // Fontes de tráfego UTM
+  app.get('/api/analytics/reports/traffic', isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const { period = '7d', storeId } = req.query;
+      const user = req.user || req.session?.user;
+      
+      let targetStoreId = storeId;
+      if (!user?.isSuperAdmin && user?.storeId) {
+        targetStoreId = user.storeId;
+      }
+
+      const traffic = await storage.getTrafficSources(period, targetStoreId);
+      res.json({ traffic });
+    } catch (error) {
+      console.error('Error getting traffic sources:', error);
+      res.status(500).json({ message: 'Failed to get traffic sources' });
     }
   });
 

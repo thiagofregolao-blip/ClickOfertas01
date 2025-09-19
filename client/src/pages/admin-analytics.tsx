@@ -72,14 +72,21 @@ export default function AdminAnalytics() {
   const [selectedStore, setSelectedStore] = useState('all');
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Redirect se não for super admin
+  // Ajustar filtro de loja para lojistas normais
   useEffect(() => {
-    if (!isLoading && !user?.isSuperAdmin) {
+    if (user && !user.isSuperAdmin && user.hasStore) {
+      setSelectedStore('my-store');
+    }
+  }, [user]);
+
+  // Redirect se não tiver acesso (super admin ou lojista)
+  useEffect(() => {
+    if (!isLoading && !user?.isSuperAdmin && !user?.hasStore) {
       window.location.href = "/admin";
     }
   }, [user, isLoading]);
 
-  // Buscar lojas para filtro
+  // Buscar lojas para filtro (apenas para Super Admin)
   const { data: stores = [] } = useQuery<Store[]>({
     queryKey: ['/api/admin/stores'],
     enabled: !!user?.isSuperAdmin,
@@ -88,7 +95,7 @@ export default function AdminAnalytics() {
   // Buscar dados de analytics principais
   const { data: analyticsData, isLoading: analyticsLoading, refetch } = useQuery<AnalyticsOverview>({
     queryKey: ['/api/analytics/reports/overview', selectedPeriod, selectedStore, refreshKey],
-    enabled: !!user?.isSuperAdmin,
+    enabled: !!(user?.isSuperAdmin || user?.hasStore),
     staleTime: 30000, // Cache por 30 segundos
   });
 
@@ -112,7 +119,7 @@ export default function AdminAnalytics() {
     );
   }
 
-  if (!user?.isSuperAdmin) {
+  if (!user?.isSuperAdmin && !user?.hasStore) {
     return null;
   }
 
@@ -182,12 +189,18 @@ export default function AdminAnalytics() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas as lojas</SelectItem>
-                    {stores.map((store) => (
-                      <SelectItem key={store.id} value={store.id}>
-                        {store.name}
-                      </SelectItem>
-                    ))}
+                    {user?.isSuperAdmin ? (
+                      <>
+                        <SelectItem value="all">Todas as lojas</SelectItem>
+                        {stores.map((store) => (
+                          <SelectItem key={store.id} value={store.id}>
+                            {store.name}
+                          </SelectItem>
+                        ))}
+                      </>
+                    ) : (
+                      <SelectItem value="my-store">Minha Loja</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
