@@ -81,10 +81,8 @@ export default function AdminProducts() {
   // Mutation para importar produtos do banco
   const importProductsMutation = useMutation({
     mutationFn: async (data: { storeId: string; items: Array<{ id: string; price: string }> }) => {
-      return apiRequest('/api/product-banks/import', {
-        method: 'POST',
-        body: data,
-      });
+      const response = await apiRequest('POST', '/api/product-banks/import', data);
+      return await response.json();
     },
     onSuccess: (result) => {
       toast({
