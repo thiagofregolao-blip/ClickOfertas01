@@ -105,8 +105,8 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0" data-testid="modal-product-bank-search">
-        <DialogHeader className="p-6 pb-4">
+      <DialogContent className="max-w-4xl h-[90vh] p-0 flex flex-col" data-testid="modal-product-bank-search">
+        <DialogHeader className="p-6 pb-4 flex-shrink-0">
           <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
             <Package className="w-6 h-6" />
             Buscar Códigos de Produtos
@@ -122,7 +122,7 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col flex-1 min-h-0">
           {/* Campo de busca */}
           <div className="px-6 pb-4">
             <div className="relative">
@@ -184,7 +184,8 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
           <Separator />
 
           {/* Lista de produtos */}
-          <ScrollArea className="flex-1 p-6">
+          <div className="flex-1 min-h-0">
+            <ScrollArea className="h-full p-6">
             {isSearching ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-muted-foreground">Buscando produtos...</div>
@@ -341,6 +342,7 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
                 Importar Produtos ({selectedProducts.length})
               </Button>
             </div>
+          </div>
           </div>
         </div>
       </DialogContent>
