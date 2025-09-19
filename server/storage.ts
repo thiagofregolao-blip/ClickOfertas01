@@ -3855,10 +3855,7 @@ export class DatabaseStorage implements IStorage {
         const itemsCount = await db
           .select({ count: count() })
           .from(productBankItems)
-          .where(and(
-            eq(productBankItems.bankId, bank.id),
-            eq(productBankItems.isActive, true)
-          ));
+          .where(eq(productBankItems.bankId, bank.id));
 
         return {
           ...bank,
@@ -3923,10 +3920,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(productBankItems)
-      .where(and(
-        eq(productBankItems.bankId, bankId),
-        eq(productBankItems.isActive, true)
-      ))
+      .where(eq(productBankItems.bankId, bankId))
       .orderBy(productBankItems.name);
   }
 
@@ -3993,7 +3987,7 @@ export class DatabaseStorage implements IStorage {
 
   async searchProductBankItems(params: { q?: string; category?: string; offset?: number; limit?: number }): Promise<{ items: ProductBankItem[]; total: number }> {
     const { q = '', category, offset = 0, limit = 20 } = params;
-    let whereConditions = [eq(productBankItems.isActive, true)];
+    let whereConditions: SQL<unknown>[] = [];
 
     // Adicionar filtro de busca por nome, descrição, marca ou modelo
     if (q && q.trim()) {
@@ -4036,7 +4030,6 @@ export class DatabaseStorage implements IStorage {
     const results = await db
       .selectDistinct({ category: productBankItems.category })
       .from(productBankItems)
-      .where(eq(productBankItems.isActive, true))
       .orderBy(asc(productBankItems.category));
     
     const categories = results.map(r => r.category).filter(Boolean);

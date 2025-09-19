@@ -123,7 +123,7 @@ export const productBanks = pgTable("product_banks", {
 // Product Bank Items - Produtos individuais do banco
 export const productBankItems = pgTable("product_bank_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  bankId: varchar("bank_id").notNull().references(() => productBanks.id, { onDelete: "cascade" }),
+  bankId: varchar("bankid").notNull().references(() => productBanks.id, { onDelete: "cascade" }),
   name: text("name").notNull(), // Extraído do nome da pasta
   description: text("description"), // Conteúdo do description.txt
   category: varchar("category").default("Celulares"), // Categoria inferida do nome
@@ -132,17 +132,15 @@ export const productBankItems = pgTable("product_bank_items", {
   color: varchar("color"), // Cor extraída do nome
   storage: varchar("storage"), // Armazenamento extraído do nome (ex: 256gb)
   ram: varchar("ram"), // RAM extraída do nome (ex: 8gb)
-  folderName: varchar("folder_name").notNull(), // Nome da pasta original
-  imageUrls: text("image_urls").array().notNull(), // Array de URLs das imagens
-  primaryImageUrl: text("primary_image_url"), // URL da primeira imagem
+  folderName: varchar("foldername").notNull(), // Nome da pasta original
+  imageUrls: text("imageurls").array().notNull(), // Array de URLs das imagens
+  primaryImageUrl: text("primaryimageurl"), // URL da primeira imagem
   metadata: jsonb("metadata"), // Dados adicionais extraídos
-  timesUsed: integer("times_used").default(0), // Quantas vezes foi usado por lojistas
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  timesUsed: integer("usagecount").default(0), // Quantas vezes foi usado por lojistas
+  createdAt: timestamp("createdat").defaultNow(),
+  updatedAt: timestamp("updatedat").defaultNow(),
 }, (table) => [
   index("idx_product_bank_items_bank_id").on(table.bankId),
-  index("idx_product_bank_items_active").on(table.isActive),
   index("idx_product_bank_items_category").on(table.category),
   index("idx_product_bank_items_brand").on(table.brand),
 ]);
