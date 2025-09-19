@@ -19,10 +19,10 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff, ChevronLeft, ChevronRight, Upload, Download, FileSpreadsheet, Package, Camera, Settings, PlayCircle, CircleX, Gift, Clock } from "lucide-react";
-import type { Store, Product, InsertProduct } from "@shared/schema";
+import type { Store, Product, InsertProduct, ProductBankItem } from "@shared/schema";
 import { z } from "zod";
 import { PhotoCapture } from "@/components/PhotoCapture";
-import { IcecatCodeSearchModal } from "@/components/IcecatCodeSearchModal";
+import { ProductBankSearchModal } from "@/components/ProductBankSearchModal";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
@@ -49,166 +49,93 @@ export default function AdminProducts() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [addMoreProducts, setAddMoreProducts] = useState(false);
-  const [icecatSearching, setIcecatSearching] = useState(false);
-  const [gtinInput, setGtinInput] = useState("");
-  const [searchMode, setSearchMode] = useState<'gtin' | 'text'>('text'); // Por padrão busca por texto
-  const [searchText, setSearchText] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [showCodeSearchModal, setShowCodeSearchModal] = useState(false);
+  const [showProductBankModal, setShowProductBankModal] = useState(false);
+  const [selectedBankProducts, setSelectedBankProducts] = useState<ProductBankItem[]>([]);
+  const [showBulkPricingModal, setShowBulkPricingModal] = useState(false);
+  const [bulkPrices, setBulkPrices] = useState<{[key: string]: string}>({});
 
-  // Função para buscar produtos com sistema híbrido (Icecat + MercadoLibre)
-  const searchIcecatProducts = async () => {
-    if (searchMode === 'gtin') {
-      if (!gtinInput.trim() || gtinInput.replace(/[^0-9]/g, '').length < 8) {
-        toast({
-          title: "GTIN inválido",
-          description: "Por favor, insira um código GTIN/EAN válido (mínimo 8 dígitos)",
-          variant: "destructive",
-        });
-        return;
-      }
-    } else {
-      if (!searchText.trim() || searchText.trim().length < 2) {
-        toast({
-          title: "Busca inválida",
-          description: "Por favor, digite pelo menos 2 caracteres para buscar",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    setIcecatSearching(true);
-    setSearchResults([]);
-
-    try {
-      let response;
-      
-      if (searchMode === 'gtin') {
-        // Buscar por GTIN
-        const cleanGtin = gtinInput.replace(/[^0-9]/g, '').trim();
-        response = await fetch(`/api/icecat/product/${cleanGtin}?lang=BR`);
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || "Produto não encontrado no catálogo Icecat");
-        }
-        
-        const product = await response.json();
-        if (!product) {
-          throw new Error("Produto não encontrado no catálogo Icecat");
-        }
-        
-        setSearchResults([product]);
-        
-        toast({
-          title: "✅ Busca concluída!",
-          description: "Produto encontrado e adicionado aos resultados.",
-        });
-      } else {
-        // 🔄 BUSCA HÍBRIDA: Icecat + MercadoLibre Paraguay
-        response = await fetch(`/api/hybrid/search?q=${encodeURIComponent(searchText.trim())}&lang=BR`);
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || "Erro ao buscar produtos");
-        }
-        
-        const data = await response.json();
-        const combinedProducts = data.results?.combined || [];
-        setSearchResults(combinedProducts);
-        
-        if (combinedProducts.length === 0) {
-          throw new Error("Nenhum produto encontrado no Icecat nem no MercadoLibre Paraguay");
-        }
-        
-        // Mostrar fonte dos resultados
-        const sources = data.sources || {};
-        const sourceText = [];
-        if (sources.icecat > 0) sourceText.push(`${sources.icecat} do Icecat`);
-        if (sources.mercadolibre > 0) sourceText.push(`${sources.mercadolibre} do MercadoLibre PY`);
-        
-        toast({
-          title: "✅ Busca híbrida concluída!",
-          description: `${combinedProducts.length} produto(s) encontrado(s): ${sourceText.join(' + ')}. Escolha um para preencher o formulário.`,
-        });
-      }
-
-      // Toast de sucesso já foi chamado dentro de cada branch
-
-    } catch (error: any) {
+  // Função para lidar com produtos selecionados do banco
+  const handleProductBankSelect = (selectedProducts: ProductBankItem[]) => {
+    if (selectedProducts.length === 0) {
       toast({
-        title: "Produtos não encontrados",
-        description: error.message || "Não foi possível encontrar produtos no catálogo Icecat",
+        title: "Nenhum produto selecionado",
+        description: "Selecione pelo menos um produto para continuar.",
         variant: "destructive",
       });
-      setSearchResults([]);
-    } finally {
-      setIcecatSearching(false);
+      return;
     }
+
+    setSelectedBankProducts(selectedProducts);
+    setShowProductBankModal(false);
+    
+    // Inicializar preços vazios
+    const initialPrices: {[key: string]: string} = {};
+    selectedProducts.forEach(product => {
+      initialPrices[product.id] = "";
+    });
+    setBulkPrices(initialPrices);
+    
+    // Abrir modal de precificação
+    setShowBulkPricingModal(true);
   };
 
-  // Função para selecionar um produto do modal de códigos
-  const handleSelectProductFromModal = async (gtin: string, productName: string) => {
-    setIcecatSearching(true);
-    
-    try {
-      // Buscar o produto pelo GTIN selecionado
-      const response = await fetch(`/api/icecat/product/${gtin}?lang=BR`);
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Produto não encontrado no catálogo Icecat");
-      }
-      
-      const product = await response.json();
-      if (!product) {
-        throw new Error("Produto não encontrado no catálogo Icecat");
-      }
-      
-      // Preencher o formulário com os dados do produto
-      selectProduct(product, gtin); // Passar o GTIN correto como parâmetro
-      
-    } catch (error: any) {
+  // Mutation para importar produtos do banco
+  const importProductsMutation = useMutation({
+    mutationFn: async (data: { storeId: string; items: Array<{ id: string; price: string }> }) => {
+      return apiRequest('/api/product-banks/import', {
+        method: 'POST',
+        body: data,
+      });
+    },
+    onSuccess: (result) => {
       toast({
-        title: "Erro ao carregar produto",
-        description: error.message || "Não foi possível carregar os dados do produto",
+        title: "✅ Produtos importados!",
+        description: result.message,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/stores", store?.id, "products"] });
+      setShowBulkPricingModal(false);
+      setSelectedBankProducts([]);
+      setBulkPrices({});
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro na importação",
+        description: error.message || "Erro ao importar produtos",
         variant: "destructive",
       });
-    } finally {
-      setIcecatSearching(false);
+    },
+  });
+
+  // Função para confirmar importação em lote
+  const handleBulkImport = async () => {
+    if (!store?.id) {
+      toast({
+        title: "Erro",
+        description: "Loja não encontrada",
+        variant: "destructive",
+      });
+      return;
     }
-  };
 
-  // Função para selecionar um produto dos resultados
-  const selectProduct = (product: any, forcedGtin?: string) => {
-    // Preencher todos os campos do formulário
-    form.setValue("name", product.name || "");
-    form.setValue("description", product.description || "");
-    form.setValue("category", product.category || "Eletrônicos");
-    form.setValue("imageUrl", product.images?.[0] || "");
-    form.setValue("imageUrl2", product.images?.[1] || "");
-    form.setValue("imageUrl3", product.images?.[2] || "");
-    // 🎯 CORREÇÃO CRÍTICA: Usar GTIN real, não ID interno do Icecat
-    const actualGtin = forcedGtin || product.gtin || product.ean || product.upc || product.id || "";
-    form.setValue("gtin", actualGtin);
-    form.setValue("brand", product.brand || "");
-    form.setValue("sourceType", "icecat");
-    
-    // ✅ TOTEM AUTO-ATIVADO para produtos do Icecat
-    form.setValue("showInTotem", true);
+    // Validar que todos os preços foram preenchidos
+    const missingPrices = selectedBankProducts.filter(product => !bulkPrices[product.id] || parseFloat(bulkPrices[product.id]) <= 0);
+    if (missingPrices.length > 0) {
+      toast({
+        title: "Preços obrigatórios",
+        description: `Defina preços válidos para todos os ${selectedBankProducts.length} produtos.`,
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // Limpar resultados da busca
-    setSearchResults([]);
-    setSearchText("");
-    setGtinInput("");
-    
-    const imageCount = product.images?.length || 0;
-    const demoWarning = product.demoAccount ? " (conta demo)" : "";
-    
-    toast({
-      title: "✅ Produto selecionado!",
-      description: `${product.name} adicionado ao formulário com ${imageCount} imagens + totem ativado${demoWarning}`,
+    const items = selectedBankProducts.map(product => ({
+      id: product.id,
+      price: bulkPrices[product.id]
+    }));
+
+    importProductsMutation.mutate({
+      storeId: store.id,
+      items
     });
   };
   
@@ -733,7 +660,7 @@ export default function AdminProducts() {
                   <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-5 rounded-lg border border-blue-200 shadow-sm">
                     <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
                       <Package className="w-5 h-5 mr-2 text-blue-600" />
-                      🔍 Buscar Produto (Icecat + MercadoLibre Paraguay)
+                      🏦 Banco de Produtos - Seleção Múltipla
                     </h3>
                     
                     <div className="bg-white p-4 rounded-lg border border-blue-100">
@@ -792,12 +719,12 @@ export default function AdminProducts() {
                         <div className="flex items-end gap-2">
                           <Button
                             type="button"
-                            onClick={searchIcecatProducts}
-                            disabled={icecatSearching || (searchMode === 'text' ? !searchText.trim() : !gtinInput.trim())}
+                            onClick={() => setShowProductBankModal(true)}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-6"
-                            data-testid="button-search-icecat"
+                            data-testid="button-open-product-bank"
                           >
-                            {icecatSearching ? "Buscando..." : "🔍 Buscar"}
+                            <Package className="w-4 h-4 mr-2" />
+                            Buscar Produtos
                           </Button>
                           <Button
                             type="button"
@@ -811,7 +738,7 @@ export default function AdminProducts() {
                         </div>
                       </div>
                       <p className="text-xs text-gray-500 mt-2">
-                        ✨ <strong>Busca Híbrida</strong>: Icecat internacional + MercadoLibre Paraguay. Preenchimento automático: nome, descrição, categoria e até 3 imagens + <strong>totem ativado</strong>
+                        ✨ <strong>Banco Interno</strong>: Produtos testados com imagens e descrições pré-configuradas. Seleção múltipla com precificação em lote + <strong>totem ativado</strong>
                       </p>
 
                       {/* Resultados da busca */}
@@ -1632,12 +1559,97 @@ export default function AdminProducts() {
         </Tabs>
       </div>
       
-      {/* Modal de busca de códigos */}
-      <IcecatCodeSearchModal
-        isOpen={showCodeSearchModal}
-        onClose={() => setShowCodeSearchModal(false)}
-        onSelectProduct={handleSelectProductFromModal}
+      {/* Modal de busca de produtos do banco */}
+      <ProductBankSearchModal
+        isOpen={showProductBankModal}
+        onClose={() => setShowProductBankModal(false)}
+        onSelectProducts={handleProductBankSelect}
       />
+      
+      {/* Modal de precificação em lote */}
+      <Dialog open={showBulkPricingModal} onOpenChange={setShowBulkPricingModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="w-5 h-5" />
+              Definir Preços - {selectedBankProducts.length} Produto{selectedBankProducts.length !== 1 ? 's' : ''}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-800">
+                ✨ <strong>Importação Automática:</strong> Descrições serão traduzidas do espanhol para português e todas as imagens serão importadas automaticamente.
+              </p>
+            </div>
+            
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {selectedBankProducts.map((product) => (
+                <div key={product.id} className="flex items-center gap-4 p-3 border rounded-lg">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-sm leading-tight">{product.name}</h4>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                      {product.brand && (
+                        <>
+                          <span>{product.brand}</span>
+                          <span>•</span>
+                        </>
+                      )}
+                      <span>{product.category}</span>
+                    </div>
+                  </div>
+                  <div className="w-32">
+                    <Label htmlFor={`price-${product.id}`} className="text-xs text-gray-600">
+                      Preço (R$)
+                    </Label>
+                    <Input
+                      id={`price-${product.id}`}
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0,00"
+                      value={bulkPrices[product.id] || ''}
+                      onChange={(e) => setBulkPrices(prev => ({
+                        ...prev,
+                        [product.id]: e.target.value
+                      }))}
+                      className="text-sm"
+                      data-testid={`input-price-${product.id}`}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex items-center justify-between pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowBulkPricingModal(false);
+                  setSelectedBankProducts([]);
+                  setBulkPrices({});
+                }}
+                data-testid="button-cancel-bulk-pricing"
+              >
+                Cancelar
+              </Button>
+              
+              <Button
+                onClick={handleBulkImport}
+                disabled={importProductsMutation.isPending}
+                className="min-w-[120px]"
+                data-testid="button-confirm-bulk-import"
+              >
+                {importProductsMutation.isPending ? (
+                  "Importando..."
+                ) : (
+                  `Importar ${selectedBankProducts.length} Produto${selectedBankProducts.length !== 1 ? 's' : ''}`
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }

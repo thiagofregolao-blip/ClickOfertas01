@@ -362,7 +362,8 @@ export interface IStorage {
   createProductBankItem(item: InsertProductBankItem): Promise<ProductBankItem>;
   updateProductBankItem(id: string, item: UpdateProductBankItem): Promise<ProductBankItem>;
   deleteProductBankItem(id: string): Promise<void>;
-  searchProductBankItems(query: string, category?: string, brand?: string): Promise<ProductBankItem[]>;
+  searchProductBankItems(params: { q?: string; category?: string; offset?: number; limit?: number }): Promise<{ items: ProductBankItem[]; total: number }>;
+  getProductBankCategories(): Promise<string[]>;
   incrementProductBankItemUsage(id: string): Promise<void>;
 }
 
@@ -3990,36 +3991,58 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async searchProductBankItems(query: string, category?: string, brand?: string): Promise<ProductBankItem[]> {
+  async searchProductBankItems(params: { q?: string; category?: string; offset?: number; limit?: number }): Promise<{ items: ProductBankItem[]; total: number }> {
+    const { q = '', category, offset = 0, limit = 20 } = params;
     let whereConditions = [eq(productBankItems.isActive, true)];
 
-    // Adicionar filtro de busca por nome ou descrição
-    if (query.trim()) {
+    // Adicionar filtro de busca por nome, descrição, marca ou modelo
+    if (q && q.trim()) {
       whereConditions.push(
         or(
-          sql`LOWER(${productBankItems.name}) LIKE LOWER(${`%${query}%`})`,
-          sql`LOWER(${productBankItems.description}) LIKE LOWER(${`%${query}%`})`,
-          sql`LOWER(${productBankItems.model}) LIKE LOWER(${`%${query}%`})`
+          sql`LOWER(${productBankItems.name}) LIKE LOWER(${`%${q}%`})`,
+          sql`LOWER(${productBankItems.description}) LIKE LOWER(${`%${q}%`})`,
+          sql`LOWER(${productBankItems.brand}) LIKE LOWER(${`%${q}%`})`,
+          sql`LOWER(${productBankItems.model}) LIKE LOWER(${`%${q}%`})`
         )
       );
     }
 
-    // Adicionar filtro de categoria se especificado
-    if (category) {
+    // Adicionar filtro de categoria se especificado e não for "Todos"
+    if (category && category !== 'Todos') {
       whereConditions.push(eq(productBankItems.category, category));
     }
 
-    // Adicionar filtro de marca se especificado
-    if (brand) {
-      whereConditions.push(eq(productBankItems.brand, brand));
-    }
+    // Contar total de resultados
+    const [countResult] = await db
+      .select({ total: count() })
+      .from(productBankItems)
+      .where(and(...whereConditions));
+    
+    const total = countResult?.total || 0;
 
-    return await db
+    // Buscar itens com paginação
+    const items = await db
       .select()
       .from(productBankItems)
       .where(and(...whereConditions))
-      .orderBy(productBankItems.timesUsed, productBankItems.name)
-      .limit(50); // Limitar resultados para performance
+      .orderBy(desc(productBankItems.timesUsed), asc(productBankItems.name))
+      .limit(limit)
+      .offset(offset);
+
+    return { items, total };
+  }
+
+  async getProductBankCategories(): Promise<string[]> {
+    const results = await db
+      .selectDistinct({ category: productBankItems.category })
+      .from(productBankItems)
+      .where(eq(productBankItems.isActive, true))
+      .orderBy(asc(productBankItems.category));
+    
+    const categories = results.map(r => r.category).filter(Boolean);
+    
+    // Adicionar "Todos" no início
+    return ['Todos', ...categories];
   }
 
   async incrementProductBankItemUsage(id: string): Promise<void> {

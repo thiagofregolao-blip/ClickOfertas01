@@ -5782,6 +5782,220 @@ Keep the overall composition and maintain the same visual quality. This is for a
     }
   });
 
+  // ========== NOVAS ROTAS PARA SISTEMA DE BANCO DE PRODUTOS ==========
+
+  // Buscar categorias disponíveis no banco de produtos
+  app.get('/api/product-banks/categories', isAuthenticatedCustom, async (req, res) => {
+    try {
+      const categories = await storage.getProductBankCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching product bank categories:", error);
+      res.status(500).json({ message: "Erro ao buscar categorias" });
+    }
+  });
+
+  // Buscar produtos do banco com paginação e filtros
+  app.get('/api/product-banks/items', isAuthenticatedCustom, async (req, res) => {
+    try {
+      const { q, category, page = 1, pageSize = 20 } = req.query;
+      const offset = (parseInt(page as string) - 1) * parseInt(pageSize as string);
+      const limit = parseInt(pageSize as string);
+
+      const result = await storage.searchProductBankItems({
+        q: q as string,
+        category: category as string,
+        offset,
+        limit
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error searching product bank items:", error);
+      res.status(500).json({ message: "Erro ao buscar produtos do banco" });
+    }
+  });
+
+  // Função auxiliar para traduzir texto usando Gemini
+  async function translateToPortuguese(text: string): Promise<string> {
+    if (!text || text.trim() === '') return text;
+
+    try {
+      const { callVertexAI } = await import('../gemini.js');
+      
+      const prompt = `Traduza o seguinte texto do espanhol para o português brasileiro, mantendo o contexto de produto/tecnologia e usando linguagem natural e fluente. Retorne apenas a tradução:
+
+${text}`;
+
+      const body = {
+        contents: [
+          { role: "user", parts: [{ text: prompt }] }
+        ]
+      };
+
+      const response = await callVertexAI('gemini-1.5-flash', body);
+      const translation = response.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      return translation?.trim() || text;
+    } catch (error) {
+      console.error('Erro na tradução Gemini:', error);
+      return text; // Retorna o texto original em caso de erro
+    }
+  }
+
+  // Função auxiliar para fazer upload de imagem para object storage
+  async function uploadImageToStorage(imageUrl: string, productId: string): Promise<string> {
+    try {
+      if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/uploads/')) {
+        return imageUrl; // Se não é uma URL válida, retorna como está
+      }
+
+      // Se já é um arquivo local, apenas retorna o URL
+      if (imageUrl.startsWith('/uploads/')) {
+        return imageUrl;
+      }
+
+      // Se é uma URL externa, baixar e salvar localmente
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.statusText}`);
+      }
+
+      const buffer = await response.arrayBuffer();
+      const ext = path.extname(new URL(imageUrl).pathname) || '.jpg';
+      const fileName = `product-${productId}-${Date.now()}${ext}`;
+      const savePath = `./uploads/products/images/${fileName}`;
+      
+      // Criar diretório se não existir
+      const imageDir = path.dirname(savePath);
+      if (!fs.existsSync(imageDir)) {
+        fs.mkdirSync(imageDir, { recursive: true });
+      }
+      
+      fs.writeFileSync(savePath, Buffer.from(buffer));
+      return `/uploads/products/images/${fileName}`;
+    } catch (error) {
+      console.error('Erro ao fazer upload da imagem:', error);
+      return imageUrl; // Retorna URL original em caso de erro
+    }
+  }
+
+  // Importar produtos selecionados do banco para a loja
+  app.post('/api/product-banks/import', isAuthenticatedCustom, async (req, res) => {
+    try {
+      const { storeId, items } = req.body;
+      const userId = getUserId(req);
+
+      // Validar entrada
+      if (!storeId || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ 
+          message: "storeId e items são obrigatórios. items deve ser um array não vazio." 
+        });
+      }
+
+      // Verificar se o usuário é dono da loja
+      const store = await storage.getStore(storeId);
+      if (!store || store.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado à loja" });
+      }
+
+      const importedProducts = [];
+      const errors = [];
+
+      for (const item of items) {
+        try {
+          const { id: bankItemId, price } = item;
+          
+          if (!bankItemId || !price) {
+            errors.push({ bankItemId, error: "ID e preço são obrigatórios" });
+            continue;
+          }
+
+          // Buscar item do banco
+          const bankItem = await storage.getProductBankItemById(bankItemId);
+          if (!bankItem) {
+            errors.push({ bankItemId, error: "Item não encontrado no banco" });
+            continue;
+          }
+
+          // Traduzir descrição para português
+          const translatedDescription = await translateToPortuguese(bankItem.description || '');
+
+          // Fazer upload das imagens
+          const imageUrls = [];
+          const primaryImageUrl = bankItem.primaryImageUrl;
+          
+          if (primaryImageUrl) {
+            const uploadedUrl = await uploadImageToStorage(primaryImageUrl, bankItemId);
+            imageUrls.push(uploadedUrl);
+          }
+
+          // Upload das imagens adicionais
+          if (bankItem.imageUrls && Array.isArray(bankItem.imageUrls)) {
+            for (const additionalImageUrl of bankItem.imageUrls.slice(1)) { // Skip primeira que já foi processada
+              const uploadedUrl = await uploadImageToStorage(additionalImageUrl, bankItemId);
+              imageUrls.push(uploadedUrl);
+            }
+          }
+
+          // Criar produto na loja
+          const productData = {
+            name: bankItem.name,
+            description: translatedDescription,
+            price: parseFloat(price.toString()),
+            category: bankItem.category || 'Produtos',
+            imageUrl: imageUrls[0] || null,
+            imageUrl2: imageUrls[1] || null,
+            imageUrl3: imageUrls[2] || null,
+            isActive: true,
+            isFeatured: false,
+            showInStories: true,
+            brand: bankItem.brand || null,
+            model: bankItem.model || null,
+            sourceType: 'product_bank',
+            productCode: bankItem.id,
+            // Metadados adicionais
+            color: bankItem.color || null,
+            storage: bankItem.storage || null,
+            ram: bankItem.ram || null,
+          };
+
+          const product = await storage.createProduct(storeId, productData);
+          
+          // Incrementar contador de uso do item no banco
+          await storage.incrementProductBankItemUsage(bankItemId);
+
+          importedProducts.push({
+            bankItemId,
+            productId: product.id,
+            name: product.name,
+            translatedDescription: translatedDescription !== bankItem.description
+          });
+
+        } catch (itemError) {
+          console.error(`Erro ao importar item ${item.id}:`, itemError);
+          errors.push({ 
+            bankItemId: item.id, 
+            error: itemError.message || "Erro interno" 
+          });
+        }
+      }
+
+      res.json({
+        success: true,
+        imported: importedProducts.length,
+        errors: errors.length,
+        products: importedProducts,
+        errorDetails: errors.length > 0 ? errors : undefined,
+        message: `${importedProducts.length} produto(s) importado(s) com sucesso${errors.length > 0 ? `, ${errors.length} erro(s)` : ''}`
+      });
+
+    } catch (error) {
+      console.error("Error importing products from bank:", error);
+      res.status(500).json({ message: "Erro ao importar produtos do banco" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
