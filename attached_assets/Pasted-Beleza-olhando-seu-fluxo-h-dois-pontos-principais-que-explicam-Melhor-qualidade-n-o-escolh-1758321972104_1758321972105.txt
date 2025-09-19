@@ -1,0 +1,206 @@
+Beleza — olhando seu fluxo, há dois pontos principais que explicam:
+
+“Melhor qualidade” não é escolhida
+
+selectBestImages() mede KB via HEAD (Content-Length). Isso não mede resolução (px), só tamanho de arquivo, que varia por compressão/formatos.
+
+As URLs salvas no ZIP são relativas (/uploads/...) e/ou locais. Em getImageSize() você recusa tudo que não for http/https e também bloqueia localhost/redes privadas. Resultado: size = 0 para praticamente todas -> cai no fallback (primeiras 3 na ordem), ou seja, não há seleção real.
+
+No momento do upload do ZIP, a primaryImageUrl é só “a primeira que apareceu”, sem checar dimensões.
+
+Imagem no card aparece “zoomada”
+
+Quase sempre é CSS/Next <Image> com object-fit: cover (ou container com altura fixa/aspect e imagem fazendo fill). cover corta/“dá zoom” para preencher. Para manter a resolução sem zoom, use object-fit: contain (ou h-auto, w-full) e dê um container previsível (aspecto/limites), ou defina width/height reais.
+
+Correções recomendadas
+A. Medir resolução real (px) e aceitar URLs locais
+
+Troque a heurística por largura × altura (e só fallback para bytes se não der). Dá pra fazer durante o processamento do ZIP (melhor) e/ou na seleção antes de importar.
+
+1) Durante o processamento do ZIP (ordene e defina primaryImageUrl certo)
+// server/routes.ts (trecho do loop do ZIP)
+import sharp from "sharp";
+
+const imageFiles = files.filter(f => /\.(jpg|jpeg|png|webp)$/i.test(f.entryName));
+type ImgInfo = { url: string; width: number; height: number; bytes: number };
+
+const imgInfos: ImgInfo[] = [];
+
+for (const imageFile of imageFiles) {
+  const buffer = zip.readFile(imageFile);
+  if (!buffer) continue;
+
+  const ext = path.extname(imageFile.entryName).toLowerCase();
+  const imageName = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}${ext}`;
+  const imagePath = `./uploads/product-banks/images/${imageName}`;
+
+  fs.mkdirSync(path.dirname(imagePath), { recursive: true });
+  fs.writeFileSync(imagePath, buffer);
+
+  // pega dimensões reais
+  let width = 0, height = 0;
+  try {
+    const meta = await sharp(buffer).metadata();
+    width = meta.width ?? 0;
+    height = meta.height ?? 0;
+  } catch {}
+
+  imgInfos.push({
+    url: `/uploads/product-banks/images/${imageName}`,
+    width,
+    height,
+    bytes: buffer.length
+  });
+}
+
+// ordena por área (px²), com fallback por bytes
+imgInfos.sort((a, b) => {
+  const areaA = a.width * a.height;
+  const areaB = b.width * b.height;
+  if (areaA !== areaB) return areaB - areaA;
+  return b.bytes - a.bytes;
+});
+
+const imageUrls = imgInfos.map(i => i.url);
+const primaryImageUrl = imageUrls[0] ?? "";
+
+
+Vantagens: o item já nasce com primaryImageUrl realmente melhor; a ordem em imageUrls já prioriza qualidade.
+
+2) Se quiser manter selectBestImages(), faça-o entender local files e priorizar px:
+// server/routes.ts
+import sharp from "sharp";
+
+function isLocalUploadsUrl(url: string) {
+  return url.startsWith("/uploads/");
+}
+function localPathFromUrl(url: string) {
+  // ajuste se seu static não fica na raiz do projeto
+  return path.join(process.cwd(), "." + url);
+}
+
+async function getImagePixelsOrSize(url: string): Promise<{area: number; bytes: number}> {
+  try {
+    if (isLocalUploadsUrl(url)) {
+      const filePath = localPathFromUrl(url);
+      const buf = await fs.promises.readFile(filePath);
+      let w = 0, h = 0;
+      try {
+        const meta = await sharp(buf).metadata();
+        w = meta.width ?? 0;
+        h = meta.height ?? 0;
+      } catch {}
+      return { area: w * h, bytes: buf.length };
+    } else {
+      // remoto: baixa só o mínimo possível
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 5000);
+      try {
+        const resp = await fetch(url, { method: "GET", signal: controller.signal });
+        clearTimeout(tid);
+        if (!resp.ok) return { area: 0, bytes: 0 };
+        const arrayBuf = await resp.arrayBuffer();
+        const buf = Buffer.from(arrayBuf);
+        let w = 0, h = 0;
+        try {
+          const meta = await sharp(buf).metadata();
+          w = meta.width ?? 0;
+          h = meta.height ?? 0;
+        } catch {}
+        return { area: w * h, bytes: buf.length };
+      } finally {
+        clearTimeout(tid);
+      }
+    }
+  } catch {
+    return { area: 0, bytes: 0 };
+  }
+}
+
+async function selectBestImages(imageUrls: string[], primaryImageUrl?: string): Promise<string[]> {
+  const all = new Set<string>();
+  if (primaryImageUrl) all.add(primaryImageUrl);
+  (imageUrls ?? []).forEach(u => u && all.add(u));
+
+  const scored = await Promise.all(
+    Array.from(all).map(async (url) => {
+      const { area, bytes } = await getImagePixelsOrSize(url);
+      return { url, area, bytes };
+    })
+  );
+
+  // filtra inválidas
+  const valid = scored.filter(s => s.area > 0 || s.bytes > 0);
+
+  if (valid.length === 0) return Array.from(all).slice(0, 3);
+
+  valid.sort((a, b) => {
+    if (a.area !== b.area) return b.area - a.area;
+    return b.bytes - a.bytes;
+  });
+
+  return valid.slice(0, 3).map(v => v.url);
+}
+
+
+Observação: mantive o bloqueio anti-SSRF no seu getImageSize() para remotos, mas para seleção real a abordagem com sharp é muito superior.
+
+B. Card sem “zoom”
+
+No componente de card, use contain e tamanho fluido:
+
+React/Next Image (com fill)
+
+<div className="relative w-full aspect-[4/3] bg-muted rounded-xl overflow-hidden">
+  <Image
+    src={product.imageUrl}
+    alt={product.name}
+    fill
+    sizes="(max-width: 768px) 100vw, 33vw"
+    style={{ objectFit: "contain" }} // <- não corta
+    // priority/placeholder se quiser
+  />
+</div>
+
+
+Com <img> simples
+
+<div className="w-full max-h-[400px] bg-muted rounded-xl p-2 flex items-center justify-center">
+  <img
+    src={product.imageUrl}
+    alt={product.name}
+    className="max-w-full max-h-[380px] h-auto w-auto object-contain"
+    loading="lazy"
+  />
+</div>
+
+
+Dicas:
+
+Dê um aspect ratio ao container (ex.: aspect-[4/3] ou aspect-square) para layout estável, e object-contain na imagem.
+
+Se usar Next <Image> com width/height, passe as dimensões reais (as que você já mediu com sharp). Isso evita reescala bizarra.
+
+C. URLs absolutas (opcional)
+
+Se quiser manter a checagem de http/https, gere URL absoluta ao salvar:
+
+const BASE_URL = process.env.PUBLIC_BASE_URL ?? "https://sua-api.com"; // defina no ENV
+const imageUrl = `${BASE_URL}/uploads/product-banks/images/${imageName}`;
+
+
+Aí fetch(HEAD) funciona (se mantiver) e clientes externos conseguem ver a imagem diretamente.
+
+D. Sanitização rápida
+
+Limite tipos de imagem (já faz) e descarte GIF para produto (normalmente baixa qualidade).
+
+Gere thumbnails com sharp (ex.: 800px lado maior, sem “zoom”) e salve junto; use thumb na listagem e full no detalhe.
+
+Resumo
+
+Hoje a seleção “melhor imagem” não acontece porque você mede KB por HEAD (ruim) e ignora URLs locais — cai no fallback.
+
+Para resolver, meça pixels com sharp (no upload e/ou na seleção) e aceite caminho local.
+
+O “zoom” do card é CSS (cover/container fixo). Troque para object-contain e dê container com aspecto previsível + width/height reais quando possível.
