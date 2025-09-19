@@ -1443,6 +1443,53 @@ export default function SuperAdmin() {
     retry: (failureCount, error) => !isUnauthorizedError(error),
   });
 
+  // Prize mutations
+  const createPrizeMutation = useMutation({
+    mutationFn: async (data: PrizeFormData) => {
+      return await apiRequest('POST', '/api/admin/daily-prizes', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/daily-prizes'] });
+      setIsCreatePrizeOpen(false);
+      setEditingPrize(null);
+      prizeForm.reset();
+      toast({
+        title: "Prêmio criado",
+        description: "Prêmio criado com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao criar prêmio",
+        description: error.message || "Não foi possível criar o prêmio.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updatePrizeMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<PrizeFormData> }) => {
+      return await apiRequest('PUT', `/api/admin/daily-prizes/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/daily-prizes'] });
+      setIsCreatePrizeOpen(false);
+      setEditingPrize(null);
+      prizeForm.reset();
+      toast({
+        title: "Prêmio atualizado",
+        description: "Prêmio atualizado com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao atualizar prêmio",
+        description: error.message || "Não foi possível atualizar o prêmio.",
+        variant: "destructive",
+      });
+    },
+  });
+
 
   // Form para criar/editar banner
   const form = useForm<BannerFormData>({
