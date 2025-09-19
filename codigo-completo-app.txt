@@ -1,0 +1,2376 @@
+# CÓDIGO COMPLETO - CLICK OFERTAS PARAGUAI
+# =====================================================
+# Gerado em: 19 de setembro de 2025
+# Aplicação PWA completa com funcionalidades avançadas
+# =====================================================
+
+## CONFIGURAÇÃO INICIAL
+
+### package.json
+```json
+{
+  "name": "rest-express",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "NODE_ENV=development tsx server/index.ts",
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "start": "NODE_ENV=production node dist/index.js",
+    "check": "tsc",
+    "db:push": "drizzle-kit push"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^7.17.0",
+    "@google/genai": "^1.18.0",
+    "@google/generative-ai": "^0.24.1",
+    "@hookform/resolvers": "^3.10.0",
+    "@jridgewell/trace-mapping": "^0.3.25",
+    "@neondatabase/serverless": "^0.10.4",
+    "@radix-ui/react-accordion": "^1.2.4",
+    "@radix-ui/react-alert-dialog": "^1.1.7",
+    "@radix-ui/react-aspect-ratio": "^1.1.3",
+    "@radix-ui/react-avatar": "^1.1.4",
+    "@radix-ui/react-checkbox": "^1.1.5",
+    "@radix-ui/react-collapsible": "^1.1.4",
+    "@radix-ui/react-context-menu": "^2.2.7",
+    "@radix-ui/react-dialog": "^1.1.7",
+    "@radix-ui/react-dropdown-menu": "^2.1.7",
+    "@radix-ui/react-hover-card": "^1.1.7",
+    "@radix-ui/react-label": "^2.1.3",
+    "@radix-ui/react-menubar": "^1.1.7",
+    "@radix-ui/react-navigation-menu": "^1.2.6",
+    "@radix-ui/react-popover": "^1.1.7",
+    "@radix-ui/react-progress": "^1.1.3",
+    "@radix-ui/react-radio-group": "^1.2.4",
+    "@radix-ui/react-scroll-area": "^1.2.4",
+    "@radix-ui/react-select": "^2.1.7",
+    "@radix-ui/react-separator": "^1.1.3",
+    "@radix-ui/react-slider": "^1.2.4",
+    "@radix-ui/react-slot": "^1.2.0",
+    "@radix-ui/react-switch": "^1.1.4",
+    "@radix-ui/react-tabs": "^1.1.4",
+    "@radix-ui/react-toast": "^1.2.7",
+    "@radix-ui/react-toggle": "^1.1.3",
+    "@radix-ui/react-toggle-group": "^1.1.3",
+    "@radix-ui/react-tooltip": "^1.2.0",
+    "@tanstack/react-query": "^5.60.5",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/file-saver": "^2.0.7",
+    "@types/html2canvas": "^0.5.35",
+    "@types/jspdf": "^1.3.3",
+    "@types/leaflet": "^1.9.20",
+    "@types/memoizee": "^0.4.12",
+    "@types/multer": "^2.0.0",
+    "@types/passport-apple": "^2.0.3",
+    "@types/passport-google-oauth20": "^2.0.16",
+    "@types/qrcode": "^1.5.5",
+    "@uppy/aws-s3": "^5.0.0",
+    "@uppy/core": "^5.0.0",
+    "@uppy/dashboard": "^5.0.0",
+    "@uppy/react": "^5.0.0",
+    "@uppy/webcam": "^5.0.0",
+    "apify": "^3.4.4",
+    "apify-client": "^2.16.0",
+    "axios": "^1.11.0",
+    "bcryptjs": "^3.0.2",
+    "cheerio": "^1.1.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
+    "connect-pg-simple": "^10.0.0",
+    "crawlee": "^3.14.1",
+    "date-fns": "^3.6.0",
+    "drizzle-orm": "^0.39.1",
+    "drizzle-zod": "^0.7.0",
+    "embla-carousel-react": "^8.6.0",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "file-saver": "^2.0.5",
+    "framer-motion": "^11.13.1",
+    "google-auth-library": "^10.3.0",
+    "html2canvas": "^1.4.1",
+    "input-otp": "^1.4.2",
+    "jspdf": "^3.0.2",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.453.0",
+    "memoizee": "^0.4.17",
+    "memorystore": "^1.6.7",
+    "multer": "^2.0.2",
+    "nanoid": "^5.1.5",
+    "next-themes": "^0.4.6",
+    "openai": "^5.15.0",
+    "openid-client": "^6.7.0",
+    "passport": "^0.7.0",
+    "passport-apple": "^2.0.2",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-local": "^1.0.0",
+    "puppeteer": "^24.17.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-day-picker": "^8.10.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.55.0",
+    "react-icons": "^5.4.0",
+    "react-leaflet": "^4.2.1",
+    "react-multi-carousel": "^2.8.6",
+    "react-resizable-panels": "^2.1.7",
+    "recharts": "^2.15.2",
+    "serpapi": "^2.2.1",
+    "sharp": "^0.34.3",
+    "swiper": "^12.0.1",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss-animate": "^1.0.7",
+    "tw-animate-css": "^1.2.5",
+    "user-agents": "^1.1.647",
+    "vaul": "^1.1.2",
+    "wouter": "^3.3.5",
+    "ws": "^8.18.0",
+    "xlsx": "^0.18.5",
+    "zod": "^3.24.2",
+    "zod-validation-error": "^3.4.0"
+  },
+  "devDependencies": {
+    "@replit/vite-plugin-cartographer": "^0.3.0",
+    "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
+    "@tailwindcss/typography": "^0.5.15",
+    "@tailwindcss/vite": "^4.1.3",
+    "@types/connect-pg-simple": "^7.0.3",
+    "@types/express": "4.17.21",
+    "@types/express-session": "^1.18.0",
+    "@types/node": "20.16.11",
+    "@types/passport": "^1.0.16",
+    "@types/passport-local": "^1.0.38",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@types/ws": "^8.5.13",
+    "@vitejs/plugin-react": "^4.3.2",
+    "autoprefixer": "^10.4.20",
+    "drizzle-kit": "^0.30.4",
+    "esbuild": "^0.25.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.1",
+    "typescript": "5.6.3",
+    "vite": "^5.4.19"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.8"
+  }
+}
+```
+
+### tsconfig.json
+```json
+{
+  "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
+  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
+  "compilerOptions": {
+    "incremental": true,
+    "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
+    "noEmit": true,
+    "module": "ESNext",
+    "strict": true,
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "jsx": "preserve",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "types": ["node", "vite/client"],
+    "paths": {
+      "@/*": ["./client/src/*"],
+      "@shared/*": ["./shared/*"]
+    }
+  }
+}
+```
+
+### vite.config.ts
+```typescript
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+
+export default defineConfig({
+  plugins: [
+    react(),
+    runtimeErrorOverlay(),
+    ...(process.env.NODE_ENV !== "production" &&
+    process.env.REPL_ID !== undefined
+      ? [
+          await import("@replit/vite-plugin-cartographer").then((m) =>
+            m.cartographer(),
+          ),
+        ]
+      : []),
+  ],
+  resolve: {
+    alias: {
+      "@": path.resolve(import.meta.dirname, "client", "src"),
+      "@shared": path.resolve(import.meta.dirname, "shared"),
+      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+    },
+  },
+  root: path.resolve(import.meta.dirname, "client"),
+  build: {
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    emptyOutDir: true,
+  },
+  server: {
+    fs: {
+      strict: true,
+      deny: ["**/.*"],
+    },
+  },
+});
+```
+
+### tailwind.config.ts
+```typescript
+import type { Config } from "tailwindcss";
+
+export default {
+  darkMode: ["class"],
+  content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
+  theme: {
+    extend: {
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      colors: {
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        card: {
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
+        },
+        popover: {
+          DEFAULT: "var(--popover)",
+          foreground: "var(--popover-foreground)",
+        },
+        primary: {
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
+        },
+        secondary: {
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
+        },
+        muted: {
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
+        },
+        destructive: {
+          DEFAULT: "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
+        },
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
+        chart: {
+          "1": "var(--chart-1)",
+          "2": "var(--chart-2)",
+          "3": "var(--chart-3)",
+          "4": "var(--chart-4)",
+          "5": "var(--chart-5)",
+        },
+        sidebar: {
+          DEFAULT: "var(--sidebar)",
+          foreground: "var(--sidebar-foreground)",
+          primary: "var(--sidebar-primary)",
+          "primary-foreground": "var(--sidebar-primary-foreground)",
+          accent: "var(--sidebar-accent)",
+          "accent-foreground": "var(--sidebar-accent-foreground)",
+          border: "var(--sidebar-border)",
+          ring: "var(--sidebar-ring)",
+        },
+      },
+      fontFamily: {
+        sans: ["var(--font-sans)", "Inter", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
+        mono: ["var(--font-mono)", "Menlo", "monospace"],
+      },
+      keyframes: {
+        "accordion-down": {
+          from: {
+            height: "0",
+          },
+          to: {
+            height: "var(--radix-accordion-content-height)",
+          },
+        },
+        "accordion-up": {
+          from: {
+            height: "var(--radix-accordion-content-height)",
+          },
+          to: {
+            height: "0",
+          },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+} satisfies Config;
+```
+
+### postcss.config.js
+```javascript
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+### drizzle.config.ts
+```typescript
+import { defineConfig } from "drizzle-kit";
+
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL, ensure the database is provisioned");
+}
+
+export default defineConfig({
+  out: "./migrations",
+  schema: "./shared/schema.ts",
+  dialect: "postgresql",
+  dbCredentials: {
+    url: process.env.DATABASE_URL,
+  },
+});
+```
+
+## FRONTEND
+
+### client/index.html
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    
+    <!-- PWA Meta Tags -->
+    <title>Click Ofertas Paraguai</title>
+    <meta name="description" content="Crie e compartilhe panfletos digitais das suas ofertas. Encontre as melhores promoções do Paraguai.">
+    <meta name="theme-color" content="#21409A">
+    <meta name="application-name" content="Click Ofertas">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+    <meta name="msapplication-TileColor" content="#21409A">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- PWA Manifest embutido no HTML -->
+    <script>
+      // Criar manifest dinamicamente
+      const manifestData = {
+        "name": "Click Ofertas Paraguai",
+        "short_name": "Click Ofertas", 
+        "description": "Crie e compartilhe panfletos digitais das suas ofertas",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#ffffff",
+        "theme_color": "#21409A",
+        "orientation": "portrait-primary",
+        "scope": "/",
+        "icons": [
+          {
+            "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%2321409A' d='M0 0h512v512H0z'/%3E%3Cpath fill='white' d='M128 128h256v64H128zm0 96h256v64H128zm0 96h192v64H128z'/%3E%3C/svg%3E",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any"
+          }
+        ]
+      };
+      
+      const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+      const manifestURL = URL.createObjectURL(manifestBlob);
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = manifestURL;
+      document.head.appendChild(link);
+    </script>
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icon-16x16.png">
+    <link rel="shortcut icon" href="/icon-32x32.png">
+    
+    
+    <!-- Apple Touch Icon embutido -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cpath fill='%2321409A' d='M0 0h180v180H0z'/%3E%3Cpath fill='white' d='M36 36h108v27H36zm0 40.5h108v27H36zm0 40.5h81v27H36z'/%3E%3C/svg%3E">
+    
+    <!-- iOS PWA Configuration -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Click Ofertas">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-touch-fullscreen" content="yes">
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Click Ofertas Paraguai">
+    <meta property="og:description" content="Crie e compartilhe panfletos digitais das suas ofertas">
+    <meta property="og:site_name" content="Click Ofertas Paraguai">
+    <meta property="og:url" content="https://click-ofertas-paraguai.replit.app">
+    <meta property="og:image" content="/icon-512x512.png">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Fira+Code:wght@300..700&family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400..700;1,400..700&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=Oxanium:wght@200..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100..900;1,100..900&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&family=Space+Grotesk:wght@300..700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
+    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+  </body>
+</html>
+```
+
+### client/src/main.tsx
+```tsx
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import "./index.css";
+
+// Registro do Service Worker para PWA - APENAS EM PRODUÇÃO
+if ('serviceWorker' in navigator) {
+  if (import.meta.env.PROD) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registrado com sucesso:', registration);
+        })
+        .catch((registrationError) => {
+          console.log('Falha no registro do Service Worker:', registrationError);
+        });
+    });
+  } else {
+    // DESENVOLVIMENTO: Desregistrar qualquer Service Worker existente
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => {
+        registration.unregister();
+        console.log('DEV: Service Worker desregistrado');
+      });
+    });
+  }
+}
+
+createRoot(document.getElementById("root")!).render(<App />);
+```
+
+### client/src/App.tsx
+```tsx
+import { Switch, Route } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
+import Landing from "@/pages/landing";
+import AdminDashboard from "@/pages/admin-dashboard";
+import AdminStoreConfig from "@/pages/admin-store-config";
+import AdminProducts from "@/pages/admin-products";
+import AdminPromotions from "@/pages/admin-promotions";
+import AdminPremiumStores from "@/pages/admin-premium-stores";
+import AdminTotem from "@/pages/admin-totem";
+import AdminStories from "@/pages/admin-stories";
+import Analytics from "@/pages/analytics";
+import TotemDisplay from "@/pages/totem-display";
+import PublicFlyer from "@/pages/public-flyer";
+import StoresGallery from "@/pages/stores-gallery";
+import UserSettingsPage from "@/pages/user-settings";
+import ShoppingList from "@/pages/shopping-list";
+import MyCoupons from "@/pages/my-coupons";
+import CouponDetails from "@/pages/coupon-details";
+import StoriesFeed from "@/pages/stories-feed";
+import CreateStory from "@/pages/create-story";
+import PriceComparison from "@/pages/price-comparison";
+import ProductCompare from "@/pages/product-compare";
+import SignupPage from "@/pages/signup";
+import SuperAdmin from "@/pages/super-admin";
+import SuperAdminLogin from "@/pages/super-admin-login";
+import DailyScratchPage from "@/pages/daily-scratch";
+import ApifyDemo from "@/pages/apify-demo";
+import MaintenancePage from "@/pages/maintenance";
+import NotFound from "@/pages/not-found";
+import { MapModalTestPage } from "@/pages/map-modal-test";
+
+function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
+  const [bypassMaintenance, setBypassMaintenance] = useState(() => {
+    return localStorage.getItem('maintenance_bypass') === 'true';
+  });
+
+  // Hook para verificar status de manutenção
+  const { data: maintenanceStatus, isLoading: isLoadingMaintenance } = useQuery({
+    queryKey: ['/api/maintenance/status'],
+    refetchInterval: 30000, // Verifica a cada 30 segundos
+    staleTime: 0, // Sem cache para forçar nova consulta
+    gcTime: 0, // Não manter em cache (v5 usa gcTime ao invés de cacheTime)
+  });
+
+  const { user } = useAuth();
+
+  // Se está carregando, mostra um loading simples
+  if (isLoadingMaintenance) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Se em manutenção e usuário não é admin nem tem bypass
+  if (maintenanceStatus?.isMaintenanceMode && !user?.isSuperAdmin && !bypassMaintenance) {
+    return <MaintenancePage onBypass={() => setBypassMaintenance(true)} />;
+  }
+
+  return <>{children}</>;
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <MaintenanceWrapper>
+          <Switch>
+            {/* Rotas públicas */}
+            <Route path="/" component={StoresGallery} />
+            <Route path="/cards" component={StoresGallery} />
+            <Route path="/flyer/:slug" component={PublicFlyer} />
+            <Route path="/stores/:slug" component={PublicFlyer} />
+            <Route path="/:slug" component={PublicFlyer} />
+            <Route path="/totem/:storeId" component={TotemDisplay} />
+            <Route path="/landing" component={Landing} />
+            <Route path="/signup" component={SignupPage} />
+            <Route path="/stories" component={StoriesFeed} />
+            <Route path="/price-comparison" component={PriceComparison} />
+            <Route path="/product/:productId/compare" component={ProductCompare} />
+            <Route path="/map-modal-test" component={MapModalTestPage} />
+
+            {/* Rotas autenticadas */}
+            <Route path="/admin" component={AdminDashboard} />
+            <Route path="/admin/store" component={AdminStoreConfig} />
+            <Route path="/admin/products" component={AdminProducts} />
+            <Route path="/admin/promotions" component={AdminPromotions} />
+            <Route path="/admin/premium-stores" component={AdminPremiumStores} />
+            <Route path="/admin/totem" component={AdminTotem} />
+            <Route path="/admin/stories" component={AdminStories} />
+            <Route path="/admin/analytics" component={Analytics} />
+            <Route path="/settings" component={UserSettingsPage} />
+            <Route path="/shopping-list" component={ShoppingList} />
+            <Route path="/my-coupons" component={MyCoupons} />
+            <Route path="/coupon/:id" component={CouponDetails} />
+            <Route path="/create-story" component={CreateStory} />
+            <Route path="/daily-scratch" component={DailyScratchPage} />
+
+            {/* Super Admin */}
+            <Route path="/super-admin-login" component={SuperAdminLogin} />
+            <Route path="/super-admin" component={SuperAdmin} />
+
+            {/* Demo/Debug */}
+            <Route path="/apify-demo" component={ApifyDemo} />
+
+            {/* 404 */}
+            <Route component={NotFound} />
+          </Switch>
+        </MaintenanceWrapper>
+        <Toaster />
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
+```
+
+### client/src/index.css
+```css
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(222.2, 84%, 4.9%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(222.2, 84%, 4.9%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(222.2, 84%, 4.9%);
+  --primary: hsl(224, 76%, 48%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(210, 40%, 96%);
+  --secondary-foreground: hsl(222.2, 84%, 4.9%);
+  --muted: hsl(210, 40%, 96%);
+  --muted-foreground: hsl(215.4, 16.3%, 46.9%);
+  --accent: hsl(210, 40%, 96%);
+  --accent-foreground: hsl(222.2, 84%, 4.9%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --border: hsl(214.3, 31.8%, 91.4%);
+  --input: hsl(214.3, 31.8%, 91.4%);
+  --ring: hsl(224, 76%, 48%);
+  --chart-1: hsl(12, 76%, 61%);
+  --chart-2: hsl(173, 58%, 39%);
+  --chart-3: hsl(197, 37%, 24%);
+  --chart-4: hsl(43, 74%, 66%);
+  --chart-5: hsl(27, 87%, 67%);
+  --sidebar: hsl(0, 0%, 100%);
+  --sidebar-foreground: hsl(222.2, 84%, 4.9%);
+  --sidebar-primary: hsl(224, 76%, 48%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(210, 40%, 96%);
+  --sidebar-accent-foreground: hsl(222.2, 84%, 4.9%);
+  --sidebar-border: hsl(214.3, 31.8%, 91.4%);
+  --sidebar-ring: hsl(224, 76%, 48%);
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: hsl(222.2, 84%, 4.9%);
+  --foreground: hsl(210, 40%, 98%);
+  --card: hsl(222.2, 84%, 4.9%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --popover: hsl(222.2, 84%, 4.9%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --primary: hsl(224, 76%, 48%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(217.2, 32.6%, 17.5%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --muted: hsl(217.2, 32.6%, 17.5%);
+  --muted-foreground: hsl(215, 20.2%, 65.1%);
+  --accent: hsl(217.2, 32.6%, 17.5%);
+  --accent-foreground: hsl(210, 40%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --border: hsl(217.2, 32.6%, 17.5%);
+  --input: hsl(217.2, 32.6%, 17.5%);
+  --ring: hsl(224.3, 76.3%, 94.1%);
+  --sidebar: hsl(222.2, 84%, 4.9%);
+  --sidebar-foreground: hsl(210, 40%, 98%);
+  --sidebar-primary: hsl(224, 76%, 48%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(217.2, 32.6%, 17.5%);
+  --sidebar-accent-foreground: hsl(210, 40%, 98%);
+  --sidebar-border: hsl(217.2, 32.6%, 17.5%);
+  --sidebar-ring: hsl(224.3, 76.3%, 94.1%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+/* Animações customizadas para transições */
+@keyframes heartPop {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  15% {
+    transform: scale(1.2) rotate(-5deg);
+    opacity: 1;
+  }
+  30% {
+    transform: scale(1) rotate(5deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1) rotate(-2deg) translateY(-20px);
+    opacity: 0.8;
+  }
+  80% {
+    transform: scale(0.8) rotate(2deg) translateY(-40px);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(0.5) rotate(0deg) translateY(-60px);
+    opacity: 0;
+  }
+}
+
+/* ... Mais animações CSS omitidas para brevidade ... */
+```
+
+### client/src/components/TwoPartHeader.tsx
+```tsx
+import { useState, ReactNode } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search, X } from "lucide-react";
+import { useScrollDetection } from "@/hooks/use-scroll-detection";
+
+interface TwoPartHeaderProps {
+  // Primeira parte - Header superior
+  title?: string;
+  titleComponent?: ReactNode;
+  showSearch?: boolean;
+  searchValue?: string;
+  searchPlaceholder?: string;
+  onSearchChange?: (value: string) => void;
+  onSearchFocus?: () => void;
+  onSearchBlur?: () => void;
+  showNotifications?: boolean;
+  notificationCount?: number;
+  onNotificationClick?: () => void;
+  
+  // Segunda parte - Menu deslizante
+  children?: ReactNode;
+  
+  
+  // Personalização visual
+  gradient?: string;
+  className?: string;
+  
+  // Controle do scroll
+  scrollThreshold?: number;
+  
+  // Altura da primeira parte (para posicionar a segunda)
+  headerHeight?: number;
+}
+
+/**
+ * Componente reutilizável TwoPartHeader com header fixo e menu deslizante
+ * Baseado na implementação do stores-gallery.tsx
+ */
+export function TwoPartHeader({
+  title = "Click Ofertas.PY",
+  titleComponent,
+  showSearch = true,
+  searchValue = "",
+  searchPlaceholder = "Buscar produtos ou lojas...",
+  onSearchChange,
+  onSearchFocus,
+  onSearchBlur,
+  showNotifications = true,
+  notificationCount = 0,
+  onNotificationClick,
+  children,
+  gradient = "linear-gradient(135deg, #F04940 0%, #FA7D22 100%)",
+  className = "",
+  scrollThreshold = 100,
+  headerHeight = 72
+}: TwoPartHeaderProps) {
+  
+  const [searchInput, setSearchInput] = useState(searchValue);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  
+  const { isVisible: isMenuVisible } = useScrollDetection({ 
+    threshold: scrollThreshold 
+  });
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInput(value);
+    onSearchChange?.(value);
+  };
+
+  const handleSearchFocus = () => {
+    setIsSearchFocused(true);
+    onSearchFocus?.();
+  };
+
+  const handleSearchBlur = () => {
+    setIsSearchFocused(false);
+    onSearchBlur?.();
+  };
+
+  const clearSearch = () => {
+    setSearchInput('');
+    onSearchChange?.('');
+  };
+
+
+  return (
+    <>
+      {/* PARTE 1: Header superior fixo (sempre visível) */}
+      <div 
+        className={`fixed top-0 left-0 right-0 z-50 ${className}`}
+        style={{ background: gradient }}
+      >
+        <div className="py-4 px-2 ml-[5%]">
+          {/* Logo e Barra de Busca */}
+          <div className="flex items-center gap-4">
+            
+            {/* Título customizável */}
+            {titleComponent || (
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <span 
+                  className="text-white font-bold text-2xl tracking-normal" 
+                  style={{
+                    textShadow: '0 1px 2px rgba(0,0,0,0.1)', 
+                    fontWeight: '700'
+                  }}
+                >
+                  {title.split('.')[0]}
+                </span>
+                {title.includes('.') && (
+                  <span className="font-bold text-2xl tracking-normal">
+                    <span className="text-white">.</span>
+                    <span style={{color: '#FFE600'}}>
+                      {title.split('.')[1]}
+                    </span>
+                  </span>
+                )}
+              </div>
+            )}
+            
+            {/* Barra de Busca */}
+            {showSearch && (
+              <div className="flex-1 max-w-4xl">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder={searchPlaceholder}
+                    value={searchInput}
+                    onChange={handleSearchChange}
+                    onFocus={handleSearchFocus}
+                    onBlur={handleSearchBlur}
+                    className="pl-10 pr-10 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
+                    data-testid="header-search-input"
+                  />
+                  {searchInput && (
+                    <button
+                      onClick={clearSearch}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      title="Limpar busca"
+                      data-testid="clear-search-button"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Botão de Saudação */}
+            <button
+              className="bg-white/90 backdrop-blur-sm text-gray-600 hover:text-blue-500 px-3 py-2 rounded-lg shadow-sm transition-colors font-medium"
+              title="Saudação"
+              data-testid="greeting-button"
+            >
+              <span className="text-sm">👋 Olá!</span>
+            </button>
+
+
+            {/* Sino de notificações */}
+            {showNotifications && (
+              <button
+                onClick={onNotificationClick}
+                className="bg-white/90 backdrop-blur-sm text-gray-600 hover:text-orange-500 p-2 rounded-lg shadow-sm transition-colors relative"
+                title="Notificações"
+                data-testid="notifications-button"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                </svg>
+                {/* Badge de notificação */}
+                {notificationCount > 0 && (
+                  <span 
+                    className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                    data-testid="notification-badge"
+                  >
+                    {notificationCount > 99 ? '99+' : notificationCount}
+                  </span>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* PARTE 2: Menu de navegação (deslizante) */}
+      {children && (
+        <div 
+          className={`fixed left-0 right-0 z-40 transition-transform duration-300 ease-in-out ${
+            isMenuVisible ? 'translate-y-0' : '-translate-y-full'
+          }`}
+          style={{
+            top: `${headerHeight}px`,
+            background: gradient
+          }}
+          data-testid="sliding-menu"
+        >
+          <div className="py-3 px-2 ml-[5%]">
+            <div className="flex items-center justify-start gap-3 -ml-2">
+              {children}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+```
+
+### client/src/components/MiniMap.tsx
+```tsx
+import { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { MapPin } from 'lucide-react';
+import L from 'leaflet';
+
+// Fix for default marker icons in React Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
+
+interface MiniMapProps {
+  latitude: number | string;
+  longitude: number | string;
+  storeName?: string;
+  onClick?: () => void;
+  className?: string;
+  size?: 'small' | 'medium' | 'large' | 'custom';
+}
+
+export function MiniMap({ 
+  latitude, 
+  longitude, 
+  storeName = 'Loja', 
+  onClick,
+  className = '',
+  size = 'medium'
+}: MiniMapProps) {
+  const [hasValidCoordinates, setHasValidCoordinates] = useState(false);
+  const [mapKey, setMapKey] = useState(0);
+
+  // Parse and validate coordinates
+  const lat = typeof latitude === 'string' ? parseFloat(latitude) : latitude;
+  const lng = typeof longitude === 'string' ? parseFloat(longitude) : longitude;
+
+  useEffect(() => {
+    const isValidLat = lat !== null && lat !== undefined && !isNaN(lat) && lat >= -90 && lat <= 90;
+    const isValidLng = lng !== null && lng !== undefined && !isNaN(lng) && lng >= -180 && lng <= 180;
+    setHasValidCoordinates(Boolean(isValidLat && isValidLng));
+    
+    // Force map re-render when coordinates change
+    setMapKey(prev => prev + 1);
+  }, [lat, lng]);
+
+  const handleClick = () => {
+    if (onClick && hasValidCoordinates) {
+      onClick();
+    }
+  };
+
+  // Get default size classes if not using custom
+  const getSizeClasses = () => {
+    if (size === 'custom') return '';
+    const sizeMap = {
+      small: 'w-12 h-8 sm:w-14 sm:h-10',
+      medium: 'w-16 h-10 sm:w-20 sm:h-12',
+      large: 'w-24 h-16 sm:w-28 sm:h-20'
+    };
+    return sizeMap[size] || sizeMap.medium;
+  };
+
+  if (!hasValidCoordinates) {
+    return (
+      <div 
+        className={`
+          ${getSizeClasses()}
+          rounded-lg 
+          bg-gray-100 dark:bg-gray-800 
+          border border-gray-200 dark:border-gray-700
+          shadow-sm
+          flex items-center justify-center
+          transition-all duration-200
+          ${onClick ? 'cursor-pointer hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-750' : ''}
+          ${className}
+        `}
+        onClick={handleClick}
+        title={hasValidCoordinates ? "Ver no mapa" : "Localização não disponível"}
+        data-testid="minimap-placeholder"
+      >
+        <MapPin className="h-4 w-4 text-gray-400" />
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      className={`
+        relative z-0 isolate
+        ${getSizeClasses()}
+        rounded-lg 
+        overflow-hidden 
+        border border-gray-200 dark:border-gray-700
+        shadow-sm
+        transition-all duration-200
+        ${onClick ? 'cursor-pointer hover:shadow-md' : ''}
+        ${className}
+      `}
+      onClick={handleClick}
+      title={onClick ? "Ver no mapa" : storeName}
+      data-testid="minimap-container"
+    >
+      <MapContainer
+        key={mapKey}
+        center={[lat!, lng!]}
+        zoom={14}
+        style={{ height: '100%', width: '100%' }}
+        className="minimap-leaflet"
+        zoomControl={false}
+        scrollWheelZoom={false}
+        doubleClickZoom={false}
+        touchZoom={false}
+        boxZoom={false}
+        keyboard={false}
+        dragging={false}
+        attributionControl={false}
+        data-testid="minimap-leaflet-container"
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution=""
+        />
+        <Marker 
+          position={[lat!, lng!]} 
+          data-testid="minimap-marker"
+        />
+      </MapContainer>
+      
+      {/* Clickable overlay for the entire map */}
+      {onClick && (
+        <div 
+          className="absolute inset-0 bg-blue-600/20 hover:bg-blue-600/30 transition-all cursor-pointer flex flex-col items-center justify-center"
+          onClick={handleClick}
+          title="Clique para ver no mapa"
+          data-testid="minimap-clickable-overlay"
+        >
+          <div className="text-white text-xs font-medium mb-1 text-center">
+            Localização
+          </div>
+          <div className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-2 py-1 rounded shadow-lg transition-all">
+            📍 Ver mapa
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## BACKEND
+
+### server/index.ts
+```typescript
+import express, { type Request, Response, NextFunction } from "express";
+import { registerRoutes } from "./routes";
+import { setupVite, serveStatic, log } from "./vite";
+import { startCleanupJobs, startTrendingAnalysisJob } from "./cleanupJobs";
+import path from "path";
+
+const app = express();
+// Aumentar limite de payload para suportar upload de imagens/vídeos maiores
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+
+// Serve attached assets statically with cache headers
+app.use('/attached_assets', express.static(path.resolve(process.cwd(), 'attached_assets'), {
+  maxAge: '10m', // Cache por 10 minutos
+  etag: true,
+  lastModified: true
+}));
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path = req.path;
+
+  // Só aplicar logging detalhado para rotas /api
+  if (path.startsWith("/api")) {
+    res.on("finish", () => {
+      const duration = Date.now() - start;
+      // Log apenas essenciais: method, path, status, duration
+      const logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      log(logLine);
+    });
+  }
+
+  next();
+});
+
+(async () => {
+  const server = await registerRoutes(app);
+
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+
+    res.status(status).json({ message });
+    throw err;
+  });
+
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
+
+  // ALWAYS serve the app on the port specified in the environment variable PORT
+  // Other ports are firewalled. Default to 5000 if not specified.
+  // this serves both the API and the client.
+  // It is the only port that is not firewalled.
+  const port = parseInt(process.env.PORT || '5000', 10);
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, () => {
+    log(`serving on port ${port}`);
+    
+    // Modo desenvolvimento rápido: pular jobs pesados para evitar travamentos durante HMR
+    const isDevelopment = app.get("env") === "development";
+    const fastDev = process.env.FAST_DEV !== 'false'; // true por padrão
+    
+    if (!isDevelopment || !fastDev) {
+      // Executar jobs de forma assíncrona após um pequeno delay
+      setTimeout(() => {
+        startCleanupJobs().catch(console.error);
+        startTrendingAnalysisJob().catch(console.error);
+      }, 2000);
+    } else {
+      console.log("⚡ Fast dev mode enabled - skipping heavy background jobs");
+    }
+  });
+})();
+```
+
+### server/replitAuth.ts
+```typescript
+import * as client from "openid-client";
+import { Strategy, type VerifyFunction } from "openid-client/passport";
+
+import passport from "passport";
+import session from "express-session";
+import type { Express, RequestHandler } from "express";
+import memoize from "memoizee";
+import connectPg from "connect-pg-simple";
+import { storage } from "./storage";
+
+if (!process.env.REPLIT_DOMAINS) {
+  throw new Error("Environment variable REPLIT_DOMAINS not provided");
+}
+
+const getOidcConfig = memoize(
+  async () => {
+    return await client.discovery(
+      new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
+      process.env.REPL_ID!
+    );
+  },
+  { maxAge: 3600 * 1000 }
+);
+
+export function getSession() {
+  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const pgStore = connectPg(session);
+  const sessionStore = new pgStore({
+    conString: process.env.DATABASE_URL,
+    createTableIfMissing: false,
+    ttl: sessionTtl,
+    tableName: "sessions",
+  });
+  return session({
+    secret: process.env.SESSION_SECRET!,
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: true,
+      maxAge: sessionTtl,
+    },
+  });
+}
+
+function updateUserSession(
+  user: any,
+  tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers
+) {
+  user.claims = tokens.claims();
+  user.access_token = tokens.access_token;
+  user.refresh_token = tokens.refresh_token;
+  user.expires_at = user.claims?.exp;
+}
+
+async function upsertUser(
+  claims: any,
+) {
+  await storage.upsertUser({
+    id: claims["sub"],
+    email: claims["email"],
+    firstName: claims["first_name"],
+    lastName: claims["last_name"],
+    profileImageUrl: claims["profile_image_url"],
+  });
+}
+
+export async function setupAuth(app: Express) {
+  app.set("trust proxy", 1);
+  app.use(getSession());
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  const config = await getOidcConfig();
+
+  const verify: VerifyFunction = async (
+    tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
+    verified: passport.AuthenticateCallback
+  ) => {
+    const user = {};
+    updateUserSession(user, tokens);
+    await upsertUser(tokens.claims());
+    verified(null, user);
+  };
+
+  for (const domain of process.env
+    .REPLIT_DOMAINS!.split(",")) {
+    const strategy = new Strategy(
+      {
+        name: `replitauth:${domain}`,
+        config,
+        scope: "openid email profile offline_access",
+        callbackURL: `https://${domain}/api/callback`,
+      },
+      verify,
+    );
+    passport.use(strategy);
+  }
+
+  passport.serializeUser((user: Express.User, cb) => cb(null, user));
+  passport.deserializeUser((user: Express.User, cb) => cb(null, user));
+
+  app.get("/api/login", (req, res, next) => {
+    passport.authenticate(`replitauth:${req.hostname}`, {
+      prompt: "login consent",
+      scope: ["openid", "email", "profile", "offline_access"],
+    })(req, res, next);
+  });
+
+  app.get("/api/signup", (req, res) => {
+    res.redirect('/api/login?signup=true');
+  });
+
+  app.get("/api/callback", (req, res, next) => {
+    passport.authenticate(`replitauth:${req.hostname}`, 
+      async (err: any, user: any) => {
+        if (err || !user) {
+          return res.redirect("/api/login");
+        }
+        
+        // Fazer login do usuário na sessão
+        req.logIn(user, async (loginErr) => {
+          if (loginErr) {
+            return res.redirect("/api/login");
+          }
+          
+          try {
+            // Buscar dados do usuário no banco para verificar se tem loja
+            const userId = user.claims?.sub;
+            if (userId) {
+              const userData = await storage.getUser(userId);
+              
+              // Redirecionar baseado no perfil
+              if (userData?.storeOwnerToken) {
+                res.redirect("/admin");
+              } else {
+                res.redirect("/cards");
+              }
+            } else {
+              res.redirect("/cards");
+            }
+          } catch (error) {
+            console.error("Error checking user store status:", error);
+            res.redirect("/cards");
+          }
+        });
+      }
+    )(req, res, next);
+  });
+}
+
+export const isAuthenticated: RequestHandler = async (req: any, res, next) => {
+  // Sistema personalizado de email/senha - verificar sessão
+  if (req.session?.user?.id) {
+    return next();
+  }
+
+  // Se não há sessão personalizada, negar acesso
+  return res.status(401).json({ message: "Unauthorized" });
+};
+```
+
+## SCHEMA DE BANCO DE DADOS
+
+### shared/schema.ts
+```typescript
+import { sql } from 'drizzle-orm';
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  varchar,
+  decimal,
+  unique,
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+// Session storage table for Replit Auth
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// Funny messages for scratch cards
+export const funnyMessages = pgTable("funny_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  message: text("message").notNull(),
+  emoji: text("emoji").notNull(),
+  category: varchar("category", { length: 10 }).default("lose"), // 'lose', 'win'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User storage table for Replit Auth
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").unique().notNull(),
+  password: varchar("password"), // Hash da senha
+  storeName: varchar("store_name"), // Nome da loja
+  phone: varchar("phone"),
+  address: text("address"), // Endereço completo
+  city: varchar("city"),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  fullName: varchar("full_name"),
+  state: varchar("state"),
+  country: varchar("country"),
+  profileImageUrl: varchar("profile_image_url"),
+  provider: varchar("provider").default("email"), // 'email', 'google', 'apple', 'replit'
+  providerId: varchar("provider_id"),
+  isEmailVerified: boolean("is_email_verified").default(false),
+  storeOwnerToken: varchar("store_owner_token"),
+  isSuperAdmin: boolean("is_super_admin").default(false), // Super admin do sistema
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Store configuration table
+export const stores = pgTable("stores", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  logoUrl: text("logo_url"),
+  themeColor: varchar("theme_color", { length: 7 }).default("#E11D48"),
+  currency: varchar("currency", { length: 10 }).default("Gs."),
+  displayCurrency: varchar("display_currency", { length: 10 }).default("local"), // "usd", "local", "both"
+  dollarRate: decimal("dollar_rate", { precision: 10, scale: 2 }).default("7500"),
+  bannerUrl: text("banner_url"),
+  bannerText: text("banner_text"),
+  bannerSubtext: text("banner_subtext"),
+  bannerGradient: text("banner_gradient"),
+  slug: text("slug").unique(),
+  address: text("address"),
+  whatsapp: varchar("whatsapp"),
+  instagram: varchar("instagram"),
+  isActive: boolean("is_active").default(true),
+  isPremium: boolean("is_premium").default(false),
+  customUsdBrlRate: text("custom_usd_brl_rate"), // Armazenado como string para precisão
+  latitude: decimal("latitude", { precision: 10, scale: 8 }),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Product table
+export const products = pgTable("products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  imageUrl: text("image_url"),
+  imageUrl2: text("image_url_2"),
+  imageUrl3: text("image_url_3"),
+  category: text("category"),
+  brand: text("brand"),
+  gtin: text("gtin"), // Código de barras global
+  productCode: text("product_code"), // Código interno da loja
+  isActive: boolean("is_active").default(true),
+  isFeatured: boolean("is_featured").default(false),
+  showInStories: boolean("show_in_stories").default(false),
+  showInTotem: boolean("show_in_totem").default(false),
+  sortOrder: text("sort_order").default("0"),
+  sourceType: varchar("source_type", { length: 20 }).default("manual"), // "manual", "icecat", "mercadolibre"
+  // Scratch card properties
+  isScratchCard: boolean("is_scratch_card").default(false),
+  scratchMessage: text("scratch_message"),
+  scratchPrice: decimal("scratch_price", { precision: 10, scale: 2 }),
+  scratchExpiresAt: timestamp("scratch_expires_at"),
+  scratchTimeLimitMinutes: integer("scratch_time_limit_minutes"),
+  scratchBackgroundColor: varchar("scratch_background_color", { length: 7 }),
+  maxScratchRedemptions: integer("max_scratch_redemptions"),
+  currentScratchRedemptions: integer("current_scratch_redemptions").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ... Mais tabelas do schema omitidas para brevidade ...
+
+// TIPOS TYPESCRIPT EXPORTADOS
+export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
+export type UpsertUser = InsertUser;
+
+export type Store = typeof stores.$inferSelect;
+export type InsertStore = typeof stores.$inferInsert;
+export type UpdateStore = Partial<InsertStore>;
+
+export type Product = typeof products.$inferSelect;
+export type InsertProduct = typeof products.$inferInsert;
+export type UpdateProduct = Partial<InsertProduct>;
+
+export type StoreWithProducts = Store & {
+  products: Product[];
+  totalProducts?: number;
+};
+
+// ... Mais tipos omitidos para brevidade ...
+```
+
+### server/storage.ts
+```typescript
+import {
+  users,
+  stores,
+  products,
+  savedProducts,
+  storyViews,
+  flyerViews,
+  productLikes,
+  scratchedProducts,
+  coupons,
+  scratchCampaigns,
+  virtualScratchClones,
+  promotions,
+  promotionScratches,
+  promotionAssignments,
+  instagramStories,
+  instagramStoryViews,
+  instagramStoryLikes,
+  brazilianPrices,
+  priceComparisons,
+  productSuggestions,
+  priceHistory,
+  priceAlerts,
+  banners,
+  bannerViews,
+  bannerClicks,
+  // Sistema de raspadinha diária
+  dailyPrizes,
+  userDailyAttempts,
+  scratchSystemConfig,
+  algorithmSuggestions,
+  dailyScratchResults,
+  dailyScratchCards,
+  budgetConfig,
+  funnyMessages,
+  maintenanceMode,
+  totemContent,
+  totemSettings,
+  // Metadados anônimos para analytics
+  userSessions,
+  productSearches,
+  productViews,
+  trendingProducts,
+  generatedTotemArts,
+  categories,
+  type User,
+  type UpsertUser,
+  type InsertUser,
+  type Store,
+  type InsertStore,
+  type UpdateStore,
+  type Product,
+  type InsertProduct,
+  type UpdateProduct,
+  type StoreWithProducts,
+  type SavedProduct,
+  type InsertSavedProduct,
+  type StoryView,
+  type InsertStoryView,
+  type FlyerView,
+  type InsertFlyerView,
+  type ProductLike,
+  type InsertProductLike,
+  type ScratchedProduct,
+  type InsertScratchedProduct,
+  type SavedProductWithDetails,
+  type Coupon,
+  type InsertCoupon,
+  type CouponWithDetails,
+  type ScratchCampaign,
+  type InsertScratchCampaign,
+  type VirtualScratchClone,
+  type InsertVirtualScratchClone,
+  type ScratchCampaignWithDetails,
+  type VirtualScratchCloneWithDetails,
+  type Promotion,
+  type InsertPromotion,
+  type UpdatePromotion,
+  type PromotionScratch,
+  type InsertPromotionScratch,
+  type PromotionAssignment,
+  type InsertPromotionAssignment,
+  type UpdatePromotionAssignment,
+  type PromotionWithDetails,
+  type InstagramStory,
+  type InsertInstagramStory,
+  type UpdateInstagramStory,
+  type InstagramStoryView,
+  type InsertInstagramStoryView,
+  type InstagramStoryLike,
+  type InsertInstagramStoryLike,
+  type InstagramStoryWithDetails,
+  type BrazilianPrice,
+  type InsertBrazilianPrice,
+  type PriceComparison,
+  type InsertPriceComparison,
+  type ProductSuggestion,
+  type InsertProductSuggestion,
+  type PriceComparisonWithDetails,
+  type PriceHistory,
+  type InsertPriceHistory,
+  type PriceAlert,
+  type InsertPriceAlert,
+  type Banner,
+  type InsertBanner,
+  // Tipos do sistema de raspadinha diária
+  type DailyPrize,
+  type InsertDailyPrize,
+  type UserDailyAttempt,
+  type InsertUserDailyAttempt,
+  type ScratchSystemConfig,
+  type InsertScratchSystemConfig,
+  type AlgorithmSuggestion,
+  type InsertAlgorithmSuggestion,
+  type DailyScratchResult,
+  type InsertDailyScratchResult,
+  type DailyScratchCard,
+  type InsertDailyScratchCard,
+  type BudgetConfig,
+  type InsertBudgetConfig,
+  type TotemContent,
+  type InsertTotemContent,
+  type TotemSettings,
+  type InsertTotemSettings,
+  type UpdateTotemSettings,
+  insertTotemContentSchema,
+  updateTotemContentSchema,
+  insertTotemSettingsSchema,
+  updateTotemSettingsSchema,
+  // Types de metadados anônimos
+  type UserSession,
+  type InsertUserSession,
+  type ProductSearch,
+  type InsertProductSearch,
+  type ProductView,
+  type InsertProductView,
+  type TrendingProduct,
+  type InsertTrendingProduct,
+  type GeneratedTotemArt,
+  type InsertGeneratedTotemArt,
+  // Categories
+  type Category,
+  type InsertCategory,
+  type UpdateCategory,
+} from "@shared/schema";
+import { db } from "./db";
+import { eq, and, desc, asc, count, gte, lte, lt, sql, inArray, or, isNull } from "drizzle-orm";
+
+export interface IStorage {
+  // User operations (required for Replit Auth)
+  getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  updateUser(id: string, updates: Partial<User>): Promise<User>;
+  getAllUsers(): Promise<User[]>;
+  deleteUser(id: string): Promise<void>;
+
+  // Store operations
+  getUserStore(userId: string): Promise<Store | undefined>;
+  createStore(userId: string, store: InsertStore): Promise<Store>;
+  updateStore(storeId: string, store: UpdateStore): Promise<Store>;
+  getStoreBySlug(slug: string): Promise<StoreWithProducts | undefined>;
+  getAllActiveStores(): Promise<StoreWithProducts[]>;
+  getAllActiveStoresOptimized(limit?: number, productsPerStore?: number): Promise<StoreWithProducts[]>;
+  getAllStores(): Promise<StoreWithProducts[]>;
+  deleteStore(storeId: string, userId: string, isSuperAdmin?: boolean): Promise<void>;
+
+  // Product operations
+  getStoreProducts(storeId: string): Promise<Product[]>;
+  createProduct(storeId: string, product: InsertProduct): Promise<Product>;
+  updateProduct(productId: string, storeId: string, product: UpdateProduct): Promise<Product>;
+  deleteProduct(productId: string, storeId: string): Promise<void>;
+  getProduct(productId: string, storeId: string): Promise<Product | undefined>;
+  getProductById(productId: string): Promise<Product | undefined>;
+
+  // Engagement operations
+  createProductLike(like: InsertProductLike): Promise<ProductLike>;
+  saveProduct(savedProduct: InsertSavedProduct): Promise<SavedProduct>;
+  getSavedProducts(userId: string): Promise<SavedProductWithDetails[]>;
+  removeSavedProduct(savedProductId: string, userId: string): Promise<void>;
+  createStoryView(view: InsertStoryView): Promise<StoryView>;
+  createFlyerView(view: InsertFlyerView): Promise<FlyerView>;
+  getStoreAnalytics(storeId: string, days?: number): Promise<any>;
+  getStoresByUserId(userId: string): Promise<Store[]>;
+  getTopProductsByEngagement(storeId: string, days?: number): Promise<any[]>;
+
+  // Scratch card operations
+  createScratchedProduct(scratch: InsertScratchedProduct): Promise<ScratchedProduct>;
+  getScratchedProduct(productId: string, userId?: string): Promise<ScratchedProduct | undefined>;
+  updateScratchRedemptionCount(productId: string): Promise<void>;
+
+  // Coupon operations
+  createCoupon(coupon: InsertCoupon): Promise<Coupon>;
+  getUserCoupons(userId?: string): Promise<CouponWithDetails[]>;
+  getCouponByCode(couponCode: string): Promise<CouponWithDetails | undefined>;
+  redeemCoupon(couponCode: string): Promise<Coupon>;
+  getCoupon(couponId: string): Promise<CouponWithDetails | undefined>;
+  
+  // Verificação para galeria
+  shouldShowProductInGallery(productId: string): Promise<boolean>;
+  getCouponsCountForProduct(productId: string): Promise<number>;
+  
+  // Scratch Campaign operations (NEW - Virtual Clones System)
+  createScratchCampaign(campaign: InsertScratchCampaign): Promise<ScratchCampaign>;
+  getScratchCampaignByProduct(productId: string): Promise<ScratchCampaignWithDetails | undefined>;
+  updateScratchCampaign(campaignId: string, updates: Partial<ScratchCampaign>): Promise<ScratchCampaign>;
+  deactivateScratchCampaign(campaignId: string): Promise<void>;
+  getCampaignStats(campaignId: string): Promise<{usedClones: number, totalClones: number, expiredClones: number}>;
+  
+  // Virtual Clone operations (NEW)
+  createVirtualClones(campaignId: string, assignedUserIds: string[], productSnapshot: any): Promise<VirtualScratchClone[]>;
+  getVirtualCloneById(cloneId: string): Promise<VirtualScratchCloneWithDetails | undefined>;
+  getUserAvailableClone(userId: string, productId: string): Promise<VirtualScratchCloneWithDetails | undefined>;
+  markCloneAsUsed(cloneId: string): Promise<VirtualScratchClone>;
+  markExpiredClones(): Promise<void>;
+  deleteUnusedClones(campaignId: string): Promise<void>;
+  
+  // User lottery/selection operations (NEW)
+  getAllRegisteredUsers(): Promise<User[]>;
+  selectRandomUsers(userPool: User[], maxSelections: number): Promise<User[]>;
+  
+  // Delete cupom
+  deleteCoupon(couponId: string): Promise<void>;
+  
+  // 🧹 MÉTODO TEMPORÁRIO: Excluir todos os cupons do usuário (para testes)
+  deleteAllUserCoupons(userId: string): Promise<void>;
+
+  // NEW: Promotion operations (Simplified System)
+  getStorePromotions(storeId: string): Promise<PromotionWithDetails[]>;
+  getPromotion(promotionId: string): Promise<PromotionWithDetails | undefined>;
+  createPromotion(storeId: string, promotion: InsertPromotion): Promise<Promotion>;
+  updatePromotion(promotionId: string, updates: UpdatePromotion): Promise<Promotion>;
+  deletePromotion(promotionId: string): Promise<void>;
+  canUserScratchPromotion(promotionId: string, userId?: string, userAgent?: string, ipAddress?: string): Promise<{allowed: boolean, reason: string, promotion?: Promotion}>;
+  createPromotionScratch(scratch: InsertPromotionScratch): Promise<PromotionScratch>;
+  incrementPromotionUsage(promotionId: string): Promise<boolean>;
+  getActivePromotions(): Promise<PromotionWithDetails[]>;
+  getPromotionStats(promotionId: string): Promise<any>;
+  markExpiredPromotions(): Promise<number>;
+
+  // NEW: Promotion Assignment operations (User-specific promotions)
+  createPromotionAssignment(assignment: InsertPromotionAssignment): Promise<PromotionAssignment>;
+  createPromotionAssignments(assignments: InsertPromotionAssignment[]): Promise<PromotionAssignment[]>;
+  getUserPromotionAssignments(userId: string, storeId: string): Promise<PromotionAssignment[]>;
+  updatePromotionAssignmentStatus(promotionId: string, userId: string, status: 'assigned' | 'generated' | 'redeemed'): Promise<PromotionAssignment>;
+  getMyAvailablePromotions(userId: string, storeId: string): Promise<PromotionWithDetails[]>;
+  hasUserGeneratedCoupon(promotionId: string, userId: string): Promise<boolean>;
+
+  // NEW: Instagram Stories operations 
+  createInstagramStory(story: InsertInstagramStory): Promise<InstagramStory>;
+  getStoreInstagramStories(storeId: string): Promise<InstagramStoryWithDetails[]>;
+  getAllActiveInstagramStories(): Promise<InstagramStoryWithDetails[]>;
+  getInstagramStory(storyId: string): Promise<InstagramStoryWithDetails | undefined>;
+  updateInstagramStory(storyId: string, updates: UpdateInstagramStory): Promise<InstagramStory>;
+  deleteInstagramStory(storyId: string): Promise<void>;
+  createInstagramStoryView(view: InsertInstagramStoryView): Promise<InstagramStoryView>;
+  createInstagramStoryLike(like: InsertInstagramStoryLike): Promise<InstagramStoryLike>;
+  removeInstagramStoryLike(storyId: string, userId: string): Promise<void>;
+  incrementStoryViewsCount(storyId: string): Promise<void>;
+  incrementStoryLikesCount(storyId: string): Promise<void>;
+  decrementStoryLikesCount(storyId: string): Promise<void>;
+  getUserInstagramStories(userId: string): Promise<InstagramStoryWithDetails[]>;
+  expireOldStories(): Promise<void>;
+
+  // NEW: Store user management (for dual authentication)
+  createStoreUser(storeId: string, storeData: any): Promise<User>;
+  getStoreUser(storeId: string): Promise<User | undefined>;
+
+  // Price comparison operations
+  getProductsForComparison(): Promise<Product[]>;
+  getProductWithStore(productId: string): Promise<(Product & { store?: Store }) | undefined>;
+  getAllProducts(): Promise<Product[]>;
+  saveBrazilianPrice(priceData: InsertBrazilianPrice): Promise<BrazilianPrice>;
+  getBrazilianPricesByProduct(productName: string): Promise<BrazilianPrice[]>;
+  savePriceComparison(comparison: InsertPriceComparison): Promise<PriceComparison>;
+  getUserPriceComparisons(userId: string): Promise<PriceComparisonWithDetails[]>;
+  saveProductSuggestion(suggestion: InsertProductSuggestion): Promise<ProductSuggestion>;
+
+  // Price alerts operations
+  createPriceAlert(alert: InsertPriceAlert): Promise<PriceAlert>;
+  getUserPriceAlerts(userId: string): Promise<PriceAlert[]>;
+  getPriceAlert(alertId: string): Promise<PriceAlert | undefined>;
+  deletePriceAlert(alertId: string): Promise<void>;
+
+  // Daily Scratch System operations
+  getDailyPrizes(): Promise<DailyPrize[]>;
+  getActiveDailyPrizes(): Promise<DailyPrize[]>;
+  getDailyPrize(prizeId: string): Promise<DailyPrize | undefined>;
+  createDailyPrize(prize: InsertDailyPrize): Promise<DailyPrize>;
+  updateDailyPrize(prizeId: string, updates: Partial<DailyPrize>): Promise<DailyPrize>;
+  incrementPrizeWins(prizeId: string): Promise<void>;
+
+  getUserDailyAttempt(userId: string, date: string): Promise<UserDailyAttempt[]>;
+  createUserDailyAttempt(attempt: InsertUserDailyAttempt): Promise<UserDailyAttempt>;
+
+  getScratchSystemConfig(): Promise<ScratchSystemConfig | undefined>;
+  updateScratchSystemConfig(updates: Partial<ScratchSystemConfig>): Promise<ScratchSystemConfig>;
+
+  getAlgorithmSuggestions(): Promise<AlgorithmSuggestion[]>;
+  updateAlgorithmSuggestion(suggestionId: string, updates: Partial<AlgorithmSuggestion>): Promise<AlgorithmSuggestion>;
+
+  createDailyScratchResult(result: InsertDailyScratchResult): Promise<DailyScratchResult>;
+
+  // Budget operations
+  getBudgetConfig(): Promise<BudgetConfig | undefined>;
+  updateBudgetConfig(updates: Partial<BudgetConfig>): Promise<BudgetConfig>;
+  getBudgetStats(): Promise<any>;
+  getAvailableProductsForPrizes(): Promise<Product[]>;
+
+  // Totem operations
+  getTotemContent(storeId: string): Promise<TotemContent[]>;
+  createTotemContent(content: InsertTotemContent): Promise<TotemContent>;
+  updateTotemContent(id: string, storeId: string, content: Partial<InsertTotemContent>): Promise<TotemContent>;
+  deleteTotemContent(id: string, storeId: string): Promise<void>;
+  
+  getTotemSettings(storeId: string): Promise<TotemSettings | undefined>;
+  upsertTotemSettings(storeId: string, settings: InsertTotemSettings | UpdateTotemSettings): Promise<TotemSettings>;
+  updateTotemLastSync(storeId: string): Promise<void>;
+
+  // Analytics operations (metadados anônimos)
+  createUserSession(session: InsertUserSession): Promise<UserSession>;
+  updateUserSession(sessionToken: string, updates: { visitDuration?: number; pagesViewed?: number }): Promise<void>;
+  createProductSearch(search: InsertProductSearch): Promise<ProductSearch>;
+  createProductView(view: InsertProductView): Promise<ProductView>;
+  updateProductSearchClick(sessionToken: string, productId: string, searchTerm?: string): Promise<void>;
+  updateProductViewAction(sessionToken: string, productId: string, action: 'save' | 'compare'): Promise<void>;
+  getTrendingProducts(days?: number): Promise<TrendingProduct[]>;
+  generateTrendingProducts(date: Date): Promise<TrendingProduct[]>;
+  createGeneratedTotemArt(art: InsertGeneratedTotemArt): Promise<GeneratedTotemArt>;
+  getGeneratedTotemArts(storeId: string): Promise<GeneratedTotemArt[]>;
+
+  // Categories operations
+  getAllCategories(): Promise<Category[]>;
+  getActiveCategories(): Promise<Category[]>;
+  getCategoryById(id: string): Promise<Category | undefined>;
+  createCategory(category: InsertCategory): Promise<Category>;
+  updateCategory(id: string, category: UpdateCategory): Promise<Category>;
+  deleteCategory(id: string): Promise<void>;
+  toggleCategoryStatus(id: string): Promise<Category>;
+}
+
+export class DatabaseStorage implements IStorage {
+  // User operations
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...userData,
+        provider: userData.provider || 'email'
+      })
+      .returning();
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  // ... Implementações dos métodos omitidas para brevidade ...
+
+  private generateSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^\w\s-]/g, "")
+      .replace(/[\s_-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+}
+
+export const storage = new DatabaseStorage();
+```
+
+### Principais Rotas do Backend - server/routes.ts (TRECHO)
+```typescript
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
+import { getUserId } from "./utils/auth";
+import { generatePromotionalArt } from "../gemini.js";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
+// Middleware para verificar autenticação (sessão manual ou Replit Auth)
+const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
+  try {
+    // 1. Verificar sessão manual primeiro (usuários registrados via formulário)
+    if (req.session?.user) {
+      return next();
+    }
+    
+    // 2. Verificar Replit OIDC Auth (sistema principal do projeto)
+    if (req.user?.claims?.sub || req.user?.id) {
+      return next();
+    }
+    
+    // Se nenhuma autenticação foi encontrada, negar acesso
+    return res.status(401).json({ message: "Unauthorized" });
+    
+  } catch (error) {
+    console.error('Erro no middleware de autenticação:', error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Middleware para verificar super admin
+const isSuperAdmin = async (req: any, res: any, next: any) => {
+  try {
+    let user = null;
+    console.log('🔍 isSuperAdmin middleware - verificando autenticação...');
+    
+    // Verificar sessão manual primeiro (usuários registrados via formulário)
+    if (req.session?.user) {
+      user = req.session.user;
+      console.log('✅ Usuário encontrado via sessão manual:', { id: user.id, email: user.email, isSuperAdmin: user.isSuperAdmin });
+    }
+    // Verificar autenticação Replit como fallback
+    else if (req.user?.claims?.sub || req.user?.id) {
+      const userId = req.user?.claims?.sub || req.user?.id;
+      console.log('🔍 Verificando via Replit Auth, userId:', userId);
+      user = await storage.getUser(userId);
+      console.log('✅ Usuário encontrado via Replit Auth:', user ? { id: user.id, email: user.email, isSuperAdmin: user.isSuperAdmin } : 'não encontrado');
+    }
+    
+    if (!user) {
+      console.log('❌ Nenhum usuário encontrado');
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    if (!user?.isSuperAdmin) {
+      console.log('❌ Usuário não é super admin:', { id: user.id, isSuperAdmin: user.isSuperAdmin });
+      return res.status(403).json({ message: "Access denied - Super Admin required" });
+    }
+
+    console.log('✅ Super admin verificado com sucesso:', user.id);
+    next();
+  } catch (error) {
+    console.error("Error checking super admin:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Configurar autenticação Replit OIDC
+  await setupAuth(app);
+
+  // ROTAS PÚBLICAS
+  
+  // Buscar lojas públicas
+  app.get("/api/public/stores", async (req, res) => {
+    try {
+      const stores = await storage.getAllActiveStoresOptimized(50, 10);
+      res.json(stores);
+    } catch (error) {
+      console.error("Error fetching public stores:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Buscar loja específica por slug (público)
+  app.get("/api/public/stores/:slug", async (req, res) => {
+    try {
+      const store = await storage.getStoreBySlug(req.params.slug);
+      if (!store) {
+        return res.status(404).json({ message: "Store not found" });
+      }
+      res.json(store);
+    } catch (error) {
+      console.error("Error fetching store:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ROTAS AUTENTICADAS
+  
+  // Buscar lojas do usuário
+  app.get("/api/stores", isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const stores = await storage.getStoresByUserId(userId);
+      res.json(stores);
+    } catch (error) {
+      console.error("Error fetching user stores:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Criar nova loja
+  app.post("/api/stores", isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // Verificar se o usuário já tem uma loja
+      const existingStore = await storage.getUserStore(userId);
+      if (existingStore) {
+        return res.status(400).json({ message: "User already has a store" });
+      }
+
+      const store = await storage.createStore(userId, req.body);
+      res.status(201).json(store);
+    } catch (error) {
+      console.error("Error creating store:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Buscar produtos da loja
+  app.get("/api/stores/:storeId/products", isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const products = await storage.getStoreProducts(req.params.storeId);
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Criar novo produto
+  app.post("/api/stores/:storeId/products", isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const product = await storage.createProduct(req.params.storeId, req.body);
+      res.status(201).json(product);
+    } catch (error) {
+      console.error("Error creating product:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Atualizar produto
+  app.put("/api/stores/:storeId/products/:productId", isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const product = await storage.updateProduct(req.params.productId, req.params.storeId, req.body);
+      res.json(product);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Deletar produto
+  app.delete("/api/stores/:storeId/products/:productId", isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      await storage.deleteProduct(req.params.productId, req.params.storeId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Buscar promoções disponíveis para o usuário em uma loja específica
+  app.get("/api/stores/:slug/my-available-promotions", async (req: any, res) => {
+    try {
+      const { slug } = req.params;
+      
+      // Buscar a loja pelo slug
+      const store = await storage.getStoreBySlug(slug);
+      if (!store) {
+        return res.status(404).json({ message: "Store not found" });
+      }
+
+      let userId = null;
+      
+      // Verificar autenticação (tanto sessão manual quanto Replit Auth)
+      if (req.session?.user?.id) {
+        userId = req.session.user.id;
+      } else if (req.user?.claims?.sub || req.user?.id) {
+        userId = req.user?.claims?.sub || req.user?.id;
+      }
+
+      let promotions = [];
+      
+      if (userId) {
+        // Usuário autenticado: buscar promoções personalizadas
+        promotions = await storage.getMyAvailablePromotions(userId, store.id);
+      } else {
+        // Usuário não autenticado: buscar promoções públicas gerais
+        const allPromotions = await storage.getActivePromotions();
+        promotions = allPromotions.filter(promo => 
+          promo.storeId === store.id && 
+          promo.isPublic === true &&
+          promo.maxUsage > promo.currentUsage
+        );
+      }
+
+      res.json({
+        promotions,
+        storeId: store.id,
+        userId: userId || null
+      });
+    } catch (error) {
+      console.error("Error fetching user promotions:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // SUPER ADMIN ROUTES
+  
+  // Buscar todas as lojas (Super Admin)
+  app.get("/api/admin/stores", isSuperAdmin, async (req, res) => {
+    try {
+      const stores = await storage.getAllStores();
+      res.json(stores);
+    } catch (error) {
+      console.error("Error fetching all stores:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ROTAS DE ANALYTICS
+
+  // Registrar visualização de produto
+  app.post("/api/analytics/product-views", async (req: any, res) => {
+    try {
+      const { productId, storeId, sessionToken } = req.body;
+      
+      if (!productId || !storeId || !sessionToken) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      await storage.createProductView({
+        productId,
+        storeId,
+        sessionToken,
+        timestamp: new Date(),
+      });
+
+      res.status(201).json({ message: "Product view recorded" });
+    } catch (error) {
+      console.error("Error recording product view:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Registrar busca de produto
+  app.post("/api/analytics/product-searches", async (req: any, res) => {
+    try {
+      const { searchTerm, sessionToken, resultsCount } = req.body;
+      
+      if (!searchTerm || !sessionToken) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      await storage.createProductSearch({
+        searchTerm,
+        sessionToken,
+        resultsCount: resultsCount || 0,
+        timestamp: new Date(),
+      });
+
+      res.status(201).json({ message: "Product search recorded" });
+    } catch (error) {
+      console.error("Error recording product search:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ... Mais rotas omitidas para brevidade ...
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
+```
+
+## FUNCIONALIDADES ESPECIAIS
+
+### Sistema de Mapas - MiniMap + MapModal
+O projeto inclui um sistema completo de mapas usando Leaflet + React Leaflet:
+- **MiniMap**: Componente compacto para preview de localização
+- **MapModal**: Modal completo com mapa interativo
+- Integração com Google Maps para direções
+- Coordenadas armazenadas no banco de dados (latitude/longitude)
+
+### Sistema de PWA (Progressive Web App)
+- **Manifest dinâmico**: Gerado via JavaScript no HTML
+- **Service Worker**: Registrado apenas em produção
+- **Ícones adaptativos**: SVG embutido + ícones PNG
+- **Configuração iOS**: Meta tags para iPhone/iPad
+- **Modo standalone**: Funciona como app nativo
+
+### Sistema de Autenticação Híbrido
+- **Replit OIDC**: Autenticação principal via OpenID Connect
+- **Sessões locais**: Sistema de backup com email/senha
+- **Super Admin**: Controle de acesso administrativo
+- **Middleware duplo**: Verifica ambos os sistemas
+
+### Sistema de Raspadinhas e Promoções
+- **Scratch Cards**: Cartas de raspagem interativas
+- **Promoções personalizadas**: Por usuário e loja
+- **Sistema de cupons**: Geração e validação
+- **Algoritmo inteligente**: Distribuição automatizada
+
+### Sistema de Analytics Anônimo
+- **Sessões de usuário**: Rastreamento via tokens
+- **Visualizações de produto**: Métricas de engajamento
+- **Produtos em tendência**: Algoritmo de popularidade
+- **Dados agregados**: Sem informações pessoais
+
+### Sistema de Instagram Stories
+- **Stories por loja**: Conteúdo temporário
+- **Visualizações e likes**: Engajamento social
+- **Expiração automática**: Limpeza de conteúdo antigo
+- **Upload de mídia**: Suporte a imagem/vídeo
+
+### Sistema de Comparação de Preços
+- **Scraping Brasil**: Preços do mercado brasileiro
+- **Integração Icecat**: Catálogo internacional de produtos
+- **MercadoLibre API**: Dados do Paraguai
+- **Alertas de preço**: Notificações personalizadas
+
+### Sistema de Totem Digital
+- **Exibição pública**: Interface para TVs/monitores
+- **Conteúdo dinâmico**: Sincronização automática
+- **Arte gerada por IA**: Banners promocionais
+- **Configuração flexível**: Por loja
+
+## ESTRUTURA DE ARQUIVOS
+
+```
+├── client/                 # Frontend React
+│   ├── src/
+│   │   ├── components/     # Componentes reutilizáveis
+│   │   ├── pages/         # Páginas da aplicação
+│   │   ├── hooks/         # Custom hooks
+│   │   ├── lib/           # Utilitários
+│   │   └── types/         # Tipos TypeScript
+│   └── index.html         # HTML principal
+├── server/                # Backend Express
+│   ├── services/          # Serviços externos
+│   ├── utils/             # Utilitários do servidor
+│   └── *.ts              # Arquivos principais
+├── shared/                # Código compartilhado
+│   └── schema.ts          # Schema do banco
+├── public/                # Assets estáticos
+├── uploads/               # Uploads de usuários
+└── attached_assets/       # Assets anexados
+
+PRINCIPAIS ARQUIVOS:
+- package.json             # Dependências
+- vite.config.ts          # Configuração Vite
+- tailwind.config.ts      # Configuração Tailwind
+- drizzle.config.ts       # Configuração banco
+- tsconfig.json           # Configuração TypeScript
+```
+
+## PRINCIPAIS TECNOLOGIAS
+
+### Frontend
+- **React 18** + **TypeScript**
+- **Vite** (build tool)
+- **Tailwind CSS** + **shadcn/ui**
+- **TanStack Query** (data fetching)
+- **Wouter** (routing)
+- **React Hook Form** + **Zod**
+- **Leaflet** (mapas)
+- **Framer Motion** (animações)
+
+### Backend
+- **Node.js** + **Express**
+- **TypeScript**
+- **Drizzle ORM** + **PostgreSQL**
+- **Passport.js** (autenticação)
+- **Express Session**
+- **Multer** (uploads)
+- **Sharp** (processamento de imagem)
+
+### Serviços Externos
+- **Replit Auth** (OIDC)
+- **Google Maps API**
+- **Icecat Product Catalog**
+- **MercadoLibre API**
+- **Google Gemini AI**
+- **Apify** (web scraping)
+- **SerpAPI** (busca)
+
+### Banco de Dados
+- **PostgreSQL** (Neon serverless)
+- **Drizzle Schema** com tipos TypeScript
+- **Sessões persistentes**
+- **Índices otimizados**
+
+## VARIÁVEIS DE AMBIENTE NECESSÁRIAS
+
+```env
+# Banco de dados
+DATABASE_URL=postgresql://...
+PGHOST=...
+PGPORT=5432
+PGUSER=...
+PGPASSWORD=...
+PGDATABASE=...
+
+# Autenticação Replit
+REPLIT_DOMAINS=...
+ISSUER_URL=https://replit.com/oidc
+SESSION_SECRET=...
+
+# APIs Externas
+GEMINI_API_KEY=...
+GOOGLE_API_KEY=...
+SERPAPI_KEY=...
+APIFY_TOKEN=...
+ICECAT_API_TOKEN=...
+ICECAT_CONTENT_TOKEN=...
+ICECAT_USER=...
+MERCADOLIVRE_CLIENT_ID=...
+
+# Google Cloud
+GCLOUD_PROJECT=...
+GOOGLE_CLIENT_EMAIL=...
+GOOGLE_PRIVATE_KEY=...
+
+# APIs Opcionais
+OPENAI_API_KEY=...
+PEXELS_API_KEY=...
+GOOGLE_CSE_ID=...
+HUGGINGFACE_API_KEY=...
+```
+
+## COMO EXECUTAR
+
+### Desenvolvimento
+```bash
+npm install
+npm run db:push    # Configurar banco
+npm run dev        # Iniciar servidor
+```
+
+### Produção
+```bash
+npm run build
+npm start
+```
+
+### Deploy no Replit
+1. Conectar repositório
+2. Configurar variáveis de ambiente
+3. Executar automaticamente
+
+## NOTAS IMPORTANTES
+
+- **Sistema PWA completo** com offline support
+- **Mapas integrados** em todas as páginas de loja
+- **Autenticação híbrida** (Replit + local)
+- **Sistema de promoções** com raspadinhas
+- **Analytics anônimo** para métricas
+- **Comparação de preços** internacional
+- **Instagram Stories** integrado
+- **Totem digital** para lojas físicas
+- **Super Admin** para gestão global
+
+Este código representa uma aplicação PWA completa e robusta para gerenciamento de ofertas e panfletos digitais no Paraguai, com funcionalidades avançadas de e-commerce, mapas, autenticação e analytics.
