@@ -5791,25 +5791,81 @@ ${text}`;
     }
   }
 
+  // Função auxiliar para validar se uma URL é segura
+  function isImageUrlSafe(imageUrl: string): boolean {
+    try {
+      const url = new URL(imageUrl);
+      
+      // Permitir apenas HTTP e HTTPS
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        return false;
+      }
+      
+      // Bloquear IPs privados/locais para evitar SSRF
+      const hostname = url.hostname.toLowerCase();
+      
+      // Bloquear localhost e 127.x.x.x
+      if (hostname === 'localhost' || hostname.startsWith('127.')) {
+        return false;
+      }
+      
+      // Bloquear redes privadas
+      if (hostname.startsWith('10.') || 
+          hostname.startsWith('192.168.') || 
+          hostname.startsWith('172.16.') ||
+          hostname.startsWith('172.17.') ||
+          hostname.startsWith('172.18.') ||
+          hostname.startsWith('172.19.') ||
+          hostname.startsWith('172.2') ||
+          hostname.startsWith('172.30.') ||
+          hostname.startsWith('172.31.')) {
+        return false;
+      }
+      
+      // Bloquear outros hostnames perigosos
+      if (hostname === '0.0.0.0' || hostname === '::1' || hostname === '[::]') {
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
   // Função auxiliar para obter o tamanho de uma imagem
   async function getImageSize(imageUrl: string): Promise<number> {
     try {
-      if (!imageUrl.startsWith('http')) {
-        return 0; // Se não é uma URL válida, retorna 0
+      if (!imageUrl.startsWith('http') || !isImageUrlSafe(imageUrl)) {
+        return 0; // Se não é uma URL válida ou segura, retorna 0
       }
 
-      // Fazer um HEAD request para obter o Content-Length
-      const response = await fetch(imageUrl, { 
-        method: 'HEAD',
-        timeout: 5000 // 5 segundos de timeout
-      });
-      
-      if (!response.ok) {
-        return 0;
+      // Implementar timeout adequado usando AbortController
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 segundos
+
+      try {
+        // Fazer um HEAD request para obter o Content-Length
+        const response = await fetch(imageUrl, { 
+          method: 'HEAD',
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'Click-Ofertas-Bot/1.0'
+          }
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          return 0;
+        }
+        
+        const contentLength = response.headers.get('content-length');
+        return contentLength ? parseInt(contentLength, 10) : 0;
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        throw fetchError;
       }
-      
-      const contentLength = response.headers.get('content-length');
-      return contentLength ? parseInt(contentLength, 10) : 0;
     } catch (error) {
       console.error(`Erro ao obter tamanho da imagem ${imageUrl}:`, error);
       return 0;
