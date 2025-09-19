@@ -1443,6 +1443,13 @@ export default function SuperAdmin() {
     retry: (failureCount, error) => !isUnauthorizedError(error),
   });
 
+  // Scratch stats query
+  const { data: scratchStats } = useQuery({
+    queryKey: ['/api/admin/scratch-stats'],
+    enabled: !!user?.isSuperAdmin,
+    retry: (failureCount, error) => !isUnauthorizedError(error),
+  });
+
   // Prize mutations
   const createPrizeMutation = useMutation({
     mutationFn: async (data: PrizeFormData) => {
