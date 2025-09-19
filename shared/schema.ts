@@ -109,12 +109,12 @@ export const productBanks = pgTable("product_banks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: varchar("name", { length: 255 }).notNull(), // Nome do banco/pasta ZIP
   description: text("description"),
-  zipFileName: varchar("zip_file_name"), // Nome original do arquivo ZIP
-  uploadedBy: varchar("uploaded_by").notNull().references(() => users.id, { onDelete: "cascade" }),
-  totalProducts: integer("total_products").default(0), // Quantidade de produtos no banco
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  zipFileName: varchar("zipfilename"), // Nome original do arquivo ZIP
+  uploadedBy: varchar("uploadedby").notNull().references(() => users.id, { onDelete: "cascade" }),
+  totalProducts: integer("totalproducts").default(0), // Quantidade de produtos no banco
+  isActive: boolean("isactive").default(true),
+  createdAt: timestamp("createdat").defaultNow(),
+  updatedAt: timestamp("updatedat").defaultNow(),
 }, (table) => [
   index("idx_product_banks_active").on(table.isActive),
   index("idx_product_banks_uploaded_by").on(table.uploadedBy),
