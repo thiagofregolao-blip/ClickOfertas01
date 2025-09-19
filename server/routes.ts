@@ -75,7 +75,6 @@ import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
 import QRCode from "qrcode";
 import { apifyService, type PriceSearchResult } from "./apifyService";
-import { searchMercadoLibreProducts, getMercadoLibreProductDetails, convertMercadoLibreToProduct, hybridProductSearch } from "./mercadolibre";
 import { db } from "./db";
 import { products, stores } from "@shared/schema";
 import { eq, and, or, sql, asc, desc } from "drizzle-orm";
@@ -1110,166 +1109,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Buscar produto no Icecat via GTIN
-  app.get('/api/icecat/product/:gtin', isAuthenticated, async (req: any, res) => {
-    try {
-      const { gtin } = req.params;
-      const { lang } = req.query;
-      
-      if (!gtin || gtin.replace(/[^0-9]/g, '').length < 8) {
-        return res.status(400).json({ message: "GTIN deve ter pelo menos 8 dígitos numéricos" });
-      }
-      
-      const { searchProductByGTIN } = await import('./icecat');
-      const product = await searchProductByGTIN(gtin, (lang as string) || 'BR');
-      
-      if (!product) {
-        return res.status(404).json({ message: "Produto não encontrado no catálogo Icecat" });
-      }
-      
-      res.json(product);
-    } catch (error) {
-      console.error("Error searching Icecat:", error);
-      res.status(500).json({ message: "Erro interno ao buscar produto no Icecat" });
-    }
-  });
-
-  // Buscar produtos no Icecat via texto/nome
-  app.get('/api/icecat/search', isAuthenticated, async (req: any, res) => {
-    try {
-      const { q, lang } = req.query;
-      
-      if (!q || q.trim().length < 2) {
-        return res.status(400).json({ message: "Busca deve ter pelo menos 2 caracteres" });
-      }
-      
-      const { searchProductByText } = await import('./icecat');
-      const products = await searchProductByText(q.trim(), (lang as string) || 'BR');
-      
-      res.json({ products, count: products.length });
-    } catch (error) {
-      console.error("Error searching Icecat by text:", error);
-      res.status(500).json({ message: "Erro interno ao buscar produtos no Icecat" });
-    }
-  });
-
-  // MERCADOLIBRE ROUTES - Busca híbrida e produtos paraguaios
-  
-  // Buscar produtos no MercadoLibre Paraguay
-  app.get('/api/mercadolibre/search', isAuthenticatedCustom, async (req: any, res) => {
-    try {
-      const { q, limit } = req.query;
-      
-      if (!q || q.trim().length < 2) {
-        return res.status(400).json({ message: "Busca deve ter pelo menos 2 caracteres" });
-      }
-      
-      const products = await searchMercadoLibreProducts(q.trim(), parseInt(limit as string) || 10);
-      
-      res.json({ 
-        products: products.map(convertMercadoLibreToProduct),
-        count: products.length,
-        source: 'mercadolibre'
-      });
-    } catch (error) {
-      console.error("Error searching MercadoLibre:", error);
-      res.status(500).json({ message: "Erro interno ao buscar produtos no MercadoLibre" });
-    }
-  });
-
-  // Buscar detalhes de produto específico no MercadoLibre
-  app.get('/api/mercadolibre/product/:itemId', isAuthenticatedCustom, async (req: any, res) => {
-    try {
-      const { itemId } = req.params;
-      
-      if (!itemId) {
-        return res.status(400).json({ message: "ID do produto é obrigatório" });
-      }
-      
-      const product = await getMercadoLibreProductDetails(itemId);
-      const convertedProduct = convertMercadoLibreToProduct(product);
-      
-      res.json(convertedProduct);
-    } catch (error) {
-      console.error("Error getting MercadoLibre product details:", error);
-      res.status(500).json({ message: "Erro interno ao buscar detalhes do produto" });
-    }
-  });
-
-  // Busca híbrida: Icecat + MercadoLibre
-  app.get('/api/hybrid/search', isAuthenticatedCustom, async (req: any, res) => {
-    try {
-      const { q, lang } = req.query;
-      
-      if (!q || q.trim().length < 2) {
-        return res.status(400).json({ message: "Busca deve ter pelo menos 2 caracteres" });
-      }
-      
-      const results = {
-        icecat: [] as any[],
-        mercadolibre: [] as any[],
-        combined: [] as any[]
-      };
-      
-      try {
-        // Tentar buscar no Icecat primeiro
-        console.log(`🔍 Tentando buscar "${q}" no Icecat...`);
-        const { searchProductByText } = await import('./icecat');
-        const icecatProducts = await searchProductByText(q.trim(), (lang as string) || 'BR');
-        results.icecat = icecatProducts;
-        console.log(`✅ Icecat encontrou ${icecatProducts.length} produtos`);
-      } catch (icecatError) {
-        console.warn(`⚠️ Falha na busca Icecat: ${icecatError}`);
-      }
-      
-      try {
-        // Buscar no MercadoLibre como complemento
-        console.log(`🔍 Buscando "${q}" no MercadoLibre Paraguay...`);
-        const mlProducts = await hybridProductSearch(q.trim());
-        results.mercadolibre = mlProducts;
-        console.log(`✅ MercadoLibre encontrou ${mlProducts.length} produtos`);
-      } catch (mlError) {
-        console.warn(`⚠️ Falha na busca MercadoLibre: ${mlError}`);
-      }
-      
-      // Normalizar formatos antes de combinar (garantir compatibilidade frontend)
-      const normalizedIcecat = results.icecat.map((p: any) => ({
-        ...p,
-        source: 'icecat',
-        priority: 1,
-        price: p.price?.toString() || "0", // Garantir string para formulário
-        sourceType: 'icecat'
-      }));
-      
-      const normalizedML = results.mercadolibre.map((p: any) => ({
-        ...p,
-        source: 'mercadolibre', 
-        priority: 2,
-        price: p.price?.toString() || "0", // Garantir string para formulário
-        sourceType: 'mercadolibre'
-      }));
-      
-      // Combinar resultados normalizados
-      results.combined = [
-        ...normalizedIcecat,
-        ...normalizedML
-      ].slice(0, 10); // Limitar a 10 resultados
-      
-      res.json({
-        query: q,
-        results,
-        totalFound: results.combined.length,
-        sources: {
-          icecat: results.icecat.length,
-          mercadolibre: results.mercadolibre.length
-        }
-      });
-      
-    } catch (error) {
-      console.error("Error in hybrid search:", error);
-      res.status(500).json({ message: "Erro interno na busca híbrida" });
-    }
-  });
 
 
   app.patch('/api/stores/:storeId/products/:productId', isAuthenticated, async (req: any, res) => {
@@ -5846,16 +5685,11 @@ ${text}`;
   // Função auxiliar para fazer upload de imagem para object storage
   async function uploadImageToStorage(imageUrl: string, productId: string): Promise<string> {
     try {
-      if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/uploads/')) {
+      if (!imageUrl.startsWith('http')) {
         return imageUrl; // Se não é uma URL válida, retorna como está
       }
 
-      // Se já é um arquivo local, apenas retorna o URL
-      if (imageUrl.startsWith('/uploads/')) {
-        return imageUrl;
-      }
-
-      // Se é uma URL externa, baixar e salvar localmente
+      // Baixar imagem da URL externa
       const response = await fetch(imageUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch image: ${response.statusText}`);
@@ -5864,16 +5698,16 @@ ${text}`;
       const buffer = await response.arrayBuffer();
       const ext = path.extname(new URL(imageUrl).pathname) || '.jpg';
       const fileName = `product-${productId}-${Date.now()}${ext}`;
-      const savePath = `./uploads/products/images/${fileName}`;
       
-      // Criar diretório se não existir
-      const imageDir = path.dirname(savePath);
-      if (!fs.existsSync(imageDir)) {
-        fs.mkdirSync(imageDir, { recursive: true });
-      }
+      // Usar ObjectStorageService para upload
+      const objectStorageService = new ObjectStorageService();
+      const uploadPath = await objectStorageService.uploadFile(
+        Buffer.from(buffer),
+        fileName,
+        '.private' // Usar diretório private para produtos
+      );
       
-      fs.writeFileSync(savePath, Buffer.from(buffer));
-      return `/uploads/products/images/${fileName}`;
+      return uploadPath;
     } catch (error) {
       console.error('Erro ao fazer upload da imagem:', error);
       return imageUrl; // Retorna URL original em caso de erro

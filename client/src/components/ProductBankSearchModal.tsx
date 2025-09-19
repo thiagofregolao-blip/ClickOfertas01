@@ -127,7 +127,7 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Buscar por produto, marca ou GTIN..."
+                placeholder="Buscar por produto, marca..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -142,7 +142,7 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
                 <div>
                   <span className="font-medium">Como funciona:</span>
                   <br />
-                  Esta tabela contém produtos <span className="font-semibold">testados</span> que funcionam no Icecat. Selecione um produto para usar seu GTIN e importar automaticamente imagens e informações.
+                  Esta tabela contém produtos do nosso banco interno. Selecione produtos para importar automaticamente informações e imagens.
                 </div>
               </div>
             </div>
@@ -246,15 +246,6 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
                         </div>
                         
                         <div className="ml-4 flex-shrink-0 flex flex-col items-end gap-2">
-                          {product.gtin && (
-                            <div className="text-right">
-                              <div className="text-xs font-medium text-muted-foreground">GTIN</div>
-                              <div className="text-xs font-mono bg-muted px-2 py-1 rounded">
-                                {product.gtin}
-                              </div>
-                            </div>
-                          )}
-                          
                           <Button
                             size="sm"
                             variant={isSelected ? "default" : "outline"}
