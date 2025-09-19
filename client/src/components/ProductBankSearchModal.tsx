@@ -78,13 +78,13 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
   };
 
   const handleSelectAll = () => {
-    const allSelected = products.every(p => selectedProducts.find(sp => sp.id === p.id));
+    const allSelected = products.every((p: ProductBankItem) => selectedProducts.find(sp => sp.id === p.id));
     if (allSelected) {
       // Desmarcar todos da página atual
-      setSelectedProducts(prev => prev.filter(p => !products.find(cp => cp.id === p.id)));
+      setSelectedProducts(prev => prev.filter((p: ProductBankItem) => !products.find((cp: ProductBankItem) => cp.id === p.id)));
     } else {
       // Marcar todos da página atual
-      const newProducts = products.filter(p => !selectedProducts.find(sp => sp.id === p.id));
+      const newProducts = products.filter((p: ProductBankItem) => !selectedProducts.find(sp => sp.id === p.id));
       setSelectedProducts(prev => [...prev, ...newProducts]);
     }
   };
@@ -110,6 +110,11 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
           <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
             <Package className="w-6 h-6" />
             Buscar Códigos de Produtos
+            {selectedProducts.length > 0 && (
+              <Badge variant="secondary" className="ml-2 bg-green-100 text-green-800 border-green-200">
+                {selectedProducts.length} selecionado{selectedProducts.length !== 1 ? 's' : ''}
+              </Badge>
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -120,6 +125,28 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
               <X className="h-4 w-4" />
             </Button>
           </DialogTitle>
+          
+          {/* Botão de ação no header quando há produtos selecionados */}
+          {selectedProducts.length > 0 && (
+            <div className="mt-3 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span className="font-medium">
+                    {selectedProducts.length} produto{selectedProducts.length !== 1 ? 's' : ''} pronto{selectedProducts.length !== 1 ? 's' : ''} para importar
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={handleConfirm}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  data-testid="button-import-header"
+                >
+                  Importar Agora
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogHeader>
 
         <div className="flex flex-col flex-1 min-h-0">
@@ -198,7 +225,7 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
               </div>
             ) : (
               <div className="space-y-3">
-                {products.map((product) => {
+                {products.map((product: ProductBankItem) => {
                   const isSelected = selectedProducts.find(p => p.id === product.id);
                   const isPopular = (product.timesUsed || 0) > 5;
                   
@@ -251,10 +278,22 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
                           <Button
                             size="sm"
                             variant={isSelected ? "default" : "outline"}
-                            className="min-w-[80px]"
+                            className={`min-w-[100px] transition-all duration-200 ${
+                              isSelected 
+                                ? 'bg-green-600 hover:bg-green-700 text-white border-green-600 shadow-md' 
+                                : 'border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-500'
+                            }`}
                             data-testid={`button-use-product-${product.id}`}
                           >
-                            {isSelected ? "Selecionado" : "Usar Este"}
+                            {isSelected ? (
+                              <span className="flex items-center gap-1">
+                                ✓ Selecionado
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1">
+                                + Selecionar
+                              </span>
+                            )}
                           </Button>
                         </div>
                       </div>
@@ -326,7 +365,7 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
                   onClick={handleSelectAll}
                   data-testid="button-select-all-page"
                 >
-                  {products.every(p => selectedProducts.find(sp => sp.id === p.id))
+                  {products.every((p: ProductBankItem) => selectedProducts.find(sp => sp.id === p.id))
                     ? 'Desmarcar página'
                     : 'Marcar página'
                   }
@@ -337,9 +376,16 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
                 onClick={handleConfirm}
                 disabled={selectedProducts.length === 0}
                 data-testid="button-confirm-selection"
-                className="ml-auto"
+                className={`ml-auto min-w-[200px] h-11 text-base font-semibold ${
+                  selectedProducts.length === 0 
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                    : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg'
+                }`}
               >
-                Importar Produtos ({selectedProducts.length})
+                {selectedProducts.length === 0 
+                  ? 'Selecione produtos para importar' 
+                  : `Importar ${selectedProducts.length} Produto${selectedProducts.length !== 1 ? 's' : ''}`
+                }
               </Button>
             </div>
           </div>
