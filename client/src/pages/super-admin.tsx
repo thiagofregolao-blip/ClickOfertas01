@@ -1436,6 +1436,13 @@ export default function SuperAdmin() {
     retry: (failureCount, error) => !isUnauthorizedError(error),
   });
 
+  // Daily prizes query
+  const { data: dailyPrizes = [] } = useQuery<DailyPrize[]>({
+    queryKey: ['/api/admin/daily-prizes'],
+    enabled: !!user?.isSuperAdmin,
+    retry: (failureCount, error) => !isUnauthorizedError(error),
+  });
+
 
   // Form para criar/editar banner
   const form = useForm<BannerFormData>({
