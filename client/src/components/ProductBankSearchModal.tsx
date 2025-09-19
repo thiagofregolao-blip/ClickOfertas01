@@ -41,7 +41,7 @@ export function ProductBankSearchModal({ isOpen, onClose, onSelectProducts }: Pr
       params.append('page', currentPage.toString());
       params.append('pageSize', pageSize.toString());
       
-      return apiRequest(`/api/product-banks/items?${params.toString()}`);
+      return apiRequest('GET', `/api/product-banks/items?${params.toString()}`);
     },
     enabled: isOpen,
   });
