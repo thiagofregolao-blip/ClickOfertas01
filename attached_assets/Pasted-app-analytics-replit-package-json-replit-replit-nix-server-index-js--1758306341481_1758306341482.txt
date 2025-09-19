@@ -1,0 +1,805 @@
+app-analytics-replit/
+
+├─ package.json
+
+├─ .replit
+
+├─ replit.nix
+
+├─ server/
+
+│  ├─ index.js
+
+│  ├─ middleware/
+
+│  │  └─ utmSession.js
+
+│  └─ routes/
+
+│     ├─ events.js
+
+│     └─ campaigns.js
+
+├─ db/
+
+│  └─ migrations.sql
+
+└─ public/
+
+   ├─ index.html
+
+   └─ app.js
+
+// app-analytics-replit/package.json
+
+{
+
+  "name": "app-analytics-replit",
+
+  "version": "1.0.0",
+
+  "type": "module",
+
+  "scripts": {
+
+    "start": "node server/index.js",
+
+    "dev": "node --watch server/index.js"
+
+  },
+
+  "dependencies": {
+
+    "cookie-parser": "^1.4.7",
+
+    "express": "^4.19.2",
+
+    "express-rate-limit": "^7.4.0",
+
+    "pg": "^8.12.0"
+
+  }
+
+}
+
+# app-analytics-replit/.replit
+
+run = "npm install && npm run start"
+
+# app-analytics-replit/replit.nix
+
+{ pkgs }: {
+
+  deps = [
+
+    pkgs.nodejs_18
+
+    pkgs.nodePackages.npm
+
+  ];
+
+}
+
+// app-analytics-replit/server/index.js
+
+// Servidor Express com estáticos + APIs de telemetria/campanhas
+
+import express from "express";
+
+import cookieParser from "cookie-parser";
+
+import rateLimit from "express-rate-limit";
+
+import path from "node:path";
+
+import { fileURLToPath } from "node:url";
+
+import eventsRouter from "./routes/events.js";
+
+import campaignsRouter from "./routes/campaigns.js";
+
+import { utmSession } from "./middleware/utmSession.js";
+
+const __filename = fileURLToPath(import.meta.url);
+
+const __dirname = path.dirname(__filename);
+
+const app = express();
+
+const PORT = process.env.PORT || 3000;
+
+// Middlewares básicos
+
+app.use(express.json({ limit: "1mb" }));
+
+app.use(cookieParser());
+
+app.use(utmSession());
+
+// Proteção básica da API
+
+app.use("/api", rateLimit({ windowMs: 60_000, max: 1800 }));
+
+// Rotas API
+
+app.use("/api", eventsRouter);
+
+app.use("/api", campaignsRouter);
+
+// Estáticos (demo responsivo + tracking)
+
+app.use(express.static(path.join(__dirname, "..", "public")));
+
+// Healthcheck
+
+app.get("/health", (_, res) => res.json({ ok: true }));
+
+app.listen(PORT, () => {
+
+  console.log(`✅ Server on http://localhost:${PORT}`);
+
+  console.log(`   Abra / para ver a demo responsiva + tracking.`);
+
+});
+
+// app-analytics-replit/server/middleware/utmSession.js
+
+import { randomUUID, createHash } from "node:crypto";
+
+/** Marca sessão, coleta UTM (em cookie) e gera hash de IP (privacidade). */
+
+export function utmSession() {
+
+  const COOKIE = "sid";
+
+  return (req, res, next) => {
+
+    // session id
+
+    let sid = req.cookies?.[COOKIE];
+
+    if (!sid) {
+
+      sid = randomUUID();
+
+      res.cookie(COOKIE, sid, { httpOnly: true, sameSite: "lax", maxAge: 1000 * 60 * 60 * 24 * 365 });
+
+    }
+
+    req.sessionId = sid;
+
+    // UTM
+
+    const utm = {
+
+      source: String(req.query.utm_source || req.cookies?.utm_source || ""),
+
+      medium: String(req.query.utm_medium || req.cookies?.utm_medium || ""),
+
+      campaign: String(req.query.utm_campaign || req.cookies?.utm_campaign || "")
+
+    };
+
+    req.utm = utm;
+
+    if (req.query.utm_source) res.cookie("utm_source", utm.source, { sameSite: "lax" });
+
+    if (req.query.utm_medium) res.cookie("utm_medium", utm.medium, { sameSite: "lax" });
+
+    if (req.query.utm_campaign) res.cookie("utm_campaign", utm.campaign, { sameSite: "lax" });
+
+    // Hash de IP (sem guardar IP em claro)
+
+    const ip = (req.headers["x-forwarded-for"] || "").toString().split(",")[0].trim() || req.socket.remoteAddress || "";
+
+    req.ipHash = ip ? createHash("sha256").update(ip).digest("hex").slice(0, 64) : null;
+
+    next();
+
+  };
+
+}
+
+// app-analytics-replit/server/routes/events.js
+
+import { Router } from "express";
+
+import { Pool } from "pg";
+
+import rateLimit from "express-rate-limit";
+
+const router = Router();
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+const limiter = rateLimit({
+
+  windowMs: 60_000,
+
+  max: 1200,
+
+  standardHeaders: true,
+
+  legacyHeaders: false
+
+});
+
+/** POST /api/events  (aceita 1 ou N eventos) */
+
+router.post("/events", limiter, async (req, res) => {
+
+  const common = {
+
+    session_id: req.sessionId,
+
+    ip_hash: req.ipHash,
+
+    utm_source: req.utm?.source || null,
+
+    utm_medium: req.utm?.medium || null,
+
+    utm_campaign: req.utm?.campaign || null,
+
+    referrer: req.get("referer") || null,
+
+    device: /mobile/i.test(String(req.get("user-agent"))) ? "mobile" : "desktop"
+
+  };
+
+  const body = Array.isArray(req.body) ? req.body : [req.body];
+
+  const rows = body
+
+    .map((e) => ({
+
+      type: String(e.type || "").slice(0, 32), // 'search','product_view'...
+
+      page: e.page || req.path,
+
+      position: e.position ?? null,
+
+      product_id: e.productId ?? null,
+
+      banner_id: e.bannerId ?? null,
+
+      category: e.category ?? null,
+
+      query: e.query ?? null,
+
+      extra: e.extra ?? null
+
+    }))
+
+    .filter((r) => r.type);
+
+  if (!rows.length) return res.status(400).json({ ok: false, error: "no events" });
+
+  const client = await pool.connect();
+
+  try {
+
+    const text = `
+
+      INSERT INTO events
+
+      (session_id, ip_hash, device, referrer, utm_source, utm_medium, utm_campaign,
+
+       type, page, position, product_id, banner_id, category, query, extra)
+
+      SELECT $1,$2,$3,$4,$5,$6,$7,
+
+             x.type, x.page, x.position, x.product_id, x.banner_id, x.category, x.query, x.extra::jsonb
+
+      FROM jsonb_to_recordset($8::jsonb)
+
+      AS x(type text, page text, position int, product_id text, banner_id text, category text, query text, extra jsonb)
+
+    `;
+
+    await client.query(text, [
+
+      common.session_id,
+
+      common.ip_hash,
+
+      common.device,
+
+      common.referrer,
+
+      common.utm_source,
+
+      common.utm_medium,
+
+      common.utm_campaign,
+
+      JSON.stringify(rows)
+
+    ]);
+
+    res.json({ ok: true, count: rows.length });
+
+  } catch (e) {
+
+    console.error("events insert error:", e);
+
+    res.status(500).json({ ok: false });
+
+  } finally {
+
+    client.release();
+
+  }
+
+});
+
+export default router;
+
+// app-analytics-replit/server/routes/campaigns.js
+
+import { Router } from "express";
+
+import { Pool } from "pg";
+
+const router = Router();
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+/** GET /api/campaigns/top-products?period=24h|7d|30d */
+
+router.get("/campaigns/top-products", async (req, res) => {
+
+  const period = String(req.query.period || "7d");
+
+  const interval = period === "24h" ? "1 day" : period === "30d" ? "30 days" : "7 days";
+
+  const client = await pool.connect();
+
+  try {
+
+    const q = `
+
+      WITH v AS (
+
+        SELECT product_id, COUNT(*) views
+
+        FROM events
+
+        WHERE type='product_view' AND ts >= now()-interval '${interval}'
+
+        GROUP BY product_id
+
+      ),
+
+      c AS (
+
+        SELECT product_id, COUNT(*) clicks
+
+        FROM events
+
+        WHERE type='product_click' AND ts >= now()-interval '${interval}'
+
+        GROUP BY product_id
+
+      )
+
+      SELECT v.product_id, v.views, COALESCE(c.clicks,0) clicks,
+
+             CASE WHEN v.views>0 THEN ROUND(100.0*COALESCE(c.clicks,0)/v.views,2) ELSE 0 END AS ctr_pct
+
+      FROM v LEFT JOIN c USING (product_id)
+
+      ORDER BY v.views DESC
+
+      LIMIT 20;
+
+    `;
+
+    const { rows } = await client.query(q);
+
+    res.json({ ok: true, items: rows });
+
+  } catch (e) {
+
+    console.error("campaigns error:", e);
+
+    res.status(500).json({ ok: false });
+
+  } finally {
+
+    client.release();
+
+  }
+
+});
+
+export default router;
+
+-- app-analytics-replit/db/migrations.sql
+
+-- Tabela de eventos + índices e views para relatórios
+
+CREATE TABLE IF NOT EXISTS events (
+
+  id SERIAL PRIMARY KEY,
+
+  ts TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+  session_id VARCHAR(64) NOT NULL,
+
+  user_id TEXT NULL,
+
+  ip_hash VARCHAR(64),
+
+  device VARCHAR(32),
+
+  page TEXT,
+
+  referrer TEXT,
+
+  utm_source VARCHAR(64),
+
+  utm_medium VARCHAR(64),
+
+  utm_campaign VARCHAR(128),
+
+  type VARCHAR(32) NOT NULL, -- 'search','search_click','product_view','product_click','banner_view','banner_click'
+
+  position INT,
+
+  product_id TEXT,
+
+  banner_id TEXT,
+
+  category TEXT,
+
+  query TEXT,
+
+  extra JSONB
+
+);
+
+CREATE INDEX IF NOT EXISTS idx_events_ts ON events (ts);
+
+CREATE INDEX IF NOT EXISTS idx_events_type_ts ON events (type, ts);
+
+CREATE INDEX IF NOT EXISTS idx_events_product_ts ON events (product_id, ts);
+
+CREATE INDEX IF NOT EXISTS idx_events_banner_ts ON events (banner_id, ts);
+
+CREATE INDEX IF NOT EXISTS idx_events_query_ts ON events (query, ts);
+
+-- Views (últimos 7 dias)
+
+CREATE OR REPLACE VIEW v_search_top_7d AS
+
+SELECT query, COUNT(*) AS searches
+
+FROM events
+
+WHERE type='search' AND query IS NOT NULL AND query <> '' AND ts >= now()-interval '7 days'
+
+GROUP BY query
+
+ORDER BY searches DESC;
+
+CREATE OR REPLACE VIEW v_product_view_top_7d AS
+
+SELECT product_id, COUNT(*) AS views
+
+FROM events
+
+WHERE type='product_view' AND product_id IS NOT NULL AND ts >= now()-interval '7 days'
+
+GROUP BY product_id
+
+ORDER BY views DESC;
+
+CREATE OR REPLACE VIEW v_banner_ctr_7d AS
+
+WITH v AS (
+
+  SELECT banner_id, COUNT(*) views
+
+  FROM events
+
+  WHERE type='banner_view' AND banner_id IS NOT NULL AND ts >= now()-interval '7 days'
+
+  GROUP BY banner_id
+
+),
+
+c AS (
+
+  SELECT banner_id, COUNT(*) clicks
+
+  FROM events
+
+  WHERE type='banner_click' AND banner_id IS NOT NULL AND ts >= now()-interval '7 days'
+
+  GROUP BY banner_id
+
+)
+
+SELECT v.banner_id, v.views, COALESCE(c.clicks,0) AS clicks,
+
+       CASE WHEN v.views>0 THEN ROUND(100.0*COALESCE(c.clicks,0)/v.views,2) ELSE 0 END AS ctr_pct
+
+FROM v LEFT JOIN c USING (banner_id)
+
+ORDER BY ctr_pct DESC;
+
+<!-- app-analytics-replit/public/index.html -->
+
+<!doctype html>
+
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="utf-8"/>
+
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+  <title>Demo Responsiva + Tracking</title>
+
+  <style>
+
+    /* Layout responsivo simples (mobile-first) */
+
+    :root{--gap:12px}
+
+    body{margin:0;font-family:system-ui,Arial,sans-serif;background:#0b0b0b;color:#fff}
+
+    header{position:sticky;top:0;z-index:50;isolation:isolate;background:#111;padding:12px 16px;border-bottom:1px solid #222}
+
+    h1{font-size:clamp(18px,3.5vw,28px);margin:0}
+
+    .wrap{max-width:1200px;margin:0 auto;padding:16px}
+
+    .search{display:flex;gap:8px;margin:12px 0}
+
+    .search input{flex:1;padding:12px;border-radius:10px;border:1px solid #333;background:#111;color:#fff}
+
+    .grid{
+
+      display:grid;gap:var(--gap);
+
+      grid-template-columns: repeat(2, minmax(0,1fr));
+
+    }
+
+    @media (min-width:640px){ .grid{ grid-template-columns: repeat(3,1fr); } }
+
+    @media (min-width:768px){ .grid{ grid-template-columns: repeat(4,1fr); } }
+
+    @media (min-width:1024px){ .grid{ grid-template-columns: repeat(5,1fr); } }
+
+    @media (min-width:1280px){ .grid{ grid-template-columns: repeat(6,1fr); } }
+
+    .card{background:#121212;border:1px solid #222;border-radius:14px;overflow:hidden;cursor:pointer}
+
+    .img{aspect-ratio:1/1;background:#0f0f0f;display:block;width:100%;object-fit:cover}
+
+    .info{padding:10px}
+
+    .price{font-weight:800}
+
+    .carousel{display:flex;gap:var(--gap);overflow:auto;padding:8px 0}
+
+    .banner{min-width:300px;flex:0 0 auto;background:#151515;border:1px solid #222;border-radius:16px;padding:14px}
+
+    .banner h3{margin:0 0 6px 0}
+
+    .muted{opacity:.7;font-size:.9em}
+
+  </style>
+
+</head>
+
+<body>
+
+  <header><h1>Demo – Itens & Banners (tracking + responsivo)</h1></header>
+
+  <div class="wrap">
+
+    <div class="search">
+
+      <input id="q" placeholder="Buscar (ex.: perfume, celular, whisky)"/>
+
+      <button id="btnBusca">Buscar</button>
+
+    </div>
+
+    <p class="muted">Arraste os banners abaixo; ao entrar em viewport, um <code>banner_view</code> é enviado. No clique, <code>banner_click</code>.</p>
+
+    <div id="carousel" class="carousel"></div>
+
+    <h2>Produtos</h2>
+
+    <p class="muted">Ao aparecer 50% do card na tela, envia <code>product_view</code>. No clique, <code>product_click</code>.</p>
+
+    <div id="grid" class="grid"></div>
+
+  </div>
+
+  <script src="./app.js" type="module"></script>
+
+</body>
+
+</html>
+
+// app-analytics-replit/public/app.js
+
+// Demo simples: tracking + UI responsiva sem libs
+
+const API = "/api/events";
+
+// ---------- TRACK CLIENT ----------
+
+async function track(e) {
+
+  const payload = Array.isArray(e) ? e : [e];
+
+  try {
+
+    await fetch(API, {
+
+      method: "POST",
+
+      headers: { "Content-Type": "application/json" },
+
+      body: JSON.stringify(payload.map(x => ({ page: location.pathname, ...x }))),
+
+      keepalive: true
+
+    });
+
+  } catch {}
+
+}
+
+// ---------- DATA MOCK ----------
+
+const banners = [
+
+  { id: "b1", title: "Oferta Relâmpago", pos: 1 },
+
+  { id: "b2", title: "Semana do Eletrônico", pos: 2 },
+
+  { id: "b3", title: "Perfumes -20%", pos: 3 }
+
+];
+
+const produtos = Array.from({ length: 24 }).map((_, i) => ({
+
+  id: `p${i+1}`,
+
+  name: `Produto #${i+1}`,
+
+  price: (50 + i * 3.2).toFixed(2),
+
+  img: `https://picsum.photos/seed/x${i}/600/600`,
+
+  category: i % 2 ? "eletronicos" : "perfumaria",
+
+  pos: i + 1
+
+}));
+
+// ---------- RENDER BANNERS ----------
+
+const c = document.getElementById("carousel");
+
+banners.forEach(b => {
+
+  const el = document.createElement("div");
+
+  el.className = "banner";
+
+  el.innerHTML = `<h3>${b.title}</h3><div class="muted">id: ${b.id}</div>`;
+
+  el.addEventListener("click", () => track({ type:"banner_click", bannerId:b.id, position:b.pos }));
+
+  c.appendChild(el);
+
+  // view com IntersectionObserver
+
+  let sent = false;
+
+  const io = new IntersectionObserver((entries) => {
+
+    if (!sent && entries.some(e => e.isIntersecting && e.intersectionRatio > 0.5)) {
+
+      sent = true;
+
+      track({ type:"banner_view", bannerId:b.id, position:b.pos });
+
+      io.disconnect();
+
+    }
+
+  }, { threshold: [0.5] });
+
+  io.observe(el);
+
+});
+
+// ---------- RENDER PRODUTOS ----------
+
+const g = document.getElementById("grid");
+
+produtos.forEach(p => {
+
+  const card = document.createElement("article");
+
+  card.className = "card";
+
+  card.innerHTML = `
+
+    <img class="img" loading="lazy" src="${p.img}" alt="${p.name}"/>
+
+    <div class="info">
+
+      <div>${p.name}</div>
+
+      <div class="price">Gs. ${Number(p.price).toLocaleString("pt-PY")}</div>
+
+      <div class="muted">${p.category}</div>
+
+    </div>
+
+  `;
+
+  card.addEventListener("click", () => track({ type:"product_click", productId:p.id, category:p.category, position:p.pos }));
+
+  g.appendChild(card);
+
+  // view 50%
+
+  let sent = false;
+
+  const io = new IntersectionObserver((entries) => {
+
+    if (!sent && entries.some(e => e.isIntersecting && e.intersectionRatio >= 0.5)) {
+
+      sent = true;
+
+      track({ type:"product_view", productId:p.id, category:p.category, position:p.pos });
+
+      io.disconnect();
+
+    }
+
+  }, { threshold: [0.5] });
+
+  io.observe(card);
+
+});
+
+// ---------- BUSCA ----------
+
+document.getElementById("btnBusca").addEventListener("click", async () => {
+
+  const q = document.getElementById("q").value.trim();
+
+  if (!q) return;
+
+  // simula "resultados encontrados"
+
+  const resultsCount = Math.floor(Math.random() * 30) + 1;
+
+  await track({ type:"search", query:q, extra:{ resultsCount } });
+
+  // simula clique no primeiro resultado
+
+  setTimeout(() => {
+
+    const pick = produtos[0];
+
+    track({ type:"search_click", query:q, productId: pick.id, position: 1 });
+
+    alert(`Busca enviada: "${q}" • Resultados: ${resultsCount}\n(Exemplo: simulei clique no primeiro resultado)`);
+
+  }, 300);
+
+});

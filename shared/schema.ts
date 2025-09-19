@@ -1630,11 +1630,23 @@ export const userSessions = pgTable("user_sessions", {
   browserInfo: varchar("browser_info"),
   visitDuration: decimal("visit_duration", { precision: 10, scale: 2 }), // segundos
   pagesViewed: decimal("pages_viewed", { precision: 5, scale: 0 }).default("0"),
+  
+  // Campos de Analytics avançados
+  ipHash: varchar("ip_hash", { length: 64 }), // Hash SHA-256 do IP para privacidade
+  referrer: text("referrer"), // Site que trouxe o usuário
+  utmSource: varchar("utm_source", { length: 64 }), // utm_source
+  utmMedium: varchar("utm_medium", { length: 64 }), // utm_medium  
+  utmCampaign: varchar("utm_campaign", { length: 128 }), // utm_campaign
+  utmContent: varchar("utm_content", { length: 128 }), // utm_content
+  utmTerm: varchar("utm_term", { length: 128 }), // utm_term
+  
   createdAt: timestamp("created_at").defaultNow(),
   lastActivity: timestamp("last_activity").defaultNow(),
 }, (table) => [
   index("idx_user_sessions_token").on(table.sessionToken),
   index("idx_user_sessions_created").on(table.createdAt),
+  index("idx_user_sessions_utm_source").on(table.utmSource),
+  index("idx_user_sessions_utm_campaign").on(table.utmCampaign),
 ]);
 
 // Buscas de produtos (anônimas)
@@ -1648,6 +1660,12 @@ export const productSearches = pgTable("product_searches", {
   resultsCount: decimal("results_count", { precision: 5, scale: 0 }),
   clickedProductId: varchar("clicked_product_id"), // Se clicou em algum resultado
   storeId: varchar("store_id"), // Loja onde foi feita a busca
+  
+  // Campos de Analytics
+  position: integer("position"), // Posição na página onde foi feita a busca
+  query: text("query"), // Query completa original (pode incluir filtros)
+  extra: jsonb("extra"), // Dados extras em JSON
+  
   searchAt: timestamp("search_at").defaultNow(),
 }, (table) => [
   index("idx_product_searches_session").on(table.sessionToken),
@@ -1671,6 +1689,12 @@ export const productViews = pgTable("product_views", {
   searchTerm: text("search_term"), // Se veio de busca
   wasCompared: boolean("was_compared").default(false), // Se foi usado na comparação
   wasSaved: boolean("was_saved").default(false), // Se foi salvo/curtido
+  
+  // Campos de Analytics  
+  position: integer("position"), // Posição do produto na página/lista
+  page: text("page"), // Página onde foi visualizado (/flyer/loja-id, /products, etc.)
+  extra: jsonb("extra"), // Dados extras em JSON
+  
   viewedAt: timestamp("viewed_at").defaultNow(),
 }, (table) => [
   index("idx_product_views_session").on(table.sessionToken),

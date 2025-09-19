@@ -365,6 +365,19 @@ export interface IStorage {
   searchProductBankItems(params: { q?: string; category?: string; offset?: number; limit?: number }): Promise<{ items: ProductBankItem[]; total: number }>;
   getProductBankCategories(): Promise<string[]>;
   incrementProductBankItemUsage(id: string): Promise<void>;
+
+  // Analytics operations
+  getSessionByToken(sessionToken: string): Promise<UserSession | undefined>;
+  updateSession(sessionToken: string, updates: Partial<UserSession>): Promise<void>;
+  getTopProductsByViews(startDate: Date, storeId?: string): Promise<any[]>;
+  getTopSearches(startDate: Date, storeId?: string): Promise<any[]>;
+  getBannerCTR(startDate: Date): Promise<any[]>;
+  getSessionCount(startDate: Date, storeId?: string): Promise<number>;
+  getProductViewCount(startDate: Date, storeId?: string): Promise<number>;
+  getSearchCount(startDate: Date, storeId?: string): Promise<number>;
+  getBannerViewCount(startDate: Date): Promise<number>;
+  createBannerView(view: { bannerId: string; sessionId: string; userAgent?: string; ipAddress: string }): Promise<void>;
+  createBannerClick(click: { bannerId: string; sessionId: string; userAgent?: string; ipAddress: string }): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4046,6 +4059,193 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(eq(productBankItems.id, id));
+  }
+
+  // ==========================================
+  // ANALYTICS OPERATIONS
+  // ==========================================
+
+  async getSessionByToken(sessionToken: string): Promise<UserSession | undefined> {
+    const [session] = await db
+      .select()
+      .from(userSessions)
+      .where(eq(userSessions.sessionToken, sessionToken));
+    return session;
+  }
+
+  async updateSession(sessionToken: string, updates: Partial<UserSession>): Promise<void> {
+    await db
+      .update(userSessions)
+      .set({
+        ...updates,
+        lastActivity: new Date(),
+      })
+      .where(eq(userSessions.sessionToken, sessionToken));
+  }
+
+  async getTopProductsByViews(startDate: Date, storeId?: string): Promise<any[]> {
+    const conditions = [gte(productViews.viewedAt, startDate)];
+    if (storeId) {
+      conditions.push(eq(productViews.storeId, storeId));
+    }
+
+    const result = await db
+      .select({
+        productId: productViews.productId,
+        productName: productViews.productName,
+        category: productViews.productCategory,
+        storeId: productViews.storeId,
+        storeName: productViews.storeName,
+        views: count(productViews.id),
+      })
+      .from(productViews)
+      .where(and(...conditions))
+      .groupBy(
+        productViews.productId,
+        productViews.productName,
+        productViews.productCategory,
+        productViews.storeId,
+        productViews.storeName
+      )
+      .orderBy(desc(count(productViews.id)))
+      .limit(20);
+
+    return result;
+  }
+
+  async getTopSearches(startDate: Date, storeId?: string): Promise<any[]> {
+    const conditions = [gte(productSearches.searchAt, startDate)];
+    if (storeId) {
+      conditions.push(eq(productSearches.storeId, storeId));
+    }
+
+    const result = await db
+      .select({
+        searchTerm: productSearches.searchTerm,
+        category: productSearches.category,
+        searches: count(productSearches.id),
+      })
+      .from(productSearches)
+      .where(and(...conditions))
+      .groupBy(productSearches.searchTerm, productSearches.category)
+      .orderBy(desc(count(productSearches.id)))
+      .limit(20);
+
+    return result;
+  }
+
+  async getBannerCTR(startDate: Date): Promise<any[]> {
+    // Subquery para views
+    const bannerViewsSubquery = db
+      .select({
+        bannerId: bannerViews.bannerId,
+        views: count(bannerViews.id).as('views'),
+      })
+      .from(bannerViews)
+      .where(gte(bannerViews.viewedAt, startDate))
+      .groupBy(bannerViews.bannerId)
+      .as('views');
+
+    // Subquery para clicks
+    const bannerClicksSubquery = db
+      .select({
+        bannerId: bannerClicks.bannerId,
+        clicks: count(bannerClicks.id).as('clicks'),
+      })
+      .from(bannerClicks)
+      .where(gte(bannerClicks.clickedAt, startDate))
+      .groupBy(bannerClicks.bannerId)
+      .as('clicks');
+
+    // Join com banner para pegar os dados
+    const result = await db
+      .select({
+        bannerId: banners.id,
+        title: banners.title,
+        imageUrl: banners.imageUrl,
+        views: sql`COALESCE(${bannerViewsSubquery.views}, 0)`.as('views'),
+        clicks: sql`COALESCE(${bannerClicksSubquery.clicks}, 0)`.as('clicks'),
+        ctr: sql`CASE 
+          WHEN COALESCE(${bannerViewsSubquery.views}, 0) > 0 
+          THEN ROUND(100.0 * COALESCE(${bannerClicksSubquery.clicks}, 0) / ${bannerViewsSubquery.views}, 2)
+          ELSE 0 
+        END`.as('ctr'),
+      })
+      .from(banners)
+      .leftJoin(bannerViewsSubquery, eq(banners.id, bannerViewsSubquery.bannerId))
+      .leftJoin(bannerClicksSubquery, eq(banners.id, bannerClicksSubquery.bannerId))
+      .where(eq(banners.isActive, true))
+      .orderBy(desc(sql`COALESCE(${bannerViewsSubquery.views}, 0)`));
+
+    return result;
+  }
+
+  async getSessionCount(startDate: Date, storeId?: string): Promise<number> {
+    const conditions = [gte(userSessions.createdAt, startDate)];
+    
+    const result = await db
+      .select({ count: count(userSessions.id) })
+      .from(userSessions)
+      .where(and(...conditions));
+
+    return result[0]?.count || 0;
+  }
+
+  async getProductViewCount(startDate: Date, storeId?: string): Promise<number> {
+    const conditions = [gte(productViews.viewedAt, startDate)];
+    if (storeId) {
+      conditions.push(eq(productViews.storeId, storeId));
+    }
+
+    const result = await db
+      .select({ count: count(productViews.id) })
+      .from(productViews)
+      .where(and(...conditions));
+
+    return result[0]?.count || 0;
+  }
+
+  async getSearchCount(startDate: Date, storeId?: string): Promise<number> {
+    const conditions = [gte(productSearches.searchAt, startDate)];
+    if (storeId) {
+      conditions.push(eq(productSearches.storeId, storeId));
+    }
+
+    const result = await db
+      .select({ count: count(productSearches.id) })
+      .from(productSearches)
+      .where(and(...conditions));
+
+    return result[0]?.count || 0;
+  }
+
+  async getBannerViewCount(startDate: Date): Promise<number> {
+    const result = await db
+      .select({ count: count(bannerViews.id) })
+      .from(bannerViews)
+      .where(gte(bannerViews.viewedAt, startDate));
+
+    return result[0]?.count || 0;
+  }
+
+  async createBannerView(view: { bannerId: string; sessionId: string; userAgent?: string; ipAddress: string }): Promise<void> {
+    await db.insert(bannerViews).values({
+      bannerId: view.bannerId,
+      sessionId: view.sessionId,
+      userAgent: view.userAgent,
+      ipAddress: view.ipAddress,
+      viewedAt: new Date(),
+    });
+  }
+
+  async createBannerClick(click: { bannerId: string; sessionId: string; userAgent?: string; ipAddress: string }): Promise<void> {
+    await db.insert(bannerClicks).values({
+      bannerId: click.bannerId,
+      sessionId: click.sessionId,
+      userAgent: click.userAgent,
+      ipAddress: click.ipAddress,
+      clickedAt: new Date(),
+    });
   }
 }
 

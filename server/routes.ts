@@ -5830,6 +5830,346 @@ ${text}`;
     }
   });
 
+  // ==========================================
+  // SISTEMA DE ANALYTICS AVANÇADO
+  // ==========================================
+
+  // Schema de validação para eventos de analytics
+  const analyticsEventSchema = z.union([
+    // Event: product_view
+    z.object({
+      type: z.literal('product_view'),
+      productId: z.string(),
+      storeId: z.string(),
+      page: z.string().optional(),
+      position: z.number().optional(),
+      extra: z.any().optional(),
+    }),
+    // Event: product_click  
+    z.object({
+      type: z.literal('product_click'),
+      productId: z.string(),
+      storeId: z.string(),
+      page: z.string().optional(),
+      position: z.number().optional(),
+      extra: z.any().optional(),
+    }),
+    // Event: search
+    z.object({
+      type: z.literal('search'),
+      query: z.string(),
+      category: z.string().optional(),
+      storeId: z.string().optional(),
+      resultsCount: z.number().optional(),
+      position: z.number().optional(),
+      extra: z.any().optional(),
+    }),
+    // Event: banner_view
+    z.object({
+      type: z.literal('banner_view'),
+      bannerId: z.string(),
+      position: z.number().optional(),
+      page: z.string().optional(),
+      extra: z.any().optional(),
+    }),
+    // Event: banner_click
+    z.object({
+      type: z.literal('banner_click'),
+      bannerId: z.string(),
+      position: z.number().optional(),
+      page: z.string().optional(),
+      extra: z.any().optional(),
+    }),
+  ]);
+
+  // POST /api/analytics/event - Capturar eventos de analytics
+  app.post("/api/analytics/event", async (req, res) => {
+    try {
+      // Validar payload
+      const events = Array.isArray(req.body) ? req.body : [req.body];
+      const validEvents = [];
+
+      for (const event of events) {
+        try {
+          const validated = analyticsEventSchema.parse(event);
+          validEvents.push(validated);
+        } catch (validationError) {
+          console.error("Invalid analytics event:", event, validationError);
+        }
+      }
+
+      if (validEvents.length === 0) {
+        return res.status(400).json({ error: "No valid events provided" });
+      }
+
+      // Processar cada evento
+      for (const event of validEvents) {
+        const { analytics } = req;
+        
+        // Prevenção de duplicação
+        const { isDuplicateEvent } = await import("./middleware/analyticsContext");
+        const entityId = event.productId || event.bannerId || event.query || 'unknown';
+        
+        if (isDuplicateEvent(analytics.sessionId, event.type, entityId)) {
+          continue; // Skip duplicated event
+        }
+
+        // Dispatch para o tipo correto de evento
+        switch (event.type) {
+          case 'product_view':
+            await handleProductView(event, analytics);
+            break;
+          case 'product_click':
+            await handleProductClick(event, analytics);
+            break;
+          case 'search':
+            await handleSearch(event, analytics);
+            break;
+          case 'banner_view':
+            await handleBannerView(event, analytics);
+            break;
+          case 'banner_click':
+            await handleBannerClick(event, analytics);
+            break;
+        }
+      }
+
+      res.json({ success: true, processed: validEvents.length });
+    } catch (error) {
+      console.error("Analytics event error:", error);
+      res.status(500).json({ error: "Failed to process analytics events" });
+    }
+  });
+
+  // Handlers para cada tipo de evento
+  async function handleProductView(event: any, analytics: any) {
+    try {
+      // Buscar dados do produto
+      const product = await storage.getProductById(event.productId);
+      const store = product ? await storage.getStore(product.storeId) : null;
+
+      if (!product || !store) return;
+
+      // Registrar visualização  
+      await storage.createProductView({
+        sessionToken: analytics.sessionId,
+        productId: product.id,
+        productName: product.name,
+        productCategory: product.category || null,
+        productPrice: product.price,
+        storeId: store.id,
+        storeName: store.name,
+        position: event.position || null,
+        page: event.page || null,
+        extra: event.extra || null,
+        cameFromSearch: false, // TODO: detectar via referrer
+      });
+
+      // Atualizar sessão se necessário
+      await updateOrCreateSession(analytics);
+    } catch (error) {
+      console.error("Error handling product view:", error);
+    }
+  }
+
+  async function handleProductClick(event: any, analytics: any) {
+    // Product clicks ainda podem usar a tabela productViews com flag especial
+    // ou uma nova tabela productClicks se necessário
+    try {
+      await handleProductView(event, analytics); // Registrar como view também
+      // TODO: Implementar tabela específica de clicks se necessário
+    } catch (error) {
+      console.error("Error handling product click:", error);
+    }
+  }
+
+  async function handleSearch(event: any, analytics: any) {
+    try {
+      await storage.createProductSearch({
+        sessionToken: analytics.sessionId,
+        searchTerm: event.query,
+        category: event.category || null,
+        storeId: event.storeId || null,
+        resultsCount: event.resultsCount || null,
+        position: event.position || null,
+        query: event.query,
+        extra: event.extra || null,
+      });
+
+      await updateOrCreateSession(analytics);
+    } catch (error) {
+      console.error("Error handling search:", error);
+    }
+  }
+
+  async function handleBannerView(event: any, analytics: any) {
+    try {
+      await storage.createBannerView({
+        bannerId: event.bannerId,
+        sessionId: analytics.sessionId,
+        userAgent: analytics.userAgent || null,
+        ipAddress: analytics.ipHash,
+      });
+
+      await updateOrCreateSession(analytics);
+    } catch (error) {
+      console.error("Error handling banner view:", error);
+    }
+  }
+
+  async function handleBannerClick(event: any, analytics: any) {
+    try {
+      await storage.createBannerClick({
+        bannerId: event.bannerId,
+        sessionId: analytics.sessionId,
+        userAgent: analytics.userAgent || null,
+        ipAddress: analytics.ipHash,
+      });
+
+      await updateOrCreateSession(analytics);
+    } catch (error) {
+      console.error("Error handling banner click:", error);
+    }
+  }
+
+  async function updateOrCreateSession(analytics: any) {
+    try {
+      // Atualizar ou criar sessão no banco
+      const existingSession = await storage.getSessionByToken(analytics.sessionId);
+      
+      if (existingSession) {
+        // Atualizar última atividade
+        await storage.updateSession(analytics.sessionId, {
+          lastActivity: new Date(),
+          utmSource: analytics.utm.source || existingSession.utmSource,
+          utmMedium: analytics.utm.medium || existingSession.utmMedium,
+          utmCampaign: analytics.utm.campaign || existingSession.utmCampaign,
+        });
+      } else {
+        // Criar nova sessão
+        await storage.createUserSession({
+          sessionToken: analytics.sessionId,
+          deviceType: analytics.device,
+          ipHash: analytics.ipHash,
+          referrer: analytics.referrer || null,
+          utmSource: analytics.utm.source || null,
+          utmMedium: analytics.utm.medium || null,
+          utmCampaign: analytics.utm.campaign || null,
+          utmContent: analytics.utm.content || null,
+          utmTerm: analytics.utm.term || null,
+          browserInfo: analytics.userAgent || null,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating session:", error);
+    }
+  }
+
+  // ==========================================
+  // ENDPOINTS DE RELATÓRIOS DE ANALYTICS
+  // ==========================================
+
+  // GET /api/analytics/reports/top-products - Top produtos por período
+  app.get("/api/analytics/reports/top-products", isSuperAdmin, async (req, res) => {
+    try {
+      const period = String(req.query.period || "7d");
+      const storeId = req.query.storeId as string | undefined;
+      
+      const days = period === "24h" ? 1 : period === "30d" ? 30 : 7;
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const topProducts = await storage.getTopProductsByViews(startDate, storeId);
+      
+      res.json({ 
+        success: true, 
+        period,
+        products: topProducts 
+      });
+    } catch (error) {
+      console.error("Error getting top products:", error);
+      res.status(500).json({ error: "Failed to get top products" });
+    }
+  });
+
+  // GET /api/analytics/reports/top-searches - Top buscas por período
+  app.get("/api/analytics/reports/top-searches", isSuperAdmin, async (req, res) => {
+    try {
+      const period = String(req.query.period || "7d");
+      const storeId = req.query.storeId as string | undefined;
+      
+      const days = period === "24h" ? 1 : period === "30d" ? 30 : 7;
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const topSearches = await storage.getTopSearches(startDate, storeId);
+      
+      res.json({ 
+        success: true, 
+        period,
+        searches: topSearches 
+      });
+    } catch (error) {
+      console.error("Error getting top searches:", error);
+      res.status(500).json({ error: "Failed to get top searches" });
+    }
+  });
+
+  // GET /api/analytics/reports/banner-ctr - CTR dos banners por período
+  app.get("/api/analytics/reports/banner-ctr", isSuperAdmin, async (req, res) => {
+    try {
+      const period = String(req.query.period || "7d");
+      
+      const days = period === "24h" ? 1 : period === "30d" ? 30 : 7;
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const bannerStats = await storage.getBannerCTR(startDate);
+      
+      res.json({ 
+        success: true, 
+        period,
+        banners: bannerStats 
+      });
+    } catch (error) {
+      console.error("Error getting banner CTR:", error);
+      res.status(500).json({ error: "Failed to get banner CTR" });
+    }
+  });
+
+  // GET /api/analytics/reports/overview - Visão geral das métricas
+  app.get("/api/analytics/reports/overview", isSuperAdmin, async (req, res) => {
+    try {
+      const period = String(req.query.period || "7d");
+      const storeId = req.query.storeId as string | undefined;
+      
+      const days = period === "24h" ? 1 : period === "30d" ? 30 : 7;
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const [sessions, productViews, searches, bannerViews] = await Promise.all([
+        storage.getSessionCount(startDate, storeId),
+        storage.getProductViewCount(startDate, storeId),
+        storage.getSearchCount(startDate, storeId),
+        storage.getBannerViewCount(startDate),
+      ]);
+
+      res.json({
+        success: true,
+        period,
+        metrics: {
+          sessions,
+          productViews,
+          searches,
+          bannerViews,
+        },
+      });
+    } catch (error) {
+      console.error("Error getting analytics overview:", error);
+      res.status(500).json({ error: "Failed to get analytics overview" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

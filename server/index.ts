@@ -2,9 +2,18 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { startCleanupJobs, startTrendingAnalysisJob } from "./cleanupJobs";
+import { analyticsContext } from "./middleware/analyticsContext";
+import cookieParser from "cookie-parser";
 import path from "path";
 
 const app = express();
+
+// Trust proxy para headers X-Forwarded-For (deve vir antes de analytics)
+app.set('trust proxy', 1);
+
+// Cookie parser para analytics sessions
+app.use(cookieParser());
+
 // Aumentar limite de payload para suportar upload de imagens/vídeos maiores
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
@@ -15,6 +24,9 @@ app.use('/attached_assets', express.static(path.resolve(process.cwd(), 'attached
   etag: true,
   lastModified: true
 }));
+
+// Analytics context middleware - deve vir antes das rotas
+app.use(analyticsContext());
 
 app.use((req, res, next) => {
   const start = Date.now();
