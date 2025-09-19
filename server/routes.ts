@@ -5791,6 +5791,91 @@ ${text}`;
     }
   }
 
+  // Função auxiliar para obter o tamanho de uma imagem
+  async function getImageSize(imageUrl: string): Promise<number> {
+    try {
+      if (!imageUrl.startsWith('http')) {
+        return 0; // Se não é uma URL válida, retorna 0
+      }
+
+      // Fazer um HEAD request para obter o Content-Length
+      const response = await fetch(imageUrl, { 
+        method: 'HEAD',
+        timeout: 5000 // 5 segundos de timeout
+      });
+      
+      if (!response.ok) {
+        return 0;
+      }
+      
+      const contentLength = response.headers.get('content-length');
+      return contentLength ? parseInt(contentLength, 10) : 0;
+    } catch (error) {
+      console.error(`Erro ao obter tamanho da imagem ${imageUrl}:`, error);
+      return 0;
+    }
+  }
+
+  // Função auxiliar para selecionar as melhores imagens (maiores em KB)
+  async function selectBestImages(imageUrls: string[], primaryImageUrl?: string): Promise<string[]> {
+    try {
+      // Criar lista única de URLs (combinando primaryImageUrl e imageUrls)
+      const allUrls = new Set<string>();
+      
+      if (primaryImageUrl) {
+        allUrls.add(primaryImageUrl);
+      }
+      
+      if (imageUrls && Array.isArray(imageUrls)) {
+        imageUrls.forEach(url => {
+          if (url && url.trim()) {
+            allUrls.add(url);
+          }
+        });
+      }
+      
+      if (allUrls.size === 0) {
+        return [];
+      }
+      
+      // Obter tamanho de cada imagem
+      const imageData = await Promise.all(
+        Array.from(allUrls).map(async (url) => ({
+          url,
+          size: await getImageSize(url)
+        }))
+      );
+      
+      // Filtrar imagens válidas (size > 0) e ordenar por tamanho (maior primeiro)
+      const validImages = imageData
+        .filter(img => img.size > 0)
+        .sort((a, b) => b.size - a.size);
+      
+      // Se não conseguimos obter tamanhos, usar a ordem original
+      if (validImages.length === 0) {
+        const fallbackImages = Array.from(allUrls);
+        return fallbackImages.slice(0, 3);
+      }
+      
+      // Retornar as 3 maiores imagens
+      const bestImages = validImages.slice(0, 3).map(img => img.url);
+      
+      console.log(`🖼️ Selecionadas ${bestImages.length} melhores imagens:`, 
+        validImages.slice(0, 3).map(img => `${img.url} (${(img.size / 1024).toFixed(1)}KB)`));
+      
+      return bestImages;
+    } catch (error) {
+      console.error('Erro ao selecionar melhores imagens:', error);
+      // Fallback: retornar imagens na ordem original
+      const fallbackImages = [];
+      if (primaryImageUrl) fallbackImages.push(primaryImageUrl);
+      if (imageUrls && Array.isArray(imageUrls)) {
+        fallbackImages.push(...imageUrls.filter(url => url && url.trim()));
+      }
+      return fallbackImages.slice(0, 3);
+    }
+  }
+
   // Função auxiliar para fazer upload de imagem para object storage
   async function uploadImageToStorage(imageUrl: string, productId: string): Promise<string> {
     try {
@@ -5864,21 +5949,14 @@ ${text}`;
           // Traduzir descrição para português
           const translatedDescription = await translateToPortuguese(bankItem.description || '');
 
-          // Fazer upload das imagens
-          const imageUrls = [];
-          const primaryImageUrl = bankItem.primaryImageUrl;
+          // Selecionar as melhores imagens (maiores em KB)
+          const bestImageUrls = await selectBestImages(bankItem.imageUrls, bankItem.primaryImageUrl);
           
-          if (primaryImageUrl) {
-            const uploadedUrl = await uploadImageToStorage(primaryImageUrl, bankItemId);
-            imageUrls.push(uploadedUrl);
-          }
-
-          // Upload das imagens adicionais
-          if (bankItem.imageUrls && Array.isArray(bankItem.imageUrls)) {
-            for (const additionalImageUrl of bankItem.imageUrls.slice(1)) { // Skip primeira que já foi processada
-              const uploadedUrl = await uploadImageToStorage(additionalImageUrl, bankItemId);
-              imageUrls.push(uploadedUrl);
-            }
+          // Fazer upload das imagens selecionadas
+          const uploadedImageUrls = [];
+          for (const imageUrl of bestImageUrls) {
+            const uploadedUrl = await uploadImageToStorage(imageUrl, bankItemId);
+            uploadedImageUrls.push(uploadedUrl);
           }
 
           // Criar produto na loja
@@ -5887,9 +5965,9 @@ ${text}`;
             description: translatedDescription,
             price: parseFloat(price.toString()),
             category: bankItem.category || 'Produtos',
-            imageUrl: imageUrls[0] || null,
-            imageUrl2: imageUrls[1] || null,
-            imageUrl3: imageUrls[2] || null,
+            imageUrl: uploadedImageUrls[0] || null,
+            imageUrl2: uploadedImageUrls[1] || null,
+            imageUrl3: uploadedImageUrls[2] || null,
             isActive: true,
             isFeatured: false,
             showInStories: true,

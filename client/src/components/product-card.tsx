@@ -168,7 +168,9 @@ export default function ProductCard({
             <img 
               src={product.imageUrl} 
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+              className="w-full h-full object-contain bg-white"
+              loading="lazy"
+              decoding="async"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.src = '/placeholder-image.jpg';

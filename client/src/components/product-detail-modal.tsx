@@ -351,7 +351,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                       <img
                         src={images[currentImageIndex]}
                         alt={product.name}
-                        className={`absolute inset-0 w-full h-full object-cover ${
+                        className={`absolute inset-0 w-full h-full object-contain bg-white ${
                           isTransitioning 
                             ? slideDirection === 'left' 
                               ? 'animate-slide-out-left' 
@@ -366,7 +366,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                         <img
                           src={images[nextImageIndex]}
                           alt={product.name}
-                          className={`absolute inset-0 w-full h-full object-cover ${
+                          className={`absolute inset-0 w-full h-full object-contain bg-white ${
                             slideDirection === 'left'
                               ? 'animate-slide-in-right'
                               : 'animate-slide-in-left'
@@ -513,7 +513,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                               <img 
                                 src={similarProduct.imageUrl} 
                                 alt={similarProduct.name}
-                                className="w-full h-full object-cover hover:scale-105 transition-transform"
+                                className="w-full h-full object-contain bg-white"
                               />
                             ) : (
                               <div className="w-full h-full bg-gray-200 flex items-center justify-center">
@@ -723,7 +723,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                     <img
                       src={images[currentImageIndex]}
                       alt={product.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain bg-white"
                       onDoubleClick={(e) => handleDoubleTap(product.id, e)}
                     />
                     
@@ -927,7 +927,7 @@ export function ProductDetailModal({ product, store, isOpen, onClose }: ProductD
                               <img 
                                 src={similarProduct.imageUrl} 
                                 alt={similarProduct.name}
-                                className="w-full h-full object-cover hover:scale-105 transition-transform"
+                                className="w-full h-full object-contain bg-white"
                               />
                             ) : (
                               <div className="w-full h-full bg-gray-200 flex items-center justify-center">
