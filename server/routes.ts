@@ -71,6 +71,7 @@ import { getCurrentExchangeRate, convertUsdToBrl, formatBRL, formatUSD, clearExc
 import { setupOAuthProviders } from "./authProviders";
 import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema, insertBudgetConfigSchema, insertTotemContentSchema, updateTotemContentSchema, insertTotemSettingsSchema, updateTotemSettingsSchema, insertCategorySchema, updateCategorySchema, insertProductBankSchema, updateProductBankSchema, insertProductBankItemSchema, updateProductBankItemSchema } from "@shared/schema";
 import { z } from "zod";
+import sharp from "sharp";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcryptjs";
 import QRCode from "qrcode";
@@ -5437,36 +5438,63 @@ Keep the overall composition and maintain the same visual quality. This is for a
                 description = zip.readAsText(descriptionFile).trim();
               }
 
-              // Extrair e salvar imagens
+              // Extrair e salvar imagens com Sharp para medir dimensões reais
               const imageFiles = files.filter(f => 
-                /\.(jpg|jpeg|png|webp|gif)$/i.test(f.entryName)
+                /\.(jpg|jpeg|png|webp)$/i.test(f.entryName) // Excluir GIF (baixa qualidade)
               );
 
-              const imageUrls: string[] = [];
-              let primaryImageUrl = '';
+              type ImgInfo = { url: string; width: number; height: number; bytes: number };
+              const imgInfos: ImgInfo[] = [];
 
               for (const imageFile of imageFiles) {
                 const buffer = zip.readFile(imageFile);
-                if (buffer) {
-                  const ext = path.extname(imageFile.entryName).toLowerCase();
-                  const imageName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}${ext}`;
-                  const imagePath = `./uploads/product-banks/images/${imageName}`;
-                  
-                  // Criar diretório se não existir
-                  const imageDir = path.dirname(imagePath);
-                  if (!fs.existsSync(imageDir)) {
-                    fs.mkdirSync(imageDir, { recursive: true });
-                  }
-                  
-                  fs.writeFileSync(imagePath, buffer);
-                  const imageUrl = `/uploads/product-banks/images/${imageName}`;
-                  imageUrls.push(imageUrl);
-                  
-                  if (!primaryImageUrl) {
-                    primaryImageUrl = imageUrl;
-                  }
+                if (!buffer) continue;
+
+                const ext = path.extname(imageFile.entryName).toLowerCase();
+                const imageName = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}${ext}`;
+                const imagePath = `./uploads/product-banks/images/${imageName}`;
+                
+                // Criar diretório se não existir
+                const imageDir = path.dirname(imagePath);
+                if (!fs.existsSync(imageDir)) {
+                  fs.mkdirSync(imageDir, { recursive: true });
                 }
+                
+                fs.writeFileSync(imagePath, buffer);
+
+                // Obter dimensões reais com Sharp
+                let width = 0, height = 0;
+                try {
+                  const meta = await sharp(buffer).metadata();
+                  width = meta.width ?? 0;
+                  height = meta.height ?? 0;
+                } catch (sharpError) {
+                  console.warn(`Erro ao processar imagem ${imageName} com Sharp:`, sharpError.message);
+                }
+
+                imgInfos.push({
+                  url: `/uploads/product-banks/images/${imageName}`,
+                  width,
+                  height,
+                  bytes: buffer.length
+                });
               }
+
+              // Ordenar por área (px²), com fallback por bytes
+              imgInfos.sort((a, b) => {
+                const areaA = a.width * a.height;
+                const areaB = b.width * b.height;
+                if (areaA !== areaB) return areaB - areaA; // Maior área primeiro
+                return b.bytes - a.bytes; // Fallback por tamanho em bytes
+              });
+
+              const imageUrls = imgInfos.map(i => i.url);
+              const primaryImageUrl = imageUrls[0] ?? '';
+
+              console.log(`🖼️ Processado ${imgInfos.length} imagens para ${productInfo.name}:`);
+              imgInfos.slice(0, 3).forEach((img, idx) => {
+                console.log(`  ${idx + 1}. ${img.url} - ${img.width}×${img.height}px (${(img.bytes / 1024).toFixed(1)}KB)`);
+              });
 
               // Criar item do banco
               await storage.createProductBankItem({
@@ -5872,7 +5900,89 @@ ${text}`;
     }
   }
 
-  // Função auxiliar para selecionar as melhores imagens (maiores em KB)
+  // Função auxiliar para verificar se é URL local
+  function isLocalUploadsUrl(url: string): boolean {
+    return url.startsWith("/uploads/");
+  }
+
+  // Função auxiliar para converter URL local em path do arquivo
+  function localPathFromUrl(url: string): string {
+    return path.join(process.cwd(), "." + url);
+  }
+
+  // Função auxiliar para obter dimensões e tamanho da imagem usando Sharp
+  async function getImagePixelsOrSize(url: string): Promise<{area: number; bytes: number}> {
+    try {
+      if (isLocalUploadsUrl(url)) {
+        // Processar arquivo local
+        const filePath = localPathFromUrl(url);
+        
+        if (!fs.existsSync(filePath)) {
+          console.warn(`Arquivo local não encontrado: ${filePath}`);
+          return { area: 0, bytes: 0 };
+        }
+
+        const buf = await fs.promises.readFile(filePath);
+        let w = 0, h = 0;
+        
+        try {
+          const meta = await sharp(buf).metadata();
+          w = meta.width ?? 0;
+          h = meta.height ?? 0;
+        } catch (sharpError) {
+          console.warn(`Erro ao processar imagem local ${filePath} com Sharp:`, sharpError.message);
+        }
+        
+        return { area: w * h, bytes: buf.length };
+      } else {
+        // Processar URL remota com proteções de segurança
+        if (!isImageUrlSafe(url)) {
+          console.warn(`URL remota rejeitada por segurança: ${url}`);
+          return { area: 0, bytes: 0 };
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        try {
+          const resp = await fetch(url, { 
+            method: "GET", 
+            signal: controller.signal,
+            headers: {
+              'User-Agent': 'Click-Ofertas-Bot/1.0'
+            }
+          });
+          clearTimeout(timeoutId);
+          
+          if (!resp.ok) {
+            console.warn(`Falha ao buscar imagem remota: ${resp.status} ${url}`);
+            return { area: 0, bytes: 0 };
+          }
+          
+          const arrayBuf = await resp.arrayBuffer();
+          const buf = Buffer.from(arrayBuf);
+          let w = 0, h = 0;
+          
+          try {
+            const meta = await sharp(buf).metadata();
+            w = meta.width ?? 0;
+            h = meta.height ?? 0;
+          } catch (sharpError) {
+            console.warn(`Erro ao processar imagem remota ${url} com Sharp:`, sharpError.message);
+          }
+          
+          return { area: w * h, bytes: buf.length };
+        } finally {
+          clearTimeout(timeoutId);
+        }
+      }
+    } catch (error) {
+      console.warn(`Erro ao obter dimensões da imagem ${url}:`, error.message);
+      return { area: 0, bytes: 0 };
+    }
+  }
+
+  // Função auxiliar para selecionar as melhores imagens (por área em px²)
   async function selectBestImages(imageUrls: string[], primaryImageUrl?: string): Promise<string[]> {
     try {
       // Criar lista única de URLs (combinando primaryImageUrl e imageUrls)
@@ -5894,30 +6004,35 @@ ${text}`;
         return [];
       }
       
-      // Obter tamanho de cada imagem
-      const imageData = await Promise.all(
-        Array.from(allUrls).map(async (url) => ({
-          url,
-          size: await getImageSize(url)
-        }))
+      // Obter dimensões e tamanho de cada imagem
+      const scored = await Promise.all(
+        Array.from(allUrls).map(async (url) => {
+          const { area, bytes } = await getImagePixelsOrSize(url);
+          return { url, area, bytes };
+        })
       );
       
-      // Filtrar imagens válidas (size > 0) e ordenar por tamanho (maior primeiro)
-      const validImages = imageData
-        .filter(img => img.size > 0)
-        .sort((a, b) => b.size - a.size);
+      // Filtrar imagens válidas (área > 0 ou bytes > 0)
+      const valid = scored.filter(s => s.area > 0 || s.bytes > 0);
       
-      // Se não conseguimos obter tamanhos, usar a ordem original
-      if (validImages.length === 0) {
-        const fallbackImages = Array.from(allUrls);
-        return fallbackImages.slice(0, 3);
+      if (valid.length === 0) {
+        console.warn('Nenhuma imagem válida encontrada, usando ordem original');
+        return Array.from(allUrls).slice(0, 3);
       }
       
-      // Retornar as 3 maiores imagens
-      const bestImages = validImages.slice(0, 3).map(img => img.url);
+      // Ordenar por área (px²) primeiro, fallback por bytes
+      valid.sort((a, b) => {
+        if (a.area !== b.area) return b.area - a.area; // Maior área primeiro
+        return b.bytes - a.bytes; // Fallback por tamanho em bytes
+      });
       
-      console.log(`🖼️ Selecionadas ${bestImages.length} melhores imagens:`, 
-        validImages.slice(0, 3).map(img => `${img.url} (${(img.size / 1024).toFixed(1)}KB)`));
+      const bestImages = valid.slice(0, 3).map(v => v.url);
+      
+      console.log(`🖼️ Selecionadas ${bestImages.length} melhores imagens por qualidade real:`);
+      valid.slice(0, 3).forEach((img, idx) => {
+        const dimensions = img.area > 0 ? `${Math.sqrt(img.area).toFixed(0)}px²` : 'N/A';
+        console.log(`  ${idx + 1}. ${img.url} - ${dimensions} (${(img.bytes / 1024).toFixed(1)}KB)`);
+      });
       
       return bestImages;
     } catch (error) {

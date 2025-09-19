@@ -69,7 +69,7 @@ export function SearchResultItem({
           <LazyImage
             src={product.imageUrl || '/api/placeholder/64/64'}
             alt={product.name}
-            className="w-full h-full object-cover rounded-lg border"
+            className="w-full h-full object-contain bg-gray-50 rounded-lg border"
             placeholder="📦"
           />
         </div>
