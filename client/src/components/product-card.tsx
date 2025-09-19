@@ -9,7 +9,7 @@ import { useAnalytics } from "@/lib/analytics";
 import ScratchCard from "./scratch-card";
 import { formatBrazilianPrice } from "@/lib/priceUtils";
 import PriceComparisonPopup from "./price-comparison-popup";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 
 interface ProductCardProps {
@@ -69,8 +69,73 @@ export default function ProductCard({
   const analytics = useAnalytics();
   const categoryColors = getCategoryColors(product.category || undefined);
   const [showPriceComparison, setShowPriceComparison] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [hasBeenViewed, setHasBeenViewed] = useState(false);
+  const [viewStartTime, setViewStartTime] = useState<number | null>(null);
   
+  // 📊 IntersectionObserver para tracking automático de visualizações
+  useEffect(() => {
+    if (!cardRef.current || hasBeenViewed) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          // 50% do card visível por 1 segundo = visualização válida
+          setTimeout(() => {
+            if (entry.isIntersecting && !hasBeenViewed) {
+              setHasBeenViewed(true);
+              setViewStartTime(Date.now());
+              
+              // Enviar evento de visualização com batch
+              analytics.startProductView(product.id);
+              
+              console.debug('📊 Product view:', product.name);
+            }
+          }, 1000);
+        } else if (viewStartTime) {
+          // Produto saiu da tela - calcular tempo de visualização
+          const viewDuration = Math.floor((Date.now() - viewStartTime) / 1000);
+          if (viewDuration >= 2) { // Mínimo 2 segundos para contar
+            analytics.endProductView({
+              productId: product.id,
+              storeId: storeId || '',
+              source,
+              position: 0 // TODO: calcular posição real na lista
+            });
+            console.debug('📊 Product view ended:', product.name, `${viewDuration}s`);
+          }
+          setViewStartTime(null);
+        }
+      },
+      {
+        threshold: 0.5, // 50% visível
+        rootMargin: '0px'
+      }
+    );
+
+    observer.observe(cardRef.current);
+    
+    return () => {
+      observer.disconnect();
+      // Finalizar view se ainda ativo
+      if (viewStartTime) {
+        const viewDuration = Math.floor((Date.now() - viewStartTime) / 1000);
+        if (viewDuration >= 2) {
+          analytics.endProductView({
+            productId: product.id,
+            storeId: storeId || '',
+            source,
+            position: 0
+          });
+        }
+      }
+    };
+  }, [hasBeenViewed, viewStartTime, product.id, storeId, source, analytics]);
+
   const handleCardClick = () => {
+    // 📊 Track click event
+    analytics.trackClick(product.id);
+    
     if (onClick) {
       onClick(product);
     }
@@ -78,6 +143,7 @@ export default function ProductCard({
 
   // Override handleSaveProduct para incluir analytics
   const handleSaveWithAnalytics = async (productId: string) => {
+    analytics.trackSave(productId);
     return handleSaveProduct(productId);
   };
 
@@ -86,6 +152,7 @@ export default function ProductCard({
 
   const productContent = (
     <div 
+      ref={cardRef}
       className={`group cursor-pointer rounded-lg overflow-hidden h-full flex flex-col ${
         product.isFeatured 
           ? 'border border-red-500' 
@@ -176,6 +243,7 @@ export default function ProductCard({
             <button 
               onClick={(e) => {
                 e.stopPropagation();
+                analytics.trackCompare(product.id);
                 setShowPriceComparison(true);
               }}
               className="flex flex-col items-center gap-0 sm:gap-1 text-xs text-gray-500 hover:text-green-500 transition-colors"

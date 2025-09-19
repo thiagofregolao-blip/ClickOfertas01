@@ -61,39 +61,77 @@ export function BannerCarousel({ banners, autoPlayInterval = 4000 }: BannerCarou
   // Flag para pular a animação na próxima atualização de posição
   const skipTransitionRef = useRef(false);
 
+  // 📊 Batch de eventos para otimizar performance
+  const eventBatch = useRef<{type: string, bannerId: string, timestamp: number}[]>([]);
+  const batchTimer = useRef<NodeJS.Timeout>();
+
+  const sendEventBatch = () => {
+    if (eventBatch.current.length === 0) return;
+    
+    // Usar sendBeacon para garantia de entrega mesmo se página fechar
+    const events = [...eventBatch.current];
+    eventBatch.current = [];
+    
+    // Enviar para novo endpoint unificado de analytics
+    fetch('/api/analytics/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'banner_batch',
+        events: events
+      })
+    }).catch(error => {
+      console.debug('📊 Banner batch failed:', error);
+      // Re-adicionar eventos falhos para retry
+      eventBatch.current.unshift(...events);
+    });
+  };
+
+  const addToBatch = (type: string, bannerId: string) => {
+    eventBatch.current.push({ type, bannerId, timestamp: Date.now() });
+    
+    // Batch timer: enviar a cada 5 segundos ou quando atingir 10 eventos
+    if (eventBatch.current.length >= 10) {
+      if (batchTimer.current) clearTimeout(batchTimer.current);
+      sendEventBatch();
+    } else if (!batchTimer.current) {
+      batchTimer.current = setTimeout(() => {
+        sendEventBatch();
+        batchTimer.current = undefined;
+      }, 5000);
+    }
+  };
+
   // Registra clique no banner e abre o link em nova aba se houver
   const handleBannerClick = async (banner: Banner) => {
-    try {
-      await fetch('/api/banners/click', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ bannerId: banner.id }),
-      });
-    } catch (err) {
-      console.error('Erro ao registrar clique:', err);
-    }
+    // 📊 Usar sistema de batch em vez de chamada individual
+    addToBatch('banner_click', banner.id.replace(/^clone-(first|last)-/, ''));
+    
     if (banner.linkUrl) {
       window.open(banner.linkUrl, '_blank');
     }
   };
 
-  // Registra visualização do banner real quando exibido
+  // 📊 Registra visualização do banner real quando exibido (com batch)
   useEffect(() => {
     if (!banners || banners.length === 0) return;
     const realIndex = currentIndex - 1;
     const currentBanner =
       banners[realIndex >= 0 && realIndex < banners.length ? realIndex : 0];
     if (currentBanner) {
-      fetch('/api/banners/view', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bannerId: currentBanner.id }),
-      }).catch((error) => {
-        console.error('Erro ao registrar visualização:', error);
-      });
+      // Usar sistema de batch para views também
+      addToBatch('banner_view', currentBanner.id);
+      console.debug('📊 Banner view:', currentBanner.title);
     }
+
+    // Cleanup: enviar batch restante quando componente desmontar
+    return () => {
+      if (batchTimer.current) {
+        clearTimeout(batchTimer.current);
+        batchTimer.current = undefined;
+      }
+      sendEventBatch();
+    };
   }, [currentIndex, banners]);
 
   // Calcula dimensões e aplica largura/margens via DOM
