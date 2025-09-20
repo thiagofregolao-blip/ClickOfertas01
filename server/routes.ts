@@ -5447,7 +5447,9 @@ Keep the overall composition and maintain the same visual quality. This is for a
 
         try {
           // Extrair categoria do nome do arquivo ZIP
+          console.log(`🔍 Iniciando extração de categoria do ZIP. originalZipName: "${originalZipName}", zipFileName: "${zipFileName}"`);
           const categoryFromZip = await ensureCategoryFromZipName(originalZipName || zipFileName);
+          console.log(`📂 Categoria final do ZIP: "${categoryFromZip}"`);
           
           // Processar o ZIP
           const zip = new AdmZip(zipPath);
