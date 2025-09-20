@@ -981,15 +981,15 @@ function SuperAdminAnalytics() {
                 </Card>
               </div>
 
-              {/* ENGAJAMENTO GLOBAL */}
+              {/* MÉTRICAS MODERNAS DE ENGAJAMENTO */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Card>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Views Stories</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          {globalOverview?.storyViews || 0}
+                        <p className="text-sm font-medium text-gray-600">Visualizações</p>
+                        <p className="text-2xl font-bold text-gray-900" data-testid="metric-total-page-views">
+                          {globalOverview?.totalPageViews || 0}
                         </p>
                       </div>
                       <Eye className="w-8 h-8 text-indigo-600" />
@@ -1001,12 +1001,12 @@ function SuperAdminAnalytics() {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Views Flyers</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          {globalOverview?.flyerViews || 0}
+                        <p className="text-sm font-medium text-gray-600">Views Produtos</p>
+                        <p className="text-2xl font-bold text-gray-900" data-testid="metric-total-product-views">
+                          {globalOverview?.totalProductViews || 0}
                         </p>
                       </div>
-                      <Image className="w-8 h-8 text-pink-600" />
+                      <Package className="w-8 h-8 text-pink-600" />
                     </div>
                   </CardContent>
                 </Card>
@@ -1015,12 +1015,12 @@ function SuperAdminAnalytics() {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Curtidas</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          {globalOverview?.productLikes || 0}
+                        <p className="text-sm font-medium text-gray-600">Duração Média</p>
+                        <p className="text-2xl font-bold text-gray-900" data-testid="metric-avg-session-duration">
+                          {Math.round((globalOverview?.averageSessionDuration || 0) / 60)}m
                         </p>
                       </div>
-                      <Award className="w-8 h-8 text-red-600" />
+                      <Activity className="w-8 h-8 text-red-600" />
                     </div>
                   </CardContent>
                 </Card>
@@ -1029,12 +1029,15 @@ function SuperAdminAnalytics() {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Salvamentos</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          {globalOverview?.productsSaved || 0}
+                        <p className="text-sm font-medium text-gray-600">CTR Médio</p>
+                        <p className="text-2xl font-bold text-gray-900" data-testid="metric-avg-ctr">
+                          {globalOverview?.bannerMetrics?.length > 0 
+                            ? `${(globalOverview.bannerMetrics.reduce((acc: any, b: any) => acc + (b.ctr || 0), 0) / globalOverview.bannerMetrics.length).toFixed(1)}%`
+                            : '0%'
+                          }
                         </p>
                       </div>
-                      <Save className="w-8 h-8 text-teal-600" />
+                      <Target className="w-8 h-8 text-teal-600" />
                     </div>
                   </CardContent>
                 </Card>

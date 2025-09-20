@@ -4790,11 +4790,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
         targetStoreId = user.storeId;
       }
 
-      console.log('🔍 Analytics Debug:', { period, storeId, targetStoreId, userIsSuperAdmin: user?.isSuperAdmin });
-      
       const analyticsData = await storage.getAnalyticsOverview(period, targetStoreId);
-      
-      console.log('📊 Analytics Data:', JSON.stringify(analyticsData, null, 2));
       
       res.json(analyticsData);
     } catch (error) {
@@ -4893,42 +4889,37 @@ Keep the overall composition and maintain the same visual quality. This is for a
       }
 
       const { days = '7' } = req.query;
-      const daysNum = parseInt(days as string);
+      const period = `${days}d`;
 
-      // Buscar TODAS as lojas da plataforma
+      // Usar o mesmo método do analytics geral, mas sem filtro de loja (visão global)
+      const globalAnalytics = await storage.getAnalyticsOverview(period);
+
+      // Buscar TODAS as lojas da plataforma para contadores extras
       const allStores = await storage.getAllStores();
       
-      // Agregar analytics de TODAS as lojas
-      let globalAnalytics = {
-        storyViews: 0,
-        flyerViews: 0,
-        productLikes: 0,
-        productsSaved: 0,
-        totalStores: allStores.length,
-        totalProducts: 0,
-        totalSessions: 0,
-        totalSearches: 0
-      };
-
       // Calcular produtos totais
+      let totalProducts = 0;
       for (const store of allStores) {
         const products = await storage.getProductsByStoreId(store.id);
-        globalAnalytics.totalProducts += products.length;
-
-        // Somar analytics da loja
-        const storeAnalytics = await storage.getStoreAnalytics(store.id, daysNum);
-        globalAnalytics.storyViews += storeAnalytics.storyViews;
-        globalAnalytics.flyerViews += storeAnalytics.flyerViews;
-        globalAnalytics.productLikes += storeAnalytics.productLikes;
-        globalAnalytics.productsSaved += storeAnalytics.productsSaved;
+        totalProducts += products.length;
       }
 
-      // Obter estatísticas de sessões anônimas
-      const sessionStats = await storage.getGlobalSessionStats(daysNum);
-      globalAnalytics.totalSessions = sessionStats.totalSessions || 0;
-      globalAnalytics.totalSearches = sessionStats.totalSearches || 0;
+      // Retornar métricas modernas
+      const response = {
+        totalSessions: globalAnalytics.totalSessions,
+        totalPageViews: globalAnalytics.totalPageViews,
+        totalProductViews: globalAnalytics.totalProductViews,
+        totalSearches: globalAnalytics.totalSearches,
+        averageSessionDuration: globalAnalytics.averageSessionDuration,
+        totalStores: allStores.length,
+        totalProducts,
+        topProducts: globalAnalytics.topProducts,
+        topSearches: globalAnalytics.topSearches,
+        bannerMetrics: globalAnalytics.bannerMetrics,
+        utmSources: globalAnalytics.utmSources
+      };
 
-      res.json(globalAnalytics);
+      res.json(response);
     } catch (error) {
       console.error('Error fetching super admin global analytics:', error);
       res.status(500).json({ error: 'Erro ao buscar analytics globais' });
