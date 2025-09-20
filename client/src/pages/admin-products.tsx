@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff, ChevronLeft, ChevronRight, Upload, Download, FileSpreadsheet, Package, Camera, Settings, PlayCircle, CircleX, Gift, Clock } from "lucide-react";
+import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, Upload, Download, FileSpreadsheet, Package, Camera, Settings, Gift, Clock } from "lucide-react";
 import type { Store, Product, InsertProduct, ProductBankItem, Category } from "@shared/schema";
 import { z } from "zod";
 import { PhotoCapture } from "@/components/PhotoCapture";
@@ -500,7 +500,6 @@ export default function AdminProducts() {
     const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
     if (filter === "active") return matchesSearch && product.isActive;
     if (filter === "inactive") return matchesSearch && !product.isActive;
-    if (filter === "featured") return matchesSearch && product.isFeatured;
     return matchesSearch;
   });
 
@@ -1002,7 +1001,6 @@ export default function AdminProducts() {
                   <SelectItem value="all">Todos os Produtos</SelectItem>
                   <SelectItem value="active">Ativos</SelectItem>
                   <SelectItem value="inactive">Inativos</SelectItem>
-                  <SelectItem value="featured">Em Destaque</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1057,20 +1055,8 @@ export default function AdminProducts() {
                                 />
                               )}
                               <div>
-                                <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                                <div className="text-sm font-medium text-gray-900">
                                   {product.name}
-                                  {product.isFeatured && (
-                                    <Badge variant="secondary" className="bg-accent text-white">
-                                      <Star className="w-3 h-3 mr-1" />
-                                      Destaque
-                                    </Badge>
-                                  )}
-                                  {product.showInStories && (
-                                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-                                      <Eye className="w-3 h-3 mr-1" />
-                                      Stories
-                                    </Badge>
-                                  )}
                                 </div>
                                 {product.description && (
                                   <div className="text-sm text-gray-500" title={product.description}>
@@ -1103,26 +1089,6 @@ export default function AdminProducts() {
                                 size="sm"
                                 onClick={() => toggleMutation.mutate({
                                   productId: product.id,
-                                  field: "isFeatured",
-                                  value: !product.isFeatured
-                                })}
-                                data-testid={`button-toggle-featured-${product.id}`}
-                                title={product.isFeatured ? "Remover destaque" : "Marcar como destaque"}
-                                className="flex flex-col items-center py-2"
-                              >
-                                {product.isFeatured ? (
-                                  <StarOff className="w-4 h-4 text-accent" />
-                                ) : (
-                                  <Star className="w-4 h-4 text-gray-400" />
-                                )}
-                                <span className="text-xs mt-1 text-gray-500">Destaque</span>
-                              </Button>
-                              
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleMutation.mutate({
-                                  productId: product.id,
                                   field: "isActive",
                                   value: !product.isActive
                                 })}
@@ -1136,26 +1102,6 @@ export default function AdminProducts() {
                                   <Eye className="w-4 h-4 text-gray-400" />
                                 )}
                                 <span className="text-xs mt-1 text-gray-500">Ativo</span>
-                              </Button>
-                              
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleMutation.mutate({
-                                  productId: product.id,
-                                  field: "showInStories",
-                                  value: !product.showInStories
-                                })}
-                                data-testid={`button-toggle-stories-${product.id}`}
-                                title={product.showInStories ? "Remover dos Stories" : "Adicionar aos Stories"}
-                                className="flex flex-col items-center py-2"
-                              >
-                                {product.showInStories ? (
-                                  <CircleX className="w-4 h-4 text-purple-600" />
-                                ) : (
-                                  <PlayCircle className="w-4 h-4 text-gray-400" />
-                                )}
-                                <span className="text-xs mt-1 text-gray-500">Stories</span>
                               </Button>
                               
                               <Button
@@ -1204,7 +1150,7 @@ export default function AdminProducts() {
                           />
                         )}
                         <div className="flex-1 min-w-0">
-                          {/* Badges above product name - same line */}
+                          {/* Badge de status */}
                           <div className="flex items-center gap-2 mb-2">
                             <Badge 
                               variant={product.isActive ? "default" : "destructive"}
@@ -1212,18 +1158,6 @@ export default function AdminProducts() {
                             >
                               {product.isActive ? "Ativo" : "Inativo"}
                             </Badge>
-                            {product.isFeatured && (
-                              <Badge variant="secondary" className="bg-accent text-white text-xs">
-                                <Star className="w-3 h-3 mr-1" />
-                                Destaque
-                              </Badge>
-                            )}
-                            {product.showInStories && (
-                              <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">
-                                <Eye className="w-3 h-3 mr-1" />
-                                Stories
-                              </Badge>
-                            )}
                           </div>
                           
                           {/* Product name */}
@@ -1250,28 +1184,6 @@ export default function AdminProducts() {
                           size="sm"
                           onClick={() => toggleMutation.mutate({
                             productId: product.id,
-                            field: "isFeatured",
-                            value: !product.isFeatured
-                          })}
-                          data-testid={`button-toggle-featured-${product.id}`}
-                          title={product.isFeatured ? "Remover destaque" : "Marcar como destaque"}
-                          className="flex-1 flex flex-col items-center py-2 hover:bg-transparent"
-                        >
-                          <div className={`p-1 rounded-full ${product.isFeatured ? 'bg-yellow-500' : 'bg-transparent'}`}>
-                            {product.isFeatured ? (
-                              <StarOff className="w-3 h-3 text-white" />
-                            ) : (
-                              <Star className="w-3 h-3 text-gray-400" />
-                            )}
-                          </div>
-                          <span className="text-xs mt-1 text-gray-500">Destaque</span>
-                        </Button>
-                        
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleMutation.mutate({
-                            productId: product.id,
                             field: "isActive",
                             value: !product.isActive
                           })}
@@ -1287,28 +1199,6 @@ export default function AdminProducts() {
                             )}
                           </div>
                           <span className="text-xs mt-1 text-gray-500">Ativo</span>
-                        </Button>
-                        
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleMutation.mutate({
-                            productId: product.id,
-                            field: "showInStories",
-                            value: !product.showInStories
-                          })}
-                          data-testid={`button-toggle-stories-${product.id}`}
-                          title={product.showInStories ? "Remover dos Stories" : "Adicionar aos Stories"}
-                          className="flex-1 flex flex-col items-center py-2 hover:bg-transparent"
-                        >
-                          <div className={`p-1 rounded-full ${product.showInStories ? 'bg-purple-500' : 'bg-transparent'}`}>
-                            {product.showInStories ? (
-                              <CircleX className="w-3 h-3 text-white" />
-                            ) : (
-                              <PlayCircle className="w-3 h-3 text-gray-400" />
-                            )}
-                          </div>
-                          <span className="text-xs mt-1 text-gray-500">Stories</span>
                         </Button>
                         
                         <Button
