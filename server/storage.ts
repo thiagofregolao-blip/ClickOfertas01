@@ -4239,7 +4239,7 @@ export class DatabaseStorage implements IStorage {
     // Duração média de sessões (em segundos) - sempre global
     const durationResult = await db
       .select({ 
-        avg: sql<number>`avg(case when ${userSessions.visitDuration} ~ '^[0-9]+$' then ${userSessions.visitDuration}::integer else 0 end)` 
+        avg: sql<number>`avg(case when ${userSessions.visitDuration} is not null and ${userSessions.visitDuration} > 0 then ${userSessions.visitDuration} else 0 end)` 
       })
       .from(userSessions)
       .where(gte(userSessions.createdAt, startDate));
