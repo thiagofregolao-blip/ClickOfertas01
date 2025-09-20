@@ -5682,7 +5682,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
         imageUrl: bankItem.primaryImageUrl || (bankItem.imageUrls?.[0] || ''),
         imageUrl2: bankItem.imageUrls?.[1] || null,
         imageUrl3: bankItem.imageUrls?.[2] || null,
-        category: bankItem.category || 'Celulares',
+        category: bankItem.category || 'Produtos',
         brand: bankItem.brand || '',
         productCode: bankItem.folderName,
         sourceType: 'bank' as const,
