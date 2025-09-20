@@ -73,6 +73,10 @@ import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProduc
 import { z } from "zod";
 import sharp from "sharp";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import OpenAI from 'openai';
+import { ensureIndex } from "../lib/vectorStore";
+import { searchSuggestions, buildItinerary } from "../lib/tools";
+import { maybeAttachPromo } from "../lib/promo";
 import bcrypt from "bcryptjs";
 import QRCode from "qrcode";
 import { apifyService, type PriceSearchResult } from "./apifyService";
@@ -6532,6 +6536,92 @@ Keep the overall composition and maintain the same visual quality. This is for a
     } catch (error) {
       console.error("Error getting banner CTR:", error);
       res.status(500).json({ error: "Failed to get banner CTR" });
+    }
+  });
+
+  // =============================================
+  // CLICK PRO IA - ASSISTENTE INTELIGENTE
+  // =============================================
+
+  // Configuração OpenAI para Click Pro
+  const REGION = process.env.REGION || 'CDE_FOZ';
+  const clickClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const CHAT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
+
+  // Prompt do Click (concierge regional)
+  const SYSTEM_PROMPT = `
+Você é o Click, concierge de compras/viagens focado em Ciudad del Este (lojas) e Foz do Iguaçu/CDE (hotelaria/restaurantes).
+- Priorize lojas/hotéis premium quando fizer sentido, sem inventar dados.
+- Roteiro: manhã compras principais, almoço prático, tarde complementos. Sem reservas: apenas exibir preço/localização/fotos.
+- Antifraude: nota fiscal/garantia, pagamento em PDV oficial, verificação de IMEI/lacres, atenção ao câmbio.
+Responda curto, claro, PT-BR.
+`;
+
+  // Health Check Click Pro
+  app.get('/api/click/health', (_req, res) => {
+    res.json({ ok: true, region: REGION });
+  });
+
+  // Index semântico (rodar uma vez ou quando atualizar produtos)
+  app.post('/api/click/index-products', async (_req, res) => {
+    try { 
+      await ensureIndex(); 
+      res.json({ ok: true }); 
+    }
+    catch (e) { 
+      console.error(e); 
+      res.status(500).json({ ok: false, error: 'Falha ao indexar' }); 
+    }
+  });
+
+  // Sugestões para a barra (produtos em alta/semânticos + top lojas premium-first) + raspadinha (opcional)
+  app.get('/api/click/suggest', async (req, res) => {
+    try {
+      const q = (req.query.q || '').toString();
+      const userId = (req.headers['x-user-id'] || '').toString();  // opcional para cooldown da raspadinha
+      const ip = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || '';
+
+      const data = await searchSuggestions(q);
+      const payload = { ok: true, ...data };
+
+      // Anexa raspadinha conforme regra (sua engine) — não bloqueia a resposta se falhar
+      await maybeAttachPromo({ payload, userId, ip, context: { route: 'suggest', query: q, category: data.category } });
+
+      res.json(payload);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ ok: false, error: 'Erro nas sugestões' });
+    }
+  });
+
+  // Chat do Click (Enter na barra) — responde texto + esqueleto de roteiro + raspadinha (opcional)
+  app.post('/api/click/chat', async (req, res) => {
+    try {
+      const wishlist = Array.isArray(req.body?.wishlist) ? req.body.wishlist : [];
+      const userMsg = (req.body?.message || '').toString().trim();
+      const userId = (req.headers['x-user-id'] || '').toString();
+      const ip = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || '';
+
+      const itinerary = await buildItinerary({ wishlist });
+
+      const messages = [
+        { role: 'system' as const, content: SYSTEM_PROMPT },
+        { role: 'user' as const, content: userMsg || "Monte um roteiro curto considerando minha lista." },
+        { role: 'system' as const, content: `Contexto (itinerário): ${JSON.stringify(itinerary)}` }
+      ];
+
+      const resp = await clickClient.chat.completions.create({
+        model: CHAT_MODEL, messages, temperature: 0.2
+      });
+
+      const payload = { ok: true, reply: resp.choices[0].message.content, itinerary };
+
+      await maybeAttachPromo({ payload, userId, ip, context: { route: 'chat', wishlist, message: userMsg } });
+
+      res.json(payload);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ ok: false, error: 'Erro no chat' });
     }
   });
 
