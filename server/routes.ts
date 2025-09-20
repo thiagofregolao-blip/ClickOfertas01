@@ -4790,7 +4790,12 @@ Keep the overall composition and maintain the same visual quality. This is for a
         targetStoreId = user.storeId;
       }
 
+      console.log('🔍 Analytics Debug:', { period, storeId, targetStoreId, userIsSuperAdmin: user?.isSuperAdmin });
+      
       const analyticsData = await storage.getAnalyticsOverview(period, targetStoreId);
+      
+      console.log('📊 Analytics Data:', JSON.stringify(analyticsData, null, 2));
+      
       res.json(analyticsData);
     } catch (error) {
       console.error('Error getting analytics overview:', error);
