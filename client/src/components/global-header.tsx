@@ -51,7 +51,7 @@ export default function GlobalHeader({
   const [, setLocation] = useLocation();
   
   const searchQuery = useDebounce(searchInput, 500);
-  const { trackEvent, sessionToken } = useAnalytics();
+  const analytics = useAnalytics();
   
   // Busca inteligente com Click Pro IA e fallback tradicional
   const { data: searchData, isLoading: isSearchLoading, searchMode } = useIntelligentSearch(
@@ -106,7 +106,7 @@ export default function GlobalHeader({
 
   // Capturar evento de busca
   useEffect(() => {
-    if (searchQuery && searchQuery.trim().length > 2 && sessionToken && searchData) {
+    if (searchQuery && searchQuery.trim().length > 2 && searchData) {
       // Determinar categoria mais comum nos resultados
       const categories = searchData.results
         ?.map(r => r.category)
@@ -117,14 +117,13 @@ export default function GlobalHeader({
           ) 
         : undefined;
 
-      trackEvent('search', {
-        sessionToken,
+      analytics.trackSearch({
         searchTerm: searchQuery,
-        category: mostCommonCategory,
+        category: mostCommonCategory || 'Geral',
         resultsCount: searchData.total || 0
       });
     }
-  }, [searchQuery, searchData, sessionToken, trackEvent]);
+  }, [searchQuery, searchData, analytics]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,7 +155,7 @@ export default function GlobalHeader({
               <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md mx-4">
                 <div className="relative">
                   {searchMode === 'intelligent' ? (
-                    <Brain className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4" title="Busca Inteligente IA" />
+                    <Brain className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4" />
                   ) : (
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   )}
@@ -223,8 +222,8 @@ export default function GlobalHeader({
               <Card key={`${result.type}-${result.data.id || index}`} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-0">
                   <SearchResultItem
-                    product={result.data}
-                    store={result.store}
+                    product={result.data as any}
+                    store={result.store as any}
                     searchTerm={searchQuery}
                     onClick={() => {
                       setLocation(`/product/${result.data.id}/compare`);
@@ -271,7 +270,7 @@ export default function GlobalHeader({
             <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md mx-4 relative">
               <div className="relative">
                 {searchMode === 'intelligent' ? (
-                  <Brain className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4" title="Busca Inteligente IA" />
+                  <Brain className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4" />
                 ) : (
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 )}
@@ -306,8 +305,8 @@ export default function GlobalHeader({
                     {searchResults.slice(0, 8).map((result, index) => (
                       <div key={`${result.type}-${result.data.id || index}`} className="mb-1">
                         <SearchResultItem
-                          product={result.data}
-                          store={result.store}
+                          product={result.data as any}
+                          store={result.store as any}
                           searchTerm={searchQuery}
                           onClick={() => {
                             setLocation(`/product/${result.data.id}/compare`);
