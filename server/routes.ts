@@ -5395,8 +5395,45 @@ Keep the overall composition and maintain the same visual quality. This is for a
 
         const zipPath = req.file.path;
         const zipFileName = req.file.filename;
+        const originalZipName = (req as any).originalZipName;
+
+        // Função auxiliar para extrair e garantir categoria do nome do ZIP
+        async function ensureCategoryFromZipName(zipFileName: string): Promise<string> {
+          // Extrair nome da categoria: "Acessorios Gamers.zip" → "Acessorios Gamers"
+          const categoryName = zipFileName.replace(/\.zip$/i, '').trim();
+          
+          if (!categoryName) {
+            return 'Produtos'; // Fallback para categoria padrão
+          }
+          
+          // Verificar se categoria já existe
+          const existingCategory = await storage.getCategoryByName(categoryName);
+          
+          if (existingCategory) {
+            console.log(`📂 Categoria existente encontrada: ${categoryName}`);
+            return categoryName;
+          }
+          
+          // Criar nova categoria
+          console.log(`📂 Criando nova categoria: ${categoryName}`);
+          const slug = categoryName.toLowerCase()
+            .replace(/[^a-z0-9\s]/g, '') // Remove caracteres especiais
+            .replace(/\s+/g, '-'); // Substitui espaços por hífens
+          
+          await storage.createCategory({
+            name: categoryName,
+            slug,
+            isActive: true,
+            sortOrder: 0
+          });
+          
+          return categoryName;
+        }
 
         try {
+          // Extrair categoria do nome do arquivo ZIP
+          const categoryFromZip = await ensureCategoryFromZipName(originalZipName || zipFileName);
+          
           // Processar o ZIP
           const zip = new AdmZip(zipPath);
           const entries = zip.getEntries();
@@ -5503,7 +5540,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
                 bankId: bank.id,
                 name: productInfo.name,
                 description,
-                category: productInfo.category,
+                category: categoryFromZip, // Usar categoria do nome do ZIP
                 brand: productInfo.brand,
                 model: productInfo.model,
                 color: productInfo.color,
