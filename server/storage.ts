@@ -370,8 +370,8 @@ export interface IStorage {
   // Analytics operations
   getSessionByToken(sessionToken: string): Promise<UserSession | undefined>;
   updateSession(sessionToken: string, updates: Partial<UserSession>): Promise<void>;
-  getTopProductsByViews(startDate: Date, storeId?: string): Promise<any[]>;
-  getTopSearches(startDate: Date, storeId?: string): Promise<any[]>;
+  getTopProductsByViews(period: string, storeId?: string, limit?: number): Promise<any[]>;
+  getTopSearchTerms(period: string, storeId?: string, limit?: number): Promise<any[]>;
   getBannerCTR(startDate: Date): Promise<any[]>;
   getSessionCount(startDate: Date, storeId?: string): Promise<number>;
   getProductViewCount(startDate: Date, storeId?: string): Promise<number>;
@@ -3740,13 +3740,6 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  // Buscar TODAS as lojas (para Super Admin)
-  async getAllStores(): Promise<any[]> {
-    return await db
-      .select()
-      .from(stores)
-      .orderBy(desc(stores.createdAt));
-  }
 
   // Buscar produtos por loja (para Super Admin)
   async getProductsByStoreId(storeId: string): Promise<any[]> {
@@ -4009,7 +4002,7 @@ export class DatabaseStorage implements IStorage {
 
   async searchProductBankItems(params: { q?: string; category?: string; offset?: number; limit?: number }): Promise<{ items: ProductBankItem[]; total: number }> {
     const { q = '', category, offset = 0, limit = 20 } = params;
-    let whereConditions: SQL<unknown>[] = [];
+    let whereConditions: any[] = [];
 
     // Adicionar filtro de busca por nome, descrição, marca ou modelo
     if (q && q.trim()) {
@@ -4054,7 +4047,7 @@ export class DatabaseStorage implements IStorage {
       .from(productBankItems)
       .orderBy(asc(productBankItems.category));
     
-    const categories = results.map(r => r.category).filter(Boolean);
+    const categories = results.map(r => r.category).filter(Boolean) as string[];
     
     // Adicionar "Todos" no início
     return ['Todos', ...categories];
@@ -4092,56 +4085,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userSessions.sessionToken, sessionToken));
   }
 
-  async getTopProductsByViews(startDate: Date, storeId?: string): Promise<any[]> {
-    const conditions = [gte(productViews.viewedAt, startDate)];
-    if (storeId) {
-      conditions.push(eq(productViews.storeId, storeId));
-    }
 
-    const result = await db
-      .select({
-        productId: productViews.productId,
-        productName: productViews.productName,
-        category: productViews.productCategory,
-        storeId: productViews.storeId,
-        storeName: productViews.storeName,
-        views: count(productViews.id),
-      })
-      .from(productViews)
-      .where(and(...conditions))
-      .groupBy(
-        productViews.productId,
-        productViews.productName,
-        productViews.productCategory,
-        productViews.storeId,
-        productViews.storeName
-      )
-      .orderBy(desc(count(productViews.id)))
-      .limit(20);
-
-    return result;
-  }
-
-  async getTopSearches(startDate: Date, storeId?: string): Promise<any[]> {
-    const conditions = [gte(productSearches.searchAt, startDate)];
-    if (storeId) {
-      conditions.push(eq(productSearches.storeId, storeId));
-    }
-
-    const result = await db
-      .select({
-        searchTerm: productSearches.searchTerm,
-        category: productSearches.category,
-        searches: count(productSearches.id),
-      })
-      .from(productSearches)
-      .where(and(...conditions))
-      .groupBy(productSearches.searchTerm, productSearches.category)
-      .orderBy(desc(count(productSearches.id)))
-      .limit(20);
-
-    return result;
-  }
 
   async getBannerCTR(startDate: Date): Promise<any[]> {
     // Subquery para views
@@ -4263,17 +4207,12 @@ export class DatabaseStorage implements IStorage {
 
   async getAnalyticsOverview(period: string, storeId?: string): Promise<any> {
     const startDate = this.getPeriodStartDate(period);
-    const conditions = [gte(userSessions.createdAt, startDate)];
     
-    if (storeId) {
-      conditions.push(eq(userSessions.ipHash, storeId)); // Usar outro campo para filtrar por loja
-    }
-
-    // Sessões totais
+    // Sessões totais (sempre globais - não podem ser filtradas por loja pois são anônimas)
     const sessionsResult = await db
       .select({ count: count(userSessions.id) })
       .from(userSessions)
-      .where(and(...conditions));
+      .where(gte(userSessions.createdAt, startDate));
 
     // Visualizações de produtos
     const viewsConditions = [gte(productViews.viewedAt, startDate)];
@@ -4297,13 +4236,13 @@ export class DatabaseStorage implements IStorage {
       .from(productSearches)
       .where(and(...searchesConditions));
 
-    // Duração média de sessões (em segundos)
+    // Duração média de sessões (em segundos) - sempre global
     const durationResult = await db
       .select({ 
         avg: sql<number>`avg(case when ${userSessions.visitDuration} ~ '^[0-9]+$' then ${userSessions.visitDuration}::integer else 0 end)` 
       })
       .from(userSessions)
-      .where(and(...conditions));
+      .where(gte(userSessions.createdAt, startDate));
 
     return {
       totalSessions: sessionsResult[0]?.count || 0,
@@ -4332,7 +4271,7 @@ export class DatabaseStorage implements IStorage {
         name: productViews.productName,
         storeName: productViews.storeName,
         viewCount: count(productViews.id),
-        clickCount: sql<number>`count(case when ${productViews.wasCompared} or ${productViews.wasSaved} then 1 end)`,
+        clickCount: sql<number>`count(case when ${productViews.wasCompared} = true or ${productViews.wasSaved} = true then 1 end)`,
       })
       .from(productViews)
       .where(and(...conditions))
@@ -4400,10 +4339,10 @@ export class DatabaseStorage implements IStorage {
     ]);
 
     // Combinar resultados
-    const bannerIds = [...new Set([
-      ...viewsResult.map(v => v.bannerId),
-      ...clicksResult.map(c => c.bannerId),
-    ])];
+    const viewBannerIds = viewsResult.map(v => v.bannerId);
+    const clickBannerIds = clicksResult.map(c => c.bannerId);
+    const allBannerIds = viewBannerIds.concat(clickBannerIds);
+    const bannerIds = Array.from(new Set(allBannerIds));
 
     return bannerIds.map(bannerId => {
       const views = viewsResult.find(v => v.bannerId === bannerId)?.views || 0;
