@@ -180,9 +180,6 @@ export default function AdminProducts() {
       imageUrl: "",
       imageUrl2: "",
       imageUrl3: "",
-      isFeatured: false,
-      showInStories: false,
-      showInTotem: false, // NOVO: Controle para exibição no totem
       isActive: true,
       // Campos de raspadinha
       isScratchCard: false,
@@ -243,7 +240,6 @@ export default function AdminProducts() {
         imageUrl: "",
         imageUrl2: "",
         imageUrl3: "",
-        isFeatured: false,
         isActive: true,
       });
     },
@@ -337,9 +333,6 @@ export default function AdminProducts() {
       imageUrl: "",
       imageUrl2: "",
       imageUrl3: "",
-      isFeatured: false,
-      showInStories: false,
-      showInTotem: false,
       isActive: true,
       // Campos de raspadinha - valores padrão
       isScratchCard: false,
@@ -362,9 +355,6 @@ export default function AdminProducts() {
       imageUrl: product.imageUrl || "",
       imageUrl2: product.imageUrl2 || "",
       imageUrl3: product.imageUrl3 || "",
-      isFeatured: product.isFeatured,
-      showInStories: product.showInStories || false,
-      showInTotem: product.showInTotem || false,
       isActive: product.isActive,
       // Campos de raspadinha
       isScratchCard: product.isScratchCard || false,
@@ -406,8 +396,6 @@ export default function AdminProducts() {
       'URL da Imagem 1': product.imageUrl || '',
       'URL da Imagem 2': product.imageUrl2 || '',
       'URL da Imagem 3': product.imageUrl3 || '',
-      'Em Destaque': product.isFeatured ? 'Sim' : 'Não',
-      'Nos Stories': product.showInStories ? 'Sim' : 'Não',
       'Ativo': product.isActive ? 'Sim' : 'Não'
     }));
 
@@ -456,7 +444,6 @@ export default function AdminProducts() {
           imageUrl: row['URL da Imagem 1'] || row['URL da Imagem'] || '',
           imageUrl2: row['URL da Imagem 2'] || '',
           imageUrl3: row['URL da Imagem 3'] || '',
-          isFeatured: row['Em Destaque'] === 'Sim',
           isActive: row['Ativo'] === 'Sim'
         }));
 
@@ -943,44 +930,7 @@ export default function AdminProducts() {
                       <Settings className="w-5 h-5 mr-2 text-purple-600" />
                       Configurações
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                        <Switch
-                          id="featured"
-                          checked={form.watch("isFeatured") || false}
-                          onCheckedChange={(checked) => form.setValue("isFeatured", checked)}
-                          data-testid="switch-featured"
-                        />
-                        <Label htmlFor="featured" className="text-yellow-800 font-medium">
-                          Produto em Destaque
-                        </Label>
-                      </div>
-
-                      <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                        <Switch
-                          id="stories"
-                          checked={form.watch("showInStories") || false}
-                          onCheckedChange={(checked) => form.setValue("showInStories", checked)}
-                          data-testid="switch-stories"
-                        />
-                        <Label htmlFor="stories" className="text-purple-800 font-medium">
-                          Mostrar nos Stories
-                        </Label>
-                      </div>
-
-                      {/* NOVO: Controle para Totem */}
-                      <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
-                        <Switch
-                          id="totem"
-                          checked={form.watch("showInTotem") || false}
-                          onCheckedChange={(checked) => form.setValue("showInTotem", checked)}
-                          data-testid="switch-totem"
-                        />
-                        <Label htmlFor="totem" className="text-orange-800 font-medium">
-                          Exibir no Totem
-                        </Label>
-                      </div>
-
+                    <div className="grid grid-cols-1 gap-4">
                       <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
                         <Switch
                           id="active"
