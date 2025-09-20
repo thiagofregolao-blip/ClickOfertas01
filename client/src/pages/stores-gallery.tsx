@@ -65,6 +65,8 @@ export default function StoresGallery() {
   const searchQuery = useDebounce(searchInput, 500); // Debounce de 500ms
   
   // Busca inteligente com Click Pro IA
+  console.log('🔍 StoresGallery - searchInput:', searchInput, 'searchQuery:', searchQuery, 'enabled:', !!searchQuery && searchQuery.trim().length >= 2);
+  
   const { data: intelligentSearchData, searchMode } = useIntelligentSearch(
     searchQuery,
     !!searchQuery && searchQuery.trim().length >= 2

@@ -1,0 +1,245 @@
+ocket connection to 'wss://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/?token=Ty5D6fJgRNyi' failed: 
+setupWebSocket @ client:536Understand this error
+api/analytics/session/update:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+icon-32x32.png:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+icon-16x16.png:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+icon-32x32.png:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/355d58e8-ddc3-4349-9faf-76d6e3da158c:1 Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/355d58e8-ddc3-4349-9faf-76d6e3da158c:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+icon-32x32.png:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+icon-32x32.png:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+icon-16x16.png:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+status:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+status:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+status:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/maintenance/status:1  Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+862 🔍 Hook executando - searchQuery:  enabled: false
+api/maintenance/status:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+ 🔍 Hook executando - searchQuery:  enabled: false
+ 🔍 Debug Click Pro IA: Object
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/maintenance/status:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+ 🔍 Hook executando - searchQuery:  enabled: false
+ 🔍 Debug Click Pro IA: Object
+api/categories:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+ 🔍 Hook executando - searchQuery:  enabled: false
+ 🔍 Debug Click Pro IA: Object
+api/banners/active:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 503 (Service Unavailable)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+ 🔍 Hook executando - searchQuery:  enabled: false
+ 🔍 Debug Click Pro IA: Object
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+ 🔍 Hook executando - searchQuery:  enabled: false
+ 🔍 Debug Click Pro IA: Object
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+ 🔍 Hook executando - searchQuery:  enabled: false
+ 🔍 Debug Click Pro IA: Object
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+ 🔍 Hook executando - searchQuery:  enabled: false
+ 🔍 Debug Click Pro IA: Object
+api/categories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/public/stores:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/banners/active:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/instagram-stories:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+ 🔍 Hook executando - searchQuery:  enabled: false
+ 🔍 Debug Click Pro IA: Object
+4 🔍 Hook executando - searchQuery:  enabled: false
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+ 🔍 Hook executando - searchQuery:  enabled: false
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+24 🔍 Hook executando - searchQuery:  enabled: false
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+4 🔍 Hook executando - searchQuery:  enabled: false
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+59 🔍 Hook executando - searchQuery:  enabled: false
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+30 🔍 Hook executando - searchQuery:  enabled: false
+69 🔍 Hook executando - searchQuery:  enabled: false
+ 🔍 Hook executando - searchQuery:  enabled: false
+6 🔍 Hook executando - searchQuery:  enabled: false
+ 🔍 Hook executando - searchQuery: iphone enabled: true
+ 🔍 Debug Click Pro IA: {isError: false, data: undefined, isLoading: true, searchQuery: 'iphone', enabled: true}
+ 🔍 Hook executando - searchQuery: iphone enabled: true
+  POST https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/api/analytics/search 500 (Internal Server Error)
+trackProductSearch @ src/lib/analytics.ts:116
+trackSearch @ src/lib/analytics.ts:210
+(anonymous) @ src/pages/stores-gallery.tsx:455
+commitHookEffectListMount @ @fs/home/runner/work…js?v=5413741f:16915
+commitPassiveMountOnFiber @ @fs/home/runner/work…js?v=5413741f:18156
+commitPassiveMountEffects_complete @ @fs/home/runner/work…js?v=5413741f:18129
+commitPassiveMountEffects_begin @ @fs/home/runner/work…js?v=5413741f:18119
+commitPassiveMountEffects @ @fs/home/runner/work…js?v=5413741f:18109
+flushPassiveEffectsImpl @ @fs/home/runner/work…js?v=5413741f:19490
+flushPassiveEffects @ @fs/home/runner/work…js?v=5413741f:19447
+(anonymous) @ @fs/home/runner/work…js?v=5413741f:19328
+workLoop @ @fs/home/runner/work…N.js?v=5413741f:197
+flushWork @ @fs/home/runner/work…N.js?v=5413741f:176
+performWorkUntilDeadline @ @fs/home/runner/work…N.js?v=5413741f:384Understand this error
+ 🔍 Hook executando - searchQuery: iphone enabled: true
+ 🔍 Debug Click Pro IA: {isError: false, data: {…}, isLoading: false, searchQuery: 'iphone', enabled: true}
+  POST https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/api/analytics/search 500 (Internal Server Error)
+trackProductSearch @ src/lib/analytics.ts:116
+trackSearch @ src/lib/analytics.ts:210
+(anonymous) @ src/pages/stores-gallery.tsx:455
+commitHookEffectListMount @ @fs/home/runner/work…js?v=5413741f:16915
+commitPassiveMountOnFiber @ @fs/home/runner/work…js?v=5413741f:18156
+commitPassiveMountEffects_complete @ @fs/home/runner/work…js?v=5413741f:18129
+commitPassiveMountEffects_begin @ @fs/home/runner/work…js?v=5413741f:18119
+commitPassiveMountEffects @ @fs/home/runner/work…js?v=5413741f:18109
+flushPassiveEffectsImpl @ @fs/home/runner/work…js?v=5413741f:19490
+flushPassiveEffects @ @fs/home/runner/work…js?v=5413741f:19447
+commitRootImpl @ @fs/home/runner/work…js?v=5413741f:19416
+commitRoot @ @fs/home/runner/work…js?v=5413741f:19277
+performSyncWorkOnRoot @ @fs/home/runner/work…js?v=5413741f:18895
+flushSyncCallbacks @ @fs/home/runner/work….js?v=5413741f:9119
+(anonymous) @ @fs/home/runner/work…js?v=5413741f:18627
+setTimeout
+scheduleFn @ @fs/home/runner/work…y.js?v=5413741f:555
+flush @ @fs/home/runner/work…y.js?v=5413741f:569
+batch @ @fs/home/runner/work…y.js?v=5413741f:587
+dispatch_fn @ @fs/home/runner/work…y.js?v=5413741f:996
+setData @ @fs/home/runner/work…y.js?v=5413741f:696
+onSuccess @ @fs/home/runner/work…y.js?v=5413741f:897
+resolve @ @fs/home/runner/work…y.js?v=5413741f:456
+Promise.then
+run @ @fs/home/runner/work…y.js?v=5413741f:498
+start @ @fs/home/runner/work…y.js?v=5413741f:536
+fetch @ @fs/home/runner/work…y.js?v=5413741f:926
+executeFetch_fn @ @fs/home/runner/work….js?v=5413741f:2211
+setOptions @ @fs/home/runner/work….js?v=5413741f:1955
+(anonymous) @ @fs/home/runner/work….js?v=5413741f:3032
+commitHookEffectListMount @ @fs/home/runner/work…js?v=5413741f:16915
+commitPassiveMountOnFiber @ @fs/home/runner/work…js?v=5413741f:18156
+commitPassiveMountEffects_complete @ @fs/home/runner/work…js?v=5413741f:18129
+commitPassiveMountEffects_begin @ @fs/home/runner/work…js?v=5413741f:18119
+commitPassiveMountEffects @ @fs/home/runner/work…js?v=5413741f:18109
+flushPassiveEffectsImpl @ @fs/home/runner/work…js?v=5413741f:19490
+flushPassiveEffects @ @fs/home/runner/work…js?v=5413741f:19447
+(anonymous) @ @fs/home/runner/work…js?v=5413741f:19328
+workLoop @ @fs/home/runner/work…N.js?v=5413741f:197
+flushWork @ @fs/home/runner/work…N.js?v=5413741f:176
+performWorkUntilDeadline @ @fs/home/runner/work…N.js?v=5413741f:384Understand this error
