@@ -52,6 +52,8 @@ interface ClickProResponse {
 export function useIntelligentSearch(searchQuery: string, enabled: boolean = true) {
   const [useFallback, setUseFallback] = useState(false);
   
+  console.log('🔍 Hook executando - searchQuery:', searchQuery, 'enabled:', enabled);
+  
   // Reset fallback quando mudamos o termo de busca
   useEffect(() => {
     setUseFallback(false);
