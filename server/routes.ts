@@ -5316,6 +5316,8 @@ Keep the overall composition and maintain the same visual quality. This is for a
         cb(null, uploadDir);
       },
       filename: (req, file, cb) => {
+        // Preservar nome original para extrair categoria
+        (req as any).originalZipName = file.originalname;
         const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}.zip`;
         cb(null, uniqueName);
       }
