@@ -1,13 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, BarChart3, X } from "lucide-react";
+import { Search, BarChart3, X, Brain } from "lucide-react";
 import { useTypewriter } from "@/hooks/use-typewriter";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useAnalytics } from "@/lib/analytics";
+import { useIntelligentSearch } from "@/hooks/use-intelligent-search";
 import { SearchResultItem } from "@/components/search-result-item";
 import { StoreResultItem } from "@/components/store-result-item";
 import type { StoreWithProducts } from "@shared/schema";
@@ -53,21 +53,20 @@ export default function GlobalHeader({
   const searchQuery = useDebounce(searchInput, 500);
   const { trackEvent, sessionToken } = useAnalytics();
   
-  // Busca server-side otimizada
-  const { data: searchData, isLoading: isSearchLoading } = useQuery<SearchResponse>({
-    queryKey: [`/api/search?q=${encodeURIComponent(searchQuery)}`],
-    enabled: !!searchQuery && searchQuery.trim().length >= 2,
-    staleTime: 2 * 60 * 1000, // 2 minutes cache
-  });
+  // Busca inteligente com Click Pro IA e fallback tradicional
+  const { data: searchData, isLoading: isSearchLoading, searchMode } = useIntelligentSearch(
+    searchQuery,
+    !!searchQuery && searchQuery.trim().length >= 2
+  );
   
-  // Frases para placeholder dinâmico
+  // Frases para placeholder dinâmico - otimizadas para IA
   const typewriterPhrases = [
-    "Produtos em promoção...",
-    "Eletrônicos importados...",
-    "Perfumes originais...",
-    "Ofertas imperdíveis...",
-    "Lojas do Paraguay...",
-    "Preços especiais..."
+    "celular Apple barato...",
+    "perfume feminino original...",
+    "notebook gamer...",
+    "presente para mulher...",
+    "eletrônico importado...",
+    "oferta imperdível..."
   ];
   
   const { currentText } = useTypewriter({ 
@@ -156,7 +155,11 @@ export default function GlobalHeader({
               {/* Barra de Busca */}
               <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md mx-4">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  {searchMode === 'intelligent' ? (
+                    <Brain className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4" title="Busca Inteligente IA" />
+                  ) : (
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  )}
                   <Input
                     type="text"
                     value={searchInput}
@@ -267,7 +270,11 @@ export default function GlobalHeader({
             {/* Barra de Busca */}
             <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md mx-4 relative">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                {searchMode === 'intelligent' ? (
+                  <Brain className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4" title="Busca Inteligente IA" />
+                ) : (
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                )}
                 <Input
                   type="text"
                   value={searchInput}
