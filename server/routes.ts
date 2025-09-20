@@ -6539,39 +6539,6 @@ Keep the overall composition and maintain the same visual quality. This is for a
     }
   });
 
-  // GET /api/analytics/reports/overview - Visão geral das métricas
-  app.get("/api/analytics/reports/overview", isSuperAdmin, async (req, res) => {
-    try {
-      const period = String(req.query.period || "7d");
-      const storeId = req.query.storeId as string | undefined;
-      
-      const days = period === "24h" ? 1 : period === "30d" ? 30 : 7;
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
-
-      const [sessions, productViews, searches, bannerViews] = await Promise.all([
-        storage.getSessionCount(startDate, storeId),
-        storage.getProductViewCount(startDate, storeId),
-        storage.getSearchCount(startDate, storeId),
-        storage.getBannerViewCount(startDate),
-      ]);
-
-      res.json({
-        success: true,
-        period,
-        metrics: {
-          sessions,
-          productViews,
-          searches,
-          bannerViews,
-        },
-      });
-    } catch (error) {
-      console.error("Error getting analytics overview:", error);
-      res.status(500).json({ error: "Failed to get analytics overview" });
-    }
-  });
-
   const httpServer = createServer(app);
   return httpServer;
 }
