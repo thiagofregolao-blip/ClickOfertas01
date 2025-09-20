@@ -75,11 +75,19 @@ export function useIntelligentSearch(searchQuery: string, enabled: boolean = tru
 
   // Se Click Pro IA falhar, ativar fallback
   useEffect(() => {
+    console.log('🔍 Debug Click Pro IA:', {
+      isError: clickProQuery.isError,
+      data: clickProQuery.data,
+      isLoading: clickProQuery.isLoading,
+      searchQuery,
+      enabled: enabled && !!searchQuery && searchQuery.trim().length >= 2 && !useFallback
+    });
+    
     if (clickProQuery.isError || (clickProQuery.data && !clickProQuery.data.ok)) {
       console.log('🔄 Click Pro IA falhou, usando busca tradicional como fallback');
       setUseFallback(true);
     }
-  }, [clickProQuery.isError, clickProQuery.data]);
+  }, [clickProQuery.isError, clickProQuery.data, clickProQuery.isLoading, searchQuery, enabled, useFallback]);
 
   // Adaptar resposta do Click Pro IA para o formato esperado
   const adaptClickProResponse = (data: ClickProResponse): SearchResponse => {
