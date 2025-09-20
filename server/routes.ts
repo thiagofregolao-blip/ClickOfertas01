@@ -5853,22 +5853,10 @@ Keep the overall composition and maintain the same visual quality. This is for a
     if (!text || text.trim() === '') return text;
 
     try {
-      const { callVertexAI } = await import('../gemini.js');
-      
-      const prompt = `Traduza o seguinte texto do espanhol para o português brasileiro, mantendo o contexto de produto/tecnologia e usando linguagem natural e fluente. Retorne apenas a tradução:
-
-${text}`;
-
-      const body = {
-        contents: [
-          { role: "user", parts: [{ text: prompt }] }
-        ]
-      };
-
-      const response = await callVertexAI('gemini-1.5-flash', body);
-      const translation = response.candidates?.[0]?.content?.parts?.[0]?.text;
-      
-      return translation?.trim() || text;
+      // Temporariamente desabilitado - retorna texto original
+      // TODO: Corrigir integração com Gemini
+      console.log('⚠️  Tradução temporariamente desabilitada - retornando texto original');
+      return text;
     } catch (error) {
       console.error('Erro na tradução Gemini:', error);
       return text; // Retorna o texto original em caso de erro
