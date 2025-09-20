@@ -2034,7 +2034,7 @@ export default function SuperAdmin() {
         </div>
 
         <Tabs defaultValue="banners" className="w-full">
-          <TabsList className="grid w-full grid-cols-10">
+          <TabsList className="grid w-full grid-cols-11">
             <TabsTrigger value="banners" className="flex items-center gap-2">
               <Image className="w-4 h-4" />
               Banners
@@ -2054,6 +2054,10 @@ export default function SuperAdmin() {
             <TabsTrigger value="stats" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Estatísticas
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <Activity className="w-4 h-4" />
+              Analytics
             </TabsTrigger>
             <TabsTrigger value="ai-test" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
@@ -3550,6 +3554,30 @@ export default function SuperAdmin() {
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-gray-600" />
+                  Estatísticas Antigas
+                </CardTitle>
+                <CardDescription>
+                  Métricas legadas do sistema (descontinuadas)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <p className="text-gray-500 mb-4">
+                    As estatísticas antigas foram substituídas pelo novo sistema de Analytics
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    Use a aba "Analytics" para ver as métricas modernas
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-6">
             <SuperAdminAnalytics />
           </TabsContent>
 
