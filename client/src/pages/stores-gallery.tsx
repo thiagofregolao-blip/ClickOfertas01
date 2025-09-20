@@ -19,6 +19,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useTypewriter } from "@/hooks/use-typewriter";
 import { useAnalytics } from "@/lib/analytics";
+import { useIntelligentSearch } from "@/hooks/use-intelligent-search";
 import { LazyImage } from "@/components/lazy-image";
 import { SearchResultItem } from "@/components/search-result-item";
 import { StoreResultItem } from "@/components/store-result-item";
@@ -63,6 +64,12 @@ export default function StoresGallery() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const searchQuery = useDebounce(searchInput, 500); // Debounce de 500ms
   
+  // Busca inteligente com Click Pro IA
+  const { data: intelligentSearchData, searchMode } = useIntelligentSearch(
+    searchQuery,
+    !!searchQuery && searchQuery.trim().length >= 2
+  );
+  
   // Buscar categorias ativas do backend
   const { data: categories = [], isLoading: categoriesLoading } = useQuery<{id: string; name: string; slug: string; sortOrder: number}[]>({
     queryKey: ['/api/categories'],
@@ -78,16 +85,14 @@ export default function StoresGallery() {
   }, [urlSearch]);
 
   
-  // Frases para efeito de digitação automática
+  // Frases para efeito de digitação automática - otimizadas para IA
   const typewriterPhrases = [
-    "Encontre as melhores lojas...",
-    "Produtos em promoção...", 
-    "Eletrônicos importados...",
-    "Perfumes originais...",
-    "Ofertas imperdíveis...",
-    "Lojas do Paraguay...",
-    "Produtos de qualidade...",
-    "Preços especiais..."
+    "celular Apple barato...",
+    "perfume feminino original...", 
+    "notebook gamer...",
+    "presente para mulher...",
+    "eletrônico importado...",
+    "oferta imperdível..."
   ];
   
   const { currentText } = useTypewriter({ 
@@ -469,9 +474,38 @@ export default function StoresGallery() {
     });
   }, [stores, searchQuery, selectedCategory, hasProductsToday, categories]);
 
-  // Criar resultados de busca combinados com memoização
+  // Criar resultados de busca combinados com memoização - Busca Inteligente
   const searchResults = useMemo(() => {
-    if (!searchQuery.trim() || !stores) return [];
+    if (!searchQuery.trim()) return [];
+    
+    // Se temos dados da busca inteligente, usar eles
+    if (intelligentSearchData && intelligentSearchData.results.length > 0) {
+      return intelligentSearchData.results.map(result => ({
+        type: 'product' as const,
+        data: {
+          ...result,
+          store: {
+            id: result.storeId,
+            name: result.storeName,
+            logoUrl: result.storeLogoUrl,
+            slug: result.storeSlug,
+            themeColor: result.storeThemeColor,
+            isPremium: result.storePremium
+          }
+        },
+        store: {
+          id: result.storeId,
+          name: result.storeName,
+          logoUrl: result.storeLogoUrl,
+          slug: result.storeSlug,
+          themeColor: result.storeThemeColor,
+          isPremium: result.storePremium
+        }
+      }));
+    }
+    
+    // Fallback: busca local tradicional
+    if (!stores) return [];
     
     const query = searchQuery.toLowerCase();
     const results: Array<{ type: 'store' | 'product', data: any, store: any }> = [];
@@ -505,7 +539,7 @@ export default function StoresGallery() {
       }
       return 0;
     });
-  }, [searchQuery, stores]);
+  }, [searchQuery, stores, intelligentSearchData]);
 
   // Capturar evento de busca no stores gallery (após declaração das variáveis)
   useEffect(() => {

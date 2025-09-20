@@ -1,7 +1,7 @@
 import { useState, ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, X } from "lucide-react";
+import { Search, X, Brain } from "lucide-react";
 import { useScrollDetection } from "@/hooks/use-scroll-detection";
 
 interface TwoPartHeaderProps {
@@ -17,6 +17,7 @@ interface TwoPartHeaderProps {
   showNotifications?: boolean;
   notificationCount?: number;
   onNotificationClick?: () => void;
+  searchMode?: 'intelligent' | 'traditional';
   
   // Segunda parte - Menu deslizante
   children?: ReactNode;
@@ -49,6 +50,7 @@ export function TwoPartHeader({
   showNotifications = true,
   notificationCount = 0,
   onNotificationClick,
+  searchMode = 'traditional',
   children,
   gradient = "linear-gradient(135deg, #F04940 0%, #FA7D22 100%)",
   className = "",
@@ -123,7 +125,11 @@ export function TwoPartHeader({
             {showSearch && (
               <div className="flex-1 max-w-4xl">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  {searchMode === 'intelligent' ? (
+                    <Brain className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4" title="Busca Inteligente IA" />
+                  ) : (
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  )}
                   <Input
                     placeholder={searchPlaceholder}
                     value={searchInput}
