@@ -344,6 +344,7 @@ export interface IStorage {
   getAllCategories(): Promise<Category[]>;
   getActiveCategories(): Promise<Category[]>;
   getCategoryById(id: string): Promise<Category | undefined>;
+  getCategoryByName(name: string): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
   updateCategory(id: string, category: UpdateCategory): Promise<Category>;
   deleteCategory(id: string): Promise<void>;

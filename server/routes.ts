@@ -5399,30 +5399,45 @@ Keep the overall composition and maintain the same visual quality. This is for a
 
         // Função auxiliar para extrair e garantir categoria do nome do ZIP
         async function ensureCategoryFromZipName(zipFileName: string): Promise<string> {
-          // Extrair nome da categoria: "Acessorios Gamers.zip" → "Acessorios Gamers"
-          const categoryName = zipFileName.replace(/\.zip$/i, '').trim();
+          // Extrair nome da categoria: "Acessorios Gamers.zip" → "Acessórios Gamers"
+          let categoryName = zipFileName.replace(/\.zip$/i, '').trim();
           
           if (!categoryName) {
             return 'Produtos'; // Fallback para categoria padrão
           }
           
-          // Verificar se categoria já existe
-          const existingCategory = await storage.getCategoryByName(categoryName);
+          // Normalizar o nome da categoria
+          categoryName = categoryName
+            .replace(/[-_]/g, ' ') // Converte - e _ para espaços
+            .replace(/\s+/g, ' ') // Remove espaços duplos
+            .trim()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' '); // Capitaliza cada palavra
+          
+          // Verificar se categoria já existe (busca case-insensitive)
+          const allCategories = await storage.getAllCategories();
+          const existingCategory = allCategories.find(cat => 
+            cat.name.toLowerCase() === categoryName.toLowerCase()
+          );
           
           if (existingCategory) {
-            console.log(`📂 Categoria existente encontrada: ${categoryName}`);
-            return categoryName;
+            console.log(`📂 Categoria existente encontrada: ${existingCategory.name}`);
+            return existingCategory.name; // Retorna o nome exato da categoria existente
           }
           
           // Criar nova categoria
           console.log(`📂 Criando nova categoria: ${categoryName}`);
           const slug = categoryName.toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Remove acentos
             .replace(/[^a-z0-9\s]/g, '') // Remove caracteres especiais
-            .replace(/\s+/g, '-'); // Substitui espaços por hífens
+            .replace(/\s+/g, '-') // Substitui espaços por hífens
+            .replace(/^-+|-+$/g, ''); // Remove hífens do início/fim
           
           await storage.createCategory({
             name: categoryName,
-            slug,
+            slug: slug || 'categoria',
             isActive: true,
             sortOrder: 0
           });
