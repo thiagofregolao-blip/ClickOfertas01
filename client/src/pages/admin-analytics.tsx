@@ -94,7 +94,7 @@ export default function AdminAnalytics() {
 
   // Buscar dados de analytics principais
   const { data: analyticsData, isLoading: analyticsLoading, refetch } = useQuery<AnalyticsOverview>({
-    queryKey: ['/api/analytics/reports/overview', selectedPeriod, selectedStore, refreshKey],
+    queryKey: [`/api/analytics/reports/overview?period=${selectedPeriod}&storeId=${selectedStore === 'all' ? '' : selectedStore}`, refreshKey],
     enabled: !!(user?.isSuperAdmin || user?.hasStore),
     staleTime: 30000, // Cache por 30 segundos
   });
