@@ -1,0 +1,42 @@
+[
+  {
+    "id": "p-iphone15",
+    "storeId": "store-1",
+    "title": "iPhone 15 128GB",
+    "description": "Câmeras avançadas e excelente desempenho.",
+    "category": "eletronicos",
+    "price": { "USD": 899 },
+    "rating": 4.8,
+    "tags": ["apple", "iphone", "camera"]
+  },
+  {
+    "id": "p-galaxy-s24",
+    "storeId": "store-1",
+    "title": "Samsung Galaxy S24",
+    "description": "Processador topo e bateria otimizada.",
+    "category": "eletronicos",
+    "price": { "USD": 799 },
+    "rating": 4.7,
+    "tags": ["samsung", "android"]
+  },
+  {
+    "id": "p-jbl-510bt",
+    "storeId": "store-2",
+    "title": "Fone JBL 510BT",
+    "description": "Bluetooth leve, boa bateria e som equilibrado.",
+    "category": "audio",
+    "price": { "USD": 49 },
+    "rating": 4.4,
+    "tags": ["jbl", "bluetooth", "barato"]
+  },
+  {
+    "id": "p-perfume-1",
+    "storeId": "store-3",
+    "title": "Perfume Lux Eau de Parfum 100ml",
+    "description": "Aroma marcante e fixação prolongada.",
+    "category": "perfumes",
+    "price": { "USD": 65 },
+    "rating": 4.6,
+    "tags": ["perfume", "luxo", "presente"]
+  }
+]

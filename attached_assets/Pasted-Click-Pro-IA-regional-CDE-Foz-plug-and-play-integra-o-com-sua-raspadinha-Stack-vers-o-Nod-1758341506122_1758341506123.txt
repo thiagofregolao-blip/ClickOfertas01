@@ -1,0 +1,888 @@
+Click Pro — IA regional (CDE/Foz) plug-and-play + integração com sua raspadinha
+
+Stack & versão: Node.js 18+
+
+Projeto completo e robusto, pronto para o Replit, para plugar na barra de busca do seu app.
+Inclui: API Express (/suggest, /chat, /index-products), índice semântico, priorização de lojas premium, roteiros regionais e hook opcional para sua raspadinha já existente (sem reimplementar).
+
+Árvore de diretórios
+click-pro/
+├─ .replit
+├─ replit.nix
+├─ package.json
+├─ index.js
+├─ lib/
+│  ├─ embed.js
+│  ├─ vectorStore.js
+│  ├─ tools.js
+│  └─ promo.js               # integração OPCIONAL com sua raspadinha
+├─ data/
+│  ├─ stores.json
+│  ├─ products.json
+│  ├─ hotels.json
+│  ├─ restaurants.json
+│  └─ product_embeddings.json  # gerado
+├─ web/
+│  ├─ SearchBarClick.tsx
+│  └─ useSpeech.ts
+├─ .env.example
+├─ __tests__/
+│  └─ api.test.js
+
+Arquivos
+# click-pro/.replit
+run = "npm install && npm run start"
+
+# click-pro/replit.nix
+{ pkgs }: {
+  deps = [
+    pkgs.nodejs-18_x
+    pkgs.nodePackages.npm
+  ];
+}
+
+// click-pro/package.json
+{
+  "name": "click-pro",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Click Pro: Busca IA regional (CDE/Foz) com roteiros + gancho de raspadinha - Replit Ready",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "jest -c"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.58.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  }
+}
+
+# click-pro/.env.example
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+PORT=3000
+CHAT_MODEL=gpt-4o-mini
+EMBED_MODEL=text-embedding-3-small
+TOP_K=6
+REGION=CDE_FOZ
+
+# Integração OPCIONAL com sua raspadinha existente:
+PROMO_ENABLED=true
+PROMO_ENDPOINT=https://seu-dominio.com/promo/evaluate   # GET ou POST; ver lib/promo.js
+PROMO_AUTH_BEARER=YOUR_PROMO_TOKEN                      # se precisar
+PROMO_SHOW_RATE=8                                       # % fallback local se endpoint não responder
+PROMO_COOLDOWN_HOURS=24                                 # throttle local por userId/ip
+
+// click-pro/index.js
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import OpenAI from 'openai';
+import { ensureIndex } from './lib/vectorStore.js';
+import { searchSuggestions, buildItinerary } from './lib/tools.js';
+import { maybeAttachPromo } from './lib/promo.js';
+
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: '1mb' }));
+
+const REGION = process.env.REGION || 'CDE_FOZ';
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const CHAT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
+
+// Prompt do Click (concierge regional)
+const SYSTEM_PROMPT = `
+Você é o Click, concierge de compras/viagens focado em Ciudad del Este (lojas) e Foz do Iguaçu/CDE (hotelaria/restaurantes).
+- Priorize lojas/hotéis premium quando fizer sentido, sem inventar dados.
+- Roteiro: manhã compras principais, almoço prático, tarde complementos. Sem reservas: apenas exibir preço/localização/fotos.
+- Antifraude: nota fiscal/garantia, pagamento em PDV oficial, verificação de IMEI/lacres, atenção ao câmbio.
+Responda curto, claro, PT-BR.
+`;
+
+// Health
+app.get('/health', (_req, res) => res.json({ ok: true, region: REGION }));
+
+// Index semântico (rodar uma vez ou quando atualizar produtos)
+app.post('/index-products', async (_req, res) => {
+  try { await ensureIndex(); res.json({ ok: true }); }
+  catch (e) { console.error(e); res.status(500).json({ ok: false, error: 'Falha ao indexar' }); }
+});
+
+// Sugestões para a barra (produtos em alta/semânticos + top lojas premium-first) + raspadinha (opcional)
+app.get('/suggest', async (req, res) => {
+  try {
+    const q = (req.query.q || '').toString();
+    const userId = (req.headers['x-user-id'] || '').toString();  // opcional para cooldown da raspadinha
+    const ip = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || '';
+
+    const data = await searchSuggestions(q);
+    const payload = { ok: true, ...data };
+
+    // Anexa raspadinha conforme regra (sua engine) — não bloqueia a resposta se falhar
+    await maybeAttachPromo({ payload, userId, ip, context: { route: 'suggest', query: q, category: data.category } });
+
+    res.json(payload);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false, error: 'Erro nas sugestões' });
+  }
+});
+
+// Chat do Click (Enter na barra) — responde texto + esqueleto de roteiro + raspadinha (opcional)
+app.post('/chat', async (req, res) => {
+  try {
+    const wishlist = Array.isArray(req.body?.wishlist) ? req.body.wishlist : [];
+    const userMsg = (req.body?.message || '').toString().trim();
+    const userId = (req.headers['x-user-id'] || '').toString();
+    const ip = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || '';
+
+    const itinerary = await buildItinerary({ wishlist });
+
+    const messages = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: userMsg || "Monte um roteiro curto considerando minha lista." },
+      { role: 'system', content: `Contexto (itinerário): ${JSON.stringify(itinerary)}` }
+    ];
+
+    const resp = await client.chat.completions.create({
+      model: CHAT_MODEL, messages, temperature: 0.2
+    });
+
+    const payload = { ok: true, reply: resp.choices[0].message.content, itinerary };
+
+    await maybeAttachPromo({ payload, userId, ip, context: { route: 'chat', wishlist, message: userMsg } });
+
+    res.json(payload);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false, error: 'Erro no chat' });
+  }
+});
+
+const PORT = Number(process.env.PORT || 3000);
+app.listen(PORT, () => {
+  console.log(`🚀 Click Pro API em http://localhost:${PORT}`);
+  console.log(`GET /health | POST /index-products | GET /suggest?q=... | POST /chat`);
+});
+
+// click-pro/lib/embed.js
+// Embeddings (OpenAI) + similaridade (cosseno)
+import OpenAI from 'openai';
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const EMBED_MODEL = process.env.EMBED_MODEL || 'text-embedding-3-small';
+
+export async function embedText(text) {
+  const input = (text || '').replace(/\s+/g, ' ').trim();
+  if (!input) return [];
+  const r = await client.embeddings.create({ model: EMBED_MODEL, input });
+  return r.data[0].embedding;
+}
+
+export function cosineSim(a, b) {
+  if (!a?.length || !b?.length || a.length !== b.length) return 0;
+  let dot = 0, na = 0, nb = 0;
+  for (let i = 0; i < a.length; i++) { dot += a[i]*b[i]; na += a[i]*a[i]; nb += b[i]*b[i]; }
+  return dot / (Math.sqrt(na) * Math.sqrt(nb));
+}
+
+// click-pro/lib/vectorStore.js
+// Índice vetorial simples (arquivo) — use DB vetorial depois se quiser escalar.
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { embedText, cosineSim } from './embed.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DATA_PRODUCTS = path.join(__dirname, '..', 'data', 'products.json');
+const EMBED_PATH    = path.join(__dirname, '..', 'data', 'product_embeddings.json');
+
+async function readJson(p){ const raw = await fs.readFile(p,'utf-8'); return JSON.parse(raw); }
+async function writeJson(p,d){ await fs.writeFile(p, JSON.stringify(d,null,2),'utf-8'); }
+
+export async function buildIndex() {
+  const products = await readJson(DATA_PRODUCTS);
+  const out = [];
+  for (const p of products) {
+    const text = `${p.title}\n${p.description||''}\n${(p.tags||[]).join(', ')}`;
+    const vec = await embedText(text);
+    out.push({ ...p, vector: vec });
+  }
+  await writeJson(EMBED_PATH, out);
+  return out.length;
+}
+
+export async function loadIndex() {
+  try { return await readJson(EMBED_PATH); } catch { return []; }
+}
+
+export async function ensureIndex() {
+  const idx = await loadIndex();
+  if (!idx.length) await buildIndex();
+  return true;
+}
+
+export async function semanticProducts(query, { topK = 6, category, storeId } = {}) {
+  const idx = await loadIndex();
+  if (!idx.length) throw new Error('Índice vazio. Rode POST /index-products');
+  const qvec = await embedText(query);
+  const filtered = idx.filter(p =>
+    (!category || p.category === category) &&
+    (!storeId || p.storeId === storeId)
+  );
+  const scored = filtered.map(p => ({ p, score: cosineSim(qvec, p.vector) }));
+  scored.sort((a,b)=> b.score - a.score);
+  return scored.slice(0, topK).map(s => ({ ...s.p, score: Number(s.score.toFixed(4)) }));
+}
+
+// click-pro/lib/tools.js
+// Lógica regional (CDE/Foz): top lojas (premium-first), produtos em alta, hotéis/restaurantes e roteiro.
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { ensureIndex, semanticProducts, loadIndex } from './vectorStore.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const STORES = path.join(__dirname, '..', 'data', 'stores.json');
+const HOTELS = path.join(__dirname, '..', 'data', 'hotels.json');
+const RESTS  = path.join(__dirname, '..', 'data', 'restaurants.json');
+
+async function readJson(p){ const raw = await fs.readFile(p,'utf-8'); return JSON.parse(raw); }
+
+export async function listStores(){ return await readJson(STORES); }
+export async function listHotels(){ return await readJson(HOTELS); }
+export async function listRestaurants(){ return await readJson(RESTS); }
+
+/** Top lojas por categoria: slots Patrocinados + orgânico com boost de plano */
+export async function topStores({ category, limit = 5 }) {
+  const stores = await listStores();
+  const now = new Date().toISOString();
+  const sponsored = stores.filter(s =>
+    s.sponsored && (!s.sponsored_until || s.sponsored_until >= now) &&
+    (!category || (s.categories||[]).includes(category))
+  );
+  const organic = stores.filter(s => !s.sponsored && (!category || (s.categories||[]).includes(category)));
+
+  function baseScore(s){ return (s.rating || 0) + Math.min((s.reviews||0)/1000, 1); }
+  function withBoost(s){
+    const boost = s.boost ?? (s.plan === 'premium' ? 0.3 : s.plan === 'enterprise' ? 0.6 : 0);
+    return baseScore(s) * (1 + boost);
+  }
+
+  sponsored.sort((a,b)=> withBoost(b) - withBoost(a));
+  organic.sort((a,b)=> withBoost(b) - withBoost(a));
+
+  const topSponsored = sponsored.slice(0, Math.min(2, limit));
+  const remaining = Math.max(0, limit - topSponsored.length);
+  const topOrganic = organic.slice(0, remaining);
+
+  return [
+    ...topSponsored.map(s => ({ ...s, label: "Patrocinado" })),
+    ...topOrganic.map(s => ({ ...s, label: s.plan === 'premium' ? "Premium" : undefined }))
+  ];
+}
+
+/** Produtos em alta (MVP): rating + bônus se a loja é premium */
+export async function trendingProducts({ category, limit = 6 }) {
+  await ensureIndex();
+  const idx = await loadIndex();
+  let items = idx;
+  if (category) items = items.filter(p => p.category === category);
+  const storeMap = new Map((await listStores()).map(s => [s.id, s]));
+  items.sort((a,b)=>{
+    const sa = storeMap.get(a.storeId); const sb = storeMap.get(b.storeId);
+    const ba = (a.rating||0) + ((sa?.plan==='premium') ? 0.2 : 0);
+    const bb = (b.rating||0) + ((sb?.plan==='premium') ? 0.2 : 0);
+    return bb - ba;
+  });
+  return items.slice(0, limit);
+}
+
+/** Categoria por heurística simples a partir do texto */
+function guessCategory(q) {
+  const t = (q||'').toLowerCase();
+  if (/(iphone|iphone 1[0-9]|samsung|galaxy|xiaomi|celular|smartphone)/.test(t)) return 'eletronicos';
+  if (/(fone|headphone|jbl|sony|audio|soundbar)/.test(t)) return 'audio';
+  if (/(perfume|eau|parfum|cosm[eé]ticos)/.test(t)) return 'perfumes';
+  return undefined;
+}
+
+/** Sugestões combinadas para a barra de busca */
+export async function searchSuggestions(q) {
+  const qClean = (q||'').trim();
+  const categoryHint = guessCategory(qClean);
+  const [tops, trends] = await Promise.all([
+    topStores({ category: categoryHint, limit: 5 }),
+    qClean ? semanticProducts(qClean, { topK: 6, category: categoryHint }) : trendingProducts({ category: categoryHint, limit: 6 })
+  ]);
+  return { category: categoryHint, topStores: tops, products: trends };
+}
+
+/** Roteiro resumido (sem reserva) */
+export async function buildItinerary({ wishlist = [] }) {
+  const categories = Array.from(new Set(wishlist.map(w => w.category).filter(Boolean)));
+  const storeBlocks = [];
+  for (const c of categories) storeBlocks.push({ category: c, stores: await topStores({ category: c, limit: 3 }) });
+
+  const hotels = await listHotels();
+  const hotelsSorted = [...hotels].sort((a,b)=> (b.boost||0) - (a.boost||0)); // premium primeiro
+
+  const restaurants = await listRestaurants();
+  const restSorted = [...restaurants].sort((a,b)=> (b.rating||0) - (a.rating||0));
+
+  const timeline = [
+    { period: "manhã",   focus: categories[0] || "compras", note: "Comece pelos itens mais disputados (eletrônicos/perfumes)." },
+    { period: "almoço",  focus: "gastronomia", suggestion: restSorted.slice(0,1) },
+    { period: "tarde",   focus: categories[1] || "compras", note: "Finalize lembranças e itens menores próximos à saída." }
+  ];
+
+  return {
+    summary: "Roteiro regional em CDE/Foz baseado na sua lista.",
+    timeline,
+    storeBlocks,
+    hotels: hotelsSorted.slice(0,3),
+    tips: [
+      "Prefira lojas formais (nota fiscal/garantia).",
+      "Pague no PDV oficial; evite QR/links de terceiros.",
+      "Verifique lacres/IMEI em eletrônicos. Compare câmbio efetivo."
+    ]
+  };
+}
+
+// click-pro/lib/promo.js
+// Integração OPCIONAL com sua raspadinha já existente.
+// - Se PROMO_ENABLED=false, nada é feito.
+// - Se PROMO_ENABLED=true, tenta consultar PROMO_ENDPOINT (timeout curto).
+// - Se o endpoint falhar, aplica fallback leve: probabilidade local + cooldown por user/ip.
+// Obs.: NÃO implementa geração/redenção (você já tem). Só agrega o "bloco" scratchcard no payload.
+
+const PROMO_ENABLED = String(process.env.PROMO_ENABLED || 'false').toLowerCase() === 'true';
+const PROMO_ENDPOINT = process.env.PROMO_ENDPOINT || '';
+const PROMO_AUTH_BEARER = process.env.PROMO_AUTH_BEARER || '';
+const PROMO_SHOW_RATE = Number(process.env.PROMO_SHOW_RATE || 8); // %
+const PROMO_COOLDOWN_HOURS = Number(process.env.PROMO_COOLDOWN_HOURS || 24);
+
+// memória simples p/ cooldown; em produção use Redis
+const lastShowMap = new Map(); // key=userId|ip -> timestamp
+
+function eligibleByCooldown(key){
+  if (!key) return true;
+  const last = lastShowMap.get(key) || 0;
+  const now = Date.now();
+  const ms = PROMO_COOLDOWN_HOURS * 3600 * 1000;
+  if (now - last > ms) { lastShowMap.set(key, now); return true; }
+  return false;
+}
+
+async function callPromoEndpoint({ userId, ip, context }) {
+  if (!PROMO_ENDPOINT) return null;
+  const controller = new AbortController();
+  const t = setTimeout(()=> controller.abort(), 1500); // timeout curto
+  const headers = { 'Content-Type': 'application/json' };
+  if (PROMO_AUTH_BEARER) headers['Authorization'] = `Bearer ${PROMO_AUTH_BEARER}`;
+
+  // envia contexto mínimo — ajuste se seu endpoint espera GET com querystring
+  const resp = await fetch(PROMO_ENDPOINT, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ userId, ip, context }),
+    signal: controller.signal
+  }).catch(()=> null);
+  clearTimeout(t);
+  if (!resp || !resp.ok) return null;
+  const data = await resp.json().catch(()=> null);
+  // Esperado: { show: boolean, scratchcard?: {...} }
+  return data;
+}
+
+export async function maybeAttachPromo({ payload, userId, ip, context }) {
+  try {
+    if (!PROMO_ENABLED) return payload;
+
+    // 1) tenta sua engine primeiro
+    const api = await callPromoEndpoint({ userId, ip, context });
+    if (api?.show && api?.scratchcard) {
+      payload.scratchcard = api.scratchcard;
+      return payload;
+    }
+
+    // 2) fallback local bem simples
+    const key = userId || ip || '';
+    const roll = Math.random() * 100;
+    if (roll <= PROMO_SHOW_RATE && eligibleByCooldown(key)) {
+      // placeholder minimalista; sua UI usará o block real do seu backend quando disponível
+      payload.scratchcard = {
+        id: 'fallback-local',
+        titulo: 'Raspadinha Click',
+        parceiro: 'Parceiro Premium',
+        beneficio: 'Surpresa exclusiva',
+        expira_em: null,
+        selo: 'Patrocinado',
+        token: null,
+        resgatar_em: []
+      };
+    }
+    return payload;
+  } catch {
+    return payload; // nunca derruba a busca
+  }
+}
+
+// click-pro/data/stores.json
+[
+  {
+    "id": "store-1",
+    "name": "TechPrime CDE",
+    "plan": "premium",
+    "boost": 0.3,
+    "sponsored": false,
+    "categories": ["eletronicos", "acessorios"],
+    "rating": 4.7,
+    "reviews": 1120,
+    "formal": true,
+    "invoice": true,
+    "warranty": true,
+    "lat": -25.5095,
+    "lng": -54.6110,
+    "hours": { "mon_fri": "08:00-18:00", "sat": "08:00-16:00", "sun": "closed" },
+    "mall": "Shopping X",
+    "currencies": ["BRL","USD","PYG"]
+  },
+  {
+    "id": "store-2",
+    "name": "Casa&Som CDE",
+    "plan": "free",
+    "boost": 0,
+    "sponsored": false,
+    "categories": ["audio", "casa-inteligente"],
+    "rating": 4.4,
+    "reviews": 540,
+    "formal": true,
+    "invoice": true,
+    "warranty": true,
+    "lat": -25.5089,
+    "lng": -54.6100,
+    "hours": { "mon_fri": "08:30-18:00", "sat": "08:30-16:00", "sun": "closed" },
+    "mall": "Galeria Y",
+    "currencies": ["BRL","USD","PYG"]
+  },
+  {
+    "id": "store-3",
+    "name": "PerfumeLux CDE",
+    "plan": "premium",
+    "boost": 0.3,
+    "sponsored": true,
+    "sponsored_until": "2030-01-01",
+    "categories": ["perfumes", "cosmeticos"],
+    "rating": 4.6,
+    "reviews": 860,
+    "formal": true,
+    "invoice": true,
+    "warranty": false,
+    "lat": -25.5099,
+    "lng": -54.6120,
+    "hours": { "mon_fri": "08:00-18:00", "sat": "08:00-16:00", "sun": "closed" },
+    "mall": "Shopping Z",
+    "currencies": ["BRL","USD","PYG"]
+  }
+]
+
+// click-pro/data/products.json
+[
+  {
+    "id": "p-iphone15",
+    "storeId": "store-1",
+    "title": "iPhone 15 128GB",
+    "description": "Câmeras avançadas e excelente desempenho.",
+    "category": "eletronicos",
+    "price": { "USD": 899 },
+    "rating": 4.8,
+    "tags": ["apple", "iphone", "camera"]
+  },
+  {
+    "id": "p-galaxy-s24",
+    "storeId": "store-1",
+    "title": "Samsung Galaxy S24",
+    "description": "Processador topo e bateria otimizada.",
+    "category": "eletronicos",
+    "price": { "USD": 799 },
+    "rating": 4.7,
+    "tags": ["samsung", "android"]
+  },
+  {
+    "id": "p-jbl-510bt",
+    "storeId": "store-2",
+    "title": "Fone JBL 510BT",
+    "description": "Bluetooth leve, boa bateria e som equilibrado.",
+    "category": "audio",
+    "price": { "USD": 49 },
+    "rating": 4.4,
+    "tags": ["jbl", "bluetooth", "barato"]
+  },
+  {
+    "id": "p-perfume-1",
+    "storeId": "store-3",
+    "title": "Perfume Lux Eau de Parfum 100ml",
+    "description": "Aroma marcante e fixação prolongada.",
+    "category": "perfumes",
+    "price": { "USD": 65 },
+    "rating": 4.6,
+    "tags": ["perfume", "luxo", "presente"]
+  }
+]
+
+// click-pro/data/hotels.json
+[
+  {
+    "id": "hotel-1",
+    "name": "Hotel Centro Foz",
+    "plan": "premium",
+    "boost": 0.3,
+    "stars": 4,
+    "amenities": ["wifi","cafe","estacionamento"],
+    "avg_price": { "BRL": 350 },
+    "lat": -25.5426,
+    "lng": -54.5854,
+    "city": "Foz do Iguaçu"
+  },
+  {
+    "id": "hotel-2",
+    "name": "Hotel Ponte CDE",
+    "plan": "free",
+    "boost": 0,
+    "stars": 3,
+    "amenities": ["wifi"],
+    "avg_price": { "BRL": 230 },
+    "lat": -25.5090,
+    "lng": -54.6115,
+    "city": "Ciudad del Este"
+  }
+]
+
+// click-pro/data/restaurants.json
+[
+  {
+    "id": "rest-1",
+    "name": "Parrilla del Centro",
+    "cuisine": "parrilla",
+    "avg_price": { "BRL": 80 },
+    "rating": 4.5,
+    "lat": -25.5420,
+    "lng": -54.5850,
+    "city": "Foz do Iguaçu",
+    "tags": ["familia","carne"]
+  },
+  {
+    "id": "rest-2",
+    "name": "Café da Ponte",
+    "cuisine": "cafeteria",
+    "avg_price": { "BRL": 35 },
+    "rating": 4.3,
+    "lat": -25.5092,
+    "lng": -54.6125,
+    "city": "Ciudad del Este",
+    "tags": ["rapido","cafe"]
+  }
+]
+
+// click-pro/web/useSpeech.ts
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+type SpeechState = 'idle' | 'listening' | 'error' | 'unsupported';
+
+export function useSpeechRecognition() {
+  const [state, setState] = useState<SpeechState>('idle');
+  const [transcript, setTranscript] = useState('');
+  const recRef = useRef<any>(null);
+
+  const isSupported = typeof window !== 'undefined' &&
+    (('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window));
+
+  useEffect(() => {
+    if (!isSupported) { setState('unsupported'); return; }
+    const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const rec = new SR();
+    rec.lang = 'pt-BR';
+    rec.interimResults = true;
+    rec.continuous = false;
+
+    rec.onstart = () => setState('listening');
+    rec.onerror = () => setState('error');
+    rec.onend = () => setState('idle');
+    rec.onresult = (e: any) => {
+      let finalTxt = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        finalTxt += e.results[i][0].transcript;
+      }
+      setTranscript(finalTxt);
+    };
+
+    recRef.current = rec;
+    return () => rec?.abort?.();
+  }, [isSupported]);
+
+  const start = useCallback(() => {
+    if (recRef.current && isSupported) {
+      setTranscript('');
+      recRef.current.start();
+    }
+  }, [isSupported]);
+
+  const stop = useCallback(() => { recRef.current?.stop?.(); }, []);
+
+  return { state, transcript, start, stop, isSupported };
+}
+
+// click-pro/web/SearchBarClick.tsx
+import React, { useEffect, useRef, useState } from 'react';
+import { useSpeechRecognition } from './useSpeech';
+
+type Store = { id:string; name:string; label?:string; plan?:string; mall?:string };
+type Product = { id:string; title:string; category?:string; price?:any; storeId?:string; score?:number };
+type SuggestResponse = { ok:boolean; category?:string; topStores:Store[]; products:Product[]; scratchcard?: any };
+
+export interface SearchBarClickProps {
+  placeholder?: string;
+  onSubmit?: (query: string) => void;     // navegar p/ sua página de resultados
+  onOpenChat?: (query: string) => void;   // abrir chat do Click (opcional)
+  onScratchOpen?: (scratch:any)=> void;   // exibir sua raspadinha (opcional)
+}
+
+/** Barra de busca do Click — efeito de foco + voz + sugestões + hook de raspadinha.
+ *  Plug-and-play: consome /suggest e /chat do mesmo host (Replit).
+ */
+export const SearchBarClick: React.FC<SearchBarClickProps> = ({
+  placeholder="Fale com o Click: iPhone e perfume em CDE",
+  onSubmit, onOpenChat, onScratchOpen
+}) => {
+  const [value, setValue] = useState('');
+  const [focused, setFocused] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [sug, setSug] = useState<SuggestResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { state, transcript, start, stop, isSupported } = useSpeechRecognition();
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(()=> { if (transcript) setValue(transcript); }, [transcript]);
+
+  useEffect(()=> {
+    const handler = (e: MouseEvent) => {
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener('mousedown', handler);
+    return ()=> window.removeEventListener('mousedown', handler);
+  }, []);
+
+  async function fetchSuggestions(q: string){
+    try{
+      setLoading(true);
+      const r = await fetch(`/suggest?q=${encodeURIComponent(q)}`, {
+        headers: { 'x-user-id': localStorage.getItem('uid') || '' }
+      });
+      const data = await r.json();
+      setSug(data);
+      setOpen(true);
+      // se vier raspadinha e houver handler, chama (você já tem a UI)
+      if (data?.scratchcard && onScratchOpen) onScratchOpen(data.scratchcard);
+    }finally{ setLoading(false); }
+  }
+
+  useEffect(()=> {
+    const q = value.trim();
+    if (!q) { setSug(null); setOpen(false); return; }
+    const t = setTimeout(()=> fetchSuggestions(q), 220); // debounce leve
+    return ()=> clearTimeout(t);
+  }, [value]);
+
+  function handleSubmit(e: React.FormEvent){
+    e.preventDefault();
+    const q = value.trim();
+    if (!q) return;
+    if (onSubmit) onSubmit(q);
+    else if (onOpenChat) onOpenChat(q);
+    else {
+      fetch('/chat',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-user-id': localStorage.getItem('uid') || ''},
+        body: JSON.stringify({ message: q })
+      })
+      .then(r=>r.json())
+      .then(resp=>{
+        console.log(resp);
+        if (resp?.scratchcard && onScratchOpen) onScratchOpen(resp.scratchcard);
+      });
+    }
+    setOpen(false);
+  }
+
+  return (
+    <div ref={boxRef} className="relative">
+      <form onSubmit={handleSubmit}
+        className={`flex items-center gap-2 rounded-2xl px-4 py-2 transition-all
+          ${focused ? 'shadow-[0_0_0_3px_rgba(59,130,246,0.35)] scale-[1.01]' : 'shadow'} bg-white`}>
+        <input
+          value={value}
+          onChange={(e)=>setValue(e.target.value)}
+          onFocus={()=>setFocused(true)}
+          onBlur={()=>setFocused(false)}
+          placeholder={placeholder}
+          className="flex-1 outline-none text-base"
+        />
+        <button type="submit" className="px-3 py-1 rounded-lg bg-black text-white hover:opacity-90">Buscar</button>
+        {isSupported && (
+          <button type="button" onClick={state==='listening'? stop : start}
+            title="Busca por voz"
+            className={`px-3 py-1 rounded-lg border transition-colors ${state==='listening' ? 'bg-red-600 text-white' : 'bg-white hover:bg-gray-100'}`}>
+            {state==='listening' ? '● Gravando' : '🎤'}
+          </button>
+        )}
+      </form>
+
+      {open && sug && (
+        <div className="absolute z-50 mt-2 w-full rounded-xl border bg-white shadow-lg p-3">
+          <div className="text-xs text-gray-500 mb-2">
+            {loading ? 'Carregando…' : (sug.category ? `Sugestões — categoria: ${sug.category}` : 'Sugestões')}
+          </div>
+
+          {sug.topStores?.length > 0 && (
+            <div className="mb-3">
+              <div className="text-sm font-semibold mb-1">Melhores lojas</div>
+              <div className="grid grid-cols-1 gap-1">
+                {sug.topStores.map((s,i)=>(
+                  <div key={s.id} className="flex items-center justify-between px-2 py-1 rounded-lg hover:bg-gray-50 cursor-pointer"
+                       onMouseDown={(e)=> e.preventDefault()}
+                       onClick={()=> setValue(s.name)}>
+                    <div className="truncate">
+                      {i<2 && s.label ? <span className="mr-2 text-[10px] px-1 py-0.5 rounded bg-amber-100 border border-amber-300">{s.label}</span> : null}
+                      {s.name}
+                    </div>
+                    {s.mall ? <span className="text-xs text-gray-500">{s.mall}</span> : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {sug.products?.length > 0 && (
+            <div>
+              <div className="text-sm font-semibold mb-1">Produtos em alta</div>
+              <div className="grid grid-cols-1 gap-1">
+                {sug.products.map((p)=>(
+                  <div key={p.id} className="px-2 py-1 rounded-lg hover:bg-gray-50 cursor-pointer"
+                       onMouseDown={(e)=> e.preventDefault()}
+                       onClick={()=> setValue(p.title)}>
+                    <div className="truncate">{p.title}</div>
+                    {p.category ? <div className="text-xs text-gray-500">{p.category}</div> : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {(sug.topStores?.length===0 && sug.products?.length===0) && (
+            <div className="text-sm text-gray-500">Sem sugestões agora. Tente outro termo.</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// click-pro/__tests__/api.test.js
+import request from 'supertest';
+const BASE = 'http://localhost:3000';
+
+describe('API Click Pro', ()=>{
+  it('health ok', async ()=>{
+    const r = await request(BASE).get('/health');
+    expect(r.statusCode).toBe(200);
+    expect(r.body.ok).toBe(true);
+  });
+
+  it('suggest ok', async ()=>{
+    const r = await request(BASE).get('/suggest').query({ q: 'iphone' });
+    expect(r.statusCode).toBe(200);
+    expect(r.body.ok).toBe(true);
+    expect(Array.isArray(r.body.topStores)).toBe(true);
+  });
+
+  it('chat ok', async ()=>{
+    const r = await request(BASE).post('/chat').send({ message: 'roteiro 1 dia para eletrônicos e perfumes' });
+    expect(r.statusCode).toBe(200);
+    expect(r.body.ok).toBe(true);
+    expect(typeof r.body.reply).toBe('string');
+  });
+});
+
+Como rodar (Replit)
+
+Crie um Repl (Node.js) e cole a pasta click-pro/.
+
+Duplique .env.example → .env e preencha:
+
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+
+(opcional) habilite a raspadinha: PROMO_ENABLED=true, PROMO_ENDPOINT=https://…, PROMO_AUTH_BEARER=…
+
+Clique Run (usa .replit).
+
+Gere o índice (primeira vez):
+
+curl -X POST http://localhost:3000/index-products
+
+
+Teste:
+
+curl "http://localhost:3000/health"
+curl "http://localhost:3000/suggest?q=iphone"
+curl -X POST http://localhost:3000/chat -H "Content-Type: application/json" -d '{"message":"roteiro tech+perfume"}'
+
+Como plugar na sua barra de busca (React)
+// Exemplo no seu Header
+import { SearchBarClick } from '/web/SearchBarClick';
+
+export default function Header() {
+  return (
+    <div className="p-3 bg-gray-50">
+      <SearchBarClick
+        onOpenChat={(q) => {
+          fetch('/chat', {
+            method:'POST',
+            headers:{'Content-Type':'application/json','x-user-id': localStorage.getItem('uid') || ''},
+            body: JSON.stringify({ message: q })
+          })
+          .then(r=>r.json())
+          .then(resp=>{
+            console.log(resp.reply, resp.itinerary);
+            // Renderize seu chat/modal com resp.reply e cards do resp.itinerary
+          });
+        }}
+        onScratchOpen={(scratch)=>{
+          // Você já tem a raspadinha: chame seu modal aqui
+          // ex.: openScratchModal(scratch)
+          console.log('raspadinha pronta', scratch);
+        }}
+      />
+    </div>
+  );
+}
+
+Notas/Recomendações
+
+Raspadinha: já que seu código está pronto, este projeto só anexa o bloco scratchcard quando sua engine permitir (ou fallback leve controlado por ENV). Nada conflita com sua implementação.
+
+Prioridade Premium: controlada por plan/boost/sponsored em data/stores.json (mesma ideia para hotéis).
+
+Regional: mantido em REGION=CDE_FOZ.
+
+Privacidade: não envie PII ao provedor de IA; use apenas x-user-id anônimo para cooldown de promo.
+
+Escala: quando quiser, troque o índice em arquivo por Qdrant/Pinecone/Weaviate — a API permanece igual.

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "hotel-1",
+    "name": "Hotel Centro Foz",
+    "plan": "premium",
+    "boost": 0.3,
+    "stars": 4,
+    "amenities": ["wifi","cafe","estacionamento"],
+    "avg_price": { "BRL": 350 },
+    "lat": -25.5426,
+    "lng": -54.5854,
+    "city": "Foz do Iguaçu"
+  },
+  {
+    "id": "hotel-2",
+    "name": "Hotel Ponte CDE",
+    "plan": "free",
+    "boost": 0,
+    "stars": 3,
+    "amenities": ["wifi"],
+    "avg_price": { "BRL": 230 },
+    "lat": -25.5090,
+    "lng": -54.6115,
+    "city": "Ciudad del Este"
+  }
+]

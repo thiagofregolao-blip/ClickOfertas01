@@ -1,0 +1,24 @@
+[
+  {
+    "id": "rest-1",
+    "name": "Parrilla del Centro",
+    "cuisine": "parrilla",
+    "avg_price": { "BRL": 80 },
+    "rating": 4.5,
+    "lat": -25.5420,
+    "lng": -54.5850,
+    "city": "Foz do Iguaçu",
+    "tags": ["familia","carne"]
+  },
+  {
+    "id": "rest-2",
+    "name": "Café da Ponte",
+    "cuisine": "cafeteria",
+    "avg_price": { "BRL": 35 },
+    "rating": 4.3,
+    "lat": -25.5092,
+    "lng": -54.6125,
+    "city": "Ciudad del Este",
+    "tags": ["rapido","cafe"]
+  }
+]
