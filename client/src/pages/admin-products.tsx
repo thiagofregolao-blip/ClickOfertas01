@@ -18,7 +18,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Edit, Trash2, Star, StarOff, Eye, EyeOff, ChevronLeft, ChevronRight, Upload, Download, FileSpreadsheet, Package, Camera, Settings, PlayCircle, CircleX, Gift, Clock } from "lucide-react";
-import type { Store, Product, InsertProduct, ProductBankItem } from "@shared/schema";
+import type { Store, Product, InsertProduct, ProductBankItem, Category } from "@shared/schema";
 import { z } from "zod";
 import { PhotoCapture } from "@/components/PhotoCapture";
 import { ProductBankSearchModal } from "@/components/ProductBankSearchModal";
@@ -162,12 +162,21 @@ export default function AdminProducts() {
     retry: false,
   });
 
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+  });
+
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       name: "",
       description: "",
       price: "",
+      category: "Produtos",
       imageUrl: "",
       imageUrl2: "",
       imageUrl3: "",
@@ -230,6 +239,7 @@ export default function AdminProducts() {
         name: "",
         description: "",
         price: "",
+        category: categories.length > 0 ? categories[0].name : "Produtos",
         imageUrl: "",
         imageUrl2: "",
         imageUrl3: "",
@@ -323,6 +333,7 @@ export default function AdminProducts() {
       name: "",
       description: "",
       price: "",
+      category: categories.length > 0 ? categories[0].name : "Produtos",
       imageUrl: "",
       imageUrl2: "",
       imageUrl3: "",
@@ -347,6 +358,7 @@ export default function AdminProducts() {
       name: product.name,
       description: product.description || "",
       price: product.price,
+      category: product.category || (categories.length > 0 ? categories[0].name : "Produtos"),
       imageUrl: product.imageUrl || "",
       imageUrl2: product.imageUrl2 || "",
       imageUrl3: product.imageUrl3 || "",
@@ -390,7 +402,7 @@ export default function AdminProducts() {
       'Nome do Produto': product.name,
       'Descrição': product.description || '',
       'Preço': product.price,
-      'Categoria': product.category || 'Perfumaria',
+      'Categoria': product.category || 'Produtos',
       'URL da Imagem 1': product.imageUrl || '',
       'URL da Imagem 2': product.imageUrl2 || '',
       'URL da Imagem 3': product.imageUrl3 || '',
@@ -440,7 +452,7 @@ export default function AdminProducts() {
           name: row['Nome do Produto'] || '',
           description: row['Descrição'] || '',
           price: String(row['Preço'] || '0').replace(/[^0-9.,]/g, '').replace(/\./g, '').replace(',', '.'),
-          category: row['Categoria'] || 'Perfumaria',
+          category: row['Categoria'] || 'Produtos',
           imageUrl: row['URL da Imagem 1'] || row['URL da Imagem'] || '',
           imageUrl2: row['URL da Imagem 2'] || '',
           imageUrl3: row['URL da Imagem 3'] || '',
@@ -509,6 +521,13 @@ export default function AdminProducts() {
   useEffect(() => {
     setCurrentPage(1);
   }, [filter, search]);
+
+  // Inicializar categoria quando categorias carregarem
+  useEffect(() => {
+    if (categories.length > 0 && !form.watch("category") && !editingProduct) {
+      form.setValue("category", categories[0].name);
+    }
+  }, [categories, form, editingProduct]);
 
   // Cálculos de paginação
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
@@ -705,17 +724,25 @@ export default function AdminProducts() {
                       <div className="space-y-2">
                         <Label htmlFor="category" className="text-gray-700 font-medium">Categoria</Label>
                         <Select 
-                          value={form.watch("category") || "Perfumaria"} 
+                          value={form.watch("category")} 
                           onValueChange={(value) => form.setValue("category", value)}
+                          disabled={categoriesLoading}
                         >
                           <SelectTrigger className="border-gray-300 focus:border-blue-500" data-testid="select-product-category">
-                            <SelectValue />
+                            <SelectValue placeholder={categoriesLoading ? "Carregando..." : "Selecione uma categoria"} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Perfumaria">Perfumaria</SelectItem>
-                            <SelectItem value="Bebidas">Bebidas</SelectItem>
-                            <SelectItem value="Eletrônica">Eletrônica</SelectItem>
-                            <SelectItem value="Cosméticos">Cosméticos</SelectItem>
+                            {categoriesLoading ? (
+                              <SelectItem value="" disabled>Carregando categorias...</SelectItem>
+                            ) : categories.length > 0 ? (
+                              categories.map((category) => (
+                                <SelectItem key={category.id} value={category.name}>
+                                  {category.name}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="Produtos">Produtos</SelectItem>
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
