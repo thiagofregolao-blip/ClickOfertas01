@@ -55,7 +55,6 @@ interface ClickProResponse {
 export function useIntelligentSearch(searchQuery: string, enabled: boolean = true) {
   const [useFallback, setUseFallback] = useState(false);
   
-  console.log('🔍 Hook executando - searchQuery:', searchQuery, 'enabled:', enabled);
   
   // Reset fallback quando mudamos o termo de busca
   useEffect(() => {
@@ -66,10 +65,8 @@ export function useIntelligentSearch(searchQuery: string, enabled: boolean = tru
   const clickProQuery = useQuery<ClickProResponse>({
     queryKey: [`/api/click/suggest`, { q: searchQuery }],
     queryFn: async () => {
-      console.log('🚀 Fazendo request para Click Pro IA com query:', searchQuery);
       const response = await fetch(`/api/click/suggest?q=${encodeURIComponent(searchQuery)}`);
       const data = await response.json();
-      console.log('📈 Resposta da Click Pro IA:', data);
       return data;
     },
     enabled: enabled && !!searchQuery && searchQuery.trim().length >= 2 && !useFallback,
@@ -87,16 +84,7 @@ export function useIntelligentSearch(searchQuery: string, enabled: boolean = tru
 
   // Se Click Pro IA falhar, ativar fallback
   useEffect(() => {
-    console.log('🔍 Debug Click Pro IA:', {
-      isError: clickProQuery.isError,
-      data: clickProQuery.data,
-      isLoading: clickProQuery.isLoading,
-      searchQuery,
-      enabled: enabled && !!searchQuery && searchQuery.trim().length >= 2 && !useFallback
-    });
-    
     if (clickProQuery.isError || (clickProQuery.data && !clickProQuery.data.ok)) {
-      console.log('🔄 Click Pro IA falhou, usando busca tradicional como fallback');
       setUseFallback(true);
     }
   }, [clickProQuery.isError, clickProQuery.data, clickProQuery.isLoading, searchQuery, enabled, useFallback]);
@@ -109,7 +97,6 @@ export function useIntelligentSearch(searchQuery: string, enabled: boolean = tru
 
     // Verificar se temos produtos na resposta atual
     if (data.products && data.products.length > 0) {
-      console.log('🔄 Adaptando formato atual da API (products) para SearchResponse');
       
       const results: SearchResult[] = data.products.map((product: any) => ({
         id: product.id || '',
@@ -126,7 +113,6 @@ export function useIntelligentSearch(searchQuery: string, enabled: boolean = tru
         storePremium: product.store?.isPremium || product.storePremium || false,
       }));
 
-      console.log('✅ Adaptação concluída:', results);
       return {
         results,
         total: results.length,
@@ -136,7 +122,6 @@ export function useIntelligentSearch(searchQuery: string, enabled: boolean = tru
 
     // Formato antigo (suggestions) para compatibilidade
     if (data.suggestions && data.suggestions.length > 0) {
-      console.log('🔄 Usando formato antigo (suggestions)');
       
       const results: SearchResult[] = data.suggestions.map(suggestion => ({
         id: suggestion.id,
