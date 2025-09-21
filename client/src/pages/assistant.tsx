@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { useAssistantChat } from '@/hooks/use-assistant-chat';
 import { 
   MessageCircle, 
   Sparkles, 
@@ -16,15 +17,9 @@ import {
   TrendingUp,
   Heart,
   ShoppingCart,
-  Plane
+  Plane,
+  Loader2
 } from 'lucide-react';
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-}
 
 interface Product {
   id: string;
@@ -36,46 +31,32 @@ interface Product {
 }
 
 export default function Assistant() {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
   const [spotlightProducts, setSpotlightProducts] = useState<Product[]>([]);
+  
+  // Use the assistant chat hook for message management
+  const {
+    messages,
+    sendMessage: sendChatMessage,
+    isStreaming,
+    isSending,
+    sessionId,
+    sessionLoading
+  } = useAssistantChat({ autoCreateSession: true });
 
-  // Initialize assistant session on page load
+  // Load spotlight products on page load
   useEffect(() => {
-    initializeSession();
     loadSpotlightProducts();
   }, []);
 
-  const initializeSession = async () => {
-    try {
-      const response = await fetch('/api/assistant/sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          topic: 'shopping_assistance',
-          context: { source: 'assistant_page' }
-        }),
-      });
-
-      if (response.ok) {
-        const { session } = await response.json();
-        setSessionId(session.id);
-        
-        // Add welcome message
-        const welcomeMessage: Message = {
-          id: 'welcome',
-          role: 'assistant',
-          content: 'Olá! 👋 Sou o Click Pro Assistant, seu assistente de compras inteligente. Como posso ajudar você hoje?',
-          timestamp: new Date(),
-        };
-        setMessages([welcomeMessage]);
-      }
-    } catch (error) {
-      console.error('Error initializing session:', error);
+  // Add welcome message when session is created
+  useEffect(() => {
+    if (sessionId && messages.length === 0) {
+      // The hook will handle adding the initial message
+      // For now, we don't need to manually add a welcome message
+      // as it will be handled by the chat flow
     }
-  };
+  }, [sessionId, messages.length]);
 
   const loadSpotlightProducts = async () => {
     try {
@@ -97,59 +78,17 @@ export default function Assistant() {
     }
   };
 
-  const sendMessage = async () => {
-    if (!inputMessage.trim() || !sessionId || isLoading) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: inputMessage,
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
+  const handleSendMessage = () => {
+    if (!inputMessage.trim() || isSending || isStreaming) return;
+    
+    sendChatMessage(inputMessage);
     setInputMessage('');
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('/api/assistant/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId,
-          message: inputMessage,
-          context: { timestamp: new Date().toISOString() }
-        }),
-      });
-
-      if (response.ok) {
-        const { reply } = await response.json();
-        const assistantMessage: Message = {
-          id: Date.now().toString() + '_assistant',
-          role: 'assistant',
-          content: reply,
-          timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      const errorMessage: Message = {
-        id: Date.now().toString() + '_error',
-        role: 'assistant',
-        content: 'Desculpe, ocorreu um erro. Tente novamente.',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      handleSendMessage();
     }
   };
 
@@ -221,17 +160,27 @@ export default function Assistant() {
                         )}
                       </div>
                     ))}
-                    {isLoading && (
+                    {(isSending || isStreaming) && (
                       <div className="flex gap-3 justify-start">
                         <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                          <Bot className="h-4 w-4 text-white" />
+                          {isStreaming ? (
+                            <Loader2 className="h-4 w-4 text-white animate-spin" />
+                          ) : (
+                            <Bot className="h-4 w-4 text-white" />
+                          )}
                         </div>
                         <div className="bg-slate-100 dark:bg-slate-800 rounded-2xl px-4 py-2">
-                          <div className="flex gap-1">
-                            <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                            <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                          </div>
+                          {isStreaming ? (
+                            <div className="text-sm text-slate-600 dark:text-slate-400">
+                              Digitando...
+                            </div>
+                          ) : (
+                            <div className="flex gap-1">
+                              <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+                              <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                              <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -247,15 +196,19 @@ export default function Assistant() {
                     onKeyPress={handleKeyPress}
                     placeholder="Digite sua mensagem..."
                     className="flex-1"
-                    disabled={isLoading}
+                    disabled={isSending || isStreaming || sessionLoading}
                     data-testid="input-message"
                   />
                   <Button 
-                    onClick={sendMessage} 
-                    disabled={!inputMessage.trim() || isLoading}
+                    onClick={handleSendMessage} 
+                    disabled={!inputMessage.trim() || isSending || isStreaming || sessionLoading}
                     data-testid="button-send"
                   >
-                    <Send className="h-4 w-4" />
+                    {(isSending || isStreaming) ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </CardContent>
