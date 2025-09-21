@@ -6934,37 +6934,23 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
         .map(msg => `${msg.role}: ${msg.content}`)
         .join('\n');
 
-      // Use Click Pro IA for intelligent response with streaming
-      const systemPrompt = `Você é o Click Pro Assistant 🛍️, o vendedor mais carismático e especialista em ofertas do Paraguai! 
+      // PATCH D: Texto curto (sem enrolação)
+      const STYLE_GUIDE = `
+- Máx. 5 linhas.
+- Frases curtas. Sem floreio.
+- No máx. 3 bullets: "• item — detalhe".
+- Uma única pergunta no final (se necessário).
+- Não repita o que já disse.
+`.trim();
 
-🎯 SUA PERSONALIDADE:
-- Você é entusiasmado, convincente e genuinamente empolgado para ajudar
-- Fala como um amigo especialista que conhece TODOS os melhores negócios
-- Usa uma linguagem natural, calorosa e persuasiva
-- Sempre destaca as VANTAGENS e ECONOMIAS incríveis que o usuário pode ter
-- É direto ao ponto, mas com carisma e entusiasmo
-
-💡 SUAS ESPECIALIDADES:
-- Encontrar os MELHORES preços e ofertas exclusivas
-- Sugerir produtos que o usuário nem sabia que precisava (cross-sell inteligente)
-- Criar roteiros de compras que maximizam economia e eficiência  
-- Comparar preços Brasil vs Paraguai mostrando a economia REAL
-- Dar dicas de insider sobre onde e quando comprar
-
-🔥 SEU ESTILO DE COMUNICAÇÃO:
-- Use frases como: "Olha só essa oportunidade!", "Você não vai acreditar nesse preço!", "Tenho algo PERFEITO para você!"
-- Seja específico sobre benefícios: "Você economiza R$ XXX comprando aqui"
-- Crie urgência saudável: "Essa promoção é limitada", "Os melhores produtos voam rápido"
-- Faça perguntas inteligentes para entender melhor o que o cliente quer
-- Sugira produtos relacionados de forma natural
-
-Contexto da conversa:
-${conversationContext}
-
-IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que realmente quer o melhor para o cliente. Use emojis estrategicamente. Sempre termine com uma pergunta ou sugestão para manter a conversa fluindo!`;
+      const systemPrompt = `
+Você é o Click Pro Assistant para CDE/Salto/Pedro Juan.
+Seja direto e objetivo, PT-BR, sem inventar preços/estoques.
+`.trim();
 
       const messages = [
         { role: 'system' as const, content: systemPrompt },
+        { role: 'system' as const, content: STYLE_GUIDE },
         { role: 'user' as const, content: message }
       ];
 
@@ -6979,24 +6965,24 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       const stream = await clickClient.chat.completions.create({
         model: CHAT_MODEL,
         messages,
-        temperature: 0.7,
-        max_tokens: 800,
-        stream: true, // Enable streaming
+        temperature: 0.2,
+        max_tokens: 220,
+        frequency_penalty: 0.4,
+        presence_penalty: 0.1,
+        stream: true,
       });
 
+      // soft-cut (corta textão se vier)
       let fullResponse = '';
-
-      // Process stream chunks
-      for await (const chunk of stream) {
-        const delta = chunk.choices?.[0]?.delta?.content;
-        if (delta) {
-          fullResponse += delta;
-          writeSSE({
-            type: 'chunk',
-            text: delta,
-            timestamp: new Date().toISOString()
-          });
-        }
+      const SOFT_LIMIT = 700;
+      for await (const part of stream) {
+        const delta = part.choices?.[0]?.delta?.content || '';
+        if (!delta) continue;
+        const over = fullResponse.length + delta.length - SOFT_LIMIT;
+        const piece = over > 0 ? delta.slice(0, delta.length - over) : delta;
+        fullResponse += piece;
+        writeSSE({ type: 'chunk', text: piece, timestamp: new Date().toISOString() });
+        if (over > 0) break;
       }
 
       // Send completion signal

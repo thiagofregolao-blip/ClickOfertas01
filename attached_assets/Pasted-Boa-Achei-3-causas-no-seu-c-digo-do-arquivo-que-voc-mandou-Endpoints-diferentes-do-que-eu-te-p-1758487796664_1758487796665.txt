@@ -1,0 +1,192 @@
+Boa! Achei 3 causas no seu código (do arquivo que você mandou):
+
+Endpoints diferentes do que eu te passei
+Seu backend usa POST /api/assistant/stream (fetch com stream), e POST /api/assistant/sessions.
+A versão que você colou no front estava usando EventSource em GET e /assistant/session. Resultado: sem conversa.
+
+Saudação não entra na conversa
+Você guarda personalizedGreeting, mas só exibe quando messages.length===0. Depois da primeira mensagem, a saudação some. Tem que injetar a saudação como primeira mensagem do assistente.
+
+Prompt “vendedor” prolixo
+No POST /api/assistant/stream o prompt é longo, temperature alta e sem max_tokens/corte — gera textão.
+
+Abaixo estão os patches plug-and-play (alvo exato do seu código).
+
+PATCH A — Stream: front compatível com POST /api/assistant/stream
+
+No seu hook (onde hoje você faz fetch('/api/assistant/stream', …)), troque a leitura por ReadableStream e parse de linhas:
+
+// dentro do useAssistantChat (onde você envia a msg e lê o streaming)
+const response = await fetch('/api/assistant/stream', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'text/event-stream',
+  },
+  body: JSON.stringify({ sessionId, message: content, context: null }),
+  signal: abortControllerRef.current.signal,
+});
+
+if (!response.ok || !response.body) throw new Error('Falha no streaming');
+
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
+let buffer = '';
+let full = '';
+
+while (true) {
+  const { value, done } = await reader.read();
+  if (done) break;
+  buffer += decoder.decode(value, { stream: true });
+
+  // eventos SSE chegam como linhas "data: {...}\n\n"
+  const parts = buffer.split('\n\n');
+  buffer = parts.pop() || '';
+
+  for (const chunk of parts) {
+    const line = chunk.trim().replace(/^data:\s?/, '');
+    try {
+      const payload = JSON.parse(line);
+      if (payload.type === 'chunk' && payload.text) {
+        full += payload.text;
+        // atualize a última mensagem do assistente na UI aqui
+        setMessages((prev) => {
+          const copy = [...prev];
+          const last = copy[copy.length - 1];
+          if (last?.role === 'assistant') {
+            copy[copy.length - 1] = { ...last, content: (last.content || '') + payload.text };
+          }
+          return copy;
+        });
+      }
+      if (payload.type === 'complete') {
+        // opcional: salvar fullText
+      }
+    } catch {}
+  }
+}
+
+
+Isso casa 1:1 com seu backend (POST /api/assistant/stream), sem EventSource.
+
+PATCH B — Saudação: entra como 1ª mensagem
+
+No useAssistantChat (assim que cria sessão em POST /api/assistant/sessions), injete a saudação:
+
+// após criar a sessão
+const data = await fetch('/api/assistant/sessions', { method: 'POST' }).then(r=>r.json());
+const session = data.session || data;
+
+// se vier greeting, joga na conversa como 1ª mensagem
+if (data.greeting) {
+  setMessages(prev => [
+    { id: `greet-${Date.now()}`, role: 'assistant', content: data.greeting, timestamp: new Date() },
+    ...prev,
+  ]);
+}
+setSessionId(session.id);
+
+
+E onde você renderiza o “placeholder” com personalizedGreeting remova a condição que só mostra quando messages.length===0 — a saudação já vira mensagem.
+
+PATCH C — Produtos recomendados: 3 à direita + feed abaixo
+
+Sem depender do backend, você pode popular de cara chamando /suggest?q=trending quando abrir o assistente (ou usar seu endpoint de recomendados, se tiver):
+
+// logo após criar a sessão, busque sugestões iniciais
+const s = await fetch('/suggest?q=trending').then(r=>r.json());
+setRecommended((s.products || []).slice(0,3));     // coluna da direita (até 3)
+setFeed((s.products || []).slice(3));              // lista abaixo do card/chat
+
+
+No onChange do input, você já tem a chamada para /suggest?q=... — mantenha a mesma divisão: 3 à direita, resto abaixo.
+
+PATCH D — Texto curto (sem enrolação)
+
+No seu backend app.post('/api/assistant/stream', ...) substitua o prompt e adicione limites:
+
+const STYLE_GUIDE = `
+- Máx. 5 linhas.
+- Frases curtas. Sem floreio.
+- No máx. 3 bullets: "• item — detalhe".
+- Uma única pergunta no final (se necessário).
+- Não repita o que já disse.
+`.trim();
+
+const systemPrompt = `
+Você é o Click Pro Assistant para CDE/Salto/Pedro Juan.
+Seja direto e objetivo, PT-BR, sem inventar preços/estoques.
+`.trim();
+
+const messages = [
+  { role: 'system' as const, content: systemPrompt },
+  { role: 'system' as const, content: STYLE_GUIDE },
+  { role: 'user'   as const, content: message }
+];
+
+const stream = await clickClient.chat.completions.create({
+  model: CHAT_MODEL,
+  messages,
+  temperature: 0.2,
+  max_tokens: 220,
+  frequency_penalty: 0.4,
+  presence_penalty: 0.1,
+  stream: true,
+});
+
+// soft-cut (corta textão se vier)
+let fullResponse = '';
+const SOFT_LIMIT = 700;
+for await (const part of stream) {
+  const delta = part.choices?.[0]?.delta?.content || '';
+  if (!delta) continue;
+  const over = fullResponse.length + delta.length - SOFT_LIMIT;
+  const piece = over > 0 ? delta.slice(0, delta.length - over) : delta;
+  fullResponse += piece;
+  writeSSE({ type: 'chunk', text: piece, timestamp: new Date().toISOString() });
+  if (over > 0) break;
+}
+writeSSE({ type: 'complete', fullText: fullResponse });
+writeSSE({ type: 'end' });
+
+
+Isso corta a verborragia e força respostas curtas e objetivas.
+
+PATCH E — “Chat embutido” na barra (layout)
+
+No seu componente da barra de busca, envolva input + chat no mesmo card com altura fixa e scroll:
+
+<div className={`rounded-2xl border bg-white/80 backdrop-blur p-3 shadow-sm transition-all ${focused ? 'shadow-[0_0_0_8px_rgba(99,102,241,0.12)]' : ''}`}>
+  {/* barra */}
+  <form onSubmit={handleSubmit}
+    className={`flex items-center gap-2 rounded-2xl px-4 transition-all bg-white shadow ${focused ? 'py-3 scale-[1.01]' : 'py-2'}`}>
+    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs">C</div>
+    <input ... onFocus={()=>setFocused(true)} />
+    <button className="px-3 py-1.5 rounded-lg bg-black text-white">Buscar</button>
+  </form>
+
+  {/* chat embutido */}
+  <div className="mt-3">
+    <div className="text-xs text-gray-500 mb-1">Click Assistant</div>
+    <div className="rounded-xl bg-gray-50 border p-3 max-h-[220px] overflow-auto">
+      {messages.map(m => (
+        <div key={m.id} className={`mb-2 ${m.role==='user'?'text-right':''}`}>
+          <span className={`inline-block px-3 py-2 rounded-2xl ${m.role==='user'?'bg-indigo-100':'bg-white border'}`}>{m.content}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
+
+Assim o box do chat fica integrado à barra, com scroll e expansão leve.
+
+Checklist final
+
+ Front usa POST /api/assistant/stream com ReadableStream (não EventSource).
+
+ Saudação entra como primeira mensagem.
+
+ Ao criar sessão, busca /suggest?q=trending → 3 itens à direita e resto abaixo.
+
+ Prompt curto + max_tokens + soft-cut no backend.

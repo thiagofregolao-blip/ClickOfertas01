@@ -32,6 +32,8 @@ export function useAssistantChat({
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [personalizedGreeting, setPersonalizedGreeting] = useState<string>('');
+  const [recommended, setRecommended] = useState<any[]>([]);
+  const [feed, setFeed] = useState<any[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Get or create session
@@ -51,12 +53,25 @@ export function useAssistantChat({
         // Handle both shapes: { session: { id } } or { id }
         const session = data.session || data;
         
-        // Capture personalized greeting if provided
+        // PATCH B: Saudação entra como 1ª mensagem
         if (data.greeting) {
-          setPersonalizedGreeting(data.greeting);
+          setMessages(prev => [
+            { id: `greet-${Date.now()}`, role: 'assistant', content: data.greeting, timestamp: new Date() },
+            ...prev,
+          ]);
         }
         
         setSessionId(session.id);
+
+        // PATCH C: Produtos recomendados ao criar sessão
+        try {
+          const s = await fetch('/suggest?q=trending').then(r=>r.json());
+          setRecommended((s.products || []).slice(0,3));     // coluna da direita (até 3)
+          setFeed((s.products || []).slice(3));              // lista abaixo do card/chat
+        } catch (error) {
+          console.warn('Erro ao buscar produtos recomendados:', error);
+        }
+        
         return session;
       }
       
@@ -116,7 +131,7 @@ export function useAssistantChat({
       setMessages(prev => [...prev, assistantMessage]);
       setIsStreaming(true);
 
-      // Send message to API with SSE streaming
+      // PATCH A: Stream compatível com POST /api/assistant/stream
       abortControllerRef.current = new AbortController();
       
       const response = await fetch('/api/assistant/stream', {
@@ -125,87 +140,57 @@ export function useAssistantChat({
           'Content-Type': 'application/json',
           'Accept': 'text/event-stream',
         },
-        body: JSON.stringify({
-          sessionId,
-          message: content,
-          context: null
-        }),
+        body: JSON.stringify({ sessionId, message: content, context: null }),
         signal: abortControllerRef.current.signal,
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to send message');
-      }
+      if (!response.ok || !response.body) throw new Error('Falha no streaming');
 
-      // Handle SSE streaming response
-      const reader = response.body!.getReader();
+      const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let assistantContent = '';
       let buffer = '';
+      let full = '';
 
       try {
         while (true) {
-          const { done, value } = await reader.read();
+          const { value, done } = await reader.read();
           if (done) break;
-
           buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          
-          // Keep the last line in buffer (might be incomplete)
-          buffer = lines.pop() || '';
 
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6).trim();
-              if (!data) continue;
+          // eventos SSE chegam como linhas "data: {...}\n\n"
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop() || '';
 
-              try {
-                const parsed = JSON.parse(data);
-                
-                if (parsed.type === 'start') {
-                  // Streaming started
-                  console.log('🚀 SSE streaming started');
-                } else if (parsed.type === 'chunk' && parsed.text) {
-                  // New text chunk
-                  assistantContent += parsed.text;
-                  setMessages(prev => prev.map(msg => 
-                    msg.id === assistantMessage.id 
-                      ? { ...msg, content: assistantContent }
-                      : msg
-                  ));
-                } else if (parsed.type === 'complete') {
-                  // Streaming complete
-                  console.log('✅ SSE streaming complete');
-                  setIsStreaming(false);
-                  setMessages(prev => prev.map(msg => 
-                    msg.id === assistantMessage.id 
-                      ? { ...msg, isStreaming: false, content: assistantContent }
-                      : msg
-                  ));
-                } else if (parsed.type === 'end') {
-                  // Connection ended
-                  break;
-                } else if (parsed.type === 'error') {
-                  // Error occurred
-                  console.error('❌ SSE streaming error:', parsed.message);
-                  throw new Error(parsed.message);
-                }
-              } catch (e) {
-                // Ignore parsing errors for partial chunks
-                console.warn('Failed to parse SSE data:', data);
+          for (const chunk of parts) {
+            const line = chunk.trim().replace(/^data:\s?/, '');
+            try {
+              const payload = JSON.parse(line);
+              if (payload.type === 'chunk' && payload.text) {
+                full += payload.text;
+                // atualize a última mensagem do assistente na UI aqui
+                setMessages((prev) => {
+                  const copy = [...prev];
+                  const last = copy[copy.length - 1];
+                  if (last?.role === 'assistant') {
+                    copy[copy.length - 1] = { ...last, content: (last.content || '') + payload.text };
+                  }
+                  return copy;
+                });
               }
-            }
+              if (payload.type === 'complete') {
+                setIsStreaming(false);
+                setMessages(prev => prev.map(msg => 
+                  msg.id === assistantMessage.id 
+                    ? { ...msg, isStreaming: false }
+                    : msg
+                ));
+              }
+            } catch {}
           }
         }
       } finally {
         reader.releaseLock();
         setIsStreaming(false);
-        // Ensure final message state is correct
-        setMessages(prev => prev.map(msg => 
-          msg.id === assistantMessage.id 
-            ? { ...msg, isStreaming: false, content: assistantContent }
-            : msg
-        ));
       }
     },
     onSuccess: () => {
@@ -279,6 +264,10 @@ export function useAssistantChat({
     
     // Personalization
     personalizedGreeting,
+    
+    // Products
+    recommended,
+    feed,
     
     // Ready state
     isReady: !!sessionId && !sessionQuery.isLoading,
