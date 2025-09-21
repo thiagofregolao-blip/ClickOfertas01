@@ -34,6 +34,7 @@ import ApifyDemo from "@/pages/apify-demo";
 import MaintenancePage from "@/pages/maintenance";
 import NotFound from "@/pages/not-found";
 import { MapModalTestPage } from "@/pages/map-modal-test";
+import Assistant from "@/pages/assistant";
 
 function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
   const [bypassMaintenance, setBypassMaintenance] = useState(() => {
@@ -97,6 +98,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Landing} />
         <Route path="/cards" component={LoadingComponent} />
+        <Route path="/assistant" component={LoadingComponent} />
         <Route path="/stories-feed" component={LoadingComponent} />
         <Route path="/create-story" component={LoadingComponent} />
         <Route path="/price-comparison" component={LoadingComponent} />
@@ -128,6 +130,7 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route path="/signup" component={SignupPage} />
           <Route path="/cards" component={StoresGallery} />
+          <Route path="/assistant" component={Assistant} />
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
           <Route path="/price-comparison" component={PriceComparison} />
@@ -178,6 +181,7 @@ function Router() {
           <Route path="/admin-panel" component={SuperAdmin} />
           <Route path="/totem/:storeId" component={TotemDisplay} />
           <Route path="/cards" component={StoresGallery} />
+          <Route path="/assistant" component={Assistant} />
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
           <Route path="/price-comparison" component={PriceComparison} />
@@ -197,6 +201,7 @@ function Router() {
         <>
           <Route path="/" component={Landing} />
           <Route path="/cards" component={StoresGallery} />
+          <Route path="/assistant" component={Assistant} />
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
           <Route path="/price-comparison" component={PriceComparison} />
