@@ -6863,21 +6863,40 @@ Responda de forma conversacional, útil e focada em ajudar o usuário a fazer me
     try {
       const { query, context, sessionId } = req.body;
       
-      // Use existing search infrastructure to find relevant products
-      const searchResults = await storage.searchProducts({
-        q: query,
-        limit: 6,
-        offset: 0,
-      });
-
-      // Get popular products if search is too broad
-      const popularProducts = await storage.getProductsByPopularity('7d', undefined, 6);
+      // Get active stores with products
+      const storesWithProducts = await storage.getAllActiveStoresOptimized(20, 20);
       
-      // Combine and format recommendations
+      // Flatten all products and filter by search query if provided
+      let allProducts: any[] = [];
+      storesWithProducts.forEach(store => {
+        store.products.forEach(product => {
+          allProducts.push({
+            ...product,
+            store: {
+              id: store.id,
+              name: store.name,
+              logoUrl: store.logoUrl,
+            }
+          });
+        });
+      });
+      
+      // Filter products by query if provided
+      let filteredProducts = allProducts;
+      if (query && query.trim()) {
+        const searchTerm = query.toLowerCase();
+        filteredProducts = allProducts.filter(product => 
+          product.name.toLowerCase().includes(searchTerm) ||
+          product.description?.toLowerCase().includes(searchTerm) ||
+          product.category?.toLowerCase().includes(searchTerm)
+        );
+      }
+      
+      // Sort by relevance and take first 6
       const recommendations = {
-        searchResults: searchResults.products.slice(0, 3),
-        popularPicks: popularProducts.slice(0, 3),
-        total: searchResults.total,
+        searchResults: filteredProducts.slice(0, 3),
+        popularPicks: allProducts.slice(0, 3),
+        total: filteredProducts.length,
       };
 
       res.json({ success: true, recommendations });
