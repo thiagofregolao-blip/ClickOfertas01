@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useAssistantChat } from '@/hooks/use-assistant-chat';
+import ProductSpotlight from '@/components/assistant/ProductSpotlight';
 import { 
   MessageCircle, 
   Sparkles, 
@@ -21,18 +22,9 @@ import {
   Loader2
 } from 'lucide-react';
 
-interface Product {
-  id: string;
-  name: string;
-  price: string;
-  imageUrl: string;
-  category: string;
-  storeName: string;
-}
 
 export default function Assistant() {
   const [inputMessage, setInputMessage] = useState('');
-  const [spotlightProducts, setSpotlightProducts] = useState<Product[]>([]);
   
   // Use the assistant chat hook for message management
   const {
@@ -44,38 +36,21 @@ export default function Assistant() {
     sessionLoading
   } = useAssistantChat({ autoCreateSession: true });
 
-  // Load spotlight products on page load
-  useEffect(() => {
-    loadSpotlightProducts();
-  }, []);
+  // Chat context for product recommendations
+  const chatContext = messages.map(msg => msg.content);
 
-  // Add welcome message when session is created
-  useEffect(() => {
-    if (sessionId && messages.length === 0) {
-      // The hook will handle adding the initial message
-      // For now, we don't need to manually add a welcome message
-      // as it will be handled by the chat flow
-    }
-  }, [sessionId, messages.length]);
+  // Handle product selection from spotlight
+  const handleProductSelect = (product: any) => {
+    // Send a message about the selected product to continue the conversation
+    const productMessage = `Estou interessado no produto: ${product.name} por ${product.price}. Pode me dar mais informações?`;
+    setInputMessage(productMessage);
+    // The user can then send the message manually, or we could auto-send it
+  };
 
-  const loadSpotlightProducts = async () => {
-    try {
-      const response = await fetch('/api/assistant/recommend', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: '',
-          context: { type: 'spotlight' }
-        }),
-      });
-
-      if (response.ok) {
-        const { recommendations } = await response.json();
-        setSpotlightProducts([...recommendations.popularPicks, ...recommendations.searchResults]);
-      }
-    } catch (error) {
-      console.error('Error loading spotlight products:', error);
-    }
+  // Handle adding products to favorites
+  const handleAddToFavorites = (productId: string) => {
+    console.log('Adding product to favorites:', productId);
+    // TODO: Implement favorites functionality
   };
 
   const handleSendMessage = () => {
@@ -217,62 +192,12 @@ export default function Assistant() {
 
           {/* Product Spotlight - Middle Column */}
           <div className="lg:col-span-4">
-            <Card className="h-full">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Produtos em Destaque
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[calc(100vh-280px)]">
-                  <div className="space-y-4">
-                    {spotlightProducts.map((product) => (
-                      <div
-                        key={product.id}
-                        className="group p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors cursor-pointer"
-                        data-testid={`card-product-${product.id}`}
-                      >
-                        <div className="flex gap-3">
-                          <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-lg flex-shrink-0 overflow-hidden">
-                            {product.imageUrl ? (
-                              <img 
-                                src={product.imageUrl} 
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <ShoppingCart className="h-6 w-6 text-slate-400" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-sm text-slate-900 dark:text-white line-clamp-2">
-                              {product.name}
-                            </h4>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                              {product.storeName}
-                            </p>
-                            <div className="flex items-center gap-2 mt-2">
-                              <Badge variant="outline" className="text-xs">
-                                {product.category}
-                              </Badge>
-                              <span className="font-semibold text-green-600 dark:text-green-400 text-sm">
-                                {product.price}
-                              </span>
-                            </div>
-                          </div>
-                          <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Heart className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+            <ProductSpotlight
+              sessionId={sessionId}
+              chatContext={chatContext}
+              onProductSelect={handleProductSelect}
+              onAddToFavorites={handleAddToFavorites}
+            />
           </div>
 
           {/* Actions Panel - Right Column */}
