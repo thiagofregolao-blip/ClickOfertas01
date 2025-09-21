@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share, BarChart3, Plus, Smartphone, Droplets, Laptop, Monitor } from "lucide-react";
+import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share, BarChart3, Plus, Smartphone, Droplets, Laptop, Monitor, Brain } from "lucide-react";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import LoginPage from "@/components/login-page";
@@ -625,7 +625,11 @@ export default function StoresGallery() {
               {/* Barra de Busca Mobile */}
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  {searchMode === 'intelligent' ? (
+                    <Brain className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4" />
+                  ) : (
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  )}
                   <Input
                     placeholder={isSearchFocused || searchInput ? "Buscar produtos..." : currentText}
                     value={searchInput}
@@ -829,7 +833,11 @@ export default function StoresGallery() {
                 {/* Barra de Busca */}
                 <div className="flex-1 max-w-4xl">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    {searchMode === 'intelligent' ? (
+                      <Brain className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4" />
+                    ) : (
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    )}
                     <Input
                       placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
                       value={searchInput}
