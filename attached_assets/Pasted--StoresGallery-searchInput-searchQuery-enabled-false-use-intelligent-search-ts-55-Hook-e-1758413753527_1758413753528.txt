@@ -1,0 +1,130 @@
+🔍 StoresGallery - searchInput:  searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput:  searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput:  searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput:  searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput:  searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput:  searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput:  searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput:  searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput:  searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput:  searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput:  searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput:  searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput:  searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput: i searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput: ip searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput: iph searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput: ipho searchQuery:  enabled: false
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery:  enabled: false
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput: ipho searchQuery: ipho enabled: true
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery: ipho enabled: true
+use-intelligent-search.ts:66 🚀 Fazendo request para Click Pro IA com query: ipho
+use-intelligent-search.ts:87 🔍 Debug Click Pro IA: {isError: false, data: undefined, isLoading: true, searchQuery: 'ipho', enabled: true}
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput: ipho searchQuery: ipho enabled: true
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery: ipho enabled: true
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput: iphon searchQuery: ipho enabled: true
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery: ipho enabled: true
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput: iphone searchQuery: ipho enabled: true
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery: ipho enabled: true
+analytics.ts:175  POST https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/api/analytics/search 500 (Internal Server Error)
+trackProductSearch @ analytics.ts:175
+trackSearch @ analytics.ts:285
+(anonymous) @ stores-gallery.tsx:560
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=5413741f:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=5413741f:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=5413741f:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=5413741f:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=5413741f:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=5413741f:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=5413741f:19447
+(anonymous) @ chunk-RPCDYKBN.js?v=5413741f:19328
+workLoop @ chunk-RPCDYKBN.js?v=5413741f:197
+flushWork @ chunk-RPCDYKBN.js?v=5413741f:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=5413741f:384Understand this error
+analytics.ts:175  POST https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/api/analytics/search 500 (Internal Server Error)
+trackProductSearch @ analytics.ts:175
+trackSearch @ analytics.ts:285
+(anonymous) @ stores-gallery.tsx:560
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=5413741f:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=5413741f:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=5413741f:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=5413741f:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=5413741f:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=5413741f:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=5413741f:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=5413741f:19416
+commitRoot @ chunk-RPCDYKBN.js?v=5413741f:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=5413741f:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=5413741f:9119
+flushSync @ chunk-RPCDYKBN.js?v=5413741f:18959
+finishEventHandler @ chunk-RPCDYKBN.js?v=5413741f:3569
+batchedUpdates @ chunk-RPCDYKBN.js?v=5413741f:3582
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=5413741f:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=5413741f:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=5413741f:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=5413741f:5449Understand this error
+analytics.ts:175  POST https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/api/analytics/search 500 (Internal Server Error)
+trackProductSearch @ analytics.ts:175
+trackSearch @ analytics.ts:285
+(anonymous) @ stores-gallery.tsx:560
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=5413741f:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=5413741f:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=5413741f:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=5413741f:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=5413741f:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=5413741f:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=5413741f:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=5413741f:19416
+commitRoot @ chunk-RPCDYKBN.js?v=5413741f:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=5413741f:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=5413741f:9119
+flushSync @ chunk-RPCDYKBN.js?v=5413741f:18959
+finishEventHandler @ chunk-RPCDYKBN.js?v=5413741f:3569
+batchedUpdates @ chunk-RPCDYKBN.js?v=5413741f:3582
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=5413741f:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=5413741f:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=5413741f:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=5413741f:5449Understand this error
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput: iphone searchQuery: iphone enabled: true
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery: iphone enabled: true
+use-intelligent-search.ts:66 🚀 Fazendo request para Click Pro IA com query: iphone
+use-intelligent-search.ts:87 🔍 Debug Click Pro IA: {isError: false, data: undefined, isLoading: true, searchQuery: 'iphone', enabled: true}
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput: iphone searchQuery: iphone enabled: true
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery: iphone enabled: true
+analytics.ts:175  POST https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/api/analytics/search 500 (Internal Server Error)
+trackProductSearch @ analytics.ts:175
+trackSearch @ analytics.ts:285
+(anonymous) @ stores-gallery.tsx:560
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=5413741f:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=5413741f:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=5413741f:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=5413741f:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=5413741f:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=5413741f:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=5413741f:19447
+(anonymous) @ chunk-RPCDYKBN.js?v=5413741f:19328
+workLoop @ chunk-RPCDYKBN.js?v=5413741f:197
+flushWork @ chunk-RPCDYKBN.js?v=5413741f:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=5413741f:384Understand this error
+use-intelligent-search.ts:69 📈 Resposta da Click Pro IA: {ok: true, topStores: Array(3), products: Array(4)}
+use-intelligent-search.ts:69 📈 Resposta da Click Pro IA: {ok: true, category: 'eletronicos', topStores: Array(1), products: Array(2)}
+stores-gallery.tsx:68 🔍 StoresGallery - searchInput: iphone searchQuery: iphone enabled: true
+use-intelligent-search.ts:55 🔍 Hook executando - searchQuery: iphone enabled: true
+use-intelligent-search.ts:87 🔍 Debug Click Pro IA: {isError: false, data: {…}, isLoading: false, searchQuery: 'iphone', enabled: true}
+analytics.ts:175  POST https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/api/analytics/search 500 (Internal Server Error)
