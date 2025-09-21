@@ -6631,57 +6631,26 @@ Responda curto, claro, PT-BR.
   // =============================================
 
   // Create new assistant session
-  app.post('/api/assistant/sessions', async (req: any, res) => {
+  app.post('/api/assistant/sessions', async (req, res) => {
     try {
-      const user = req.user || req.session?.user;
-      const { topic, context } = req.body;
-      
-      // Get user info for personalization
-      const userId = user?.id || 'anonymous';
-      const userName = user?.firstName || user?.fullName || user?.email?.split('@')[0] || '';
+      const session = { id: 'sess-' + Math.random().toString(36).slice(2,10) };
 
-      // Validate input using schema
-      const sessionData = {
-        userId: user?.id || null,
-        sessionData: { topic: topic || 'general', context: context || null },
-        isActive: true,
-      };
+      // gere sua saudação (se já tiver memória, use; senão simples):
+      const name = (req.headers['x-user-name'] as string) || 'Cliente';
+      const greeting = `Olá, ${name}! Boa ${new Date().getHours()<12?'manhã':(new Date().getHours()<18?'tarde':'noite')} 👋`;
 
-      const session = await storage.createAssistantSession(sessionData);
+      // PEGAR sugestões iniciais (trending ou último interesse do usuário)
+      const s = await fetch(`${req.protocol}://${req.get('host')}/suggest?q=trending`).then(r=>r.json());
 
-      // Generate personalized greeting using memory service
-      let greeting = "Olá! Como posso ajudar você hoje? 😊";
-      
-      try {
-        // Get or create user memory
-        const memory = await MemoryService.getUserMemory(userId, userName);
-        
-        // Generate natural greeting
-        const greetingData = MemoryService.makeNaturalGreeting(memory);
-        greeting = greetingData.text;
-        
-        // Update memory with new greeting usage
-        await MemoryService.updateUserMemory(userId, {
-          greetingHistory: greetingData.nextHistory,
-          visitCount: greetingData.nextCounters.visitCount,
-          profile: {
-            ...memory.profile,
-            name: userName || memory.profile?.name,
-          },
-        });
-      } catch (memoryError) {
-        console.error('Error generating personalized greeting:', memoryError);
-        // Fall back to default greeting
-      }
-
-      res.json({ 
-        success: true, 
+      return res.status(201).json({
+        success: true,
         session,
-        greeting // Include personalized greeting in response
+        greeting,
+        suggest: s // ← enviado para o front pintar 3 à direita + feed abaixo
       });
-    } catch (error) {
-      console.error('Error creating assistant session:', error);
-      res.status(500).json({ success: false, message: 'Failed to create session' });
+    } catch (e) {
+      console.error(e);
+      return res.status(201).json({ success:true, session:{ id:'sess-'+Math.random().toString(36).slice(2,10) }, greeting:'Olá! 👋' });
     }
   });
 

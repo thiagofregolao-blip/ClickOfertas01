@@ -1,3 +1,20 @@
+Um componente pronto InlineAssistant.tsx que:
+
+cria sessão em POST /api/assistant/sessions;
+
+consome o chat por stream via POST /api/assistant/stream (sem EventSource);
+
+mostra saudação + chat embutido na própria barra (expande pouco, com scroll);
+
+renderiza até 3 recomendados à direita;
+
+joga o restante dos resultados numa lista abaixo do card.
+
+Um patch de backend do endpoint /api/assistant/sessions para já retornar greeting + suggest (produtos iniciais).
+
+Aí é só colar e testar. 👇
+
+1) Front — web/InlineAssistant.tsx (plug-and-play)
 // web/InlineAssistant.tsx
 /**
  * InlineAssistant
@@ -27,7 +44,7 @@ export default function InlineAssistant() {
   const [input, setInput] = useState('');
   const [sessionId, setSessionId] = useState('');
   const [greeting, setGreeting] = useState('');             // saudação imediata
-  const [streamingText, setStreamingText] = useState('');   // texto que "vai digitando"
+  const [streamingText, setStreamingText] = useState('');   // texto que “vai digitando”
   const [recommended, setRecommended] = useState<Product[]>([]); // 3 da coluna
   const [feed, setFeed] = useState<Product[]>([]);          // lista abaixo
   const [loadingSug, setLoadingSug] = useState(false);
@@ -202,3 +219,50 @@ function ResultsFeed({ items }: { items: Product[] }){
     </div>
   );
 }
+
+
+Se o seu endpoint de sugestões for /api/suggest, troque a linha do fetch:
+const r = await fetch(\/api/suggest?q=${encodeURIComponent(term)}`);`
+
+2) Back — patch no /api/assistant/sessions (retorna suggest)
+// src/routes/assistant.ts (ou onde você cria a sessão)
+app.post('/api/assistant/sessions', async (req, res) => {
+  try {
+    const session = { id: 'sess-' + Math.random().toString(36).slice(2,10) };
+
+    // gere sua saudação (se já tiver memória, use; senão simples):
+    const name = (req.headers['x-user-name'] as string) || 'Cliente';
+    const greeting = `Olá, ${name}! Boa ${new Date().getHours()<12?'manhã':(new Date().getHours()<18?'tarde':'noite')} 👋`;
+
+    // PEGAR sugestões iniciais (trending ou último interesse do usuário)
+    const s = await fetch(`${req.protocol}://${req.get('host')}/suggest?q=trending`).then(r=>r.json());
+
+    return res.status(201).json({
+      success: true,
+      session,
+      greeting,
+      suggest: s // ← enviado para o front pintar 3 à direita + feed abaixo
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(201).json({ success:true, session:{ id:'sess-'+Math.random().toString(36).slice(2,10) }, greeting:'Olá! 👋' });
+  }
+});
+
+
+Já deixe o seu /api/assistant/stream com respostas curtas (max 220 tokens) e “soft-cut” pra não virar textão, como combinamos.
+
+Como validar rápido
+
+Coloque o InlineAssistant no topo da página, no lugar do modal antigo.
+
+Abra logado (defina no console se precisar):
+
+localStorage.setItem('uid','u-123'); localStorage.setItem('userName','Thiago');
+
+
+Ao focar a barra: ela expande, aparece saudação no card e o texto passa a streamar;
+
+Na coluna direita: até 3 recomendados; o resto desce pro feed abaixo;
+
+Digitando, /suggest atualiza os cartões.
