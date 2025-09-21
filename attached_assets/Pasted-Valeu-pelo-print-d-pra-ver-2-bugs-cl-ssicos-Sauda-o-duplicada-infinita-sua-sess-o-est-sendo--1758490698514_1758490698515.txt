@@ -1,3 +1,21 @@
+Valeu pelo print — dá pra ver 2 bugs clássicos:
+
+Saudação duplicada infinita: sua sessão está sendo criada mais de uma vez (StrictMode do React 18 roda o useEffect de montagem 2x no dev e/ou o foco dispara o fluxo várias vezes).
+
+Box fora da barra: o chat está renderizado num container separado (provavelmente o modal antigo), não dentro do card da barra.
+
+Abaixo te mando um arquivo único para colar (substitui o seu componente atual). Ele:
+
+cria sessão uma única vez (mesmo com StrictMode) e injeta UMA saudação;
+
+inicia o stream só na 1ª vez que a barra recebe foco;
+
+embute o chat no MESMO card da barra (altura fixa + scroll);
+
+mostra 3 recomendados à direita e o resto dos resultados abaixo;
+
+faz fetch em /api/assistant/sessions, /api/assistant/stream (POST stream) e /suggest (ou /api/suggest, tem fallback).
+
 // web/InlineAssistant.tsx  — versão com *guardas* contra duplicação e chat embutido
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -14,7 +32,7 @@ export default function InlineAssistant() {
   const [input, setInput] = useState('');
   const [sessionId, setSessionId] = useState('');
   const [greeting, setGreeting] = useState('');           // saudação única
-  const [streamingText, setStreamingText] = useState(''); // texto "digitando"
+  const [streamingText, setStreamingText] = useState(''); // texto “digitando”
   const [recommended, setRecommended] = useState<Product[]>([]);
   const [feed, setFeed] = useState<Product[]>([]);
   const [loadingSug, setLoadingSug] = useState(false);
@@ -214,3 +232,41 @@ function ResultsFeed({ items }: { items: Product[] }){
     </div>
   );
 }
+
+Patch de backend (garante produtos no sessions)
+
+No seu handler de POST /api/assistant/sessions, inclua sugestões iniciais:
+
+app.post('/api/assistant/sessions', async (req, res) => {
+  try {
+    const session = { id: 'sess-' + Math.random().toString(36).slice(2,10) };
+    const now = new Date(); const h = now.getHours();
+    const saud = `Olá, ${(req.headers['x-user-name'] as string) || 'Cliente'}! Boa ${h<12?'manhã':h<18?'tarde':'noite'} 👋`;
+
+    // trending (ajuste para seu endpoint /suggest ou /api/suggest)
+    let r = await fetch(`${req.protocol}://${req.get('host')}/suggest?q=trending`);
+    if (!r.ok) r = await fetch(`${req.protocol}://${req.get('host')}/api/suggest?q=trending`);
+    const suggest = await r.json();
+
+    res.status(201).json({ success:true, session, greeting: saud, suggest });
+  } catch (e) {
+    console.error(e);
+    res.status(201).json({ success:true, session:{ id:'sess-'+Math.random().toString(36).slice(2,10) }, greeting:'Olá! 👋' });
+  }
+});
+
+Onde colocar o componente (para “ficar na barra”)
+
+Remova/oculte o modal/caixa antigo.
+
+Renderize InlineAssistant exatamente no bloco onde fica a barra (por ex., no header da home).
+
+Se o header usa display: flex ou grid, garanta min-h-0 no pai onde o chat está (pra o overflow-auto funcionar).
+
+Se ainda duplicar saudação
+
+Confirme que só existe UM <InlineAssistant /> renderizado na página.
+
+Dev no React 18 com StrictMode duplica efeitos — já tratei com bootRef, mas se tiver outro useEffect criando sessão, aplique o mesmo guard.
+
+Testa colando esses dois trechos. Se os seus endpoints de sugestão/assistente tiverem outro prefixo (/api/...), me fala que eu ajusto as URLs no arquivo pra bater 100%.

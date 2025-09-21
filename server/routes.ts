@@ -6634,23 +6634,18 @@ Responda curto, claro, PT-BR.
   app.post('/api/assistant/sessions', async (req, res) => {
     try {
       const session = { id: 'sess-' + Math.random().toString(36).slice(2,10) };
+      const now = new Date(); const h = now.getHours();
+      const saud = `Olá, ${(req.headers['x-user-name'] as string) || 'Cliente'}! Boa ${h<12?'manhã':h<18?'tarde':'noite'} 👋`;
 
-      // gere sua saudação (se já tiver memória, use; senão simples):
-      const name = (req.headers['x-user-name'] as string) || 'Cliente';
-      const greeting = `Olá, ${name}! Boa ${new Date().getHours()<12?'manhã':(new Date().getHours()<18?'tarde':'noite')} 👋`;
+      // trending (ajuste para seu endpoint /suggest ou /api/suggest)
+      let r = await fetch(`${req.protocol}://${req.get('host')}/suggest?q=trending`);
+      if (!r.ok) r = await fetch(`${req.protocol}://${req.get('host')}/api/suggest?q=trending`);
+      const suggest = await r.json();
 
-      // PEGAR sugestões iniciais (trending ou último interesse do usuário)
-      const s = await fetch(`${req.protocol}://${req.get('host')}/suggest?q=trending`).then(r=>r.json());
-
-      return res.status(201).json({
-        success: true,
-        session,
-        greeting,
-        suggest: s // ← enviado para o front pintar 3 à direita + feed abaixo
-      });
+      res.status(201).json({ success:true, session, greeting: saud, suggest });
     } catch (e) {
       console.error(e);
-      return res.status(201).json({ success:true, session:{ id:'sess-'+Math.random().toString(36).slice(2,10) }, greeting:'Olá! 👋' });
+      res.status(201).json({ success:true, session:{ id:'sess-'+Math.random().toString(36).slice(2,10) }, greeting:'Olá! 👋' });
     }
   });
 
