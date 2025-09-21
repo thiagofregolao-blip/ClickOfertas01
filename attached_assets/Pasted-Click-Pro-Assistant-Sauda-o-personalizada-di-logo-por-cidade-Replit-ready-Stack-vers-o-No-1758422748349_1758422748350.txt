@@ -1,0 +1,972 @@
+Click Pro Assistant — Saudação personalizada + diálogo por cidade (Replit-ready)
+
+Stack & versão: Node 18+ • TypeScript
+
+Entrega: projeto completo com saudação pelo nome (ex.: “Olá, Thiago 👋”), detecção do que o usuário buscou, e perguntas guiadas sobre a cidade no Paraguai (Ciudad del Este, Salto del Guairá, Pedro Juan Caballero). Mantém a lógica regional, premium-first e integra com sua raspadinha.
+
+Árvore de diretórios
+click-pro-assistant/
+├─ .replit
+├─ replit.nix
+├─ package.json
+├─ tsconfig.json
+├─ src/
+│  ├─ index.ts
+│  ├─ lib/
+│  │  ├─ embed.ts
+│  │  ├─ vectorStore.ts
+│  │  ├─ tools.ts
+│  │  ├─ promo.ts
+│  │  └─ economy.ts
+│  ├─ routes/
+│  │  ├─ assistant.ts          # ← atualizado: saudação + cidades
+│  │  ├─ simulator.ts
+│  │  └─ compare.ts
+│  └─ types.ts
+├─ data/
+│  ├─ stores.json
+│  ├─ products.json
+│  ├─ hotels.json
+│  ├─ restaurants.json
+│  └─ product_embeddings.json
+├─ web/
+│  ├─ AssistantExperience.tsx   # ← atualizado: saudações, chips de cidades, fluxo guiado
+│  ├─ SearchBarClick.tsx        # ← sem mudanças funcionais (já refinado); comentários claros
+│  ├─ useSpeech.ts
+│  └─ ui-helpers.ts
+├─ .env.example
+├─ __tests__/
+│  └─ api.test.ts
+
+Arquivos do Replit
+# click-pro-assistant/.replit
+run = "npm install && npm run dev"
+
+# click-pro-assistant/replit.nix
+{ pkgs }: {
+  deps = [
+    pkgs.nodejs-18_x
+    pkgs.nodePackages.npm
+  ];
+}
+
+// click-pro-assistant/package.json
+{
+  "name": "click-pro-assistant",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Assistente de compras conversacional (CDE/Foz) com simulador e comparador - Replit Ready",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx --watch src/index.ts",
+    "test": "jest -c"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.58.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "@types/node": "^20.11.0",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.1.1",
+    "@types/supertest": "^2.0.16",
+    "typescript": "^5.6.2"
+  }
+}
+
+// click-pro-assistant/tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*", "web/**/*", "__tests__/**/*"]
+}
+
+Backend — Assistant com saudação + cidades (atualizado)
+// click-pro-assistant/src/routes/assistant.ts
+/**
+ * Rotas do Assistente (Click):
+ * - POST /assistant/session → cria sessionId (mock simples)
+ * - POST /assistant/message → processa a mensagem, PERSONALIZA pelo nome,
+ *   entende intenção, sugere produtos/lojas e pergunta pela CIDADE (CDE / Salto / Pedro Juan).
+ *
+ * Como o nome chega?
+ * - Pelo header 'x-user-name' (ex.: "Thiago") e 'x-user-id' (UUID do usuário logado).
+ * - No front desse projeto, lemos de localStorage e reencaminhamos via cabeçalhos.
+ */
+
+import { Router } from 'express';
+import OpenAI from 'openai';
+import { searchSuggestions, buildItinerary } from '../lib/tools.js';
+import { maybeAttachPromo } from '../lib/promo.js';
+
+const router = Router();
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const CHAT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
+
+const SYSTEM_PROMPT = `
+Você é o Click, assistente de compras/viagens focado em Ciudad del Este (lojas) e Foz/CDE (hotelaria).
+Regras:
+- Cumprimente o usuário PELO NOME, se fornecido (ex.: "Olá, Thiago 👋").
+- Se detectar uma intenção de compra (ex.: "iphone", "perfume"), diga "vi que você está buscando X, vou te apresentar as melhores ofertas de hoje".
+- Confirme a cidade no Paraguai para o roteiro: opções canônicas são "Ciudad del Este", "Salto del Guairá" ou "Pedro Juan Caballero". Pergunte de forma clara.
+- Dê respostas curtas e objetivas; português (Brasil).
+- Traga dicas antifraude (nota fiscal, PDV oficial, verificar lacres/IMEI, câmbio).
+- Não invente preços/estoques; use apenas o contexto fornecido pelo servidor.
+`;
+
+/** Cria uma sessão simples (mock). */
+router.post('/session', (_req, res)=>{
+  const id = 'sess-' + Math.random().toString(36).slice(2,10);
+  res.json({ ok:true, sessionId: id, createdAt: new Date().toISOString() });
+});
+
+/** Conversa do assistente. */
+router.post('/message', async (req, res)=>{
+  try{
+    const sessionId = (req.body?.sessionId || '').toString();
+    const message   = (req.body?.message || '').toString();
+    const wishlist  = Array.isArray(req.body?.wishlist) ? req.body.wishlist : [];
+
+    // Identidade do usuário logado (headers vindos do front)
+    const userId    = (req.headers['x-user-id'] || '').toString();
+    const userName  = (req.headers['x-user-name'] || '').toString(); // ← usado na saudação
+    const ip        = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || '';
+
+    if (!sessionId || !message) return res.status(400).json({ ok:false, error:'sessionId e message são obrigatórios' });
+
+    // Sugestões (produtos + lojas) e esqueleto de roteiro
+    const suggest = await searchSuggestions(message);
+    const itinerary = await buildItinerary({ wishlist });
+
+    // Instruções adicionais para personalização
+    const personalization = {
+      userName: userName || null,
+      paraguayCities: ['Ciudad del Este', 'Salto del Guairá', 'Pedro Juan Caballero'],
+      intentHint: message
+    };
+
+    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      { role:'system', content: SYSTEM_PROMPT },
+      { role:'system', content: `Contexto (sugestões): ${JSON.stringify(suggest)}` },
+      { role:'system', content: `Contexto (itinerário): ${JSON.stringify(itinerary)}` },
+      { role:'system', content: `Personalização: ${JSON.stringify(personalization)}` },
+      { role:'user', content: message }
+    ];
+
+    const r = await client.chat.completions.create({ model: CHAT_MODEL, messages, temperature: 0.2 });
+    const payload: any = {
+      ok:true, sessionId,
+      reply: r.choices[0].message.content,
+      suggest, itinerary,
+      personalization: { userName, paraguayCities: personalization.paraguayCities }
+    };
+
+    // Anexa raspadinha quando aplicável (não bloqueia)
+    await maybeAttachPromo(payload, userId, ip, { route:'assistant/message', message, wishlist });
+
+    res.json(payload);
+  }catch(e){
+    console.error(e); res.status(500).json({ ok:false, error:'falha no assistente' });
+  }
+});
+
+export default router;
+
+
+Comentários no topo explicam como o nome chega e como é usado no prompt.
+
+Front — Página do Assistente com conversa guiada (atualizado)
+// click-pro-assistant/web/AssistantExperience.tsx
+/**
+ * AssistantExperience (UI):
+ * - Saúda o usuário pelo nome (se disponível via localStorage.userName).
+ * - Quando o usuário busca algo (via SearchBarClick), envia ao /assistant/message
+ *   com cabeçalhos 'x-user-id' e 'x-user-name' para PERSONALIZAÇÃO.
+ * - Após responder, o Click pergunta a cidade (CDE / Salto / Pedro Juan) com CHIPS.
+ * - Spotlight (centro) mostra o melhor produto do momento; Ações (direita) com Comparar/Simular/Salvar.
+ */
+
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { SearchBarClick } from './SearchBarClick';
+import { Chip, ActionButton, Skeleton } from './ui-helpers';
+
+type Msg = { role:'user'|'assistant'; content:string };
+type AssistantPayload = { reply: string; suggest?: any; personalization?: { userName?: string; paraguayCities?: string[] } };
+
+export default function AssistantExperience(){
+  // Identidade do usuário (mock simples para Replit / seu app injeta isso ao logar)
+  const uid = useMemo(()=> localStorage.getItem('uid') || (localStorage.setItem('uid', 'u-'+Math.random().toString(36).slice(2,8)), localStorage.getItem('uid')!), []);
+  const userName = useMemo(()=> localStorage.getItem('userName') || 'Cliente', []);
+
+  const [messages, setMessages] = useState<Msg[]>([
+    { role:'assistant', content:`Olá, ${userName} 👋 Sou o Click. O que você quer encontrar hoje em CDE/Paraguai?` }
+  ]);
+  const [sessionId, setSessionId] = useState<string>('');
+  const [spotlight, setSpotlight] = useState<any>(null);
+  const [loadingSpotlight, setLoadingSpotlight] = useState<boolean>(false);
+  const [actions, setActions] = useState<any[]>([]);
+  const [city, setCity] = useState<string>(''); // CDE / Salto / Pedro Juan
+
+  const scRef = useRef<HTMLDivElement>(null);
+
+  // Cria sessão
+  useEffect(()=> {
+    fetch('/assistant/session',{ method:'POST'}).then(r=>r.json()).then(d=> setSessionId(d.sessionId));
+  }, []);
+
+  // Auto scroll no chat
+  useEffect(()=> { scRef.current?.scrollTo({ top: scRef.current.scrollHeight, behavior:'smooth' }); }, [messages]);
+
+  // Quick replies base
+  const quickReplies = useMemo(()=> ([
+    { label: '📱 iPhone', q: 'iphone' },
+    { label: '💄 Perfumes', q: 'perfumes' },
+    { label: '🎧 Fones custo-benefício', q: 'fones custo-benefício' },
+    { label: '🗺️ Roteiro 1 dia', q: 'roteiro 1 dia tech+perfume' }
+  ]), []);
+
+  async function sendToAssistant(q:string){
+    setMessages(m=> [...m, { role:'user', content: q }]);
+    setLoadingSpotlight(true);
+
+    const r = await fetch('/assistant/message',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-user-id': uid,
+        'x-user-name': userName   // ← nome vai pro backend pra saudação
+      },
+      body: JSON.stringify({
+        sessionId,
+        message: q + (city ? ` | cidade=${city}` : '')
+      })
+    });
+    const data: AssistantPayload = await r.json();
+
+    // Resposta conversacional do Click (já vem com "Olá, Nome" se houver)
+    setMessages(m=> [...m, { role:'assistant', content: data.reply }]);
+
+    // Spotlight e ações
+    const best = data?.suggest?.products?.[0] || null;
+    setSpotlight(best);
+    setLoadingSpotlight(false);
+
+    setActions([
+      { key:'compare', label:'🔄 Comparar preços', handler: async ()=>{
+        const title = best?.title || q;
+        const cr = await fetch('/compare',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ query: title })}).then(r=>r.json());
+        const top = cr.items?.[0];
+        alert(top ? `Melhor: ${top.title} — ${top.store?.name}` : 'Nenhum comparativo encontrado.');
+      }},
+      { key:'simulate', label:'💰 Simular economia', handler: async ()=>{
+        const usd = best?.price?.USD || 0;
+        if (!usd) return alert('Sem preço USD para simular.');
+        const sr = await fetch(`/simulator/savings?usd=${usd}`).then(r=>r.json());
+        const net = sr?.results?.net_saving ?? 0;
+        alert(`Economia líquida estimada: R$ ${Number(net).toFixed(2)}`);
+      }},
+      { key:'save', label:'⭐ Salvar', handler: ()=> alert('Adicionado à sua lista!') }
+    ]);
+
+    // Se ainda não temos cidade selecionada, ofereça chips com as 3 opções
+    if (!city) {
+      const opts = data.personalization?.paraguayCities || ['Ciudad del Este', 'Salto del Guairá', 'Pedro Juan Caballero'];
+      setMessages(m=> [...m, {
+        role:'assistant',
+        content: `Para eu te guiar melhor, em qual cidade do Paraguai você pretende visitar?`
+      }]);
+      setCityPicker(opts);
+    }
+  }
+
+  // Estado para mostrar os chips de cidade (UX guiada)
+  const [cityOptions, setCityPicker] = useState<string[]|null>(null);
+
+  function chooseCity(c: string){
+    setCity(c);
+    setCityPicker(null);
+    setMessages(m=> [...m, { role:'user', content: `Vou em ${c}.` }]);
+    // Dica: você pode automaticamente reenviar a última intenção já com a cidade.
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4">
+      <div className="max-w-7xl mx-auto grid grid-cols-12 gap-4">
+        {/* Esquerda — Chat */}
+        <div className="col-span-12 lg:col-span-4 rounded-3xl border bg-white/70 backdrop-blur p-0 shadow-sm overflow-hidden">
+          <div className="p-4 border-b flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center font-semibold">C</div>
+            <div>
+              <div className="font-semibold">Click Assistant</div>
+              <div className="text-xs text-gray-500">Olá, {userName} — pronto para ajudar!</div>
+            </div>
+          </div>
+
+          <div ref={scRef} className="h-[52vh] overflow-auto p-4 space-y-2">
+            {messages.map((m,i)=>(
+              <div key={i} className={`whitespace-pre-wrap ${m.role==='user'?'text-right':''}`}>
+                <span className={`inline-block px-3 py-2 rounded-2xl
+                  ${m.role==='user'?'bg-indigo-100':'bg-gray-100'}`}>
+                  {m.content}
+                </span>
+              </div>
+            ))}
+
+            {/* Chips de cidade quando necessário */}
+            {cityOptions && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {cityOptions.map(c => (
+                  <Chip key={c} label={c} onClick={()=> chooseCity(c)} />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Quick replies + Input */}
+          <div className="px-4 pb-3 space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {quickReplies.map(q => <Chip key={q.label} label={q.label} onClick={()=> sendToAssistant(q.q)} />)}
+            </div>
+          </div>
+          <div className="p-4 border-t">
+            <SearchBarClick onOpenAssistant={sendToAssistant}/>
+          </div>
+        </div>
+
+        {/* Centro — Spotlight */}
+        <div className="col-span-12 lg:col-span-5 rounded-3xl border bg-white/70 backdrop-blur p-5 shadow-sm">
+          <div className="text-sm text-gray-500 mb-2">Spotlight</div>
+          {!spotlight && !loadingSpotlight && (
+            <div className="text-gray-500">Busque algo (ex.: “iphone”) para ver as melhores ofertas de hoje.</div>
+          )}
+          {loadingSpotlight && <Skeleton lines={5} />}
+          {!!spotlight && !loadingSpotlight && (
+            <div className="space-y-3">
+              <div>
+                <div className="text-xl font-semibold">{spotlight.title}</div>
+                <div className="text-xs text-gray-500">{spotlight.category || '—'}</div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-2xl font-semibold">USD {spotlight?.price?.USD ?? '-'}</div>
+                {'score' in spotlight && spotlight.score !== undefined ? (
+                  <div className="text-sm text-gray-500">score {spotlight.score}</div>
+                ) : null}
+              </div>
+              <ul className="text-xs text-gray-600 list-disc pl-5 space-y-1">
+                <li>Prefira lojas formais (nota fiscal/garantia).</li>
+                <li>Pague no PDV oficial; evite QR/links de terceiros.</li>
+                <li>Verifique lacres/IMEI em eletrônicos. Compare câmbio efetivo.</li>
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* Direita — Ações */}
+        <div className="col-span-12 lg:col-span-3 rounded-3xl border bg-white/70 backdrop-blur p-5 shadow-sm">
+          <div className="text-sm text-gray-500 mb-2">Ações</div>
+          <div className="grid gap-2">
+            {actions.length ? actions.map(a=>(
+              <ActionButton key={a.key} onClick={a.handler}>{a.label}</ActionButton>
+            )) : <div className="text-sm text-gray-500">As ações aparecem após uma busca.</div>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+UI — Barra de Busca (mantida com comentários claros)
+// click-pro-assistant/web/SearchBarClick.tsx
+/**
+ * SearchBarClick:
+ * - Campo conversacional com efeito clean + voz
+ * - Sugestões em tempo real de lojas e produtos
+ * - onOpenAssistant(q): usado para acionar a conversa do Click com a pergunta
+ */
+import React, { useEffect, useRef, useState } from 'react';
+import { useSpeechRecognition } from './useSpeech';
+
+type Store = { id:string; name:string; label?:string; mall?:string };
+type Product = { id:string; title:string; category?:string; score?:number; price?: any };
+type SuggestResponse = { ok:boolean; category?:string; topStores:Store[]; products:Product[]; scratchcard?:any };
+
+export function SearchBarClick({ onOpenAssistant }: { onOpenAssistant?: (query:string)=>void }) {
+  const [value,setValue] = useState(''); const [focused,setFocused]=useState(false);
+  const [open,setOpen]   = useState(false); const [sug,setSug]=useState<SuggestResponse|null>(null);
+  const [loading,setLoading]=useState(false);
+  const { state, transcript, start, stop, isSupported } = useSpeechRecognition();
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(()=> { if (transcript) setValue(transcript); }, [transcript]);
+  useEffect(()=> {
+    const h=(e:MouseEvent)=>{ if(boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false); };
+    window.addEventListener('mousedown',h); return ()=> window.removeEventListener('mousedown',h);
+  }, []);
+
+  async function fetchSuggestions(q:string){
+    try{
+      setLoading(true);
+      const r = await fetch(`/suggest?q=${encodeURIComponent(q)}`, { headers:{ 'x-user-id': localStorage.getItem('uid') || '' }});
+      const data = await r.json(); setSug(data); setOpen(true);
+    }finally{ setLoading(false); }
+  }
+  useEffect(()=> {
+    const q=value.trim(); if(!q){ setSug(null); setOpen(false); return; }
+    const t=setTimeout(()=> fetchSuggestions(q), 220); return ()=> clearTimeout(t);
+  }, [value]);
+
+  function handleSubmit(e:React.FormEvent){
+    e.preventDefault();
+    const q=value.trim(); if(!q) return;
+    onOpenAssistant?.(q);
+    setOpen(false);
+  }
+
+  return (
+    <div ref={boxRef} className="relative">
+      <form onSubmit={handleSubmit}
+        className={`flex items-center gap-2 rounded-2xl px-4 py-2 transition-all
+          ${focused ? 'shadow-[0_0_0_6px_rgba(99,102,241,0.15)] scale-[1.01]' : 'shadow'} bg-white`}>
+        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white text-xs">C</div>
+        <input
+          value={value}
+          onChange={(e)=>setValue(e.target.value)}
+          onFocus={()=>setFocused(true)}
+          onBlur={()=>setFocused(false)}
+          placeholder="Fale com o Click (ex.: iPhone + perfume em CDE)"
+          className="flex-1 outline-none text-base"
+        />
+        <button type="submit" className="px-3 py-1 rounded-lg bg-black text-white hover:opacity-90">Perguntar</button>
+        {isSupported && (
+          <button type="button" onClick={state==='listening'? stop : start}
+            title="Busca por voz"
+            className={`px-3 py-1 rounded-lg border transition-colors ${state==='listening' ? 'bg-red-600 text-white' : 'bg-white hover:bg-gray-100'}`}>
+            {state==='listening' ? '● Gravando' : '🎤'}
+          </button>
+        )}
+      </form>
+
+      {open && sug && (
+        <div className="absolute z-50 mt-2 w-full rounded-2xl border bg-white shadow-xl p-3">
+          <div className="text-xs text-gray-500 mb-2">
+            {loading ? 'Carregando…' : (sug.category ? `Sugestões — categoria: ${sug.category}` : 'Sugestões')}
+          </div>
+
+          {sug.topStores?.length>0 && (
+            <div className="mb-3">
+              <div className="text-sm font-semibold mb-1">Melhores lojas</div>
+              <div className="grid grid-cols-1 gap-1">
+                {sug.topStores.map((s,i)=>(
+                  <div key={s.id}
+                       className="flex items-center justify-between px-2 py-1 rounded-xl hover:bg-gray-50 cursor-pointer"
+                       onMouseDown={(e)=> e.preventDefault()}
+                       onClick={()=> setValue(s.name)}>
+                    <div className="truncate">
+                      {i<2 && s.label ? (
+                        <span className="mr-2 text-[10px] px-1 py-0.5 rounded bg-amber-100 border border-amber-300">{s.label}</span>
+                      ) : null}
+                      {s.name}
+                    </div>
+                    {s.mall ? <span className="text-xs text-gray-500">{s.mall}</span> : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {sug.products?.length>0 && (
+            <div>
+              <div className="text-sm font-semibold mb-1">Produtos em alta</div>
+              <div className="grid grid-cols-1 gap-1">
+                {sug.products.map((p)=>(
+                  <div key={p.id}
+                       className="px-2 py-1 rounded-xl hover:bg-gray-50 cursor-pointer"
+                       onMouseDown={(e)=> e.preventDefault()}
+                       onClick={()=> setValue(p.title)}>
+                    <div className="truncate">{p.title}</div>
+                    <div className="text-xs text-gray-500 flex items-center gap-2">
+                      {p.category ? <span>{p.category}</span> : null}
+                      {'score' in p && p.score !== undefined ? <span className="opacity-60">score {p.score}</span> : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {(sug.topStores?.length===0 && sug.products?.length===0) && (
+            <div className="text-sm text-gray-500">Sem sugestões agora. Tente outro termo.</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+Backend base e libs (mesmos da versão anterior)
+
+Os arquivos abaixo permanecem os mesmos da sua versão anterior (já funcionais). Repeti aqui os cabeçalhos dos caminhos para facilitar se quiser colar:
+
+src/index.ts (servidor Express com /health, /index-products, /suggest, /assistant, /simulator, /compare)
+
+src/lib/embed.ts, src/lib/vectorStore.ts, src/lib/tools.ts, src/lib/promo.ts, src/lib/economy.ts
+
+src/routes/simulator.ts, src/routes/compare.ts
+
+src/types.ts
+
+dados em data/*.json
+
+Se precisar reenviar algum deles, eu mando de novo na íntegra.
+
+Como rodar
+
+Crie um Repl (Node.js) e cole a pasta click-pro-assistant/.
+
+Copie .env.example para .env e defina:
+
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+
+
+Run (usa tsx).
+
+Gere o índice (1ª vez):
+
+curl -X POST http://localhost:3000/index-products
+
+
+Testes rápidos:
+
+curl "http://localhost:3000/health"
+curl "http://localhost:3000/suggest?q=iphone"
+curl -X POST http://localhost:3000/assistant/session
+curl -X POST http://localhost:3000/assistant/message \
+  -H "Content-Type: application/json" \
+  -H "x-user-id: u-123" -H "x-user-name: Thiago" \
+  -d '{"sessionId":"sess-demo","message":"quero iphone"}'
+
+Como o nome do usuário chega ao Click (importante)
+
+Seu app deve preencher no browser (após login):
+
+localStorage.setItem('uid', 'USER_ID_SEGURO');
+localStorage.setItem('userName', 'Thiago');
+
+
+O front deste projeto envia esses dados para o backend em todos os POSTs do assistente via headers:
+
+x-user-id (para cooldown/raspadinha/analytics)
+
+x-user-name (para saudação personalizada)
+
+Notas/Recomendações
+
+Cidades canônicas: já passamos “Ciudad del Este”, “Salto del Guairá” e “Pedro Juan Caballero” ao modelo para a pergunta guiada.
+
+Tom de voz: curto, claro, com “vi que você está buscando X, vou te apresentar as melhores ofertas de hoje”.
+
+Sem reservas: seguimos mostrando informações; sem efetuar booking.
+
+Privacidade: envie apenas nome e um user-id anônimo (nada de PII sensível).
+
+Raspadinha: segue opcional; se sua engine liberar, o payload retorna scratchcard — sua UI abre o modal.
+
+Se quiser, adiciono persistência da cidade preferida do usuário (ex.: localStorage.city) e faço o Click lembrar essa escolha nas próximas conversas automaticamente. Quer que eu inclua isso também?
+
+Você disse:
+entao eu quero que esse codigo seja implementado na barra de busca, ou seja quando o usuario clicar na barra ela se espande um pouco e ai começa o atendimento e nesse momento os produtos e sujestoes de compras tem que ir aparecendo na tela abaixo
+Programador Senior - Dev GPT — Replit Ready disse:
+Pensou por 9s
+Click Pro — Barra de Busca “viva” (expande + inicia atendimento)
+
+Stack & versão: Node 18+ • TypeScript • Replit-ready
+
+Abaixo estão os arquivos de UI para você colar no seu projeto click-pro-assistant (ou no seu app). Eles fazem exatamente o que você pediu:
+
+Ao clicar na barra, ela expande (animação) e inicia o atendimento (“Olá, Thiago 👋 …”).
+
+As sugestões e ofertas passam a aparecer na área abaixo da barra (em cards), atualizando em tempo real conforme o usuário digita.
+
+Mantém busca por voz, priorização premium, e usa seus endpoints já existentes (/assistant/session, /assistant/message, /suggest).
+
+Obs.: backend não precisa mudar. Só garanta que já está rodando o servidor (os mesmos endpoints da versão anterior).
+
+Onde colocar (estrutura)
+
+Coloque estes 3 arquivos na pasta web/ do seu projeto:
+
+web/
+├─ SearchDock.tsx            ← NOVO: container da busca + painel abaixo
+├─ SearchBarClick.tsx        ← ATUALIZADO: animação/expansão e callbacks
+└─ useSpeech.ts              ← (igual ao seu, mantido)
+
+
+Se você ainda não tem ui-helpers.ts (chips/botões/skeleton) da versão anterior, crie-o também (opcional, só para estilo).
+
+1) Container: painel de atendimento e resultados (NOVO)
+// web/SearchDock.tsx
+/**
+ * SearchDock
+ * -----------
+ * Container que agrupa:
+ *  - Barra de busca (SearchBarClick)
+ *  - Painel de atendimento abaixo (saudação do Click + cards de sugestões)
+ * Fluxo:
+ *  1) Ao focar a barra → cria sessão (se necessário) e envia "oi" para /assistant → mensagem "Olá, {nome}".
+ *  2) Ao digitar → chama /suggest e atualiza os cards abaixo (lojas e produtos).
+ *  3) Ao enviar (Enter) → mantém sugestões e você pode tratá-lo como "abrir página de resultados" ou seguir no chat.
+ *
+ * Integração:
+ *  - GET  /suggest?q=...
+ *  - POST /assistant/session
+ *  - POST /assistant/message   (headers: x-user-id, x-user-name)
+ */
+
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { SearchBarClick } from './SearchBarClick';
+
+type Store = { id:string; name:string; label?:string; mall?:string };
+type Product = { id:string; title:string; category?:string; price?:any; score?:number; storeId?:string };
+type SuggestResponse = { ok:boolean; category?:string; topStores:Store[]; products:Product[]; scratchcard?:any };
+
+export default function SearchDock() {
+  // Identidade do usuário (mock simples para Replit; seu app já terá isso após login)
+  const uid = useMemo(()=> localStorage.getItem('uid') || (localStorage.setItem('uid', 'u-'+Math.random().toString(36).slice(2,8)), localStorage.getItem('uid')!), []);
+  const userName = useMemo(()=> localStorage.getItem('userName') || 'Cliente', []);
+
+  const [sessionId, setSessionId] = useState<string>('');
+  const [greeting, setGreeting] = useState<string>('');          // Saudação do Click (“Olá, Thiago…”)
+  const [query, setQuery] = useState<string>('');                // Texto atual da barra
+  const [sug, setSug] = useState<SuggestResponse | null>(null);  // Sugestões atuais
+  const [loading, setLoading] = useState<boolean>(false);
+
+  // Cria sessão ao montar
+  useEffect(()=> {
+    fetch('/assistant/session',{ method:'POST'}).then(r=>r.json()).then(d=> setSessionId(d.sessionId));
+  }, []);
+
+  // Quando a barra recebe foco, iniciamos o atendimento (saudação + contexto)
+  async function handleFocusStart() {
+    try {
+      if (!sessionId) return;
+      const r = await fetch('/assistant/message', {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'x-user-id': uid,
+          'x-user-name': userName
+        },
+        body: JSON.stringify({
+          sessionId,
+          message: 'oi' // força uma saudação breve
+        })
+      });
+      const data = await r.json();
+      // A reply já vem com "Olá, {nome}…" (graças ao prompt do backend)
+      setGreeting(data?.reply || `Olá, ${userName} 👋 Posso ajudar na sua compra hoje?`);
+      // Se vier produtos/l lojas na saudação inicial, podemos mostrar também:
+      if (data?.suggest) {
+        setSug({ ok:true, ...data.suggest });
+      }
+    } catch {
+      setGreeting(`Olá, ${userName} 👋 Posso ajudar na sua compra hoje?`);
+    }
+  }
+
+  // Atualiza cards conforme digita (chama /suggest)
+  async function handleQueryChange(text:string){
+    setQuery(text);
+    const q = text.trim();
+    if (!q) { setSug(null); return; }
+    try{
+      setLoading(true);
+      const r = await fetch(`/suggest?q=${encodeURIComponent(q)}`, { headers: { 'x-user-id': uid }});
+      const data = await r.json();
+      setSug(data);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Submit (Enter) — você pode redirecionar para uma página ou continuar no painel
+  async function handleSubmit(text:string){
+    // Mantemos as sugestões; opcionalmente você pode navegar para /resultados?q=...
+    console.log('Consulta enviada:', text);
+  }
+
+  return (
+    <div className="w-full">
+      {/* Barra de busca no topo, que expande ao focar e dispara a saudação */}
+      <SearchBarClick
+        onFocusStart={handleFocusStart}
+        onChangeQuery={handleQueryChange}
+        onSubmitQuery={handleSubmit}
+      />
+
+      {/* Painel abaixo da barra: saudação + sugestões em cards */}
+      <div className="mt-4 space-y-4">
+        {/* Saudação do Click */}
+        {greeting ? (
+          <div className="rounded-2xl border bg-white/80 backdrop-blur p-4 shadow-sm">
+            <div className="text-sm text-gray-500 mb-1">Atendimento Click</div>
+            <div className="whitespace-pre-wrap">{greeting}</div>
+            <div className="text-xs text-gray-500 mt-2">
+              Dica: diga o que procura (ex.: “iphone” ou “roteiro 1 dia tech+perfume”).
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border bg-white/60 p-4 text-gray-500">
+            Clique na barra para iniciar o atendimento do Click.
+          </div>
+        )}
+
+        {/* Sugestões/Resultados (sempre abaixo da barra) */}
+        <div className="rounded-2xl border bg-white/80 backdrop-blur p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm text-gray-500">
+              {loading ? 'Buscando ofertas…' : (query ? `Resultados para “${query}”` : 'Ofertas e destaques')}
+            </div>
+            {sug?.category ? <div className="text-xs px-2 py-1 rounded-full border bg-gray-50">{sug.category}</div> : null}
+          </div>
+
+          {/* Grid principal: lojas premium e produtos em alta/semânticos */}
+          {!sug ? (
+            <div className="text-gray-500 text-sm">Sem resultados ainda. Digite algo na barra acima.</div>
+          ) : (
+            <div className="grid grid-cols-12 gap-4">
+              {/* Coluna de lojas */}
+              <div className="col-span-12 md:col-span-4">
+                <div className="text-sm font-semibold mb-2">Melhores lojas</div>
+                <div className="grid gap-2">
+                  {(sug.topStores || []).map((s, i) => (
+                    <div key={s.id} className="p-3 rounded-xl border hover:shadow-sm transition-all">
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium truncate">{s.name}</div>
+                        {i<2 && s.label ? (
+                          <span className="text-[10px] px-1 py-0.5 rounded bg-amber-100 border border-amber-300">{s.label}</span>
+                        ) : null}
+                      </div>
+                      {s.mall ? <div className="text-xs text-gray-500 mt-1">{s.mall}</div> : null}
+                    </div>
+                  ))}
+                  {(!sug.topStores || !sug.topStores.length) && (
+                    <div className="text-xs text-gray-500">Nenhuma loja no momento.</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Coluna de produtos */}
+              <div className="col-span-12 md:col-span-8">
+                <div className="text-sm font-semibold mb-2">Ofertas e produtos</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {(sug.products || []).map((p) => (
+                    <div key={p.id} className="p-3 rounded-xl border hover:shadow-sm transition-all">
+                      <div className="font-medium truncate mb-1">{p.title}</div>
+                      <div className="text-xs text-gray-500 mb-2">
+                        {p.category || '—'} {('score' in p && p.score !== undefined) ? `• score ${p.score}` : ''}
+                      </div>
+                      <div className="text-sm">
+                        {p.price?.USD ? <>USD <b>{p.price.USD}</b></> : <span className="text-gray-400">sem preço</span>}
+                      </div>
+                    </div>
+                  ))}
+                  {(!sug.products || !sug.products.length) && (
+                    <div className="text-xs text-gray-500">Nenhum produto encontrado.</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+
+O que este arquivo faz (resumo):
+
+Cria sessão com o Click.
+
+Ao focar a barra: envia “oi” para /assistant/message passando x-user-name → recebe a saudação “Olá, Thiago…”.
+
+Renderiza cards de lojas/produtos abaixo da barra (não é dropdown).
+
+Atualiza os cards conforme digita (chamando /suggest).
+
+2) Barra de busca (ATUALIZADA: expansão + callbacks)
+// web/SearchBarClick.tsx
+/**
+ * SearchBarClick
+ * --------------
+ * - Barra conversacional com animação de expansão ao focar.
+ * - Voz (Web Speech API).
+ * - Em vez de dropdown, delega a exibição de resultados ao container (SearchDock).
+ *
+ * Props:
+ *  - onFocusStart(): chamado no primeiro foco → para iniciar atendimento e saudação.
+ *  - onChangeQuery(texto): chamado a cada digitação com debounce leve → para buscar /suggest.
+ *  - onSubmitQuery(texto): chamado no Enter → você decide o que fazer (navegar, abrir chat etc).
+ */
+
+import React, { useEffect, useRef, useState } from 'react';
+import { useSpeechRecognition } from './useSpeech';
+
+export function SearchBarClick({
+  onFocusStart,
+  onChangeQuery,
+  onSubmitQuery
+}: {
+  onFocusStart?: () => void;
+  onChangeQuery?: (q: string) => void;
+  onSubmitQuery?: (q: string) => void;
+}) {
+  const [value,setValue] = useState('');        // texto digitado
+  const [focused,setFocused]=useState(false);   // controla animação de expansão
+  const firstFocusRef = useRef(false);
+
+  const { state, transcript, start, stop, isSupported } = useSpeechRecognition();
+
+  // transcript da voz → input
+  useEffect(()=> { if (transcript) setValue(transcript); }, [transcript]);
+
+  // dispara onChangeQuery com debounce
+  useEffect(()=> {
+    const q = value.trim();
+    const t = setTimeout(()=> onChangeQuery?.(q), 220);
+    return ()=> clearTimeout(t);
+  }, [value, onChangeQuery]);
+
+  function handleFocus(){
+    setFocused(true);
+    if (!firstFocusRef.current) {
+      firstFocusRef.current = true;
+      onFocusStart?.(); // inicia atendimento apenas na primeira vez que focar
+    }
+  }
+  function handleBlur(){ setFocused(false); }
+
+  function handleSubmit(e:React.FormEvent){
+    e.preventDefault();
+    const q = value.trim(); if (!q) return;
+    onSubmitQuery?.(q);
+  }
+
+  return (
+    <div className="w-full">
+      {/* Caixa com animação (glow + scale) ao focar */}
+      <form onSubmit={handleSubmit}
+        className={`flex items-center gap-2 rounded-2xl px-4 py-3 transition-all bg-white shadow
+          ${focused ? 'shadow-[0_0_0_8px_rgba(99,102,241,0.15)] scale-[1.02]' : ''}`}>
+        <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white text-xs">C</div>
+
+        <input
+          value={value}
+          onChange={(e)=>setValue(e.target.value)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          placeholder="Fale com o Click (ex.: iPhone + perfume em CDE)"
+          className="flex-1 outline-none text-base"
+        />
+
+        <button type="submit" className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90">Buscar</button>
+
+        {isSupported && (
+          <button type="button" onClick={state==='listening'? stop : start}
+            title="Busca por voz"
+            className={`px-3 py-1.5 rounded-lg border transition-colors ${state==='listening' ? 'bg-red-600 text-white' : 'bg-white hover:bg-gray-100'}`}>
+            {state==='listening' ? '● Gravando' : '🎤'}
+          </button>
+        )}
+      </form>
+    </div>
+  );
+}
+
+
+O que mudou aqui:
+
+Expansão visual (scale + glow) ao focar.
+
+Em vez de renderizar dropdown, ele notifica o container (SearchDock) via onChangeQuery e onSubmitQuery.
+
+onFocusStart dispara uma vez ao primeiro foco → usado para a saudação.
+
+3) Hook de voz (igual ao anterior, só deixe presente)
+// web/useSpeech.ts
+import { useCallback, useEffect, useRef, useState } from 'react';
+type SpeechState = 'idle'|'listening'|'error'|'unsupported';
+
+export function useSpeechRecognition() {
+  const [state, setState] = useState<SpeechState>('idle');
+  const [transcript, setTranscript] = useState('');
+  const recRef = useRef<any>(null);
+  const isSupported = typeof window !== 'undefined' && (('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window));
+
+  useEffect(()=> {
+    if (!isSupported) { setState('unsupported'); return; }
+    const SR:any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const rec = new SR(); rec.lang='pt-BR'; rec.interimResults=true; rec.continuous=false;
+    rec.onstart = ()=> setState('listening');
+    rec.onerror = ()=> setState('error');
+    rec.onend   = ()=> setState('idle');
+    rec.onresult= (e:any)=> { let t=''; for(let i=e.resultIndex;i<e.results.length;i++){ t += e.results[i][0].transcript; } setTranscript(t); };
+    recRef.current = rec; return ()=> rec?.abort?.();
+  }, [isSupported]);
+
+  const start = useCallback(()=> { if (recRef.current && isSupported){ setTranscript(''); recRef.current.start(); } }, [isSupported]);
+  const stop  = useCallback(()=> { recRef.current?.stop?.(); }, []);
+  return { state, transcript, start, stop, isSupported };
+}
+
+Como usar no seu app (plug-and-play)
+
+Na página onde fica sua barra de busca, importe e use o SearchDock:
+
+// Exemplo em alguma página/layout do seu app
+import React from 'react';
+import SearchDock from '/web/SearchDock'; // ajuste o caminho conforme sua estrutura
+
+export default function Home() {
+  return (
+    <div className="p-4 bg-gray-50 min-h-screen">
+      {/* Cabeçalho, nav, etc... */}
+      <div className="max-w-5xl mx-auto">
+        <SearchDock />
+      </div>
+    </div>
+  );
+}
+
+
+Dica: garanta que, após login, você coloca no navegador:
+
+localStorage.setItem('uid', 'USER_ID_AQUI');
+localStorage.setItem('userName', 'Thiago');
+
+
+Assim, o Click já cumprimenta pelo nome.
+
+Por que assim
+
+Mantemos um único lugar responsável por UX/busca (o SearchDock), enquanto a barra (SearchBarClick) cuida só do input e animações.
+
+O backend continua igual: /assistant/session, /assistant/message, /suggest.
+
+O fluxo fica exatamente como você pediu: clicou → expande → “Olá, {nome}” → ofertas abaixo.
+
+Se quiser, adiciono chips de cidade (CDE / Salto / Pedro Juan) logo abaixo da saudação e faço o SearchDock enviar automaticamente essa informação no próximo /assistant/message.
