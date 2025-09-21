@@ -45,6 +45,10 @@ import {
   categories,
   productBanks,
   productBankItems,
+  // Assistant tables
+  assistantSessions,
+  assistantMessages,
+  userAssistantPreferences,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -152,6 +156,16 @@ import {
   type InsertProductBankItem,
   type UpdateProductBankItem,
   type ProductBankWithItems,
+  // Assistant types
+  type AssistantSession,
+  type InsertAssistantSession,
+  type UpdateAssistantSession,
+  type AssistantMessage,
+  type InsertAssistantMessage,
+  type UserAssistantPreferences,
+  type InsertUserAssistantPreferences,
+  type UpdateUserAssistantPreferences,
+  type AssistantSessionWithMessages,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, gte, lte, lt, sql, inArray, or, isNull } from "drizzle-orm";
@@ -379,6 +393,19 @@ export interface IStorage {
   getBannerViewCount(startDate: Date): Promise<number>;
   createBannerView(view: { bannerId: string; sessionId: string; userAgent?: string; ipAddress: string }): Promise<void>;
   createBannerClick(click: { bannerId: string; sessionId: string; userAgent?: string; ipAddress: string }): Promise<void>;
+
+  // Assistant operations - Conversational Shopping Assistant
+  createAssistantSession(session: InsertAssistantSession): Promise<AssistantSession>;
+  getAssistantSession(id: string): Promise<AssistantSession | undefined>;
+  updateAssistantSession(id: string, updates: UpdateAssistantSession): Promise<AssistantSession>;
+  getActiveAssistantSessions(userId?: string): Promise<AssistantSession[]>;
+  
+  createAssistantMessage(message: InsertAssistantMessage): Promise<AssistantMessage>;
+  getAssistantMessages(sessionId: string, limit?: number): Promise<AssistantMessage[]>;
+  getAssistantSessionWithMessages(sessionId: string): Promise<AssistantSessionWithMessages | undefined>;
+  
+  getUserAssistantPreferences(userId: string): Promise<UserAssistantPreferences | undefined>;
+  upsertUserAssistantPreferences(userId: string, preferences: InsertUserAssistantPreferences): Promise<UserAssistantPreferences>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4390,6 +4417,116 @@ export class DatabaseStorage implements IStorage {
       default:
         return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     }
+  }
+
+  // =============================================================================
+  // ASSISTANT OPERATIONS - Conversational Shopping Assistant  
+  // =============================================================================
+
+  async createAssistantSession(sessionData: InsertAssistantSession): Promise<AssistantSession> {
+    const [session] = await db
+      .insert(assistantSessions)
+      .values(sessionData)
+      .returning();
+    return session;
+  }
+
+  async getAssistantSession(id: string): Promise<AssistantSession | undefined> {
+    const [session] = await db
+      .select()
+      .from(assistantSessions)
+      .where(eq(assistantSessions.id, id));
+    return session;
+  }
+
+  async updateAssistantSession(id: string, updates: UpdateAssistantSession): Promise<AssistantSession> {
+    const [session] = await db
+      .update(assistantSessions)
+      .set({
+        ...updates,
+        lastActivityAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(assistantSessions.id, id))
+      .returning();
+    return session;
+  }
+
+  async getActiveAssistantSessions(userId?: string): Promise<AssistantSession[]> {
+    const conditions = [eq(assistantSessions.isActive, true)];
+    
+    if (userId) {
+      conditions.push(eq(assistantSessions.userId, userId));
+    }
+
+    return db
+      .select()
+      .from(assistantSessions)
+      .where(and(...conditions))
+      .orderBy(desc(assistantSessions.lastActivityAt));
+  }
+
+  async createAssistantMessage(messageData: InsertAssistantMessage): Promise<AssistantMessage> {
+    const [message] = await db
+      .insert(assistantMessages)
+      .values(messageData)
+      .returning();
+    
+    // Update session activity
+    await this.updateAssistantSession(messageData.sessionId, {});
+    
+    return message;
+  }
+
+  async getAssistantMessages(sessionId: string, limit: number = 50): Promise<AssistantMessage[]> {
+    return db
+      .select()
+      .from(assistantMessages)
+      .where(eq(assistantMessages.sessionId, sessionId))
+      .orderBy(asc(assistantMessages.timestamp))
+      .limit(limit);
+  }
+
+  async getAssistantSessionWithMessages(sessionId: string): Promise<AssistantSessionWithMessages | undefined> {
+    const session = await this.getAssistantSession(sessionId);
+    if (!session) return undefined;
+
+    const messages = await this.getAssistantMessages(sessionId);
+    
+    return {
+      ...session,
+      messages,
+      messageCount: messages.length,
+    };
+  }
+
+  async getUserAssistantPreferences(userId: string): Promise<UserAssistantPreferences | undefined> {
+    const [preferences] = await db
+      .select()
+      .from(userAssistantPreferences)
+      .where(eq(userAssistantPreferences.userId, userId));
+    return preferences;
+  }
+
+  async upsertUserAssistantPreferences(
+    userId: string, 
+    preferencesData: InsertUserAssistantPreferences
+  ): Promise<UserAssistantPreferences> {
+    const [preferences] = await db
+      .insert(userAssistantPreferences)
+      .values({
+        ...preferencesData,
+        userId,
+      })
+      .onConflictDoUpdate({
+        target: userAssistantPreferences.userId,
+        set: {
+          ...preferencesData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return preferences;
   }
 }
 

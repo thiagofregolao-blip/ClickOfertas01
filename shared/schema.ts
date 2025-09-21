@@ -1825,3 +1825,116 @@ export type ProductBankWithItems = ProductBank & {
   items?: ProductBankItem[];
   itemsCount?: number;
 };
+
+// =============================================================================
+// ASSISTANT TABLES - Conversational Shopping Assistant
+// =============================================================================
+
+// Assistant Sessions - Track conversation sessions between users and the AI assistant
+export const assistantSessions = pgTable("assistant_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }), // Optional - can be anonymous
+  sessionData: jsonb("session_data"), // Store conversation context, preferences, etc.
+  isActive: boolean("is_active").default(true),
+  lastActivityAt: timestamp("last_activity_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_assistant_sessions_user").on(table.userId),
+  index("idx_assistant_sessions_active").on(table.isActive),
+  index("idx_assistant_sessions_activity").on(table.lastActivityAt),
+]);
+
+// Assistant Messages - Individual messages in conversations
+export const assistantMessages = pgTable("assistant_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull().references(() => assistantSessions.id, { onDelete: "cascade" }),
+  role: varchar("role", { length: 20 }).notNull(), // 'user', 'assistant', 'system'
+  content: text("content").notNull(), // Message text content
+  metadata: jsonb("metadata"), // Store additional data like products, actions, etc.
+  timestamp: timestamp("timestamp").defaultNow(),
+}, (table) => [
+  index("idx_assistant_messages_session").on(table.sessionId),
+  index("idx_assistant_messages_timestamp").on(table.timestamp),
+]);
+
+// User Assistant Preferences - Store user preferences for assistant behavior  
+export const userAssistantPreferences = pgTable("user_assistant_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  budget: varchar("budget", { length: 20 }).default("medio"), // 'baixo', 'medio', 'alto'
+  travelMode: varchar("travel_mode", { length: 20 }).default("app"), // 'a-pe', 'app', 'carro'
+  categories: jsonb("categories"), // Preferred categories array
+  brands: jsonb("brands"), // Preferred brands array
+  language: varchar("language", { length: 10 }).default("pt-BR"),
+  notifications: boolean("notifications").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_user_assistant_prefs_user").on(table.userId),
+  unique("unique_user_assistant_prefs").on(table.userId), // One preference record per user
+]);
+
+// Assistant Relations
+export const assistantSessionsRelations = relations(assistantSessions, ({ one, many }) => ({
+  user: one(users, {
+    fields: [assistantSessions.userId],
+    references: [users.id],
+  }),
+  messages: many(assistantMessages),
+}));
+
+export const assistantMessagesRelations = relations(assistantMessages, ({ one }) => ({
+  session: one(assistantSessions, {
+    fields: [assistantMessages.sessionId],
+    references: [assistantSessions.id],
+  }),
+}));
+
+export const userAssistantPreferencesRelations = relations(userAssistantPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userAssistantPreferences.userId],
+    references: [users.id],
+  }),
+}));
+
+// Assistant Insert/Update Schemas
+export const insertAssistantSessionSchema = createInsertSchema(assistantSessions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastActivityAt: true,
+});
+
+export const updateAssistantSessionSchema = insertAssistantSessionSchema.partial();
+
+export const insertAssistantMessageSchema = createInsertSchema(assistantMessages).omit({
+  id: true,
+  timestamp: true,
+});
+
+export const insertUserAssistantPreferencesSchema = createInsertSchema(userAssistantPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateUserAssistantPreferencesSchema = insertUserAssistantPreferencesSchema.partial();
+
+// Assistant Types
+export type AssistantSession = typeof assistantSessions.$inferSelect;
+export type InsertAssistantSession = z.infer<typeof insertAssistantSessionSchema>;
+export type UpdateAssistantSession = z.infer<typeof updateAssistantSessionSchema>;
+
+export type AssistantMessage = typeof assistantMessages.$inferSelect;
+export type InsertAssistantMessage = z.infer<typeof insertAssistantMessageSchema>;
+
+export type UserAssistantPreferences = typeof userAssistantPreferences.$inferSelect;
+export type InsertUserAssistantPreferences = z.infer<typeof insertUserAssistantPreferencesSchema>;
+export type UpdateUserAssistantPreferences = z.infer<typeof updateUserAssistantPreferencesSchema>;
+
+// Assistant Extended Types
+export type AssistantSessionWithMessages = AssistantSession & {
+  messages?: AssistantMessage[];
+  messageCount?: number;
+};

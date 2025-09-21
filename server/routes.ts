@@ -69,7 +69,7 @@ const isSuperAdmin = async (req: any, res: any, next: any) => {
 };
 import { getCurrentExchangeRate, convertUsdToBrl, formatBRL, formatUSD, clearExchangeRateCache } from "./exchange-rate";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema, insertBudgetConfigSchema, insertTotemContentSchema, updateTotemContentSchema, insertTotemSettingsSchema, updateTotemSettingsSchema, insertCategorySchema, updateCategorySchema, insertProductBankSchema, updateProductBankSchema, insertProductBankItemSchema, updateProductBankItemSchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema, insertBudgetConfigSchema, insertTotemContentSchema, updateTotemContentSchema, insertTotemSettingsSchema, updateTotemSettingsSchema, insertCategorySchema, updateCategorySchema, insertProductBankSchema, updateProductBankSchema, insertProductBankItemSchema, updateProductBankItemSchema, insertAssistantSessionSchema, insertAssistantMessageSchema, insertUserAssistantPreferencesSchema } from "@shared/schema";
 import { z } from "zod";
 import sharp from "sharp";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
@@ -6622,6 +6622,268 @@ Responda curto, claro, PT-BR.
     } catch (e) {
       console.error(e);
       res.status(500).json({ ok: false, error: 'Erro no chat' });
+    }
+  });
+
+  // =============================================
+  // ASSISTANT API - CONVERSATIONAL SHOPPING ASSISTANT
+  // =============================================
+
+  // Create new assistant session
+  app.post('/api/assistant/sessions', async (req: any, res) => {
+    try {
+      const user = req.user || req.session?.user;
+      const { topic, context } = req.body;
+
+      // Validate input using schema
+      const sessionData = {
+        userId: user?.id || null,
+        sessionData: { topic: topic || 'general', context: context || null },
+        isActive: true,
+      };
+
+      const session = await storage.createAssistantSession(sessionData);
+      res.json({ success: true, session });
+    } catch (error) {
+      console.error('Error creating assistant session:', error);
+      res.status(500).json({ success: false, message: 'Failed to create session' });
+    }
+  });
+
+  // Get assistant session with messages (with ownership check)
+  app.get('/api/assistant/sessions/:sessionId', async (req: any, res) => {
+    try {
+      const { sessionId } = req.params;
+      const user = req.user || req.session?.user;
+      
+      const session = await storage.getAssistantSessionWithMessages(sessionId);
+      
+      if (!session) {
+        return res.status(404).json({ success: false, message: 'Session not found' });
+      }
+
+      // Check ownership - user must own the session or session must be anonymous and user is anonymous
+      if (session.userId && session.userId !== user?.id) {
+        return res.status(403).json({ success: false, message: 'Access denied' });
+      }
+
+      res.json({ success: true, session });
+    } catch (error) {
+      console.error('Error getting assistant session:', error);
+      res.status(500).json({ success: false, message: 'Failed to get session' });
+    }
+  });
+
+  // Get user's active sessions (authenticated users only)
+  app.get('/api/assistant/sessions', isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const user = req.user || req.session?.user;
+      if (!user?.id) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+      }
+      
+      const sessions = await storage.getActiveAssistantSessions(user.id);
+      res.json({ success: true, sessions });
+    } catch (error) {
+      console.error('Error getting assistant sessions:', error);
+      res.status(500).json({ success: false, message: 'Failed to get sessions' });
+    }
+  });
+
+  // Add message to session (with validation and ownership check)
+  app.post('/api/assistant/sessions/:sessionId/messages', async (req: any, res) => {
+    try {
+      const { sessionId } = req.params;
+      const { content, role, metadata } = req.body;
+      const user = req.user || req.session?.user;
+
+      // Validate input
+      if (!content || typeof content !== 'string' || content.trim().length === 0) {
+        return res.status(400).json({ success: false, message: 'Content is required' });
+      }
+      
+      if (role && !['user', 'assistant', 'system'].includes(role)) {
+        return res.status(400).json({ success: false, message: 'Invalid role' });
+      }
+
+      // Validate session exists and check ownership
+      const session = await storage.getAssistantSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ success: false, message: 'Session not found' });
+      }
+
+      // Check ownership
+      if (session.userId && session.userId !== user?.id) {
+        return res.status(403).json({ success: false, message: 'Access denied' });
+      }
+
+      const messageData = {
+        sessionId,
+        content: content.trim(),
+        role: role || 'user',
+        metadata: metadata || null,
+      };
+
+      const message = await storage.createAssistantMessage(messageData);
+      res.json({ success: true, message });
+    } catch (error) {
+      console.error('Error creating assistant message:', error);
+      res.status(500).json({ success: false, message: 'Failed to create message' });
+    }
+  });
+
+  // Chat with assistant (intelligent responses using Click Pro IA)
+  app.post('/api/assistant/chat', async (req: any, res) => {
+    try {
+      const { sessionId, message, context } = req.body;
+      const user = req.user || req.session?.user;
+
+      // Validate input
+      if (!message || typeof message !== 'string' || message.trim().length === 0) {
+        return res.status(400).json({ success: false, message: 'Message is required' });
+      }
+
+      if (message.length > 2000) {
+        return res.status(400).json({ success: false, message: 'Message too long' });
+      }
+
+      // Validate session and ownership
+      const session = await storage.getAssistantSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ success: false, message: 'Session not found' });
+      }
+
+      // Check ownership
+      if (session.userId && session.userId !== user?.id) {
+        return res.status(403).json({ success: false, message: 'Access denied' });
+      }
+
+      // Save user message
+      await storage.createAssistantMessage({
+        sessionId,
+        content: message,
+        role: 'user',
+        metadata: context || null,
+      });
+
+      // Get recent conversation context
+      const recentMessages = await storage.getAssistantMessages(sessionId, 10);
+      
+      // Create context for Click Pro IA
+      const conversationContext = recentMessages
+        .slice(-6) // Last 6 messages for context
+        .map(msg => `${msg.role}: ${msg.content}`)
+        .join('\n');
+
+      // Use Click Pro IA for intelligent response
+      const systemPrompt = `Você é o Click Pro Assistant, um assistente de compras inteligente para Click Ofertas Paraguai. 
+
+Suas especialidades:
+- Recomendar produtos baseado nas preferências do usuário
+- Sugerir roteiros de compras otimizados 
+- Calcular economia e comparar preços Brasil vs Paraguai
+- Oferecer insights sobre produtos em alta
+- Ajudar com planejamento de viagens de compras
+
+Contexto da conversa:
+${conversationContext}
+
+Responda de forma conversacional, útil e focada em ajudar o usuário a fazer melhores compras. Use emojis quando apropriado.`;
+
+      const messages = [
+        { role: 'system' as const, content: systemPrompt },
+        { role: 'user' as const, content: message }
+      ];
+
+      const response = await clickClient.chat.completions.create({
+        model: CHAT_MODEL,
+        messages,
+        temperature: 0.7,
+        max_tokens: 800,
+      });
+
+      const assistantReply = response.choices[0].message.content;
+
+      // Save assistant response
+      await storage.createAssistantMessage({
+        sessionId,
+        content: assistantReply,
+        role: 'assistant',
+        metadata: { 
+          model: CHAT_MODEL,
+          context: context || null,
+          timestamp: new Date().toISOString()
+        },
+      });
+
+      res.json({ 
+        success: true, 
+        reply: assistantReply,
+        sessionId 
+      });
+
+    } catch (error) {
+      console.error('Error in assistant chat:', error);
+      res.status(500).json({ success: false, message: 'Failed to process chat' });
+    }
+  });
+
+  // Get/Update user assistant preferences
+  app.get('/api/assistant/preferences', isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const user = req.user || req.session?.user;
+      const preferences = await storage.getUserAssistantPreferences(user.id);
+      res.json({ success: true, preferences });
+    } catch (error) {
+      console.error('Error getting assistant preferences:', error);
+      res.status(500).json({ success: false, message: 'Failed to get preferences' });
+    }
+  });
+
+  app.post('/api/assistant/preferences', isAuthenticatedCustom, async (req: any, res) => {
+    try {
+      const user = req.user || req.session?.user;
+      const preferencesData = req.body;
+
+      const preferences = await storage.upsertUserAssistantPreferences(user.id, {
+        ...preferencesData,
+        userId: user.id,
+        updatedAt: new Date(),
+      });
+
+      res.json({ success: true, preferences });
+    } catch (error) {
+      console.error('Error updating assistant preferences:', error);
+      res.status(500).json({ success: false, message: 'Failed to update preferences' });
+    }
+  });
+
+  // Product recommendations for assistant
+  app.post('/api/assistant/recommend', async (req, res) => {
+    try {
+      const { query, context, sessionId } = req.body;
+      
+      // Use existing search infrastructure to find relevant products
+      const searchResults = await storage.searchProducts({
+        q: query,
+        limit: 6,
+        offset: 0,
+      });
+
+      // Get popular products if search is too broad
+      const popularProducts = await storage.getProductsByPopularity('7d', undefined, 6);
+      
+      // Combine and format recommendations
+      const recommendations = {
+        searchResults: searchResults.products.slice(0, 3),
+        popularPicks: popularProducts.slice(0, 3),
+        total: searchResults.total,
+      };
+
+      res.json({ success: true, recommendations });
+    } catch (error) {
+      console.error('Error getting assistant recommendations:', error);
+      res.status(500).json({ success: false, message: 'Failed to get recommendations' });
     }
   });
 

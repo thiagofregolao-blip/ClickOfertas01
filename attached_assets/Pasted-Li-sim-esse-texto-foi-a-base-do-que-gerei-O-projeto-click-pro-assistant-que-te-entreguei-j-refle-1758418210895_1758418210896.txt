@@ -1,0 +1,572 @@
+Li sim — esse texto foi a base do que gerei. O projeto click-pro-assistant que te entreguei já reflete exatamente esse plano:
+
+/assistant (experiência conversacional):
+
+Endpoints: POST /assistant/session e POST /assistant/message.
+
+Front: AssistantExperience.tsx (layout 3 colunas: Chat | Spotlight | Actions).
+
+Entrada pela barra de busca (SearchBarClick → onOpenAssistant).
+
+Conversa inteligente + contexto regional:
+
+Click entende intenção, puxa produtos/lojas (premium-first) e monta roteiro (manhã/almoço/tarde).
+
+Respostas curtas, PT-BR, com dicas antifraude.
+
+Opções além de produto:
+
+Ações rápidas: “🔄 Comparar preços”, “💰 Simular economia”, “⭐ Salvar”.
+
+Simulador BR x PY: GET /simulator/savings.
+
+Comparador dinâmico: POST /compare (pesos ajustáveis).
+
+Raspadinha (gancho): anexo opcional ao payload via maybeAttachPromo.
+
+Visual clean + micro-interações:
+
+Barra com efeito de foco e busca por voz.
+
+Spotlight minimalista pronto pra você estilizar (Tailwind).
+
+Se quiser, eu adapto agora o UI pra ficar mais “clean premium” (gradientes suaves, cards com cantos 2xl, animações de entrada) e adiciono chips no chat (🎯 Orçamento, 🏃 A pé, 👨‍👩‍👧 Família). Quer que eu aplique esse refinamento visual diretamente nos arquivos AssistantExperience.tsx e SearchBarClick.tsx?
+
+Você disse:
+pode adaptar o UI como voce disse, e gere o codigo completo, se puder coloque no codigo a descricao das informcaoes que cada parte do codigo faz para que o replit entenda corretamente 
+Programador Senior - Dev GPT — Replit Ready disse:
+Pensou por 8s
+Click Pro Assistant — UI Clean + Animações (Replit-ready)
+
+Stack & versão: Node 18+ • TypeScript
+Foco desta entrega: refino visual e UX do assistente conversacional (chat + spotlight + ações) e da barra de busca, com descrições em código para facilitar manutenção no Replit.
+
+Observação: mantenho a API e a lógica iguais à versão anterior. Aqui eu atualizo principalmente o frontend (web/) com visual clean, gradientes suaves, micro-interações e comentários detalhados.
+As classes usam utilitários tipo Tailwind; se seu front não tiver Tailwind, você pode mapear para seu CSS ou importar um tema equivalente.
+
+Árvore de diretórios
+click-pro-assistant/
+├─ .replit
+├─ replit.nix
+├─ package.json
+├─ tsconfig.json
+├─ src/
+│  ├─ index.ts
+│  ├─ lib/
+│  │  ├─ embed.ts
+│  │  ├─ vectorStore.ts
+│  │  ├─ tools.ts
+│  │  ├─ promo.ts
+│  │  └─ economy.ts
+│  ├─ routes/
+│  │  ├─ assistant.ts
+│  │  ├─ simulator.ts
+│  │  └─ compare.ts
+│  └─ types.ts
+├─ data/
+│  ├─ stores.json
+│  ├─ products.json
+│  ├─ hotels.json
+│  ├─ restaurants.json
+│  └─ product_embeddings.json
+├─ web/
+│  ├─ AssistantExperience.tsx     ← UI refinada (chat + spotlight + ações)
+│  ├─ SearchBarClick.tsx          ← UI refinada (efeitos + voz + sugestões)
+│  ├─ useSpeech.ts
+│  └─ ui-helpers.ts               ← helpers de UI (chips, botões, skeleton)
+├─ .env.example
+├─ __tests__/
+│  └─ api.test.ts
+
+Arquivos essenciais (sem alterações de backend)
+# click-pro-assistant/.replit
+run = "npm install && npm run dev"
+
+# click-pro-assistant/replit.nix
+{ pkgs }: {
+  deps = [
+    pkgs.nodejs-18_x
+    pkgs.nodePackages.npm
+  ];
+}
+
+// click-pro-assistant/package.json
+{
+  "name": "click-pro-assistant",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Assistente de compras conversacional (CDE/Foz) com simulador e comparador - Replit Ready",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx --watch src/index.ts",
+    "test": "jest -c"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.58.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "@types/node": "^20.11.0",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.1.1",
+    "@types/supertest": "^2.0.16",
+    "typescript": "^5.6.2"
+  }
+}
+
+// click-pro-assistant/tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*", "web/**/*", "__tests__/**/*"]
+}
+
+
+Os demais arquivos de src/ e data/ são os mesmos que você já está rodando. Mantive a API intacta.
+
+UI — Helpers (novo)
+// click-pro-assistant/web/ui-helpers.ts
+// Pequenos componentes/auxiliares reutilizáveis para manter o visual consistente.
+// Não dependem de libs externas; apenas classes utilitárias (estilo Tailwind).
+
+import React from "react";
+
+/** Chip clicável com estado de seleção (usado para filtros/quick replies). */
+export function Chip({
+  label,
+  selected,
+  onClick
+}: { label: string; selected?: boolean; onClick?: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1 rounded-full border text-sm transition-all
+        ${selected ? 'bg-black text-white border-black' : 'bg-white hover:bg-gray-50 border-gray-200'}`}
+    >
+      {label}
+    </button>
+  );
+}
+
+/** Botão “limpo” com leve sombra — usado nas ações da lateral direita. */
+export function ActionButton({
+  children, onClick
+}: { children: React.ReactNode; onClick?: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left px-3 py-2 rounded-2xl border shadow-sm hover:shadow transition-all hover:-translate-y-[1px]"
+    >
+      {children}
+    </button>
+  );
+}
+
+/** Skeleton simples para quando o spotlight está carregando. */
+export function Skeleton({ lines = 3 }: { lines?: number }) {
+  return (
+    <div className="animate-pulse space-y-2">
+      {Array.from({ length: lines }).map((_, i) => (
+        <div key={i} className="h-4 rounded bg-gray-200" />
+      ))}
+    </div>
+  );
+}
+
+UI — Barra de Busca (refinada + comentários)
+// click-pro-assistant/web/SearchBarClick.tsx
+/**
+ * Componente: SearchBarClick
+ * Função: Campo de busca conversacional do Click, com:
+ * - Efeito de foco (glow + leve scale) para destacar a intenção de conversa
+ * - Busca por voz (Web Speech API) — transcript alimenta o input
+ * - Sugestões em tempo real (lojas premium + produtos em alta/semânticos)
+ * - "Hook" opcional para abrir o Assistente (onOpenAssistant)
+ *
+ * Integração:
+ * - GET /suggest?q=...  → para sugestões (servidor Node deste projeto)
+ * - onOpenAssistant(q)  → para redirecionar/abrir a página do assistente
+ */
+
+import React, { useEffect, useRef, useState } from 'react';
+import { useSpeechRecognition } from './useSpeech';
+
+type Store = { id:string; name:string; label?:string; mall?:string };
+type Product = { id:string; title:string; category?:string; score?:number; price?: any };
+type SuggestResponse = { ok:boolean; category?:string; topStores:Store[]; products:Product[]; scratchcard?:any };
+
+export function SearchBarClick({
+  onOpenAssistant
+}: { onOpenAssistant?: (query:string)=>void }) {
+  // Estado do input, foco, dropdown e carregamento
+  const [value,setValue] = useState('');
+  const [focused,setFocused]=useState(false);
+  const [open,setOpen]   = useState(false);
+  const [sug,setSug]     = useState<SuggestResponse|null>(null);
+  const [loading,setLoading]=useState(false);
+
+  // Voz: start/stop listening e transcript automático
+  const { state, transcript, start, stop, isSupported } = useSpeechRecognition();
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  // Quando sair transcript da voz, levar para o input
+  useEffect(()=> { if (transcript) setValue(transcript); }, [transcript]);
+
+  // Fecha o dropdown clicando fora
+  useEffect(()=> {
+    const h=(e:MouseEvent)=>{ if(boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false); };
+    window.addEventListener('mousedown',h); return ()=> window.removeEventListener('mousedown',h);
+  }, []);
+
+  // Chama o backend de /suggest com debounce
+  async function fetchSuggestions(q:string){
+    try{
+      setLoading(true);
+      const r = await fetch(`/suggest?q=${encodeURIComponent(q)}`, { headers:{ 'x-user-id': localStorage.getItem('uid') || '' }});
+      const data = await r.json(); setSug(data); setOpen(true);
+    }finally{ setLoading(false); }
+  }
+  useEffect(()=> {
+    const q=value.trim(); if(!q){ setSug(null); setOpen(false); return; }
+    const t=setTimeout(()=> fetchSuggestions(q), 220); return ()=> clearTimeout(t);
+  }, [value]);
+
+  // Submete a conversa: abre/aciona o Assistente com a pergunta do usuário
+  function handleSubmit(e:React.FormEvent){
+    e.preventDefault();
+    const q=value.trim(); if(!q) return;
+    onOpenAssistant?.(q);
+    setOpen(false);
+  }
+
+  return (
+    <div ref={boxRef} className="relative">
+      {/* Caixa principal da busca — efeito clean (glow suave + escala leve) */}
+      <form onSubmit={handleSubmit}
+        className={`flex items-center gap-2 rounded-2xl px-4 py-2 transition-all
+          ${focused ? 'shadow-[0_0_0_6px_rgba(99,102,241,0.15)] scale-[1.01]' : 'shadow'} bg-white`}>
+        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white text-xs">C</div>
+        <input
+          value={value}
+          onChange={(e)=>setValue(e.target.value)}
+          onFocus={()=>setFocused(true)}
+          onBlur={()=>setFocused(false)}
+          placeholder="Fale com o Click (ex.: iPhone + perfume em CDE)"
+          className="flex-1 outline-none text-base"
+        />
+        <button type="submit" className="px-3 py-1 rounded-lg bg-black text-white hover:opacity-90">Perguntar</button>
+        {isSupported && (
+          <button type="button" onClick={state==='listening'? stop : start}
+            title="Busca por voz"
+            className={`px-3 py-1 rounded-lg border transition-colors ${state==='listening' ? 'bg-red-600 text-white' : 'bg-white hover:bg-gray-100'}`}>
+            {state==='listening' ? '● Gravando' : '🎤'}
+          </button>
+        )}
+      </form>
+
+      {/* Dropdown de sugestões — lojas premium e produtos em alta/semânticos */}
+      {open && sug && (
+        <div className="absolute z-50 mt-2 w-full rounded-2xl border bg-white shadow-xl p-3">
+          <div className="text-xs text-gray-500 mb-2">
+            {loading ? 'Carregando…' : (sug.category ? `Sugestões — categoria: ${sug.category}` : 'Sugestões')}
+          </div>
+
+          {/* Lojas (com selo Patrocinado/Premium nas 2 primeiras quando existir) */}
+          {sug.topStores?.length>0 && (
+            <div className="mb-3">
+              <div className="text-sm font-semibold mb-1">Melhores lojas</div>
+              <div className="grid grid-cols-1 gap-1">
+                {sug.topStores.map((s,i)=>(
+                  <div key={s.id}
+                       className="flex items-center justify-between px-2 py-1 rounded-xl hover:bg-gray-50 cursor-pointer"
+                       onMouseDown={(e)=> e.preventDefault()}
+                       onClick={()=> setValue(s.name)}>
+                    <div className="truncate">
+                      {i<2 && s.label ? (
+                        <span className="mr-2 text-[10px] px-1 py-0.5 rounded bg-amber-100 border border-amber-300">{s.label}</span>
+                      ) : null}
+                      {s.name}
+                    </div>
+                    {s.mall ? <span className="text-xs text-gray-500">{s.mall}</span> : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Produtos em alta / semânticos (clicar preenche o input) */}
+          {sug.products?.length>0 && (
+            <div>
+              <div className="text-sm font-semibold mb-1">Produtos em alta</div>
+              <div className="grid grid-cols-1 gap-1">
+                {sug.products.map((p)=>(
+                  <div key={p.id}
+                       className="px-2 py-1 rounded-xl hover:bg-gray-50 cursor-pointer"
+                       onMouseDown={(e)=> e.preventDefault()}
+                       onClick={()=> setValue(p.title)}>
+                    <div className="truncate">{p.title}</div>
+                    <div className="text-xs text-gray-500 flex items-center gap-2">
+                      {p.category ? <span>{p.category}</span> : null}
+                      {'score' in p && p.score !== undefined ? <span className="opacity-60">score {p.score}</span> : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {(sug.topStores?.length===0 && sug.products?.length===0) && (
+            <div className="text-sm text-gray-500">Sem sugestões agora. Tente outro termo.</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+UI — Página do Assistente (refinada + comentários)
+// click-pro-assistant/web/AssistantExperience.tsx
+/**
+ * Página: AssistantExperience
+ * Layout 3 colunas (clean, responsivo):
+ * - Esquerda: Chat conversacional com o Click (mensagens, quick replies e input com SearchBarClick)
+ * - Centro: Spotlight do produto (card minimalista com infos principais e skeleton de carregamento)
+ * - Direita: Ações rápidas (Comparar, Simular economia, Salvar)
+ *
+ * Integração de API:
+ * - POST /assistant/session    → cria sessionId
+ * - POST /assistant/message    → envia mensagem e recebe reply + suggest + itinerary
+ * - POST /compare              → comparador dinâmico (peso de preço/qualidade/garantia/premium)
+ * - GET  /simulator/savings    → simulador BR x PY (economia líquida e payback)
+ */
+
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { SearchBarClick } from './SearchBarClick';
+import { Chip, ActionButton, Skeleton } from './ui-helpers';
+
+type Msg = { role:'user'|'assistant'; content:string };
+type SuggestResponse = { products?: any[]; topStores?: any[] };
+type AssistantPayload = { reply: string; suggest?: SuggestResponse; itinerary?: any };
+
+export default function AssistantExperience(){
+  // Mensagens do chat e sessão
+  const [messages, setMessages] = useState<Msg[]>([
+    { role:'assistant', content:'Oi! Eu sou o Click. Posso montar um roteiro e comparar preços nas melhores lojas de CDE.' }
+  ]);
+  const [sessionId, setSessionId] = useState<string>('');
+
+  // Spotlight (produto em destaque) e estado de ações
+  const [spotlight, setSpotlight] = useState<any>(null);
+  const [loadingSpotlight, setLoadingSpotlight] = useState<boolean>(false);
+  const [actions, setActions] = useState<any[]>([]);
+
+  // Preferências rápidas (chips) — exemplo simples: orçamento e modo
+  const [budget, setBudget] = useState<'baixo'|'medio'|'alto'>('medio');
+  const [mode, setMode] = useState<'a-pe'|'app'|'carro'>('app');
+
+  const scRef = useRef<HTMLDivElement>(null);
+
+  // Cria sessão com o assistente ao montar
+  useEffect(()=> {
+    fetch('/assistant/session',{ method:'POST'}).then(r=>r.json()).then(d=> setSessionId(d.sessionId));
+  }, []);
+
+  // Scroll automático para a última mensagem
+  useEffect(()=> { scRef.current?.scrollTo({ top: scRef.current.scrollHeight, behavior:'smooth' }); }, [messages]);
+
+  // Quick replies dinâmicas baseadas em preferências
+  const quickReplies = useMemo(()=> ([
+    { label: '📱 iPhone até R$ 5.000', q: 'iPhone até 5000 reais' },
+    { label: '💄 Perfumes presentes', q: 'perfumes para presente' },
+    { label: '🎧 Fone bom e barato', q: 'fones custo-benefício' },
+    { label: '🗺️ Roteiro 1 dia', q: 'roteiro 1 dia tech+perfume' }
+  ]), []);
+
+  // Envia mensagem ao assistente e atualiza a UI (chat + spotlight + ações)
+  async function sendToAssistant(q:string){
+    setMessages(m=> [...m, { role:'user', content: q }]);
+    setLoadingSpotlight(true);
+
+    const r = await fetch('/assistant/message',{
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'x-user-id': localStorage.getItem('uid') || '' },
+      body: JSON.stringify({
+        sessionId,
+        message: q + ` | prefs: orçamento=${budget}, deslocamento=${mode}`
+      })
+    });
+    const data: AssistantPayload = await r.json();
+    setMessages(m=> [...m, { role:'assistant', content: data.reply }]);
+
+    // Spotlight pega o melhor produto sugerido (quando houver)
+    const best = data?.suggest?.products?.[0] || null;
+    setSpotlight(best);
+    setLoadingSpotlight(false);
+
+    // Monta ações rápidas (Comparar / Simular / Salvar)
+    setActions([
+      { key:'compare', label:'🔄 Comparar preços', handler: async ()=>{
+        const title = best?.title || q;
+        const cr = await fetch('/compare',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ query: title })}).then(r=>r.json());
+        const top = cr.items?.[0];
+        alert(top ? `Melhor: ${top.title} — ${top.store?.name}` : 'Nenhum comparativo encontrado.');
+      }},
+      { key:'simulate', label:'💰 Simular economia', handler: async ()=>{
+        const usd = best?.price?.USD || 0;
+        if (!usd) return alert('Sem preço USD para simular.');
+        const sr = await fetch(`/simulator/savings?usd=${usd}`).then(r=>r.json());
+        const net = sr?.results?.net_saving ?? 0;
+        alert(`Economia líquida estimada: R$ ${Number(net).toFixed(2)}`);
+      }},
+      { key:'save', label:'⭐ Salvar', handler: ()=> alert('Adicionado à sua lista!') }
+    ]);
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4">
+      <div className="max-w-7xl mx-auto grid grid-cols-12 gap-4">
+        {/* Coluna esquerda — Chat do Click */}
+        <div className="col-span-12 lg:col-span-4 rounded-3xl border bg-white/70 backdrop-blur p-0 shadow-sm overflow-hidden">
+          {/* Header do chat */}
+          <div className="p-4 border-b flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center font-semibold">C</div>
+            <div>
+              <div className="font-semibold">Click Assistant</div>
+              <div className="text-xs text-gray-500">CDE (lojas) • Foz/CDE (hotelaria/restaurantes)</div>
+            </div>
+          </div>
+
+          {/* Mensagens */}
+          <div ref={scRef} className="h-[52vh] overflow-auto p-4 space-y-2">
+            {messages.map((m,i)=>(
+              <div key={i} className={`whitespace-pre-wrap ${m.role==='user'?'text-right':''}`}>
+                <span className={`inline-block px-3 py-2 rounded-2xl
+                  ${m.role==='user'?'bg-indigo-100':'bg-gray-100'}`}>
+                  {m.content}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Quick replies / preferências */}
+          <div className="px-4 pb-3 space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {quickReplies.map(q => <Chip key={q.label} label={q.label} onClick={()=> sendToAssistant(q.q)} />)}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">Orçamento:</span>
+              <Chip label="Baixo"  selected={budget==='baixo'}  onClick={()=> setBudget('baixo')} />
+              <Chip label="Médio"  selected={budget==='medio'}  onClick={()=> setBudget('medio')} />
+              <Chip label="Alto"   selected={budget==='alto'}   onClick={()=> setBudget('alto')} />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">Deslocamento:</span>
+              <Chip label="A pé"   selected={mode==='a-pe'} onClick={()=> setMode('a-pe')} />
+              <Chip label="App"    selected={mode==='app'}  onClick={()=> setMode('app')} />
+              <Chip label="Carro"  selected={mode==='carro'}onClick={()=> setMode('carro')} />
+            </div>
+          </div>
+
+          {/* Input: barra de busca conversacional */}
+          <div className="p-4 border-t">
+            <SearchBarClick onOpenAssistant={sendToAssistant}/>
+          </div>
+        </div>
+
+        {/* Centro — Spotlight do produto */}
+        <div className="col-span-12 lg:col-span-5 rounded-3xl border bg-white/70 backdrop-blur p-5 shadow-sm">
+          <div className="text-sm text-gray-500 mb-2">Spotlight</div>
+          {!spotlight && !loadingSpotlight && (
+            <div className="text-gray-500">Envie uma busca para ver um destaque aqui.</div>
+          )}
+          {loadingSpotlight && <Skeleton lines={5} />}
+          {!!spotlight && !loadingSpotlight && (
+            <div className="space-y-3">
+              {/* Título e categoria */}
+              <div>
+                <div className="text-xl font-semibold">{spotlight.title}</div>
+                <div className="text-xs text-gray-500">{spotlight.category || '—'}</div>
+              </div>
+              {/* Preço e score (se disponível) */}
+              <div className="flex items-center gap-4">
+                <div className="text-2xl font-semibold">USD {spotlight?.price?.USD ?? '-'}</div>
+                {'score' in spotlight && spotlight.score !== undefined ? (
+                  <div className="text-sm text-gray-500">score {spotlight.score}</div>
+                ) : null}
+              </div>
+              {/* Dicas curtas/antifraude (fixas) */}
+              <ul className="text-xs text-gray-600 list-disc pl-5 space-y-1">
+                <li>Prefira lojas formais (nota fiscal/garantia).</li>
+                <li>Pague no PDV oficial; evite QR/links de terceiros.</li>
+                <li>Verifique lacres/IMEI em eletrônicos. Compare câmbio efetivo.</li>
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* Direita — Ações rápidas */}
+        <div className="col-span-12 lg:col-span-3 rounded-3xl border bg-white/70 backdrop-blur p-5 shadow-sm">
+          <div className="text-sm text-gray-500 mb-2">Ações</div>
+          <div className="grid gap-2">
+            {actions.length ? actions.map(a=>(
+              <ActionButton key={a.key} onClick={a.handler}>{a.label}</ActionButton>
+            )) : <div className="text-sm text-gray-500">As ações aparecem após uma busca.</div>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+Como rodar (Replit)
+
+Crie um Repl Node.js e cole a pasta click-pro-assistant/.
+
+Faça uma cópia de .env.example para .env e defina:
+
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+
+
+Clique Run (usa tsx para rodar TypeScript sem build).
+
+Crie índice semântico (primeira vez):
+
+curl -X POST http://localhost:3000/index-products
+
+
+Testes rápidos:
+
+curl "http://localhost:3000/health"
+curl "http://localhost:3000/suggest?q=iphone"
+curl -X POST http://localhost:3000/assistant/session
+curl -X POST http://localhost:3000/assistant/message -H "Content-Type: application/json" \
+  -d '{"sessionId":"sess-demo","message":"quero iphone e perfume"}'
+
+Notas/Recomendações
+
+Comentários no código: adicionei docstrings e comentários explicando o que cada parte faz (principalmente nos componentes de UI) — ideal para quem abrir no Replit.
+
+Estilo clean: gradientes clarinhos, bordas grandes (round-3xl), sombra suave, micro-interações (hover/scale/transition).
+
+Sem dependências extras no front: tudo em React puro + classes utilitárias. Se não usar Tailwind, você pode:
+
+manter as classes (não quebra) e mapear no seu CSS, ou
+
+substituir por suas classes/utilitários.
+
+Raspadinha: continua integrada via maybeAttachPromo (payload com scratchcard), sem interferir na UI — você já tem o modal.
+
+Regional: lógica de CDE/Foz permanece; premium/boost/sponsored continuam priorizando parceiros.
