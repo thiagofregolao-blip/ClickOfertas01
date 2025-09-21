@@ -1,0 +1,389 @@
+// click-pro-assistant/src/routes/assistant.ts
+/**
+ * Rotas do Assistente (Click) — com SSE e **sem** dicas antifraude:
+ * - POST /assistant/session
+ * - POST /assistant/message
+ * - GET  /assistant/stream   (SSE)
+ */
+
+import { Router } from 'express';
+import OpenAI from 'openai';
+import { searchSuggestions, buildItinerary } from '../lib/tools.js';
+import { maybeAttachPromo } from '../lib/promo.js';
+
+const router = Router();
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const CHAT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
+
+const SYSTEM_PROMPT = `
+Você é o Click, assistente de compras/viagens focado em Ciudad del Este (lojas) e Foz/CDE (hotelaria).
+- Cumprimente PELO NOME quando fornecido.
+- Se detectar compra (ex.: "iphone"), diga que vai mostrar as melhores ofertas.
+- Pergunte a cidade no PY quando fizer sentido (Ciudad del Este, Salto del Guairá, Pedro Juan Caballero).
+- Respostas curtas, em PT-BR, sem inventar preços/estoques.
+`;
+
+/** Helper SSE */
+function sseWrite(res: any, data: string) { res.write(`data: ${data}\n\n`); }
+function sseSetup(res: any) {
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders?.();
+}
+
+/** Sessão */
+router.post('/session', (_req, res)=>{
+  const id = 'sess-' + Math.random().toString(36).slice(2,10);
+  res.json({ ok:true, sessionId: id, createdAt: new Date().toISOString() });
+});
+
+/** Resposta normal (não-streaming) */
+router.post('/message', async (req, res)=>{
+  try{
+    const sessionId = (req.body?.sessionId || '').toString();
+    const message   = (req.body?.message || '').toString();
+    const wishlist  = Array.isArray(req.body?.wishlist) ? req.body.wishlist : [];
+    const userId    = (req.headers['x-user-id'] || '').toString();
+    const userName  = (req.headers['x-user-name'] || '').toString();
+    const ip        = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || '';
+    if (!sessionId || !message) return res.status(400).json({ ok:false, error:'sessionId e message são obrigatórios' });
+
+    const suggest = await searchSuggestions(message);
+    const itinerary = await buildItinerary({ wishlist });
+
+    const personalization = {
+      userName: userName || null,
+      paraguayCities: ['Ciudad del Este', 'Salto del Guairá', 'Pedro Juan Caballero'],
+      intentHint: message
+    };
+
+    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      { role:'system', content: SYSTEM_PROMPT },
+      { role:'system', content: `Sugestões: ${JSON.stringify(suggest)}` },
+      { role:'system', content: `Itinerário: ${JSON.stringify(itinerary)}` },
+      { role:'system', content: `Personalização: ${JSON.stringify(personalization)}` },
+      { role:'user', content: message }
+    ];
+
+    const r = await client.chat.completions.create({ model: CHAT_MODEL, messages, temperature: 0.2 });
+    const payload: any = { ok:true, sessionId, reply: r.choices[0].message.content, suggest, itinerary };
+    await maybeAttachPromo(payload, userId, ip, { route:'assistant/message', message, wishlist });
+    res.json(payload);
+  }catch(e){
+    console.error(e); res.status(500).json({ ok:false, error:'falha no assistente' });
+  }
+});
+
+/** SSE (streaming) */
+router.get('/stream', async (req, res)=>{
+  sseSetup(res);
+  const sessionId = (req.query.sessionId || '').toString();
+  const message   = (req.query.message   || 'oi').toString();
+  const userId    = (req.query.userId    || '').toString();
+  const userName  = (req.query.userName  || '').toString();
+  const city      = (req.query.city      || '').toString();
+  if (!sessionId) { sseWrite(res, JSON.stringify({ error: 'sessionId é obrigatório' })); return res.end(); }
+
+  try {
+    const suggest = await searchSuggestions(message);
+    const itinerary = await buildItinerary({ wishlist: [] });
+    const personalization = {
+      userName: userName || null,
+      paraguayCities: ['Ciudad del Este', 'Salto del Guairá', 'Pedro Juan Caballero'],
+      selectedCity: city || null,
+      intentHint: message
+    };
+
+    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      { role:'system', content: SYSTEM_PROMPT },
+      { role:'system', content: `Sugestões: ${JSON.stringify(suggest)}` },
+      { role:'system', content: `Itinerário: ${JSON.stringify(itinerary)}` },
+      { role:'system', content: `Personalização: ${JSON.stringify(personalization)}` },
+      { role:'user', content: message + (city ? ` | cidade=${city}` : '') }
+    ];
+
+    const stream = await client.chat.completions.create({
+      model: CHAT_MODEL, messages, temperature: 0.2, stream: true
+    });
+
+    sseWrite(res, JSON.stringify({ type: 'meta', sessionId, userName, city }));
+    sseWrite(res, JSON.stringify({ type: 'start' }));
+
+    let full = '';
+    for await (const part of stream) {
+      const delta = part.choices?.[0]?.delta?.content || '';
+      if (delta) { full += delta; sseWrite(res, JSON.stringify({ type: 'chunk', text: delta })); }
+    }
+    sseWrite(res, JSON.stringify({ type: 'end', full }));
+    res.end();
+  } catch (err) {
+    console.error('SSE error:', err);
+    sseWrite(res, JSON.stringify({ error: 'falha no streaming' }));
+    res.end();
+  }
+});
+
+export default router;
+tsx
+Copiar código
+// click-pro-assistant/web/AssistantExperience.tsx
+/**
+ * Versão sem dicas antifraude no Spotlight.
+ * (Caso ainda use esta página além do SearchDock)
+ */
+
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { SearchBarClick } from './SearchBarClick';
+import { Chip, ActionButton, Skeleton } from './ui-helpers';
+
+type Msg = { role:'user'|'assistant'; content:string };
+type AssistantPayload = { reply: string; suggest?: any; personalization?: { userName?: string; paraguayCities?: string[] } };
+
+export default function AssistantExperience(){
+  const uid = useMemo(()=> localStorage.getItem('uid') || (localStorage.setItem('uid', 'u-'+Math.random().toString(36).slice(2,8)), localStorage.getItem('uid')!), []);
+  const userName = useMemo(()=> localStorage.getItem('userName') || 'Cliente', []);
+  const [messages, setMessages] = useState<Msg[]>([
+    { role:'assistant', content:`Olá, ${userName} 👋 O que você quer encontrar hoje?` }
+  ]);
+  const [sessionId, setSessionId] = useState<string>('');
+  const [spotlight, setSpotlight] = useState<any>(null);
+  const [loadingSpotlight, setLoadingSpotlight] = useState<boolean>(false);
+  const [actions, setActions] = useState<any[]>([]);
+  const [city, setCity] = useState<string>('');
+  const scRef = useRef<HTMLDivElement>(null);
+
+  useEffect(()=> { fetch('/assistant/session',{ method:'POST'}).then(r=>r.json()).then(d=> setSessionId(d.sessionId)); }, []);
+  useEffect(()=> { scRef.current?.scrollTo({ top: scRef.current.scrollHeight, behavior:'smooth' }); }, [messages]);
+
+  const quickReplies = useMemo(()=> ([
+    { label: '📱 iPhone', q: 'iphone' },
+    { label: '💄 Perfumes', q: 'perfumes' },
+    { label: '🎧 Fones', q: 'fones custo-benefício' }
+  ]), []);
+
+  async function sendToAssistant(q:string){
+    setMessages(m=> [...m, { role:'user', content: q }]);
+    setLoadingSpotlight(true);
+    const r = await fetch('/assistant/message',{
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'x-user-id': uid, 'x-user-name': userName },
+      body: JSON.stringify({ sessionId, message: q + (city ? ` | cidade=${city}` : '') })
+    });
+    const data: AssistantPayload = await r.json();
+    setMessages(m=> [...m, { role:'assistant', content: data.reply }]);
+    const best = data?.suggest?.products?.[0] || null;
+    setSpotlight(best);
+    setLoadingSpotlight(false);
+    setActions([
+      { key:'compare', label:'🔄 Comparar preços', handler: async ()=>{
+        const title = best?.title || q;
+        const cr = await fetch('/compare',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ query: title })}).then(r=>r.json());
+        const top = cr.items?.[0];
+        alert(top ? `Melhor: ${top.title} — ${top.store?.name}` : 'Nenhum comparativo encontrado.');
+      }},
+      { key:'simulate', label:'💰 Simular economia', handler: async ()=>{
+        const usd = best?.price?.USD || 0;
+        if (!usd) return alert('Sem preço USD para simular.');
+        const sr = await fetch(`/simulator/savings?usd=${usd}`).then(r=>r.json());
+        const net = sr?.results?.net_saving ?? 0;
+        alert(`Economia líquida estimada: R$ ${Number(net).toFixed(2)}`);
+      }},
+      { key:'save', label:'⭐ Salvar', handler: ()=> alert('Adicionado à sua lista!') }
+    ]);
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4">
+      <div className="max-w-7xl mx-auto grid grid-cols-12 gap-4">
+        {/* Chat */}
+        <div className="col-span-12 lg:col-span-4 rounded-3xl border bg-white/70 backdrop-blur p-0 shadow-sm overflow-hidden">
+          <div className="p-4 border-b flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center font-semibold">C</div>
+            <div>
+              <div className="font-semibold">Click Assistant</div>
+              <div className="text-xs text-gray-500">Olá, {userName}</div>
+            </div>
+          </div>
+          <div ref={scRef} className="h-[52vh] overflow-auto p-4 space-y-2">
+            {messages.map((m,i)=>(
+              <div key={i} className={`whitespace-pre-wrap ${m.role==='user'?'text-right':''}`}>
+                <span className={`inline-block px-3 py-2 rounded-2xl ${m.role==='user'?'bg-indigo-100':'bg-gray-100'}`}>{m.content}</span>
+              </div>
+            ))}
+          </div>
+          <div className="px-4 pb-3 space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {quickReplies.map(q => <button key={q.label} className="px-3 py-1 rounded-full border" onClick={()=> sendToAssistant(q.q)}>{q.label}</button>)}
+            </div>
+          </div>
+          <div className="p-4 border-t">
+            <SearchBarClick onOpenAssistant={sendToAssistant}/>
+          </div>
+        </div>
+
+        {/* Spotlight */}
+        <div className="col-span-12 lg:col-span-5 rounded-3xl border bg-white/70 backdrop-blur p-5 shadow-sm">
+          <div className="text-sm text-gray-500 mb-2">Spotlight</div>
+          {!spotlight && !loadingSpotlight && <div className="text-gray-500">Busque algo para ver um destaque aqui.</div>}
+          {loadingSpotlight && <Skeleton lines={5} />}
+          {!!spotlight && !loadingSpotlight && (
+            <div className="space-y-3">
+              <div>
+                <div className="text-xl font-semibold">{spotlight.title}</div>
+                <div className="text-xs text-gray-500">{spotlight.category || '—'}</div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-2xl font-semibold">USD {spotlight?.price?.USD ?? '-'}</div>
+                {'score' in spotlight && spotlight.score !== undefined ? (
+                  <div className="text-sm text-gray-500">score {spotlight.score}</div>
+                ) : null}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Ações */}
+        <div className="col-span-12 lg:col-span-3 rounded-3xl border bg-white/70 backdrop-blur p-5 shadow-sm">
+          <div className="text-sm text-gray-500 mb-2">Ações</div>
+          <div className="grid gap-2">
+            {actions.length ? actions.map(a=>(
+              <button key={a.key} onClick={a.handler} className="w-full text-left px-3 py-2 rounded-2xl border shadow-sm hover:shadow">
+                {a.label}
+              </button>
+            )) : <div className="text-sm text-gray-500">As ações aparecem após uma busca.</div>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+tsx
+Copiar código
+// click-pro-assistant/web/SearchDock.tsx
+/**
+ * SearchDock (SSE) — **sem** dicas antifraude em nenhum texto.
+ */
+
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { SearchBarClick } from './SearchBarClick';
+
+type Store = { id:string; name:string; label?:string; mall?:string };
+type Product = { id:string; title:string; category?:string; price?:any; score?:number; storeId?:string };
+type SuggestResponse = { ok:boolean; category?:string; topStores:Store[]; products:Product[]; scratchcard?:any };
+
+export default function SearchDock() {
+  const uid = useMemo(()=> localStorage.getItem('uid') || (localStorage.setItem('uid', 'u-'+Math.random().toString(36).slice(2,8)), localStorage.getItem('uid')!), []);
+  const userName = useMemo(()=> localStorage.getItem('userName') || 'Cliente', []);
+  const [sessionId, setSessionId] = useState<string>('');
+  const [query, setQuery] = useState<string>('');
+  const [sug, setSug] = useState<SuggestResponse | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [streamingText, setStreamingText] = useState<string>('');
+  const esRef = useRef<EventSource|null>(null);
+
+  useEffect(()=> { fetch('/assistant/session', { method:'POST' }).then(r=>r.json()).then(d=> setSessionId(d.sessionId)); }, []);
+
+  function startStream(message: string) {
+    if (esRef.current) { esRef.current.close(); esRef.current = null; }
+    setStreamingText('');
+    const qs = new URLSearchParams({ sessionId, message, userId: uid, userName });
+    const es = new EventSource(`/assistant/stream?${qs.toString()}`);
+    esRef.current = es;
+    es.onmessage = (evt) => {
+      try {
+        const payload = JSON.parse(evt.data);
+        if (payload.type === 'chunk' && payload.text) setStreamingText(prev => prev + payload.text);
+      } catch { setStreamingText(prev => prev + evt.data); }
+    };
+    es.onerror = () => { es.close(); esRef.current = null; };
+  }
+  useEffect(()=> () => { esRef.current?.close(); }, []);
+
+  async function handleFocusStart() { if (sessionId) startStream('oi'); }
+  async function handleQueryChange(text:string){
+    setQuery(text);
+    const q = text.trim();
+    if (!q) { setSug(null); return; }
+    try{
+      setLoading(true);
+      const r = await fetch(`/suggest?q=${encodeURIComponent(q)}`, { headers:{ 'x-user-id': uid }});
+      const data = await r.json();
+      setSug(data);
+    } finally { setLoading(false); }
+  }
+  async function handleSubmit(text:string){ if (text.trim()) startStream(text.trim()); }
+
+  return (
+    <div className="w-full">
+      <SearchBarClick
+        onFocusStart={handleFocusStart}
+        onChangeQuery={handleQueryChange}
+        onSubmitQuery={handleSubmit}
+      />
+
+      <div className="mt-4 space-y-4">
+        <div className="rounded-2xl border bg-white/80 backdrop-blur p-4 shadow-sm min-h-[72px]">
+          <div className="text-sm text-gray-500 mb-1">Click está respondendo…</div>
+          <div className="whitespace-pre-wrap">{streamingText || `Olá, ${userName}! Clique na barra para começar.`}</div>
+        </div>
+
+        <div className="rounded-2xl border bg-white/80 backdrop-blur p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm text-gray-500">
+              {loading ? 'Buscando ofertas…' : (query ? `Resultados para “${query}”` : 'Ofertas e destaques')}
+            </div>
+            {sug?.category ? <div className="text-xs px-2 py-1 rounded-full border bg-gray-50">{sug.category}</div> : null}
+          </div>
+
+          {!sug ? (
+            <div className="text-gray-500 text-sm">Sem resultados ainda. Digite algo na barra acima.</div>
+          ) : (
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-12 md:col-span-4">
+                <div className="text-sm font-semibold mb-2">Melhores lojas</div>
+                <div className="grid gap-2">
+                  {(sug.topStores || []).map((s, i) => (
+                    <div key={s.id} className="p-3 rounded-xl border hover:shadow-sm transition-all">
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium truncate">{s.name}</div>
+                        {i<2 && s.label ? (
+                          <span className="text-[10px] px-1 py-0.5 rounded bg-amber-100 border border-amber-300">{s.label}</span>
+                        ) : null}
+                      </div>
+                      {s.mall ? <div className="text-xs text-gray-500 mt-1">{s.mall}</div> : null}
+                    </div>
+                  ))}
+                  {(!sug.topStores || !sug.topStores.length) && (
+                    <div className="text-xs text-gray-500">Nenhuma loja no momento.</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="col-span-12 md:col-span-8">
+                <div className="text-sm font-semibold mb-2">Ofertas e produtos</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {(sug.products || []).map((p) => (
+                    <div key={p.id} className="p-3 rounded-xl border hover:shadow-sm transition-all">
+                      <div className="font-medium truncate mb-1">{p.title}</div>
+                      <div className="text-xs text-gray-500 mb-2">
+                        {p.category || '—'} {('score' in p && p.score !== undefined) ? `• score ${p.score}` : ''}
+                      </div>
+                      <div className="text-sm">
+                        {p.price?.USD ? <>USD <b>{p.price.USD}</b></> : <span className="text-gray-400">sem preço</span>}
+                      </div>
+                    </div>
+                  ))}
+                  {(!sug.products || !sug.products.length) && (
+                    <div className="text-xs text-gray-500">Nenhum produto encontrado.</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
+}

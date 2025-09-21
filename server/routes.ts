@@ -6842,6 +6842,163 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
     }
   });
 
+  // SSE Streaming endpoint for assistant chat
+  app.post('/api/assistant/stream', async (req: any, res) => {
+    try {
+      const { sessionId, message, context } = req.body;
+      const user = req.user || req.session?.user;
+
+      // Validate input
+      if (!message || typeof message !== 'string' || message.trim().length === 0) {
+        return res.status(400).json({ success: false, message: 'Message is required' });
+      }
+
+      if (message.length > 2000) {
+        return res.status(400).json({ success: false, message: 'Message too long' });
+      }
+
+      // Validate session and ownership
+      const session = await storage.getAssistantSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ success: false, message: 'Session not found' });
+      }
+
+      // Check ownership
+      if (session.userId && session.userId !== user?.id) {
+        return res.status(403).json({ success: false, message: 'Access denied' });
+      }
+
+      // Setup SSE headers
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control'
+      });
+
+      // SSE helper functions
+      const writeSSE = (data: any) => {
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      };
+
+      // Save user message
+      await storage.createAssistantMessage({
+        sessionId,
+        content: message,
+        role: 'user',
+        metadata: context || null,
+      });
+
+      // Get recent conversation context
+      const recentMessages = await storage.getAssistantMessages(sessionId, 10);
+      
+      // Create context for Click Pro IA
+      const conversationContext = recentMessages
+        .slice(-6) // Last 6 messages for context
+        .map(msg => `${msg.role}: ${msg.content}`)
+        .join('\n');
+
+      // Use Click Pro IA for intelligent response with streaming
+      const systemPrompt = `Você é o Click Pro Assistant 🛍️, o vendedor mais carismático e especialista em ofertas do Paraguai! 
+
+🎯 SUA PERSONALIDADE:
+- Você é entusiasmado, convincente e genuinamente empolgado para ajudar
+- Fala como um amigo especialista que conhece TODOS os melhores negócios
+- Usa uma linguagem natural, calorosa e persuasiva
+- Sempre destaca as VANTAGENS e ECONOMIAS incríveis que o usuário pode ter
+- É direto ao ponto, mas com carisma e entusiasmo
+
+💡 SUAS ESPECIALIDADES:
+- Encontrar os MELHORES preços e ofertas exclusivas
+- Sugerir produtos que o usuário nem sabia que precisava (cross-sell inteligente)
+- Criar roteiros de compras que maximizam economia e eficiência  
+- Comparar preços Brasil vs Paraguai mostrando a economia REAL
+- Dar dicas de insider sobre onde e quando comprar
+
+🔥 SEU ESTILO DE COMUNICAÇÃO:
+- Use frases como: "Olha só essa oportunidade!", "Você não vai acreditar nesse preço!", "Tenho algo PERFEITO para você!"
+- Seja específico sobre benefícios: "Você economiza R$ XXX comprando aqui"
+- Crie urgência saudável: "Essa promoção é limitada", "Os melhores produtos voam rápido"
+- Faça perguntas inteligentes para entender melhor o que o cliente quer
+- Sugira produtos relacionados de forma natural
+
+Contexto da conversa:
+${conversationContext}
+
+IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que realmente quer o melhor para o cliente. Use emojis estrategicamente. Sempre termine com uma pergunta ou sugestão para manter a conversa fluindo!`;
+
+      const messages = [
+        { role: 'system' as const, content: systemPrompt },
+        { role: 'user' as const, content: message }
+      ];
+
+      // Send initial metadata
+      writeSSE({ 
+        type: 'start', 
+        sessionId,
+        timestamp: new Date().toISOString()
+      });
+
+      // Create streaming completion
+      const stream = await clickClient.chat.completions.create({
+        model: CHAT_MODEL,
+        messages,
+        temperature: 0.7,
+        max_tokens: 800,
+        stream: true, // Enable streaming
+      });
+
+      let fullResponse = '';
+
+      // Process stream chunks
+      for await (const chunk of stream) {
+        const delta = chunk.choices?.[0]?.delta?.content;
+        if (delta) {
+          fullResponse += delta;
+          writeSSE({
+            type: 'chunk',
+            text: delta,
+            timestamp: new Date().toISOString()
+          });
+        }
+      }
+
+      // Send completion signal
+      writeSSE({
+        type: 'complete',
+        fullText: fullResponse,
+        timestamp: new Date().toISOString()
+      });
+
+      // Save assistant response to database
+      await storage.createAssistantMessage({
+        sessionId,
+        content: fullResponse,
+        role: 'assistant',
+        metadata: { 
+          model: CHAT_MODEL,
+          context: context || null,
+          timestamp: new Date().toISOString(),
+          streamed: true
+        },
+      });
+
+      // Send final message and close connection
+      writeSSE({ type: 'end' });
+      res.end();
+
+    } catch (error) {
+      console.error('Error in assistant streaming:', error);
+      res.write(`data: ${JSON.stringify({ 
+        type: 'error', 
+        message: 'Erro no streaming. Tente novamente.',
+        timestamp: new Date().toISOString()
+      })}\n\n`);
+      res.end();
+    }
+  });
+
   // Get/Update user assistant preferences
   app.get('/api/assistant/preferences', isAuthenticatedCustom, async (req: any, res) => {
     try {

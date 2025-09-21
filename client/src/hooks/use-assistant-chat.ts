@@ -109,18 +109,19 @@ export function useAssistantChat({
       setMessages(prev => [...prev, assistantMessage]);
       setIsStreaming(true);
 
-      // Send message to API
+      // Send message to API with SSE streaming
       abortControllerRef.current = new AbortController();
       
-      const response = await fetch('/api/assistant/chat', {
+      const response = await fetch('/api/assistant/stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'text/event-stream',
         },
         body: JSON.stringify({
           sessionId,
           message: content,
-          stream: true
+          context: null
         }),
         signal: abortControllerRef.current.signal,
       });
@@ -129,77 +130,73 @@ export function useAssistantChat({
         throw new Error('Failed to send message');
       }
 
-      // Check if response is streaming or regular JSON
-      const contentType = response.headers.get('content-type') || '';
-      
-      if (contentType.includes('text/event-stream')) {
-        // Handle streaming response
-        const reader = response.body!.getReader();
-        const decoder = new TextDecoder();
-        let assistantContent = '';
-        let buffer = ''; // Buffer for partial chunks
+      // Handle SSE streaming response
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = '';
+      let buffer = '';
 
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            
-            // Keep the last line in buffer (might be incomplete)
-            buffer = lines.pop() || '';
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          
+          // Keep the last line in buffer (might be incomplete)
+          buffer = lines.pop() || '';
 
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6).trim();
-                if (data === '[DONE]') {
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6).trim();
+              if (!data) continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                
+                if (parsed.type === 'start') {
+                  // Streaming started
+                  console.log('🚀 SSE streaming started');
+                } else if (parsed.type === 'chunk' && parsed.text) {
+                  // New text chunk
+                  assistantContent += parsed.text;
+                  setMessages(prev => prev.map(msg => 
+                    msg.id === assistantMessage.id 
+                      ? { ...msg, content: assistantContent }
+                      : msg
+                  ));
+                } else if (parsed.type === 'complete') {
+                  // Streaming complete
+                  console.log('✅ SSE streaming complete');
                   setIsStreaming(false);
-                  // Update final message
                   setMessages(prev => prev.map(msg => 
                     msg.id === assistantMessage.id 
                       ? { ...msg, isStreaming: false, content: assistantContent }
                       : msg
                   ));
-                  return;
+                } else if (parsed.type === 'end') {
+                  // Connection ended
+                  break;
+                } else if (parsed.type === 'error') {
+                  // Error occurred
+                  console.error('❌ SSE streaming error:', parsed.message);
+                  throw new Error(parsed.message);
                 }
-
-                try {
-                  const parsed = JSON.parse(data);
-                  if (parsed.content) {
-                    assistantContent += parsed.content;
-                    // Update streaming message
-                    setMessages(prev => prev.map(msg => 
-                      msg.id === assistantMessage.id 
-                        ? { ...msg, content: assistantContent }
-                        : msg
-                    ));
-                  }
-                } catch (e) {
-                  // Ignore parsing errors for partial chunks
-                }
+              } catch (e) {
+                // Ignore parsing errors for partial chunks
+                console.warn('Failed to parse SSE data:', data);
               }
             }
           }
-        } finally {
-          reader.releaseLock();
-          setIsStreaming(false);
-          // Ensure final message state is correct
-          setMessages(prev => prev.map(msg => 
-            msg.id === assistantMessage.id 
-              ? { ...msg, isStreaming: false, content: assistantContent }
-              : msg
-          ));
         }
-      } else {
-        // Handle regular JSON response (fallback)
-        const data = await response.json();
-        const replyContent = data.reply || data.message || '';
-        
+      } finally {
+        reader.releaseLock();
         setIsStreaming(false);
+        // Ensure final message state is correct
         setMessages(prev => prev.map(msg => 
           msg.id === assistantMessage.id 
-            ? { ...msg, isStreaming: false, content: replyContent }
+            ? { ...msg, isStreaming: false, content: assistantContent }
             : msg
         ));
       }
