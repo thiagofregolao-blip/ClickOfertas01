@@ -28,6 +28,9 @@ import BannerCarouselSwiper from "@/components/BannerCarouselSwiper";
 import ThreeDailyScratchCards from "@/components/ThreeDailyScratchCards";
 import { RectangularScratchCard } from "@/components/RectangularScratchCard";
 import GlobalHeader from "@/components/global-header";
+import { useAssistantChat } from "@/hooks/use-assistant-chat";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Bot, Sparkles, Send } from "lucide-react";
 import type { StoreWithProducts, Product, InstagramStoryWithDetails } from "@shared/schema";
 import logoUrl from '../assets/logo.jpg';
 
@@ -62,7 +65,82 @@ export default function StoresGallery() {
   const [searchInput, setSearchInput] = useState(urlSearch);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  
+  // Click Pro Assistant states
+  const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
+  const [assistantInput, setAssistantInput] = useState("");
+  const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
+  
+  // Use assistant chat hook
+  const {
+    messages,
+    sendMessage: sendChatMessage,
+    isStreaming,
+    isSending,
+    sessionId,
+    sessionLoading
+  } = useAssistantChat({ autoCreateSession: true });
   const searchQuery = useDebounce(searchInput, 500); // Debounce de 500ms
+  
+  // Get product recommendations using React Query
+  const { data: recommendationsData, isLoading: recommendationsLoading } = useQuery({
+    queryKey: ['assistant', 'recommendations', sessionId, messages.length],
+    queryFn: async () => {
+      if (!sessionId || messages.length === 0) return { products: [] };
+      
+      const chatContext = messages.map(msg => msg.content);
+      const response = await fetch('/api/assistant/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          sessionId,
+          context: chatContext,
+          limit: 6 
+        })
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch recommendations');
+      return await response.json();
+    },
+    enabled: !!sessionId && messages.length > 0 && !isStreaming,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+  });
+
+  // Update local state when recommendations change
+  useEffect(() => {
+    if (recommendationsData?.products) {
+      setRecommendedProducts(recommendationsData.products);
+    }
+  }, [recommendationsData]);
+
+  // Handle assistant expansion when user starts typing
+  const handleSearchInputChange = (value: string) => {
+    setSearchInput(value);
+    setAssistantInput(value);
+    
+    // Expand assistant if user types something
+    if (value.trim() && !isAssistantExpanded) {
+      setIsAssistantExpanded(true);
+    }
+  };
+
+  // Send message to assistant
+  const handleSendAssistantMessage = () => {
+    const messageText = assistantInput.trim() || searchInput.trim();
+    if (!messageText || isSending || isStreaming || !sessionId) return;
+    
+    sendChatMessage(messageText);
+    setAssistantInput('');
+    setSearchInput('');
+  };
+
+  // Handle assistant keypress
+  const handleAssistantKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendAssistantMessage();
+    }
+  };
   
   // Busca inteligente com Click Pro IA
   const { data: intelligentSearchData, searchMode } = useIntelligentSearch(
@@ -837,12 +915,21 @@ export default function StoresGallery() {
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     )}
                     <Input
-                      placeholder={isSearchFocused || searchInput ? "Buscar produtos ou lojas..." : currentText}
+                      placeholder={isSearchFocused || searchInput ? "Digite algo para conversar com o Click Pro Assistant..." : currentText}
                       value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
+                      onChange={(e) => handleSearchInputChange(e.target.value)}
                       onFocus={() => setIsSearchFocused(true)}
                       onBlur={() => setIsSearchFocused(false)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          if (isAssistantExpanded && searchInput.trim()) {
+                            e.preventDefault();
+                            handleSendAssistantMessage();
+                          }
+                        }
+                      }}
                       className="pl-10 pr-10 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
+                      data-testid="input-search-assistant"
                     />
                     {searchInput && (
                       <button
@@ -855,6 +942,159 @@ export default function StoresGallery() {
                     )}
                   </div>
                 </div>
+                
+                {/* Click Pro Assistant Expandido */}
+                {isAssistantExpanded && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-2xl z-50 max-w-7xl mx-auto" 
+                       style={{ minHeight: '400px', maxHeight: '600px' }}>
+                    
+                    {/* Header do Assistant */}
+                    <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-50">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
+                          <Sparkles className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-900">Click Pro Assistant</h3>
+                          <p className="text-sm text-slate-600">Seu assistente de compras inteligente</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setIsAssistantExpanded(false)}
+                        className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                        data-testid="button-close-assistant"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* Layout de 2 colunas */}
+                    <div className="flex h-full">
+                      
+                      {/* Coluna do Chat - Esquerda */}
+                      <div className="flex-1 flex flex-col border-r border-gray-200">
+                        
+                        {/* Messages Area */}
+                        <ScrollArea className="flex-1 p-4" style={{ height: '300px' }}>
+                          <div className="space-y-4">
+                            {messages.length === 0 ? (
+                              <div className="text-center text-gray-500 py-8">
+                                <Bot className="w-12 h-12 mx-auto mb-3 text-purple-400" />
+                                <p className="text-lg font-medium">Olá! Como posso ajudar você hoje?</p>
+                                <p className="text-sm">Digite algo como "quero um iPhone barato" ou "preciso de um notebook para estudar"</p>
+                              </div>
+                            ) : (
+                              messages.map((message) => (
+                                <div
+                                  key={message.id}
+                                  className={`flex gap-3 ${
+                                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                                  }`}
+                                >
+                                  {message.role === 'assistant' && (
+                                    <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                                      <Bot className="h-4 w-4 text-white" />
+                                    </div>
+                                  )}
+                                  <div
+                                    className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                                      message.role === 'user'
+                                        ? 'bg-blue-500 text-white ml-auto'
+                                        : 'bg-slate-100 text-slate-900'
+                                    }`}
+                                  >
+                                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                                      {message.content}
+                                      {message.isStreaming && <span className="animate-pulse">|</span>}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </ScrollArea>
+
+                        {/* Input Area */}
+                        <div className="p-4 border-t border-gray-200">
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Digite sua mensagem..."
+                              value={assistantInput}
+                              onChange={(e) => setAssistantInput(e.target.value)}
+                              onKeyPress={handleAssistantKeyPress}
+                              disabled={isSending || isStreaming}
+                              className="flex-1"
+                              data-testid="input-assistant-message"
+                            />
+                            <Button
+                              onClick={handleSendAssistantMessage}
+                              disabled={!assistantInput.trim() || isSending || isStreaming || !sessionId || sessionLoading}
+                              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                              data-testid="button-send-assistant-message"
+                            >
+                              {isSending || isStreaming ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              ) : (
+                                <Send className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Coluna de Produtos Recomendados - Direita */}
+                      <div className="w-80 p-4">
+                        <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                          <Search className="w-4 h-4" />
+                          Produtos Recomendados
+                        </h4>
+                        
+                        {recommendationsLoading ? (
+                          <div className="text-center text-gray-500 py-8">
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg mx-auto mb-3 flex items-center justify-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+                            </div>
+                            <p className="text-sm">Procurando os melhores produtos para você...</p>
+                          </div>
+                        ) : recommendedProducts.length === 0 ? (
+                          <div className="text-center text-gray-500 py-8">
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg mx-auto mb-3 flex items-center justify-center">
+                              <Search className="w-8 h-8 text-gray-400" />
+                            </div>
+                            <p className="text-sm">Converse comigo e eu vou recomendar os melhores produtos para você!</p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-3">
+                            {recommendedProducts.slice(0, 6).map((product, index) => (
+                              <Card key={product.id || index} className="cursor-pointer hover:shadow-md transition-shadow">
+                                <CardContent className="p-3">
+                                  <div className="aspect-square bg-gray-100 rounded-lg mb-2 overflow-hidden">
+                                    {product.images && product.images[0] && (
+                                      <img 
+                                        src={product.images[0]} 
+                                        alt={product.name}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    )}
+                                  </div>
+                                  <h5 className="font-medium text-xs text-slate-900 line-clamp-2 mb-1">
+                                    {product.name}
+                                  </h5>
+                                  <p className="text-orange-600 font-bold text-sm">
+                                    {product.currency || 'R$'} {product.price}
+                                  </p>
+                                  {product.storeName && (
+                                    <p className="text-xs text-gray-500 mt-1">{product.storeName}</p>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Sino de notificações - Desktop */}
                 <button
