@@ -83,6 +83,7 @@ import { apifyService, type PriceSearchResult } from "./apifyService";
 import { db } from "./db";
 import { products, stores } from "@shared/schema";
 import { eq, and, or, sql, asc, desc } from "drizzle-orm";
+import { MemoryService } from "./memoryService";
 
 // Simple in-memory cache with TTL
 class MemoryCache {
@@ -6634,6 +6635,10 @@ Responda curto, claro, PT-BR.
     try {
       const user = req.user || req.session?.user;
       const { topic, context } = req.body;
+      
+      // Get user info for personalization
+      const userId = user?.id || 'anonymous';
+      const userName = user?.firstName || user?.fullName || user?.email?.split('@')[0] || '';
 
       // Validate input using schema
       const sessionData = {
@@ -6643,7 +6648,37 @@ Responda curto, claro, PT-BR.
       };
 
       const session = await storage.createAssistantSession(sessionData);
-      res.json({ success: true, session });
+
+      // Generate personalized greeting using memory service
+      let greeting = "Olá! Como posso ajudar você hoje? 😊";
+      
+      try {
+        // Get or create user memory
+        const memory = await MemoryService.getUserMemory(userId, userName);
+        
+        // Generate natural greeting
+        const greetingData = MemoryService.makeNaturalGreeting(memory);
+        greeting = greetingData.text;
+        
+        // Update memory with new greeting usage
+        await MemoryService.updateUserMemory(userId, {
+          greetingHistory: greetingData.nextHistory,
+          visitCount: greetingData.nextCounters.visitCount,
+          profile: {
+            ...memory.profile,
+            name: userName || memory.profile?.name,
+          },
+        });
+      } catch (memoryError) {
+        console.error('Error generating personalized greeting:', memoryError);
+        // Fall back to default greeting
+      }
+
+      res.json({ 
+        success: true, 
+        session,
+        greeting // Include personalized greeting in response
+      });
     } catch (error) {
       console.error('Error creating assistant session:', error);
       res.status(500).json({ success: false, message: 'Failed to create session' });
@@ -6983,6 +7018,15 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
           streamed: true
         },
       });
+
+      // Update user memory with conversation history
+      try {
+        const userId = user?.id || 'anonymous';
+        await MemoryService.updateHistory(userId, message, fullResponse);
+      } catch (memoryError) {
+        console.error('Error updating user memory:', memoryError);
+        // Continue execution, memory update is not critical
+      }
 
       // Send final message and close connection
       writeSSE({ type: 'end' });

@@ -66,7 +66,8 @@ export default function StandardHeader() {
     isStreaming,
     isSending,
     sessionId,
-    sessionLoading
+    sessionLoading,
+    personalizedGreeting
   } = useAssistantChat({ autoCreateSession: true });
 
   // Buscar categorias do backend
@@ -285,7 +286,9 @@ export default function StandardHeader() {
                       {messages.length === 0 ? (
                         <div className="text-center text-gray-500 py-8">
                           <Bot className="w-12 h-12 mx-auto mb-3 text-purple-400" />
-                          <p className="text-lg font-medium">Olá! Como posso ajudar você hoje?</p>
+                          <p className="text-lg font-medium">
+                            {personalizedGreeting || "Olá! Como posso ajudar você hoje?"}
+                          </p>
                           <p className="text-sm">Digite algo como "quero um iPhone barato" ou "preciso de um notebook para estudar"</p>
                         </div>
                       ) : (

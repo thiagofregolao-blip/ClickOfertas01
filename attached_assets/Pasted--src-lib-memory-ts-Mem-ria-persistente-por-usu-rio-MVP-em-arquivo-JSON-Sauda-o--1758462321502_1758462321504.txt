@@ -1,0 +1,409 @@
+// src/lib/memory.ts
+/**
+ * Memória persistente por usuário (MVP em arquivo JSON).
+ * + Saudação natural e não repetitiva baseada em horário/cidade/visitas.
+ *
+ * Troca futura por DB (Redis/SQL): mantenha a mesma interface pública.
+ */
+
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import OpenAI from 'openai';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DB_PATH = path.join(__dirname, '..', '..', 'data', 'memory.json');
+
+export type UserMemory = {
+  userId: string;
+  profile: {
+    name?: string;
+    preferredCity?: 'Ciudad del Este' | 'Salto del Guairá' | 'Pedro Juan Caballero' | '';
+  };
+  prefs: {
+    budget?: 'baixo'|'medio'|'alto';
+    mode?: 'a-pe'|'app'|'carro';
+  };
+  history: {
+    lastIntent?: string;
+    lastCategories?: string[];
+    lastProducts?: string[];
+    lastStores?: string[];
+  };
+  lastSummary?: string;
+  lastSeen: string;
+  counters: { visits: number };
+  greetHistory?: number[]; // índices usados recentemente para evitar repetição
+};
+
+type DB = UserMemory[];
+
+async function readDB(): Promise<DB> {
+  try {
+    const raw = await fs.readFile(DB_PATH, 'utf-8');
+    return JSON.parse(raw || '[]');
+  } catch {
+    return [];
+  }
+}
+
+async function writeDB(db: DB) {
+  await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2), 'utf-8');
+}
+
+/** Busca ou cria memória vazia para userId. */
+export async function getUserMemory(userId: string, name?: string): Promise<UserMemory> {
+  const db = await readDB();
+  let m = db.find(x => x.userId === userId);
+  if (!m) {
+    m = {
+      userId,
+      profile: { name: name || '' , preferredCity: '' },
+      prefs: {},
+      history: { lastIntent:'', lastCategories:[], lastProducts:[], lastStores:[] },
+      lastSummary: '',
+      lastSeen: new Date().toISOString(),
+      counters: { visits: 0 },
+      greetHistory: []
+    };
+    db.push(m);
+    await writeDB(db);
+  }
+  return m;
+}
+
+/** Atualiza e persiste memória. */
+export async function updateUserMemory(userId: string, patch: Partial<UserMemory>) {
+  const db = await readDB();
+  const i = db.findIndex(x => x.userId === userId);
+  if (i === -1) return;
+  db[i] = {
+    ...db[i],
+    ...patch,
+    profile: { ...db[i].profile, ...patch.profile },
+    prefs:   { ...db[i].prefs,   ...patch.prefs },
+    history: {
+      ...db[i].history,
+      ...(patch.history || {}),
+      lastCategories: patch.history?.lastCategories ?? db[i].history.lastCategories ?? [],
+      lastProducts:   patch.history?.lastProducts   ?? db[i].history.lastProducts   ?? [],
+      lastStores:     patch.history?.lastStores     ?? db[i].history.lastStores     ?? [],
+    },
+    greetHistory: patch.greetHistory ?? db[i].greetHistory ?? [],
+    lastSeen: new Date().toISOString()
+  };
+  await writeDB(db);
+}
+
+/** Heurística simples para extrair categorias/cidade a partir do texto. */
+export function extractSignals(message: string){
+  const t = message.toLowerCase();
+  const categories: string[] = [];
+  if (/(iphone|samsung|galaxy|xiaomi|smartphone|celular)/.test(t)) categories.push('eletronicos');
+  if (/(fone|headphone|jbl|sony|audio|soundbar)/.test(t))         categories.push('audio');
+  if (/(perfume|parfum|cosm[eé]tico)/.test(t))                    categories.push('perfumes');
+
+  let preferredCity: UserMemory['profile']['preferredCity'] = '';
+  if (/salto/i.test(t)) preferredCity = 'Salto del Guairá';
+  else if (/pedro\s*juan/i.test(t)) preferredCity = 'Pedro Juan Caballero';
+  else if (/cde|ciudad\s*del\s*este/i.test(t)) preferredCity = 'Ciudad del Este';
+
+  return { categories, preferredCity };
+}
+
+/** ----- RESUMO curto para memória (opcional, já usado no projeto) ----- */
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const CHAT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
+
+export async function summarizeForMemory(input: { message: string; reply: string; name?: string }) {
+  const prompt = `
+Resuma a conversa abaixo em até 2 linhas, focando intenção e preferências (cidade/orçamento/categorias).
+PT-BR, direto.
+
+Usuário: ${input.name||'Cliente'}
+Pergunta: ${input.message}
+RespostaClick: ${input.reply}
+`;
+  const r = await client.chat.completions.create({
+    model: CHAT_MODEL,
+    messages: [{ role:'user', content: prompt }],
+    temperature: 0.1,
+    max_tokens: 80
+  });
+  return r.choices[0].message.content || '';
+}
+
+/** -------------------- SAUDAÇÃO NATURAL E NÃO REPETITIVA -------------------- */
+
+const GREET_TEMPLATES: ((ctx: {
+  name: string;
+  tod: 'manhã'|'tarde'|'noite';
+  city?: string;
+  visits: number;
+}) => string)[] = [
+  ({name, tod, city}) => `Olá, ${name}! Boa ${tod}${city ? ` em ${city}` : ''} 👋`,
+  ({name, tod}) => `Oi, ${name}! Tudo certo por aí nessa ${tod}?`,
+  ({name, city}) => `Bem-vindo de volta, ${name}! ${city ? `Vamos explorar ${city} hoje?` : 'Pronto pra achar boas ofertas?'}`,
+  ({name}) => `E aí, ${name}! Posso te mostrar as melhores ofertas de hoje?`,
+  ({name, city}) => `Que bom te ver, ${name}! ${city ? `Tenho novidades de ${city}.` : 'Tenho novidades fresquinhas.'}`
+];
+
+/** Determina período do dia. */
+function timeOfDay(d = new Date()): 'manhã'|'tarde'|'noite' {
+  const h = d.getHours();
+  if (h < 12) return 'manhã';
+  if (h < 18) return 'tarde';
+  return 'noite';
+}
+
+/**
+ * Retorna uma saudação curta:
+ * - Usa nome (ou "Cliente").
+ * - Considera cidade preferida quando houver.
+ * - Evita repetir os últimos templates usados (greetHistory).
+ * - Atualiza visits e greetHistory no retorno (caller persiste).
+ */
+export function makeNaturalGreeting(mem: UserMemory) {
+  const name = mem.profile.name || 'Cliente';
+  const tod = timeOfDay();
+  const city = mem.profile.preferredCity || '';
+  const visits = (mem.counters.visits || 0) + 1;
+
+  const recent = new Set((mem.greetHistory || []).slice(-3)); // evita últimos 3
+  // escolhe o primeiro template não usado recentemente
+  let idx = 0;
+  for (let i=0;i<GREET_TEMPLATES.length;i++){
+    if (!recent.has(i)) { idx = i; break; }
+  }
+  const text = GREET_TEMPLATES[idx]({ name, tod, city, visits }).trim();
+
+  const nextHistory = [...(mem.greetHistory || []), idx].slice(-8); // mantém histórico curto
+  const nextCounters = { visits };
+
+  return { text, nextHistory, nextCounters };
+}
+ts
+Copiar código
+// src/routes/assistant.ts
+/**
+ * Atualizado: /assistant/session agora retorna 'greeting' natural da memória.
+ * O restante (POST /message, GET /stream) permanece igual ao seu SSE atual.
+ */
+
+import { Router } from 'express';
+import OpenAI from 'openai';
+import { searchSuggestions, buildItinerary } from '../lib/tools.js';
+import { maybeAttachPromo } from '../lib/promo.js';
+import { getUserMemory, updateUserMemory, makeNaturalGreeting } from '../lib/memory.js';
+
+const router = Router();
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const CHAT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
+
+const SYSTEM_PROMPT = `
+Você é o Click, assistente de compras/viagens focado em Ciudad del Este, Salto del Guairá e Pedro Juan Caballero.
+Respostas curtas, PT-BR, sem inventar preços/estoques.
+` as const;
+
+/** ---------- NOVO: sessão com saudação de memória ---------- */
+router.post('/session', async (req, res)=>{
+  try{
+    const sessionId = 'sess-' + Math.random().toString(36).slice(2,10);
+
+    // Pegamos identidade do usuário (o front envia após login)
+    const userId   = (req.headers['x-user-id'] || '').toString() || 'anon';
+    const userName = (req.headers['x-user-name'] || '').toString();
+
+    // Lê/Cria memória e gera saudação natural
+    const mem = await getUserMemory(userId, userName);
+    const g = makeNaturalGreeting(mem);
+
+    // Persistimos contadores e histórico de saudações
+    await updateUserMemory(userId, {
+      profile: { name: userName || mem.profile.name },
+      counters: g.nextCounters,
+      greetHistory: g.nextHistory
+    });
+
+    res.json({
+      ok:true,
+      sessionId,
+      createdAt: new Date().toISOString(),
+      greeting: g.text // ← saudação pronta para usar no front
+    });
+  } catch (e) {
+    console.error(e);
+    res.json({ ok:true, sessionId: 'sess-'+Math.random().toString(36).slice(2,10), greeting: 'Olá! Posso ajudar hoje?' });
+  }
+});
+
+/** ---------- (SUAS rotas existentes — sem mudanças) ---------- */
+// ... mantenha aqui seu POST /assistant/message (com SSE params se já aplicou as otimizações)
+// ... e o GET /assistant/stream (SSE) que você já está usando.
+
+export default router;
+tsx
+Copiar código
+// web/SearchDock.tsx
+/**
+ * Pequena mudança: usamos a saudação vinda de /assistant/session (greeting).
+ * Mantemos o streaming “oi” no foco se você quiser, mas a saudação já aparece de cara.
+ */
+
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { SearchBarClick } from './SearchBarClick';
+
+type Store = { id:string; name:string; label?:string; mall?:string };
+type Product = { id:string; title:string; category?:string; price?:any; score?:number; storeId?:string };
+type SuggestResponse = { ok:boolean; category?:string; topStores:Store[]; products:Product[]; scratchcard?:any };
+
+export default function SearchDock() {
+  const uid = useMemo(()=> localStorage.getItem('uid') || (localStorage.setItem('uid', 'u-'+Math.random().toString(36).slice(2,8)), localStorage.getItem('uid')!), []);
+  const userName = useMemo(()=> localStorage.getItem('userName') || 'Cliente', []);
+
+  const [sessionId, setSessionId] = useState<string>('');
+  const [greeting, setGreeting] = useState<string>(''); // ← NOVO: saudação da memória
+  const [query, setQuery] = useState<string>('');
+  const [sug, setSug] = useState<SuggestResponse | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  // SSE
+  const [streamingText, setStreamingText] = useState<string>('');
+  const esRef = useRef<EventSource|null>(null);
+
+  useEffect(()=> {
+    // Agora enviamos cabeçalhos com user id/nome para receber greeting personalizado
+    fetch('/assistant/session', {
+      method:'POST',
+      headers: { 'x-user-id': uid, 'x-user-name': userName }
+    })
+      .then(r=>r.json())
+      .then(d=> { setSessionId(d.sessionId); setGreeting(d.greeting || ''); });
+  }, [uid, userName]);
+
+  function startStream(message: string) {
+    if (esRef.current) { esRef.current.close(); esRef.current = null; }
+    setStreamingText('');
+
+    const qs = new URLSearchParams({ sessionId, message, userId: uid, userName });
+    const es = new EventSource(`/assistant/stream?${qs.toString()}`);
+    esRef.current = es;
+    es.onmessage = (evt) => {
+      try {
+        const payload = JSON.parse(evt.data);
+        if (payload.type === 'chunk' && payload.text) setStreamingText(prev => prev + payload.text);
+      } catch { setStreamingText(prev => prev + evt.data); }
+    };
+    es.onerror = () => { es.close(); esRef.current = null; };
+  }
+  useEffect(()=> () => { esRef.current?.close(); }, []);
+
+  async function handleFocusStart() {
+    // opcional: iniciar stream de "oi"
+    if (sessionId) startStream('oi');
+  }
+  async function handleQueryChange(text:string){
+    setQuery(text);
+    const q = text.trim();
+    if (!q) { setSug(null); return; }
+    try{
+      setLoading(true);
+      const r = await fetch(`/suggest?q=${encodeURIComponent(q)}`, { headers:{ 'x-user-id': uid }});
+      const data = await r.json();
+      setSug(data);
+    } finally { setLoading(false); }
+  }
+  async function handleSubmit(text:string){ if (text.trim()) startStream(text.trim()); }
+
+  return (
+    <div className="w-full">
+      <SearchBarClick
+        onFocusStart={handleFocusStart}
+        onChangeQuery={handleQueryChange}
+        onSubmitQuery={handleSubmit}
+      />
+
+      <div className="mt-4 space-y-4">
+        {/* Mostra saudação natural da memória (se existir); abaixo segue o streaming ao vivo */}
+        <div className="rounded-2xl border bg-white/80 backdrop-blur p-4 shadow-sm min-h-[72px]">
+          <div className="text-sm text-gray-500 mb-1">Click</div>
+          <div className="whitespace-pre-wrap">
+            {greeting || `Olá, ${userName}!`}
+            {streamingText ? `\n${streamingText}` : ''}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border bg-white/80 backdrop-blur p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm text-gray-500">
+              {loading ? 'Buscando ofertas…' : (query ? `Resultados para “${query}”` : 'Ofertas e destaques')}
+            </div>
+            {sug?.category ? <div className="text-xs px-2 py-1 rounded-full border bg-gray-50">{sug.category}</div> : null}
+          </div>
+
+          {!sug ? (
+            <div className="text-gray-500 text-sm">Sem resultados ainda. Digite algo na barra acima.</div>
+          ) : (
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-12 md:col-span-4">
+                <div className="text-sm font-semibold mb-2">Melhores lojas</div>
+                <div className="grid gap-2">
+                  {(sug.topStores || []).map((s, i) => (
+                    <div key={s.id} className="p-3 rounded-xl border hover:shadow-sm transition-all">
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium truncate">{s.name}</div>
+                        {i<2 && s.label ? (
+                          <span className="text-[10px] px-1 py-0.5 rounded bg-amber-100 border border-amber-300">{s.label}</span>
+                        ) : null}
+                      </div>
+                      {s.mall ? <div className="text-xs text-gray-500 mt-1">{s.mall}</div> : null}
+                    </div>
+                  ))}
+                  {(!sug.topStores || !sug.topStores.length) && (
+                    <div className="text-xs text-gray-500">Nenhuma loja no momento.</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="col-span-12 md:col-span-8">
+                <div className="text-sm font-semibold mb-2">Ofertas e produtos</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {(sug.products || []).map((p) => (
+                    <div key={p.id} className="p-3 rounded-xl border hover:shadow-sm transition-all">
+                      <div className="font-medium truncate mb-1">{p.title}</div>
+                      <div className="text-xs text-gray-500 mb-2">
+                        {p.category || '—'} {('score' in p && p.score !== undefined) ? `• score ${p.score}` : ''}
+                      </div>
+                      <div className="text-sm">
+                        {p.price?.USD ? <>USD <b>{p.price.USD}</b></> : <span className="text-gray-400">sem preço</span>}
+                      </div>
+                    </div>
+                  ))}
+                  {(!sug.products || !sug.products.length) && (
+                    <div className="text-xs text-gray-500">Nenhum produto encontrado.</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
+}
+Como funciona (rápido)
+Memória guarda nome, cidade e um histórico de templates usados em saudações.
+
+Ao criar sessão (POST /assistant/session), o backend:
+
+carrega a memória do usuário (via x-user-id/x-user-name);
+
+gera uma saudação variando template + horário + cidade;
+
+retorna greeting já pronto e atualiza visits e greetHistory.
+
+O front mostra esse greeting imediatamente no painel acima da barra.
+
+No foco da barra, você pode iniciar o SSE como antes (opcional).

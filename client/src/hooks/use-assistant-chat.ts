@@ -31,6 +31,7 @@ export function useAssistantChat({
   const [sessionId, setSessionId] = useState<string | undefined>(initialSessionId);
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [personalizedGreeting, setPersonalizedGreeting] = useState<string>('');
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Get or create session
@@ -49,6 +50,12 @@ export function useAssistantChat({
         const data = await response.json();
         // Handle both shapes: { session: { id } } or { id }
         const session = data.session || data;
+        
+        // Capture personalized greeting if provided
+        if (data.greeting) {
+          setPersonalizedGreeting(data.greeting);
+        }
+        
         setSessionId(session.id);
         return session;
       }
@@ -269,6 +276,9 @@ export function useAssistantChat({
     isStreaming,
     isSending: sendMessageMutation.isPending,
     sendError: sendMessageMutation.error,
+    
+    // Personalization
+    personalizedGreeting,
     
     // Ready state
     isReady: !!sessionId && !sessionQuery.isLoading,

@@ -1875,6 +1875,56 @@ export const userAssistantPreferences = pgTable("user_assistant_preferences", {
   unique("unique_user_assistant_prefs").on(table.userId), // One preference record per user
 ]);
 
+// User Memory - Sistema de memória persistente por usuário
+export const userMemory = pgTable("user_memory", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Perfil do usuário
+  profile: jsonb("profile").$type<{
+    name?: string;
+    preferredCity?: 'Ciudad del Este' | 'Salto del Guairá' | 'Pedro Juan Caballero' | '';
+    lastGreeting?: string;
+  }>().default({}),
+  
+  // Preferências de compra
+  preferences: jsonb("preferences").$type<{
+    budget?: 'baixo' | 'medio' | 'alto';
+    mode?: 'a-pe' | 'app' | 'carro';
+    favoriteCategories?: string[];
+    favoriteBrands?: string[];
+  }>().default({}),
+  
+  // Histórico de atividades
+  history: jsonb("history").$type<{
+    lastIntent?: string;
+    lastCategories?: string[];
+    lastProducts?: string[];
+    lastStores?: string[];
+    recentSearches?: string[];
+    commonSearchTerms?: string[];
+  }>().default({}),
+  
+  // Controle de saudações (para evitar repetição)
+  greetingHistory: jsonb("greeting_history").$type<number[]>().default([]),
+  
+  // Resumo da última conversa para contexto
+  lastSummary: text("last_summary"),
+  
+  // Contadores
+  visitCount: integer("visit_count").default(1),
+  messageCount: integer("message_count").default(0),
+  
+  // Timestamps
+  lastSeen: timestamp("last_seen").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_user_memory_user").on(table.userId),
+  index("idx_user_memory_last_seen").on(table.lastSeen),
+  unique("unique_user_memory").on(table.userId), // Uma memória por usuário
+]);
+
 // Assistant Relations
 export const assistantSessionsRelations = relations(assistantSessions, ({ one, many }) => ({
   user: one(users, {
@@ -1894,6 +1944,13 @@ export const assistantMessagesRelations = relations(assistantMessages, ({ one })
 export const userAssistantPreferencesRelations = relations(userAssistantPreferences, ({ one }) => ({
   user: one(users, {
     fields: [userAssistantPreferences.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userMemoryRelations = relations(userMemory, ({ one }) => ({
+  user: one(users, {
+    fields: [userMemory.userId],
     references: [users.id],
   }),
 }));
@@ -1921,6 +1978,15 @@ export const insertUserAssistantPreferencesSchema = createInsertSchema(userAssis
 
 export const updateUserAssistantPreferencesSchema = insertUserAssistantPreferencesSchema.partial();
 
+// User Memory Schemas
+export const insertUserMemorySchema = createInsertSchema(userMemory).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateUserMemorySchema = insertUserMemorySchema.partial();
+
 // Assistant Types
 export type AssistantSession = typeof assistantSessions.$inferSelect;
 export type InsertAssistantSession = z.infer<typeof insertAssistantSessionSchema>;
@@ -1932,6 +1998,10 @@ export type InsertAssistantMessage = z.infer<typeof insertAssistantMessageSchema
 export type UserAssistantPreferences = typeof userAssistantPreferences.$inferSelect;
 export type InsertUserAssistantPreferences = z.infer<typeof insertUserAssistantPreferencesSchema>;
 export type UpdateUserAssistantPreferences = z.infer<typeof updateUserAssistantPreferencesSchema>;
+
+export type UserMemory = typeof userMemory.$inferSelect;
+export type InsertUserMemory = z.infer<typeof insertUserMemorySchema>;
+export type UpdateUserMemory = z.infer<typeof updateUserMemorySchema>;
 
 // Assistant Extended Types
 export type AssistantSessionWithMessages = AssistantSession & {
