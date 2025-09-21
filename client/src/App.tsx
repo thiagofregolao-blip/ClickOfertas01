@@ -34,6 +34,7 @@ import ApifyDemo from "@/pages/apify-demo";
 import MaintenancePage from "@/pages/maintenance";
 import NotFound from "@/pages/not-found";
 import { MapModalTestPage } from "@/pages/map-modal-test";
+import TestInlineAssistant from "@/pages/test-inline-assistant";
 
 function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
   const [bypassMaintenance, setBypassMaintenance] = useState(() => {
@@ -136,6 +137,7 @@ function Router() {
           <Route path="/daily-scratch" component={DailyScratchPage} />
           <Route path="/apify-demo" component={ApifyDemo} />
           <Route path="/map-test" component={MapModalTestPage} />
+          <Route path="/test-inline-assistant" component={TestInlineAssistant} />
           <Route path="/super-admin-login" component={SuperAdminLogin} />
           <Route path="/super-admin" component={SuperAdminLogin} />
           <Route path="/admin-panel" component={SuperAdmin} />
@@ -174,6 +176,7 @@ function Router() {
           <Route path="/admin/stories" component={AdminStories} />
           <Route path="/admin/analytics" component={AdminAnalytics} />
           <Route path="/map-test" component={MapModalTestPage} />
+          <Route path="/test-inline-assistant" component={TestInlineAssistant} />
           <Route path="/super-admin" component={SuperAdminLogin} />
           <Route path="/super-admin-login" component={SuperAdminLogin} />
           <Route path="/admin-panel" component={SuperAdmin} />
@@ -186,6 +189,7 @@ function Router() {
           <Route path="/product/:id/compare" component={ProductCompare} />
           <Route path="/daily-scratch" component={DailyScratchPage} />
           <Route path="/map-test" component={MapModalTestPage} />
+          <Route path="/test-inline-assistant" component={TestInlineAssistant} />
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/my-coupons" component={MyCoupons} />
@@ -206,6 +210,7 @@ function Router() {
           <Route path="/product/:id/compare" component={ProductCompare} />
           <Route path="/daily-scratch" component={DailyScratchPage} />
           <Route path="/map-test" component={MapModalTestPage} />
+          <Route path="/test-inline-assistant" component={TestInlineAssistant} />
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/my-coupons" component={MyCoupons} />

@@ -7121,6 +7121,195 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
     }
   });
 
+  // =============================================
+  // INLINE ASSISTANT ENDPOINTS (NEW SIMPLE APPROACH)
+  // =============================================
+
+  // POST /assistant/session - Create session with greeting and suggestions
+  app.post('/assistant/session', async (req: any, res) => {
+    try {
+      const userId = req.headers['x-user-id'] || 'anonymous';
+      const userName = req.headers['x-user-name'] || 'Cliente';
+
+      // Create a new session
+      const sessionData = {
+        userId: userId !== 'anonymous' ? userId : undefined,
+        title: 'Nova conversa',
+      };
+
+      const session = await storage.createAssistantSession(sessionData);
+
+      // Generate greeting (simplified)
+      const greeting = `Olá, ${userName}! Como posso ajudar você hoje?`;
+
+      // Get some initial product suggestions
+      const storesWithProducts = await storage.getAllActiveStoresOptimized(5, 8);
+      let allProducts: any[] = [];
+      storesWithProducts.forEach(store => {
+        store.products.forEach(product => {
+          allProducts.push({
+            id: product.id,
+            title: product.name,
+            category: product.category,
+            price: { USD: parseFloat(product.price) || 0 },
+            score: Math.random() * 100,
+            storeId: store.id
+          });
+        });
+      });
+
+      const suggest = {
+        ok: true,
+        category: 'geral',
+        topStores: storesWithProducts.slice(0, 3).map(s => ({
+          id: s.id,
+          name: s.name,
+          label: s.name,
+          mall: s.address || ''
+        })),
+        products: allProducts.slice(0, 6)
+      };
+
+      res.json({
+        sessionId: session.id,
+        greeting,
+        suggest
+      });
+    } catch (error) {
+      console.error('Error creating assistant session:', error);
+      res.status(500).json({ error: 'Failed to create session' });
+    }
+  });
+
+  // GET /assistant/stream - SSE streaming endpoint
+  app.get('/assistant/stream', async (req: any, res) => {
+    try {
+      const { sessionId, message, userId, userName } = req.query;
+
+      if (!message || !sessionId) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+
+      // Validate session exists
+      const session = await storage.getAssistantSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+
+      // Setup SSE headers
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control'
+      });
+
+      // Save user message
+      await storage.createAssistantMessage({
+        sessionId,
+        content: message,
+        role: 'user',
+        metadata: null,
+      });
+
+      // Simple response generation (you can enhance this)
+      const responses = [
+        'Entendi! Vou buscar as melhores ofertas para você.',
+        'Encontrei algumas opções interessantes!',
+        'Que tal dar uma olhada nestes produtos?',
+        'Tenho ótimas sugestões para você!',
+        'Vamos ver o que temos de bom por aqui...'
+      ];
+
+      const response = responses[Math.floor(Math.random() * responses.length)];
+      
+      // Simulate streaming by sending word by word
+      const words = response.split(' ');
+      
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i] + (i < words.length - 1 ? ' ' : '');
+        res.write(`data: ${JSON.stringify({ type: 'chunk', text: word })}\n\n`);
+        await new Promise(resolve => setTimeout(resolve, 100)); // Simulate typing delay
+      }
+
+      // Save assistant response
+      await storage.createAssistantMessage({
+        sessionId,
+        content: response,
+        role: 'assistant',
+        metadata: { streamed: true },
+      });
+
+      res.write(`data: ${JSON.stringify({ type: 'complete' })}\n\n`);
+      res.end();
+
+    } catch (error) {
+      console.error('Error in assistant streaming:', error);
+      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Erro no streaming' })}\n\n`);
+      res.end();
+    }
+  });
+
+  // GET /suggest - Product suggestions endpoint
+  app.get('/suggest', async (req: any, res) => {
+    try {
+      const { q } = req.query;
+      const userId = req.headers['x-user-id'] || 'anonymous';
+
+      if (!q || !q.trim()) {
+        return res.json({ ok: true, products: [], topStores: [] });
+      }
+
+      const searchTerm = q.toLowerCase();
+      
+      // Get stores and products
+      const storesWithProducts = await storage.getAllActiveStoresOptimized(10, 20);
+      
+      let allProducts: any[] = [];
+      let topStores: any[] = [];
+
+      storesWithProducts.forEach(store => {
+        topStores.push({
+          id: store.id,
+          name: store.name,
+          label: store.name,
+          mall: store.address || ''
+        });
+
+        store.products.forEach(product => {
+          // Filter by search term
+          if (product.name.toLowerCase().includes(searchTerm) ||
+              product.description?.toLowerCase().includes(searchTerm) ||
+              product.category?.toLowerCase().includes(searchTerm)) {
+            allProducts.push({
+              id: product.id,
+              title: product.name,
+              category: product.category,
+              price: { USD: parseFloat(product.price) || 0 },
+              score: Math.random() * 100,
+              storeId: store.id
+            });
+          }
+        });
+      });
+
+      // Sort by relevance (mock scoring)
+      allProducts.sort((a, b) => b.score - a.score);
+
+      res.json({
+        ok: true,
+        category: 'busca',
+        topStores: topStores.slice(0, 5),
+        products: allProducts.slice(0, 20)
+      });
+
+    } catch (error) {
+      console.error('Error in suggest endpoint:', error);
+      res.status(500).json({ ok: false, error: 'Failed to get suggestions' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
