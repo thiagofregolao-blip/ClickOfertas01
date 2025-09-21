@@ -59,9 +59,16 @@ export function useIntelligentSearch(searchQuery: string, enabled: boolean = tru
     setUseFallback(false);
   }, [searchQuery]);
 
-  // Busca inteligente via Click Pro IA
+  // Busca inteligente via Click Pro IA  
   const clickProQuery = useQuery<ClickProResponse>({
-    queryKey: [`/api/click/suggest?q=${encodeURIComponent(searchQuery)}`],
+    queryKey: [`/api/click/suggest`, { q: searchQuery }],
+    queryFn: async () => {
+      console.log('🚀 Fazendo request para Click Pro IA com query:', searchQuery);
+      const response = await fetch(`/api/click/suggest?q=${encodeURIComponent(searchQuery)}`);
+      const data = await response.json();
+      console.log('📈 Resposta da Click Pro IA:', data);
+      return data;
+    },
     enabled: enabled && !!searchQuery && searchQuery.trim().length >= 2 && !useFallback,
     staleTime: 2 * 60 * 1000, // 2 minutes cache
     retry: false, // Não tentar novamente, ir direto para fallback
