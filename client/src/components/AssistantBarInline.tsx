@@ -113,8 +113,9 @@ export default function AssistantBarInline() {
       let sessionId = '';
       let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
 
-      // —— sessão + sugestões iniciais
-      (async () => {
+      // Função para criar sessão sob demanda
+      async function ensureSession() {
+        if (sessionId) return sessionId;
         try {
           const r = await fetch('/api/assistant/sessions', {
             method: 'POST',
@@ -123,25 +124,39 @@ export default function AssistantBarInline() {
           const d = await r.json();
           sessionId = d?.session?.id;
           if (d.greeting) appendAssistant(`${d.greeting}\n`);
-          if (d.suggest?.products?.length) {
-            renderTop3(d.suggest.products.slice(0, 3));
-            renderResults(d.suggest.products.slice(3));
-          }
+          return sessionId;
         } catch (e) {
           console.error('[ClickAssistant] Erro ao criar sessão:', e);
+          return null;
         }
-      })();
+      }
 
       // abrir dropdown ao focar
-      input.addEventListener('focus', () => dropdown.classList.remove('hidden'));
+      input.addEventListener('focus', () => {
+        dropdown.classList.remove('hidden');
+        anchor.dataset.assistantActive = '1';
+      });
+      
+      // fechar dropdown ao clicar fora
+      document.addEventListener('click', (e: Event) => {
+        if (!anchor.contains(e.target as Node)) {
+          dropdown.classList.add('hidden');
+          delete anchor.dataset.assistantActive;
+        }
+      });
 
       // submit = envia ao stream + busca sugestão
       anchor.addEventListener('submit', (e) => {
-        if (e && e.preventDefault) e.preventDefault();
-        const text = (input.value || '').trim();
-        if (!text) return;
-        startStream(text);
-        suggestAndRender(text);
+        if (anchor.dataset.assistantActive) {
+          e.preventDefault();
+          e.stopPropagation();
+          const text = (input.value || '').trim();
+          if (!text) return;
+          ensureSession().then(() => {
+            startStream(text);
+            suggestAndRender(text);
+          });
+        }
       });
 
       // digitação = sugestão incremental
