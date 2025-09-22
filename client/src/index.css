@@ -125,6 +125,36 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Assistant search active states - blur/hide background when results overlay is open */
+.assistant-search-active .page-content,
+.assistant-search-active main:not([data-overlay]),
+.assistant-search-active .banner,
+.assistant-search-active .hero,
+.assistant-search-active .cards-grid,
+.assistant-search-active .footer {
+  filter: blur(4px);
+  pointer-events: none;
+  transition: filter 0.3s ease;
+}
+
+/* Blur images only within specific containers to avoid affecting overlay images */
+.assistant-search-active .page-content img,
+.assistant-search-active main:not([data-overlay]) img,
+.assistant-search-active .banner img,
+.assistant-search-active .hero img,
+.assistant-search-active .cards-grid img,
+.assistant-search-active .footer img {
+  filter: blur(6px);
+  transition: filter 0.3s ease;
+}
+
+/* Ensure overlay content is never blurred */
+.assistant-search-active [data-overlay],
+.assistant-search-active [data-overlay] * {
+  filter: none !important;
+  pointer-events: auto !important;
+}
+
 /* Custom focus styles */
 .focus-ring {
   @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;

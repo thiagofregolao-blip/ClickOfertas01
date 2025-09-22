@@ -328,12 +328,13 @@ export default function AssistantBar() {
 
       {/* OVERLAY FIXO DE RESULTADOS (só aparece após submit) */}
       {showResults && (
-        <div className="fixed inset-0 z-[999] bg-black/20 backdrop-blur-sm">
+        <div data-overlay className="fixed inset-0 z-[999] bg-black/20 backdrop-blur-sm">
           {/* Backdrop clickável */}
           <div className="absolute inset-0" onClick={closeResults}></div>
           
           {/* Container de resultados posicionado abaixo do chat */}
           <div 
+            data-overlay
             className="absolute left-4 right-4 top-0 max-w-5xl mx-auto"
             style={{
               paddingTop: chatRef.current ? 
