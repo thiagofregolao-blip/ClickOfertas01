@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { LazyImage } from './lazy-image';
 
 // Sessão simples por usuário (cache 1h)
 const sessionCache = new Map();
@@ -442,9 +443,21 @@ export default function AssistantBar() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {feed.map(p => (
                       <button key={p.id} onClick={() => goProduct(p)} className="text-left p-3 rounded-xl border hover:shadow-sm transition" data-testid={`card-product-${p.id}`}>
-                        <div className="font-medium truncate mb-1">{p.title}</div>
-                        <div className="text-xs text-gray-500 mb-2">{p.category || '—'}</div>
-                        <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                        <div className="flex items-start gap-3 mb-2">
+                          <div className="w-12 h-12 flex-shrink-0">
+                            <LazyImage
+                              src={p.imageUrl || '/api/placeholder/48/48'}
+                              alt={p.title}
+                              className="w-full h-full object-contain bg-gray-50 rounded-lg border"
+                              placeholder="📦"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate mb-1">{p.title}</div>
+                            <div className="text-xs text-gray-500 mb-1">{p.category || '—'}</div>
+                            <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                          </div>
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -458,9 +471,21 @@ export default function AssistantBar() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {combina.map(p => (
                       <button key={p.id} onClick={() => goProduct(p)} className="text-left p-3 rounded-xl border hover:shadow-sm transition" data-testid={`card-product-${p.id}`}>
-                        <div className="font-medium truncate mb-1">{p.title}</div>
-                        <div className="text-xs text-gray-500 mb-2">{p.category || '—'}</div>
-                        <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                        <div className="flex items-start gap-3 mb-2">
+                          <div className="w-12 h-12 flex-shrink-0">
+                            <LazyImage
+                              src={p.imageUrl || '/api/placeholder/48/48'}
+                              alt={p.title}
+                              className="w-full h-full object-contain bg-gray-50 rounded-lg border"
+                              placeholder="📦"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate mb-1">{p.title}</div>
+                            <div className="text-xs text-gray-500 mb-1">{p.category || '—'}</div>
+                            <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                          </div>
+                        </div>
                       </button>
                     ))}
                   </div>
