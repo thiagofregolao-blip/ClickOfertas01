@@ -1,0 +1,265 @@
+Entendi os 2 problemas atuais:
+
+Respostas genéricas (ex.: “iPhone 16 ainda não lançado…”) — o modelo não está “olhando” pros seus produtos.
+
+UI estica/atrapalha o header — o dropdown do chat está grande e inclui o grid de “Resultados” dentro dele.
+
+Ajustei backend + frontend pra resolver de vez:
+
+RAG leve no backend: antes de responder, consulto /suggest e passo os fatos (produtos/lojas premium) no prompt. Com tom curto, leve e bem-humorado. Se o termo for “produto não lançado” (ex.: “iphone 16”), ele não enrola e já oferece modelos disponíveis agora das lojas premium.
+
+Dropdown só com chat + 3 recomendados (coluna direita).
+O grid de “Resultados” e “Combina com” sai do dropdown e vai para abaixo do header (não estica mais).
+
+Cards clicáveis (/produto/:id).
+
+Prioridade Premium mantida.
+
+1) Backend — resposta embasada nos seus produtos (RAG leve)
+1.1 Novo helper: answerComposer.ts
+// server/lib/answerComposer.ts
+import fetch from "node-fetch";
+
+export type SuggestProduct = {
+  id: string;
+  title: string;
+  category?: string;
+  price?: { USD?: number };
+  storeId?: string;
+  premium?: boolean;
+  score?: number;
+};
+
+type SuggestResp = { ok?: boolean; products?: SuggestProduct[] };
+
+function normalize(q: string) {
+  return (q || "").toLowerCase().trim();
+}
+
+function isLikelyNotLaunched(q: string) {
+  const s = normalize(q);
+  // regra simples p/ “produto novo/rumor”
+  return /iphone\s*16|17|18/.test(s) || /não\s*lançou|lançamento|rumor/.test(s);
+}
+
+export async function buildGrounding(origin: string, q: string) {
+  // tenta /suggest e /api/suggest
+  let r = await fetch(`${origin}/suggest?q=${encodeURIComponent(q)}`).catch(() => null);
+  if (!r || !r.ok) r = await fetch(`${origin}/api/suggest?q=${encodeURIComponent(q)}`).catch(() => null);
+  const sug: SuggestResp = r ? await r.json() : { products: [] };
+  const prods = (sug.products || []).map(p => ({
+    id: p.id,
+    title: p.title,
+    category: p.category || "",
+    priceUSD: p.price?.USD ?? undefined,
+    storeId: p.storeId || "",
+    premium: !!p.premium,
+    score: p.score ?? 0
+  }));
+
+  // top3 (prioriza premium)
+  const top3 = [...prods]
+    .sort((a, b) => Number(b.premium) - Number(a.premium) || (b.score || 0) - (a.score || 0))
+    .slice(0, 3);
+
+  // feed (resto)
+  const feed = prods.slice(3, 120);
+
+  // termo alternativo p/ “não lançado”: empurrar linha iPhone 15
+  let altQuery: string | null = null;
+  if (isLikelyNotLaunched(q)) {
+    const alt = "iphone 15 pro";
+    let r2 = await fetch(`${origin}/suggest?q=${encodeURIComponent(alt)}`).catch(() => null);
+    if (!r2 || !r2.ok) r2 = await fetch(`${origin}/api/suggest?q=${encodeURIComponent(alt)}`).catch(() => null);
+    const sug2: SuggestResp = r2 ? await r2.json() : { products: [] };
+    const altProds = (sug2.products || []).map(p => ({
+      id: p.id, title: p.title, category: p.category || "",
+      priceUSD: p.price?.USD ?? undefined, storeId: p.storeId || "", premium: !!p.premium, score: p.score ?? 0
+    }));
+    // injeta alguns na frente
+    const altTop = altProds.slice(0, 3);
+    return { top3: altTop.length ? altTop : top3, feed, raw: prods, altQuery: alt };
+  }
+
+  return { top3, feed, raw: prods, altQuery };
+}
+
+export function composeSystemAndUser({
+  q, name, top3, altQuery
+}: { q: string; name: string; top3: ReturnType<typeof map> | any; altQuery?: string | null }) {
+  const FACTS = JSON.stringify(top3, null, 0);
+
+  const STYLE = [
+    "Estilo: leve, simpático e bem-humorado (sem exagero).",
+    "Responda em até 5 linhas.",
+    "Use no máx. 3 bullets: “• item — detalhe curto”.",
+    "Se fizer sentido, termine com: “Posso ajudar em algo mais?”.",
+    "Nunca invente preço/estoque. Use só os FATOS abaixo.",
+  ].join("\n");
+
+  const NON_LAUNCH = altQuery
+    ? `Se a consulta for sobre algo ainda não lançado, explique em 1 linha e ofereça alternativas *disponíveis agora* (ex.: “${altQuery}”), baseadas nos FATOS.`
+    : `Se algo não existir na base, diga isso em 1 linha e ofereça alternativas da base.`;
+
+  const SYSTEM = [
+    "Você é o Click Pro Assistant para Ciudad del Este, Salto del Guairá e Pedro Juan (Paraguai).",
+    "Seja objetivo, vendedor consultivo e local.",
+    STYLE,
+    NON_LAUNCH,
+    "Priorize sempre lojas Premium quando citar opções.",
+    "Formato: 1 frase de abertura usando o nome do usuário; depois bullets; depois 1 pergunta curta."
+  ].join("\n");
+
+  // o modelo recebe os fatos dos top3 para se “ancorar”
+  const USER = [
+    `Consulta do usuário: ${q}`,
+    `Nome: ${name}`,
+    `FATOS (top recomendações): ${FACTS}`
+  ].join("\n");
+
+  return { SYSTEM, USER };
+}
+
+1.2 Patch no stream: usa o composer acima
+// server/routes/assistant.routes.ts  (substitua apenas o handler do stream)
+import { buildGrounding, composeSystemAndUser } from "../lib/answerComposer";
+
+assistantRouter.post('/api/assistant/stream', async (req: any, res) => {
+  try {
+    const { sessionId, message } = req.body || {};
+    const name = (req.headers['x-user-name'] as string) || 'Cliente';
+    if (!message?.trim()) return res.status(400).json({ ok:false, error:'message required' });
+
+    const session = await storage.getAssistantSession(sessionId);
+    if (!session) return res.status(404).json({ ok:false, error:'session not found' });
+
+    res.writeHead(200, { 'Content-Type':'text/event-stream', 'Cache-Control':'no-cache', 'Connection':'keep-alive' });
+    const write = (d:any)=> res.write(`data: ${JSON.stringify(d)}\n\n`);
+
+    // ❶ RAG leve: busca produtos e prepara fatos
+    const origin = `${req.protocol}://${req.get('host')}`;
+    const ground = await buildGrounding(origin, message);
+    const { SYSTEM, USER } = composeSystemAndUser({
+      q: message, name, top3: ground.top3, altQuery: ground.altQuery
+    });
+
+    // ❷ Prompt curto e temperatura baixa (evita genericão)
+    const stream = await clickClient.chat.completions.create({
+      model: process.env.CHAT_MODEL || 'gpt-4o-mini',
+      messages: [
+        { role:'system', content: SYSTEM },
+        { role:'user',   content: USER }
+      ],
+      temperature: 0.15,
+      max_tokens: 220,
+      frequency_penalty: 0.3,
+      presence_penalty: 0.0,
+      stream: true
+    });
+
+    let full=''; const LIMIT=700;
+    for await (const part of stream){
+      const t = part.choices?.[0]?.delta?.content || '';
+      if (!t) continue;
+      const over = full.length + t.length - LIMIT;
+      const piece = over>0 ? t.slice(0, t.length - over) : t;
+      full += piece; write({ type:'chunk', text: piece });
+      if (over>0) break;
+    }
+    await storage.createAssistantMessage({ sessionId, content: full, role:'assistant', metadata:{ streamed:true } });
+    write({ type:'end' }); res.end();
+  } catch (e) {
+    console.error('stream', e);
+    res.write(`data: ${JSON.stringify({ type:'error', message:'stream error' })}\n\n`); res.end();
+  }
+});
+
+
+Resultado: se você digitar “iphone 16”, ele admite que não há info oficial, oferece iPhone 15 Pro/Max da base (Premium primeiro), em bullets curtos e com tom leve.
+
+2) Frontend — dropdown não estica o header e conversa continua
+2.1 AssistantBar.tsx — apenas o chat + 3 recomendados dentro do dropdown
+
+O grid Resultados e Combina com ficam fora do dropdown (logo abaixo do header).
+
+Dropdown é absoluto ancorado à barra; largura máxima; rolagem interna.
+
+// client/src/components/AssistantBar.tsx  (substitua o retorno/JSX principal)
+return (
+  <>
+    {/* WRAPPER RELATIVE para ancorar */} 
+    <div className="w-full relative">
+      {/* Barra = chat */}
+      <form onSubmit={onSubmit} className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs">C</div>
+        <input
+          value={query}
+          onChange={e=> onChange(e.target.value)}
+          onFocus={onFocus}
+          placeholder="Converse com o Click (ex.: iPhone 15 em CDE)"
+          className="flex-1 outline-none text-base"
+        />
+        <button className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" type="submit">Enviar</button>
+      </form>
+
+      {/* DROPDOWN ancorado (apenas Chat + 3 recomendados) */}
+      {open && (
+        <div className="absolute left-0 right-0 top-full mt-2 z-40">
+          <div className="mx-auto max-w-5xl grid grid-cols-12 gap-4">
+            {/* Chat com scroll */}
+            <div className="col-span-12 lg:col-span-9">
+              <div className="rounded-2xl border bg-white/90 backdrop-blur p-3 shadow-sm">
+                <div className="text-xs text-gray-500 mb-1">Click Assistant</div>
+                <div className="rounded-xl bg-gray-50 border p-3 max-h-[220px] overflow-auto whitespace-pre-wrap">
+                  {query ? '' : (greeting ? `${greeting}\n` : '')}
+                  {streaming}
+                </div>
+                {loadingSug && <div className="text-xs text-gray-500 mt-2">Buscando ofertas…</div>}
+              </div>
+            </div>
+
+            {/* 3 recomendados */}
+            <div className="col-span-12 lg:col-span-3">
+              <Section title="Produtos Recomendados">
+                {topBox.length===0 ? (
+                  <div className="text-xs text-gray-500">Converse comigo e eu trago as melhores opções!</div>
+                ) : (
+                  <CardsList items={topBox} onClick={goProduct} />
+                )}
+              </Section>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* AQUI FORA DO DROPDOWN: resto dos resultados e acessórios */}
+    <div className="mt-3 mx-auto max-w-5xl">
+      <Section title="Resultados">
+        <CardsGrid items={feed} onClick={goProduct} />
+      </Section>
+
+      {combina.length>0 && (
+        <div className="mt-3">
+          <Section title="Combina com">
+            <CardsGrid items={combina} onClick={goProduct} />
+          </Section>
+        </div>
+      )}
+    </div>
+  </>
+);
+
+
+Isso garante que o header não cresce: o dropdown é overlay (absolute/top-full).
+A conversa continua porque o input é o chat (submit → stream).
+
+3) Observações rápidas
+
+Tom leve/humor: está no STYLE do composer e no stream; temperature 0.15 segura “viagem”.
+
+Premium primeiro: já está no /suggest (seu router atual que ranqueia pela flag premium).
+
+Cards clicáveis: continuam chamando goProduct(p) → ajuste a rota se for diferente de /produto/:id.
+
+Acessórios: simples heurística por categoria; depois podemos “aprender” do clique (telemetria).
