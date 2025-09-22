@@ -429,7 +429,7 @@ export default function StandardHeader() {
             onClick={() => {
               window.location.href = '/super-admin-login';
             }}
-            className="fixed bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium z-50"
+            className="fixed bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium z-50 hidden lg:block"
           >
             🔧 Super Admin
           </button>
@@ -544,5 +544,17 @@ export default function StandardHeader() {
         </div>
       </div>
     </div>
+
+    {/* Floating Assistant Button for Mobile */}
+    {!isAssistantExpanded && (
+      <button
+        onClick={() => setIsAssistantExpanded(true)}
+        className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-105 lg:hidden"
+        data-testid="button-open-assistant"
+        title="Abrir Click Pro Assistant"
+      >
+        <MessageCircle className="w-6 h-6" />
+      </button>
+    )}
   );
 }
