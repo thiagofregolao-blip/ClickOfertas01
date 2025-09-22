@@ -29,7 +29,6 @@ import ThreeDailyScratchCards from "@/components/ThreeDailyScratchCards";
 import { RectangularScratchCard } from "@/components/RectangularScratchCard";
 import StandardHeader from "@/components/StandardHeader";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot, Sparkles, Send } from "lucide-react";
 import type { StoreWithProducts, Product, InstagramStoryWithDetails } from "@shared/schema";
 import logoUrl from '../assets/logo.jpg';
 
