@@ -29,20 +29,58 @@ export default function InlineAssistant() {
   useEffect(() => {
     if (bootRef.current) return; // StrictMode chama 2x em dev
     bootRef.current = true;
-    (async () => {
-      const r = await fetch('/api/assistant/sessions', { method:'POST' });
-      const d = await r.json();
-      const sid = d?.session?.id || d?.sessionId || d?.id || '';
-      setSessionId(sid);
-
-      if (d.greeting && !greetOnceRef.current) {
+    
+    // Verifica se já existe uma sessão ativa no localStorage
+    const existingSessionId = localStorage.getItem('assistant_session_id');
+    const sessionTimestamp = localStorage.getItem('assistant_session_timestamp');
+    const now = Date.now();
+    const oneHour = 60 * 60 * 1000; // 1 hora em ms
+    
+    // Se existe uma sessão recente (menos de 1 hora), reutiliza
+    if (existingSessionId && sessionTimestamp && (now - parseInt(sessionTimestamp)) < oneHour) {
+      console.log('Reutilizando sessão existente:', existingSessionId);
+      setSessionId(existingSessionId);
+      
+      // Define uma saudação simples para sessões reutilizadas
+      if (!greetOnceRef.current) {
         greetOnceRef.current = true;
-        setGreeting(d.greeting);
+        setGreeting('Olá! Como posso ajudar você hoje? 😊');
       }
+      return;
+    }
+    
+    // Cria nova sessão apenas se não existir uma válida
+    (async () => {
+      try {
+        console.log('Criando nova sessão assistant...');
+        const r = await fetch('/api/assistant/sessions', { method:'POST' });
+        const d = await r.json();
+        const sid = d?.session?.id || d?.sessionId || d?.id || '';
+        
+        if (sid) {
+          setSessionId(sid);
+          // Salva a sessão no localStorage com timestamp
+          localStorage.setItem('assistant_session_id', sid);
+          localStorage.setItem('assistant_session_timestamp', now.toString());
+          console.log('Nova sessão criada:', sid);
+        }
 
-      const prods: Product[] = d?.suggest?.products || [];
-      setRecommended(prods.slice(0,3));
-      setFeed(prods.slice(3));
+        if (d.greeting && !greetOnceRef.current) {
+          greetOnceRef.current = true;
+          setGreeting(d.greeting);
+        }
+
+        const prods: Product[] = d?.suggest?.products || [];
+        setRecommended(prods.slice(0,3));
+        setFeed(prods.slice(3));
+      } catch (error) {
+        console.error('Erro ao criar sessão:', error);
+        // Fallback com ID local se a API falhar
+        const fallbackId = 'local-' + Math.random().toString(36).slice(2,10);
+        setSessionId(fallbackId);
+        localStorage.setItem('assistant_session_id', fallbackId);
+        localStorage.setItem('assistant_session_timestamp', now.toString());
+      }
     })();
   }, []);
 

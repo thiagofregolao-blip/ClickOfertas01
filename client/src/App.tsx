@@ -136,7 +136,6 @@ function Router() {
           <Route path="/product/:id/compare" component={ProductCompare} />
           <Route path="/daily-scratch" component={DailyScratchPage} />
           <Route path="/apify-demo" component={ApifyDemo} />
-          <Route path="/map-test" component={MapModalTestPage} />
           <Route path="/test-inline-assistant" component={TestInlineAssistant} />
           <Route path="/super-admin-login" component={SuperAdminLogin} />
           <Route path="/super-admin" component={SuperAdminLogin} />
@@ -175,7 +174,6 @@ function Router() {
           <Route path="/admin/totem" component={AdminTotem} />
           <Route path="/admin/stories" component={AdminStories} />
           <Route path="/admin/analytics" component={AdminAnalytics} />
-          <Route path="/map-test" component={MapModalTestPage} />
           <Route path="/test-inline-assistant" component={TestInlineAssistant} />
           <Route path="/super-admin" component={SuperAdminLogin} />
           <Route path="/super-admin-login" component={SuperAdminLogin} />
@@ -188,7 +186,6 @@ function Router() {
           <Route path="/price-comparison" component={PriceComparison} />
           <Route path="/product/:id/compare" component={ProductCompare} />
           <Route path="/daily-scratch" component={DailyScratchPage} />
-          <Route path="/map-test" component={MapModalTestPage} />
           <Route path="/test-inline-assistant" component={TestInlineAssistant} />
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
@@ -209,7 +206,6 @@ function Router() {
           <Route path="/price-comparison" component={PriceComparison} />
           <Route path="/product/:id/compare" component={ProductCompare} />
           <Route path="/daily-scratch" component={DailyScratchPage} />
-          <Route path="/map-test" component={MapModalTestPage} />
           <Route path="/test-inline-assistant" component={TestInlineAssistant} />
           <Route path="/settings" component={UserSettingsPage} />
           <Route path="/shopping-list" component={ShoppingList} />
