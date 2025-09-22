@@ -1,16 +1,18 @@
 import { useEffect, useRef } from 'react';
+import { useLocation } from 'wouter';
 
 // Constante que define onde o assistente deve se ancorar
 const ANCHOR_SELECTOR = 'form[data-anchor="search-form"]';
 
 export default function AssistantBarInline() {
   const mountedRef = useRef(false);
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     if (mountedRef.current) return;
     mountedRef.current = true;
 
-    // Código inline baseado no arquivo anexado
+    // Código inline direto do arquivo anexado
     const initializeAssistant = () => {
       // util
       function $(sel: string, root: Document | Element = document): Element | null {
@@ -62,19 +64,6 @@ export default function AssistantBarInline() {
         return;
       }
 
-      // melhora UX do input existente
-      const originalPlaceholder = input.placeholder;
-
-      // garante um botão de submit (reaproveita o que existir)
-      let submitBtn = $('button[type="submit"], input[type="submit"]', anchor) as HTMLButtonElement;
-      if (!submitBtn) {
-        submitBtn = document.createElement('button');
-        submitBtn.type = 'submit';
-        submitBtn.textContent = 'Enviar';
-        submitBtn.className = 'px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90';
-        anchor.appendChild(submitBtn);
-      }
-
       // cria o DROPDOWN ancorado à barra (chat + top3)
       const dropdown = document.createElement('div');
       dropdown.className = 'hidden absolute left-0 right-0 top-full mt-2 z-[1000]';
@@ -103,7 +92,8 @@ export default function AssistantBarInline() {
         resultsSec = document.createElement('section');
         resultsSec.id = 'results';
         resultsSec.className = 'max-w-5xl mx-auto px-3 pt-3';
-        anchor.parentElement?.insertBefore(resultsSec, anchor.nextSibling);
+        const mainContent = document.querySelector('main') || document.body;
+        mainContent.appendChild(resultsSec);
       }
       
       let comboSec = document.getElementById('combo');
@@ -111,7 +101,8 @@ export default function AssistantBarInline() {
         comboSec = document.createElement('section');
         comboSec.id = 'combo';
         comboSec.className = 'max-w-5xl mx-auto px-3';
-        resultsSec.insertBefore(comboSec, resultsSec.nextSibling);
+        const mainContent = document.querySelector('main') || document.body;
+        mainContent.appendChild(comboSec);
       }
 
       // refs
@@ -186,7 +177,7 @@ export default function AssistantBarInline() {
           el.addEventListener('click', () => {
             const id = el.getAttribute('data-id');
             if (id) {
-              window.location.href = `/produto/${id}`;
+              setLocation(`/produto/${id}`);
             }
           });
         });
@@ -342,6 +333,8 @@ export default function AssistantBarInline() {
 
     // Cleanup no unmount
     return () => {
+      mountedRef.current = false;
+      
       const anchor = document.querySelector(ANCHOR_SELECTOR);
       if (anchor) {
         const dropdown = anchor.querySelector('.absolute');
@@ -354,7 +347,7 @@ export default function AssistantBarInline() {
       const comboSec = document.getElementById('combo');
       if (comboSec) comboSec.remove();
     };
-  }, []);
+  }, [setLocation]);
 
   return null; // Este componente não renderiza nada no React
 }

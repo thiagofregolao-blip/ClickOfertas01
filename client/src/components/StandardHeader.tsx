@@ -95,6 +95,11 @@ export default function StandardHeader() {
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
+      // Verifica se o assistente está ativo antes de fazer busca normal
+      const form = e.currentTarget.closest('form');
+      if (form?.dataset.assistantActive) {
+        return; // Deixa o assistente lidar com o Enter
+      }
       handleSearch();
     }
   };
@@ -136,7 +141,14 @@ export default function StandardHeader() {
           {/* Barra de Busca com Click Assistant Integrado */}
           <form 
             className="flex-1 max-w-4xl relative" 
-            onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
+            onSubmit={(e) => { 
+              e.preventDefault(); 
+              // Verifica se o assistente está ativo antes de fazer busca normal
+              if (e.currentTarget.dataset.assistantActive) {
+                return; // Deixa o assistente lidar com o submit
+              }
+              handleSearch(); 
+            }}
             data-anchor="search-form"
           >
             <div className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
