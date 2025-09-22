@@ -74,13 +74,15 @@ export default function AssistantBar() {
   useEffect(() => {
     if (showResults) {
       document.documentElement.classList.add('assistant-search-active');
-      // Temporariamente sem scroll-lock até overlay estar implementado
+      document.body.style.overflow = 'hidden';
     } else {
       document.documentElement.classList.remove('assistant-search-active');
+      document.body.style.overflow = '';
     }
     
     return () => {
       document.documentElement.classList.remove('assistant-search-active');
+      document.body.style.overflow = '';
     };
   }, [showResults]);
 
@@ -324,42 +326,102 @@ export default function AssistantBar() {
         )}
       </div>
 
-      {/* AQUI FORA DO DROPDOWN: resto dos resultados e acessórios */}
-      <div className="mt-3 mx-auto max-w-5xl">
-        <div className="rounded-2xl border bg-white/90 backdrop-blur p-4 shadow-sm">
-          <div className="text-sm font-semibold mb-3">Resultados</div>
-          {feed.length === 0 ? (
-            <div className="text-sm text-gray-500">Nada encontrado…</div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {feed.map(p => (
-                <button key={p.id} onClick={() => goProduct(p)} className="text-left p-3 rounded-xl border hover:shadow-sm transition" data-testid={`card-product-${p.id}`}>
-                  <div className="font-medium truncate mb-1">{p.title}</div>
-                  <div className="text-xs text-gray-500 mb-2">{p.category || '—'}</div>
-                  <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
-                </button>
-              ))}
+      {/* OVERLAY FIXO DE RESULTADOS (só aparece após submit) */}
+      {showResults && (
+        <div className="fixed inset-0 z-[999] bg-black/20 backdrop-blur-sm">
+          {/* Backdrop clickável */}
+          <div className="absolute inset-0" onClick={closeResults}></div>
+          
+          {/* Container de resultados posicionado abaixo do chat */}
+          <div 
+            className="absolute left-4 right-4 top-0 max-w-5xl mx-auto"
+            style={{
+              paddingTop: chatRef.current ? 
+                (chatRef.current.getBoundingClientRect().bottom + 16) + 'px' : 
+                '120px'
+            }}
+          >
+            {/* Botão de fechar */}
+            <div className="flex justify-end mb-2">
+              <button 
+                onClick={closeResults}
+                className="bg-white/90 backdrop-blur rounded-full p-2 shadow-sm hover:bg-white transition"
+                data-testid="button-close-results"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-          )}
-        </div>
 
-        {combina.length > 0 && (
-          <div className="mt-3">
-            <div className="rounded-2xl border bg-white/90 backdrop-blur p-4 shadow-sm">
-              <div className="text-sm font-semibold mb-3">Combina com</div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {combina.map(p => (
-                  <button key={p.id} onClick={() => goProduct(p)} className="text-left p-3 rounded-xl border hover:shadow-sm transition" data-testid={`card-product-${p.id}`}>
-                    <div className="font-medium truncate mb-1">{p.title}</div>
-                    <div className="text-xs text-gray-500 mb-2">{p.category || '—'}</div>
-                    <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
-                  </button>
-                ))}
+            {/* Chat replicado (fixo no topo do overlay) */}
+            <div className="mb-4">
+              <div className="rounded-2xl border bg-white/95 backdrop-blur p-3 shadow-sm">
+                <div className="text-xs text-gray-500 mb-1">Click Assistant</div>
+                <div className="rounded-xl bg-gray-50 border p-3 max-h-[200px] overflow-auto">
+                  {/* Histórico de mensagens */}
+                  {chatMessages.map((msg, idx) => (
+                    <div key={idx} className={`mb-2 ${msg.type === 'user' ? 'text-right' : ''}`}>
+                      {msg.type === 'user' ? (
+                        <span className="inline-block bg-blue-500 text-white px-3 py-1 rounded-lg max-w-xs">{msg.text}</span>
+                      ) : (
+                        <div className="whitespace-pre-wrap">{msg.text}</div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {/* Indicador de digitação */}
+                  {isTyping && (
+                    <div className="mb-2 text-gray-500 italic">Click Assistant está digitando...</div>
+                  )}
+                  
+                  {/* Streaming da resposta atual */}
+                  {streaming && (
+                    <div className="mb-2 whitespace-pre-wrap">{streaming}</div>
+                  )}
+                </div>
               </div>
             </div>
+
+            {/* Container scrollável para resultados */}
+            <div className="bg-white/95 backdrop-blur rounded-2xl border shadow-sm max-h-[50vh] overflow-auto">
+              {/* Resultados principais */}
+              <div className="p-4">
+                <div className="text-sm font-semibold mb-3">Resultados da Pesquisa</div>
+                {feed.length === 0 ? (
+                  <div className="text-sm text-gray-500">Nada encontrado…</div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {feed.map(p => (
+                      <button key={p.id} onClick={() => goProduct(p)} className="text-left p-3 rounded-xl border hover:shadow-sm transition" data-testid={`card-product-${p.id}`}>
+                        <div className="font-medium truncate mb-1">{p.title}</div>
+                        <div className="text-xs text-gray-500 mb-2">{p.category || '—'}</div>
+                        <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Seção "Combina com" */}
+              {combina.length > 0 && (
+                <div className="border-t p-4">
+                  <div className="text-sm font-semibold mb-3">Combina com</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {combina.map(p => (
+                      <button key={p.id} onClick={() => goProduct(p)} className="text-left p-3 rounded-xl border hover:shadow-sm transition" data-testid={`card-product-${p.id}`}>
+                        <div className="font-medium truncate mb-1">{p.title}</div>
+                        <div className="text-xs text-gray-500 mb-2">{p.category || '—'}</div>
+                        <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 }
