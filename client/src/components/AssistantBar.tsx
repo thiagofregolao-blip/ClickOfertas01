@@ -17,6 +17,8 @@ export default function AssistantBar() {
   const [feed, setFeed] = useState<any[]>([]);
   const [combina, setCombina] = useState<any[]>([]);
   const [loadingSug, setLoadingSug] = useState(false);
+  const [chatMessages, setChatMessages] = useState<Array<{type: 'user' | 'assistant', text: string}>>([]);
+  const [isTyping, setIsTyping] = useState(false);
 
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
   const bootRef = useRef(false);
@@ -117,6 +119,13 @@ export default function AssistantBar() {
     e.preventDefault();
     const t = query.trim();
     if (!t || !sessionId) return;
+    
+    // Mostrar mensagem do usuário
+    setChatMessages(prev => [...prev, { type: 'user', text: t }]);
+    
+    // Limpar campo
+    setQuery('');
+    
     startStream(t);
   };
 
@@ -126,6 +135,8 @@ export default function AssistantBar() {
       readerRef.current = null;
     }
     
+    // Mostrar indicador de digitação
+    setIsTyping(true);
     setStreaming('');
     
     try {
@@ -139,12 +150,19 @@ export default function AssistantBar() {
         body: JSON.stringify({ sessionId, message })
       });
       
-      if (!res.ok || !res.body) return;
+      if (!res.ok || !res.body) {
+        setIsTyping(false);
+        return;
+      }
+      
+      // Remover indicador de digitação quando começar a receber resposta
+      setIsTyping(false);
       
       const reader = res.body.getReader();
       readerRef.current = reader;
       const decoder = new TextDecoder();
       let buffer = '';
+      let assistantMessage = '';
       
       while (true) {
         const { value, done } = await reader.read();
@@ -159,17 +177,29 @@ export default function AssistantBar() {
           try {
             const p = JSON.parse(line);
             if (p.type === 'chunk' && p.text) {
-              setStreaming(prev => prev + p.text);
+              assistantMessage += p.text;
+              setStreaming(assistantMessage);
             } else if (p.type === 'end') {
+              // Adicionar mensagem completa do assistente ao chat
+              setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage }]);
+              setStreaming('');
               return;
             }
           } catch {
-            setStreaming(prev => prev + line);
+            assistantMessage += line;
+            setStreaming(assistantMessage);
           }
         }
       }
+      
+      // Se terminar sem 'end', ainda adicionar a mensagem
+      if (assistantMessage) {
+        setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage }]);
+        setStreaming('');
+      }
     } catch (e) {
       console.error('Stream error:', e);
+      setIsTyping(false);
     }
   };
 
@@ -203,9 +233,32 @@ export default function AssistantBar() {
               <div className="col-span-12 lg:col-span-9">
                 <div className="rounded-2xl border bg-white/90 backdrop-blur p-3 shadow-sm">
                   <div className="text-xs text-gray-500 mb-1">Click Assistant</div>
-                  <div className="rounded-xl bg-gray-50 border p-3 max-h-[220px] overflow-auto whitespace-pre-wrap">
-                    {query ? '' : (greeting ? `${greeting}\n` : '')}
-                    {streaming}
+                  <div className="rounded-xl bg-gray-50 border p-3 max-h-[220px] overflow-auto">
+                    {/* Saudação inicial se não houver mensagens */}
+                    {chatMessages.length === 0 && !streaming && greeting && (
+                      <div className="mb-2">{greeting}</div>
+                    )}
+                    
+                    {/* Histórico de mensagens */}
+                    {chatMessages.map((msg, idx) => (
+                      <div key={idx} className={`mb-2 ${msg.type === 'user' ? 'text-right' : ''}`}>
+                        {msg.type === 'user' ? (
+                          <span className="inline-block bg-blue-500 text-white px-3 py-1 rounded-lg max-w-xs">{msg.text}</span>
+                        ) : (
+                          <div className="whitespace-pre-wrap">{msg.text}</div>
+                        )}
+                      </div>
+                    ))}
+                    
+                    {/* Indicador de digitação */}
+                    {isTyping && (
+                      <div className="mb-2 text-gray-500 italic">Click Assistant está digitando...</div>
+                    )}
+                    
+                    {/* Streaming da resposta atual */}
+                    {streaming && (
+                      <div className="mb-2 whitespace-pre-wrap">{streaming}</div>
+                    )}
                   </div>
                   {loadingSug && <div className="text-xs text-gray-500 mt-2">Buscando ofertas…</div>}
                 </div>
