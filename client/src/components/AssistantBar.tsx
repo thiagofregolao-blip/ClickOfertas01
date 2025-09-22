@@ -20,6 +20,7 @@ export default function AssistantBar() {
   const [chatMessages, setChatMessages] = useState<Array<{type: 'user' | 'assistant', text: string}>>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [overlayInput, setOverlayInput] = useState('');
 
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
   const bootRef = useRef(false);
@@ -87,7 +88,7 @@ export default function AssistantBar() {
   }, [showResults]);
 
   const onFocus = () => {
-    setOpen(true);
+    // Não abrir dropdown automático - só na pesquisa
   };
 
   const onChange = (value: string) => {
@@ -245,6 +246,21 @@ export default function AssistantBar() {
     return () => document.removeEventListener('keydown', handleEsc);
   }, [showResults]);
 
+  const sendOverlayMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    const message = overlayInput.trim();
+    if (!message || !sessionId) return;
+    
+    // Adicionar mensagem do usuário
+    setChatMessages(prev => [...prev, { type: 'user', text: message }]);
+    
+    // Limpar input
+    setOverlayInput('');
+    
+    // Enviar para IA
+    startStream(message);
+  };
+
   return (
     <>
       {/* WRAPPER RELATIVE para ancorar */} 
@@ -381,6 +397,24 @@ export default function AssistantBar() {
                     <div className="mb-2 whitespace-pre-wrap">{streaming}</div>
                   )}
                 </div>
+                
+                {/* Campo para continuar conversa */}
+                <form onSubmit={sendOverlayMessage} className="mt-3 flex gap-2">
+                  <input
+                    value={overlayInput}
+                    onChange={(e) => setOverlayInput(e.target.value)}
+                    placeholder="Continue a conversa..."
+                    className="flex-1 px-3 py-2 rounded-lg border bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    data-testid="overlay-chat-input"
+                  />
+                  <button 
+                    type="submit"
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
+                    data-testid="overlay-send-button"
+                  >
+                    Enviar
+                  </button>
+                </form>
               </div>
             </div>
 
