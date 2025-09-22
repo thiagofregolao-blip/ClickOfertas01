@@ -1,129 +1,181 @@
-/**
- * A BARRA É O ASSISTENTE:
- * - Input = chat; submit envia para stream (POST).
- * - Box do assistente é um dropdown ancorado à barra (absolute), com scroll.
- * - 3 Premium na box; resto no feed abaixo; seção "Combina com" (acessórios).
- * - Cards clicáveis para detalhe.
- */
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { getOrCreateSession, greeted, markGreeted } from '@/lib/sessionManager';
+import { useState, useEffect, useMemo, useRef } from 'react';
 
-type Product = { id:string; title:string; category?:string; price?:{ USD?: number }, score?:number, storeId?:string };
+// Sessão simples por usuário (cache 1h)
+const sessionCache = new Map();
+const ONE_HOUR = 60 * 60 * 1000;
 
-const ACCESSORIES: Record<string, string[]> = {
-  celulares: ['capinha', 'película', 'carregador'],
-  'telefone': ['capinha', 'película', 'carregador'],
-  'smartphone': ['capinha', 'película', 'carregador'],
-  notebook: ['mochila', 'mouse', 'cooler'],
-  gamer: ['mouse gamer', 'teclado gamer', 'headset'],
-  camera: ['cartão sd', 'tripé', 'case'],
-};
-
-export default function AssistantBar(){
-  // identidade (preenchida pelo login)
-  const uid = useMemo(()=> localStorage.getItem('uid') || (localStorage.setItem('uid','u-'+Math.random().toString(36).slice(2,8)), localStorage.getItem('uid')!), []);
-  const userName = useMemo(()=> localStorage.getItem('userName') || 'Cliente', []);
-
+export default function AssistantBar() {
+  const uid = useMemo(() => localStorage.getItem('uid') || (localStorage.setItem('uid','u-'+Math.random().toString(36).slice(2,8)), localStorage.getItem('uid')!), []);
+  const userName = useMemo(() => localStorage.getItem('userName') || 'Cliente', []);
+  
   const [sessionId, setSessionId] = useState('');
   const [query, setQuery] = useState('');
-  const [open, setOpen] = useState(false);               // controla o dropdown
-  const [greeting, setGreeting] = useState('');
+  const [open, setOpen] = useState(false);
   const [streaming, setStreaming] = useState('');
-  const [topBox, setTopBox] = useState<Product[]>([]);   // 3 Premium/Top
-  const [feed, setFeed] = useState<Product[]>([]);       // resto da busca
-  const [combina, setCombina] = useState<Product[]>([]); // acessórios
+  const [greeting, setGreeting] = useState('');
+  const [topBox, setTopBox] = useState<any[]>([]);
+  const [feed, setFeed] = useState<any[]>([]);
+  const [combina, setCombina] = useState<any[]>([]);
   const [loadingSug, setLoadingSug] = useState(false);
 
-  // refs contra duplicações
+  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
   const bootRef = useRef(false);
-  const focusedRef = useRef(false);
-  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array>|null>(null);
 
-  // cria/recupera sessão (com usuário nos headers)
+  // Criar/recuperar sessão
   useEffect(() => {
-    if (bootRef.current) return; bootRef.current = true;
+    if (bootRef.current) return;
+    bootRef.current = true;
+    
     (async () => {
-      const sess = await getOrCreateSession({ 'x-user-id': uid, 'x-user-name': userName });
-      setSessionId(sess.id);
-      if (sess.fresh && sess.greeting && !greeted()) { setGreeting(sess.greeting); markGreeted(); }
-      const prods: Product[] = sess?.suggest?.products || [];
-      setTopBox(prods.slice(0,3));
-      setFeed(prods.slice(3));
+      const key = uid;
+      const cached = sessionCache.get(key);
+      const now = Date.now();
+      
+      if (cached && now - cached.ts < ONE_HOUR) {
+        setSessionId(cached.id);
+        return;
+      }
+      
+      try {
+        const res = await fetch('/api/assistant/sessions', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-user-id': uid, 
+            'x-user-name': userName 
+          }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          const id = data.session?.id;
+          if (id) {
+            setSessionId(id);
+            sessionCache.set(key, { id, ts: now });
+            if (data.greeting) setGreeting(data.greeting);
+            if (data.suggest?.products) {
+              const products = data.suggest.products;
+              setTopBox(products.slice(0, 3));
+              setFeed(products.slice(3));
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Session error:', e);
+      }
     })();
   }, [uid, userName]);
 
-  // abre dropdown e dispara "oi" só 1x
-  function onFocus(){
+  const onFocus = () => {
     setOpen(true);
-    if (!focusedRef.current && sessionId) { focusedRef.current = true; startStream('oi'); }
-  }
+  };
 
-  // busca produtos
-  async function fetchSuggest(term: string){
+  const onChange = (value: string) => {
+    setQuery(value);
+    
+    if (!value.trim()) {
+      setFeed([]);
+      setTopBox([]);
+      setCombina([]);
+      return;
+    }
+    
+    fetchSuggest(value.trim());
+  };
+
+  const fetchSuggest = async (term: string) => {
     setLoadingSug(true);
-    try{
+    try {
       let r = await fetch(`/suggest?q=${encodeURIComponent(term)}`);
       if (!r.ok) r = await fetch(`/api/suggest?q=${encodeURIComponent(term)}`);
       const d = await r.json();
-      const prods: Product[] = (d?.products || []).map((p:any)=> ({ ...p, price: { USD: Number(p?.price?.USD ?? p?.priceUSD ?? 0) || undefined } }));
-      setTopBox(prods.slice(0,3));
+      const prods = d?.products || [];
+      
+      setTopBox(prods.slice(0, 3));
       setFeed(prods.slice(3));
-      // acessórios baseados na categoria do 1º resultado
+      
+      // Acessórios simples baseados na categoria
       const cat = (prods[0]?.category || '').toLowerCase();
-      const accTerms = ACCESSORIES[cat] || [];
-      if (accTerms.length){
-        const accQ = accTerms.join(' OR ');
+      const accessories = cat.includes('celular') || cat.includes('telefone') ? 
+        ['capinha', 'película', 'carregador'] : [];
+      
+      if (accessories.length) {
+        const accQ = accessories.join(' OR ');
         let r2 = await fetch(`/suggest?q=${encodeURIComponent(accQ)}`);
         if (!r2.ok) r2 = await fetch(`/api/suggest?q=${encodeURIComponent(accQ)}`);
         const d2 = await r2.json();
-        setCombina((d2?.products || []).slice(0,12));
+        setCombina((d2?.products || []).slice(0, 6));
       } else {
         setCombina([]);
       }
-    } finally { setLoadingSug(false); }
-  }
-
-  function onChange(v:string){
-    setQuery(v);
-    const t = v.trim();
-    if (!t){ setFeed([]); setTopBox([]); setCombina([]); return; }
-    fetchSuggest(t);
-  }
-
-  function onSubmit(e:React.FormEvent){
-    e.preventDefault();
-    const t = query.trim(); if (!t || !sessionId) return;
-    startStream(t);
-  }
-
-  async function startStream(message:string){
-    // encerra stream anterior
-    if (readerRef.current){ try{ await readerRef.current.cancel(); }catch{} readerRef.current=null; }
-    setStreaming('');
-    const res = await fetch('/api/assistant/stream', {
-      method:'POST',
-      headers: { 'Content-Type':'application/json', 'Accept':'text/event-stream', 'x-user-id': uid, 'x-user-name': userName },
-      body: JSON.stringify({ sessionId, message, context: null })
-    });
-    if (!res.ok || !res.body) return;
-    const reader = res.body.getReader(); readerRef.current = reader;
-    const decoder = new TextDecoder(); let buffer='';
-    while(true){
-      const { value, done } = await reader.read(); if (done) break;
-      buffer += decoder.decode(value, { stream:true });
-      const parts = buffer.split('\n\n'); buffer = parts.pop() || '';
-      for (const chunk of parts){
-        const line = chunk.trim().replace(/^data:\s?/, '');
-        try{ const p = JSON.parse(line); if (p.type==='chunk' && p.text) setStreaming(prev=> prev+p.text); }
-        catch{ setStreaming(prev=> prev+line); }
-      }
+    } finally {
+      setLoadingSug(false);
     }
-  }
+  };
 
-  // navegação do card
-  function goProduct(p: Product){
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const t = query.trim();
+    if (!t || !sessionId) return;
+    startStream(t);
+  };
+
+  const startStream = async (message: string) => {
+    if (readerRef.current) {
+      try { await readerRef.current.cancel(); } catch {}
+      readerRef.current = null;
+    }
+    
+    setStreaming('');
+    
+    try {
+      const res = await fetch('/api/assistant/stream', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-user-id': uid, 
+          'x-user-name': userName 
+        },
+        body: JSON.stringify({ sessionId, message })
+      });
+      
+      if (!res.ok || !res.body) return;
+      
+      const reader = res.body.getReader();
+      readerRef.current = reader;
+      const decoder = new TextDecoder();
+      let buffer = '';
+      
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split('\n\n');
+        buffer = parts.pop() || '';
+        
+        for (const chunk of parts) {
+          const line = chunk.trim().replace(/^data:\s?/, '');
+          try {
+            const p = JSON.parse(line);
+            if (p.type === 'chunk' && p.text) {
+              setStreaming(prev => prev + p.text);
+            } else if (p.type === 'end') {
+              return;
+            }
+          } catch {
+            setStreaming(prev => prev + line);
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Stream error:', e);
+    }
+  };
+
+  const goProduct = (p: any) => {
     if (p?.id) window.location.href = `/produto/${encodeURIComponent(p.id)}`;
-  }
+  };
 
   return (
     <>
@@ -134,10 +186,11 @@ export default function AssistantBar(){
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs">C</div>
           <input
             value={query}
-            onChange={e=> onChange(e.target.value)}
+            onChange={e => onChange(e.target.value)}
             onFocus={onFocus}
             placeholder="Converse com o Click (ex.: iPhone 15 em CDE)"
             className="flex-1 outline-none text-base"
+            data-testid="search-input"
           />
           <button className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" type="submit">Enviar</button>
         </form>
@@ -160,13 +213,22 @@ export default function AssistantBar(){
 
               {/* 3 recomendados */}
               <div className="col-span-12 lg:col-span-3">
-                <Section title="Produtos Recomendados">
-                  {topBox.length===0 ? (
+                <div className="rounded-2xl border bg-white/90 backdrop-blur p-4 shadow-sm">
+                  <div className="text-sm font-semibold mb-3">Produtos Recomendados</div>
+                  {topBox.length === 0 ? (
                     <div className="text-xs text-gray-500">Converse comigo e eu trago as melhores opções!</div>
                   ) : (
-                    <CardsList items={topBox} onClick={goProduct} />
+                    <div className="grid gap-3">
+                      {topBox.map(p => (
+                        <button key={p.id} onClick={() => goProduct(p)} className="text-left p-3 rounded-xl border hover:shadow-sm transition" data-testid={`card-product-${p.id}`}>
+                          <div className="font-medium truncate mb-1">{p.title}</div>
+                          <div className="text-xs text-gray-500 mb-2">{p.category || '—'}</div>
+                          <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                        </button>
+                      ))}
+                    </div>
                   )}
-                </Section>
+                </div>
               </div>
             </div>
           </div>
@@ -175,54 +237,40 @@ export default function AssistantBar(){
 
       {/* AQUI FORA DO DROPDOWN: resto dos resultados e acessórios */}
       <div className="mt-3 mx-auto max-w-5xl">
-        <Section title="Resultados">
-          <CardsGrid items={feed} onClick={goProduct} />
-        </Section>
+        <div className="rounded-2xl border bg-white/90 backdrop-blur p-4 shadow-sm">
+          <div className="text-sm font-semibold mb-3">Resultados</div>
+          {feed.length === 0 ? (
+            <div className="text-sm text-gray-500">Nada encontrado…</div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {feed.map(p => (
+                <button key={p.id} onClick={() => goProduct(p)} className="text-left p-3 rounded-xl border hover:shadow-sm transition" data-testid={`card-product-${p.id}`}>
+                  <div className="font-medium truncate mb-1">{p.title}</div>
+                  <div className="text-xs text-gray-500 mb-2">{p.category || '—'}</div>
+                  <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
-        {combina.length>0 && (
+        {combina.length > 0 && (
           <div className="mt-3">
-            <Section title="Combina com">
-              <CardsGrid items={combina} onClick={goProduct} />
-            </Section>
+            <div className="rounded-2xl border bg-white/90 backdrop-blur p-4 shadow-sm">
+              <div className="text-sm font-semibold mb-3">Combina com</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {combina.map(p => (
+                  <button key={p.id} onClick={() => goProduct(p)} className="text-left p-3 rounded-xl border hover:shadow-sm transition" data-testid={`card-product-${p.id}`}>
+                    <div className="font-medium truncate mb-1">{p.title}</div>
+                    <div className="text-xs text-gray-500 mb-2">{p.category || '—'}</div>
+                    <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>
     </>
-  );
-}
-
-function Section({ title, children }: React.PropsWithChildren<{ title:string }>) {
-  return (
-    <div className="rounded-2xl border bg-white/90 backdrop-blur p-4 shadow-sm">
-      <div className="text-sm font-semibold mb-3">{title}</div>
-      {children}
-    </div>
-  );
-}
-function CardsList({ items, onClick }:{ items:Product[], onClick:(p:Product)=>void }){
-  return (
-    <div className="grid gap-3">
-      {items.slice(0,3).map(p=>(
-        <button key={p.id} onClick={()=>onClick(p)} className="text-left p-3 rounded-xl border hover:shadow-sm transition">
-          <div className="font-medium truncate mb-1">{p.title}</div>
-          <div className="text-xs text-gray-500 mb-2">{p.category || '—'} {p.score!==undefined ? `• score ${p.score}` : ''}</div>
-          <div className="text-sm">{p.price?.USD ? <>USD <b>{p.price.USD}</b></> : <span className="text-gray-400">sem preço</span>}</div>
-        </button>
-      ))}
-    </div>
-  );
-}
-function CardsGrid({ items, onClick }:{ items:Product[], onClick:(p:Product)=>void }){
-  if (!items?.length) return <div className="text-sm text-gray-500">Nada encontrado…</div>;
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-      {items.map(p=>(
-        <button key={p.id} onClick={()=>onClick(p)} className="text-left p-3 rounded-xl border hover:shadow-sm transition">
-          <div className="font-medium truncate mb-1">{p.title}</div>
-          <div className="text-xs text-gray-500 mb-2">{p.category || '—'} {p.score!==undefined ? `• score ${p.score}` : ''}</div>
-          <div className="text-sm">{p.price?.USD ? <>USD <b>{p.price.USD}</b></> : <span className="text-gray-400">sem preço</span>}</div>
-        </button>
-      ))}
-    </div>
   );
 }

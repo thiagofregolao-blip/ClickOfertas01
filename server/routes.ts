@@ -6881,11 +6881,11 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       const write = (d:any)=> res.write(`data: ${JSON.stringify(d)}\n\n`);
 
       // ❶ RAG leve: busca produtos e prepara fatos
-      const { buildGrounding, composeSystemAndUser } = await import('../lib/answerComposer');
+      const { buildGrounding, composePrompts } = await import('./lib/answerComposer.js');
       const origin = `${req.protocol}://${req.get('host')}`;
       const ground = await buildGrounding(origin, message);
-      const { SYSTEM, USER } = composeSystemAndUser({
-        q: message, name, top3: ground.top3, altQuery: ground.altQuery
+      const { SYSTEM, USER } = composePrompts({
+        q: message, name, top3: ground.top3
       });
 
       // ❷ Prompt curto e temperatura baixa (evita genericão)
