@@ -25,6 +25,7 @@ export default function AssistantBar() {
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
   const bootRef = useRef(false);
   const chatRef = useRef<HTMLFormElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   // Criar/recuperar sessão
   useEffect(() => {
@@ -261,6 +262,18 @@ export default function AssistantBar() {
     startStream(message);
   };
 
+  // Auto-scroll para última mensagem
+  const scrollToBottom = () => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  };
+
+  // Auto-scroll quando mensagens mudam ou durante streaming
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatMessages, streaming, isTyping]);
+
   return (
     <>
       {/* WRAPPER RELATIVE para ancorar */} 
@@ -375,7 +388,7 @@ export default function AssistantBar() {
             <div className="mb-4">
               <div className="rounded-2xl border bg-white/95 backdrop-blur p-3 shadow-sm">
                 <div className="text-xs text-gray-500 mb-1">Click Assistant</div>
-                <div className="rounded-xl bg-gray-50 border p-3 max-h-[200px] overflow-auto">
+                <div ref={chatScrollRef} className="rounded-xl bg-gray-50 border p-3 max-h-[200px] overflow-auto">
                   {/* Histórico de mensagens */}
                   {chatMessages.map((msg, idx) => (
                     <div key={idx} className={`mb-2 ${msg.type === 'user' ? 'text-right' : ''}`}>
