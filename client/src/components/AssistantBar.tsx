@@ -19,9 +19,11 @@ export default function AssistantBar() {
   const [loadingSug, setLoadingSug] = useState(false);
   const [chatMessages, setChatMessages] = useState<Array<{type: 'user' | 'assistant', text: string}>>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [showResults, setShowResults] = useState(false);
 
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
   const bootRef = useRef(false);
+  const chatRef = useRef<HTMLFormElement>(null);
 
   // Criar/recuperar sessão
   useEffect(() => {
@@ -67,6 +69,20 @@ export default function AssistantBar() {
       }
     })();
   }, [uid, userName]);
+
+  // Gerenciar classes CSS do body quando showResults está ativo
+  useEffect(() => {
+    if (showResults) {
+      document.documentElement.classList.add('assistant-search-active');
+      // Temporariamente sem scroll-lock até overlay estar implementado
+    } else {
+      document.documentElement.classList.remove('assistant-search-active');
+    }
+    
+    return () => {
+      document.documentElement.classList.remove('assistant-search-active');
+    };
+  }, [showResults]);
 
   const onFocus = () => {
     setOpen(true);
@@ -125,6 +141,10 @@ export default function AssistantBar() {
     
     // Limpar campo
     setQuery('');
+    
+    // Ativar overlay de resultados e fechar dropdown
+    setShowResults(true);
+    setOpen(false);
     
     startStream(t);
   };
@@ -207,12 +227,28 @@ export default function AssistantBar() {
     if (p?.id) window.location.href = `/produto/${encodeURIComponent(p.id)}`;
   };
 
+  const closeResults = () => {
+    setShowResults(false);
+  };
+
+  // Handler para ESC key
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showResults) {
+        closeResults();
+      }
+    };
+    
+    document.addEventListener('keydown', handleEsc);
+    return () => document.removeEventListener('keydown', handleEsc);
+  }, [showResults]);
+
   return (
     <>
       {/* WRAPPER RELATIVE para ancorar */} 
       <div className="w-full relative">
         {/* Barra = chat */}
-        <form onSubmit={onSubmit} className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
+        <form ref={chatRef} onSubmit={onSubmit} className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs">C</div>
           <input
             value={query}
