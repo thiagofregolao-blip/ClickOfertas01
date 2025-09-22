@@ -1,3 +1,59 @@
+patch pack” plug-and-play que resolve:
+
+box do assistente ancorada à barra (não estica o header);
+
+conversa fluida com tom leve/bem-humorado (curta, até 5 linhas);
+
+prioridade Premium nos 3 primeiros da box;
+
+restante dos resultados fora da box (feed);
+
+acessórios “Combina com” abaixo do feed;
+
+cards clicáveis (leva pra /produto/:id ou /loja/:id?produto=:id);
+
+sessão/greeting 1x por usuário (sem loop).
+
+Stack & versão
+
+Node 18+ • TypeScript • React + Tailwind (Replit)
+
+Árvore (apenas arquivos novos/alterados)
+client/
+└─ src/
+   ├─ components/
+   │  └─ AssistantBar.tsx              # NOVO: a barra é o chat; box ancorada
+   └─ lib/
+      └─ sessionManager.ts             # NOVO: sessão singleton (anti-loop)
+server/
+└─ routes/
+   ├─ assistant.routes.ts              # PATCH: greeting curto+engraçado; stream
+   └─ suggest.routes.ts                # PATCH: ranqueia Premium; normaliza preço
+
+// client/src/lib/sessionManager.ts
+// Guarda/recupera uma sessão por aba e evita repetir saudação.
+export type ClickSession = { id: string; greeted?: boolean; createdAt?: number };
+const KEY = '__click_session_v1';
+
+export function getCached(): ClickSession | null {
+  try { const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
+}
+export function save(sess: ClickSession) { try { localStorage.setItem(KEY, JSON.stringify(sess)); } catch {} }
+export function greeted(): boolean { return !!getCached()?.greeted; }
+export function markGreeted() { const s = getCached(); if (!s) return; s.greeted = true; save(s); }
+
+export async function getOrCreateSession(headers?: Record<string,string>):
+Promise<{ id: string; greeting?: string; suggest?: any; fresh: boolean }> {
+  const now = Date.now(); const cached = getCached();
+  if (cached?.id && cached.createdAt && (now - cached.createdAt) < 60*60*1000) return { id: cached.id, fresh:false };
+  const r = await fetch('/api/assistant/sessions', { method:'POST', headers });
+  const d = await r.json();
+  const id = d?.session?.id || d?.sessionId || d?.id;
+  save({ id, greeted: !!d.greeting, createdAt: now });
+  return { id, greeting: d.greeting, suggest: d.suggest, fresh:true };
+}
+
+// client/src/components/AssistantBar.tsx
 /**
  * A BARRA É O ASSISTENTE:
  * - Input = chat; submit envia para stream (POST).
@@ -224,3 +280,160 @@ function CardsGrid({ items, onClick }:{ items:Product[], onClick:(p:Product)=>vo
     </div>
   );
 }
+
+// server/routes/assistant.routes.ts
+import express from 'express';
+export const assistantRouter = express.Router();
+
+// cache simples por user/ip para evitar greeting repetido
+const sessionCache = new Map<string, { id: string; ts: number }>();
+const WINDOW_MS = 60*60*1000; // 1h
+
+assistantRouter.post('/api/assistant/sessions', async (req, res) => {
+  try {
+    const key  = (req.headers['x-user-id'] as string) || req.ip || 'anon';
+    const name = (req.headers['x-user-name'] as string) || 'Cliente';
+    const now  = Date.now();
+    const cached = sessionCache.get(key);
+    if (cached && (now - cached.ts) < WINDOW_MS) {
+      return res.status(201).json({ success:true, session:{ id: cached.id } });
+    }
+    const session = await storage.createAssistantSession({
+      userId: (req.headers['x-user-id'] as string) || undefined,
+      sessionData: { ua: req.headers['user-agent'] },
+      isActive: true,
+    });
+    sessionCache.set(key, { id: session.id, ts: now });
+
+    const h = new Date().getHours();
+    const saud = `Olá, ${name}! Boa ${h<12?'manhã':h<18?'tarde':'noite'} 👋`;
+    const origin = `${req.protocol}://${req.get('host')}`;
+    let r = await fetch(`${origin}/suggest?q=trending`).catch(()=>null);
+    if (!r || !r.ok) r = await fetch(`${origin}/api/suggest?q=trending`).catch(()=>null);
+    const suggest = r ? await r.json() : { products: [] };
+
+    return res.status(201).json({ success:true, session:{ id: session.id }, greeting: saud, suggest });
+  } catch (e) {
+    console.error('sessions', e);
+    return res.status(201).json({ success:true, session:{ id:'sess-'+Math.random().toString(36).slice(2,10) }, greeting:'Olá! 👋' });
+  }
+});
+
+assistantRouter.post('/api/assistant/stream', async (req:any, res) => {
+  try {
+    const { sessionId, message } = req.body || {};
+    if (!message?.trim()) return res.status(400).json({ ok:false, error:'message required' });
+    const session = await storage.getAssistantSession(sessionId);
+    if (!session) return res.status(404).json({ ok:false, error:'session not found' });
+
+    res.writeHead(200, { 'Content-Type':'text/event-stream', 'Cache-Control':'no-cache', 'Connection':'keep-alive' });
+    const write = (d:any)=> res.write(`data: ${JSON.stringify(d)}\n\n`);
+
+    const STYLE = [
+      'Estilo: descontraído e bem-humorado (sem exagero).',
+      'Máx. 5 linhas. Frases curtas.',
+      'No máx. 3 bullets: "• item — detalhe".',
+      'Se fizer sentido, termine com: "Posso ajudar em algo mais?"',
+      'Nunca invente preços/estoques.'
+    ].join('\n');
+
+    const SYSTEM = 'Você é o Click Pro Assistant para Ciudad del Este, Salto del Guairá e Pedro Juan Caballero. Fale PT-BR, direto ao ponto, leve e simpático.';
+
+    const stream = await clickClient.chat.completions.create({
+      model: process.env.CHAT_MODEL || 'gpt-4o-mini',
+      messages: [
+        { role:'system', content: SYSTEM },
+        { role:'system', content: STYLE },
+        { role:'user',   content: message }
+      ],
+      temperature: 0.3,
+      max_tokens: 220,
+      frequency_penalty: 0.3,
+      presence_penalty: 0.1,
+      stream: true
+    });
+
+    let full=''; const LIMIT=700;
+    for await (const part of stream){
+      const t = part.choices?.[0]?.delta?.content || '';
+      if (!t) continue;
+      const over = full.length + t.length - LIMIT;
+      const piece = over>0 ? t.slice(0, t.length - over) : t;
+      full += piece; write({ type:'chunk', text: piece });
+      if (over>0) break;
+    }
+    await storage.createAssistantMessage({ sessionId, content: full, role:'assistant', metadata:{ streamed:true } });
+    write({ type:'end' }); res.end();
+  } catch (e) {
+    console.error('stream', e);
+    res.write(`data: ${JSON.stringify({ type:'error', message:'stream error' })}\n\n`); res.end();
+  }
+});
+
+// server/routes/suggest.routes.ts
+import express from 'express';
+export const suggestRouter = express.Router();
+
+/** Ranqueia Premium > similares > preço (asc) */
+function scoreProduct(p:any, q:string, isPremium:boolean){
+  const title = (p.title||p.name||'').toLowerCase();
+  const cat   = (p.category||p.type||'').toLowerCase();
+  const hit   = +(title.includes(q) || cat.includes(q));
+  const starts= +(title.startsWith(q));
+  const base  = hit + starts*0.3;
+  return (isPremium? 1.0 : 0) + base;
+}
+
+suggestRouter.get(['/suggest','/api/suggest'], async (req, res) => {
+  try {
+    const q = (req.query.q as string || '').toLowerCase().trim();
+    const stores = await storage.getAllActiveStoresOptimized(50, 60);
+
+    const products: any[] = [];
+    for (const s of stores) {
+      const isPremium = (s.plan === 'premium') || s.premium === true || s.tier === 'premium';
+      for (const p of (s.products || [])) {
+        const title = String(p.title || p.name || '').trim();
+        const category = String(p.category || p.type || '').trim();
+        const priceRaw = Number(p?.priceUSD ?? p?.price ?? 0);
+        const priceUSD = Number.isFinite(priceRaw) && priceRaw>0 ? priceRaw : undefined;
+        const entry = {
+          id: String(p.id ?? `${s.id}-${title}`),
+          title, category,
+          price: { USD: priceUSD },
+          score: 0,
+          storeId: s.id,
+          premium: isPremium
+        };
+        if (!q || title.toLowerCase().includes(q) || category.toLowerCase().includes(q)) {
+          entry.score = scoreProduct(entry, q, isPremium);
+          products.push(entry);
+        }
+      }
+    }
+
+    // Ordena: premium desc, score desc, preço asc
+    products.sort((a,b)=>{
+      if ((b.premium?1:0)!==(a.premium?1:0)) return (b.premium?1:0)-(a.premium?1:0);
+      if ((b.score||0)!==(a.score||0)) return (b.score||0)-(a.score||0);
+      const pa = a.price?.USD ?? Number.POSITIVE_INFINITY;
+      const pb = b.price?.USD ?? Number.POSITIVE_INFINITY;
+      return pa - pb;
+    });
+
+    res.json({ ok:true, products: products.slice(0, 120) });
+  } catch (e) {
+    console.error('suggest', e);
+    res.json({ ok:true, products: [] });
+  }
+});
+
+Como usar
+
+Substitua/adicione os arquivos acima.
+
+No header, use só <AssistantBar /> no lugar da barra antiga (não deixe modal antigo ativo).
+
+Rode no Replit.
+
+Teste logado: clicar na barra → ela expande pouco; a box aparece ancorada; responde com humor leve; mostra 3 Premium na box; resto no feed e Combina com; cards clicáveis.

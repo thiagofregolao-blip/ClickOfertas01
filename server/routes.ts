@@ -6654,8 +6654,14 @@ Responda curto, claro, PT-BR.
 
       sessionCache.set(key, { id: session.id, ts: now });
 
-      const h = new Date().getHours();
-      const greeting = `Olá, ${name}! Boa ${h<12?'manhã':h<18?'tarde':'noite'} 👋`;
+      const greetings = [
+        `Eaí, ${name}! Pronto pra gastar no Paraguai? 😎`,
+        `Olá, ${name}! Vamos encontrar umas pechincha? 🛍️`,
+        `Oi, ${name}! Que tal uma comprinha no CDE? 💸`,
+        `E aí, ${name}! Bora economizar (gastando)? 😄`,
+        `Salve, ${name}! O que vamos comprar hoje? 🎯`
+      ];
+      const greeting = greetings[Math.floor(Math.random() * greetings.length)];
 
       const origin = `${req.protocol}://${req.get('host')}`;
       let r = await fetch(`${origin}/suggest?q=trending`).catch(()=>null);
@@ -7180,64 +7186,6 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
     }
   });
 
-  // GET /suggest - Product suggestions endpoint
-  app.get('/suggest', async (req: any, res) => {
-    try {
-      const { q } = req.query;
-      const userId = req.headers['x-user-id'] || 'anonymous';
-
-      if (!q || !q.trim()) {
-        return res.json({ ok: true, products: [], topStores: [] });
-      }
-
-      const searchTerm = q.toLowerCase();
-      
-      // Get stores and products
-      const storesWithProducts = await storage.getAllActiveStoresOptimized(10, 20);
-      
-      let allProducts: any[] = [];
-      let topStores: any[] = [];
-
-      storesWithProducts.forEach(store => {
-        topStores.push({
-          id: store.id,
-          name: store.name,
-          label: store.name,
-          mall: store.address || ''
-        });
-
-        store.products.forEach(product => {
-          // Filter by search term
-          if (product.name.toLowerCase().includes(searchTerm) ||
-              product.description?.toLowerCase().includes(searchTerm) ||
-              product.category?.toLowerCase().includes(searchTerm)) {
-            allProducts.push({
-              id: product.id,
-              title: product.name,
-              category: product.category,
-              price: { USD: parseFloat(product.price) || 0 },
-              score: Math.random() * 100,
-              storeId: store.id
-            });
-          }
-        });
-      });
-
-      // Sort by relevance (mock scoring)
-      allProducts.sort((a, b) => b.score - a.score);
-
-      res.json({
-        ok: true,
-        category: 'busca',
-        topStores: topStores.slice(0, 5),
-        products: allProducts.slice(0, 20)
-      });
-
-    } catch (error) {
-      console.error('Error in suggest endpoint:', error);
-      res.status(500).json({ ok: false, error: 'Failed to get suggestions' });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;
