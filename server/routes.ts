@@ -6944,9 +6944,9 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       const products: any[] = [];
       for (const s of stores) {
         for (const p of (s.products || [])) {
-          const title = String(p.title || p.name || '').trim();
-          const category = String(p.category || p.type || '').trim();
-          const priceRaw = Number(p?.priceUSD ?? p?.price ?? 0);
+          const title = String(p.name || '').trim();
+          const category = String(p.category || '').trim();
+          const priceRaw = Number(p?.price ?? 0);
           products.push({
             id: String(p.id ?? `${s.id}-${title}`),
             title,
