@@ -126,66 +126,68 @@ export default function AssistantBar(){
   }
 
   return (
-    <div className="w-full relative"> {/* relative para ancorar o dropdown */}
-      {/* Barra = chat */}
-      <form onSubmit={onSubmit} className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs">C</div>
-        <input
-          value={query}
-          onChange={e=> onChange(e.target.value)}
-          onFocus={onFocus}
-          placeholder="Converse com o Click (ex.: iPhone 15 em CDE)"
-          className="flex-1 outline-none text-base"
-        />
-        <button className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" type="submit">Enviar</button>
-      </form>
+    <>
+      {/* WRAPPER RELATIVE para ancorar */} 
+      <div className="w-full relative">
+        {/* Barra = chat */}
+        <form onSubmit={onSubmit} className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs">C</div>
+          <input
+            value={query}
+            onChange={e=> onChange(e.target.value)}
+            onFocus={onFocus}
+            placeholder="Converse com o Click (ex.: iPhone 15 em CDE)"
+            className="flex-1 outline-none text-base"
+          />
+          <button className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" type="submit">Enviar</button>
+        </form>
 
-      {/* BOX ancorada à barra (absolute; não estica header) */}
-      {open && (
-        <div className="absolute left-0 right-0 mt-2 z-40">
-          <div className="grid grid-cols-12 gap-4">
-            {/* Chat + feed, dentro de um card com scroll interno */}
-            <div className="col-span-12 lg:col-span-9">
-              <div className="rounded-2xl border bg-white/90 backdrop-blur p-3 shadow-sm">
-                <div className="text-xs text-gray-500 mb-1">Click Assistant</div>
-                <div className="rounded-xl bg-gray-50 border p-3 max-h-[220px] overflow-auto whitespace-pre-wrap">
-                  {query ? '' : (greeting ? `${greeting}\n` : '')}
-                  {streaming}
+        {/* DROPDOWN ancorado (apenas Chat + 3 recomendados) */}
+        {open && (
+          <div className="absolute left-0 right-0 top-full mt-2 z-40">
+            <div className="mx-auto max-w-5xl grid grid-cols-12 gap-4">
+              {/* Chat com scroll */}
+              <div className="col-span-12 lg:col-span-9">
+                <div className="rounded-2xl border bg-white/90 backdrop-blur p-3 shadow-sm">
+                  <div className="text-xs text-gray-500 mb-1">Click Assistant</div>
+                  <div className="rounded-xl bg-gray-50 border p-3 max-h-[220px] overflow-auto whitespace-pre-wrap">
+                    {query ? '' : (greeting ? `${greeting}\n` : '')}
+                    {streaming}
+                  </div>
+                  {loadingSug && <div className="text-xs text-gray-500 mt-2">Buscando ofertas…</div>}
                 </div>
-                {loadingSug && <div className="text-xs text-gray-500 mt-2">Buscando ofertas…</div>}
               </div>
 
-              {/* Feed (resto) */}
-              <div className="mt-3">
-                <Section title="Resultados">
-                  <CardsGrid items={feed} onClick={goProduct} />
+              {/* 3 recomendados */}
+              <div className="col-span-12 lg:col-span-3">
+                <Section title="Produtos Recomendados">
+                  {topBox.length===0 ? (
+                    <div className="text-xs text-gray-500">Converse comigo e eu trago as melhores opções!</div>
+                  ) : (
+                    <CardsList items={topBox} onClick={goProduct} />
+                  )}
                 </Section>
               </div>
-
-              {/* Combina com */}
-              {combina.length>0 && (
-                <div className="mt-3">
-                  <Section title="Combina com">
-                    <CardsGrid items={combina} onClick={goProduct} />
-                  </Section>
-                </div>
-              )}
-            </div>
-
-            {/* 3 Premium/Top na coluna direita */}
-            <div className="col-span-12 lg:col-span-3">
-              <Section title="Produtos Recomendados">
-                {topBox.length===0 ? (
-                  <div className="text-xs text-gray-500">Converse comigo e eu trago as melhores opções!</div>
-                ) : (
-                  <CardsList items={topBox} onClick={goProduct} />
-                )}
-              </Section>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+
+      {/* AQUI FORA DO DROPDOWN: resto dos resultados e acessórios */}
+      <div className="mt-3 mx-auto max-w-5xl">
+        <Section title="Resultados">
+          <CardsGrid items={feed} onClick={goProduct} />
+        </Section>
+
+        {combina.length>0 && (
+          <div className="mt-3">
+            <Section title="Combina com">
+              <CardsGrid items={combina} onClick={goProduct} />
+            </Section>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 
