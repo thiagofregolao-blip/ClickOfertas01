@@ -48,10 +48,11 @@ export function useAssistantChat({
       }
       
       if (autoCreateSession) {
-        const response = await apiRequest('POST', '/api/assistant/sessions', {});
-        const data = await response.json();
-        // Handle both shapes: { session: { id } } or { id }
-        const session = data.session || data;
+        try {
+          const response = await apiRequest('POST', '/api/assistant/sessions', {});
+          const data = await response.json();
+          // Handle both shapes: { session: { id } } or { id }
+          const session = data.session || data;
         
         // PATCH B: Saudação entra como 1ª mensagem
         if (data.greeting) {
@@ -72,7 +73,12 @@ export function useAssistantChat({
           console.warn('Erro ao buscar produtos recomendados:', error);
         }
         
-        return session;
+          return session;
+        } catch (error) {
+          // If session creation fails (e.g., 401), gracefully handle it
+          console.warn('Failed to create assistant session:', error);
+          return null;
+        }
       }
       
       return null;
@@ -86,10 +92,22 @@ export function useAssistantChat({
     queryKey: ['assistant', 'messages', sessionId],
     queryFn: async () => {
       if (!sessionId) return { messages: [] };
-      const response = await fetch(`/api/assistant/sessions/${sessionId}`);
-      const data = await response.json();
-      // Return the session data which includes messages array
-      return data;
+      try {
+        const response = await fetch(`/api/assistant/sessions/${sessionId}`);
+        if (!response.ok) {
+          if (response.status === 401) {
+            // Handle 401 gracefully - return empty messages
+            return { messages: [] };
+          }
+          throw new Error(`Failed to load messages: ${response.statusText}`);
+        }
+        const data = await response.json();
+        // Return the session data which includes messages array
+        return data;
+      } catch (error) {
+        console.warn('Failed to load assistant messages:', error);
+        return { messages: [] };
+      }
     },
     enabled: !!sessionId,
   });
