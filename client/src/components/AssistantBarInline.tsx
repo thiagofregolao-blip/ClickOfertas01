@@ -137,9 +137,9 @@ export default function AssistantBarInline() {
         anchor.dataset.assistantActive = '1';
       });
       
-      // fechar dropdown ao clicar fora
+      // fechar dropdown ao clicar fora (mas não se clicar no próprio dropdown)
       document.addEventListener('click', (e: Event) => {
-        if (!anchor.contains(e.target as Node)) {
+        if (!anchor.contains(e.target as Node) && !dropdown.contains(e.target as Node)) {
           dropdown.classList.add('hidden');
           delete anchor.dataset.assistantActive;
         }
@@ -152,6 +152,13 @@ export default function AssistantBarInline() {
           e.stopPropagation();
           const text = (input.value || '').trim();
           if (!text) return;
+          
+          // Mostrar mensagem do usuário
+          appendUser(text);
+          
+          // Limpar campo
+          input.value = '';
+          
           ensureSession().then(() => {
             startStream(text);
             suggestAndRender(text);
@@ -277,6 +284,13 @@ export default function AssistantBarInline() {
           reader = null;
         }
         
+        // Mostrar indicador de "digitando"
+        const typingEl = document.createElement('div');
+        typingEl.className = "mb-2 text-gray-500 italic";
+        typingEl.textContent = "Click Assistant está digitando...";
+        chatBox.appendChild(typingEl);
+        scrollDown();
+        
         try {
           const res = await fetch('/api/assistant/stream', {
             method: 'POST',
@@ -289,8 +303,13 @@ export default function AssistantBarInline() {
             body: JSON.stringify({ sessionId, message })
           });
           
-          if (!res.ok || !res.body) return;
+          if (!res.ok || !res.body) {
+            typingEl.remove();
+            return;
+          }
 
+          // Remover indicador de digitação e criar elemento da mensagem
+          typingEl.remove();
           const msgEl = document.createElement('div');
           msgEl.className = "mb-2";
           chatBox.appendChild(msgEl);
@@ -323,6 +342,7 @@ export default function AssistantBarInline() {
           }
         } catch (e) {
           console.error('[ClickAssistant] Erro no stream:', e);
+          typingEl.remove();
         }
       }
 
@@ -330,6 +350,14 @@ export default function AssistantBarInline() {
         const div = document.createElement('div');
         div.className = "mb-2";
         div.textContent = text;
+        chatBox.appendChild(div);
+        scrollDown();
+      }
+
+      function appendUser(text: string) {
+        const div = document.createElement('div');
+        div.className = "mb-2 text-right";
+        div.innerHTML = `<span class="inline-block bg-blue-500 text-white px-3 py-1 rounded-lg max-w-xs">${escapeHTML(text)}</span>`;
         chatBox.appendChild(div);
         scrollDown();
       }
