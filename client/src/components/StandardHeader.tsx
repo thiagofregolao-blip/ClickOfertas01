@@ -252,7 +252,8 @@ export default function StandardHeader() {
           {/* Click Pro Assistant Expandido */}
           {isAssistantExpanded && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-2xl z-50 max-w-7xl mx-auto" 
-                 style={{ minHeight: '400px', maxHeight: '600px' }}>
+                 style={{ minHeight: '400px', maxHeight: '600px' }}
+                 data-testid="assistant-container">
               
               {/* Header do Assistant */}
               <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-50">
@@ -282,7 +283,7 @@ export default function StandardHeader() {
                   
                   {/* Messages Area */}
                   <ScrollArea className="flex-1 p-4" style={{ height: '300px' }}>
-                    <div className="space-y-4">
+                    <div className="space-y-4" data-testid="assistant-messages">
                       {messages.length === 0 ? (
                         <div className="text-center text-gray-500 py-8">
                           <Bot className="w-12 h-12 mx-auto mb-3 text-purple-400" />
@@ -351,7 +352,7 @@ export default function StandardHeader() {
                 </div>
 
                 {/* Coluna de Produtos Recomendados - Direita */}
-                <div className="w-80 p-4">
+                <div className="w-80 p-4" data-testid="assistant-recommendations">
                   <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
                     <Search className="w-4 h-4" />
                     Produtos Recomendados
