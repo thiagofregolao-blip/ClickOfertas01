@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileText, ShoppingBag, TrendingUp, Users, Globe, LogIn } from "lucide-react";
+import { FileText, ShoppingBag, TrendingUp, Users, Globe, LogIn, MessageCircle } from "lucide-react";
 import { useAppVersion } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import GlobalHeader from "@/components/global-header";
+import { useAssistantChat } from "@/hooks/use-assistant-chat";
+import InlineAssistant from "@/components/InlineAssistant";
 
 /**
  * Página de Aterrissagem - Click Ofertas Paraguai
@@ -16,6 +18,17 @@ export default function Landing() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Click Pro Assistant states
+  const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
+  const {
+    messages,
+    sendMessage: sendChatMessage,
+    isStreaming,
+    isSending,
+    sessionId,
+    personalizedGreeting
+  } = useAssistantChat({ autoCreateSession: true });
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -556,6 +569,32 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* Click Pro Assistant - Inline Dialog */}
+      {isAssistantExpanded && (
+        <InlineAssistant
+          isExpanded={isAssistantExpanded}
+          onToggle={() => setIsAssistantExpanded(false)}
+          messages={messages}
+          onSendMessage={sendChatMessage}
+          isStreaming={isStreaming}
+          isSending={isSending}
+          recommendations={[]}
+          personalizedGreeting={personalizedGreeting}
+        />
+      )}
+
+      {/* Floating Assistant Button for Mobile */}
+      {!isAssistantExpanded && (
+        <button
+          onClick={() => setIsAssistantExpanded(true)}
+          className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-105 lg:hidden"
+          data-testid="button-open-assistant"
+          title="Abrir Click Pro Assistant"
+        >
+          <MessageCircle className="w-6 h-6" />
+        </button>
+      )}
     </div>
   );
 }

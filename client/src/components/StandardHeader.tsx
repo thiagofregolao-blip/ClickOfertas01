@@ -185,6 +185,7 @@ export default function StandardHeader() {
   }, [recommendationsData]);
 
   return (
+    <>
     <div className="sticky top-0 z-50" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
       {/* Desktop: Layout original */}
       <div className={`py-4 px-2 ml-[5%]`}>
@@ -557,5 +558,6 @@ export default function StandardHeader() {
         <MessageCircle className="w-6 h-6" />
       </button>
     )}
+    </>
   );
 }
