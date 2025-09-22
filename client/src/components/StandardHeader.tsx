@@ -532,7 +532,7 @@ export default function StandardHeader() {
           ) : (
             // Usuário não logado - mostrar botão entrar
             <button
-              onClick={() => window.location.href = '/api/auth/login'}
+              onClick={() => window.location.href = '/'}
               className="text-white hover:text-gray-200 font-medium flex items-center gap-1"
               data-testid="button-user-login"
             >

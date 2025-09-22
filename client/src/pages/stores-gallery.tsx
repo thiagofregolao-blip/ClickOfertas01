@@ -27,7 +27,7 @@ import { BannerSection } from "@/components/BannerSection";
 import BannerCarouselSwiper from "@/components/BannerCarouselSwiper";
 import ThreeDailyScratchCards from "@/components/ThreeDailyScratchCards";
 import { RectangularScratchCard } from "@/components/RectangularScratchCard";
-import GlobalHeader from "@/components/global-header";
+import StandardHeader from "@/components/StandardHeader";
 import { useAssistantChat } from "@/hooks/use-assistant-chat";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bot, Sparkles, Send } from "lucide-react";
@@ -691,93 +691,8 @@ export default function StoresGallery() {
   return (
     <div className="min-h-screen bg-white">
       
-      {/* Mobile: Header com logo, busca e banner */}
-      {isMobile && (
-        <div className="bg-gradient-to-r from-red-500 to-orange-500">
-          <div className="px-4 py-3">
-            {/* Logo e Busca */}
-            <div className="flex items-center gap-3 mb-3">
-              {/* Logo - removido para mobile */}
-              
-              {/* Barra de Busca Mobile */}
-              <div className="flex-1">
-                <div className="relative">
-                  {searchMode === 'intelligent' ? (
-                    <Brain className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4" />
-                  ) : (
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  )}
-                  <Input
-                    placeholder={isSearchFocused || searchInput ? "Buscar produtos..." : currentText}
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    onFocus={() => setIsSearchFocused(true)}
-                    onBlur={() => setIsSearchFocused(false)}
-                    className="pl-10 pr-10 py-2 w-full bg-white border-0 rounded-lg shadow-sm text-gray-900 placeholder-gray-400"
-                    data-testid="mobile-search-input"
-                  />
-                  {searchInput && (
-                    <button
-                      onClick={() => setSearchInput('')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                      title="Limpar busca"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-              
-              {/* Botão Comparar Preços Mobile */}
-              <Link href="/price-comparison">
-                <Button
-                  size="sm"
-                  className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-medium px-2 py-2 rounded-lg shadow-sm"
-                  data-testid="button-price-comparison-mobile"
-                >
-                  <BarChart3 className="w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Mobile: Filtros de Categoria */}
-      {isMobile && (
-        <div className="bg-white border-b px-4 py-3">
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-            {/* Botão "Todos" */}
-            <button
-              onClick={() => handleCategoryFilter(null)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                selectedCategory === null
-                  ? 'bg-red-500 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-              data-testid="category-filter-todos"
-            >
-              Todos
-            </button>
-            
-            {/* Botões das categorias */}
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => handleCategoryFilter(category.slug)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                  selectedCategory === category.slug || selectedCategory === category.name
-                    ? 'bg-red-500 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-                data-testid={`category-filter-${category.slug}`}
-              >
-                {getCategoryIcon(category.slug)} {category.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Usar StandardHeader que já tem o Click Assistant integrado */}
+      <StandardHeader />
 
       {/* Mobile: Banner rotativo primeiro */}
       {isMobile && !searchQuery.trim() && (
