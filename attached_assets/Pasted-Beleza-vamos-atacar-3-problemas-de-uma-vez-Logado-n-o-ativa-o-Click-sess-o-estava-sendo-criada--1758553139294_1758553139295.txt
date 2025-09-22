@@ -1,0 +1,365 @@
+Beleza, vamos atacar 3 problemas de uma vez:
+
+Logado não ativa o Click → sessão estava sendo criada sem levar em conta o usuário logado (headers/ID) e o cache batia errado.
+
+Box fora da barra → a barra não era o componente do assistente.
+
+Busca não roda → /suggest não era chamado certo / normalização dos campos.
+
+Abaixo vão arquivos completos plug-and-play:
+
+1) Front — substitui a barra de busca pelo assistente
+// client/src/components/AssistantBar.tsx
+/**
+ * A BARRA É O ASSISTENTE:
+ * - O input é o chat (stream por POST).
+ * - Painel drop embutido sob a barra (scroll interno).
+ * - 3 recomendados à direita, resto no feed logo abaixo (fora do painel).
+ * - Usa sessão por usuário (uid) para evitar loop e garantir login.
+ */
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+
+type Product = { id:string; title:string; category?:string; price?:{ USD?: number }, score?:number };
+type SuggestResponse = { products?: Product[] };
+
+export default function AssistantBar() {
+  // pegue do seu auth (aqui fallback simples)
+  const uid = useMemo(() => {
+    const u = localStorage.getItem('uid');
+    return u || (localStorage.setItem('uid', 'u-'+Math.random().toString(36).slice(2,8)), localStorage.getItem('uid')!);
+  }, []);
+  const userName = useMemo(() => localStorage.getItem('userName') || 'Cliente', []);
+
+  const [sessionId, setSessionId] = useState('');
+  const [input, setInput] = useState('');
+  const [open, setOpen] = useState(false);          // abre/fecha painel sob a barra
+  const [greeting, setGreeting] = useState('');
+  const [streaming, setStreaming] = useState('');
+  const [recommended, setRecommended] = useState<Product[]>([]);
+  const [feed, setFeed] = useState<Product[]>([]);
+  const [loadingSug, setLoadingSug] = useState(false);
+
+  // evita múltiplos boots/focos (StrictMode)
+  const bootRef = useRef(false);
+  const focusedOnceRef = useRef(false);
+  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array>|null>(null);
+
+  // cria/recupera sessão SEMPRE com headers do usuário
+  useEffect(() => {
+    if (bootRef.current) return; bootRef.current = true;
+    (async () => {
+      const r = await fetch('/api/assistant/sessions', {
+        method: 'POST',
+        headers: { 'x-user-id': uid, 'x-user-name': userName }
+      });
+      const d = await r.json();
+      const sid = d?.session?.id || d?.sessionId || d?.id || '';
+      setSessionId(sid);
+      if (d.greeting) setGreeting(d.greeting);
+      const prods: Product[] = d?.suggest?.products || [];
+      setRecommended(prods.slice(0,3));
+      setFeed(prods.slice(3));
+    })();
+  }, [uid, userName]);
+
+  async function startStream(message: string) {
+    if (!sessionId) return;
+    // encerra stream anterior
+    if (readerRef.current) { try { await readerRef.current.cancel(); } catch {} readerRef.current = null; }
+    setStreaming('');
+    const response = await fetch('/api/assistant/stream', {
+      method: 'POST',
+      headers: {
+        'Content-Type':'application/json',
+        'Accept':'text/event-stream',
+        'x-user-id': uid, 'x-user-name': userName
+      },
+      body: JSON.stringify({ sessionId, message, context: null })
+    });
+    if (!response.ok || !response.body) return;
+    const reader = response.body.getReader();
+    readerRef.current = reader; const decoder = new TextDecoder(); let buffer = '';
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream:true });
+      const parts = buffer.split('\n\n'); buffer = parts.pop() || '';
+      for (const chunk of parts) {
+        const line = chunk.trim().replace(/^data:\s?/, '');
+        try {
+          const payload = JSON.parse(line);
+          if (payload.type === 'chunk' && payload.text) setStreaming(prev => prev + payload.text);
+        } catch { setStreaming(prev => prev + line); }
+      }
+    }
+  }
+
+  function onFocus() {
+    setOpen(true);
+    if (!focusedOnceRef.current) {
+      focusedOnceRef.current = true;
+      startStream('oi');
+    }
+  }
+
+  async function onChange(q:string){
+    setInput(q);
+    const term = q.trim();
+    if (!term) { setFeed([]); return; }
+    try{
+      setLoadingSug(true);
+      let r = await fetch(`/suggest?q=${encodeURIComponent(term)}`);
+      if (!r.ok) r = await fetch(`/api/suggest?q=${encodeURIComponent(term)}`);
+      const d: SuggestResponse = await r.json();
+      const prods = (d?.products || []).map(p => ({ ...p, price: { USD: Number(p?.price?.USD ?? 0) || undefined }}));
+      setRecommended(prods.slice(0,3));
+      setFeed(prods.slice(3));
+    } finally { setLoadingSug(false); }
+  }
+
+  async function onSubmit(e:React.FormEvent){
+    e.preventDefault();
+    const q = input.trim(); if (!q) return;
+    startStream(q);
+  }
+
+  return (
+    <div className="w-full">
+      {/* A BARRA EM SI */}
+      <form onSubmit={onSubmit}
+        className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs">C</div>
+        <input
+          value={input}
+          onChange={(e)=> onChange(e.target.value)}
+          onFocus={onFocus}
+          placeholder="Converse com o Click (ex.: iPhone 15 em CDE)"
+          className="flex-1 outline-none text-base"
+        />
+        <button className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" type="submit">Enviar</button>
+      </form>
+
+      {/* PAINEL ABAIXO DA BARRA (é a box do assistente) */}
+      {open && (
+        <div className="mt-2 grid grid-cols-12 gap-4">
+          {/* Chat embutido com scroll */}
+          <div className="col-span-12 lg:col-span-9 min-h-0">
+            <div className="rounded-2xl border bg-white/80 backdrop-blur p-3 shadow-sm min-h-0">
+              <div className="text-xs text-gray-500 mb-1">Click Assistant</div>
+              <div className="rounded-xl bg-gray-50 border p-3 max-h-[240px] overflow-auto whitespace-pre-wrap">
+                {greeting ? `${greeting}\n` : ''}{streaming}
+              </div>
+              {loadingSug && <div className="text-xs text-gray-500 mt-2">Buscando ofertas…</div>}
+            </div>
+
+            {/* Feed com restante dos resultados */}
+            <div className="mt-3">
+              <ResultsFeed items={feed} />
+            </div>
+          </div>
+
+          {/* Coluna direita com até 3 recomendados */}
+          <div className="col-span-12 lg:col-span-3">
+            <div className="rounded-2xl border bg-white/80 backdrop-blur p-4 shadow-sm">
+              <div className="text-sm font-semibold mb-2">Produtos Recomendados</div>
+              {!recommended.length && <div className="text-xs text-gray-500">Converse comigo e vou recomendar os melhores produtos!</div>}
+              <div className="grid gap-3">
+                {recommended.slice(0,3).map((p)=>(
+                  <div key={p.id} className="p-3 rounded-xl border hover:shadow-sm transition">
+                    <div className="font-medium truncate mb-1">{p.title}</div>
+                    <div className="text-xs text-gray-500 mb-2">{p.category || '—'} {p.score!==undefined ? `• score ${p.score}` : ''}</div>
+                    <div className="text-sm">{p.price?.USD ? <>USD <b>{p.price.USD}</b></> : <span className="text-gray-400">sem preço</span>}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ResultsFeed({ items }: { items: Product[] }){
+  if (!items?.length) return (
+    <div className="rounded-2xl border bg-white/80 backdrop-blur p-4 shadow-sm">
+      <div className="text-sm text-gray-500">Os resultados completos aparecem aqui conforme você digita.</div>
+    </div>
+  );
+  return (
+    <div className="rounded-2xl border bg-white/80 backdrop-blur p-4 shadow-sm">
+      <div className="text-sm font-semibold mb-3">Resultados</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {items.map(p=>(
+          <div key={p.id} className="p-3 rounded-xl border hover:shadow-sm transition">
+            <div className="font-medium truncate mb-1">{p.title}</div>
+            <div className="text-xs text-gray-500 mb-2">{p.category || '—'} {p.score!==undefined ? `• score ${p.score}` : ''}</div>
+            <div className="text-sm">{p.price?.USD ? <>USD <b>{p.price.USD}</b></> : <span className="text-gray-400">sem preço</span>}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+Use este componente no lugar da sua barra atual (mesmo lugar no header). Remova o modal/caixa antigo.
+
+2) Back — sessão idempotente por usuário + greet + suggest
+// server/routes/assistant.routes.ts  (ou onde registra as rotas do assistente)
+import express from 'express';
+export const assistantRouter = express.Router();
+
+const sessionCache = new Map<string, { id: string; ts: number }>();
+const WINDOW_MS = 60 * 60 * 1000; // 1h
+
+assistantRouter.post('/api/assistant/sessions', async (req, res) => {
+  try {
+    const key = (req.headers['x-user-id'] as string) || req.ip || 'anon';
+    const name = (req.headers['x-user-name'] as string) || 'Cliente';
+    const now = Date.now();
+    const cached = sessionCache.get(key);
+
+    if (cached && (now - cached.ts) < WINDOW_MS) {
+      return res.status(201).json({ success:true, session:{ id: cached.id } });
+    }
+
+    const session = await storage.createAssistantSession({
+      userId: (req.headers['x-user-id'] as string) || undefined,
+      sessionData: { ua: req.headers['user-agent'] },
+      isActive: true,
+    });
+
+    sessionCache.set(key, { id: session.id, ts: now });
+
+    const h = new Date().getHours();
+    const greeting = `Olá, ${name}! Boa ${h<12?'manhã':h<18?'tarde':'noite'} 👋`;
+
+    const origin = `${req.protocol}://${req.get('host')}`;
+    let r = await fetch(`${origin}/suggest?q=trending`).catch(()=>null);
+    if (!r || !r.ok) r = await fetch(`${origin}/api/suggest?q=trending`).catch(()=>null);
+    const suggest = r ? await r.json() : { products: [] };
+
+    return res.status(201).json({ success:true, session:{ id: session.id }, greeting, suggest });
+  } catch (e) {
+    console.error('sessions', e);
+    return res.status(201).json({ success:true, session:{ id:'sess-'+Math.random().toString(36).slice(2,10) }, greeting:'Olá! 👋' });
+  }
+});
+
+3) Back — stream curto (POST) e robusto
+// no mesmo arquivo
+assistantRouter.post('/api/assistant/stream', async (req, res) => {
+  try {
+    const { sessionId, message } = req.body || {};
+    if (!message?.trim()) return res.status(400).json({ ok:false, error:'message required' });
+
+    const session = await storage.getAssistantSession(sessionId);
+    if (!session) return res.status(404).json({ ok:false, error:'session not found' });
+
+    res.writeHead(200, { 'Content-Type':'text/event-stream', 'Cache-Control':'no-cache', 'Connection':'keep-alive' });
+    const write = (d:any)=> res.write(`data: ${JSON.stringify(d)}\n\n`);
+    await storage.createAssistantMessage({ sessionId, content: message, role:'user' });
+
+    const STYLE = `- Máx. 5 linhas.\n- Frases curtas.\n- Até 3 bullets.\n- 1 pergunta final.\n- Não repita.`;
+    const SYSTEM = `Você é o Click Pro Assistant para Ciudad del Este, Salto del Guairá e Pedro Juan. Seja objetivo, PT-BR.`;
+
+    const r = await clickClient.chat.completions.create({
+      model: process.env.CHAT_MODEL || 'gpt-4o-mini',
+      messages: [
+        { role:'system', content: SYSTEM },
+        { role:'system', content: STYLE },
+        { role:'user', content: message }
+      ],
+      temperature: 0.2,
+      max_tokens: 220,
+      frequency_penalty: 0.4,
+      presence_penalty: 0.1,
+      stream: true
+    });
+
+    let full = ''; const LIMIT = 700;
+    for await (const part of r) {
+      const t = part.choices?.[0]?.delta?.content || '';
+      if (!t) continue;
+      const over = full.length + t.length - LIMIT;
+      const piece = over > 0 ? t.slice(0, t.length - over) : t;
+      full += piece;
+      write({ type:'chunk', text: piece });
+      if (over > 0) break;
+    }
+    await storage.createAssistantMessage({ sessionId, content: full, role:'assistant', metadata:{ streamed:true } });
+    write({ type:'end' });
+    res.end();
+  } catch (e) {
+    console.error('stream', e);
+    res.write(`data: ${JSON.stringify({ type:'error', message:'stream error' })}\n\n`);
+    res.end();
+  }
+});
+
+4) Back — /suggest normaliza campos (busca real do catálogo)
+// server/routes/suggest.routes.ts
+import express from 'express';
+export const suggestRouter = express.Router();
+
+suggestRouter.get(['/suggest','/api/suggest'], async (req, res) => {
+  try {
+    const q = (req.query.q as string || '').toLowerCase().trim();
+    const stores = await storage.getAllActiveStoresOptimized(50, 60);
+
+    const products: any[] = [];
+    for (const s of stores) {
+      for (const p of (s.products || [])) {
+        const title = String(p.title || p.name || '').trim();
+        const category = String(p.category || p.type || '').trim();
+        const priceRaw = Number(p?.priceUSD ?? p?.price ?? 0);
+        products.push({
+          id: String(p.id ?? `${s.id}-${title}`),
+          title,
+          category,
+          price: { USD: Number.isFinite(priceRaw) && priceRaw > 0 ? priceRaw : undefined },
+          score: 0
+        });
+      }
+    }
+
+    const filtered = !q ? products : products.filter(p =>
+      p.title.toLowerCase().includes(q) ||
+      (p.category||'').toLowerCase().includes(q)
+    );
+
+    filtered.forEach(p => { p.score = (p.title.toLowerCase().startsWith(q) ? 1 : 0) + ((p.category||'').toLowerCase().includes(q) ? 0.3 : 0); });
+    filtered.sort((a,b)=> (b.score||0)-(a.score||0));
+
+    res.json({ ok:true, products: filtered.slice(0, 60) });
+  } catch (e) {
+    console.error('suggest', e);
+    res.json({ ok:true, products: [] });
+  }
+});
+
+Como aplicar
+
+Front: use AssistantBar no lugar da barra atual (no header). Remova o modal/box antigo.
+
+Back: registre os routers:
+
+// server/index.ts (exemplo)
+import { assistantRouter } from './routes/assistant.routes';
+import { suggestRouter } from './routes/suggest.routes';
+app.use(assistantRouter);
+app.use(suggestRouter);
+
+
+Rode no Replit e teste logado:
+
+Ao focar a barra → painel abre sob a barra (o box É da barra).
+
+Saudação aparece 1x.
+
+Digitar “iphone” → /suggest retorna produtos (3 à direita + feed abaixo).
+
+Chat responde curto.
+
+Se ainda tiver algo fora do lugar, me diz o nome do arquivo do header onde a barra fica e o componente atual da barra, que eu ajusto a importação/JSX exatos pra tua estrutura.

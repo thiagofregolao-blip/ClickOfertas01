@@ -6630,44 +6630,42 @@ Responda curto, claro, PT-BR.
   // ASSISTANT API - CONVERSATIONAL SHOPPING ASSISTANT
   // =============================================
 
+  // Cache para sessões por usuário
+  const sessionCache = new Map<string, { id: string; ts: number }>();
+  const WINDOW_MS = 60 * 60 * 1000; // 1h
+
   // Create new assistant session
   app.post('/api/assistant/sessions', async (req, res) => {
     try {
-      // Create session data for database
-      const sessionData = {
-        userId: req.headers['x-user-id'] !== 'anonymous' ? req.headers['x-user-id'] as string : undefined,
-        sessionData: { 
-          userAgent: req.headers['user-agent'], 
-          createdAt: new Date().toISOString() 
-        },
-        isActive: true,
-      };
+      const key = (req.headers['x-user-id'] as string) || req.ip || 'anon';
+      const name = (req.headers['x-user-name'] as string) || 'Cliente';
+      const now = Date.now();
+      const cached = sessionCache.get(key);
 
-      // Save session to database using storage interface
-      const session = await storage.createAssistantSession(sessionData);
-
-      const now = new Date(); const h = now.getHours();
-      const saud = `Olá, ${(req.headers['x-user-name'] as string) || 'Cliente'}! Boa ${h<12?'manhã':h<18?'tarde':'noite'} 👋`;
-
-      // trending (ajuste para seu endpoint /suggest ou /api/suggest)
-      let r = await fetch(`${req.protocol}://${req.get('host')}/suggest?q=trending`);
-      if (!r.ok) r = await fetch(`${req.protocol}://${req.get('host')}/api/suggest?q=trending`);
-      const suggest = await r.json();
-
-      res.status(201).json({ success:true, session: { id: session.id }, greeting: saud, suggest });
-    } catch (e) {
-      console.error('Error creating assistant session:', e);
-      // Fallback - create minimal session in database
-      try {
-        const fallbackSession = await storage.createAssistantSession({ 
-          sessionData: { error: 'fallback_creation' },
-          isActive: true 
-        });
-        res.status(201).json({ success:true, session:{ id: fallbackSession.id }, greeting:'Olá! 👋' });
-      } catch (fallbackError) {
-        console.error('Fallback session creation failed:', fallbackError);
-        res.status(500).json({ success: false, error: 'Failed to create session' });
+      if (cached && (now - cached.ts) < WINDOW_MS) {
+        return res.status(201).json({ success:true, session:{ id: cached.id } });
       }
+
+      const session = await storage.createAssistantSession({
+        userId: (req.headers['x-user-id'] as string) || undefined,
+        sessionData: { ua: req.headers['user-agent'] },
+        isActive: true,
+      });
+
+      sessionCache.set(key, { id: session.id, ts: now });
+
+      const h = new Date().getHours();
+      const greeting = `Olá, ${name}! Boa ${h<12?'manhã':h<18?'tarde':'noite'} 👋`;
+
+      const origin = `${req.protocol}://${req.get('host')}`;
+      let r = await fetch(`${origin}/suggest?q=trending`).catch(()=>null);
+      if (!r || !r.ok) r = await fetch(`${origin}/api/suggest?q=trending`).catch(()=>null);
+      const suggest = r ? await r.json() : { products: [] };
+
+      return res.status(201).json({ success:true, session:{ id: session.id }, greeting, suggest });
+    } catch (e) {
+      console.error('sessions', e);
+      return res.status(201).json({ success:true, session:{ id:'sess-'+Math.random().toString(36).slice(2,10) }, greeting:'Olá! 👋' });
     }
   });
 
@@ -6866,152 +6864,111 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
   // SSE Streaming endpoint for assistant chat
   app.post('/api/assistant/stream', async (req: any, res) => {
     try {
-      const { sessionId, message, context } = req.body;
-      const user = req.user || req.session?.user;
+      const { sessionId, message } = req.body || {};
+      if (!message?.trim()) return res.status(400).json({ ok:false, error:'message required' });
 
-      // Validate input
-      if (!message || typeof message !== 'string' || message.trim().length === 0) {
-        return res.status(400).json({ success: false, message: 'Message is required' });
-      }
-
-      if (message.length > 2000) {
-        return res.status(400).json({ success: false, message: 'Message too long' });
-      }
-
-      // Validate session and ownership
       const session = await storage.getAssistantSession(sessionId);
-      if (!session) {
-        return res.status(404).json({ success: false, message: 'Session not found' });
-      }
+      if (!session) return res.status(404).json({ ok:false, error:'session not found' });
 
-      // Check ownership
-      if (session.userId && session.userId !== user?.id) {
-        return res.status(403).json({ success: false, message: 'Access denied' });
-      }
+      res.writeHead(200, { 'Content-Type':'text/event-stream', 'Cache-Control':'no-cache', 'Connection':'keep-alive' });
+      const write = (d:any)=> res.write(`data: ${JSON.stringify(d)}\n\n`);
+      await storage.createAssistantMessage({ sessionId, content: message, role:'user' });
 
-      // Setup SSE headers
-      res.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Cache-Control'
-      });
+      const STYLE = `- Máx. 5 linhas.\n- Frases curtas.\n- Até 3 bullets.\n- 1 pergunta final.\n- Não repita.`;
+      const SYSTEM = `Você é o Click Pro Assistant para Ciudad del Este, Salto del Guairá e Pedro Juan. Seja objetivo, PT-BR.`;
 
-      // SSE helper functions
-      const writeSSE = (data: any) => {
-        res.write(`data: ${JSON.stringify(data)}\n\n`);
-      };
-
-      // Save user message
-      await storage.createAssistantMessage({
-        sessionId,
-        content: message,
-        role: 'user',
-        metadata: context || null,
-      });
-
-      // Get recent conversation context
-      const recentMessages = await storage.getAssistantMessages(sessionId, 10);
-      
-      // Create context for Click Pro IA
-      const conversationContext = recentMessages
-        .slice(-6) // Last 6 messages for context
-        .map(msg => `${msg.role}: ${msg.content}`)
-        .join('\n');
-
-      // PATCH D: Texto curto (sem enrolação)
-      const STYLE_GUIDE = `
-- Máx. 5 linhas.
-- Frases curtas. Sem floreio.
-- No máx. 3 bullets: "• item — detalhe".
-- Uma única pergunta no final (se necessário).
-- Não repita o que já disse.
-`.trim();
-
-      const systemPrompt = `
-Você é o Click Pro Assistant para CDE/Salto/Pedro Juan.
-Seja direto e objetivo, PT-BR, sem inventar preços/estoques.
-`.trim();
-
-      const messages = [
-        { role: 'system' as const, content: systemPrompt },
-        { role: 'system' as const, content: STYLE_GUIDE },
-        { role: 'user' as const, content: message }
-      ];
-
-      // Send initial metadata
-      writeSSE({ 
-        type: 'start', 
-        sessionId,
-        timestamp: new Date().toISOString()
-      });
-
-      // Create streaming completion
-      const stream = await clickClient.chat.completions.create({
-        model: CHAT_MODEL,
-        messages,
+      const r = await clickClient.chat.completions.create({
+        model: process.env.CHAT_MODEL || 'gpt-4o-mini',
+        messages: [
+          { role:'system', content: SYSTEM },
+          { role:'system', content: STYLE },
+          { role:'user', content: message }
+        ],
         temperature: 0.2,
         max_tokens: 220,
         frequency_penalty: 0.4,
         presence_penalty: 0.1,
-        stream: true,
+        stream: true
       });
 
-      // soft-cut (corta textão se vier)
-      let fullResponse = '';
-      const SOFT_LIMIT = 700;
-      for await (const part of stream) {
-        const delta = part.choices?.[0]?.delta?.content || '';
-        if (!delta) continue;
-        const over = fullResponse.length + delta.length - SOFT_LIMIT;
-        const piece = over > 0 ? delta.slice(0, delta.length - over) : delta;
-        fullResponse += piece;
-        writeSSE({ type: 'chunk', text: piece, timestamp: new Date().toISOString() });
+      let full = ''; const LIMIT = 700;
+      for await (const part of r) {
+        const t = part.choices?.[0]?.delta?.content || '';
+        if (!t) continue;
+        const over = full.length + t.length - LIMIT;
+        const piece = over > 0 ? t.slice(0, t.length - over) : t;
+        full += piece;
+        write({ type:'chunk', text: piece });
         if (over > 0) break;
       }
+      await storage.createAssistantMessage({ sessionId, content: full, role:'assistant', metadata:{ streamed:true } });
+      write({ type:'end' });
+      res.end();
+    } catch (e) {
+      console.error('stream', e);
+      res.write(`data: ${JSON.stringify({ type:'error', message:'stream error' })}\n\n`);
+      res.end();
+    }
+  });
 
-      // Send completion signal
-      writeSSE({
-        type: 'complete',
-        fullText: fullResponse,
-        timestamp: new Date().toISOString()
-      });
-
-      // Save assistant response to database
-      await storage.createAssistantMessage({
-        sessionId,
-        content: fullResponse,
-        role: 'assistant',
-        metadata: { 
-          model: CHAT_MODEL,
-          context: context || null,
-          timestamp: new Date().toISOString(),
-          streamed: true
-        },
-      });
-
-      // Update user memory with conversation history
-      try {
-        const userId = user?.id || 'anonymous';
-        await MemoryService.updateHistory(userId, message, fullResponse);
-      } catch (memoryError) {
-        console.error('Error updating user memory:', memoryError);
-        // Continue execution, memory update is not critical
+  // Get assistant session with messages (with ownership check)
+  app.get('/api/assistant/sessions/:sessionId', async (req: any, res) => {
+    try {
+      const { sessionId } = req.params;
+      const user = req.user || req.session?.user;
+      
+      const session = await storage.getAssistantSessionWithMessages(sessionId);
+      
+      if (!session) {
+        return res.status(404).json({ success: false, message: 'Session not found' });
       }
 
-      // Send final message and close connection
-      writeSSE({ type: 'end' });
-      res.end();
+      // Check ownership - user must own the session or session must be anonymous and user is anonymous
+      if (session.userId && session.userId !== user?.id) {
+        return res.status(403).json({ success: false, message: 'Access denied' });
+      }
 
+      res.json({ success: true, session });
     } catch (error) {
-      console.error('Error in assistant streaming:', error);
-      res.write(`data: ${JSON.stringify({ 
-        type: 'error', 
-        message: 'Erro no streaming. Tente novamente.',
-        timestamp: new Date().toISOString()
-      })}\n\n`);
-      res.end();
+      console.error('Error getting assistant session:', error);
+      res.status(500).json({ success: false, message: 'Failed to get session' });
+    }
+  });
+
+  // GET /suggest - Product suggestions endpoint
+  app.get(['/suggest','/api/suggest'], async (req: any, res) => {
+    try {
+      const q = (req.query.q as string || '').toLowerCase().trim();
+      const stores = await storage.getAllActiveStoresOptimized(50, 60);
+
+      const products: any[] = [];
+      for (const s of stores) {
+        for (const p of (s.products || [])) {
+          const title = String(p.title || p.name || '').trim();
+          const category = String(p.category || p.type || '').trim();
+          const priceRaw = Number(p?.priceUSD ?? p?.price ?? 0);
+          products.push({
+            id: String(p.id ?? `${s.id}-${title}`),
+            title,
+            category,
+            price: { USD: Number.isFinite(priceRaw) && priceRaw > 0 ? priceRaw : undefined },
+            score: 0
+          });
+        }
+      }
+
+      const filtered = !q ? products : products.filter(p =>
+        p.title.toLowerCase().includes(q) ||
+        (p.category||'').toLowerCase().includes(q)
+      );
+
+      filtered.forEach(p => { p.score = (p.title.toLowerCase().startsWith(q) ? 1 : 0) + ((p.category||'').toLowerCase().includes(q) ? 0.3 : 0); });
+      filtered.sort((a,b)=> (b.score||0)-(a.score||0));
+
+      res.json({ ok:true, products: filtered.slice(0, 60) });
+    } catch (e) {
+      console.error('suggest', e);
+      res.json({ ok:true, products: [] });
     }
   });
 

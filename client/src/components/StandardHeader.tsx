@@ -8,6 +8,7 @@ import { Search, X, BarChart3, User, Settings, ShoppingCart, LogOut, Bot, Sparkl
 import { useAssistantChat } from "@/hooks/use-assistant-chat";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import AssistantBar from "@/components/AssistantBar";
 
 interface Category {
   id: string;
@@ -214,40 +215,9 @@ export default function StandardHeader() {
             </Button>
           </Link>
           
-          {/* Barra de Busca */}
+          {/* Click Pro Assistant Bar - A BARRA É O ASSISTENTE */}
           <div className="flex-1 max-w-4xl">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder={isSearchFocused || searchInput ? "Digite algo para conversar com o Click Pro Assistant..." : currentText}
-                value={searchInput}
-                onChange={(e) => handleSearchInputChange(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setTimeout(() => setIsSearchFocused(false), 100)}
-                onKeyPress={handleKeyPress}
-                className="pl-10 pr-20 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
-                data-testid="input-search-assistant"
-              />
-              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                {searchInput && (
-                  <button
-                    onMouseDown={() => setSearchInput('')}
-                    className="text-gray-400 hover:text-gray-600 transition-colors p-1"
-                    title="Limpar busca"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-                <button
-                  onMouseDown={handleSearch}
-                  disabled={!searchInput.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white p-1 rounded transition-colors"
-                  title="Buscar"
-                >
-                  <Search className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+            <AssistantBar />
           </div>
           
           {/* Click Pro Assistant Expandido */}
