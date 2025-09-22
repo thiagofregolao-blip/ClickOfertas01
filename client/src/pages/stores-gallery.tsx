@@ -29,6 +29,7 @@ import ThreeDailyScratchCards from "@/components/ThreeDailyScratchCards";
 import { RectangularScratchCard } from "@/components/RectangularScratchCard";
 import StandardHeader from "@/components/StandardHeader";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import AssistantBar from "@/components/AssistantBar";
 import type { StoreWithProducts, Product, InstagramStoryWithDetails } from "@shared/schema";
 import logoUrl from '../assets/logo.jpg';
 
@@ -758,37 +759,10 @@ export default function StoresGallery() {
                   </Button>
                 </Link>
                 
-                {/* Barra de Busca */}
+                {/* Click Pro Assistant Bar - A BARRA É O ASSISTENTE */}
                 <div className="flex-1 max-w-4xl">
-                  <div className="relative">
-                    {searchMode === 'intelligent' ? (
-                      <Brain className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4" />
-                    ) : (
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    )}
-                    <Input
-                      placeholder={isSearchFocused || searchInput ? "Digite algo para conversar com o Click Pro Assistant..." : currentText}
-                      value={searchInput}
-                      onChange={(e) => handleSearchInputChange(e.target.value)}
-                      onFocus={() => setIsSearchFocused(true)}
-                      onBlur={() => setIsSearchFocused(false)}
-                      // Assistant functionality handled by StandardHeader
-                      className="pl-10 pr-10 py-2 w-full bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:ring-blue-200"
-                      data-testid="input-search-assistant"
-                    />
-                    {searchInput && (
-                      <button
-                        onClick={() => setSearchInput('')}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                        title="Limpar busca"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
+                  <AssistantBar />
                 </div>
-                
-                {/* Assistant functionality moved to StandardHeader */}
 
                 {/* Sino de notificações - Desktop */}
                 <button
