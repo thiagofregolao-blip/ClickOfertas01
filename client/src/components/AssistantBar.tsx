@@ -96,15 +96,6 @@ export default function AssistantBar() {
       setTopBox(prods.slice(0, 3));
       setFeed(prods.slice(3));
       
-      // Emitir resultados para o overlay
-      window.dispatchEvent(new CustomEvent('assistant:results', {
-        detail: { 
-          topBox: prods.slice(0, 3), 
-          feed: prods.slice(3),
-          combina: [] // será atualizado depois
-        }
-      }));
-      
       // Acessórios simples baseados na categoria
       const cat = (prods[0]?.category || '').toLowerCase();
       const accessories = cat.includes('celular') || cat.includes('telefone') ? 
@@ -115,28 +106,9 @@ export default function AssistantBar() {
         let r2 = await fetch(`/suggest?q=${encodeURIComponent(accQ)}`);
         if (!r2.ok) r2 = await fetch(`/api/suggest?q=${encodeURIComponent(accQ)}`);
         const d2 = await r2.json();
-        const combinaProds = (d2?.products || []).slice(0, 6);
-        setCombina(combinaProds);
-        
-        // Atualizar evento com acessórios
-        window.dispatchEvent(new CustomEvent('assistant:results', {
-          detail: { 
-            topBox: topBox, 
-            feed: feed,
-            combina: combinaProds
-          }
-        }));
+        setCombina((d2?.products || []).slice(0, 6));
       } else {
         setCombina([]);
-        
-        // Atualizar evento sem acessórios
-        window.dispatchEvent(new CustomEvent('assistant:results', {
-          detail: { 
-            topBox: topBox, 
-            feed: feed,
-            combina: []
-          }
-        }));
       }
     } finally {
       setLoadingSug(false);
@@ -147,11 +119,6 @@ export default function AssistantBar() {
     e.preventDefault();
     const t = query.trim();
     if (!t || !sessionId) return;
-    
-    // Emitir evento para ativar modo busca
-    window.dispatchEvent(new CustomEvent('assistant:search-mode', { 
-      detail: { active: true } 
-    }));
     
     // Mostrar mensagem do usuário
     setChatMessages(prev => [...prev, { type: 'user', text: t }]);
@@ -245,7 +212,7 @@ export default function AssistantBar() {
       {/* WRAPPER RELATIVE para ancorar */} 
       <div className="w-full relative">
         {/* Barra = chat */}
-        <form onSubmit={onSubmit} className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border" data-anchor="search-form">
+        <form onSubmit={onSubmit} className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs">C</div>
           <input
             value={query}
@@ -321,7 +288,42 @@ export default function AssistantBar() {
         )}
       </div>
 
-      {/* Resultados agora são controlados pelo overlay da página pai */}
+      {/* AQUI FORA DO DROPDOWN: resto dos resultados e acessórios */}
+      <div className="mt-3 mx-auto max-w-5xl">
+        <div className="rounded-2xl border bg-white/90 backdrop-blur p-4 shadow-sm">
+          <div className="text-sm font-semibold mb-3">Resultados</div>
+          {feed.length === 0 ? (
+            <div className="text-sm text-gray-500">Nada encontrado…</div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {feed.map(p => (
+                <button key={p.id} onClick={() => goProduct(p)} className="text-left p-3 rounded-xl border hover:shadow-sm transition" data-testid={`card-product-${p.id}`}>
+                  <div className="font-medium truncate mb-1">{p.title}</div>
+                  <div className="text-xs text-gray-500 mb-2">{p.category || '—'}</div>
+                  <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {combina.length > 0 && (
+          <div className="mt-3">
+            <div className="rounded-2xl border bg-white/90 backdrop-blur p-4 shadow-sm">
+              <div className="text-sm font-semibold mb-3">Combina com</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {combina.map(p => (
+                  <button key={p.id} onClick={() => goProduct(p)} className="text-left p-3 rounded-xl border hover:shadow-sm transition" data-testid={`card-product-${p.id}`}>
+                    <div className="font-medium truncate mb-1">{p.title}</div>
+                    <div className="text-xs text-gray-500 mb-2">{p.category || '—'}</div>
+                    <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </>
   );
 }
