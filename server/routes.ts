@@ -6867,10 +6867,11 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
     }
   });
 
-  // SSE Streaming endpoint for assistant chat
+  // SSE Streaming endpoint for assistant chat - Now with RAG
   app.post('/api/assistant/stream', async (req: any, res) => {
     try {
       const { sessionId, message } = req.body || {};
+      const name = (req.headers['x-user-name'] as string) || 'Cliente';
       if (!message?.trim()) return res.status(400).json({ ok:false, error:'message required' });
 
       const session = await storage.getAssistantSession(sessionId);
@@ -6878,42 +6879,43 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
 
       res.writeHead(200, { 'Content-Type':'text/event-stream', 'Cache-Control':'no-cache', 'Connection':'keep-alive' });
       const write = (d:any)=> res.write(`data: ${JSON.stringify(d)}\n\n`);
-      await storage.createAssistantMessage({ sessionId, content: message, role:'user' });
 
-      const STYLE = `- Máx. 5 linhas.\n- Frases curtas.\n- Até 3 bullets.\n- 1 pergunta final.\n- Não repita.`;
-      const SYSTEM = `Você é o Click Pro Assistant para Ciudad del Este, Salto del Guairá e Pedro Juan. Seja objetivo, PT-BR.`;
+      // ❶ RAG leve: busca produtos e prepara fatos
+      const { buildGrounding, composeSystemAndUser } = await import('../lib/answerComposer');
+      const origin = `${req.protocol}://${req.get('host')}`;
+      const ground = await buildGrounding(origin, message);
+      const { SYSTEM, USER } = composeSystemAndUser({
+        q: message, name, top3: ground.top3, altQuery: ground.altQuery
+      });
 
-      const r = await clickClient.chat.completions.create({
+      // ❷ Prompt curto e temperatura baixa (evita genericão)
+      const stream = await clickClient.chat.completions.create({
         model: process.env.CHAT_MODEL || 'gpt-4o-mini',
         messages: [
           { role:'system', content: SYSTEM },
-          { role:'system', content: STYLE },
-          { role:'user', content: message }
+          { role:'user',   content: USER }
         ],
-        temperature: 0.2,
+        temperature: 0.15,
         max_tokens: 220,
-        frequency_penalty: 0.4,
-        presence_penalty: 0.1,
+        frequency_penalty: 0.3,
+        presence_penalty: 0.0,
         stream: true
       });
 
-      let full = ''; const LIMIT = 700;
-      for await (const part of r) {
+      let full=''; const LIMIT=700;
+      for await (const part of stream){
         const t = part.choices?.[0]?.delta?.content || '';
         if (!t) continue;
         const over = full.length + t.length - LIMIT;
-        const piece = over > 0 ? t.slice(0, t.length - over) : t;
-        full += piece;
-        write({ type:'chunk', text: piece });
-        if (over > 0) break;
+        const piece = over>0 ? t.slice(0, t.length - over) : t;
+        full += piece; write({ type:'chunk', text: piece });
+        if (over>0) break;
       }
       await storage.createAssistantMessage({ sessionId, content: full, role:'assistant', metadata:{ streamed:true } });
-      write({ type:'end' });
-      res.end();
+      write({ type:'end' }); res.end();
     } catch (e) {
       console.error('stream', e);
-      res.write(`data: ${JSON.stringify({ type:'error', message:'stream error' })}\n\n`);
-      res.end();
+      res.write(`data: ${JSON.stringify({ type:'error', message:'stream error' })}\n\n`); res.end();
     }
   });
 

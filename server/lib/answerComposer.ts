@@ -70,8 +70,8 @@ export function composeSystemAndUser({
   const STYLE = [
     "Estilo: leve, simpático e bem-humorado (sem exagero).",
     "Responda em até 5 linhas.",
-    "Use no máx. 3 bullets: "• item — detalhe curto".",
-    "Se fizer sentido, termine com: "Posso ajudar em algo mais?".",
+    "Use no máx. 3 bullets: \"• item — detalhe curto\".",
+    "Se fizer sentido, termine com: \"Posso ajudar em algo mais?\".",
     "Nunca invente preço/estoque. Use só os FATOS abaixo.",
   ].join("\n");
 
