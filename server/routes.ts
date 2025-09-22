@@ -6959,6 +6959,7 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
             id: String(p.id ?? `${s.id}-${title}`),
             title,
             category,
+            imageUrl: p.imageUrl || null,
             price: { USD: Number.isFinite(priceRaw) && priceRaw > 0 ? priceRaw : undefined },
             score: 0
           });
