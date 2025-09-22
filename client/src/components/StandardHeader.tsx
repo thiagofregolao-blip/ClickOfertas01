@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocation, Link } from "wouter";
 import { Search, X, BarChart3, User, Settings, ShoppingCart, LogOut } from "lucide-react";
-import AssistantBar from "@/components/AssistantBar";
+import AssistantBarInline from "@/components/AssistantBarInline";
 
 interface Category {
   id: string;
@@ -102,6 +102,9 @@ export default function StandardHeader() {
 
   return (
     <>
+    {/* Componente inline do assistente */}
+    <AssistantBarInline />
+    
     <div className="sticky top-0 z-50" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
       {/* Desktop: Layout original */}
       <div className={`py-4 px-2 ml-[5%]`}>
@@ -130,10 +133,32 @@ export default function StandardHeader() {
             </Button>
           </Link>
           
-          {/* Click Pro Assistant Bar - A BARRA É O ASSISTENTE */}
-          <div className="flex-1 max-w-4xl">
-            <AssistantBar />
-          </div>
+          {/* Barra de Busca com Click Assistant Integrado */}
+          <form 
+            className="flex-1 max-w-4xl relative" 
+            onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
+            data-anchor="search-form"
+          >
+            <div className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs">C</div>
+              <Input
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onKeyPress={handleKeyPress}
+                placeholder={isSearchFocused || searchInput ? "Converse com o Click (ex.: iPhone 15 em CDE)" : currentText}
+                className="flex-1 outline-none border-0 bg-transparent text-base shadow-none focus:ring-0 focus-visible:ring-0"
+                data-testid="search-input"
+              />
+              <button 
+                type="submit"
+                className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" 
+                data-testid="button-search-submit"
+              >
+                Enviar
+              </button>
+            </div>
+          </form>
           
 
           {/* Sino de notificações - Desktop */}

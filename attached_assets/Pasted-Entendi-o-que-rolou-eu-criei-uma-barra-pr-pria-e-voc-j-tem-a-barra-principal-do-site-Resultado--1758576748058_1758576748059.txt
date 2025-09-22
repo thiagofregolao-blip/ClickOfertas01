@@ -1,0 +1,275 @@
+Entendi o que rolou: eu criei uma barra própria e você já tem a barra principal do site. Resultado: ficou duas barras. Vamos corrigir para que o Click seja embutido na SUA barra existente, sem criar nada abaixo nem alterar o layout.
+
+Abaixo vai um patch simples (só front) que:
+
+monta o assistente dentro da barra já existente (você escolhe o seletor da sua barra);
+
+transforma o input existente no campo de conversa;
+
+o dropdown do chat é absoluto/ancorado à barra (não empurra o header);
+
+mantém “Resultados” e “Combina com” fora do dropdown, logo abaixo do header.
+
+O que você precisa fazer (2 passos)
+1) Diga onde o Click deve montar
+
+Escolha um seletor CSS que aponte para o container da sua barra (ex.: #searchBar, .header-search, ou o form da busca).
+Exemplos comuns no seu layout pela imagem: algo tipo form[role="search"] ou #search-input (ajuste para o seu DOM real).
+
+2) Substitua o public/app.js por este (versão “inline”)
+
+Ele não cria barra nova; ele pega a sua e embute o Click.
+Basta editar a constante ANCHOR_SELECTOR com o seletor da sua barra.
+
+// public/app.js  — Modo INLINE (embute o Click na SUA barra)
+const ANCHOR_SELECTOR = 'form[role="search"]'; // <<< AJUSTE AQUI para o seletor da SUA barra
+
+// ------------------------------------------------------------------
+// util
+function $(sel, root=document){ return root.querySelector(sel); }
+function escapeHTML(s){ return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; }
+
+// identidade
+const uid = localStorage.getItem('uid') || (localStorage.setItem('uid','u-'+Math.random().toString(36).slice(2,8)), localStorage.getItem('uid'));
+const userName = localStorage.getItem('userName') || 'Cliente';
+
+// acha a sua barra
+const anchor = $(ANCHOR_SELECTOR);
+if (!anchor) {
+  console.warn('[ClickAssistant] Não encontrei o container da barra. Ajuste ANCHOR_SELECTOR.');
+}
+
+// deixa o container relativo para ancorar o dropdown
+anchor.style.position = anchor.style.position || 'relative';
+
+// tenta achar o input existente (reaproveita!)
+let input = $('input[type="search"], input[type="text"], input', anchor);
+if (!input) {
+  // como fallback, cria um input
+  input = document.createElement('input');
+  input.className = 'w-full outline-none';
+  input.placeholder = 'Converse com o Click (ex.: iPhone 15 em CDE)';
+  anchor.appendChild(input);
+} else {
+  // melhora UX do input existente
+  input.placeholder = 'Converse com o Click (ex.: iPhone 15 em CDE)';
+}
+input.autocomplete = 'off';
+
+// garante um botão de submit (reaproveita o que existir)
+let submitBtn = $('button[type="submit"], input[type="submit"]', anchor);
+if (!submitBtn) {
+  submitBtn = document.createElement('button');
+  submitBtn.type = 'submit';
+  submitBtn.textContent = 'Enviar';
+  submitBtn.className = 'px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90';
+  anchor.appendChild(submitBtn);
+}
+
+// cria o DROPDOWN ancorado à barra (chat + top3)
+const dropdown = document.createElement('div');
+dropdown.className = 'hidden absolute left-0 right-0 top-full mt-2 z-[1000]';
+dropdown.innerHTML = `
+  <div class="assist-shadow bg-white/90 backdrop-blur rounded-2xl border p-3">
+    <div class="grid grid-cols-12 gap-4">
+      <div class="col-span-12 lg:col-span-9">
+        <div class="text-xs text-gray-500 mb-1">Click Assistant</div>
+        <div id="chatBox" class="rounded-xl bg-gray-50 border p-3 max-h-[220px] overflow-auto whitespace-pre-wrap"></div>
+        <div id="loading" class="hidden text-xs text-gray-500 mt-2">Buscando ofertas…</div>
+      </div>
+      <div class="col-span-12 lg:col-span-3">
+        <div class="rounded-2xl border bg-white/90 p-3">
+          <div class="text-sm font-semibold mb-2">Produtos Recomendados</div>
+          <div id="top3" class="grid gap-3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+`;
+anchor.appendChild(dropdown);
+
+// seções fora do dropdown (devem existir na página; se não, cria)
+let resultsSec = document.getElementById('results');
+if (!resultsSec) {
+  resultsSec = document.createElement('section');
+  resultsSec.id = 'results';
+  resultsSec.className = 'max-w-5xl mx-auto px-3 pt-3';
+  anchor.parentElement.after(resultsSec);
+}
+let comboSec = document.getElementById('combo');
+if (!comboSec) {
+  comboSec = document.createElement('section');
+  comboSec.id = 'combo';
+  comboSec.className = 'max-w-5xl mx-auto px-3';
+  resultsSec.after(comboSec);
+}
+
+// refs
+const chatBox = $('#chatBox', dropdown);
+const loadingEl = $('#loading', dropdown);
+const top3El = $('#top3', dropdown);
+
+let sessionId = '';
+let reader = null;
+
+// —— sessão + sugestões iniciais
+(async () => {
+  const r = await fetch('/api/assistant/sessions', {
+    method: 'POST',
+    headers: { 'x-user-id': uid, 'x-user-name': userName }
+  });
+  const d = await r.json();
+  sessionId = d?.session?.id;
+  if (d.greeting) appendAssistant(`${d.greeting}\n`);
+  if (d.suggest?.products?.length) {
+    renderTop3(d.suggest.products.slice(0,3));
+    renderResults(d.suggest.products.slice(3));
+  }
+})();
+
+// abrir dropdown ao focar
+input.addEventListener('focus', ()=> dropdown.classList.remove('hidden'));
+
+// submit = envia ao stream + busca sugestão
+anchor.addEventListener('submit', (e)=>{
+  if (e && e.preventDefault) e.preventDefault();
+  const text = (input.value || '').trim();
+  if (!text) return;
+  startStream(text);
+  suggestAndRender(text);
+});
+
+// digitação = sugestão incremental
+input.addEventListener('input', debounce((e)=>{
+  const t = e.target.value.trim();
+  if (!t){ top3El.innerHTML=''; resultsSec.innerHTML=''; comboSec.innerHTML=''; return; }
+  suggestAndRender(t);
+}, 220));
+
+// helpers de render
+function cardHTML(p){
+  const price = p.price?.USD ? `USD <b>${p.price.USD}</b>` : `<span class="text-gray-400">sem preço</span>`;
+  const badge = p.premium ? `<span class="ml-2 px-2 py-0.5 text-[10px] rounded bg-amber-100 text-amber-700">Premium</span>` : '';
+  return `
+    <button data-id="${encodeURIComponent(p.id)}" class="card text-left p-3 rounded-xl border hover:shadow-sm transition bg-white/90">
+      <div class="font-medium truncate mb-1">${escapeHTML(p.title)} ${badge}</div>
+      <div class="text-xs text-gray-500 mb-2">${escapeHTML(p.category || '—')} ${p.score!==undefined ? `• score ${p.score}` : ''}</div>
+      <div class="text-sm">${price}</div>
+    </button>
+  `;
+}
+function bindCardClicks(scope){
+  document.querySelectorAll(`${scope} [data-id]`).forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const id = el.getAttribute('data-id');
+      window.location.href = `/produto/${id}`; // ajuste se sua rota for diferente
+    });
+  });
+}
+function renderTop3(items){
+  top3El.innerHTML = items.map(cardHTML).join('');
+  bindCardClicks('#top3');
+}
+function renderResults(items){
+  resultsSec.innerHTML = `
+    <div class="rounded-2xl border bg-white/90 backdrop-blur p-4 shadow-sm">
+      <div class="text-sm font-semibold mb-3">Resultados</div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        ${items.map(cardHTML).join('')}
+      </div>
+    </div>`;
+  bindCardClicks('#results');
+}
+function renderCombo(first){
+  if (!first) { comboSec.innerHTML=''; return; }
+  const cat = (first.category || '').toLowerCase();
+  const acc = {
+    'celulares': ['capinha','película','carregador'],
+    'telefone': ['capinha','película','carregador'],
+    'smartphone': ['capinha','película','carregador'],
+    'notebook': ['mochila','mouse','cooler']
+  }[cat] || [];
+  if (!acc.length){ comboSec.innerHTML=''; return; }
+  fetch(`/api/suggest?q=${encodeURIComponent(acc.join(' OR '))}`)
+    .then(r=>r.json())
+    .then(d=>{
+      const items = (d.products || []).slice(0,12);
+      comboSec.innerHTML = `
+        <div class="rounded-2xl border bg-white/90 backdrop-blur p-4 shadow-sm mt-3">
+          <div class="text-sm font-semibold mb-3">Combina com</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            ${items.map(cardHTML).join('')}
+          </div>
+        </div>`;
+      bindCardClicks('#combo');
+    });
+}
+
+// sugestão + acessórios
+async function suggestAndRender(term){
+  loadingEl.classList.remove('hidden');
+  try{
+    const r = await fetch(`/api/suggest?q=${encodeURIComponent(term)}`);
+    const d = await r.json();
+    const prods = (d.products || []);
+    renderTop3(prods.slice(0,3));
+    renderResults(prods.slice(3));
+    renderCombo(prods[0]);
+  } finally {
+    loadingEl.classList.add('hidden');
+  }
+}
+
+// STREAM com scroll para BAIXO
+async function startStream(message){
+  if (reader){ try{ await reader.cancel(); }catch{} reader=null; }
+  const res = await fetch('/api/assistant/stream', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json','Accept':'text/event-stream','x-user-id':uid,'x-user-name':userName },
+    body:JSON.stringify({ sessionId, message })
+  });
+  if (!res.ok || !res.body) return;
+
+  const msgEl = document.createElement('div');
+  msgEl.className = "mb-2";
+  chatBox.appendChild(msgEl); scrollDown();
+
+  reader = res.body.getReader();
+  const decoder = new TextDecoder(); let buffer = '';
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream:true });
+    const parts = buffer.split('\n\n'); buffer = parts.pop() || '';
+    for (const chunk of parts) {
+      const line = chunk.trim().replace(/^data:\s?/, '');
+      try {
+        const payload = JSON.parse(line);
+        if (payload.type === 'chunk' && payload.text){
+          msgEl.textContent += payload.text;
+          scrollDown();
+        }
+      } catch {}
+    }
+  }
+}
+function appendAssistant(text){
+  const div = document.createElement('div');
+  div.className = "mb-2";
+  div.textContent = text;
+  chatBox.appendChild(div);
+  scrollDown();
+}
+function scrollDown(){ chatBox.scrollTop = chatBox.scrollHeight; }
+
+
+Dica: se sua barra tiver margem interna (padding) muito grande, o dropdown pode parecer “longe”. Ajuste com CSS local (ex.: diminuir mt-2 do dropdown).
+
+Por que agora não cria barra nova?
+
+Antes eu montava num <div id="assistant-root"> próprio — isso gerava outra barra.
+
+Agora eu montei dentro do container da SUA barra (ANCHOR_SELECTOR) e reaproveitei o input existente.
+
+O dropdown é position: absolute; top: 100% dentro do container relativo da barra; por isso não estica o header.
