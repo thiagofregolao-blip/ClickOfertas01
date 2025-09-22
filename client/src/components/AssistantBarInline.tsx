@@ -153,6 +153,11 @@ export default function AssistantBarInline() {
           const text = (input.value || '').trim();
           if (!text) return;
           
+          // Emitir evento para ativar modo busca
+          window.dispatchEvent(new CustomEvent('assistant:search-mode', { 
+            detail: { active: true } 
+          }));
+          
           // Mostrar mensagem do usuário
           appendUser(text);
           
@@ -268,6 +273,15 @@ export default function AssistantBarInline() {
           renderTop3(prods.slice(0, 3));
           renderResults(prods.slice(3));
           renderCombo(prods[0]);
+          
+          // Emitir resultados para o overlay da página pai
+          window.dispatchEvent(new CustomEvent('assistant:results', {
+            detail: { 
+              topBox: prods.slice(0, 3), 
+              feed: prods.slice(3),
+              combina: [] // será atualizado no renderCombo se necessário
+            }
+          }));
         } catch (e) {
           console.error('[ClickAssistant] Erro ao buscar sugestões:', e);
         } finally {

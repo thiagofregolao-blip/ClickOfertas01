@@ -65,6 +65,15 @@ export default function StoresGallery() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
+  // Estados para o Assistant Search Mode
+  const [isAssistantSearchActive, setIsAssistantSearchActive] = useState(false);
+  const [assistantResults, setAssistantResults] = useState<{
+    topBox: any[];
+    feed: any[];
+    combina: any[];
+  }>({ topBox: [], feed: [], combina: [] });
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  
   // Note: Assistant functionality moved to StandardHeader to avoid duplication
   
   // Assistant functionality handled by StandardHeader
@@ -99,6 +108,60 @@ export default function StoresGallery() {
       window.history.replaceState({}, '', newUrl);
     }
   }, [urlSearch]);
+  
+  // Listeners para eventos do Assistant
+  useEffect(() => {
+    const handleSearchMode = (e: CustomEvent) => {
+      const { active } = e.detail;
+      setIsAssistantSearchActive(active);
+      
+      if (active) {
+        // Calcular posição da âncora
+        const anchor = document.querySelector('form[data-anchor="search-form"]');
+        if (anchor) {
+          const rect = anchor.getBoundingClientRect();
+          setAnchorRect(rect);
+        }
+      } else {
+        setAnchorRect(null);
+        setAssistantResults({ topBox: [], feed: [], combina: [] });
+      }
+    };
+    
+    const handleResults = (e: CustomEvent) => {
+      const { topBox, feed, combina } = e.detail;
+      setAssistantResults({ topBox, feed, combina });
+    };
+    
+    window.addEventListener('assistant:search-mode', handleSearchMode as EventListener);
+    window.addEventListener('assistant:results', handleResults as EventListener);
+    
+    return () => {
+      window.removeEventListener('assistant:search-mode', handleSearchMode as EventListener);
+      window.removeEventListener('assistant:results', handleResults as EventListener);
+    };
+  }, []);
+  
+  // Atualizar posição da âncora no scroll/resize
+  useEffect(() => {
+    if (!isAssistantSearchActive) return;
+    
+    const updateAnchorPosition = () => {
+      const anchor = document.querySelector('form[data-anchor="search-form"]');
+      if (anchor) {
+        const rect = anchor.getBoundingClientRect();
+        setAnchorRect(rect);
+      }
+    };
+    
+    window.addEventListener('scroll', updateAnchorPosition);
+    window.addEventListener('resize', updateAnchorPosition);
+    
+    return () => {
+      window.removeEventListener('scroll', updateAnchorPosition);
+      window.removeEventListener('resize', updateAnchorPosition);
+    };
+  }, [isAssistantSearchActive]);
 
   
   // Frases para efeito de digitação automática - otimizadas para IA
@@ -625,23 +688,108 @@ export default function StoresGallery() {
     );
   }
 
+  const goProduct = (p: any) => {
+    if (p?.id) window.location.href = `/produto/${encodeURIComponent(p.id)}`;
+  };
+
+  const closeSearchMode = () => {
+    window.dispatchEvent(new CustomEvent('assistant:search-mode', { 
+      detail: { active: false } 
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-white">
       
       {/* Usar StandardHeader que já tem o Click Assistant integrado */}
       <StandardHeader />
 
-      {/* Mobile: Banner rotativo primeiro */}
-      {isMobile && !searchQuery.trim() && (
-        <div className="w-full mb-4">
-          <div className="-mx-4 w-screen">
-            <BannerCarouselSwiper 
-              banners={banners.filter(banner => banner.bannerType === 'rotating' && banner.isActive)} 
-              autoPlayInterval={4000}
-            />
+      {/* Search Results Overlay */}
+      {isAssistantSearchActive && anchorRect && (
+        <div 
+          className="fixed inset-0 z-[70] bg-black/50"
+          onClick={closeSearchMode}
+        >
+          <div 
+            className="absolute left-1/2 transform -translate-x-1/2 max-w-5xl w-full mx-4"
+            style={{ 
+              top: anchorRect.bottom + window.scrollY + 8,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Botão fechar */}
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={closeSearchMode}
+                className="bg-white/90 backdrop-blur rounded-full p-2 shadow-lg hover:bg-white transition-colors"
+                data-testid="button-close-search"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+
+            {/* Resultados */}
+            <div className="bg-white/95 backdrop-blur rounded-2xl border shadow-xl p-4">
+              <div className="text-sm font-semibold mb-3">Resultados da Busca</div>
+              {assistantResults.feed.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  Nenhum resultado encontrado
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                  {assistantResults.feed.map(p => (
+                    <button 
+                      key={p.id} 
+                      onClick={() => goProduct(p)} 
+                      className="text-left p-3 rounded-xl border hover:shadow-sm transition bg-white"
+                      data-testid={`search-result-${p.id}`}
+                    >
+                      <div className="font-medium truncate mb-1">{p.title}</div>
+                      <div className="text-xs text-gray-500 mb-2">{p.category || '—'}</div>
+                      <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Acessórios "Combina com" */}
+              {assistantResults.combina.length > 0 && (
+                <div className="border-t pt-4">
+                  <div className="text-sm font-semibold mb-3">Combina com</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {assistantResults.combina.map(p => (
+                      <button 
+                        key={p.id} 
+                        onClick={() => goProduct(p)} 
+                        className="text-left p-3 rounded-xl border hover:shadow-sm transition bg-white"
+                        data-testid={`accessory-result-${p.id}`}
+                      >
+                        <div className="font-medium truncate mb-1">{p.title}</div>
+                        <div className="text-xs text-gray-500 mb-2">{p.category || '—'}</div>
+                        <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
+
+      {/* Conteúdo principal com blur quando busca ativa */}
+      <div className={`transition-all duration-300 ${isAssistantSearchActive ? 'filter blur-sm opacity-40 pointer-events-none' : ''}`}>
+        {/* Mobile: Banner rotativo primeiro */}
+        {isMobile && !searchQuery.trim() && !isAssistantSearchActive && (
+          <div className="w-full mb-4">
+            <div className="-mx-4 w-screen">
+              <BannerCarouselSwiper 
+                banners={banners.filter(banner => banner.bannerType === 'rotating' && banner.isActive)} 
+                autoPlayInterval={4000}
+              />
+            </div>
+          </div>
+        )}
       
       {/* Mobile: Stories no meio */}
       {!searchQuery.trim() && isMobile && (
