@@ -6633,7 +6633,19 @@ Responda curto, claro, PT-BR.
   // Create new assistant session
   app.post('/api/assistant/sessions', async (req, res) => {
     try {
-      const session = { id: 'sess-' + Math.random().toString(36).slice(2,10) };
+      // Create session data for database
+      const sessionData = {
+        userId: req.headers['x-user-id'] !== 'anonymous' ? req.headers['x-user-id'] as string : undefined,
+        sessionData: { 
+          userAgent: req.headers['user-agent'], 
+          createdAt: new Date().toISOString() 
+        },
+        isActive: true,
+      };
+
+      // Save session to database using storage interface
+      const session = await storage.createAssistantSession(sessionData);
+
       const now = new Date(); const h = now.getHours();
       const saud = `Olá, ${(req.headers['x-user-name'] as string) || 'Cliente'}! Boa ${h<12?'manhã':h<18?'tarde':'noite'} 👋`;
 
@@ -6642,10 +6654,20 @@ Responda curto, claro, PT-BR.
       if (!r.ok) r = await fetch(`${req.protocol}://${req.get('host')}/api/suggest?q=trending`);
       const suggest = await r.json();
 
-      res.status(201).json({ success:true, session, greeting: saud, suggest });
+      res.status(201).json({ success:true, session: { id: session.id }, greeting: saud, suggest });
     } catch (e) {
-      console.error(e);
-      res.status(201).json({ success:true, session:{ id:'sess-'+Math.random().toString(36).slice(2,10) }, greeting:'Olá! 👋' });
+      console.error('Error creating assistant session:', e);
+      // Fallback - create minimal session in database
+      try {
+        const fallbackSession = await storage.createAssistantSession({ 
+          sessionData: { error: 'fallback_creation' },
+          isActive: true 
+        });
+        res.status(201).json({ success:true, session:{ id: fallbackSession.id }, greeting:'Olá! 👋' });
+      } catch (fallbackError) {
+        console.error('Fallback session creation failed:', fallbackError);
+        res.status(500).json({ success: false, error: 'Failed to create session' });
+      }
     }
   });
 
