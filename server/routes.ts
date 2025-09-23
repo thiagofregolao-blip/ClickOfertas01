@@ -7194,6 +7194,88 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
     }
   });
 
+  // Cache e rate limiting para frases
+  const phrasesCache = new Map<string, { phrases: string[], timestamp: number }>();
+  const phrasesRequestCount = new Map<string, { count: number, timestamp: number }>();
+  const PHRASES_CACHE_TTL = 10 * 60 * 1000; // 10 minutos
+  const PHRASES_RATE_LIMIT = 5; // 5 requests por minuto por IP
+  const PHRASES_RATE_WINDOW = 60 * 1000; // 1 minuto
+
+  // Gerar frases engraçadas para a barra de busca
+  app.get('/api/assistant/funny-phrases', async (req, res) => {
+    try {
+      const { context = 'geral' } = req.query;
+      const clientIp = req.ip || 'unknown';
+      
+      // Rate limiting simples
+      const now = Date.now();
+      const rateLimitKey = `${clientIp}:${context}`;
+      const rateLimitData = phrasesRequestCount.get(rateLimitKey);
+      
+      if (rateLimitData) {
+        if (now - rateLimitData.timestamp < PHRASES_RATE_WINDOW) {
+          if (rateLimitData.count >= PHRASES_RATE_LIMIT) {
+            return res.status(429).json({ error: 'Rate limit exceeded' });
+          }
+          rateLimitData.count++;
+        } else {
+          phrasesRequestCount.set(rateLimitKey, { count: 1, timestamp: now });
+        }
+      } else {
+        phrasesRequestCount.set(rateLimitKey, { count: 1, timestamp: now });
+      }
+
+      // Verificar cache
+      const cached = phrasesCache.get(context as string);
+      if (cached && (now - cached.timestamp) < PHRASES_CACHE_TTL) {
+        return res.json({ phrases: cached.phrases, context, cached: true });
+      }
+      
+      const prompts = {
+        'geral': 'Gere 8 frases engraçadas e convidativas em português brasileiro para uma barra de busca de um site de compras no Paraguai. Frases tipo "Vamos gastar fofinho?", "Bora garimpar oferta?", "CDE te espera!". Seja criativo, divertido e use gírias brasileiras. Responda apenas com as frases, uma por linha.',
+        'celulares': 'Gere 8 frases engraçadas sobre celulares para barra de busca: tipo "Que tal um iPhone novinho?", "Android ou iOS hoje?". Português brasileiro, divertido.',
+        'perfumes': 'Gere 8 frases engraçadas sobre perfumes para barra de busca: tipo "Cheirinho bom hoje?", "Perfume importado te chama!". Português brasileiro, divertido.',
+        'notebooks': 'Gere 8 frases engraçadas sobre notebooks para barra de busca: tipo "Notebook gamer hoje?", "Produtividade em alta!". Português brasileiro, divertido.'
+      };
+
+      const prompt = prompts[context as keyof typeof prompts] || prompts.geral;
+
+      // Usar integração Gemini existente
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+
+      const result = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+      });
+      
+      const text = result.text || '';
+      const phrases = text.split('\n')
+        .map(p => p.trim())
+        .filter(p => p.length > 0 && !p.match(/^\d+\./))
+        .slice(0, 8);
+
+      // Cache das frases
+      phrasesCache.set(context as string, { phrases, timestamp: now });
+
+      res.json({ phrases, context });
+    } catch (error) {
+      console.error('Erro ao gerar frases:', error);
+      // Fallback com frases fixas divertidas
+      const fallbackPhrases = [
+        "Vamos gastar fofinho?",
+        "Bora garimpar oferta?", 
+        "CDE te espera!",
+        "Que tal uma comprinha?",
+        "Paraguai te chama!",
+        "Oferta boa demais!",
+        "Hora das compras!",
+        "Vem pro paraíso das compras!"
+      ];
+      res.json({ phrases: fallbackPhrases, context: 'fallback' });
+    }
+  });
+
   // GET /assistant/stream - SSE streaming endpoint
   app.get('/assistant/stream', async (req: any, res) => {
     try {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -59,23 +59,115 @@ export default function StandardHeader() {
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
 
-  // Texto animado na barra de busca
+  // Sistema de frases animadas com IA
   const [currentText, setCurrentText] = useState("");
-  const searchTexts = [
-    "Buscar produtos...",
-    "Buscar lojas...", 
-    "Encontrar ofertas...",
-    "Comparar preços..."
+  const [displayText, setDisplayText] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const typewriterRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [robotAnimation, setRobotAnimation] = useState("");
+
+  // Buscar frases engraçadas da IA
+  const { data: aiPhrases } = useQuery({
+    queryKey: ['/api/assistant/funny-phrases'],
+    staleTime: 10 * 60 * 1000, // 10 minutos
+    refetchInterval: 5 * 60 * 1000, // Atualizar a cada 5 minutos
+  });
+
+  // Frases fixas divertidas como fallback
+  const fallbackPhrases = [
+    "Vamos gastar fofinho? 💸",
+    "Bora garimpar oferta? 💎", 
+    "CDE te espera! 🛍️",
+    "Que tal uma comprinha? 😍",
+    "Paraguai te chama! 🇵🇾",
+    "Oferta boa demais! 🔥",
+    "Hora das compras! ⏰",
+    "Vem pro paraíso das compras! 🏝️"
   ];
 
+  const phrases = aiPhrases?.phrases || fallbackPhrases;
+
+  // Typewriter effect
+  const typeText = (text: string) => {
+    // Cancelar typing anterior se estiver em progresso
+    if (typewriterRef.current) {
+      clearTimeout(typewriterRef.current);
+    }
+    
+    setIsTyping(true);
+    setDisplayText("");
+    setRobotAnimation("animate-bounce");
+    
+    let i = 0;
+    const type = () => {
+      if (i < text.length) {
+        setDisplayText(text.slice(0, i + 1));
+        i++;
+        typewriterRef.current = setTimeout(type, 50);
+      } else {
+        setIsTyping(false);
+        setRobotAnimation("animate-pulse");
+        setTimeout(() => setRobotAnimation(""), 1000);
+      }
+    };
+    type();
+  };
+
+  // Cancelar typing quando focar na busca
+  const handleFocus = () => {
+    setIsSearchFocused(true);
+    if (typewriterRef.current) {
+      clearTimeout(typewriterRef.current);
+      setIsTyping(false);
+      setRobotAnimation("");
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  // Retomar animação quando desfoca
+  const handleBlur = () => {
+    setIsSearchFocused(false);
+  };
+
   useEffect(() => {
-    let index = 0;
-    const interval = setInterval(() => {
-      setCurrentText(searchTexts[index]);
-      index = (index + 1) % searchTexts.length;
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+    if (phrases.length === 0) return;
+
+    // Limpar interval anterior se existir
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    // Só iniciar se não estiver focado e sem texto
+    if (!isSearchFocused && !searchInput) {
+      let index = 0;
+      intervalRef.current = setInterval(() => {
+        const nextText = phrases[index];
+        setCurrentText(nextText);
+        typeText(nextText);
+        index = (index + 1) % phrases.length;
+      }, 4000);
+
+      // Primeira frase se ainda não tiver
+      if (!currentText && phrases.length > 0) {
+        const firstText = phrases[0];
+        setCurrentText(firstText);
+        typeText(firstText);
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      if (typewriterRef.current) {
+        clearTimeout(typewriterRef.current);
+      }
+    };
+  }, [phrases, isSearchFocused, searchInput]);
 
   const handleCategoryFilter = (categorySlug: string | null) => {
     setSelectedCategory(categorySlug);
@@ -152,13 +244,29 @@ export default function StandardHeader() {
             data-anchor="search-form"
           >
             <div className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs">C</div>
+              {/* Robozinho Animado */}
+              <div className={`w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs relative overflow-hidden ${robotAnimation}`}>
+                <div className="relative">
+                  {/* Corpo do robô */}
+                  <div className="w-5 h-5 bg-white rounded-sm relative">
+                    {/* Olhinhos */}
+                    <div className="absolute top-1 left-1 w-1 h-1 bg-indigo-600 rounded-full animate-pulse"></div>
+                    <div className="absolute top-1 right-1 w-1 h-1 bg-indigo-600 rounded-full animate-pulse"></div>
+                    {/* Boquinha */}
+                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-0.5 bg-indigo-400 rounded-full"></div>
+                    {/* Anteninhas */}
+                    <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-0.5 h-1 bg-yellow-400"></div>
+                    <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-yellow-400 rounded-full animate-ping"></div>
+                  </div>
+                </div>
+              </div>
               <Input
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
                 onKeyPress={handleKeyPress}
-                placeholder={isSearchFocused || searchInput ? "Converse com o Click (ex.: iPhone 15 em CDE)" : currentText}
+                placeholder={isSearchFocused || searchInput ? "Converse com o Click (ex.: iPhone 15 em CDE)" : (displayText || currentText)}
                 className="flex-1 outline-none border-0 bg-transparent text-base shadow-none focus:ring-0 focus-visible:ring-0"
                 data-testid="search-input"
               />
