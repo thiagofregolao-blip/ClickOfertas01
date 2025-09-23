@@ -196,48 +196,6 @@ export default function StandardHeader() {
     
     <div className="sticky top-0 z-50" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
       <div className={`py-4 px-2 ${isMobile ? 'px-4' : 'ml-[5%]'}`}>
-        {/* Primeira linha: Logo e Botão Comparar */}
-        <div className={`flex items-center gap-4 ${isMobile ? 'justify-between mb-3' : 'mb-2'}`}>
-          {/* Título */}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <span className="text-white font-bold text-2xl tracking-normal" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: '700'}}>Click</span>
-            <span className="font-bold text-2xl tracking-normal">
-              <span className="text-white">Ofertas.</span>
-              <span style={{color: '#FFE600'}}>PY</span>
-            </span>
-          </div>
-
-          {/* Botão Comparar Preços */}
-          <Link href="/price-comparison">
-            <Button
-              variant="outline"
-              size={isMobile ? "sm" : "sm"}
-              className="border-2 text-black font-semibold hover:opacity-90 backdrop-blur-sm"
-              style={{ backgroundColor: '#FFE600', borderColor: '#FFE600' }}
-              data-testid="button-price-comparison"
-            >
-              <BarChart3 className="w-4 h-4 mr-2" />
-              {isMobile ? "Comparar" : "Comparar Preços"}
-            </Button>
-          </Link>
-          
-          {/* Sino de notificações - Apenas Desktop */}
-          {!isMobile && (
-            <button
-              className="bg-white/90 backdrop-blur-sm text-gray-600 hover:text-orange-500 p-2 rounded-lg shadow-sm transition-colors relative"
-              title="Notificações"
-              data-testid="button-notifications-desktop"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-              </svg>
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                3
-              </span>
-            </button>
-          )}
-        </div>
         
         {/* Segunda linha: Barra de Busca (Mobile abaixo, Desktop na linha anterior) */}
         {isMobile && (
