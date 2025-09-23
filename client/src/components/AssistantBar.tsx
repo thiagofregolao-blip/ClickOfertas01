@@ -22,11 +22,12 @@ export default function AssistantBar() {
   const [isTyping, setIsTyping] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [overlayInput, setOverlayInput] = useState('');
-
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
   const bootRef = useRef(false);
   const chatRef = useRef<HTMLFormElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  const hasTriggeredSearchRef = useRef(false);
+  const pendingSearchRef = useRef('');
 
   // Criar/recuperar sessão
   useEffect(() => {
@@ -185,8 +186,14 @@ export default function AssistantBar() {
     const t = query.trim();
     if (!t || !sessionId) return;
     
-    // Buscar produtos antes de mostrar overlay
-    fetchSuggest(t);
+    // Armazenar termo para buscar após o chat informar
+    pendingSearchRef.current = t;
+    hasTriggeredSearchRef.current = false; // Reset flag
+    
+    // Limpar produtos existentes
+    setTopBox([]);
+    setFeed([]);
+    setCombina([]);
     
     // Mostrar mensagem do usuário
     setChatMessages(prev => [...prev, { type: 'user', text: t }]);
@@ -251,7 +258,27 @@ export default function AssistantBar() {
             if (p.type === 'chunk' && p.text) {
               assistantMessage += p.text;
               setStreaming(assistantMessage);
+              
+              // Detectar quando assistente fala sobre buscar e executar busca pendente (apenas uma vez)
+              if (pendingSearchRef.current && !hasTriggeredSearchRef.current && 
+                  (assistantMessage.toLowerCase().includes('busca') || 
+                   assistantMessage.toLowerCase().includes('procurando') ||
+                   assistantMessage.toLowerCase().includes('opções') ||
+                   assistantMessage.toLowerCase().includes('aqui estão') ||
+                   assistantMessage.toLowerCase().includes('vou buscar') ||
+                   assistantMessage.toLowerCase().includes('procurar'))) {
+                fetchSuggest(pendingSearchRef.current);
+                hasTriggeredSearchRef.current = true;
+                pendingSearchRef.current = ''; // Limpar busca pendente
+              }
             } else if (p.type === 'end') {
+              // Fallback: se ainda há busca pendente, executar agora
+              if (pendingSearchRef.current && !hasTriggeredSearchRef.current) {
+                fetchSuggest(pendingSearchRef.current);
+                hasTriggeredSearchRef.current = true;
+                pendingSearchRef.current = '';
+              }
+              
               // Adicionar mensagem completa do assistente ao chat
               setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage }]);
               setStreaming('');
@@ -300,8 +327,9 @@ export default function AssistantBar() {
     const message = overlayInput.trim();
     if (!message || !sessionId) return;
     
-    // Detectar produtos mencionados e atualizar busca
-    detectAndSearchProducts(message);
+    // Armazenar termo para buscar após o chat informar (mesmo padrão do onSubmit)
+    pendingSearchRef.current = message;
+    hasTriggeredSearchRef.current = false; // Reset flag
     
     // Adicionar mensagem do usuário
     setChatMessages(prev => [...prev, { type: 'user', text: message }]);
@@ -487,7 +515,9 @@ export default function AssistantBar() {
               {/* Resultados principais */}
               <div className="p-4">
                 <div className="text-sm font-semibold mb-3">Resultados da Pesquisa</div>
-                {feed.length === 0 ? (
+                {loadingSug || pendingSearchRef.current ? (
+                  <div className="text-sm text-gray-500">Buscando ofertas…</div>
+                ) : feed.length === 0 ? (
                   <div className="text-sm text-gray-500">Nada encontrado…</div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
