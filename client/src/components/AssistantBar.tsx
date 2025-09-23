@@ -194,25 +194,25 @@ export default function AssistantBar() {
       return;
     }
 
-    let phraseIndex = 0;
-
     const startCycle = () => {
-      const currentPhrase = phrases[phraseIndex];
+      // Escolher frase aleatória
+      const randomIndex = Math.floor(Math.random() * phrases.length);
+      const currentPhrase = phrases[randomIndex];
       let charIndex = 0;
 
-      // FASE 1: Digitar letra por letra
+      // FASE 1: Digitar letra por letra (mais rápido)
       const typeText = () => {
         if (charIndex <= currentPhrase.length) {
           setDisplayText(currentPhrase.substring(0, charIndex));
           charIndex++;
-          animationRef.current = setTimeout(typeText, 100);
+          animationRef.current = setTimeout(typeText, 50);
         } else {
           // FASE 2: Pausar com texto completo
-          animationRef.current = setTimeout(eraseText, 2000);
+          animationRef.current = setTimeout(eraseText, 1500);
         }
       };
 
-      // FASE 3: Apagar letra por letra
+      // FASE 3: Apagar letra por letra (mais rápido)
       const eraseText = () => {
         let eraseIndex = currentPhrase.length;
         
@@ -220,11 +220,10 @@ export default function AssistantBar() {
           if (eraseIndex >= 0) {
             setDisplayText(currentPhrase.substring(0, eraseIndex));
             eraseIndex--;
-            animationRef.current = setTimeout(doErase, 60);
+            animationRef.current = setTimeout(doErase, 30);
           } else {
-            // FASE 4: Próxima frase
-            phraseIndex = (phraseIndex + 1) % phrases.length;
-            animationRef.current = setTimeout(startCycle, 500);
+            // FASE 4: Próxima frase (aleatória)
+            animationRef.current = setTimeout(startCycle, 300);
           }
         };
         
