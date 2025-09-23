@@ -66,9 +66,10 @@ export default function StandardHeader() {
   const typewriterRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [robotAnimation, setRobotAnimation] = useState("");
+  const [phraseIndex, setPhraseIndex] = useState(0);
 
   // Buscar frases engraçadas da IA
-  const { data: aiPhrases } = useQuery({
+  const { data: aiPhrases, isLoading: phrasesLoading, error: phrasesError } = useQuery({
     queryKey: ['/api/assistant/funny-phrases'],
     staleTime: 10 * 60 * 1000, // 10 minutos
     refetchInterval: 5 * 60 * 1000, // Atualizar a cada 5 minutos
@@ -133,41 +134,60 @@ export default function StandardHeader() {
     setIsSearchFocused(false);
   };
 
+  // Efeito principal que gerencia as animações
   useEffect(() => {
+    // Parar animações se focado ou com texto
+    if (isSearchFocused || searchInput.trim()) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      if (typewriterRef.current) {
+        clearTimeout(typewriterRef.current);
+        typewriterRef.current = null;
+      }
+      return;
+    }
+
+    // Só continuar se temos frases
     if (phrases.length === 0) return;
 
-    // Limpar interval anterior se existir
+    // Limpar interval anterior
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
 
-    // Só iniciar se não estiver focado e sem texto
-    if (!isSearchFocused && !searchInput) {
-      let index = 0;
-      intervalRef.current = setInterval(() => {
-        const nextText = phrases[index];
-        setCurrentText(nextText);
-        typeText(nextText);
-        index = (index + 1) % phrases.length;
-      }, 4000);
-
-      // Primeira frase se ainda não tiver
-      if (!currentText && phrases.length > 0) {
-        const firstText = phrases[0];
-        setCurrentText(firstText);
-        typeText(firstText);
-      }
+    // Iniciar primeira frase imediatamente se não há texto atual
+    if (!currentText) {
+      const firstText = phrases[0];
+      setCurrentText(firstText);
+      typeText(firstText);
+      setPhraseIndex(0);
     }
 
+    // Configurar rotação
+    intervalRef.current = setInterval(() => {
+      setPhraseIndex(prev => {
+        const nextIndex = (prev + 1) % phrases.length;
+        const nextText = phrases[nextIndex];
+        setCurrentText(nextText);
+        typeText(nextText);
+        return nextIndex;
+      });
+    }, 4000);
+
+    // Cleanup
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
       if (typewriterRef.current) {
         clearTimeout(typewriterRef.current);
+        typewriterRef.current = null;
       }
     };
-  }, [phrases, isSearchFocused, searchInput]);
+  }, [phrases, isSearchFocused, searchInput, currentText]);
 
   const handleCategoryFilter = (categorySlug: string | null) => {
     setSelectedCategory(categorySlug);
@@ -266,7 +286,7 @@ export default function StandardHeader() {
                 onFocus={handleFocus}
                 onBlur={handleBlur}
                 onKeyPress={handleKeyPress}
-                placeholder={isSearchFocused || searchInput ? "Converse com o Click (ex.: iPhone 15 em CDE)" : (displayText || currentText)}
+                placeholder={isSearchFocused || searchInput ? "Converse com o Click (ex.: iPhone 15 em CDE)" : (displayText || currentText || "Carregando frases...")}
                 className="flex-1 outline-none border-0 bg-transparent text-base shadow-none focus:ring-0 focus-visible:ring-0"
                 data-testid="search-input"
               />
