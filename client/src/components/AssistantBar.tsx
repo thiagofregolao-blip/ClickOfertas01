@@ -93,68 +93,70 @@ export default function AssistantBar() {
     })();
   }, [uid, userName]);
 
-  // Inicializar primeira frase
-  useEffect(() => {
-    if (!isSearchFocused && !query.trim() && phrases.length > 0) {
-      // Iniciar com a primeira frase imediatamente
-      setCurrentPhraseIndex(0);
-      setDisplayText(phrases[0]);
-    }
-  }, []);
-
-  // Typewriter effect simples
-  const startTypewriter = (text: string) => {
-    // Limpar animação anterior
+  // Typewriter effect corrigido
+  const typeText = (text: string) => {
+    // Limpar timeout anterior
     if (typewriterRef.current) {
       clearTimeout(typewriterRef.current);
+      typewriterRef.current = null;
     }
     
-    setDisplayText("");
-    let charIndex = 0;
+    // Resetar o texto
+    setDisplayText('');
     
-    const type = () => {
-      if (charIndex < text.length) {
-        setDisplayText(text.slice(0, charIndex + 1));
-        charIndex++;
-        typewriterRef.current = setTimeout(type, 80);
+    let index = 0;
+    
+    const typeChar = () => {
+      if (index <= text.length) {
+        setDisplayText(text.substring(0, index));
+        index++;
+        typewriterRef.current = setTimeout(typeChar, 80);
       }
     };
     
-    type();
+    // Começar digitação após um breve delay
+    typewriterRef.current = setTimeout(typeChar, 100);
   };
 
-  // Gerenciar mudança de frases
+  // Controle de animação principal
   useEffect(() => {
+    // Se focado ou com texto, parar animação
     if (isSearchFocused || query.trim()) {
-      // Parar animações quando focado ou com query
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
+      if (typewriterRef.current) {
+        clearTimeout(typewriterRef.current);
+        typewriterRef.current = null;
+      }
       return;
     }
 
-    // Iniciar primeira frase com typewriter
-    if (phrases.length > 0) {
-      startTypewriter(phrases[currentPhraseIndex]);
-      
-      // Configurar rotação de frases
-      intervalRef.current = setInterval(() => {
-        setCurrentPhraseIndex(prev => {
-          const nextIndex = (prev + 1) % phrases.length;
-          startTypewriter(phrases[nextIndex]);
-          return nextIndex;
-        });
-      }, 4000);
-    }
+    // Só iniciar se tivermos frases
+    if (phrases.length === 0) return;
+
+    // Primeira frase imediatamente
+    typeText(phrases[0]);
+    
+    // Rotação de frases
+    let phraseIndex = 0;
+    intervalRef.current = setInterval(() => {
+      phraseIndex = (phraseIndex + 1) % phrases.length;
+      typeText(phrases[phraseIndex]);
+    }, 4000);
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
+      if (typewriterRef.current) {
+        clearTimeout(typewriterRef.current);
+        typewriterRef.current = null;
+      }
     };
-  }, [isSearchFocused, query, phrases]);
+  }, [isSearchFocused, query, phrases.length]);
 
   // Gerenciar classes CSS do body quando showResults está ativo
   useEffect(() => {
