@@ -6957,13 +6957,33 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
         stream: true
       });
 
-      let full=''; const LIMIT=700;
+      let full=''; const LIMIT=600; // Reduzido para compensar limite de linhas
+      let lineCount = 0;
+      
       for await (const part of stream){
         const t = part.choices?.[0]?.delta?.content || '';
         if (!t) continue;
+        
+        // Verificar limite de caracteres
         const over = full.length + t.length - LIMIT;
-        const piece = over>0 ? t.slice(0, t.length - over) : t;
-        full += piece; write({ type:'chunk', text: piece });
+        let piece = over>0 ? t.slice(0, t.length - over) : t;
+        
+        // Verificar limite de linhas (máximo 4)
+        const newLines = (full + piece).split('\n').length - 1;
+        if (newLines >= 4) {
+          // Encontrar posição da 4ª linha e cortar lá
+          const lines = (full + piece).split('\n');
+          if (lines.length > 4) {
+            const fourLines = lines.slice(0, 4).join('\n');
+            piece = fourLines.substring(full.length);
+            full += piece;
+            write({ type:'chunk', text: piece });
+            break;
+          }
+        }
+        
+        full += piece; 
+        write({ type:'chunk', text: piece });
         if (over>0) break;
       }
       await storage.createAssistantMessage({ sessionId, content: full, role:'assistant', metadata:{ streamed:true } });
