@@ -299,6 +299,9 @@ export default function AssistantBar() {
     const message = overlayInput.trim();
     if (!message || !sessionId) return;
     
+    // Detectar produtos mencionados e atualizar busca
+    detectAndSearchProducts(message);
+    
     // Adicionar mensagem do usuário
     setChatMessages(prev => [...prev, { type: 'user', text: message }]);
     
