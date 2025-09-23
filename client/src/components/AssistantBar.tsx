@@ -32,6 +32,7 @@ export default function AssistantBar() {
   // Estados para animações da barra de busca
   const [displayText, setDisplayText] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
   const typewriterRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -92,32 +93,40 @@ export default function AssistantBar() {
     })();
   }, [uid, userName]);
 
-  // Typewriter effect (corrigido)
-  const typeText = (text: string) => {
+  // Inicializar primeira frase
+  useEffect(() => {
+    if (!isSearchFocused && !query.trim() && phrases.length > 0) {
+      // Iniciar com a primeira frase imediatamente
+      setCurrentPhraseIndex(0);
+      setDisplayText(phrases[0]);
+    }
+  }, []);
+
+  // Typewriter effect simples
+  const startTypewriter = (text: string) => {
+    // Limpar animação anterior
     if (typewriterRef.current) {
       clearTimeout(typewriterRef.current);
     }
     
     setDisplayText("");
-    let i = 0;
+    let charIndex = 0;
     
     const type = () => {
-      if (i <= text.length) {
-        setDisplayText(text.slice(0, i));
-        i++;
-        if (i <= text.length) {
-          typewriterRef.current = setTimeout(type, 50);
-        }
+      if (charIndex < text.length) {
+        setDisplayText(text.slice(0, charIndex + 1));
+        charIndex++;
+        typewriterRef.current = setTimeout(type, 80);
       }
     };
     
-    // Iniciar digitação imediatamente
-    setTimeout(type, 100);
+    type();
   };
 
-  // Animações das frases
+  // Gerenciar mudança de frases
   useEffect(() => {
     if (isSearchFocused || query.trim()) {
+      // Parar animações quando focado ou com query
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -125,17 +134,19 @@ export default function AssistantBar() {
       return;
     }
 
-    if (phrases.length === 0) return;
-
-    // Primeira execução imediata
-    let currentIndex = 0;
-    typeText(phrases[currentIndex]);
-
-    // Configurar interval
-    intervalRef.current = setInterval(() => {
-      currentIndex = (currentIndex + 1) % phrases.length;
-      typeText(phrases[currentIndex]);
-    }, 4000);
+    // Iniciar primeira frase com typewriter
+    if (phrases.length > 0) {
+      startTypewriter(phrases[currentPhraseIndex]);
+      
+      // Configurar rotação de frases
+      intervalRef.current = setInterval(() => {
+        setCurrentPhraseIndex(prev => {
+          const nextIndex = (prev + 1) % phrases.length;
+          startTypewriter(phrases[nextIndex]);
+          return nextIndex;
+        });
+      }, 4000);
+    }
 
     return () => {
       if (intervalRef.current) {
@@ -143,7 +154,7 @@ export default function AssistantBar() {
         intervalRef.current = null;
       }
     };
-  }, [phrases, isSearchFocused, query]);
+  }, [isSearchFocused, query, phrases]);
 
   // Gerenciar classes CSS do body quando showResults está ativo
   useEffect(() => {
