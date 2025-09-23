@@ -530,7 +530,7 @@ export default function AssistantBar() {
       <div className="w-full relative">
         {/* Barra = chat */}
         <form ref={chatRef} onSubmit={onSubmit} className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs">🤖</div>
+          <div className="w-7 h-7 grid place-content-center text-lg">🤖</div>
           <input
             value={query}
             onChange={e => onChange(e.target.value)}
