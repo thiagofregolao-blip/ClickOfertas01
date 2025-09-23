@@ -30,7 +30,7 @@ export default function AssistantBar() {
   const pendingSearchRef = useRef('');
 
   // Estados para animações da barra de busca
-  const [displayText, setDisplayText] = useState('Bora caçar uns preços, meu rei?');
+  const [displayText, setDisplayText] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const animationRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -91,23 +91,66 @@ export default function AssistantBar() {
     })();
   }, [uid, userName]);
 
-  // Animação simples: trocar frases a cada 3 segundos
+  // Efeito typewriter completo: digitar → pausar → apagar → próxima
   useEffect(() => {
     // Se focado ou com texto, parar animação
     if (isSearchFocused || query.trim()) {
+      if (animationRef.current) {
+        clearTimeout(animationRef.current);
+        animationRef.current = null;
+      }
       return;
     }
 
     let phraseIndex = 0;
-    
-    // Trocar frase a cada 3 segundos
-    const interval = setInterval(() => {
-      phraseIndex = (phraseIndex + 1) % phrases.length;
-      setDisplayText(phrases[phraseIndex]);
-    }, 3000);
+
+    const startCycle = () => {
+      const currentPhrase = phrases[phraseIndex];
+      let charIndex = 0;
+
+      // FASE 1: Digitar letra por letra
+      const typeText = () => {
+        if (charIndex <= currentPhrase.length) {
+          setDisplayText(currentPhrase.substring(0, charIndex));
+          charIndex++;
+          animationRef.current = setTimeout(typeText, 100);
+        } else {
+          // FASE 2: Pausar com texto completo
+          animationRef.current = setTimeout(eraseText, 2000);
+        }
+      };
+
+      // FASE 3: Apagar letra por letra
+      const eraseText = () => {
+        let eraseIndex = currentPhrase.length;
+        
+        const doErase = () => {
+          if (eraseIndex >= 0) {
+            setDisplayText(currentPhrase.substring(0, eraseIndex));
+            eraseIndex--;
+            animationRef.current = setTimeout(doErase, 60);
+          } else {
+            // FASE 4: Próxima frase
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            animationRef.current = setTimeout(startCycle, 500);
+          }
+        };
+        
+        doErase();
+      };
+
+      // Iniciar digitação
+      typeText();
+    };
+
+    // Iniciar o ciclo
+    startCycle();
 
     return () => {
-      clearInterval(interval);
+      if (animationRef.current) {
+        clearTimeout(animationRef.current);
+        animationRef.current = null;
+      }
     };
   }, [isSearchFocused, query]);
 
