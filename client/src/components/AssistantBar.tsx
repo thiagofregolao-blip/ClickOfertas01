@@ -92,7 +92,7 @@ export default function AssistantBar() {
     })();
   }, [uid, userName]);
 
-  // Typewriter effect
+  // Typewriter effect (corrigido)
   const typeText = (text: string) => {
     if (typewriterRef.current) {
       clearTimeout(typewriterRef.current);
@@ -100,14 +100,19 @@ export default function AssistantBar() {
     
     setDisplayText("");
     let i = 0;
+    
     const type = () => {
-      if (i < text.length) {
-        setDisplayText(text.slice(0, i + 1));
+      if (i <= text.length) {
+        setDisplayText(text.slice(0, i));
         i++;
-        typewriterRef.current = setTimeout(type, 50);
+        if (i <= text.length) {
+          typewriterRef.current = setTimeout(type, 50);
+        }
       }
     };
-    type();
+    
+    // Iniciar digitação imediatamente
+    setTimeout(type, 100);
   };
 
   // Animações das frases
