@@ -6638,7 +6638,24 @@ Responda curto, claro, PT-BR.
   app.post('/api/assistant/sessions', async (req, res) => {
     try {
       const key = (req.headers['x-user-id'] as string) || req.ip || 'anon';
-      const name = (req.headers['x-user-name'] as string) || 'Cliente';
+      
+      // Buscar nome real do usuário autenticado
+      const user = req.user || req.session?.user;
+      let name = 'Cliente';
+      if (user?.id) {
+        try {
+          const userData = await storage.getUser(user.id);
+          if (userData?.firstName) {
+            name = userData.firstName;
+            if (userData.lastName) {
+              name += ` ${userData.lastName}`;
+            }
+          }
+        } catch (error) {
+          console.warn('Could not fetch user name for session:', error);
+        }
+      }
+      
       const now = Date.now();
       const cached = sessionCache.get(key);
 
@@ -6867,15 +6884,48 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
     }
   });
 
-  // SSE Streaming endpoint for assistant chat - Now with RAG
+  // SSE Streaming endpoint for assistant chat - Now with RAG and Memory
   app.post('/api/assistant/stream', async (req: any, res) => {
     try {
       const { sessionId, message } = req.body || {};
-      const name = (req.headers['x-user-name'] as string) || 'Cliente';
       if (!message?.trim()) return res.status(400).json({ ok:false, error:'message required' });
 
       const session = await storage.getAssistantSession(sessionId);
       if (!session) return res.status(404).json({ ok:false, error:'session not found' });
+
+      // Buscar nome real do usuário autenticado
+      const user = req.user || req.session?.user;
+      let name = 'Cliente';
+      if (user?.id) {
+        try {
+          const userData = await storage.getUser(user.id);
+          if (userData?.firstName) {
+            name = userData.firstName;
+            if (userData.lastName) {
+              name += ` ${userData.lastName}`;
+            }
+          }
+        } catch (error) {
+          console.warn('Could not fetch user name:', error);
+        }
+      }
+
+      // Salvar mensagem do usuário ANTES de processar
+      await storage.createAssistantMessage({
+        sessionId,
+        content: message,
+        role: 'user',
+        metadata: { timestamp: new Date().toISOString() },
+      });
+
+      // Buscar histórico de mensagens para contexto
+      const sessionWithMessages = await storage.getAssistantSessionWithMessages(sessionId);
+      const recentMessages = (sessionWithMessages?.messages || [])
+        .slice(-6) // Últimas 6 mensagens para contexto
+        .map(msg => ({
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content
+        }));
 
       res.writeHead(200, { 'Content-Type':'text/event-stream', 'Cache-Control':'no-cache', 'Connection':'keep-alive' });
       const write = (d:any)=> res.write(`data: ${JSON.stringify(d)}\n\n`);
@@ -6888,13 +6938,18 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
         q: message, name, top3: ground.top3
       });
 
-      // ❷ Prompt curto e temperatura baixa (evita genericão)
+      // ❷ Construir mensagens com histórico para memória
+      const messages = [
+        { role:'system' as const, content: SYSTEM },
+        // Incluir mensagens anteriores para contexto (excluindo a atual que já foi salva)
+        ...recentMessages.slice(0, -1),
+        { role:'user' as const, content: USER }
+      ];
+
+      // ❸ Prompt com memória e temperatura baixa (evita genericão)
       const stream = await clickClient.chat.completions.create({
         model: process.env.CHAT_MODEL || 'gpt-4o-mini',
-        messages: [
-          { role:'system', content: SYSTEM },
-          { role:'user',   content: USER }
-        ],
+        messages,
         temperature: 0.15,
         max_tokens: 220,
         frequency_penalty: 0.3,
