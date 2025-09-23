@@ -4,7 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Heart, ShoppingCart, Star, Sparkles, Zap } from 'lucide-react';
 import { LazyImage } from '@/components/lazy-image';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Product {
   id: string;
@@ -26,6 +29,9 @@ export default function ClickEnvironment({ params }: ClickEnvironmentProps) {
   const [, setLocation] = useLocation();
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
+  const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
 
   // Buscar produto principal e sugestões relacionadas
   const { data: suggestions, isLoading } = useQuery<{
@@ -37,10 +43,41 @@ export default function ClickEnvironment({ params }: ClickEnvironmentProps) {
     enabled: !!(params.productId || params.category),
   });
 
+  // Mutation para salvar produto
+  const saveProductMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      return apiRequest("POST", `/api/products/${productId}/save`);
+    },
+    onSuccess: (_, productId) => {
+      setSelectedProducts(prev => [...prev, productId]);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 2000);
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-products'] });
+      toast({
+        title: "Produto salvo!",
+        description: "O produto foi adicionado à sua lista de compras.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar o produto. Faça login para continuar.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleAddToCart = (productId: string) => {
-    setSelectedProducts(prev => [...prev, productId]);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 2000);
+    if (!isAuthenticated) {
+      toast({
+        title: "Login necessário",
+        description: "Faça login para salvar produtos na sua lista de compras.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    saveProductMutation.mutate(productId);
   };
 
   const handleGoToShoppingList = () => {
@@ -72,6 +109,7 @@ export default function ClickEnvironment({ params }: ClickEnvironmentProps) {
         <button
           onClick={() => setLocation('/')}
           className="flex items-center gap-2 text-white/80 hover:text-white transition-colors"
+          data-testid="button-back"
         >
           <ArrowLeft className="w-5 h-5" />
           Voltar

@@ -99,6 +99,8 @@ function Router() {
       <Switch>
         <Route path="/" component={Landing} />
         <Route path="/cards" component={LoadingComponent} />
+        <Route path="/click-environment" component={LoadingComponent} />
+        <Route path="/click-environment/:productId" component={LoadingComponent} />
         <Route path="/stories-feed" component={LoadingComponent} />
         <Route path="/create-story" component={LoadingComponent} />
         <Route path="/price-comparison" component={LoadingComponent} />

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useLocation } from 'wouter';
 import { LazyImage } from './lazy-image';
 
 // Sessão simples por usuário (cache 1h)
@@ -6,6 +7,7 @@ const sessionCache = new Map();
 const ONE_HOUR = 60 * 60 * 1000;
 
 export default function AssistantBar() {
+  const [, setLocation] = useLocation();
   const uid = useMemo(() => localStorage.getItem('uid') || (localStorage.setItem('uid','u-'+Math.random().toString(36).slice(2,8)), localStorage.getItem('uid')!), []);
   const userName = useMemo(() => localStorage.getItem('userName') || 'Cliente', []);
   
@@ -556,7 +558,18 @@ export default function AssistantBar() {
   };
 
   const goProduct = (p: any) => {
-    if (p?.id) window.location.href = `/produto/${encodeURIComponent(p.id)}`;
+    if (p?.id) {
+      // Adicionar mensagem da IA antes do redirecionamento
+      setChatMessages(prev => [...prev, { 
+        type: 'assistant', 
+        text: 'Vou te redirecionar para o ambiente Click com mais algumas sugestões!' 
+      }]);
+      
+      // Aguardar um pouco antes de redirecionar para o usuário ver a mensagem
+      setTimeout(() => {
+        setLocation(`/click-environment/${encodeURIComponent(p.id)}`);
+      }, 1000);
+    }
   };
 
   const closeResults = () => {
