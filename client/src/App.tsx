@@ -134,6 +134,7 @@ function Router() {
           <Route path="/cards" component={StoresGallery} />
           <Route path="/click-environment" component={ClickEnvironment} />
           <Route path="/click-environment/:productId" component={ClickEnvironment} />
+          <Route path="/click-environment/category/:category" component={ClickEnvironment} />
 
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
@@ -187,6 +188,7 @@ function Router() {
           <Route path="/cards" component={StoresGallery} />
           <Route path="/click-environment" component={ClickEnvironment} />
           <Route path="/click-environment/:productId" component={ClickEnvironment} />
+          <Route path="/click-environment/category/:category" component={ClickEnvironment} />
 
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
@@ -209,6 +211,7 @@ function Router() {
           <Route path="/cards" component={StoresGallery} />
           <Route path="/click-environment" component={ClickEnvironment} />
           <Route path="/click-environment/:productId" component={ClickEnvironment} />
+          <Route path="/click-environment/category/:category" component={ClickEnvironment} />
 
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />

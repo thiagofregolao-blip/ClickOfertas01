@@ -40,6 +40,15 @@ export default function ClickEnvironment({ params }: ClickEnvironmentProps) {
     aiMessage: string;
   }>({
     queryKey: [`/api/click-suggestions`, params.productId, params.category],
+    queryFn: async () => {
+      const searchParams = new URLSearchParams();
+      if (params.productId) searchParams.set('productId', params.productId);
+      if (params.category) searchParams.set('category', params.category);
+      
+      const response = await fetch(`/api/click-suggestions?${searchParams.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch suggestions');
+      return response.json();
+    },
     enabled: !!(params.productId || params.category),
   });
 
