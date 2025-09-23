@@ -7062,6 +7062,140 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
     }
   });
 
+  // Click Environment - Product suggestions endpoint
+  app.get(['/api/click-suggestions'], async (req: any, res) => {
+    try {
+      const { productId, category } = req.query;
+      const stores = await storage.getAllActiveStoresOptimized(50, 60);
+
+      let mainProduct = null;
+      const relatedProducts: any[] = [];
+      
+      // Buscar o produto principal se productId fornecido
+      if (productId) {
+        for (const s of stores) {
+          for (const p of (s.products || [])) {
+            if (String(p.id) === String(productId)) {
+              mainProduct = {
+                id: String(p.id),
+                title: String(p.name || '').trim(),
+                category: String(p.category || '').trim(),
+                imageUrl: p.imageUrl || null,
+                price: { USD: Number(p?.price ?? 0) > 0 ? Number(p.price) : undefined },
+                storeId: s.id,
+                storeName: s.name,
+                storeLogoUrl: s.logoUrl,
+                storeSlug: s.slug,
+                storeThemeColor: s.themeColor,
+                storePremium: s.isPremium
+              };
+              break;
+            }
+          }
+          if (mainProduct) break;
+        }
+      }
+
+      // Determinar categoria de busca
+      const targetCategory = mainProduct?.category || category || '';
+      
+      // Lógica de produtos relacionados por categoria
+      const categoryRelations = {
+        'celulares': ['capinhas', 'películas', 'carregadores', 'fones', 'cabos'],
+        'iphone': ['capinhas', 'películas', 'carregadores', 'fones', 'airpods'],
+        'notebook': ['mouse', 'teclado', 'headset', 'mochilas', 'base'],
+        'gamer': ['teclado', 'mouse', 'headset', 'mousepad', 'monitor'],
+        'perfumes': ['perfumes masculino', 'perfumes feminino', 'cosméticos'],
+        'eletrônicos': ['cabos', 'carregadores', 'fones', 'capas']
+      };
+
+      // Palavras-chave para encontrar produtos relacionados
+      let searchTerms = [];
+      for (const [key, relations] of Object.entries(categoryRelations)) {
+        if (targetCategory.toLowerCase().includes(key) || 
+            (mainProduct?.title || '').toLowerCase().includes(key)) {
+          searchTerms = relations;
+          break;
+        }
+      }
+
+      // Se não encontrou relações específicas, usar categoria geral
+      if (searchTerms.length === 0 && targetCategory) {
+        searchTerms = [targetCategory];
+      }
+
+      // Buscar produtos relacionados
+      for (const s of stores) {
+        for (const p of (s.products || [])) {
+          const title = String(p.name || '').toLowerCase();
+          const category = String(p.category || '').toLowerCase();
+          
+          // Pular o produto principal
+          if (mainProduct && String(p.id) === String(mainProduct.id)) continue;
+          
+          // Verificar se produto corresponde aos termos de busca
+          const isRelated = searchTerms.some(term => 
+            title.includes(term.toLowerCase()) || 
+            category.includes(term.toLowerCase())
+          );
+          
+          if (isRelated || (!searchTerms.length && category === targetCategory.toLowerCase())) {
+            const priceRaw = Number(p?.price ?? 0);
+            relatedProducts.push({
+              id: String(p.id ?? `${s.id}-${title}`),
+              title: String(p.name || '').trim(),
+              category: String(p.category || '').trim(),
+              imageUrl: p.imageUrl || null,
+              price: { USD: Number.isFinite(priceRaw) && priceRaw > 0 ? priceRaw : undefined },
+              storeId: s.id,
+              storeName: s.name,
+              storeLogoUrl: s.logoUrl,
+              storeSlug: s.slug,
+              storeThemeColor: s.themeColor,
+              storePremium: s.isPremium
+            });
+          }
+        }
+      }
+
+      // Ordenar por premium primeiro, depois por preço
+      relatedProducts.sort((a, b) => {
+        if (a.storePremium && !b.storePremium) return -1;
+        if (!a.storePremium && b.storePremium) return 1;
+        const priceA = a.price?.USD || 999999;
+        const priceB = b.price?.USD || 999999;
+        return priceA - priceB;
+      });
+
+      // Mensagem personalizada da IA
+      let aiMessage = "Com base na sua busca, aqui estão algumas sugestões que podem te ajudar! 🎯 Não se esqueça de salvar em sua lista de compras.";
+      
+      if (mainProduct) {
+        const productType = mainProduct.title.toLowerCase();
+        if (productType.includes('iphone') || productType.includes('celular')) {
+          aiMessage = "Vejo que você pesquisou por celular! 📱 Que tal complementar com capinhas, películas e carregadores? Não se esqueça de salvar tudo na sua lista de compras!";
+        } else if (productType.includes('notebook') || productType.includes('laptop')) {
+          aiMessage = "Notebook é uma boa! 💻 Já pensou em mouse, teclado e uma base? Vai completar seu setup! Salve na lista de compras para não esquecer.";
+        } else if (productType.includes('perfume')) {
+          aiMessage = "Perfume é sempre bom! 💫 Que tal ver outras fragrâncias ou cosméticos? Salve suas escolhas na lista de compras!";
+        }
+      }
+
+      res.json({
+        mainProduct,
+        relatedProducts: relatedProducts.slice(0, 12), // Máximo 12 sugestões
+        aiMessage
+      });
+    } catch (e) {
+      console.error('click-suggestions', e);
+      res.json({ 
+        mainProduct: null, 
+        relatedProducts: [], 
+        aiMessage: "Com base na sua busca, aqui estão algumas sugestões que podem te ajudar! 🎯 Não se esqueça de salvar em sua lista de compras."
+      });
+    }
+  });
+
   // Get/Update user assistant preferences
   app.get('/api/assistant/preferences', isAuthenticatedCustom, async (req: any, res) => {
     try {

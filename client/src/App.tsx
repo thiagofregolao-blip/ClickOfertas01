@@ -35,6 +35,7 @@ import MaintenancePage from "@/pages/maintenance";
 import NotFound from "@/pages/not-found";
 import { MapModalTestPage } from "@/pages/map-modal-test";
 import TestInlineAssistant from "@/pages/test-inline-assistant";
+import ClickEnvironment from "@/pages/ClickEnvironment";
 
 function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
   const [bypassMaintenance, setBypassMaintenance] = useState(() => {
@@ -129,6 +130,8 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route path="/signup" component={SignupPage} />
           <Route path="/cards" component={StoresGallery} />
+          <Route path="/click-environment" component={ClickEnvironment} />
+          <Route path="/click-environment/:productId" component={ClickEnvironment} />
 
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
@@ -180,6 +183,8 @@ function Router() {
           <Route path="/admin-panel" component={SuperAdmin} />
           <Route path="/totem/:storeId" component={TotemDisplay} />
           <Route path="/cards" component={StoresGallery} />
+          <Route path="/click-environment" component={ClickEnvironment} />
+          <Route path="/click-environment/:productId" component={ClickEnvironment} />
 
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
@@ -200,6 +205,8 @@ function Router() {
         <>
           <Route path="/" component={Landing} />
           <Route path="/cards" component={StoresGallery} />
+          <Route path="/click-environment" component={ClickEnvironment} />
+          <Route path="/click-environment/:productId" component={ClickEnvironment} />
 
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
