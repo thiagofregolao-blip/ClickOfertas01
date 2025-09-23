@@ -147,17 +147,21 @@ export default function AssistantBar() {
 
   // Detectar produtos mencionados e atualizar busca
   const detectAndSearchProducts = (text: string) => {
-    const keywords = ['iphone', 'samsung', 'xiaomi', 'motorola', 'lg', 'huawei', 'apple', 'phone', 'celular', 
+    const keywords = ['iphone', 'samsung', 'xiaomi', 'motorola', 'lg', 'huawei', 'apple', 
                      'mouse', 'teclado', 'headset', 'fone', 'notebook', 'laptop', 'tablet', 'smartwatch', 
                      'logitech', 'razer', 'hyperx', 'corsair', 'dell', 'hp', 'lenovo', 'asus', 'acer'];
     
     const lowerText = text.toLowerCase();
-    const foundKeyword = keywords.find(keyword => lowerText.includes(keyword));
+    // Usar word boundaries para evitar matches parciais (ex: perfumes contém "fume" que contém "me")
+    const foundKeyword = keywords.find(keyword => {
+      const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+      return regex.test(lowerText);
+    });
     
     if (foundKeyword) {
       // Extrair termo mais específico se possível
       const words = lowerText.split(/\s+/);
-      const keywordIndex = words.findIndex(word => word.includes(foundKeyword));
+      const keywordIndex = words.findIndex(word => word === foundKeyword);
       
       let searchTerm = foundKeyword;
       
