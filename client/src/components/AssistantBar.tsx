@@ -29,6 +29,24 @@ export default function AssistantBar() {
   const hasTriggeredSearchRef = useRef(false);
   const pendingSearchRef = useRef('');
 
+  // Estados para animações da barra de busca
+  const [displayText, setDisplayText] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const typewriterRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Frases engraçadas fixas (mesmo estilo do outro componente)
+  const phrases = [
+    "Bora caçar uns preços, meu rei?",
+    "Tá com o cartão coçando? Busca aqui!",
+    "Achadinhos do PY te chamando!",
+    "Vem dar uma espiadinha nas pechinchas!",
+    "Qual o desejo do seu coração consumista hoje?",
+    "A muamba boa tá aqui, pode procurar!",
+    "Lacra essa busca e bota no carrinho!",
+    "O tesouro tá aqui, só falta você desenterrar!"
+  ];
+
   // Criar/recuperar sessão
   useEffect(() => {
     if (bootRef.current) return;
@@ -73,6 +91,54 @@ export default function AssistantBar() {
       }
     })();
   }, [uid, userName]);
+
+  // Typewriter effect
+  const typeText = (text: string) => {
+    if (typewriterRef.current) {
+      clearTimeout(typewriterRef.current);
+    }
+    
+    setDisplayText("");
+    let i = 0;
+    const type = () => {
+      if (i < text.length) {
+        setDisplayText(text.slice(0, i + 1));
+        i++;
+        typewriterRef.current = setTimeout(type, 50);
+      }
+    };
+    type();
+  };
+
+  // Animações das frases
+  useEffect(() => {
+    if (isSearchFocused || query.trim()) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      return;
+    }
+
+    if (phrases.length === 0) return;
+
+    // Primeira execução imediata
+    let currentIndex = 0;
+    typeText(phrases[currentIndex]);
+
+    // Configurar interval
+    intervalRef.current = setInterval(() => {
+      currentIndex = (currentIndex + 1) % phrases.length;
+      typeText(phrases[currentIndex]);
+    }, 4000);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [phrases, isSearchFocused, query]);
 
   // Gerenciar classes CSS do body quando showResults está ativo
   useEffect(() => {
@@ -363,8 +429,12 @@ export default function AssistantBar() {
           <input
             value={query}
             onChange={e => onChange(e.target.value)}
-            onFocus={onFocus}
-            placeholder="Converse com o Click (ex.: iPhone 15 em CDE)"
+            onFocus={() => {
+              setIsSearchFocused(true);
+              onFocus();
+            }}
+            onBlur={() => setIsSearchFocused(false)}
+            placeholder={isSearchFocused || query ? "Converse com o Click (ex.: iPhone 15 em CDE)" : (displayText || "Carregando frases...")}
             className="flex-1 outline-none text-base"
             data-testid="search-input"
           />
