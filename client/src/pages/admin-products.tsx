@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, Upload, Download, FileSpreadsheet, Package, Camera, Settings, Gift, Clock } from "lucide-react";
+import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, Upload, Download, FileSpreadsheet, Package, Camera, Settings, Gift, Clock, Eye, EyeOff } from "lucide-react";
 import type { Store, Product, InsertProduct, ProductBankItem, Category } from "@shared/schema";
 import { z } from "zod";
 import { PhotoCapture } from "@/components/PhotoCapture";
