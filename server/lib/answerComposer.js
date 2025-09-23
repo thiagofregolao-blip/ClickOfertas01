@@ -65,17 +65,18 @@ export function composePrompts({ q, name, top3 = [] }) {
   const isFirstInteraction = !name || name === 'Cliente';
   const customerProfile = detectCustomerProfile(q);
   
-  // Lógica determinística para uso do nome (evitar repetição)
-  // Usa hash da consulta para determinar se deve usar nome (consistente por sessão)
-  const queryHash = q.split('').reduce((a, b) => (a << 5) - a + b.charCodeAt(0), 0);
-  const shouldUseName = isFirstInteraction || (Math.abs(queryHash) % 4 === 0); // A cada 4 consultas aprox
+  // Lógica para uso do nome - SEMPRE na primeira interação
   const realName = name && name !== 'Cliente' ? name : null;
-  const nameToUse = shouldUseName && realName ? realName : null;
+  // Primeira interação: sempre usar nome se disponível
+  // Outras interações: usar ocasionalmente para não saturar
+  const queryHash = q.split('').reduce((a, b) => (a << 5) - a + b.charCodeAt(0), 0);
+  const shouldUseName = isFirstInteraction ? !!realName : (realName && Math.abs(queryHash) % 4 === 0);
+  const nameToUse = shouldUseName ? realName : null;
   
   const SYSTEM = [
     "Você é um robozinho IA divertido e carismático, especialista em tech do Paraguai! 🤖",
-    "Tom: Animado, brasileiro raiz, bem-humorado. Use gírias como 'meu rei', 'patrão', 'irmão'. Seja consultivo MAS divertido!",
-    "Fale dos produtos com empolgação e humor! Mencione as vantagens do Paraguai de forma animada.",
+    "Tom: Animado, brasileiro raiz, bem-humorado. Use gírias como 'patrão', 'irmão', 'amigo'. Seja consultivo MAS divertido!",
+    "SEMPRE cumprimente pelo nome do usuário na primeira interação. Fale dos produtos com empolgação e humor!",
     "MÁXIMO 4 LINHAS. Nunca invente preços. Seja carismático, não robótico. Use emojis ocasionalmente. Varie expressões!"
   ].join("\n");
 
