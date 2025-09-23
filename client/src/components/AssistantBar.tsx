@@ -10,6 +10,26 @@ export default function AssistantBar() {
   const userName = useMemo(() => localStorage.getItem('userName') || 'Cliente', []);
   
   const [sessionId, setSessionId] = useState('');
+  
+  // Manter sessionId atualizado no ref
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
+
+  // Auto-flush pendente quando sessão fica disponível 
+  useEffect(() => {
+    if (sessionId && pendingSearchRef.current && !hasTriggeredSearchRef.current) {
+      const query = pendingSearchRef.current;
+      pendingSearchRef.current = '';
+      hasTriggeredSearchRef.current = false;
+      
+      // Adicionar mensagem do usuário
+      setChatMessages(prev => [...prev, { type: 'user', text: query }]);
+      
+      // Enviar para IA
+      startStream(query);
+    }
+  }, [sessionId]);
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [streaming, setStreaming] = useState('');
@@ -28,11 +48,73 @@ export default function AssistantBar() {
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const hasTriggeredSearchRef = useRef(false);
   const pendingSearchRef = useRef('');
+  const [headerTriggered, setHeaderTriggered] = useState(false);
+  const sessionIdRef = useRef('');
+  const lastHeaderQueryRef = useRef('');
+  const lastHeaderSubmitTime = useRef(0);
 
   // Estados para animações da barra de busca
   const [displayText, setDisplayText] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const animationRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // Event listeners para integração com header
+  useEffect(() => {
+    const handleHeaderFocus = (e: CustomEvent) => {
+      if (e.detail?.source === 'header') {
+        setOpen(true);
+        setShowResults(true);
+        setHeaderTriggered(true);
+        if (e.detail.query) {
+          setOverlayInput(e.detail.query);
+        }
+      }
+    };
+    
+    const handleHeaderSubmit = (e: CustomEvent) => {
+      if (e.detail?.source === 'header' && e.detail.query) {
+        const query = e.detail.query;
+        const now = Date.now();
+        
+        // Prevenir submissões duplicadas (cooldown de 500ms)
+        if (lastHeaderQueryRef.current === query && now - lastHeaderSubmitTime.current < 500) {
+          return;
+        }
+        
+        lastHeaderQueryRef.current = query;
+        lastHeaderSubmitTime.current = now;
+        
+        setOpen(true);
+        setShowResults(true);
+        setHeaderTriggered(true);
+        setOverlayInput(query);
+        
+        // Processar a busca usando sessionIdRef para evitar closure stale
+        if (sessionIdRef.current) {
+          pendingSearchRef.current = query;
+          hasTriggeredSearchRef.current = false;
+          
+          // Adicionar mensagem do usuário
+          setChatMessages(prev => [...prev, { type: 'user', text: query }]);
+          
+          // Enviar para IA
+          startStream(query);
+        } else {
+          // Se não há sessão ainda, aguardar
+          pendingSearchRef.current = query;
+          hasTriggeredSearchRef.current = false;
+        }
+      }
+    };
+    
+    window.addEventListener('assistant:focus', handleHeaderFocus as EventListener);
+    window.addEventListener('assistant:submit', handleHeaderSubmit as EventListener);
+    
+    return () => {
+      window.removeEventListener('assistant:focus', handleHeaderFocus as EventListener);
+      window.removeEventListener('assistant:submit', handleHeaderSubmit as EventListener);
+    };
+  }, []);
 
   // Frases divertidas do assistente IA
   const phrases = [

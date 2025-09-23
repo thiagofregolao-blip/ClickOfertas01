@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocation, Link } from "wouter";
 import { Search, X, BarChart3, User, Settings, ShoppingCart, LogOut } from "lucide-react";
-import AssistantBarInline from "@/components/AssistantBarInline";
+import AssistantBar from "@/components/AssistantBar";
 
 interface Category {
   id: string;
@@ -127,6 +127,11 @@ export default function StandardHeader() {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
+    
+    // Disparar evento para o AssistantBar escutar
+    window.dispatchEvent(new CustomEvent('assistant:focus', { 
+      detail: { source: 'header', query: searchInput } 
+    }));
   };
 
   // Retomar animação quando desfoca
@@ -170,22 +175,22 @@ export default function StandardHeader() {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      // Verifica se o assistente está ativo antes de fazer busca normal
-      const form = e.currentTarget.closest('form');
-      if (form?.dataset.assistantActive) {
-        return; // Deixa o assistente lidar com o Enter
-      }
-      handleSearch();
+      e.preventDefault();
+      
+      // Disparar evento para o AssistantBar processar
+      window.dispatchEvent(new CustomEvent('assistant:submit', { 
+        detail: { source: 'header', query: searchInput.trim() } 
+      }));
     }
   };
 
 
   return (
     <>
-    {/* Componente inline do assistente */}
-    <AssistantBarInline />
+    {/* Componente completo do assistente */}
+    <AssistantBar />
     
     <div className="sticky top-0 z-50" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
       {/* Desktop: Layout original */}
@@ -220,11 +225,10 @@ export default function StandardHeader() {
             className="flex-1 max-w-4xl relative" 
             onSubmit={(e) => { 
               e.preventDefault(); 
-              // Verifica se o assistente está ativo antes de fazer busca normal
-              if (e.currentTarget.dataset.assistantActive) {
-                return; // Deixa o assistente lidar com o submit
-              }
-              handleSearch(); 
+              // Disparar evento para o AssistantBar processar
+              window.dispatchEvent(new CustomEvent('assistant:submit', { 
+                detail: { source: 'header', query: searchInput.trim() } 
+              }));
             }}
             data-anchor="search-form"
           >
@@ -250,13 +254,18 @@ export default function StandardHeader() {
                 onChange={(e) => setSearchInput(e.target.value)}
                 onFocus={handleFocus}
                 onBlur={handleBlur}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
                 placeholder={isSearchFocused || searchInput ? "Converse com o Click (ex.: iPhone 15 em CDE)" : (displayText || "TESTE FORCADO!")}
                 className="flex-1 outline-none border-0 bg-transparent text-base shadow-none focus:ring-0 focus-visible:ring-0"
                 data-testid="search-input"
               />
               <button 
-                type="submit"
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('assistant:submit', { 
+                    detail: { source: 'header', query: searchInput.trim() } 
+                  }));
+                }}
                 className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" 
                 data-testid="button-search-submit"
               >
