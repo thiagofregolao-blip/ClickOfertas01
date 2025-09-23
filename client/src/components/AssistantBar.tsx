@@ -141,6 +141,9 @@ export default function AssistantBar() {
     const t = query.trim();
     if (!t || !sessionId) return;
     
+    // Buscar produtos antes de mostrar overlay
+    fetchSuggest(t);
+    
     // Mostrar mensagem do usuário
     setChatMessages(prev => [...prev, { type: 'user', text: t }]);
     
