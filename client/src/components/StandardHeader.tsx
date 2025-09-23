@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useLocation, Link } from "wouter";
 import { Search, X, BarChart3, User, Settings, ShoppingCart, LogOut } from "lucide-react";
 import AssistantBar from "@/components/AssistantBar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Category {
   id: string;
@@ -51,6 +52,7 @@ export default function StandardHeader() {
   const [searchInput, setSearchInput] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const isMobile = useIsMobile();
   
 
   // Buscar categorias do backend
@@ -193,10 +195,9 @@ export default function StandardHeader() {
     <AssistantBar />
     
     <div className="sticky top-0 z-50" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
-      {/* Desktop: Layout original */}
-      <div className={`py-4 px-2 ml-[5%]`}>
-        {/* Logo e Barra de Busca - PRIMEIRO */}
-        <div className="flex items-center gap-4 mb-2">
+      <div className={`py-4 px-2 ${isMobile ? 'px-4' : 'ml-[5%]'}`}>
+        {/* Primeira linha: Logo e Botão Comparar */}
+        <div className={`flex items-center gap-4 ${isMobile ? 'justify-between mb-3' : 'mb-2'}`}>
           {/* Título */}
           <div className="flex items-center gap-1 flex-shrink-0">
             <span className="text-white font-bold text-2xl tracking-normal" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: '700'}}>Click</span>
@@ -210,87 +211,138 @@ export default function StandardHeader() {
           <Link href="/price-comparison">
             <Button
               variant="outline"
-              size="sm"
+              size={isMobile ? "sm" : "sm"}
               className="border-2 text-black font-semibold hover:opacity-90 backdrop-blur-sm"
               style={{ backgroundColor: '#FFE600', borderColor: '#FFE600' }}
               data-testid="button-price-comparison"
             >
               <BarChart3 className="w-4 h-4 mr-2" />
-              Comparar Preços
+              {isMobile ? "Comparar" : "Comparar Preços"}
             </Button>
           </Link>
           
-          {/* Barra de Busca com Click Assistant Integrado */}
-          <form 
-            className="flex-1 max-w-4xl relative" 
-            onSubmit={(e) => { 
-              e.preventDefault(); 
-              // Disparar evento para o AssistantBar processar
-              window.dispatchEvent(new CustomEvent('assistant:submit', { 
-                detail: { source: 'header', query: searchInput.trim() } 
-              }));
-            }}
-            data-anchor="search-form"
-          >
-            <div className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
-              {/* Robozinho Animado */}
-              <div className={`w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs relative overflow-hidden ${robotAnimation}`}>
-                <div className="relative">
-                  {/* Corpo do robô */}
-                  <div className="w-5 h-5 bg-white rounded-sm relative">
-                    {/* Olhinhos */}
-                    <div className="absolute top-1 left-1 w-1 h-1 bg-indigo-600 rounded-full animate-pulse"></div>
-                    <div className="absolute top-1 right-1 w-1 h-1 bg-indigo-600 rounded-full animate-pulse"></div>
-                    {/* Boquinha */}
-                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-0.5 bg-indigo-400 rounded-full"></div>
-                    {/* Anteninhas */}
-                    <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-0.5 h-1 bg-yellow-400"></div>
-                    <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-yellow-400 rounded-full animate-ping"></div>
+          {/* Sino de notificações - Apenas Desktop */}
+          {!isMobile && (
+            <button
+              className="bg-white/90 backdrop-blur-sm text-gray-600 hover:text-orange-500 p-2 rounded-lg shadow-sm transition-colors relative"
+              title="Notificações"
+              data-testid="button-notifications-desktop"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+              </svg>
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                3
+              </span>
+            </button>
+          )}
+        </div>
+        
+        {/* Segunda linha: Barra de Busca (Mobile abaixo, Desktop na linha anterior) */}
+        {isMobile && (
+          <div className="mb-2">
+            <form 
+              className="w-full relative" 
+              onSubmit={(e) => { 
+                e.preventDefault(); 
+                window.dispatchEvent(new CustomEvent('assistant:submit', { 
+                  detail: { source: 'header', query: searchInput.trim() } 
+                }));
+              }}
+              data-anchor="search-form"
+            >
+              <div className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
+                {/* Robozinho Animado */}
+                <div className={`w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs relative overflow-hidden ${robotAnimation}`}>
+                  <div className="relative">
+                    <div className="w-5 h-5 bg-white rounded-sm relative">
+                      <div className="absolute top-1 left-1 w-1 h-1 bg-indigo-600 rounded-full animate-pulse"></div>
+                      <div className="absolute top-1 right-1 w-1 h-1 bg-indigo-600 rounded-full animate-pulse"></div>
+                      <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-0.5 bg-indigo-400 rounded-full"></div>
+                      <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-0.5 h-1 bg-yellow-400"></div>
+                      <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-yellow-400 rounded-full animate-ping"></div>
+                    </div>
                   </div>
                 </div>
+                <Input
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onFocus={handleFocus}
+                  onBlur={handleBlur}
+                  onKeyDown={handleKeyDown}
+                  placeholder={isSearchFocused || searchInput ? "Converse com o Click" : (displayText || "TESTE FORCADO!")}
+                  className="flex-1 outline-none border-0 bg-transparent text-base shadow-none focus:ring-0 focus-visible:ring-0"
+                  data-testid="search-input"
+                />
+                <button 
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('assistant:submit', { 
+                      detail: { source: 'header', query: searchInput.trim() } 
+                    }));
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" 
+                  data-testid="button-search-submit"
+                >
+                  Enviar
+                </button>
               </div>
-              <Input
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
-                onKeyDown={handleKeyDown}
-                placeholder={isSearchFocused || searchInput ? "Converse com o Click (ex.: iPhone 15 em CDE)" : (displayText || "TESTE FORCADO!")}
-                className="flex-1 outline-none border-0 bg-transparent text-base shadow-none focus:ring-0 focus-visible:ring-0"
-                data-testid="search-input"
-              />
-              <button 
-                type="button"
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent('assistant:submit', { 
-                    detail: { source: 'header', query: searchInput.trim() } 
-                  }));
-                }}
-                className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" 
-                data-testid="button-search-submit"
-              >
-                Enviar
-              </button>
-            </div>
-          </form>
-          
-
-          {/* Sino de notificações - Desktop */}
-          <button
-            className="bg-white/90 backdrop-blur-sm text-gray-600 hover:text-orange-500 p-2 rounded-lg shadow-sm transition-colors relative"
-            title="Notificações"
-            data-testid="button-notifications-desktop"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-            </svg>
-            {/* Badge de notificação */}
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              3
-            </span>
-          </button>
-        </div>
+            </form>
+          </div>
+        )}
+        
+        {/* Desktop: Barra na primeira linha */}
+        {!isMobile && (
+          <div className="flex items-center gap-4 mb-2">
+            <form 
+              className="flex-1 max-w-4xl relative" 
+              onSubmit={(e) => { 
+                e.preventDefault(); 
+                window.dispatchEvent(new CustomEvent('assistant:submit', { 
+                  detail: { source: 'header', query: searchInput.trim() } 
+                }));
+              }}
+              data-anchor="search-form"
+            >
+              <div className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
+                <div className={`w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs relative overflow-hidden ${robotAnimation}`}>
+                  <div className="relative">
+                    <div className="w-5 h-5 bg-white rounded-sm relative">
+                      <div className="absolute top-1 left-1 w-1 h-1 bg-indigo-600 rounded-full animate-pulse"></div>
+                      <div className="absolute top-1 right-1 w-1 h-1 bg-indigo-600 rounded-full animate-pulse"></div>
+                      <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-0.5 bg-indigo-400 rounded-full"></div>
+                      <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-0.5 h-1 bg-yellow-400"></div>
+                      <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-yellow-400 rounded-full animate-ping"></div>
+                    </div>
+                  </div>
+                </div>
+                <Input
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onFocus={handleFocus}
+                  onBlur={handleBlur}
+                  onKeyDown={handleKeyDown}
+                  placeholder={isSearchFocused || searchInput ? "Converse com o Click (ex.: iPhone 15 em CDE)" : (displayText || "TESTE FORCADO!")}
+                  className="flex-1 outline-none border-0 bg-transparent text-base shadow-none focus:ring-0 focus-visible:ring-0"
+                  data-testid="search-input"
+                />
+                <button 
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('assistant:submit', { 
+                      detail: { source: 'header', query: searchInput.trim() } 
+                    }));
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" 
+                  data-testid="button-search-submit"
+                >
+                  Enviar
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         {/* Menu de Navegação - SEGUNDO */}
         <div className="flex items-center justify-start gap-3 -ml-2">
