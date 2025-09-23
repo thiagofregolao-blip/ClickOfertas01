@@ -134,60 +134,44 @@ export default function StandardHeader() {
     setIsSearchFocused(false);
   };
 
-  // Efeito principal que gerencia as animações
+  // Sistema super simplificado
   useEffect(() => {
-    // Parar animações se focado ou com texto
+    // Não fazer nada se focado ou digitando
     if (isSearchFocused || searchInput.trim()) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-      if (typewriterRef.current) {
-        clearTimeout(typewriterRef.current);
-        typewriterRef.current = null;
-      }
       return;
     }
 
-    // Só continuar se temos frases
-    if (phrases.length === 0) return;
+    // Não fazer nada se não há frases
+    if (!phrases || phrases.length === 0) return;
 
     // Limpar interval anterior
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
 
-    // Iniciar primeira frase imediatamente se não há texto atual
-    if (!currentText) {
-      const firstText = phrases[0];
-      setCurrentText(firstText);
-      typeText(firstText);
-      setPhraseIndex(0);
-    }
+    // Primeira execução imediata
+    let currentIndex = 0;
+    setCurrentText(phrases[currentIndex]);
+    typeText(phrases[currentIndex]);
 
-    // Configurar rotação
+    // Configurar interval
     intervalRef.current = setInterval(() => {
-      setPhraseIndex(prev => {
-        const nextIndex = (prev + 1) % phrases.length;
-        const nextText = phrases[nextIndex];
-        setCurrentText(nextText);
-        typeText(nextText);
-        return nextIndex;
-      });
+      currentIndex = (currentIndex + 1) % phrases.length;
+      setCurrentText(phrases[currentIndex]);
+      typeText(phrases[currentIndex]);
     }, 4000);
 
-    // Cleanup
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-      if (typewriterRef.current) {
-        clearTimeout(typewriterRef.current);
-        typewriterRef.current = null;
-      }
     };
-  }, [phrases, isSearchFocused, searchInput, currentText]);
+  }, [phrases, isSearchFocused, searchInput]);
 
   const handleCategoryFilter = (categorySlug: string | null) => {
     setSelectedCategory(categorySlug);
