@@ -1,0 +1,37 @@
+🔍 Produtos encontrados: 60 (60) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 3 feed: 57
+AssistantBar.tsx:117 🔍 Produtos encontrados: 10 (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 3 feed: 7
+AssistantBar.tsx:117 🔍 Produtos encontrados: 7 (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 3 feed: 4
+AssistantBar.tsx:117 🔍 Produtos encontrados: 7 (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 3 feed: 4
+AssistantBar.tsx:117 🔍 Produtos encontrados: 7 (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 3 feed: 4
+AssistantBar.tsx:117 🔍 Produtos encontrados: 7 (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 3 feed: 4
+AssistantBar.tsx:117 🔍 Produtos encontrados: 7 (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 3 feed: 4
+AssistantBar.tsx:117 🔍 Produtos encontrados: 7 (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 3 feed: 4
+AssistantBar.tsx:117 🔍 Produtos encontrados: 0 []
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 0 feed: 0
+AssistantBar.tsx:117 🔍 Produtos encontrados: 7 (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 3 feed: 4
+AssistantBar.tsx:117 🔍 Produtos encontrados: 7 (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 3 feed: 4
+AssistantBar.tsx:117 🔍 Produtos encontrados: 2 (2) [{…}, {…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 2 feed: 0
+AssistantBar.tsx:117 🔍 Produtos encontrados: 7 (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 3 feed: 4
+AssistantBar.tsx:117 🔍 Produtos encontrados: 2 (2) [{…}, {…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 2 feed: 0
+AssistantBar.tsx:117 🔍 Produtos encontrados: 1 [{…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 1 feed: 0
+AssistantBar.tsx:117 🔍 Produtos encontrados: 1 [{…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 1 feed: 0
+AssistantBar.tsx:117 🔍 Produtos encontrados: 1 [{…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 1 feed: 0
+AssistantBar.tsx:117 🔍 Produtos encontrados: 1 [{…}]
+AssistantBar.tsx:122 📦 Estado atualizado - topBox: 1 feed: 0
+queryClient.ts:44  GET https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/api/auth/user 401 (Unauthorized)
