@@ -69,7 +69,7 @@ export default function StandardHeader() {
   const [phraseIndex, setPhraseIndex] = useState(0);
 
   // Buscar frases engraçadas da IA
-  const { data: aiPhrases, isLoading: phrasesLoading, error: phrasesError } = useQuery({
+  const { data: aiPhrases, isLoading: phrasesLoading, error: phrasesError } = useQuery<{phrases: string[], context: string}>({
     queryKey: ['/api/assistant/funny-phrases'],
     staleTime: 10 * 60 * 1000, // 10 minutos
     refetchInterval: 5 * 60 * 1000, // Atualizar a cada 5 minutos
