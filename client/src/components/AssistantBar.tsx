@@ -30,11 +30,9 @@ export default function AssistantBar() {
   const pendingSearchRef = useRef('');
 
   // Estados para animações da barra de busca
-  const [displayText, setDisplayText] = useState('');
+  const [displayText, setDisplayText] = useState('Bora caçar uns preços, meu rei?');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
-  const typewriterRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const animationRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Frases engraçadas fixas (mesmo estilo do outro componente)
   const phrases = [
@@ -93,102 +91,25 @@ export default function AssistantBar() {
     })();
   }, [uid, userName]);
 
-  // Typewriter effect com efeito de apagar
-  const typeText = (text: string, onComplete?: () => void) => {
-    // Limpar timeout anterior
-    if (typewriterRef.current) {
-      clearTimeout(typewriterRef.current);
-      typewriterRef.current = null;
-    }
-    
-    // Resetar o texto
-    setDisplayText('');
-    
-    let index = 0;
-    
-    const typeChar = () => {
-      if (index <= text.length) {
-        setDisplayText(text.substring(0, index));
-        index++;
-        typewriterRef.current = setTimeout(typeChar, 80);
-      } else if (onComplete) {
-        // Pausar um pouco antes de executar onComplete
-        typewriterRef.current = setTimeout(onComplete, 1500);
-      }
-    };
-    
-    // Começar digitação após um breve delay
-    typewriterRef.current = setTimeout(typeChar, 100);
-  };
-
-  // Efeito de apagar texto
-  const eraseText = (onComplete?: () => void) => {
-    const currentText = displayText;
-    let index = currentText.length;
-    
-    const eraseChar = () => {
-      if (index >= 0) {
-        setDisplayText(currentText.substring(0, index));
-        index--;
-        typewriterRef.current = setTimeout(eraseChar, 50);
-      } else if (onComplete) {
-        typewriterRef.current = setTimeout(onComplete, 200);
-      }
-    };
-    
-    typewriterRef.current = setTimeout(eraseChar, 100);
-  };
-
-  // Controle de animação principal com ciclo completo
+  // Animação simples: trocar frases a cada 3 segundos
   useEffect(() => {
     // Se focado ou com texto, parar animação
     if (isSearchFocused || query.trim()) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      if (typewriterRef.current) {
-        clearTimeout(typewriterRef.current);
-        typewriterRef.current = null;
-      }
       return;
     }
 
-    // Só iniciar se tivermos frases
-    if (phrases.length === 0) return;
-
     let phraseIndex = 0;
     
-    // Função para animar uma frase completa (digitar → pausar → apagar → próxima)
-    const animatePhrase = () => {
-      const currentPhrase = phrases[phraseIndex];
-      
-      // Digitar a frase atual
-      typeText(currentPhrase, () => {
-        // Após digitar, aguardar e então apagar
-        eraseText(() => {
-          // Após apagar, ir para próxima frase
-          phraseIndex = (phraseIndex + 1) % phrases.length;
-          // Aguardar um pouco antes da próxima frase
-          typewriterRef.current = setTimeout(animatePhrase, 300);
-        });
-      });
-    };
-
-    // Iniciar o ciclo
-    animatePhrase();
+    // Trocar frase a cada 3 segundos
+    const interval = setInterval(() => {
+      phraseIndex = (phraseIndex + 1) % phrases.length;
+      setDisplayText(phrases[phraseIndex]);
+    }, 3000);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      if (typewriterRef.current) {
-        clearTimeout(typewriterRef.current);
-        typewriterRef.current = null;
-      }
+      clearInterval(interval);
     };
-  }, [isSearchFocused, query, phrases.length]);
+  }, [isSearchFocused, query]);
 
   // Gerenciar classes CSS do body quando showResults está ativo
   useEffect(() => {
