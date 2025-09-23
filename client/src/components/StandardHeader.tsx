@@ -134,44 +134,25 @@ export default function StandardHeader() {
     setIsSearchFocused(false);
   };
 
-  // Sistema super simplificado
+  // Teste básico forçado - sempre rodar
   useEffect(() => {
-    // Não fazer nada se focado ou digitando
-    if (isSearchFocused || searchInput.trim()) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+    // Forçar primeira frase imediatamente 
+    setCurrentText("Teste de animação funcionando!");
+    setDisplayText("");
+    
+    let i = 0;
+    const testText = "Teste de animação funcionando!";
+    const typeInterval = setInterval(() => {
+      if (i < testText.length) {
+        setDisplayText(testText.slice(0, i + 1));
+        i++;
+      } else {
+        clearInterval(typeInterval);
       }
-      return;
-    }
-
-    // Não fazer nada se não há frases
-    if (!phrases || phrases.length === 0) return;
-
-    // Limpar interval anterior
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-
-    // Primeira execução imediata
-    let currentIndex = 0;
-    setCurrentText(phrases[currentIndex]);
-    typeText(phrases[currentIndex]);
-
-    // Configurar interval
-    intervalRef.current = setInterval(() => {
-      currentIndex = (currentIndex + 1) % phrases.length;
-      setCurrentText(phrases[currentIndex]);
-      typeText(phrases[currentIndex]);
-    }, 4000);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [phrases, isSearchFocused, searchInput]);
+    }, 50);
+    
+    return () => clearInterval(typeInterval);
+  }, []); // Executa apenas uma vez
 
   const handleCategoryFilter = (categorySlug: string | null) => {
     setSelectedCategory(categorySlug);
