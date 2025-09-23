@@ -114,8 +114,12 @@ export default function AssistantBar() {
       const d = await r.json();
       const prods = d?.products || [];
       
+      console.log('🔍 Produtos encontrados:', prods.length, prods);
+      
       setTopBox(prods.slice(0, 3));
       setFeed(prods.slice(3));
+      
+      console.log('📦 Estado atualizado - topBox:', prods.slice(0, 3).length, 'feed:', prods.slice(3).length);
       
       // Acessórios simples baseados na categoria
       const cat = (prods[0]?.category || '').toLowerCase();
@@ -441,7 +445,7 @@ export default function AssistantBar() {
               <div className="p-4">
                 <div className="text-sm font-semibold mb-3">Resultados da Pesquisa</div>
                 {feed.length === 0 ? (
-                  <div className="text-sm text-gray-500">Nada encontrado…</div>
+                  <div className="text-sm text-gray-500">Nada encontrado… (feed: {feed.length})</div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {feed.map(p => (
