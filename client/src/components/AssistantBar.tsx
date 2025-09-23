@@ -625,7 +625,7 @@ export default function AssistantBar() {
             className="flex-1 outline-none text-base"
             data-testid="search-input"
           />
-          <button className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" type="submit">Enviar</button>
+          <button className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" type="submit">Click</button>
         </form>
 
         {/* DROPDOWN ancorado (apenas Chat + 3 recomendados) */}
