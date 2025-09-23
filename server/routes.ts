@@ -7036,7 +7036,13 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
             category,
             imageUrl: p.imageUrl || null,
             price: { USD: Number.isFinite(priceRaw) && priceRaw > 0 ? priceRaw : undefined },
-            score: 0
+            score: 0,
+            storeId: s.id,
+            storeName: s.name,
+            storeLogoUrl: s.logoUrl,
+            storeSlug: s.slug,
+            storeThemeColor: s.themeColor,
+            storePremium: s.isPremium
           });
         }
       }
