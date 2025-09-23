@@ -677,9 +677,22 @@ export default function AssistantBar() {
                     <div className="grid gap-3">
                       {topBox.map(p => (
                         <button key={p.id} onClick={() => goProduct(p)} className="text-left p-3 rounded-xl border hover:shadow-sm transition" data-testid={`card-product-${p.id}`}>
-                          <div className="font-medium truncate mb-1">{p.title}</div>
-                          <div className="text-xs text-gray-500 mb-2">{p.category || '—'}</div>
-                          <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                          <div className="flex items-start gap-2 mb-2">
+                            {/* Logo da loja */}
+                            <div className="w-6 h-6 flex-shrink-0">
+                              <LazyImage
+                                src={p.storeLogoUrl || '/api/placeholder/24/24'}
+                                alt={p.storeName || 'Loja'}
+                                className="w-full h-full object-contain bg-gray-50 rounded border"
+                                placeholder="🏪"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium truncate mb-1">{p.title}</div>
+                              <div className="text-xs text-gray-500 mb-1">{p.storeName || p.category || '—'}</div>
+                              <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                            </div>
+                          </div>
                         </button>
                       ))}
                     </div>
@@ -791,7 +804,18 @@ export default function AssistantBar() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="font-medium truncate mb-1">{p.title}</div>
-                            <div className="text-xs text-gray-500 mb-1">{p.category || '—'}</div>
+                            <div className="flex items-center gap-2 mb-1">
+                              {/* Logo da loja */}
+                              <div className="w-4 h-4 flex-shrink-0">
+                                <LazyImage
+                                  src={p.storeLogoUrl || '/api/placeholder/16/16'}
+                                  alt={p.storeName || 'Loja'}
+                                  className="w-full h-full object-contain bg-gray-50 rounded"
+                                  placeholder="🏪"
+                                />
+                              </div>
+                              <span className="text-xs text-gray-600 truncate">{p.storeName || p.category || '—'}</span>
+                            </div>
                             <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
                           </div>
                         </div>
@@ -819,7 +843,18 @@ export default function AssistantBar() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="font-medium truncate mb-1">{p.title}</div>
-                            <div className="text-xs text-gray-500 mb-1">{p.category || '—'}</div>
+                            <div className="flex items-center gap-2 mb-1">
+                              {/* Logo da loja */}
+                              <div className="w-4 h-4 flex-shrink-0">
+                                <LazyImage
+                                  src={p.storeLogoUrl || '/api/placeholder/16/16'}
+                                  alt={p.storeName || 'Loja'}
+                                  className="w-full h-full object-contain bg-gray-50 rounded"
+                                  placeholder="🏪"
+                                />
+                              </div>
+                              <span className="text-xs text-gray-600 truncate">{p.storeName || p.category || '—'}</span>
+                            </div>
                             <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
                           </div>
                         </div>
