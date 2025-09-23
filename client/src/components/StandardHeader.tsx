@@ -251,7 +251,7 @@ export default function StandardHeader() {
                 onFocus={handleFocus}
                 onBlur={handleBlur}
                 onKeyPress={handleKeyPress}
-                placeholder={isSearchFocused || searchInput ? "Converse com o Click (ex.: iPhone 15 em CDE)" : (displayText || currentText || "Carregando frases...")}
+                placeholder={isSearchFocused || searchInput ? "Converse com o Click (ex.: iPhone 15 em CDE)" : (displayText || "TESTE FORCADO!")}
                 className="flex-1 outline-none border-0 bg-transparent text-base shadow-none focus:ring-0 focus-visible:ring-0"
                 data-testid="search-input"
               />
