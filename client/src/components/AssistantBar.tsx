@@ -145,6 +145,37 @@ export default function AssistantBar() {
     }
   };
 
+  // Detectar produtos mencionados e atualizar busca
+  const detectAndSearchProducts = (text: string) => {
+    const keywords = ['iphone', 'samsung', 'xiaomi', 'motorola', 'lg', 'huawei', 'apple', 'phone', 'celular', 
+                     'mouse', 'teclado', 'headset', 'fone', 'notebook', 'laptop', 'tablet', 'smartwatch', 
+                     'logitech', 'razer', 'hyperx', 'corsair', 'dell', 'hp', 'lenovo', 'asus', 'acer'];
+    
+    const lowerText = text.toLowerCase();
+    const foundKeyword = keywords.find(keyword => lowerText.includes(keyword));
+    
+    if (foundKeyword) {
+      // Extrair termo mais específico se possível
+      const words = lowerText.split(/\s+/);
+      const keywordIndex = words.findIndex(word => word.includes(foundKeyword));
+      
+      let searchTerm = foundKeyword;
+      
+      // Tentar capturar modelo específico (ex: "iPhone 15", "Galaxy S24")
+      if (keywordIndex !== -1 && keywordIndex < words.length - 1) {
+        const nextWord = words[keywordIndex + 1];
+        if (/^[0-9]+[a-z]*$/i.test(nextWord)) {
+          searchTerm = `${foundKeyword} ${nextWord}`;
+        }
+      }
+      
+      // Atualizar busca se for diferente da atual
+      if (searchTerm !== query.toLowerCase().trim()) {
+        fetchSuggest(searchTerm);
+      }
+    }
+  };
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const t = query.trim();
@@ -220,6 +251,9 @@ export default function AssistantBar() {
               // Adicionar mensagem completa do assistente ao chat
               setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage }]);
               setStreaming('');
+              
+              // Detectar produtos e atualizar busca
+              detectAndSearchProducts(assistantMessage);
               return;
             }
           } catch {
