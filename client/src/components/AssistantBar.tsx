@@ -93,8 +93,8 @@ export default function AssistantBar() {
     })();
   }, [uid, userName]);
 
-  // Typewriter effect corrigido
-  const typeText = (text: string) => {
+  // Typewriter effect com efeito de apagar
+  const typeText = (text: string, onComplete?: () => void) => {
     // Limpar timeout anterior
     if (typewriterRef.current) {
       clearTimeout(typewriterRef.current);
@@ -111,6 +111,9 @@ export default function AssistantBar() {
         setDisplayText(text.substring(0, index));
         index++;
         typewriterRef.current = setTimeout(typeChar, 80);
+      } else if (onComplete) {
+        // Pausar um pouco antes de executar onComplete
+        typewriterRef.current = setTimeout(onComplete, 1500);
       }
     };
     
@@ -118,7 +121,25 @@ export default function AssistantBar() {
     typewriterRef.current = setTimeout(typeChar, 100);
   };
 
-  // Controle de animação principal
+  // Efeito de apagar texto
+  const eraseText = (onComplete?: () => void) => {
+    const currentText = displayText;
+    let index = currentText.length;
+    
+    const eraseChar = () => {
+      if (index >= 0) {
+        setDisplayText(currentText.substring(0, index));
+        index--;
+        typewriterRef.current = setTimeout(eraseChar, 50);
+      } else if (onComplete) {
+        typewriterRef.current = setTimeout(onComplete, 200);
+      }
+    };
+    
+    typewriterRef.current = setTimeout(eraseChar, 100);
+  };
+
+  // Controle de animação principal com ciclo completo
   useEffect(() => {
     // Se focado ou com texto, parar animação
     if (isSearchFocused || query.trim()) {
@@ -136,15 +157,26 @@ export default function AssistantBar() {
     // Só iniciar se tivermos frases
     if (phrases.length === 0) return;
 
-    // Primeira frase imediatamente
-    typeText(phrases[0]);
-    
-    // Rotação de frases
     let phraseIndex = 0;
-    intervalRef.current = setInterval(() => {
-      phraseIndex = (phraseIndex + 1) % phrases.length;
-      typeText(phrases[phraseIndex]);
-    }, 4000);
+    
+    // Função para animar uma frase completa (digitar → pausar → apagar → próxima)
+    const animatePhrase = () => {
+      const currentPhrase = phrases[phraseIndex];
+      
+      // Digitar a frase atual
+      typeText(currentPhrase, () => {
+        // Após digitar, aguardar e então apagar
+        eraseText(() => {
+          // Após apagar, ir para próxima frase
+          phraseIndex = (phraseIndex + 1) % phrases.length;
+          // Aguardar um pouco antes da próxima frase
+          typewriterRef.current = setTimeout(animatePhrase, 300);
+        });
+      });
+    };
+
+    // Iniciar o ciclo
+    animatePhrase();
 
     return () => {
       if (intervalRef.current) {
