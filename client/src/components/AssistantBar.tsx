@@ -110,7 +110,6 @@ export default function AssistantBar() {
   };
 
   const fetchSuggest = async (term: string) => {
-    console.log('🚀 fetchSuggest chamado com:', term);
     setLoadingSug(true);
     try {
       let r = await fetch(`/suggest?q=${encodeURIComponent(term)}`);
@@ -118,12 +117,14 @@ export default function AssistantBar() {
       const d = await r.json();
       const prods = d?.products || [];
       
-      console.log('📦 Produtos recebidos:', prods.length, prods.slice(0, 2));
-      
-      setTopBox(prods.slice(0, 3));
-      setFeed(prods.slice(3));
-      
-      console.log('✅ Estado setado - feed:', prods.slice(3).length);
+      // Se poucos produtos, mostrar todos no feed; se muitos, dividir
+      if (prods.length <= 6) {
+        setTopBox([]);
+        setFeed(prods);
+      } else {
+        setTopBox(prods.slice(0, 3));
+        setFeed(prods.slice(3));
+      }
       
       // Acessórios simples baseados na categoria
       const cat = (prods[0]?.category || '').toLowerCase();
@@ -448,7 +449,6 @@ export default function AssistantBar() {
               {/* Resultados principais */}
               <div className="p-4">
                 <div className="text-sm font-semibold mb-3">Resultados da Pesquisa</div>
-                <div className="text-xs text-blue-500 mb-2">Debug: feed.length = {feed.length}</div>
                 {feed.length === 0 ? (
                   <div className="text-sm text-gray-500">Nada encontrado…</div>
                 ) : (

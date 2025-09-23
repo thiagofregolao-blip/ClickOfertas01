@@ -1,0 +1,41 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+api/daily-scratch/cards:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+e5fea86c-173c-483a-80f2-97e64309e064:1 Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+e5fea86c-173c-483a-80f2-97e64309e064:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+AssistantBar.tsx:113 🚀 fetchSuggest chamado com: l
+AssistantBar.tsx:113 🚀 fetchSuggest chamado com: lo
+AssistantBar.tsx:113 🚀 fetchSuggest chamado com: log
+AssistantBar.tsx:113 🚀 fetchSuggest chamado com: logi
+AssistantBar.tsx:121 📦 Produtos recebidos: 60 (2) [{…}, {…}]
+AssistantBar.tsx:126 ✅ Estado setado - feed: 57
+AssistantBar.tsx:113 🚀 fetchSuggest chamado com: logic
+AssistantBar.tsx:121 📦 Produtos recebidos: 9 (2) [{…}, {…}]
+AssistantBar.tsx:126 ✅ Estado setado - feed: 6
+AssistantBar.tsx:121 📦 Produtos recebidos: 3 (2) [{…}, {…}]
+AssistantBar.tsx:126 ✅ Estado setado - feed: 0
+AssistantBar.tsx:121 📦 Produtos recebidos: 3 (2) [{…}, {…}]
+AssistantBar.tsx:126 ✅ Estado setado - feed: 0
+AssistantBar.tsx:113 🚀 fetchSuggest chamado com: logi
+AssistantBar.tsx:121 📦 Produtos recebidos: 0 []
+AssistantBar.tsx:126 ✅ Estado setado - feed: 0
+AssistantBar.tsx:113 🚀 fetchSuggest chamado com: logit
+AssistantBar.tsx:113 🚀 fetchSuggest chamado com: logite
+AssistantBar.tsx:121 📦 Produtos recebidos: 3 (2) [{…}, {…}]
+AssistantBar.tsx:126 ✅ Estado setado - feed: 0
+AssistantBar.tsx:113 🚀 fetchSuggest chamado com: logitec
+AssistantBar.tsx:121 📦 Produtos recebidos: 3 (2) [{…}, {…}]
+AssistantBar.tsx:126 ✅ Estado setado - feed: 0
+AssistantBar.tsx:113 🚀 fetchSuggest chamado com: logitech
+AssistantBar.tsx:121 📦 Produtos recebidos: 3 (2) [{…}, {…}]
+AssistantBar.tsx:126 ✅ Estado setado - feed: 0
+AssistantBar.tsx:121 📦 Produtos recebidos: 3 (2) [{…}, {…}]
+AssistantBar.tsx:126 ✅ Estado setado - feed: 0
+AssistantBar.tsx:121 📦 Produtos recebidos: 3 (2) [{…}, {…}]
+AssistantBar.tsx:126 ✅ Estado setado - feed: 0
+AssistantBar.tsx:113 🚀 fetchSuggest chamado com: logitech
+AssistantBar.tsx:121 📦 Produtos recebidos: 3 (2) [{…}, {…}]
+AssistantBar.tsx:126 ✅ Estado setado - feed: 0
+queryClient.ts:44  GET https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/api/auth/user 401 (Unauthorized)
