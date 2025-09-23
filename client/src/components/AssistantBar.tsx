@@ -251,9 +251,6 @@ export default function AssistantBar() {
               // Adicionar mensagem completa do assistente ao chat
               setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage }]);
               setStreaming('');
-              
-              // Detectar produtos e atualizar busca
-              detectAndSearchProducts(assistantMessage);
               return;
             }
           } catch {
