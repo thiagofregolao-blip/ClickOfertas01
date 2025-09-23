@@ -191,7 +191,7 @@ export default function StandardHeader() {
       {/* Desktop: Layout original */}
       <div className={`py-4 px-2 ml-[5%]`}>
         {/* Logo e Barra de Busca - PRIMEIRO */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-2">
           {/* Título */}
           <div className="flex items-center gap-1 flex-shrink-0">
             <span className="text-white font-bold text-2xl tracking-normal" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: '700'}}>Click</span>
