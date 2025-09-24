@@ -633,7 +633,7 @@ export default function StoresGallery() {
 
       {/* Mobile: Banner rotativo primeiro */}
       {isMobile && !searchQuery.trim() && (
-        <div className="w-full mb-4">
+        <div className="w-full mb-4 mt-6">
           <div className="-mx-4 w-screen">
             <BannerCarouselSwiper 
               banners={banners.filter(banner => banner.bannerType === 'rotating' && banner.isActive)} 
@@ -920,7 +920,7 @@ export default function StoresGallery() {
 
       {/* SEÇÃO DE BANNERS - Desktop apenas */}
       {!searchQuery.trim() && !isMobile && (
-        <div className="bg-white border-b pt-4">
+        <div className="bg-white border-b pt-4 mt-6">
           {/* Banner ocupando toda a largura da tela */}
           <BannerSection isSearchActive={false} />
         </div>
