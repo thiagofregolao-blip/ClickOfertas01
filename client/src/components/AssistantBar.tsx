@@ -23,8 +23,11 @@ export default function AssistantBar() {
   // Auto-flush pendente quando sessão fica disponível 
   useEffect(() => {
     if (sessionId && pendingSearchRef.current && !hasTriggeredSearchRef.current) {
-      const query = pendingSearchRef.current;
-      pendingSearchRef.current = '';
+      const searchTerm = pendingSearchRef.current;
+      const contextualMessage = pendingMessageRef.current;
+      
+      // Limpar apenas pendingMessageRef (pendingSearchRef precisa ficar para startStream usar)
+      pendingMessageRef.current = '';
       hasTriggeredSearchRef.current = false;
       
       // Alinhar estado da UI com onSubmit
@@ -34,11 +37,15 @@ export default function AssistantBar() {
       setTopBox([]);
       setCombina([]);
       
+      // Usar mensagem contextual se disponível, senão usar termo de busca
+      const messageToShow = contextualMessage || searchTerm;
+      const messageToStream = contextualMessage || searchTerm;
+      
       // Adicionar mensagem do usuário
-      setChatMessages(prev => [...prev, { type: 'user', text: query }]);
+      setChatMessages(prev => [...prev, { type: 'user', text: messageToShow }]);
       
       // Enviar para IA
-      startStream(query);
+      startStream(messageToStream);
     }
   }, [sessionId]);
   const [query, setQuery] = useState('');
@@ -59,6 +66,7 @@ export default function AssistantBar() {
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const hasTriggeredSearchRef = useRef(false);
   const pendingSearchRef = useRef('');
+  const pendingMessageRef = useRef(''); // Para armazenar mensagem contextual quando sessão não está pronta
   const [headerTriggered, setHeaderTriggered] = useState(false);
   const sessionIdRef = useRef('');
   const lastHeaderQueryRef = useRef('');
@@ -392,29 +400,50 @@ export default function AssistantBar() {
     // fetchSuggest será chamado apenas no submit ou quando o assistant sinalizar
   };
   
-  // Função para quando clicar numa sugestão
-  const onSuggestionClick = (suggestion: string) => {
-    setQuery(suggestion);
-    setShowSuggestions(false);
+  // Função para gerar mensagens contextuais inteligentes baseadas no produto
+  const generateContextualMessage = (suggestion: string) => {
+    const lowerSuggestion = suggestion.toLowerCase();
     
-    // Auto-submit da sugestão - verificar se sessionId está pronto
-    if (sessionId) {
-      // Session pronta - submit direto
-      setTimeout(() => {
-        onSubmit({ preventDefault: () => {}, target: { reset: () => {} } } as any);
-      }, 100);
+    if (lowerSuggestion.includes('iphone')) {
+      return `Estou interessado no ${suggestion}. Pode me mostrar as melhores opções disponíveis e preços?`;
+    } else if (lowerSuggestion.includes('samsung')) {
+      return `Quero ver opções do ${suggestion}. Quais são as melhores ofertas disponíveis?`;
+    } else if (lowerSuggestion.includes('notebook') || lowerSuggestion.includes('laptop')) {
+      return `Preciso de informações sobre ${suggestion}. Pode me ajudar com especificações e preços?`;
+    } else if (lowerSuggestion.includes('mouse') || lowerSuggestion.includes('teclado') || lowerSuggestion.includes('headset')) {
+      return `Estou procurando ${suggestion}. Quais são as melhores opções para games e trabalho?`;
+    } else if (lowerSuggestion.includes('perfume') || lowerSuggestion.includes('cosmético')) {
+      return `Quero comprar ${suggestion}. Pode me mostrar as marcas e fragrâncias disponíveis?`;
+    } else if (lowerSuggestion.includes('cabo') || lowerSuggestion.includes('carregador') || lowerSuggestion.includes('fone')) {
+      return `Preciso de ${suggestion}. Quais são as melhores opções de qualidade e preço?`;
     } else {
-      // Session não pronta - usar mesma lógica do header integration
-      pendingSearchRef.current = suggestion;
-      hasTriggeredSearchRef.current = false;
-      
-      // Configurar UI para mostrar resultados quando estiver pronto
-      setShowResults(true);
-      setOpen(false);
-      
-      // NÃO adicionar mensagem aqui - o auto-flush useEffect fará isso
-      // A sessão é criada automaticamente pelo useEffect principal
-      // Quando session ficar disponível, será processado pelo useEffect
+      return `Estou procurando por ${suggestion}. Pode me ajudar a encontrar as melhores opções disponíveis?`;
+    }
+  };
+
+  // Função para quando clicar numa sugestão - NOVA IMPLEMENTAÇÃO
+  const onSuggestionClick = (suggestion: string) => {
+    // Fechar sugestões e configurar UI para overlay (igual aos outros fluxos)
+    setShowSuggestions(false);
+    setQuery('');
+    setShowResults(true);
+    setOpen(false); // Consistente com onSubmit
+    
+    // Gerar mensagem contextual inteligente
+    const contextualMessage = generateContextualMessage(suggestion);
+    
+    // Configurar busca de produtos (necessário para mostrar produtos após conversa)
+    pendingSearchRef.current = suggestion; // Usar sugestão original para busca
+    hasTriggeredSearchRef.current = false;
+    
+    // Iniciar conversa se sessão estiver pronta
+    if (sessionIdRef.current) {
+      // Sessão pronta - adicionar mensagem e iniciar stream imediatamente
+      setChatMessages(prev => [...prev, { type: 'user', text: contextualMessage }]);
+      startStream(contextualMessage);
+    } else {
+      // Sessão não pronta - armazenar mensagem contextual para o auto-flush effect usar
+      pendingMessageRef.current = contextualMessage;
     }
   };
 
