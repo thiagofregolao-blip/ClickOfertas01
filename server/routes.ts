@@ -943,7 +943,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const response = {
-        suggestions: Array.from(uniqueSuggestions).slice(0, 8)
+        suggestions: Array.from(uniqueSuggestions).slice(0, 4)
       };
       
       // Cache suggestions for 5 minutes
