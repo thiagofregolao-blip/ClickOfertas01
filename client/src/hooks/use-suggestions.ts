@@ -32,7 +32,7 @@ export function useSuggestions(
     error,
     isFetching
   } = useQuery<SuggestionsResponse>({
-    queryKey: ['/api/search/suggestions', debouncedQuery],
+    queryKey: [`/api/search/suggestions?q=${encodeURIComponent(debouncedQuery)}`],
     enabled: enabled && !!debouncedQuery && debouncedQuery.trim().length >= minLength,
     staleTime: 2 * 60 * 1000, // 2 minutes cache
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
