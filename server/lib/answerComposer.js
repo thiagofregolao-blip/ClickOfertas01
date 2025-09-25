@@ -378,8 +378,12 @@ INSTRUÇÕES DE VENDA INTELIGENTE:
     }
   }
   
-  const FACTS = JSON.stringify(allProductsContext, null, 0);
-  console.log(`📝 [composePrompts] FACTS gerados (incluindo recomendações):`, FACTS);
+  // FACTS removido do prompt para evitar JSON na resposta da IA
+  console.log(`📝 [composePrompts] Produtos processados:`, {
+    totalProducts: allProductsContext.length,
+    hasRecommendations: !!recommendations,
+    storeCount: uniqueStores.size
+  });
   
   // Detectar contexto da conversa
   const hasMultipleProducts = products.length > 1;
@@ -476,10 +480,14 @@ INSTRUÇÕES DE VENDA INTELIGENTE:
     actionInstruction = `MÚLTIPLOS PRODUTOS: Compare modelos, crie escala de valor (básico/intermediário/premium), sugira o ideal para cada necessidade. Feche perguntando preferência.`;
   }
 
-  // Construir USER prompt mais inteligente
+  // Construir USER prompt mais inteligente (SEM JSON completo para evitar reprodução)
+  const productSummary = products.length > 0 
+    ? `Produtos encontrados: ${products.length} opções disponíveis (${[...uniqueStores].join(', ')}) - detalhes serão mostrados automaticamente na interface`
+    : "Nenhum produto encontrado para esta busca.";
+    
   const userPromptParts = [
     `Consulta do cliente: "${q}"`,
-    products.length > 0 ? `Produtos encontrados: ${FACTS}` : "Nenhum produto encontrado para esta busca.",
+    productSummary,
     `Contexto do cliente: ${contextInstructions[customerProfile]}`,
     actionInstruction
   ];
