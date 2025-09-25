@@ -6584,44 +6584,66 @@ Responda curto, claro, PT-BR.
 
       console.log(`🔍 [/api/click/suggest] Buscando para: "${q}"`);
       
-      // BUSCA DIRETA NO PRODUCT BANK PARA TESTE
+      // BUSCA UNIFICADA (PRODUCT BANK + PRODUCTS) COM SQL PURO
       const searchTerm = q.toLowerCase().trim();
       console.log(`🎯 [/api/click/suggest] Termo processado: "${searchTerm}"`);
       
-      const bankProducts = await db
-        .select({
-          id: productBankItems.id,
-          title: productBankItems.name,
-          category: productBankItems.category,
-          price: { USD: 450 }, // Fixo por enquanto
-          premium: false,
-          storeName: 'Atacado Store',
-          storeSlug: 'atacado-store',
-          imageUrl: productBankItems.primaryImageUrl
-        })
-        .from(productBankItems)
-        .where(
-          or(
-            ilike(productBankItems.name, `%${searchTerm}%`),
-            ilike(productBankItems.model, `%${searchTerm}%`),
-            ilike(productBankItems.brand, `%${searchTerm}%`)
-          )
-        )
-        .limit(5);
+      // 1. BUSCA NO PRODUCT BANK
+      const bankResult = await db.execute(sql`
+        SELECT id, name, category, primaryimageurl 
+        FROM product_bank_items 
+        WHERE LOWER(name) LIKE ${'%' + searchTerm + '%'}
+           OR LOWER(model) LIKE ${'%' + searchTerm + '%'}
+           OR LOWER(brand) LIKE ${'%' + searchTerm + '%'}
+        LIMIT 3
+      `);
       
-      console.log(`📦 [/api/click/suggest] Product Bank encontrou ${bankProducts.length} produtos:`, 
-        bankProducts.map(p => ({ title: p.title, id: p.id }))
-      );
+      // 2. BUSCA NOS PRODUTOS DE LOJAS  
+      const storeResult = await db.execute(sql`
+        SELECT p.id, p.name, p.category, p.image_url, s.name as store_name, s.slug as store_slug
+        FROM products p
+        LEFT JOIN stores s ON p.store_id = s.id
+        WHERE LOWER(p.name) LIKE ${'%' + searchTerm + '%'}
+           OR LOWER(p.description) LIKE ${'%' + searchTerm + '%'}
+        LIMIT 3
+      `);
+      
+      console.log(`📦 [/api/click/suggest] Product Bank: ${bankResult.rows.length}, Lojas: ${storeResult.rows.length}`);
+      
+      // 3. TRANSFORMAR E COMBINAR RESULTADOS
+      const bankProducts = bankResult.rows.map((p: any) => ({
+        id: `bank_${p.id}`,
+        title: p.name,
+        category: p.category || 'eletronicos',
+        price: { USD: 450 },
+        premium: false,
+        storeName: 'Atacado Store',
+        storeSlug: 'atacado-store',
+        imageUrl: p.primaryimageurl
+      }));
+      
+      const storeProducts = storeResult.rows.map((p: any) => ({
+        id: `store_${p.id}`,
+        title: p.name,
+        category: p.category || 'eletronicos',
+        price: { USD: 350 },
+        premium: true,
+        storeName: p.store_name || 'Click Store',
+        storeSlug: p.store_slug || 'click-store',
+        imageUrl: p.image_url
+      }));
+      
+      const allProducts = [...bankProducts, ...storeProducts];
 
       const payload = { 
         ok: true, 
-        products: bankProducts,
-        category: 'eletronicos',
-        topStores: ['Atacado Store']
+        products: allProducts,
+        category: allProducts.length > 0 ? allProducts[0].category : 'eletronicos',
+        topStores: [...new Set(allProducts.map(p => p.storeName))]
       };
 
-      // Anexa raspadinha conforme regra (sua engine) — não bloqueia a resposta se falhar
-      await maybeAttachPromo({ payload, userId, ip, context: { route: 'suggest', query: q, category: 'eletronicos' } });
+      // TEMPORARIAMENTE DESABILITADO para testar Stack Overflow
+      // await maybeAttachPromo({ payload, userId, ip, context: { route: 'suggest', query: q, category: 'eletronicos' } });
 
       res.json(payload);
     } catch (e) {
