@@ -1,15 +1,36 @@
 /** Busca produtos para fundamentar a resposta (RAG melhorado) */
 export async function buildGrounding(origin, q) {
+  console.log(`🔍 [buildGrounding] Iniciando busca para: "${q}"`);
+  
   const tryFetch = async (url) => {
     try { 
+      console.log(`📡 [buildGrounding] Fazendo requisição: ${url}`);
       const r = await fetch(url); 
-      if (r.ok) return await r.json(); 
-    } catch {}
+      if (r.ok) {
+        const data = await r.json();
+        console.log(`✅ [buildGrounding] Resposta recebida:`, {
+          productsCount: data?.products?.length || 0,
+          firstProduct: data?.products?.[0] ? {
+            id: data.products[0].id,
+            title: data.products[0].title,
+            storeName: data.products[0].storeName
+          } : null
+        });
+        return data;
+      }
+    } catch (error) {
+      console.log(`❌ [buildGrounding] Erro na requisição ${url}:`, error.message);
+    }
     return { products: [] };
   };
   
   const sug = (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(q)}`)) ||
               (await tryFetch(`${origin}/suggest?q=${encodeURIComponent(q)}`));
+  
+  console.log(`📦 [buildGrounding] Dados brutos recebidos:`, {
+    hasProducts: !!sug?.products,
+    productsLength: sug?.products?.length || 0
+  });
   
   // Mapear produtos com dados completos
   const products = (sug?.products || []).map(p => ({
@@ -22,6 +43,11 @@ export async function buildGrounding(origin, q) {
     storeSlug: p.storeSlug || "",
     imageUrl: p.imageUrl || null
   }));
+  
+  console.log(`🎯 [buildGrounding] Produtos mapeados:`, {
+    count: products.length,
+    titles: products.map(p => p.title).slice(0, 3)
+  });
 
   // Garantir diversidade de lojas - máximo 2 produtos por loja
   const diverseProducts = [];
@@ -47,6 +73,14 @@ export async function buildGrounding(origin, q) {
   }
 
   const top8 = diverseProducts.slice(0, 8);
+  
+  console.log(`🚀 [buildGrounding] Resultado final:`, {
+    all: products.length,
+    top3: top8.slice(0, 3).length,
+    top8: top8.length,
+    diverseStores: [...storeCount.entries()]
+  });
+  
   return { top3: top8.slice(0, 3), top8, all: products };
 }
 
@@ -88,9 +122,22 @@ function detectCustomerProfile(query) {
 
 /** IA natural e inteligente do Click Ofertas */
 export function composePrompts({ q, name, top3 = [], top8 = [] }) {
+  console.log(`🤖 [composePrompts] Recebendo dados:`, {
+    query: q,
+    name: name,
+    top3Count: top3.length,
+    top8Count: top8.length
+  });
+  
   // Usar top8 se disponível, senão top3
   const products = top8.length > 0 ? top8 : top3;
+  console.log(`📋 [composePrompts] Produtos para IA:`, {
+    count: products.length,
+    products: products.map(p => ({ id: p.id, title: p.title, storeName: p.storeName }))
+  });
+  
   const FACTS = JSON.stringify(products, null, 0);
+  console.log(`📝 [composePrompts] FACTS gerados:`, FACTS);
   
   // Detectar contexto da conversa
   const hasMultipleProducts = products.length > 1;

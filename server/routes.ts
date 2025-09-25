@@ -6931,11 +6931,19 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       const write = (d:any)=> res.write(`data: ${JSON.stringify(d)}\n\n`);
 
       // ❶ RAG melhorado: busca produtos e prepara fatos
+      console.log(`🎬 [assistant/stream] Processando: "${message}" para usuário: ${name}`);
+      
       const { buildGrounding, composePrompts } = await import('./lib/answerComposer.js');
       const origin = `${req.protocol}://${req.get('host')}`;
       const ground = await buildGrounding(origin, message);
       
-      // ❷ Sistema de aprendizado: registrar busca do usuário
+      console.log(`📊 [assistant/stream] Resultado buildGrounding:`, {
+        all: ground.all.length,
+        top3: ground.top3.length,
+        top8: ground.top8.length
+      });
+      
+      // ❂ Sistema de aprendizado: registrar busca do usuário
       try {
         await storage.createSearchLog({
           sessionId,
@@ -6954,6 +6962,12 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       
       const { SYSTEM, USER } = composePrompts({
         q: message, name, top3: ground.top3, top8: ground.top8
+      });
+      
+      console.log(`💭 [assistant/stream] Prompts gerados:`, {
+        systemLength: SYSTEM.length,
+        userLength: USER.length,
+        hasProducts: USER.includes('Produtos encontrados')
       });
 
       // ❷ Construir mensagens com histórico para memória
