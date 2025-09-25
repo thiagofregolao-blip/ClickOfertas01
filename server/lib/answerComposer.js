@@ -24,10 +24,36 @@ export async function buildGrounding(origin, q) {
     return { products: [] };
   };
   
-  let sug = (await tryFetch(`${origin}/api/click/suggest?q=${encodeURIComponent(q)}`)) ||
-            (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(q)}`)) ||
-            (await tryFetch(`${origin}/suggest?q=${encodeURIComponent(q)}`)) ||
-            (await tryFetch(`${origin}/api/search/suggestions?q=${encodeURIComponent(q)}`));
+  // 🧠 Estratégia inteligente: extrair termos-chave PRIMEIRO para busca mais precisa
+  const keywords = [];
+  const patterns = [
+    /([A-Z]\d+[A-Z]*)/g,           // Códigos como A3081, A2411, etc
+    /iPhone\s*\d+/gi,             // iPhone 16, iPhone 15, etc  
+    /\d+GB/gi,                    // 128GB, 256GB, etc
+    /Samsung Galaxy \w+/gi,       // Samsung Galaxy S24, etc
+    /MacBook \w+/gi,              // MacBook Pro, etc
+    /\b(?:BLACK|WHITE|BLUE|RED|GOLD|SILVER|TEAL|PINK|PURPLE|GREEN)\b/gi, // Cores
+    /\b(?:PRO|MAX|PLUS|MINI|AIR|ULTRA)\b/gi // Variantes
+  ];
+  
+  patterns.forEach(pattern => {
+    const matches = q.match(pattern);
+    if (matches) keywords.push(...matches);
+  });
+  
+  // Priorizar busca com termos específicos se encontrados
+  let primaryQuery = q;
+  if (keywords.length > 0) {
+    primaryQuery = keywords.slice(0, 4).join(' '); // Máximo 4 termos mais específicos
+    console.log(`🎯 [buildGrounding] Usando termos-chave extraídos: "${primaryQuery}"`);
+  } else {
+    console.log(`📝 [buildGrounding] Usando query original: "${primaryQuery}"`);
+  }
+  
+  let sug = (await tryFetch(`${origin}/api/click/suggest?q=${encodeURIComponent(primaryQuery)}`)) ||
+            (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(primaryQuery)}`)) ||
+            (await tryFetch(`${origin}/suggest?q=${encodeURIComponent(primaryQuery)}`)) ||
+            (await tryFetch(`${origin}/api/search/suggestions?q=${encodeURIComponent(primaryQuery)}`));
   
   console.log(`📦 [buildGrounding] Dados brutos recebidos:`, {
     hasProducts: !!sug?.products,
@@ -82,72 +108,50 @@ export async function buildGrounding(origin, q) {
     }
   }
   
-  // 🎯 Fallback inteligente: se não encontrou produtos com query completa, extrair termos-chave
+  // 🔄 Fallback final: se termos específicos não retornaram produtos, tentar query original
   if (!sug?.products || sug.products.length === 0) {
-    console.log(`🔄 [buildGrounding] Busca inicial não retornou produtos. Tentando extrair termos-chave...`);
+    console.log(`🔄 [buildGrounding] Termos específicos não retornaram produtos. Tentando query original como fallback...`);
     
-    // Extrair modelos, códigos e termos importantes
-    const keywords = [];
-    const patterns = [
-      /([A-Z]\d+[A-Z]*)/g,           // Códigos como A3081, iPhone, etc
-      /iPhone\s*\d+/gi,             // iPhone 16, iPhone 15, etc  
-      /\d+GB/gi,                    // 128GB, 256GB, etc
-      /Samsung Galaxy \w+/gi,       // Samsung Galaxy S24, etc
-      /MacBook \w+/gi,              // MacBook Pro, etc
-      /\b(?:BLACK|WHITE|BLUE|RED|GOLD|SILVER|TEAL|PINK|PURPLE|GREEN)\b/gi // Cores
-    ];
+    const fallbackSug = (await tryFetch(`${origin}/api/click/suggest?q=${encodeURIComponent(q)}`)) ||
+                       (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(q)}`)) ||
+                       (await tryFetch(`${origin}/suggest?q=${encodeURIComponent(q)}`)) ||
+                       (await tryFetch(`${origin}/api/search/suggestions?q=${encodeURIComponent(q)}`));
     
-    patterns.forEach(pattern => {
-      const matches = q.match(pattern);
-      if (matches) keywords.push(...matches);
-    });
-    
-    // Tentar busca com termos extraídos
-    if (keywords.length > 0) {
-      const keywordQuery = keywords.slice(0, 3).join(' '); // Máximo 3 termos
-      console.log(`🔑 [buildGrounding] Tentando busca com termos-chave: "${keywordQuery}"`);
+    // Normalização robusta do fallback também
+    if (!fallbackSug?.products || fallbackSug.products.length === 0) {
+      const fallbackItems = fallbackSug?.products || fallbackSug?.results || fallbackSug?.items || fallbackSug?.data?.results || [];
       
-      const fallbackSug = (await tryFetch(`${origin}/api/click/suggest?q=${encodeURIComponent(keywordQuery)}`)) ||
-                         (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(keywordQuery)}`)) ||
-                         (await tryFetch(`${origin}/suggest?q=${encodeURIComponent(keywordQuery)}`)) ||
-                         (await tryFetch(`${origin}/api/search/suggestions?q=${encodeURIComponent(keywordQuery)}`));
-      
-      // Normalização robusta do fallback também
-      if (!fallbackSug?.products || fallbackSug.products.length === 0) {
-        const fallbackItems = fallbackSug?.products || fallbackSug?.results || fallbackSug?.items || fallbackSug?.data?.results || [];
-        
-        if (fallbackItems.length > 0) {
-          console.log(`🔧 [buildGrounding] Normalizando ${fallbackItems.length} items do fallback`);
-          fallbackSug.products = fallbackItems.map((p, index) => ({
-            id: p.id || p.productId || p._id || `fallback-${index}`,
-            title: p.title || p.name || '',
-            category: p.category || '',
-            price: { 
-              USD: p.priceUSD ?? p.price?.USD ?? (typeof p.price === 'number' ? p.price : undefined)
-            },
-            premium: !!p.premium,
-            storeName: p.storeName || p.store?.name || '',
-            storeSlug: p.storeSlug || p.store?.slug || '',
-            imageUrl: p.imageUrl || p.image || (p.images && p.images[0]) || null
-          }));
-        } else if (fallbackSug?.suggestions) {
-          fallbackSug.products = fallbackSug.suggestions.map((title, index) => ({
-            id: `fallback-${index}`,
-            title: title,
-            category: "",
-            price: { USD: null },
-            premium: false,
-            storeName: "",
-            storeSlug: "",
-            imageUrl: null
-          }));
-        }
+      if (fallbackItems.length > 0) {
+        console.log(`🔧 [buildGrounding] Normalizando ${fallbackItems.length} items do fallback`);
+        fallbackSug.products = fallbackItems.map((p, index) => ({
+          id: p.id || p.productId || p._id || `fallback-${index}`,
+          title: p.title || p.name || '',
+          category: p.category || '',
+          price: { 
+            USD: p.priceUSD ?? p.price?.USD ?? (typeof p.price === 'number' ? p.price : undefined)
+          },
+          premium: !!p.premium,
+          storeName: p.storeName || p.store?.name || '',
+          storeSlug: p.storeSlug || p.store?.slug || '',
+          imageUrl: p.imageUrl || p.image || (p.images && p.images[0]) || null
+        }));
+      } else if (fallbackSug?.suggestions) {
+        fallbackSug.products = fallbackSug.suggestions.map((title, index) => ({
+          id: `fallback-${index}`,
+          title: title,
+          category: "",
+          price: { USD: null },
+          premium: false,
+          storeName: "",
+          storeSlug: "",
+          imageUrl: null
+        }));
       }
-      
-      if (fallbackSug?.products && fallbackSug.products.length > 0) {
-        console.log(`✅ [buildGrounding] Fallback funcionou! Encontrados ${fallbackSug.products.length} produtos normalizados`);
-        sug = fallbackSug;
-      }
+    }
+    
+    if (fallbackSug?.products && fallbackSug.products.length > 0) {
+      console.log(`✅ [buildGrounding] Fallback com query original funcionou! Encontrados ${fallbackSug.products.length} produtos`);
+      sug = fallbackSug;
     }
   }
   
