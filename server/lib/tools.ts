@@ -145,3 +145,167 @@ export async function buildItinerary(data: { wishlist: any[] }) {
     total_estimate: 0
   };
 }
+
+// ============================================================================
+// SISTEMA DE RECOMENDAÇÕES AUTOMÁTICAS - Vendedor Experiente
+// ============================================================================
+
+// Mapa de produtos complementares por categoria
+const CROSS_SELL_MAP = {
+  'Perfumes': ['Desodorantes', 'Produtos de Beleza', 'Cosméticos'],
+  'Celulares': ['Capas e Películas', 'Carregadores', 'Fones de Ouvido', 'Acessórios para Celular'],
+  'Notebooks': ['Mouse', 'Teclados', 'Fones de Ouvido', 'Mochilas', 'Acessórios para Computador'],
+  'Gaming': ['Mouse Gamer', 'Teclados Gamer', 'Headsets', 'Webcams', 'Cadeiras Gamer'],
+  'TVs': ['Soundbars', 'Suportes', 'Cabos HDMI', 'Streaming Devices'],
+  'Cosméticos': ['Perfumes', 'Produtos de Beleza', 'Maquiagem'],
+  'Relógios': ['Pulseiras', 'Acessórios', 'Joias'],
+  'Roupas': ['Calçados', 'Acessórios', 'Bolsas'],
+  'Casa': ['Decoração', 'Utensílios', 'Eletroportáteis']
+};
+
+/**
+ * Busca produtos complementares (cross-sell) baseado no produto principal
+ */
+export async function getCrossSellProducts(baseProduct: any, limit: number = 3) {
+  console.log(`🛒 [getCrossSellProducts] Buscando complementos para: "${baseProduct.title}" (categoria: ${baseProduct.category})`);
+  
+  const complementCategories = CROSS_SELL_MAP[baseProduct.category as keyof typeof CROSS_SELL_MAP] || [];
+  
+  if (complementCategories.length === 0) {
+    console.log(`🛒 [getCrossSellProducts] Nenhuma categoria complementar definida para: ${baseProduct.category}`);
+    return [];
+  }
+  
+  console.log(`🛒 [getCrossSellProducts] Categorias complementares: [${complementCategories.join(', ')}]`);
+  
+  const crossSellProducts: any[] = [];
+  
+  // Buscar produtos em cada categoria complementar
+  for (const category of complementCategories.slice(0, 2)) { // Máximo 2 categorias
+    try {
+      const categoryProducts = await searchSuggestions(category);
+      if (categoryProducts.products && categoryProducts.products.length > 0) {
+        // Adicionar 1-2 produtos melhores de cada categoria
+        crossSellProducts.push(...categoryProducts.products.slice(0, 2));
+        console.log(`🛒 [getCrossSellProducts] Adicionados ${categoryProducts.products.slice(0, 2).length} produtos da categoria: ${category}`);
+      }
+    } catch (error) {
+      console.log(`❌ [getCrossSellProducts] Erro ao buscar categoria ${category}:`, error);
+    }
+  }
+  
+  // Limitar resultado final e remover produtos duplicados
+  const uniqueProducts = crossSellProducts
+    .filter((product, index, self) => self.findIndex(p => p.id === product.id) === index)
+    .slice(0, limit);
+  
+  console.log(`🛒 [getCrossSellProducts] Retornando ${uniqueProducts.length} produtos complementares`);
+  
+  return uniqueProducts.map(product => ({
+    ...product,
+    recommendationType: 'cross-sell',
+    reason: `Complementa perfeitamente seu ${baseProduct.category.toLowerCase()}`
+  }));
+}
+
+/**
+ * Busca produtos superiores (upsell) baseado no produto principal
+ */
+export async function getUpsellProducts(baseProduct: any, limit: number = 2) {
+  console.log(`📈 [getUpsellProducts] Buscando upgrades para: "${baseProduct.title}" (preço base: $${baseProduct.price?.USD || 0})`);
+  
+  const basePrice = baseProduct.price?.USD || 0;
+  const minUpsellPrice = basePrice * 1.2; // Pelo menos 20% mais caro
+  const maxUpsellPrice = basePrice * 2.0; // Máximo 2x mais caro
+  
+  console.log(`📈 [getUpsellProducts] Buscando produtos de $${minUpsellPrice} até $${maxUpsellPrice}`);
+  
+  try {
+    // Buscar produtos similares na mesma categoria ou marca
+    const brand = baseProduct.title.split(' ')[0]; // Primeira palavra como marca
+    const searchQueries = [
+      `${brand} ${baseProduct.category}`, // Mesma marca, mesma categoria
+      `premium ${baseProduct.category}`, // Versões premium da categoria
+      baseProduct.category // Categoria geral
+    ];
+    
+    const upsellCandidates: any[] = [];
+    
+    for (const query of searchQueries) {
+      try {
+        const results = await searchSuggestions(query);
+        if (results.products) {
+          // Filtrar por faixa de preço de upsell
+          const validUpsells = results.products.filter(product => {
+            const productPrice = product.price?.USD || 0;
+            return productPrice >= minUpsellPrice && 
+                   productPrice <= maxUpsellPrice &&
+                   product.id !== baseProduct.id; // Não incluir o mesmo produto
+          });
+          
+          upsellCandidates.push(...validUpsells);
+          
+          if (validUpsells.length > 0) {
+            console.log(`📈 [getUpsellProducts] Encontrados ${validUpsells.length} candidatos com query: "${query}"`);
+          }
+        }
+      } catch (error) {
+        console.log(`❌ [getUpsellProducts] Erro na query "${query}":`, error);
+      }
+    }
+    
+    // Ordenar por preço e remover duplicatos
+    const uniqueUpsells = upsellCandidates
+      .filter((product, index, self) => self.findIndex(p => p.id === product.id) === index)
+      .sort((a, b) => (a.price?.USD || 0) - (b.price?.USD || 0))
+      .slice(0, limit);
+    
+    console.log(`📈 [getUpsellProducts] Retornando ${uniqueUpsells.length} opções de upgrade`);
+    
+    return uniqueUpsells.map(product => {
+      const priceIncrease = ((product.price?.USD || 0) - basePrice) / basePrice * 100;
+      return {
+        ...product,
+        recommendationType: 'upsell',
+        reason: `Versão superior com ${priceIncrease.toFixed(0)}% a mais - mais recursos e qualidade`,
+        priceIncrease: `+$${((product.price?.USD || 0) - basePrice).toFixed(0)}`
+      };
+    });
+    
+  } catch (error) {
+    console.log(`❌ [getUpsellProducts] Erro geral:`, error);
+    return [];
+  }
+}
+
+/**
+ * Gera todas as recomendações para um produto (cross-sell + upsell)
+ */
+export async function getProductRecommendations(baseProduct: any) {
+  console.log(`🎯 [getProductRecommendations] Gerando recomendações completas para: "${baseProduct.title}"`);
+  
+  try {
+    const [crossSells, upsells] = await Promise.all([
+      getCrossSellProducts(baseProduct, 2), // Máximo 2 cross-sells
+      getUpsellProducts(baseProduct, 1)     // Máximo 1 upsell
+    ]);
+    
+    const allRecommendations = [...upsells, ...crossSells]; // Priorizar upsells
+    
+    console.log(`🎯 [getProductRecommendations] Total de recomendações: ${allRecommendations.length} (${upsells.length} upsells + ${crossSells.length} cross-sells)`);
+    
+    return {
+      upsells,
+      crossSells,
+      all: allRecommendations
+    };
+    
+  } catch (error) {
+    console.log(`❌ [getProductRecommendations] Erro ao gerar recomendações:`, error);
+    return {
+      upsells: [],
+      crossSells: [],
+      all: []
+    };
+  }
+}

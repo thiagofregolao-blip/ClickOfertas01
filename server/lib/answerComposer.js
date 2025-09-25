@@ -1,6 +1,81 @@
-/** Busca produtos para fundamentar a resposta (RAG melhorado) */
-export async function buildGrounding(origin, q) {
-  console.log(`🔍 [buildGrounding] Iniciando busca para: "${q}"`);
+/** Busca produtos para fundamentar a resposta (RAG melhorado) - Agora com memória conversacional */
+export async function buildGrounding(origin, q, sessionId = null) {
+  console.log(`🔍 [buildGrounding] Iniciando busca para: "${q}" (sessão: ${sessionId || 'sem sessão'})`);
+  
+  // 🧠 SISTEMA DE MEMÓRIA CONVERSACIONAL
+  let sessionMemory = null;
+  let focusedProduct = null;
+  let contextualProducts = [];
+  
+  // Detectar dêiticos (referências como "esse", "este", "aquele") E perguntas sobre produtos
+  const deicticPatterns = [
+    /\b(esse|esta?|aquele|aquela|o perfume|a fragrância|o celular|o produto|ele|ela)\b/gi
+  ];
+  
+  const productQuestionPatterns = [
+    /\b(o que (você )?ach[a]?|vale a pena|é bom|recomend[a]?|opini[ãa]o|qual (é )?melhor|que tal|como (é|está)|quero saber|me fal[a]?|diz aí|e aí|e esse|e esta|e isso|como vê|como considera)\b/gi
+  ];
+  
+  const hasDeictic = deicticPatterns.some(pattern => pattern.test(q));
+  const hasProductQuestion = productQuestionPatterns.some(pattern => pattern.test(q));
+  
+  console.log(`🧠 [buildGrounding] Análise da query "${q}":`, {
+    hasDeictic,
+    hasProductQuestion,
+    shouldUseMemory: hasDeictic || hasProductQuestion
+  });
+  
+  if (sessionId && (hasDeictic || hasProductQuestion)) {
+    console.log(`🧠 [buildGrounding] Dêitico detectado! Buscando memória da sessão...`);
+    
+    // Buscar memória da sessão
+    try {
+      const memoryResponse = await fetch(`${origin}/api/assistant/memory/${sessionId}`);
+      if (memoryResponse.ok) {
+        const memoryData = await memoryResponse.json();
+        sessionMemory = memoryData.memory;
+        
+        console.log(`🧠 [buildGrounding] Memória encontrada:`, {
+          hasMemory: !!sessionMemory,
+          focusProductId: sessionMemory?.currentFocusProductId || 'nenhum',
+          lastShownCount: sessionMemory?.lastShownProducts?.length || 0,
+          lastQuery: sessionMemory?.lastQuery || 'nenhuma'
+        });
+        
+        // Se há produto em foco, usá-lo diretamente
+        if (sessionMemory.currentFocusProductId && sessionMemory.lastShownProducts) {
+          focusedProduct = sessionMemory.lastShownProducts.find(
+            p => p.id === sessionMemory.currentFocusProductId
+          );
+          
+          if (focusedProduct) {
+            console.log(`🎯 [buildGrounding] Produto em foco encontrado: "${focusedProduct.title}"`);
+            
+            // Retornar diretamente o produto em foco + produtos relacionados do contexto
+            const relatedProducts = sessionMemory.lastShownProducts
+              .filter(p => p.id !== focusedProduct.id)
+              .slice(0, 2); // Máximo 2 produtos relacionados do contexto
+            
+            return {
+              products: [focusedProduct, ...relatedProducts],
+              category: focusedProduct.category || sessionMemory.lastCategory || '',
+              topStores: [focusedProduct.storeName].filter(Boolean),
+              contextType: 'focused_product',
+              sessionMemory
+            };
+          }
+        }
+        
+        // Se não há produto específico em foco mas há produtos mostrados anteriormente
+        if (sessionMemory.lastShownProducts?.length > 0) {
+          contextualProducts = sessionMemory.lastShownProducts.slice(0, 3);
+          console.log(`📋 [buildGrounding] Usando produtos do contexto como base (${contextualProducts.length} produtos)`);
+        }
+      }
+    } catch (error) {
+      console.log(`❌ [buildGrounding] Erro ao buscar memória da sessão: ${error.message}`);
+    }
+  }
   
   const tryFetch = async (url) => {
     try { 
@@ -244,12 +319,14 @@ function detectCustomerProfile(query) {
 }
 
 /** IA natural e inteligente do Click Ofertas */
-export function composePrompts({ q, name, top3 = [], top8 = [] }) {
+export function composePrompts({ q, name, top3 = [], top8 = [], focusedProduct = null, recommendations = null }) {
   console.log(`🤖 [composePrompts] Recebendo dados:`, {
     query: q,
     name: name,
     top3Count: top3.length,
-    top8Count: top8.length
+    top8Count: top8.length,
+    hasFocus: !!focusedProduct,
+    hasRecommendations: !!recommendations
   });
   
   // Usar top8 se disponível, senão top3
@@ -259,8 +336,40 @@ export function composePrompts({ q, name, top3 = [], top8 = [] }) {
     products: products.map(p => ({ id: p.id, title: p.title, storeName: p.storeName }))
   });
   
-  const FACTS = JSON.stringify(products, null, 0);
-  console.log(`📝 [composePrompts] FACTS gerados:`, FACTS);
+  // Incluir recomendações no contexto de produtos se disponível
+  let allProductsContext = products;
+  let recommendationInstructions = '';
+  
+  if (focusedProduct && recommendations) {
+    console.log(`🎯 [composePrompts] Produto em foco detectado:`, focusedProduct.title);
+    console.log(`💡 [composePrompts] Recomendações disponíveis:`, {
+      upsells: recommendations.upsells?.length || 0,
+      crossSells: recommendations.crossSells?.length || 0,
+      total: recommendations.all?.length || 0
+    });
+    
+    // Adicionar recomendações ao contexto
+    if (recommendations.all && recommendations.all.length > 0) {
+      allProductsContext = [...products, ...recommendations.all];
+      
+      // Instrução específica para IA incluir recomendações
+      recommendationInstructions = `
+RECOMENDAÇÕES AUTOMÁTICAS PARA INCLUIR NA RESPOSTA:
+- PRODUTO EM FOCO: ${focusedProduct.title} (o cliente está interessado neste)
+- UPGRADES DISPONÍVEIS: ${recommendations.upsells?.map(p => `${p.title} (${p.reason})`).join(', ') || 'nenhum'}
+- PRODUTOS COMPLEMENTARES: ${recommendations.crossSells?.map(p => `${p.title} (${p.reason})`).join(', ') || 'nenhum'}
+
+INSTRUÇÕES DE VENDA INTELIGENTE:
+- SEMPRE mencione o produto em foco que o cliente demonstrou interesse
+- Sugira automaticamente 1-2 produtos complementares relevantes
+- Se há upgrade disponível, mencione brevemente os benefícios extras
+- Use técnica consultiva: "Já que você está interessado no [produto], que tal considerar também..."
+- NUNCA invente recomendações - use apenas as fornecidas acima`;
+    }
+  }
+  
+  const FACTS = JSON.stringify(allProductsContext, null, 0);
+  console.log(`📝 [composePrompts] FACTS gerados (incluindo recomendações):`, FACTS);
   
   // Detectar contexto da conversa
   const hasMultipleProducts = products.length > 1;
@@ -277,17 +386,17 @@ export function composePrompts({ q, name, top3 = [], top8 = [] }) {
   const uniqueStores = new Set(products.map(p => p.storeName).filter(Boolean));
   const storeCount = uniqueStores.size;
   
-  // Sistema de prompts mais natural e variado
+  // Sistema de prompts com personalidade de VENDEDOR EXPERIENTE
   const systemVariations = [
-    "Você é o assistente oficial do Click Ofertas! 🛍️ Sua personalidade é animada, brasileira e consultiva. Ajude os clientes a encontrar os melhores produtos do Paraguai!",
-    "Sou a IA do Click Ofertas, aqui pra te ajudar a garimpar as melhores ofertas do Paraguai! 🇵🇾 Sou descontraído, consultivo e sempre empolgado com as novidades tech!",
-    "Olá! Sou seu assistente pessoal do Click Ofertas! 🤖 Especialista em tech paraguaio, sempre pronto pra te ajudar a encontrar o produto perfeito com o melhor preço!"
+    "Você é o VENDEDOR SÊNIOR do Click Ofertas! 🛍️ Age como um consultor de vendas experiente: proativo, conhece produtos, sugere complementos e sempre busca a melhor solução pro cliente. Seu objetivo é AJUDAR O CLIENTE A COMPRAR CERTO, não apenas informar!",
+    "Sou o ESPECIALISTA EM VENDAS do Click Ofertas! 🇵🇾 Como um vendedor top de loja física: conheço produtos, comparo vantagens, sugiro acessórios e sempre ofereço alternativas. Meu foco é FECHAR A VENDA com satisfação total do cliente!",
+    "VENDEDOR PROFISSIONAL aqui! 🤖 Trabalho como os melhores consultores de loja: analiso necessidades, apresento produtos, sugiro upgrades quando vale a pena e sempre penso no conjunto completo que o cliente precisa. VENDA CONSULTIVA é minha especialidade!"
   ];
   
   const responseStyles = [
-    "Seja natural e conversacional. Fale como se fosse um amigo especialista em tech dando dicas.",
-    "Use um tom animado mas profissional. Seja consultivo sem ser exagerado.",
-    "Mantenha-se descontraído e prestativo. Use gírias brasileiras ocasionalmente."
+    "Age como vendedor experiente: sempre sugira produtos complementares, compare vantagens e desvantagens, faça perguntas inteligentes. Pense no CONJUNTO que o cliente precisa.",
+    "Comportamento de vendas consultiva: destaque diferenciais únicos, mencione acessórios importantes, sugira versões superiores quando vale a pena. Seja PROATIVO nas sugestões.",
+    "Vendedor top de shopping: conhece bem os produtos, compara marcas, sugere o que realmente agrega valor. Sempre ofereça MAIS DE UMA OPÇÃO para o cliente escolher."
   ];
   
   const systemIndex = Math.abs(queryHash) % systemVariations.length;
@@ -296,37 +405,41 @@ export function composePrompts({ q, name, top3 = [], top8 = [] }) {
   const SYSTEM = [
     systemVariations[systemIndex],
     responseStyles[styleIndex],
-    "REGRAS IMPORTANTES:",
-    "- MÁXIMO 4 linhas na resposta",
-    "- NUNCA invente preços ou dados",
-    "- Quando encontrar produtos, diga que estão listados abaixo nos resultados",
-    "- Seja natural, não robótico. Varie suas expressões!",
-    "- Você FAZ PARTE do Click Ofertas, não é um bot externo",
-    storeCount > 1 ? `- Destaque que encontrou produtos em ${storeCount} lojas diferentes` : "",
-    "- Use emojis com moderação"
+    "REGRAS DE VENDAS PROFISSIONAIS:",
+    "- MÁXIMO 4 linhas, mas sempre SUGIRA produtos relacionados",
+    "- NUNCA invente preços ou dados, use apenas informações reais",
+    "- Quando encontrar produtos, destaque os PRINCIPAIS BENEFÍCIOS de cada um",
+    "- SEMPRE ofereça 2-3 opções para o cliente escolher (diferentes faixas de preço)",
+    "- Se cliente perguntar sobre UM produto específico, sugira COMPLEMENTOS automaticamente",
+    "- Use técnicas de vendas: âncoragem de preços, comparações, criação de valor",
+    "- FECHE sempre com uma pergunta ou ação ('Qual te chama mais atenção?', 'Quer ver mais detalhes?')",
+    "- Você VENDE pelo Click Ofertas, não apenas informa. Seu sucesso = vendas realizadas",
+    storeCount > 1 ? `- VANTAGEM: encontrou produtos em ${storeCount} lojas - destaque opções variadas` : "",
+    "- Seja consultivo mas DIRETO: cliente quer decidir, não apenas informações infinitas",
+    recommendationInstructions // Incluir instruções de recomendação quando disponível
   ].filter(Boolean).join("\n");
 
-  // Instruções contextuais mais inteligentes
+  // Instruções de VENDAS específicas por perfil de cliente
   const contextInstructions = {
-    'gamer': "Foque em performance, FPS e specs técnicos. Gamer sabe o que quer!",
-    'profissional': "Destaque produtividade e confiabilidade. Profissional precisa de eficiência.",
-    'estudante': "Enfatize custo-benefício e versatilidade. Estudante quer valor pelo dinheiro.",
-    'doméstico': "Foque em facilidade de uso e entretenimento familiar.",
-    'econômico': "Destaque promoções e produtos com melhor preço. Cliente quer economizar!",
-    'premium': "Enfatize qualidade superior e diferenciação. Cliente quer o melhor!",
-    'geral': "Mantenha equilíbrio entre preço, qualidade e funcionalidade."
+    'gamer': "VENDA TÉCNICA: Foque em FPS, specs, performance real. Sugira acessórios essenciais (mouse gamer, headset). Gamer compra conjunto completo!",
+    'profissional': "VENDA CORPORATIVA: Destaque ROI, produtividade, confiabilidade. Sempre ofereça pacote completo (notebook + acessórios profissionais). Justifique investimento maior pela durabilidade.",
+    'estudante': "VENDA INTELIGENTE: Mostre custo-benefício, versões anteriores com desconto, parcelamento. Sugira produtos que 'crescem' com o estudante (upgrades futuros).",
+    'doméstico': "VENDA FAMILIAR: Facilidade de uso, entretenimento para toda família. Bundle familiar é chave (TV + soundbar + streaming). Pense no conjunto residencial.",
+    'econômico': "VENDA DE OPORTUNIDADE: Destaque promoções limitadas, compare preços Brasil vs Paraguai. Crie urgência. Mostre economia real em números.",
+    'premium': "VENDA DE VALOR: Enfatize exclusividade, diferenciais únicos, status. Cliente premium quer o melhor, não o mais barato. Sugira upgrades que valem a pena.",
+    'geral': "VENDA CONSULTIVA: Equilibre preço/qualidade, ofereça 3 opções (bom/ótimo/premium). Descubra necessidade real e venda solução completa."
   };
 
-  // Ações mais naturais baseadas nos produtos encontrados
+  // Instruções de AÇÃO COMERCIAL baseadas nos produtos encontrados
   let actionInstruction = "";
   if (products.length === 0) {
-    actionInstruction = "Não encontrou produtos? Sugira termos alternativos ou categorias relacionadas de forma natural.";
+    actionInstruction = "SEM PRODUTOS: Pergunte sobre necessidades específicas, sugira categorias relacionadas, descubra orçamento. Seja proativo para entender o que realmente procura.";
   } else if (products.length === 1) {
-    actionInstruction = "Encontrou um produto? Destaque seus pontos fortes e vantagens do Paraguai.";
+    actionInstruction = "UM PRODUTO: Destaque benefícios únicos, compare com Brasil, sugira acessórios/complementos essenciais. Crie PACOTE de valor para o cliente.";
   } else if (storeCount > 1) {
-    actionInstruction = `Ótimo! Encontrou ${products.length} produtos em ${storeCount} lojas diferentes. Destaque essa variedade como vantagem.`;
+    actionInstruction = `MÚLTIPLAS LOJAS: VANTAGEM! ${products.length} produtos em ${storeCount} lojas = mais opções. Compare preços, destaque diferenças, sugira melhor custo-benefício para o perfil do cliente.`;
   } else {
-    actionInstruction = `Encontrou ${products.length} produtos. Compare as diferenças e destaque as vantagens.`;
+    actionInstruction = `MÚLTIPLOS PRODUTOS: Compare modelos, crie escala de valor (básico/intermediário/premium), sugira o ideal para cada necessidade. Feche perguntando preferência.`;
   }
 
   // Construir USER prompt mais inteligente

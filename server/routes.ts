@@ -7012,7 +7012,7 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       
       const { buildGrounding, composePrompts } = await import('./lib/answerComposer.js');
       const origin = `${req.protocol}://${req.get('host')}`;
-      const ground = await buildGrounding(origin, message);
+      const ground = await buildGrounding(origin, message, sessionId);
       
       console.log(`📊 [assistant/stream] Resultado buildGrounding:`, {
         all: ground.all.length,
@@ -7037,8 +7037,37 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
         console.warn('Erro ao registrar busca para aprendizado:', error);
       }
       
+      // 🧠 INTELIGÊNCIA DE VENDAS: gerar recomendações automáticas se há produto em foco
+      let focusedProduct = null;
+      let recommendations = null;
+      
+      if (ground.contextType === 'focused_product' && ground.sessionMemory?.currentFocusProductId) {
+        const focusId = ground.sessionMemory.currentFocusProductId;
+        focusedProduct = ground.sessionMemory.lastShownProducts?.find(p => p.id === focusId);
+        
+        if (focusedProduct) {
+          console.log(`🎯 [assistant/stream] Produto em foco detectado: "${focusedProduct.title}"`);
+          
+          // Importar sistema de recomendações
+          const { getProductRecommendations } = await import('./lib/tools.js');
+          
+          try {
+            recommendations = await getProductRecommendations(focusedProduct);
+            console.log(`💡 [assistant/stream] Recomendações geradas:`, {
+              upsells: recommendations.upsells?.length || 0,
+              crossSells: recommendations.crossSells?.length || 0,
+              total: recommendations.all?.length || 0
+            });
+          } catch (error) {
+            console.error('❌ [assistant/stream] Erro ao gerar recomendações:', error);
+            recommendations = { upsells: [], crossSells: [], all: [] };
+          }
+        }
+      }
+
       const { SYSTEM, USER } = composePrompts({
-        q: message, name, top3: ground.top3, top8: ground.top8
+        q: message, name, top3: ground.top3, top8: ground.top8,
+        focusedProduct, recommendations
       });
       
       console.log(`💭 [assistant/stream] Prompts gerados:`, {
@@ -7595,6 +7624,140 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
     }
   });
 
+
+  // ============================================================================
+  // ROTAS DE MEMÓRIA CONVERSACIONAL - Sistema de Vendedor Inteligente
+  // ============================================================================
+
+  // GET /api/assistant/memory/:sessionId - Buscar memória da sessão
+  app.get('/api/assistant/memory/:sessionId', async (req: any, res) => {
+    try {
+      const { sessionId } = req.params;
+      
+      console.log(`🧠 [GET /api/assistant/memory] Buscando memória para sessão: ${sessionId}`);
+      
+      // Buscar a última mensagem da IA que tenha metadata de memória
+      const lastAssistantMessage = await storage.getLastAssistantMessageWithMemory(sessionId);
+      
+      if (!lastAssistantMessage?.metadata) {
+        console.log(`🧠 [GET /api/assistant/memory] Nenhuma memória encontrada para sessão: ${sessionId}`);
+        return res.json({ 
+          memory: {
+            lastQuery: '',
+            lastCategory: '',
+            lastShownProducts: [],
+            currentFocusProductId: null,
+            customerPreferences: {},
+            conversationContext: {
+              intent: 'search',
+              lastAction: null,
+              upsellAttempts: 0,
+              crossSellAttempts: 0
+            },
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+      
+      const memory = lastAssistantMessage.metadata;
+      console.log(`🧠 [GET /api/assistant/memory] Memória encontrada:`, {
+        products: memory.lastShownProducts?.length || 0,
+        focus: memory.currentFocusProductId || 'nenhum',
+        lastQuery: memory.lastQuery || 'nenhuma'
+      });
+      
+      res.json({ memory });
+      
+    } catch (error) {
+      console.error('Erro ao buscar memória da sessão:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // PUT /api/assistant/memory/:sessionId - Atualizar memória da sessão
+  app.put('/api/assistant/memory/:sessionId', async (req: any, res) => {
+    try {
+      const { sessionId } = req.params;
+      const memoryUpdate = req.body;
+      
+      console.log(`🧠 [PUT /api/assistant/memory] Atualizando memória para sessão: ${sessionId}`, {
+        products: memoryUpdate.lastShownProducts?.length || 0,
+        focus: memoryUpdate.currentFocusProductId || 'nenhum',
+        query: memoryUpdate.lastQuery || 'nenhuma'
+      });
+      
+      // Criar uma mensagem do sistema para armazenar a memória atualizada
+      const memoryMessage = await storage.addAssistantMessage({
+        sessionId,
+        role: 'system',
+        content: '[MEMORY_UPDATE]', // Marcador especial para identificar mensagens de memória
+        metadata: {
+          ...memoryUpdate,
+          timestamp: new Date().toISOString(),
+          type: 'memory_update'
+        }
+      });
+      
+      console.log(`🧠 [PUT /api/assistant/memory] Memória atualizada com sucesso para sessão: ${sessionId}`);
+      
+      res.json({ 
+        success: true, 
+        memory: memoryUpdate,
+        messageId: memoryMessage.id 
+      });
+      
+    } catch (error) {
+      console.error('Erro ao atualizar memória da sessão:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // POST /api/assistant/memory/:sessionId/focus - Definir produto em foco
+  app.post('/api/assistant/memory/:sessionId/focus', async (req: any, res) => {
+    try {
+      const { sessionId } = req.params;
+      const { productId } = req.body;
+      
+      console.log(`🎯 [POST /api/assistant/memory/focus] Definindo foco para sessão: ${sessionId}, produto: ${productId}`);
+      
+      // Buscar memória atual
+      const currentMemory = await storage.getLastAssistantMessageWithMemory(sessionId);
+      const memory = currentMemory?.metadata || {};
+      
+      // Atualizar apenas o produto em foco
+      const updatedMemory = {
+        ...memory,
+        currentFocusProductId: productId,
+        conversationContext: {
+          ...memory.conversationContext,
+          lastAction: 'focused_product',
+        },
+        timestamp: new Date().toISOString()
+      };
+      
+      // Salvar memória atualizada
+      await storage.addAssistantMessage({
+        sessionId,
+        role: 'system',
+        content: '[FOCUS_UPDATE]',
+        metadata: {
+          ...updatedMemory,
+          type: 'focus_update'
+        }
+      });
+      
+      console.log(`🎯 [POST /api/assistant/memory/focus] Foco atualizado com sucesso: ${productId}`);
+      
+      res.json({ 
+        success: true, 
+        currentFocusProductId: productId 
+      });
+      
+    } catch (error) {
+      console.error('Erro ao definir produto em foco:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

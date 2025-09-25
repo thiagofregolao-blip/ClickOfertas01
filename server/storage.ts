@@ -4512,6 +4512,31 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  // NOVAS FUNÇÕES PARA MEMÓRIA CONVERSACIONAL
+  async getLastAssistantMessageWithMemory(sessionId: string): Promise<AssistantMessage | undefined> {
+    const [message] = await db
+      .select()
+      .from(assistantMessages)
+      .where(
+        and(
+          eq(assistantMessages.sessionId, sessionId),
+          or(
+            eq(assistantMessages.role, 'assistant'),
+            eq(assistantMessages.role, 'system')
+          ),
+          sql`${assistantMessages.metadata} IS NOT NULL`
+        )
+      )
+      .orderBy(desc(assistantMessages.timestamp))
+      .limit(1);
+    return message;
+  }
+
+  // Alias para compatibilidade com as rotas de memória
+  async addAssistantMessage(messageData: InsertAssistantMessage): Promise<AssistantMessage> {
+    return this.createAssistantMessage(messageData);
+  }
+
   async getUserAssistantPreferences(userId: string): Promise<UserAssistantPreferences | undefined> {
     const [preferences] = await db
       .select()

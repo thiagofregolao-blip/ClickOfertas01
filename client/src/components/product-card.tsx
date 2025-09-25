@@ -22,6 +22,7 @@ interface ProductCardProps {
   customUsdBrlRate?: number; // Taxa personalizada da loja
   storeId?: string;
   source?: 'search' | 'feed' | 'direct' | 'share';
+  onFocus?: (productId: string) => void; // Para definir produto em foco na memória
 }
 
 // Cores por categoria
@@ -62,7 +63,8 @@ export default function ProductCard({
   onClick,
   customUsdBrlRate,
   storeId,
-  source = 'feed'
+  source = 'feed',
+  onFocus
 }: ProductCardProps) {
   const { hearts, handleDoubleTap, handleSaveProduct, isSaving, isProductLiked, isProductSaved, toggleLike } = useEngagement();
   const { isAuthenticated } = useAuth();
@@ -133,6 +135,12 @@ export default function ProductCard({
   }, [hasBeenViewed, viewStartTime, product.id, storeId, source, analytics]);
 
   const handleCardClick = () => {
+    // 🧠 MEMÓRIA: Definir produto em foco quando clicado
+    if (onFocus) {
+      onFocus(product.id);
+      console.log(`🎯 [ProductCard] Produto definido como foco: ${product.name} (${product.id})`);
+    }
+    
     // 📊 Track click event
     analytics.trackClick(product.id);
     

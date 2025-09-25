@@ -36,6 +36,102 @@ export function useAssistantChat({
   const [feed, setFeed] = useState<any[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // 🧠 MEMÓRIA CONVERSACIONAL - Sistema de Vendedor Inteligente
+  const [sessionMemory, setSessionMemory] = useState<any>(null);
+  const [lastShownProducts, setLastShownProducts] = useState<any[]>([]);
+  const [currentFocusProductId, setCurrentFocusProductId] = useState<string | null>(null);
+
+  // Função para salvar produtos mostrados na memória
+  const updateSessionMemory = useCallback(async (products: any[], query?: string, category?: string) => {
+    if (!sessionId || !products || products.length === 0) return;
+    
+    console.log(`🧠 [updateSessionMemory] Salvando ${products.length} produtos na memória`);
+    
+    const memoryUpdate = {
+      lastQuery: query,
+      lastCategory: category,
+      lastShownProducts: products.map(p => ({
+        id: p.id,
+        title: p.title,
+        category: p.category || category,
+        price: p.price,
+        storeName: p.storeName,
+        storeSlug: p.storeSlug,
+        imageUrl: p.imageUrl,
+        source: p.id.startsWith('bank_') ? 'bank' : 'store'
+      })),
+      currentFocusProductId: currentFocusProductId,
+      conversationContext: {
+        intent: 'search',
+        lastAction: 'showed_products',
+      },
+      timestamp: new Date().toISOString()
+    };
+    
+    try {
+      const response = await fetch(`/api/assistant/memory/${sessionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(memoryUpdate)
+      });
+      
+      if (response.ok) {
+        setSessionMemory(memoryUpdate);
+        setLastShownProducts(memoryUpdate.lastShownProducts);
+        console.log(`✅ [updateSessionMemory] Memória atualizada com sucesso`);
+      }
+    } catch (error) {
+      console.error('❌ [updateSessionMemory] Erro ao salvar memória:', error);
+    }
+  }, [sessionId, currentFocusProductId]);
+
+  // Função para definir produto em foco
+  const setProductFocus = useCallback(async (productId: string) => {
+    if (!sessionId) return;
+    
+    console.log(`🎯 [setProductFocus] Definindo foco no produto: ${productId}`);
+    
+    try {
+      const response = await fetch(`/api/assistant/memory/${sessionId}/focus`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId })
+      });
+      
+      if (response.ok) {
+        setCurrentFocusProductId(productId);
+        console.log(`✅ [setProductFocus] Foco definido com sucesso`);
+      }
+    } catch (error) {
+      console.error('❌ [setProductFocus] Erro ao definir foco:', error);
+    }
+  }, [sessionId]);
+
+  // Buscar memória da sessão ao carregar
+  useEffect(() => {
+    if (!sessionId) return;
+    
+    const loadSessionMemory = async () => {
+      try {
+        const response = await fetch(`/api/assistant/memory/${sessionId}`);
+        if (response.ok) {
+          const { memory } = await response.json();
+          setSessionMemory(memory);
+          setLastShownProducts(memory.lastShownProducts || []);
+          setCurrentFocusProductId(memory.currentFocusProductId || null);
+          console.log(`🧠 [loadSessionMemory] Memória carregada:`, {
+            products: memory.lastShownProducts?.length || 0,
+            focus: memory.currentFocusProductId || 'nenhum'
+          });
+        }
+      } catch (error) {
+        console.error('❌ [loadSessionMemory] Erro ao carregar memória:', error);
+      }
+    };
+    
+    loadSessionMemory();
+  }, [sessionId]);
+
   // Get or create session
   const sessionQuery = useQuery({
     queryKey: ['assistant', 'session', sessionId],
@@ -286,6 +382,13 @@ export function useAssistantChat({
     // Products
     recommended,
     feed,
+    
+    // 🧠 Memory & Focus Management
+    sessionMemory,
+    lastShownProducts,
+    currentFocusProductId,
+    updateSessionMemory,
+    setProductFocus,
     
     // Ready state
     isReady: !!sessionId && !sessionQuery.isLoading,

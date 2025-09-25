@@ -17,6 +17,7 @@ interface SearchResultItemProps {
   onClick?: () => void;
   isMobile?: boolean;
   searchTerm?: string;
+  onFocus?: (productId: string) => void; // Para definir produto em foco na memória
 }
 
 export function SearchResultItem({ 
@@ -24,13 +25,20 @@ export function SearchResultItem({
   store, 
   onClick,
   isMobile = false,
-  searchTerm
+  searchTerm,
+  onFocus
 }: SearchResultItemProps) {
   const { trackEvent, sessionToken } = useAnalytics();
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // 🧠 MEMÓRIA: Definir produto em foco quando clicado
+    if (onFocus) {
+      onFocus(product.id);
+      console.log(`🎯 [SearchResultItem] Produto definido como foco: ${product.name} (${product.id})`);
+    }
     
     // Capturar evento de clique em produto desde busca
     if (sessionToken && searchTerm) {
