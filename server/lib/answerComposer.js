@@ -341,9 +341,9 @@ export function composePrompts({ q, name, top3 = [], top8 = [], focusedProduct =
   
   // Usar top8 se disponível, senão top3
   const products = top8.length > 0 ? top8 : top3;
-  console.log(`📋 [composePrompts] Produtos para IA:`, {
+  console.log(`📋 [composePrompts] Produtos processados para IA:`, {
     count: products.length,
-    products: products.map(p => ({ id: p.id, title: p.title, storeName: p.storeName }))
+    storeCount: new Set(products.map(p => p.storeName).filter(Boolean)).size
   });
   
   // Incluir recomendações no contexto de produtos se disponível
@@ -362,19 +362,15 @@ export function composePrompts({ q, name, top3 = [], top8 = [], focusedProduct =
     if (recommendations.all && recommendations.all.length > 0) {
       allProductsContext = [...products, ...recommendations.all];
       
-      // Instrução específica para IA incluir recomendações
+      // Instrução SEM dados específicos para evitar JSON na resposta
       recommendationInstructions = `
-RECOMENDAÇÕES AUTOMÁTICAS PARA INCLUIR NA RESPOSTA:
-- PRODUTO EM FOCO: ${focusedProduct.title} (o cliente está interessado neste)
-- UPGRADES DISPONÍVEIS: ${recommendations.upsells?.map(p => `${p.title} (${p.reason})`).join(', ') || 'nenhum'}
-- PRODUTOS COMPLEMENTARES: ${recommendations.crossSells?.map(p => `${p.title} (${p.reason})`).join(', ') || 'nenhum'}
-
-INSTRUÇÕES DE VENDA INTELIGENTE:
-- SEMPRE mencione o produto em foco que o cliente demonstrou interesse
-- Sugira automaticamente 1-2 produtos complementares relevantes
-- Se há upgrade disponível, mencione brevemente os benefícios extras
-- Use técnica consultiva: "Já que você está interessado no [produto], que tal considerar também..."
-- NUNCA invente recomendações - use apenas as fornecidas acima`;
+MODO VENDAS CONSULTIVAS ATIVADO:
+- Cliente demonstrou interesse em produto específico - use isso como gancho
+- Há opções de upgrade e produtos complementares disponíveis
+- Seja proativo em sugerir produtos relacionados da mesma categoria
+- Use técnica consultiva: "Já que você está interessado em [categoria], que tal considerar também..."
+- Foque em benefícios e comparações de valor
+- Os produtos serão mostrados automaticamente na interface - você só precisa orientar a escolha`;
     }
   }
   
