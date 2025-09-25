@@ -24,13 +24,48 @@ export async function buildGrounding(origin, q) {
     return { products: [] };
   };
   
-  const sug = (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(q)}`)) ||
-              (await tryFetch(`${origin}/suggest?q=${encodeURIComponent(q)}`));
+  let sug = (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(q)}`)) ||
+            (await tryFetch(`${origin}/suggest?q=${encodeURIComponent(q)}`));
   
   console.log(`📦 [buildGrounding] Dados brutos recebidos:`, {
     hasProducts: !!sug?.products,
     productsLength: sug?.products?.length || 0
   });
+  
+  // 🎯 Fallback inteligente: se não encontrou produtos com query completa, extrair termos-chave
+  if (!sug?.products || sug.products.length === 0) {
+    console.log(`🔄 [buildGrounding] Busca inicial não retornou produtos. Tentando extrair termos-chave...`);
+    
+    // Extrair modelos, códigos e termos importantes
+    const keywords = [];
+    const patterns = [
+      /([A-Z]\d+[A-Z]*)/g,           // Códigos como A3081, iPhone, etc
+      /iPhone\s*\d+/gi,             // iPhone 16, iPhone 15, etc  
+      /\d+GB/gi,                    // 128GB, 256GB, etc
+      /Samsung Galaxy \w+/gi,       // Samsung Galaxy S24, etc
+      /MacBook \w+/gi,              // MacBook Pro, etc
+      /\b(?:BLACK|WHITE|BLUE|RED|GOLD|SILVER|TEAL|PINK|PURPLE|GREEN)\b/gi // Cores
+    ];
+    
+    patterns.forEach(pattern => {
+      const matches = q.match(pattern);
+      if (matches) keywords.push(...matches);
+    });
+    
+    // Tentar busca com termos extraídos
+    if (keywords.length > 0) {
+      const keywordQuery = keywords.slice(0, 3).join(' '); // Máximo 3 termos
+      console.log(`🔑 [buildGrounding] Tentando busca com termos-chave: "${keywordQuery}"`);
+      
+      const fallbackSug = (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(keywordQuery)}`)) ||
+                         (await tryFetch(`${origin}/suggest?q=${encodeURIComponent(keywordQuery)}`));
+      
+      if (fallbackSug?.products && fallbackSug.products.length > 0) {
+        console.log(`✅ [buildGrounding] Fallback funcionou! Encontrados ${fallbackSug.products.length} produtos`);
+        sug = fallbackSug;
+      }
+    }
+  }
   
   // Mapear produtos com dados completos
   const products = (sug?.products || []).map(p => ({
