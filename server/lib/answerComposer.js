@@ -13,19 +13,29 @@ export async function buildGrounding(origin, q, sessionId = null) {
   ];
   
   const productQuestionPatterns = [
-    /\b(o que (você )?ach[a]?|vale a pena|é bom|recomend[a]?|opini[ãa]o|qual (é )?melhor|que tal|como (é|está)|quero saber|me fal[a]?|diz aí|e aí|e esse|e esta|e isso|como vê|como considera)\b/gi
+    /\b(o que (você )?ach[a]?|vale a pena|é bom|recomend[a]?|opini[ãa]o|qual (é )?melhor|que tal|como (é|está)|me fal[a]?|diz aí|e aí|e esse|e esta|e isso|como vê|como considera)\b/gi
+  ];
+  
+  // Padrões de perguntas pessoais que NÃO devem ativar memória de produtos
+  const personalQuestionPatterns = [
+    /\b(qual (é |seu |o )?nome|quem (é |você|és)|como te chama|se apresent|boa noite|boa tarde|bom dia|oi|olá|prazer|tchau|obrigad|valeu)\b/gi
   ];
   
   const hasDeictic = deicticPatterns.some(pattern => pattern.test(q));
   const hasProductQuestion = productQuestionPatterns.some(pattern => pattern.test(q));
+  const isPersonalQuestion = personalQuestionPatterns.some(pattern => pattern.test(q));
+  
+  // Não ativar memória para perguntas pessoais
+  const shouldUseMemory = (hasDeictic || hasProductQuestion) && !isPersonalQuestion;
   
   console.log(`🧠 [buildGrounding] Análise da query "${q}":`, {
     hasDeictic,
     hasProductQuestion,
-    shouldUseMemory: hasDeictic || hasProductQuestion
+    isPersonalQuestion,
+    shouldUseMemory
   });
   
-  if (sessionId && (hasDeictic || hasProductQuestion)) {
+  if (sessionId && shouldUseMemory) {
     console.log(`🧠 [buildGrounding] Dêitico detectado! Buscando memória da sessão...`);
     
     // Buscar memória da sessão
