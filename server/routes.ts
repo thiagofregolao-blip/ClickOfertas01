@@ -7124,6 +7124,29 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
         write({ type:'chunk', text: piece });
         if (over>0) break;
       }
+      
+      // ❹ DEPOIS da resposta completa, enviar produtos encontrados
+      console.log(`📦 [assistant/stream] Resposta completa. Enviando produtos...`);
+      
+      // Preparar produtos para frontend (normalizar campos)
+      const productsToSend = (ground.top8?.length > 0 ? ground.top8 : ground.top3 || []).map(product => ({
+        ...product,
+        name: product.title, // Normalizar title -> name para frontend
+      }));
+      
+      if (productsToSend.length > 0) {
+        console.log(`📦 [assistant/stream] Enviando ${productsToSend.length} produtos para interface`);
+        
+        // Evento especial para produtos
+        write({ 
+          type: 'products', 
+          products: productsToSend,
+          query: message,
+          focusedProduct,
+          recommendations
+        });
+      }
+      
       await storage.createAssistantMessage({ sessionId, content: full, role:'assistant', metadata:{ streamed:true } });
       write({ type:'end' }); res.end();
     } catch (e) {
