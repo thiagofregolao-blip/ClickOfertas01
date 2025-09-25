@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { products, stores } from "@shared/schema";
+import { products, stores, productBankItems } from "@shared/schema";
 import { eq, and, or, sql, asc, desc, like, ilike } from "drizzle-orm";
 
 // Função que busca produtos para sugestões no Click Environment
@@ -40,13 +40,13 @@ export async function searchSuggestions(query: string) {
   const searchTerm = query.toLowerCase().trim();
   console.log(`🎯 [searchSuggestions] Termo de busca processado: "${searchTerm}"`);
 
-  // Buscar produtos que correspondem ao termo
-  const matchingProducts = await db
+  // 1. Buscar na tabela products (produtos de lojas)
+  const storeProducts = await db
     .select({
       id: products.id,
       title: products.name,
       category: products.category,
-      priceUSD: sql<number>`CAST(${products.price} AS NUMERIC)`.as('priceUSD'),
+      price: sql<{ USD: number }>`JSON_BUILD_OBJECT('USD', CAST(${products.price} AS NUMERIC))`.as('price'),
       premium: sql<boolean>`${products.isFeatured}`.as('premium'),
       storeName: stores.name,
       storeSlug: stores.slug,
@@ -65,15 +65,39 @@ export async function searchSuggestions(query: string) {
         ilike(stores.name, `%${searchTerm}%`)
       )
     ))
-    .orderBy(
-      // Priorizar produtos em destaque
-      desc(products.isFeatured),
-      // Depois por relevância (nome exato primeiro)
-      sql`CASE WHEN LOWER(${products.name}) LIKE ${`%${searchTerm}%`} THEN 1 ELSE 2 END`,
-      // Por último, por preço
-      asc(products.price)
+    .limit(10);
+
+  // 2. Buscar na tabela productBankItems (Product Bank)
+  const bankProducts = await db
+    .select({
+      id: productBankItems.id,
+      title: productBankItems.name,
+      category: productBankItems.category,
+      price: sql<{ USD: number }>`JSON_BUILD_OBJECT('USD', 450)`.as('price'), // Preço padrão por enquanto
+      premium: sql<boolean>`false`.as('premium'),
+      storeName: sql<string>`'Atacado Store'`.as('storeName'), // Store padrão por enquanto
+      storeSlug: sql<string>`'atacado-store'`.as('storeSlug'),
+      imageUrl: productBankItems.primaryImageUrl
+    })
+    .from(productBankItems)
+    .where(
+      or(
+        ilike(productBankItems.name, `%${searchTerm}%`),
+        ilike(productBankItems.description, `%${searchTerm}%`),
+        ilike(productBankItems.brand, `%${searchTerm}%`),
+        ilike(productBankItems.model, `%${searchTerm}%`),
+        ilike(productBankItems.category, `%${searchTerm}%`),
+        ilike(productBankItems.color, `%${searchTerm}%`),
+        ilike(productBankItems.storage, `%${searchTerm}%`)
+      )
     )
-    .limit(20);
+    .limit(10);
+
+  // 3. Combinar resultados priorizando Product Bank para códigos específicos
+  const hasCodePattern = /[A-Z]\d+[A-Z]*/.test(searchTerm.toUpperCase());
+  const matchingProducts = hasCodePattern 
+    ? [...bankProducts, ...storeProducts] // Priorizar Product Bank para códigos
+    : [...storeProducts, ...bankProducts]; // Priorizar store products normalmente
 
   console.log(`✅ [searchSuggestions] Encontrados ${matchingProducts.length} produtos para "${searchTerm}"`);
   
@@ -85,7 +109,7 @@ export async function searchSuggestions(query: string) {
   }
 
   // Detectar categoria predominante
-  const categories = matchingProducts.map(p => p.category).filter(Boolean);
+  const categories = matchingProducts.map(p => p.category).filter(Boolean) as string[];
   const categoryCount = categories.reduce((acc, cat) => {
     acc[cat] = (acc[cat] || 0) + 1;
     return acc;
@@ -96,7 +120,7 @@ export async function searchSuggestions(query: string) {
     : null;
 
   // Top stores baseado nos produtos encontrados
-  const storeNames = [...new Set(matchingProducts.map(p => p.storeName).filter(Boolean))];
+  const storeNames = Array.from(new Set(matchingProducts.map(p => p.storeName).filter(Boolean)));
   const topStores = storeNames.slice(0, 5);
 
   return {
