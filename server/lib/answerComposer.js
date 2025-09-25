@@ -24,13 +24,31 @@ export async function buildGrounding(origin, q) {
     return { products: [] };
   };
   
-  let sug = (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(q)}`)) ||
+  let sug = (await tryFetch(`${origin}/api/search/suggestions?q=${encodeURIComponent(q)}`)) ||
+            (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(q)}`)) ||
             (await tryFetch(`${origin}/suggest?q=${encodeURIComponent(q)}`));
   
   console.log(`📦 [buildGrounding] Dados brutos recebidos:`, {
     hasProducts: !!sug?.products,
-    productsLength: sug?.products?.length || 0
+    productsLength: sug?.products?.length || 0,
+    hasSuggestions: !!sug?.suggestions,
+    suggestionsLength: sug?.suggestions?.length || 0
   });
+  
+  // 🔄 Converter suggestions para format de products se necessário
+  if (sug?.suggestions && !sug?.products) {
+    console.log(`🔄 [buildGrounding] Convertendo suggestions para formato products`);
+    sug.products = sug.suggestions.map((title, index) => ({
+      id: `suggestion-${index}`,
+      title: title,
+      category: "",
+      price: { USD: null },
+      premium: false,
+      storeName: "",
+      storeSlug: "",
+      imageUrl: null
+    }));
+  }
   
   // 🎯 Fallback inteligente: se não encontrou produtos com query completa, extrair termos-chave
   if (!sug?.products || sug.products.length === 0) {
@@ -57,8 +75,23 @@ export async function buildGrounding(origin, q) {
       const keywordQuery = keywords.slice(0, 3).join(' '); // Máximo 3 termos
       console.log(`🔑 [buildGrounding] Tentando busca com termos-chave: "${keywordQuery}"`);
       
-      const fallbackSug = (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(keywordQuery)}`)) ||
+      const fallbackSug = (await tryFetch(`${origin}/api/search/suggestions?q=${encodeURIComponent(keywordQuery)}`)) ||
+                         (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(keywordQuery)}`)) ||
                          (await tryFetch(`${origin}/suggest?q=${encodeURIComponent(keywordQuery)}`));
+      
+      // Converter suggestions do fallback também
+      if (fallbackSug?.suggestions && !fallbackSug?.products) {
+        fallbackSug.products = fallbackSug.suggestions.map((title, index) => ({
+          id: `fallback-${index}`,
+          title: title,
+          category: "",
+          price: { USD: null },
+          premium: false,
+          storeName: "",
+          storeSlug: "",
+          imageUrl: null
+        }));
+      }
       
       if (fallbackSug?.products && fallbackSug.products.length > 0) {
         console.log(`✅ [buildGrounding] Fallback funcionou! Encontrados ${fallbackSug.products.length} produtos`);
