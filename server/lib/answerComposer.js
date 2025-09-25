@@ -33,22 +33,53 @@ export async function buildGrounding(origin, q) {
     hasProducts: !!sug?.products,
     productsLength: sug?.products?.length || 0,
     hasSuggestions: !!sug?.suggestions,
-    suggestionsLength: sug?.suggestions?.length || 0
+    suggestionsLength: sug?.suggestions?.length || 0,
+    hasResults: !!sug?.results,
+    resultsLength: sug?.results?.length || 0,
+    hasItems: !!sug?.items,
+    itemsLength: sug?.items?.length || 0,
+    topLevelKeys: sug ? Object.keys(sug) : []
   });
   
-  // 🔄 Converter suggestions para format de products se necessário
-  if (sug?.suggestions && !sug?.products) {
-    console.log(`🔄 [buildGrounding] Convertendo suggestions para formato products`);
-    sug.products = sug.suggestions.map((title, index) => ({
-      id: `suggestion-${index}`,
-      title: title,
-      category: "",
-      price: { USD: null },
-      premium: false,
-      storeName: "",
-      storeSlug: "",
-      imageUrl: null
-    }));
+  // 🔧 Normalização robusta: detectar formato de resposta e converter para formato padrão
+  if (!sug?.products || sug.products.length === 0) {
+    console.log(`🔧 [buildGrounding] Tentando normalizar dados de outros formatos...`);
+    
+    // Detectar fonte de dados alternativa
+    const rawItems = sug?.products || sug?.results || sug?.items || sug?.data?.results || [];
+    
+    if (rawItems.length > 0) {
+      console.log(`✅ [buildGrounding] Encontrados ${rawItems.length} items para normalizar`);
+      console.log(`📝 [buildGrounding] Primeiro item exemplo:`, JSON.stringify(rawItems[0], null, 2).slice(0, 500));
+      
+      // Mapear para formato padrão esperado pela IA
+      sug.products = rawItems.map((p, index) => ({
+        id: p.id || p.productId || p._id || `item-${index}`,
+        title: p.title || p.name || '',
+        category: p.category || '',
+        price: { 
+          USD: p.priceUSD ?? p.price?.USD ?? (typeof p.price === 'number' ? p.price : undefined)
+        },
+        premium: !!p.premium,
+        storeName: p.storeName || p.store?.name || '',
+        storeSlug: p.storeSlug || p.store?.slug || '',
+        imageUrl: p.imageUrl || p.image || (p.images && p.images[0]) || null
+      }));
+      
+      console.log(`🎯 [buildGrounding] Normalizados ${sug.products.length} produtos`);
+    } else if (sug?.suggestions) {
+      console.log(`🔄 [buildGrounding] Convertendo suggestions para formato products`);
+      sug.products = sug.suggestions.map((title, index) => ({
+        id: `suggestion-${index}`,
+        title: title,
+        category: "",
+        price: { USD: null },
+        premium: false,
+        storeName: "",
+        storeSlug: "",
+        imageUrl: null
+      }));
+    }
   }
   
   // 🎯 Fallback inteligente: se não encontrou produtos com query completa, extrair termos-chave
@@ -81,22 +112,40 @@ export async function buildGrounding(origin, q) {
                          (await tryFetch(`${origin}/suggest?q=${encodeURIComponent(keywordQuery)}`)) ||
                          (await tryFetch(`${origin}/api/search/suggestions?q=${encodeURIComponent(keywordQuery)}`));
       
-      // Converter suggestions do fallback também
-      if (fallbackSug?.suggestions && !fallbackSug?.products) {
-        fallbackSug.products = fallbackSug.suggestions.map((title, index) => ({
-          id: `fallback-${index}`,
-          title: title,
-          category: "",
-          price: { USD: null },
-          premium: false,
-          storeName: "",
-          storeSlug: "",
-          imageUrl: null
-        }));
+      // Normalização robusta do fallback também
+      if (!fallbackSug?.products || fallbackSug.products.length === 0) {
+        const fallbackItems = fallbackSug?.products || fallbackSug?.results || fallbackSug?.items || fallbackSug?.data?.results || [];
+        
+        if (fallbackItems.length > 0) {
+          console.log(`🔧 [buildGrounding] Normalizando ${fallbackItems.length} items do fallback`);
+          fallbackSug.products = fallbackItems.map((p, index) => ({
+            id: p.id || p.productId || p._id || `fallback-${index}`,
+            title: p.title || p.name || '',
+            category: p.category || '',
+            price: { 
+              USD: p.priceUSD ?? p.price?.USD ?? (typeof p.price === 'number' ? p.price : undefined)
+            },
+            premium: !!p.premium,
+            storeName: p.storeName || p.store?.name || '',
+            storeSlug: p.storeSlug || p.store?.slug || '',
+            imageUrl: p.imageUrl || p.image || (p.images && p.images[0]) || null
+          }));
+        } else if (fallbackSug?.suggestions) {
+          fallbackSug.products = fallbackSug.suggestions.map((title, index) => ({
+            id: `fallback-${index}`,
+            title: title,
+            category: "",
+            price: { USD: null },
+            premium: false,
+            storeName: "",
+            storeSlug: "",
+            imageUrl: null
+          }));
+        }
       }
       
       if (fallbackSug?.products && fallbackSug.products.length > 0) {
-        console.log(`✅ [buildGrounding] Fallback funcionou! Encontrados ${fallbackSug.products.length} produtos`);
+        console.log(`✅ [buildGrounding] Fallback funcionou! Encontrados ${fallbackSug.products.length} produtos normalizados`);
         sug = fallbackSug;
       }
     }
