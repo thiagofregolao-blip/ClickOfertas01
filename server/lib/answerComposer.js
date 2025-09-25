@@ -378,11 +378,15 @@ INSTRUÇÕES DE VENDA INTELIGENTE:
     }
   }
   
+  // Analisar diversidade de lojas ANTES do console.log
+  const uniqueStores = new Set(products.map(p => p.storeName).filter(Boolean));
+  const storeCount = uniqueStores.size;
+  
   // FACTS removido do prompt para evitar JSON na resposta da IA
   console.log(`📝 [composePrompts] Produtos processados:`, {
     totalProducts: allProductsContext.length,
     hasRecommendations: !!recommendations,
-    storeCount: uniqueStores.size
+    storeCount
   });
   
   // Detectar contexto da conversa
@@ -395,10 +399,6 @@ INSTRUÇÕES DE VENDA INTELIGENTE:
   const queryHash = q.split('').reduce((a, b) => (a << 5) - a + b.charCodeAt(0), 0);
   const shouldUseName = isFirstInteraction ? !!realName : (realName && Math.abs(queryHash) % 3 === 0);
   const nameToUse = shouldUseName ? realName : null;
-  
-  // Analisar diversidade de lojas
-  const uniqueStores = new Set(products.map(p => p.storeName).filter(Boolean));
-  const storeCount = uniqueStores.size;
   
   // Detectar tipo de pergunta para ajustar personalidade
   const isPersonalQuestion = /\b(nome|quem é|quem você|como te chama|se apresent|boa noite|boa tarde|bom dia|oi|olá|prazer|tchau|obrigad|valeu)\b/i.test(q);
