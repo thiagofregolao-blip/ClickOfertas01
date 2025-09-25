@@ -6588,23 +6588,43 @@ Responda curto, claro, PT-BR.
       const searchTerm = q.toLowerCase().trim();
       console.log(`🎯 [/api/click/suggest] Termo processado: "${searchTerm}"`);
       
-      // 1. BUSCA NO PRODUCT BANK
+      // 1. BUSCA NO PRODUCT BANK - ABORDAGEM INTELIGENTE
+      const terms = searchTerm.split(' ').filter(t => t.length > 1);
+      console.log(`🔤 [/api/click/suggest] Termos separados: [${terms.join(', ')}]`);
+      
+      let primaryTerm = searchTerm;
+      
+      // Se há múltiplos termos, priorizar códigos/modelos (A2411, iPhone, etc)
+      if (terms.length > 1) {
+        const codePattern = /[A-Z]\d{4}|iPhone|iPad|Galaxy|Xperia/i;
+        const codeMatch = terms.find(term => codePattern.test(term));
+        if (codeMatch) {
+          primaryTerm = codeMatch.toLowerCase();
+          console.log(`🎯 [/api/click/suggest] Priorizando código/modelo: "${primaryTerm}"`);
+        } else {
+          // Senão, usar apenas os primeiros 2 termos mais importantes
+          primaryTerm = terms.slice(0, 2).join(' ').toLowerCase();
+          console.log(`🎯 [/api/click/suggest] Usando primeiros termos: "${primaryTerm}"`);
+        }
+      }
+      
+      // Busca com termo principal otimizado
       const bankResult = await db.execute(sql`
         SELECT id, name, category, primaryimageurl 
         FROM product_bank_items 
-        WHERE LOWER(name) LIKE ${'%' + searchTerm + '%'}
-           OR LOWER(model) LIKE ${'%' + searchTerm + '%'}
-           OR LOWER(brand) LIKE ${'%' + searchTerm + '%'}
+        WHERE LOWER(name) LIKE ${'%' + primaryTerm + '%'}
+           OR LOWER(model) LIKE ${'%' + primaryTerm + '%'}
+           OR LOWER(brand) LIKE ${'%' + primaryTerm + '%'}
         LIMIT 3
       `);
       
-      // 2. BUSCA NOS PRODUTOS DE LOJAS  
+      // 2. BUSCA NOS PRODUTOS DE LOJAS - MESMO TERMO OTIMIZADO
       const storeResult = await db.execute(sql`
         SELECT p.id, p.name, p.category, p.image_url, s.name as store_name, s.slug as store_slug
         FROM products p
         LEFT JOIN stores s ON p.store_id = s.id
-        WHERE LOWER(p.name) LIKE ${'%' + searchTerm + '%'}
-           OR LOWER(p.description) LIKE ${'%' + searchTerm + '%'}
+        WHERE LOWER(p.name) LIKE ${'%' + primaryTerm + '%'}
+           OR LOWER(p.description) LIKE ${'%' + primaryTerm + '%'}
         LIMIT 3
       `);
       
