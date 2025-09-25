@@ -24,7 +24,8 @@ export async function buildGrounding(origin, q) {
     return { products: [] };
   };
   
-  let sug = (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(q)}`)) ||
+  let sug = (await tryFetch(`${origin}/api/click/suggest?q=${encodeURIComponent(q)}`)) ||
+            (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(q)}`)) ||
             (await tryFetch(`${origin}/suggest?q=${encodeURIComponent(q)}`)) ||
             (await tryFetch(`${origin}/api/search/suggestions?q=${encodeURIComponent(q)}`));
   
@@ -75,7 +76,8 @@ export async function buildGrounding(origin, q) {
       const keywordQuery = keywords.slice(0, 3).join(' '); // Máximo 3 termos
       console.log(`🔑 [buildGrounding] Tentando busca com termos-chave: "${keywordQuery}"`);
       
-      const fallbackSug = (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(keywordQuery)}`)) ||
+      const fallbackSug = (await tryFetch(`${origin}/api/click/suggest?q=${encodeURIComponent(keywordQuery)}`)) ||
+                         (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(keywordQuery)}`)) ||
                          (await tryFetch(`${origin}/suggest?q=${encodeURIComponent(keywordQuery)}`)) ||
                          (await tryFetch(`${origin}/api/search/suggestions?q=${encodeURIComponent(keywordQuery)}`));
       

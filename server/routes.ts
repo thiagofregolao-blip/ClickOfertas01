@@ -7054,14 +7054,10 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
   app.get(['/suggest','/api/suggest'], async (req: any, res) => {
     try {
       const q = (req.query.q as string || '').toLowerCase().trim();
-      console.log(`🔍 [/api/suggest] Query: "${q}"`);
-      
       const stores = await storage.getAllActiveStoresOptimized(50, 60);
-      console.log(`🏪 [/api/suggest] Stores fetched: ${stores.length}`);
 
       const products: any[] = [];
       for (const s of stores) {
-        console.log(`🏪 [/api/suggest] Store ${s.name}: ${(s.products || []).length} products`);
         for (const p of (s.products || [])) {
           const title = String(p.name || '').trim();
           const category = String(p.category || '').trim();
@@ -7091,10 +7087,7 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       filtered.forEach(p => { p.score = (p.title.toLowerCase().startsWith(q) ? 1 : 0) + ((p.category||'').toLowerCase().includes(q) ? 0.3 : 0); });
       filtered.sort((a,b)=> (b.score||0)-(a.score||0));
 
-      console.log(`📦 [/api/suggest] Total products: ${products.length}, Filtered: ${filtered.length}`);
-      const result = filtered.slice(0, 60);
-      console.log(`✅ [/api/suggest] Returning ${result.length} products`);
-      res.json({ ok:true, products: result });
+      res.json({ ok:true, products: filtered.slice(0, 60) });
     } catch (e) {
       console.error('suggest', e);
       res.json({ ok:true, products: [] });
