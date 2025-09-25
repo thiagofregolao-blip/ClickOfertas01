@@ -168,7 +168,7 @@ import {
   type AssistantSessionWithMessages,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, count, gte, lte, lt, sql, inArray, or, isNull } from "drizzle-orm";
+import { eq, and, desc, asc, count, gte, lte, lt, sql, inArray, or, isNull, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -406,6 +406,18 @@ export interface IStorage {
   
   getUserAssistantPreferences(userId: string): Promise<UserAssistantPreferences | undefined>;
   upsertUserAssistantPreferences(userId: string, preferences: InsertUserAssistantPreferences): Promise<UserAssistantPreferences>;
+  
+  // Search Learning System
+  createSearchLog(log: {
+    sessionId: string;
+    userId?: string | null;
+    query: string;
+    foundProducts: number;
+    timestamp: Date;
+    metadata?: any;
+  }): Promise<void>;
+  getPopularSearchTerms(limit?: number): Promise<{ query: string; count: number }[]>;
+  getSearchPatterns(userId?: string): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4527,6 +4539,76 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return preferences;
+  }
+
+  // 🎯 Search Learning System - Tracks user search patterns for AI improvement
+  async createSearchLog(log: {
+    sessionId: string;
+    userId?: string | null;
+    query: string;
+    foundProducts: number;
+    timestamp: Date;
+    metadata?: any;
+  }): Promise<void> {
+    try {
+      // Store search logs in existing productSearches table for AI learning
+      await db
+        .insert(productSearches)
+        .values({
+          id: `search-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          sessionToken: log.sessionId,
+          userId: log.userId,
+          searchTerm: log.query,
+          category: log.metadata?.categories?.[0] || null,
+          resultsCount: log.foundProducts,
+          searchAt: log.timestamp.toISOString(),
+        });
+    } catch (error) {
+      console.warn('Failed to log search for learning system:', error);
+    }
+  }
+
+  async getPopularSearchTerms(limit: number = 10): Promise<{ query: string; count: number }[]> {
+    try {
+      // Query productSearches to get most popular search terms
+      const popularTerms = await db
+        .select({
+          query: productSearches.searchTerm,
+          count: sql<number>`count(*)`
+        })
+        .from(productSearches)
+        .where(isNotNull(productSearches.searchTerm))
+        .groupBy(productSearches.searchTerm)
+        .orderBy(sql`count(*) desc`)
+        .limit(limit);
+      
+      return popularTerms.filter(term => term.query && term.query.length > 0);
+    } catch (error) {
+      console.warn('Failed to get popular search terms:', error);
+      return [];
+    }
+  }
+
+  async getSearchPatterns(userId?: string): Promise<any[]> {
+    try {
+      let whereConditions = [isNotNull(productSearches.searchTerm)];
+      
+      if (userId) {
+        whereConditions.push(eq(productSearches.userId, userId));
+      }
+
+      const patterns = await db
+        .select()
+        .from(productSearches)
+        .where(and(...whereConditions))
+        .orderBy(desc(productSearches.searchAt))
+        .limit(100);
+
+      return patterns;
+    } catch (error) {
+      console.warn('Failed to get search patterns:', error);
+      return [];
+    }
   }
 }
 
