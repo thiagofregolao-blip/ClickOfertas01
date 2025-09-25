@@ -2008,3 +2008,44 @@ export type AssistantSessionWithMessages = AssistantSession & {
   messages?: AssistantMessage[];
   messageCount?: number;
 };
+
+// Product Reference for Assistant Memory
+export type ProductRef = {
+  id: string;
+  title: string;
+  category: string;
+  price: { USD?: number; PYG?: number; BRL?: number };
+  storeName: string;
+  storeSlug: string;
+  imageUrl?: string;
+  source: 'store' | 'bank'; // Indica se veio de loja ou Product Bank
+};
+
+// Assistant Session Memory - Armazenado no metadata das mensagens
+export type AssistantSessionMemory = {
+  lastQuery?: string;
+  lastCategory?: string;
+  lastShownProducts?: ProductRef[]; // Produtos mostrados na última resposta
+  currentFocusProductId?: string; // Produto atual em foco na conversa
+  customerPreferences?: {
+    budget?: 'baixo' | 'medio' | 'alto';
+    favoriteBrands?: string[];
+    favoriteCategories?: string[];
+    preferredStores?: string[];
+  };
+  conversationContext?: {
+    intent?: 'search' | 'compare' | 'question' | 'recommendation';
+    lastAction?: 'showed_products' | 'explained_product' | 'made_suggestion';
+    upsellAttempts?: number; // Quantas vezes já tentou upsell nesta sessão
+    crossSellAttempts?: number; // Quantas vezes já tentou cross-sell
+  };
+  timestamp?: string;
+};
+
+// Recommendation Types for AI Responses
+export type ProductRecommendation = {
+  type: 'upsell' | 'cross-sell' | 'related';
+  product: ProductRef;
+  reason: string; // Por que está sendo recomendado
+  confidence: number; // 0-1, confiança na recomendação
+};
