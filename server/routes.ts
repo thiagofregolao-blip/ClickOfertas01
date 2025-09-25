@@ -81,8 +81,8 @@ import bcrypt from "bcryptjs";
 import QRCode from "qrcode";
 import { apifyService, type PriceSearchResult } from "./apifyService";
 import { db } from "./db";
-import { products, stores } from "@shared/schema";
-import { eq, and, or, sql, asc, desc } from "drizzle-orm";
+import { products, stores, productBankItems } from "@shared/schema";
+import { eq, and, or, sql, asc, desc, ilike } from "drizzle-orm";
 import { MemoryService } from "./memoryService";
 
 // Simple in-memory cache with TTL
@@ -6582,15 +6582,50 @@ Responda curto, claro, PT-BR.
       const userId = (req.headers['x-user-id'] || '').toString();  // opcional para cooldown da raspadinha
       const ip = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || '';
 
-      const data = await searchSuggestions(q);
-      const payload = { ok: true, ...data };
+      console.log(`🔍 [/api/click/suggest] Buscando para: "${q}"`);
+      
+      // BUSCA DIRETA NO PRODUCT BANK PARA TESTE
+      const searchTerm = q.toLowerCase().trim();
+      console.log(`🎯 [/api/click/suggest] Termo processado: "${searchTerm}"`);
+      
+      const bankProducts = await db
+        .select({
+          id: productBankItems.id,
+          title: productBankItems.name,
+          category: productBankItems.category,
+          price: { USD: 450 }, // Fixo por enquanto
+          premium: false,
+          storeName: 'Atacado Store',
+          storeSlug: 'atacado-store',
+          imageUrl: productBankItems.primaryImageUrl
+        })
+        .from(productBankItems)
+        .where(
+          or(
+            ilike(productBankItems.name, `%${searchTerm}%`),
+            ilike(productBankItems.model, `%${searchTerm}%`),
+            ilike(productBankItems.brand, `%${searchTerm}%`)
+          )
+        )
+        .limit(5);
+      
+      console.log(`📦 [/api/click/suggest] Product Bank encontrou ${bankProducts.length} produtos:`, 
+        bankProducts.map(p => ({ title: p.title, id: p.id }))
+      );
+
+      const payload = { 
+        ok: true, 
+        products: bankProducts,
+        category: 'eletronicos',
+        topStores: ['Atacado Store']
+      };
 
       // Anexa raspadinha conforme regra (sua engine) — não bloqueia a resposta se falhar
-      await maybeAttachPromo({ payload, userId, ip, context: { route: 'suggest', query: q, category: data.category } });
+      await maybeAttachPromo({ payload, userId, ip, context: { route: 'suggest', query: q, category: 'eletronicos' } });
 
       res.json(payload);
     } catch (e) {
-      console.error(e);
+      console.error('[/api/click/suggest] ERRO:', e);
       res.status(500).json({ ok: false, error: 'Erro nas sugestões' });
     }
   });

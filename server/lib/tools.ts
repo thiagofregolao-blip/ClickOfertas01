@@ -67,7 +67,8 @@ export async function searchSuggestions(query: string) {
     ))
     .limit(10);
 
-  // 2. Buscar na tabela productBankItems (Product Bank)
+  // 2. Buscar na tabela productBankItems (Product Bank) COM LOGS DETALHADOS
+  console.log(`🔍 [searchSuggestions] Buscando Product Bank para: "${searchTerm}"`);
   const bankProducts = await db
     .select({
       id: productBankItems.id,
@@ -92,6 +93,10 @@ export async function searchSuggestions(query: string) {
       )
     )
     .limit(10);
+  
+  console.log(`📦 [searchSuggestions] Product Bank encontrou ${bankProducts.length} items:`, 
+    bankProducts.slice(0, 3).map(p => ({ title: p.title, id: p.id }))
+  );
 
   // 3. Combinar resultados priorizando Product Bank para códigos específicos
   const hasCodePattern = /[A-Z]\d+[A-Z]*/.test(searchTerm.toUpperCase());
