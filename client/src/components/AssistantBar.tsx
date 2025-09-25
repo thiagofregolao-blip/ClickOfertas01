@@ -608,6 +608,23 @@ export default function AssistantBar() {
                 hasTriggeredSearchRef.current = true;
                 pendingSearchRef.current = ''; // Limpar busca pendente
               }
+            } else if (p.type === 'products') {
+              // ✨ NOVO: Evento de produtos enviado após resposta da IA
+              console.log('📦 [AssistantBar] Produtos recebidos:', p.products?.length || 0);
+              
+              if (p.products && p.products.length > 0) {
+                // Atualizar memória da sessão com produtos mostrados
+                if (sessionId) {
+                  updateSessionMemory(p.products, p.query || '');
+                }
+                
+                // Exibir produtos na interface
+                setTopBox(p.products.slice(0, 3));
+                setFeed(p.products.slice(3));
+                setShowResults(true);
+                
+                console.log('📦 [AssistantBar] Interface atualizada com produtos');
+              }
             } else if (p.type === 'end') {
               // Fallback: se ainda há busca pendente, executar agora
               if (pendingSearchRef.current && !hasTriggeredSearchRef.current) {
