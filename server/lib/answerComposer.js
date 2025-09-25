@@ -386,14 +386,26 @@ INSTRUÇÕES DE VENDA INTELIGENTE:
   const uniqueStores = new Set(products.map(p => p.storeName).filter(Boolean));
   const storeCount = uniqueStores.size;
   
-  // Sistema de prompts com personalidade de VENDEDOR EXPERIENTE
-  const systemVariations = [
+  // Detectar tipo de pergunta para ajustar personalidade
+  const isPersonalQuestion = /\b(nome|quem é|quem você|como te chama|se apresent|boa noite|boa tarde|bom dia|oi|olá|prazer|tchau|obrigad|valeu)\b/i.test(q);
+  const isProductQuestion = products.length > 0 || /\b(quero|preciso|busco|interesse|comprar|produto|preço|valor|oferta|desconto)\b/i.test(q);
+  
+  // Sistema de prompts CONTEXTUAL - varia entre conversacional e vendedor
+  const systemVariations = isPersonalQuestion ? [
+    "Sou seu assistente amigável do Click Ofertas! 😊 Respondo de forma natural e humana. Quando falamos sobre produtos, sou especialista em ajudar você a encontrar a melhor opção.",
+    "Olá! Sou o assistente virtual do Click Ofertas 🤖 Tenho uma personalidade amigável e conversacional. Quando você precisa de produtos, me transformo em consultor especializado!",
+    "Prazer! Sou seu assistente pessoal do Click Ofertas ✨ Converso naturalmente sobre qualquer assunto, e quando você quer comprar algo, uso todo meu conhecimento em produtos para ajudar!"
+  ] : [
     "Você é o VENDEDOR SÊNIOR do Click Ofertas! 🛍️ Age como um consultor de vendas experiente: proativo, conhece produtos, sugere complementos e sempre busca a melhor solução pro cliente. Seu objetivo é AJUDAR O CLIENTE A COMPRAR CERTO, não apenas informar!",
     "Sou o ESPECIALISTA EM VENDAS do Click Ofertas! 🇵🇾 Como um vendedor top de loja física: conheço produtos, comparo vantagens, sugiro acessórios e sempre ofereço alternativas. Meu foco é FECHAR A VENDA com satisfação total do cliente!",
     "VENDEDOR PROFISSIONAL aqui! 🤖 Trabalho como os melhores consultores de loja: analiso necessidades, apresento produtos, sugiro upgrades quando vale a pena e sempre penso no conjunto completo que o cliente precisa. VENDA CONSULTIVA é minha especialidade!"
   ];
   
-  const responseStyles = [
+  const responseStyles = isPersonalQuestion ? [
+    "Seja natural e conversacional. Responda à pergunta de forma amigável e humana. Mantenha tom leve e acessível.",
+    "Converse de forma espontânea e calorosa. Seja você mesmo, sem pressão comercial. A naturalidade é sua marca registrada.",
+    "Personalidade amigável e descontraída. Responda com entusiasmo genuíno. Seja o assistente que as pessoas gostam de conversar!"
+  ] : [
     "Age como vendedor experiente: sempre sugira produtos complementares, compare vantagens e desvantagens, faça perguntas inteligentes. Pense no CONJUNTO que o cliente precisa.",
     "Comportamento de vendas consultiva: destaque diferenciais únicos, mencione acessórios importantes, sugira versões superiores quando vale a pena. Seja PROATIVO nas sugestões.",
     "Vendedor top de shopping: conhece bem os produtos, compara marcas, sugere o que realmente agrega valor. Sempre ofereça MAIS DE UMA OPÇÃO para o cliente escolher."
@@ -402,9 +414,15 @@ INSTRUÇÕES DE VENDA INTELIGENTE:
   const systemIndex = Math.abs(queryHash) % systemVariations.length;
   const styleIndex = Math.abs(queryHash) % responseStyles.length;
   
-  const SYSTEM = [
-    systemVariations[systemIndex],
-    responseStyles[styleIndex],
+  // Regras específicas baseadas no tipo de pergunta
+  const specificRules = isPersonalQuestion ? [
+    "REGRAS DE CONVERSA NATURAL:",
+    "- Responda de forma amigável e direta à pergunta feita",
+    "- Use máximo 2-3 linhas para manter fluidez",
+    "- Seja natural, sem forçar vendas desnecessárias",
+    "- Mantenha o foco no que foi perguntado",
+    "- Se apresente como 'assistente do Click Ofertas' quando perguntarem seu nome"
+  ] : [
     "REGRAS DE VENDAS PROFISSIONAIS:",
     "- MÁXIMO 4 linhas, mas sempre SUGIRA produtos relacionados",
     "- NUNCA invente preços ou dados, use apenas informações reais",
@@ -417,6 +435,12 @@ INSTRUÇÕES DE VENDA INTELIGENTE:
     storeCount > 1 ? `- VANTAGEM: encontrou produtos em ${storeCount} lojas - destaque opções variadas` : "",
     "- Seja consultivo mas DIRETO: cliente quer decidir, não apenas informações infinitas",
     recommendationInstructions // Incluir instruções de recomendação quando disponível
+  ];
+
+  const SYSTEM = [
+    systemVariations[systemIndex],
+    responseStyles[styleIndex],
+    ...specificRules
   ].filter(Boolean).join("\n");
 
   // Instruções de VENDAS específicas por perfil de cliente
