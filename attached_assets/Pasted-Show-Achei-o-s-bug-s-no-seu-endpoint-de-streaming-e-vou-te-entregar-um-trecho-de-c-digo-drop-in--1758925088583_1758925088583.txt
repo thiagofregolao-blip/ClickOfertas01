@@ -1,0 +1,222 @@
+Show! Achei o(s) bug(s) no seu endpoint de streaming e vou te entregar um trecho de código drop-in (substituir e rodar) que encerra o “digitando…” infinito e sempre emite texto/produtos/complete.
+
+O que está quebrado no seu arquivo
+
+Os loops de streaming do OpenAI foram removidos: você cria o stream mas não itera sobre os chunks; em vez disso há textos hardcoded tipo “Conversa casual simulada”.
+
+Não há tool calling para buscar produtos (ex.: buscarOfertas), nem o handler para retornar role:"tool" → o modelo fica esperando e a UI trava.
+
+Correção “definitiva”
+
+Abaixo vai um handler completo para /api/assistant/stream que:
+
+Faz streaming real de deltas (sem hardcode).
+
+Implementa tool calling buscarOfertas com ciclo multi-turno (modelo pede → servidor busca → responde com role:"tool" → modelo finaliza).
+
+Emite eventos SSE: meta (inic.), delta (texto), products (quando houver) e complete (sempre).
+
+Watchdog e encerramento limpos.
+
+Como aplicar: substitua integralmente o corpo do seu handler atual por este código (mantendo seus imports/utilitários existentes como storage, clickClient, etc.). Se você já tem buildGrounding/composePrompts, pode manter; o exemplo abaixo mostra um buscarOfertas simples e seguro.
+
+// server/routes.ts  — SUBSTITUIR handler /api/assistant/stream
+
+app.post('/api/assistant/stream', async (req: any, res) => {
+  const { message, sessionId } = req.body || {};
+  const user = req.user || req.session?.user;
+
+  if (!message?.trim()) {
+    res.status(400).json({ success: false, message: 'Message is required' });
+    return;
+  }
+
+  // ========= SSE HEADERS =========
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.flushHeaders?.();
+
+  const send = (event: string, payload: any) => {
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(payload)}\n\n`);
+  };
+  const writeDelta = (text: string) => send('delta', { text });
+  const complete = () => { send('complete', {}); res.end(); };
+
+  // ========= Watchdog =========
+  let lastDelta = Date.now();
+  const ping = () => { if (Date.now() - lastDelta > 6000) { writeDelta(' '); lastDelta = Date.now(); } };
+  const watchdog = setInterval(ping, 3000);
+  const cleanup = () => clearInterval(watchdog);
+  req.on('close', cleanup);
+
+  // ========= Persistência básica (opcional) =========
+  await storage.createAssistantMessage({ sessionId, role: 'user', content: message, metadata: { t: Date.now() } });
+
+  // ========= Tool: buscarOfertas (implemente com sua fonte real) =========
+  async function buscarOfertas(args: { query: string; cidade?: string; precoMax?: number; maxResultados?: number; }) {
+    // Exemplo simples — troque pelo seu buildGrounding/DB
+    const { query, cidade, precoMax, maxResultados = 10 } = args || {};
+    const all = await storage.searchCatalog({ query, cidade, precoMax }); // <- sua função real
+    const sorted = (all || []).sort((a: any, b: any) => (a.price ?? 0) - (b.price ?? 0)).slice(0, maxResultados);
+    // Avise o frontend com os produtos validados:
+    if (sorted.length > 0) {
+      send('products', {
+        products: sorted.map((p: any) => ({ ...p, name: p.title })),
+        schemaVersion: 2,
+        query
+      });
+    }
+    return sorted;
+  }
+
+  // ========= Laço multi-turno com tools =========
+  const system = [
+    'Você é o "Clique", consultor do Click Ofertas.',
+    'Se precisar de catálogo, use a ferramenta buscarOfertas.',
+    'Responda curto, amigável e em PT-BR.'
+  ].join(' ');
+
+  const tools = [
+    {
+      type: 'function',
+      function: {
+        name: 'buscarOfertas',
+        description: 'Busca ofertas no catálogo por termo e filtros.',
+        parameters: {
+          type: 'object',
+          properties: {
+            query: { type: 'string' },
+            cidade: { type: 'string' },
+            precoMax: { type: 'number' },
+            maxResultados: { type: 'integer', minimum: 1, maximum: 50, default: 10 }
+          },
+          required: ['query']
+        }
+      }
+    }
+  ];
+
+  // mensagem inicial p/ UX
+  send('meta', { ok: true });
+  writeDelta('Beleza! Já confiro isso… 😉');
+  lastDelta = Date.now();
+
+  // Util: agrega tool_calls que chegam por partes durante o stream
+  type ToolBuffer = { id: string; name: string; args: string };
+  const toolBuffers = new Map<string, ToolBuffer>();
+
+  // estado da conversa
+  const msgs: Array<{ role: 'system' | 'user' | 'assistant' | 'tool'; content?: string; name?: string; tool_call_id?: string; }> = [
+    { role: 'system', content: system },
+    { role: 'user', content: message }
+  ];
+
+  const model = process.env.CHAT_MODEL || 'gpt-4o-mini';
+
+  // loop até o modelo não pedir mais tools
+  for (let turn = 0; turn < 3; turn++) {
+    let fullText = '';
+
+    const stream = await clickClient.chat.completions.create({
+      model,
+      messages: msgs,
+      tools,
+      tool_choice: 'auto',
+      temperature: 0.3,
+      stream: true
+    });
+
+    // ====== STREAMING DE VERDADE (sem hardcode) — lê todos os chunks ======
+    for await (const chunk of stream) {
+      const choice = chunk?.choices?.[0];
+      const delta = choice?.delta;
+
+      // Texto token-a-token
+      if (delta?.content) {
+        fullText += delta.content;
+        writeDelta(delta.content);
+        lastDelta = Date.now();
+      }
+
+      // Tool-calls chegam em partes → agregamos por id
+      const tc = delta?.tool_calls;
+      if (tc && tc.length > 0) {
+        for (const t of tc) {
+          const id = t.id!;
+          const name = t.function?.name || toolBuffers.get(id)?.name || '';
+          const argsPiece = t.function?.arguments || '';
+          const prev = toolBuffers.get(id);
+          toolBuffers.set(id, {
+            id,
+            name,
+            args: (prev?.args || '') + argsPiece
+          });
+        }
+      }
+    }
+
+    // Se houve tool_calls neste turno, executa e continua o loop
+    if (toolBuffers.size > 0) {
+      for (const [, call] of toolBuffers) {
+        try {
+          const parsed = JSON.parse(call.args || '{}');
+          if (call.name === 'buscarOfertas') {
+            const produtos = await buscarOfertas(parsed);
+            // DEVOLVER AO MODELO — role:"tool" + tool_call_id + content STRING JSON
+            msgs.push({
+              role: 'tool',
+              name: 'buscarOfertas',
+              tool_call_id: call.id,
+              content: JSON.stringify({ data: produtos })
+            });
+          } else {
+            msgs.push({
+              role: 'tool',
+              name: call.name,
+              tool_call_id: call.id,
+              content: JSON.stringify({ ok: true })
+            });
+          }
+        } catch (err) {
+          msgs.push({
+            role: 'tool',
+            name: call.name,
+            tool_call_id: call.id,
+            content: JSON.stringify({ error: 'bad_arguments' })
+          });
+        }
+      }
+      toolBuffers.clear();
+      // volta ao topo para o modelo integrar o resultado das tools
+      continue;
+    }
+
+    // Sem tool-calls → resposta final deste turno
+    if (!fullText.trim()) {
+      writeDelta('Não consegui completar agora. Tente especificar categoria e orçamento. ');
+    }
+
+    await storage.createAssistantMessage({
+      sessionId,
+      role: 'assistant',
+      content: fullText || 'OK.',
+      metadata: { streamed: true, turn }
+    });
+
+    break; // terminou
+  }
+
+  cleanup();
+  complete();
+});
+
+Por que isso resolve
+
+Streaming real: agora lemos todos os chunks e emitimos delta conforme chegam (corrige o “digitando…” eterno causado por texto hardcoded e ausência de loop).
+
+Tool calling completo: agregamos tool_calls por id, executamos buscarOfertas(args), e devolvemos role:"tool" com tool_call_id e content JSON string; em seguida repetimos a chamada até a resposta final (elimina o “modelo esperando tool_result”).
+
+Evento products: assim que a busca retorna, emitimos products para sua UI renderizar resultados imediatamente (sem travar a mensagem).
