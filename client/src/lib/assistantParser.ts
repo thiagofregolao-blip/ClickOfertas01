@@ -20,29 +20,52 @@ export interface ParsedAssistantPayload {
   recommendations: ProductItem[];
 }
 
-/** Encontra o primeiro objeto JSON que comece com {"type":"products" ...} */
+/** Encontra o primeiro objeto JSON que comece com {"type":"products" ...} com detecção robusta */
 export function extractProductsJson(message: string): string {
   if (typeof message !== 'string') {
     throw new Error('A mensagem deve ser string.');
   }
   
-  const startIdx = message.indexOf('{"type":"products"');
-  if (startIdx === -1) {
+  // Regex tolerante a espaços e case-insensitive para detecção
+  const startMatch = message.match(/\{\s*"type"\s*:\s*"products"/i);
+  if (!startMatch) {
     throw new Error('Bloco {"type":"products"...} não encontrado na mensagem.');
   }
-
-  // Varredura balanceada de chaves para achar o fim correto do JSON
+  
+  const startIdx = startMatch.index!;
+  
+  // Varredura balanceada de chaves considerando strings e escapes
   let depth = 0;
   let endIdx = -1;
+  let inString = false;
+  let escaped = false;
   
   for (let i = startIdx; i < message.length; i++) {
     const ch = message[i];
-    if (ch === '{') depth++;
-    else if (ch === '}') {
-      depth--;
-      if (depth === 0) {
-        endIdx = i;
-        break;
+    
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    
+    if (ch === '\\' && inString) {
+      escaped = true;
+      continue;
+    }
+    
+    if (ch === '"' && !escaped) {
+      inString = !inString;
+      continue;
+    }
+    
+    if (!inString) {
+      if (ch === '{') depth++;
+      else if (ch === '}') {
+        depth--;
+        if (depth === 0) {
+          endIdx = i;
+          break;
+        }
       }
     }
   }
@@ -55,39 +78,70 @@ export function extractProductsJson(message: string): string {
   return jsonSlice;
 }
 
-/** Remove o JSON de produtos da mensagem, retornando apenas o texto limpo */
+/** Remove TODOS os JSON de produtos da mensagem, retornando apenas o texto limpo */
 export function removeProductsJsonFromText(message: string): string {
   try {
-    const startIdx = message.indexOf('{"type":"products"');
-    if (startIdx === -1) {
-      return message; // Não há JSON para remover
-    }
-
-    // Encontrar o fim do JSON usando a mesma lógica
-    let depth = 0;
-    let endIdx = -1;
+    let cleanedMessage = message;
     
-    for (let i = startIdx; i < message.length; i++) {
-      const ch = message[i];
-      if (ch === '{') depth++;
-      else if (ch === '}') {
-        depth--;
-        if (depth === 0) {
-          endIdx = i;
-          break;
+    // Remover todos os blocos JSON de produtos (pode haver múltiplos)
+    while (true) {
+      const startMatch = cleanedMessage.match(/\{\s*"type"\s*:\s*"products"/i);
+      if (!startMatch) {
+        break; // Não há mais JSON para remover
+      }
+      
+      const startIdx = startMatch.index!;
+      
+      // Encontrar o fim do JSON usando varredura robusta
+      let depth = 0;
+      let endIdx = -1;
+      let inString = false;
+      let escaped = false;
+      
+      for (let i = startIdx; i < cleanedMessage.length; i++) {
+        const ch = cleanedMessage[i];
+        
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+        
+        if (ch === '\\' && inString) {
+          escaped = true;
+          continue;
+        }
+        
+        if (ch === '"' && !escaped) {
+          inString = !inString;
+          continue;
+        }
+        
+        if (!inString) {
+          if (ch === '{') depth++;
+          else if (ch === '}') {
+            depth--;
+            if (depth === 0) {
+              endIdx = i;
+              break;
+            }
+          }
         }
       }
+      
+      if (endIdx === -1) {
+        // JSON incompleto durante streaming - remover todo o conteúdo a partir do início do JSON
+        // para evitar vazamento de JSON parcial na interface
+        cleanedMessage = cleanedMessage.slice(0, startIdx).trim();
+        break;
+      }
+      
+      // Remover o bloco JSON completo e continuar
+      const beforeJson = cleanedMessage.slice(0, startIdx).trim();
+      const afterJson = cleanedMessage.slice(endIdx + 1).trim();
+      cleanedMessage = [beforeJson, afterJson].filter(Boolean).join(' ').trim();
     }
     
-    if (endIdx === -1) {
-      return message; // JSON incompleto, manter como está
-    }
-    
-    // Remover o bloco JSON e limpar espaços extras
-    const beforeJson = message.slice(0, startIdx).trim();
-    const afterJson = message.slice(endIdx + 1).trim();
-    
-    return [beforeJson, afterJson].filter(Boolean).join(' ').trim();
+    return cleanedMessage;
   } catch {
     return message; // Em caso de erro, retornar mensagem original
   }
@@ -205,7 +259,7 @@ export function parseAssistantProducts(message: string, baseUrl?: string): Parse
   return normalized;
 }
 
-/** Verifica se a mensagem contém JSON de produtos */
+/** Verifica se a mensagem contém JSON de produtos (tolerante a espaços e case-insensitive) */
 export function hasProductsJson(message: string): boolean {
-  return message.includes('{"type":"products"');
+  return /\{\s*"type"\s*:\s*"products"/i.test(message);
 }

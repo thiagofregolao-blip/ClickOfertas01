@@ -580,6 +580,7 @@ export default function AssistantBar() {
       const decoder = new TextDecoder();
       let buffer = '';
       let assistantMessage = '';
+      let productsProcessed = false; // Flag para evitar reprocessamento
       
       while (true) {
         const { value, done } = await reader.read();
@@ -596,9 +597,9 @@ export default function AssistantBar() {
             if (p.type === 'chunk' && p.text) {
               assistantMessage += p.text;
               
-              // 🔧 PARSER DE PRODUTOS: Detectar e processar JSON inline na resposta da IA
+              // 🔧 PARSER DE PRODUTOS: Detectar e processar JSON inline na resposta da IA (apenas uma vez)
               let cleanedMessage = assistantMessage;
-              if (hasProductsJson(assistantMessage)) {
+              if (!productsProcessed && hasProductsJson(assistantMessage)) {
                 try {
                   console.log('🎯 [AssistantBar] JSON de produtos detectado na resposta da IA');
                   
@@ -608,8 +609,8 @@ export default function AssistantBar() {
                   
                   console.log('📦 [AssistantBar] Produtos extraídos:', parsedProducts.products?.length || 0);
                   
-                  // Remover JSON do texto da mensagem
-                  cleanedMessage = removeProductsJsonFromText(assistantMessage);
+                  // Marcar como processado para evitar reprocessamento
+                  productsProcessed = true;
                   
                   // Atualizar interface com produtos
                   if (parsedProducts.products && parsedProducts.products.length > 0) {
@@ -631,6 +632,9 @@ export default function AssistantBar() {
                   cleanedMessage = assistantMessage;
                 }
               }
+              
+              // Sempre remover JSON do texto exibido (mesmo se já processado)
+              cleanedMessage = removeProductsJsonFromText(assistantMessage);
               
               // Exibir texto limpo (sem JSON)
               setStreaming(cleanedMessage);
