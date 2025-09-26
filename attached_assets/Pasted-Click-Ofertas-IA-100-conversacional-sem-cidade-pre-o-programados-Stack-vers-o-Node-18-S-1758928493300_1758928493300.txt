@@ -1,0 +1,251 @@
+Click Ofertas — IA 100% conversacional (sem cidade/preço “programados”)
+
+Stack & versão: Node 18+
+
+Sem heurística, sem regras fixas de cidade/preço. O modelo (OpenAI) entende a intenção do usuário e decide quando chamar a tool buscarOfertas({ query }). Se o usuário diz “iphone”, a IA chama a tool com {query:"iphone"}, recebe seus itens e responde de forma natural/humorada.
+
+Árvore de diretórios
+click-ofertas-conversa-pura/
+├─ src/
+│  ├─ server.js          # Express API
+│  ├─ ai/
+│  │  ├─ chat.js         # Orquestra a conversa (tool calling puro, sem heurística)
+│  │  └─ openai.js       # Client OpenAI
+│  └─ services/
+│     └─ catalog.js      # <-- coloque aqui seus modelos/produtos reais
+├─ .replit
+├─ replit.nix
+├─ package.json
+└─ README.md
+
+// package.json
+{
+  "name": "click-ofertas-conversa-pura",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node -e \"console.log('ok')\""
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "openai": "^4.56.0"
+  }
+}
+
+# .replit
+run = "npm install && npm run start"
+
+# replit.nix
+{ pkgs }: {
+  deps = [ pkgs.nodejs-18_x pkgs.nodePackages.npm ];
+}
+
+// src/ai/openai.js
+import OpenAI from "openai";
+export const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// src/services/catalog.js
+/**
+ * ✅ Troque esta lista pelos seus modelos/produtos reais.
+ * Campo mínimo: { id, titulo, preco } — você pode adicionar "link", "marca", etc.
+ */
+const CATALOGO = [
+  // EXEMPLOS — substitua pelos seus
+  { id: "P1", titulo: "iPhone 13 128GB", preco: 980, link: "#" },
+  { id: "P2", titulo: "iPhone 12 64GB", preco: 750, link: "#" },
+  { id: "P3", titulo: "iPhone 15 128GB", preco: 1200, link: "#" },
+  { id: "P4", titulo: "Galaxy S23 256GB", preco: 900, link: "#" },
+  { id: "P5", titulo: "Perfume Lancôme La Vie Est Belle", preco: 130, link: "#" }
+];
+
+/**
+ * 🔎 Busca simples por "query" (sem cidade/preço).
+ * Nenhuma heurística: só filtra por título/marca/categoria se você adicionar.
+ */
+export async function buscarOfertas({ query, maxResultados = 12 } = {}) {
+  const q = String(query || "").toLowerCase().trim();
+  if (!q) return []; // sem query → sem itens (IA decide o que dizer)
+  let arr = CATALOGO.filter(p =>
+    p.titulo.toLowerCase().includes(q)
+  );
+  // ranking bem simples por preço (você pode trocar)
+  arr.sort((a, b) => a.preco - b.preco);
+  return arr.slice(0, Math.max(1, Math.min(50, maxResultados)));
+}
+
+export { CATALOGO };
+
+// src/ai/chat.js
+/**
+ * IA 100% conversacional (nada programado de cidade/preço).
+ * O modelo decide quando chamar a tool `buscarOfertas({query})`.
+ * Texto final natural/humorado vem do próprio modelo.
+ */
+import { openai } from "./openai.js";
+import { buscarOfertas } from "../services/catalog.js";
+
+const SYSTEM_STYLE = `
+Você é o Assistente do Click Ofertas.
+Fale em PT-BR, tom humano e leve (humor sutil, no máx 1 emoji).
+Quando detectar intenção de compra (ex.: "iphone", "perfume"), chame a ferramenta buscarOfertas passando {query}.
+Liste produtos em bullets: Título — US$preço. Se não houver itens, explique curto e convide a especificar o modelo.
+Não invente produtos. Use somente os retornados pela ferramenta.
+`.trim();
+
+const TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "buscarOfertas",
+      description: "Busca ofertas por termo (query). Retorna array de produtos do catálogo.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "termo de busca, ex.: 'iphone', 'perfume'" },
+          maxResultados: { type: "integer", default: 12, minimum: 1, maximum: 50 }
+        },
+        required: ["query"]
+      }
+    }
+  }
+];
+
+export async function chatOnce({ message }) {
+  const msgs = [
+    { role: "system", content: SYSTEM_STYLE },
+    { role: "user", content: message }
+  ];
+
+  // loop curto (o modelo pode chamar a tool 1–2x antes de responder)
+  for (let turn = 0; turn < 3; turn++) {
+    const resp = await openai.chat.completions.create({
+      model: process.env.CHAT_MODEL || "gpt-4o-mini",
+      temperature: 0.5,
+      messages: msgs,
+      tools: TOOLS,
+      tool_choice: "auto"
+    });
+
+    const choice = resp.choices?.[0];
+    const m = choice?.message;
+    const toolCalls = m?.tool_calls || [];
+
+    // Se o modelo pediu tool(s), executamos e devolvemos o resultado (JSON string)
+    if (toolCalls.length > 0) {
+      for (const call of toolCalls) {
+        if (call.type === "function" && call.function?.name === "buscarOfertas") {
+          let args = {};
+          try { args = JSON.parse(call.function.arguments || "{}"); } catch {}
+          const produtos = await buscarOfertas(args);
+
+          // devolve ao modelo (role:"tool") — o modelo decide como responder
+          msgs.push({
+            role: "tool",
+            tool_call_id: call.id,
+            name: "buscarOfertas",
+            content: JSON.stringify({ data: produtos })
+          });
+        }
+      }
+      continue; // volta pro modelo integrar os dados e redigir a resposta final
+    }
+
+    // Sem tool-calls ⇒ resposta final totalmente gerada pela IA
+    const text = m?.content?.trim() || "Hum… me dá só o nome do produto (ex.: 'iphone') que eu busco 😉";
+    // Opcional: mandar os produtos para a UI (pega o último tool_result, se houve)
+    const lastTool = [...msgs].reverse().find(x => x.role === "tool" && x.name === "buscarOfertas");
+    const ofertas = lastTool ? JSON.parse(lastTool.content).data : [];
+
+    return { text, ofertas };
+  }
+
+  return { text: "Dei uma travadinha aqui 😅 manda o nome do produto e eu procuro!", ofertas: [] };
+}
+
+// src/server.js
+import express from "express";
+import cors from "cors";
+import { chatOnce } from "./ai/chat.js";
+import { CATALOGO } from "./services/catalog.js";
+
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: "1mb" }));
+
+app.get("/health", (_req, res) => res.json({ ok: true, items: CATALOGO.length }));
+
+/**
+ * POST /ai/chat
+ * body: { message: string }
+ * resp: { text: string, ofertas?: Array<{id,titulo,preco,link?}> }
+ */
+app.post("/ai/chat", async (req, res) => {
+  try {
+    const { message } = req.body || {};
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({ error: "message obrigatório" });
+    }
+    const result = await chatOnce({ message });
+    res.json(result);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ text: "Ops! Dei uma tropeçada 🤹 Tenta de novo?", ofertas: [] });
+  }
+});
+
+// Demo rápida
+app.get("/", (_req, res) => {
+  res.type("html").send(`
+  <meta charset="utf-8" />
+  <h2>Click Ofertas — IA conversacional (pura)</h2>
+  <p>Ex.: <code>iphone</code> | <code>galaxy</code> | <code>perfume</code></p>
+  <input id="msg" style="width:420px" placeholder="digite: iphone" />
+  <button onclick="send()">Enviar</button>
+  <pre id="out" style="white-space:pre-wrap"></pre>
+  <script>
+  async function send(){
+    const r = await fetch('/ai/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ message: document.getElementById('msg').value })});
+    document.getElementById('out').textContent = JSON.stringify(await r.json(), null, 2);
+  }
+  </script>`);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Click Ofertas IA em http://localhost:"+PORT));
+
+// README.md
+# Click Ofertas — IA 100% conversacional (tool calling puro)
+
+## ENV
+- `OPENAI_API_KEY` = "YOUR_API_KEY"
+- (opcional) `CHAT_MODEL` = "gpt-4o-mini" | "gpt-4.1-mini" etc.
+
+## Como funciona
+- O usuário fala livre (“iphone”, “perfume”, etc.).
+- A IA entende a intenção e **chama a tool** `buscarOfertas({query})`.
+- O backend retorna **apenas** os itens do seu catálogo.
+- A IA redige a resposta natural/humorada e lista os produtos.
+
+## Integração
+- Frontend chama `POST /ai/chat` com `{ "message": "iphone" }`.
+- Renderize `text` no chat e `ofertas` na tela de produtos.
+- **Coloque seus produtos em `src/services/catalog.js`** (ou troque por sua consulta de DB/API mantendo assinatura).
+
+## Observações
+- Sem cidade/preço “programados”: a IA decide tudo.
+- Se `query` vier vazia, a tool retorna `[]` e a IA pede o nome do produto de forma natural.
+
+Como rodar (Replit)
+
+Crie um Repl Node, cole os arquivos.
+
+Em Secrets, adicione OPENAI_API_KEY.
+
+Run.
+
+Teste: POST /ai/chat com {"message":"iphone"}.

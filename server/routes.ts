@@ -7004,24 +7004,22 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       console.warn('Erro ao salvar mensagem:', error);
     }
 
-    // Tool: buscarOfertas
-    async function buscarOfertas(args: { query: string; cidade?: string; precoMax?: number; maxResultados?: number; }) {
-      const { query, cidade, precoMax, maxResultados = 12 } = args || {};
+    // Tool: buscarOfertas (simplificado)
+    async function buscarOfertas(args: { query: string; maxResultados?: number; }) {
+      const { query, maxResultados = 12 } = args || {};
+      
+      const q = String(query || "").toLowerCase().trim();
+      if (!q) return []; // sem query → sem itens
       
       try {
         const { searchSuggestions } = await import('./lib/tools.js');
-        const searchResult = await searchSuggestions(query);
+        const searchResult = await searchSuggestions(q);
         
         let products = searchResult.products || [];
         
-        if (precoMax) {
-          products = products.filter(p => {
-            const price = p.price?.USD || 0;
-            return price <= precoMax;
-          });
-        }
-        
-        const sorted = products.slice(0, maxResultados);
+        // Ranking simples por preço
+        products.sort((a: any, b: any) => (a.price?.USD || 0) - (b.price?.USD || 0));
+        const sorted = products.slice(0, Math.max(1, Math.min(50, maxResultados)));
         
         if (sorted.length > 0) {
           send('products', {
@@ -7038,13 +7036,13 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       }
     }
 
-    // Sistema conversacional natural
+    // Sistema conversacional puro
     const SYSTEM_STYLE = `
 Você é o Assistente do Click Ofertas.
-Fale em PT-BR, tom humano, leve e bem-humorado (no máx 1 emoji por resposta).
-Quando houver produtos, faça um resumo curto e liste em bullets: Título — US$preço — Cidade.
-Sempre que fizer sentido, sugira itens relacionados (upsell/cross-sell) usando os resultados disponíveis.
-Se não houver resultados, explique de forma simpática e peça modelo/cidade/faixa de preço.
+Fale em PT-BR, tom humano e leve (humor sutil, no máx 1 emoji).
+Quando detectar intenção de compra (ex.: "iphone", "perfume"), chame a ferramenta buscarOfertas passando {query}.
+Liste produtos em bullets: Título — US$preço. Se não houver itens, explique curto e convide a especificar o modelo.
+Não invente produtos. Use somente os retornados pela ferramenta.
 `.trim();
 
     const TOOLS = [
@@ -7052,16 +7050,14 @@ Se não houver resultados, explique de forma simpática e peça modelo/cidade/fa
         type: "function",
         function: {
           name: "buscarOfertas",
-          description: "Busca ofertas por termo/cidade/preço (retorna array de produtos).",
+          description: "Busca ofertas por termo (query). Retorna array de produtos do catálogo.",
           parameters: {
             type: "object",
             properties: {
-              query: { type: "string", description: "termo de busca (ex.: iphone, perfumes)" },
-              cidade: { type: "string", description: "cidade/região (ex.: Pedro Juan)" },
-              precoMax: { type: "number", description: "preço máximo (USD)" },
+              query: { type: "string", description: "termo de busca, ex.: 'iphone', 'perfume'" },
               maxResultados: { type: "integer", default: 12, minimum: 1, maximum: 50 }
             },
-            required: []
+            required: ["query"]
           }
         }
       }
@@ -7158,7 +7154,7 @@ Se não houver resultados, explique de forma simpática e peça modelo/cidade/fa
         }
 
         // Resposta final
-        const text = fullText.trim() || "Poxa, buguei por aqui 😅 tenta reformular a pergunta?";
+        const text = fullText.trim() || "Hum… me dá só o nome do produto (ex.: 'iphone') que eu busco 😉";
         
         try {
           await storage.createAssistantMessage({
