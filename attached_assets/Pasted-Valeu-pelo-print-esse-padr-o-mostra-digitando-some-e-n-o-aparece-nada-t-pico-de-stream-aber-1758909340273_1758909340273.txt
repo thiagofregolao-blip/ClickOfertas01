@@ -1,0 +1,288 @@
+Valeu pelo print — esse padrão (“mostra digitando, some e não aparece nada”) é típico de stream aberto → nenhum delta de texto → chega done/error ou troca de requestId → UI limpa o ‘digitando’ e não renderiza nada.
+
+Aqui vai um passo-a-passo direto + patches para fechar isso agora:
+
+1) Confirme se existe texto no stream (senão não há o que “digitar”)
+
+Se você estiver usando response_format json_schema ou só “cards” no final, o modelo pode não emitir response.output_text.delta.
+
+Conserto: sempre peça texto.
+
+const stream = await client.responses.stream({
+  model: "gpt-4.1",
+  input: [...],
+  // garanta que o modelo gere TEXTO além do JSON final
+  // (não use response_format que esconda o texto, ou combine texto + JSON)
+});
+stream.on("event", (e) => {
+  if (e.type === "response.output_text.delta") {
+    send(res, "delta", { text: e.delta });  // <- haverá conteúdo para “digitando…”
+  }
+});
+
+
+Se você precisa do JSON no fim, mantenha o response.completed e mande os cards após validar IDs, mas não remova o output_text.
+
+2) Compatibilidade de SSE (evitar “sumir sem nada”)
+
+Durante a migração, envie eventos nomeados + legado. Assim, qualquer front consome algo.
+
+const SSE_COMPAT = true; // deixe true até finalizar o front
+
+function send(res, event, payload) {
+  // eventos nomeados (novo)
+  res.write(`event: ${event}\n`);
+  res.write(`data: ${JSON.stringify(payload)}\n\n`);
+  // legado via onmessage (data.type)
+  if (SSE_COMPAT) res.write(`data: ${JSON.stringify({ type: event, ...payload })}\n\n`);
+}
+
+
+No front:
+
+Se usa onmessage: olha data.type === "delta" | "cards" | "done"
+
+Se usa addEventListener("delta"): já funciona com eventos nomeados.
+
+3) Não feche antes do primeiro delta (watchdog) + “fallback de presença”
+
+Às vezes o modelo demora e a UI “apaga”. Garanta vida no stream.
+
+let lastDelta = Date.now();
+// watchdog: se não chegou delta em 7s, manda um “sinal de vida”
+const wd = setInterval(() => {
+  if (Date.now() - lastDelta > 7000) {
+    send(res, "delta", { text: "\n(um instante… garimpando ofertas) " });
+    lastDelta = Date.now();
+  }
+}, 4000);
+
+// quando vier delta real:
+if (e.type === "response.output_text.delta") { lastDelta = Date.now(); ... }
+
+// finalize sempre assim:
+clearInterval(wd);
+send(res, "done", {});
+res.end();
+
+4) Nada de compressão / buffering no SSE
+
+Se o servidor/proxy comprime, o client só vê no fim.
+
+Express: desative compression() nessa rota.
+
+Nginx:
+
+proxy_buffering off;
+gzip off;
+
+
+Vercel/Cloudflare: usar função edge/stream e no compression.
+
+5) requestId: não descarte o stream “do nada”
+
+Se o requestId muda (usuário clicou em algo), seu front pode descartar os eventos do stream atual e limpar o “digitando” sem materializar a resposta.
+
+No front, trate assim:
+
+let latestRequestId = null;
+let typing = "";
+
+es.addEventListener("meta", (e) => {
+  latestRequestId = JSON.parse(e.data).requestId;
+  typing = ""; renderTyping(typing);
+});
+
+function accept(e) {
+  const d = e.data ? JSON.parse(e.data) : {};
+  return !latestRequestId || d.requestId === latestRequestId;
+}
+
+es.addEventListener("delta", (e) => {
+  if (!accept(e)) return;
+  typing += JSON.parse(e.data).text || "";
+  renderTyping(typing); // atualiza “digitando”
+});
+
+es.addEventListener("cards", (e) => {
+  if (!accept(e)) return;
+  const d = JSON.parse(e.data);
+  renderCards(d.items, d.message);
+});
+
+es.addEventListener("done", () => {
+  // **não** apague o texto: promova o `typing` para a bolha final
+  finalizeAssistantBubble(typing);
+  typing = "";
+});
+
+
+Se não houve nenhum delta antes de done, promova uma mensagem mínima (“Encontrei X ofertas…” ou seu fallback humano) para não ficar vazio.
+
+6) Small talk = early return (e também em streaming)
+
+Garante que “qual seu nome / cadê você” não caia na busca (que pode vir vazia e “sumir”).
+
+if (intent === "SMALL_TALK") {
+  // stream do texto curto
+  for await (const part of stream) {
+    const t = part.choices?.[0]?.delta?.content || "";
+    if (t) send(res, "delta", { text: t });
+  }
+  send(res, "done", {}); res.end(); return; // EARLY RETURN
+}
+
+7) “Nada apareceu” quando é BUSCA: nunca termine sem texto
+
+Se product_set.length === 0, não feche mudo: envie uma frase útil antes do done.
+
+if (product_set.length === 0) {
+  send(res, "delta", { text: "Não achei iPhones agora. Qual **memória** (128/256GB) e **cidade**? Eu procuro ofertas melhores 😉" });
+  send(res, "done", {}); res.end(); return;
+}
+
+8) Checklist de validação (5 minutos)
+
+ curl -N mostra vários event: delta antes de done.
+
+ Small talk streama (não bloco único).
+
+ Em proxy/CDN: sem gzip e proxy_buffering off.
+
+ SSE_COMPAT= true (até o front migrar).
+
+ Se zero deltas acontecerem, watchdog gerou um delta de “presença”.
+
+ Front promove o typing para a bolha ao receber done (não some).
+
+ requestId filtrando certo (sem descartar o stream atual por engano).
+
+Se quiser, me manda:
+
+O listener do EventSource no front (as 20–30 linhas do listen/onmessage).
+
+O trecho do backend onde você cria o stream e envia os eventos.
+
+Eu já devolvo com os ajustes exatos encaixados.
+
+Você disse:
+streaming-debug-analysis.txt
+Documento
+aqui esta o arquivo que voce pediu
+O ChatGPT disse:
+Pensou por 29s
+
+Perfeito — com o arquivo que você enviou, deu pra fechar o diagnóstico. O “digitando e some” e o “sem resultados” vêm de desalinhamento de eventos entre backend e frontend + falta de tratamento do evento de produtos no front.
+
+O que está quebrando (com provas)
+
+Backend manda type: 'end', mas o frontend espera type: 'complete'.
+Resultado: o front nunca “finaliza” o turno; o texto digitado não é promovido para a bolha final. 
+
+streaming-debug-analysis
+
+Dois formatos de streaming: backend usa type:'delta' no small talk e type:'chunk' no fluxo principal.
+Resultado: comportamento inconsistente (em alguns turnos funciona, em outros não). 
+
+streaming-debug-analysis
+
+Frontend não trata type:'end' e não trata type:'products'.
+Resultado: a UI “apaga” o estado de digitando e nada é renderizado na área de produtos. 
+
+streaming-debug-analysis
+
+Correção mínima (sem quebrar o que já existe)
+
+Você pode corrigir só trocando 3 pontos — 2 no backend e 1 no frontend.
+
+✅ Backend (padronizar eventos: sempre delta + complete)
+1) Small talk – trocar end ➜ complete
+- write({ type:'end' });
++ write({ type:'complete' });
+  res.end();
+  return;
+
+2) Fluxo principal – trocar chunk ➜ delta e end ➜ complete
+- write({ type:'chunk', text: piece });
++ write({ type:'delta', text: piece });
+
+...
+
+- write({ type:'end' }); 
++ write({ type:'complete' }); 
+  res.end();
+
+
+Assim, todo streaming sai como delta e o fechamento como complete — exatamente o que o frontend já escuta. 
+
+streaming-debug-analysis
+
+Obs.: mantenha type:'products' no final (ver próximo passo no front).
+
+✅ Frontend (tratar products e fallback para end)
+
+No seu listener, acrescente estes blocos:
+
++ // 🛒 PRODUTOS: renderizar lista enviada pelo backend
++ if (payload.type === 'products') {
++   renderProducts(payload.products, payload.query); // chame sua função de UI de resultados
++ }
+
+  // ✅ COMPLETE: Finalizar streaming
+  if (payload.type === 'complete') {
+    setIsStreaming(false);
+    setMessages(prev => prev.map(msg => 
+      msg.id === assistantMessage.id 
+        ? { ...msg, isStreaming: false }
+        : msg
+    ));
+  }
+
++ // 🛟 COMPAT: se algum backend antigo enviar 'end', trate como 'complete'
++ if (payload.type === 'end') {
++   setIsStreaming(false);
++   setMessages(prev => prev.map(msg => 
++     msg.id === assistantMessage.id 
++       ? { ...msg, isStreaming: false }
++       : msg
++   ));
++ }
+
+
+E um detalhe importante: garanta que exista a bolha do assistente ANTES de começar a acumular delta. Se ainda não faz isso, ao receber meta crie (ou marque) a última mensagem como assistant vazia para receber os deltas.
+
+Esses pontos batem exatamente com o que está no seu código atual do front e back. 
+
+streaming-debug-analysis
+
+(Opcional, mas recomendado) Hardening rápido
+
+SSE compatível durante migração:
+
+No backend, se quiser manter máxima segurança, envie em paralelo data: {type:'delta', ...} (legado) e mantenha o novo padrão — até confirmar que o front já trata complete e products. 
+
+streaming-debug-analysis
+
+Watchdog de presença: se nenhum delta chegar em ~7s, emita um delta curto (“conferindo as melhores ofertas…”). Evita a sensação de “sumiu”. 
+
+streaming-debug-analysis
+
+Origin com X-Forwarded já está no seu plano — mantenha (resolve buscas atrás de proxy/CDN). 
+
+streaming-debug-analysis
+
+Checklist de validação (2 minutos)
+
+curl -N mostra vários type:"delta" e um type:"complete" no final. 
+
+streaming-debug-analysis
+
+Small talk e busca usam o mesmo tipo de delta. 
+
+streaming-debug-analysis
+
+Ao chegar products, a área “Resultados da Pesquisa” renderiza imediatamente. 
+
+streaming-debug-analysis
+
+O “digitando” não some sem promover o texto — porque agora o front recebe complete (ou end como fallback).

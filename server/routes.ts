@@ -7060,8 +7060,8 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
           } 
         });
         
-        console.log(`🏁 [assistant/stream] Small talk finalizado - enviando end`);
-        write({ type:'end' });
+        console.log(`🏁 [assistant/stream] Small talk finalizado - enviando complete`);
+        write({ type:'complete' });
         res.end();
         return; // ⚠️ EARLY RETURN - NÃO CONTINUA PARA BUSCA
       }
@@ -7160,8 +7160,8 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
           } 
         });
         
-        console.log(`🏁 [assistant/stream] Catálogo vazio finalizado - enviando end`);
-        write({ type:'end' });
+        console.log(`🏁 [assistant/stream] Catálogo vazio finalizado - enviando complete`);
+        write({ type:'complete' });
         res.end();
         return;
       }
@@ -7363,7 +7363,7 @@ ${productSet.map(p => `- ${p.id}: ${p.title}`).slice(0,3).join('\n')}...` }
           }
           
           full += piece; 
-          write({ type:'chunk', text: piece });
+          write({ type:'delta', text: piece });
           if (over>0) break;
         }
         
@@ -7398,8 +7398,16 @@ ${productSet.map(p => `- ${p.id}: ${p.title}`).slice(0,3).join('\n')}...` }
         } 
       });
       
-      console.log(`🏁 [assistant/stream] Streaming principal finalizado - enviando end`);
-      write({ type:'end' }); 
+      // 🔒 VALIDAÇÃO: Garantir que há conteúdo antes de finalizar
+      if (!llmResponse || llmResponse.trim().length === 0) {
+        console.log(`⚠️ [assistant/stream] Sem conteúdo - enviando mensagem mínima`);
+        const fallbackText = "Encontrei algumas opções para você! 😊";
+        write({ type:'delta', text: fallbackText });
+        llmResponse = fallbackText;
+      }
+      
+      console.log(`🏁 [assistant/stream] Streaming principal finalizado - enviando complete`);
+      write({ type:'complete' }); 
       res.end();
     } catch (e) {
       console.error('stream', e);

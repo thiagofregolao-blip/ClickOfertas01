@@ -327,6 +327,24 @@ export function useAssistantChat({
                 });
               }
               
+              // 🛒 PRODUTOS: Renderizar lista enviada pelo backend
+              if (payload.type === 'products' && payload.products) {
+                console.log(`🛒 [Frontend] Produtos recebidos:`, {
+                  count: payload.products.length,
+                  query: payload.query,
+                  products: payload.products.map(p => ({ id: p.id, name: p.name || p.title }))
+                });
+                
+                // Usar as funções existentes para renderizar produtos
+                setRecommended(payload.products.slice(0, 3)); // Primeiros 3 na coluna direita
+                setFeed(payload.products); // Todos na lista de resultados
+                
+                // Atualizar estado de que temos resultados
+                if (payload.products.length > 0) {
+                  console.log(`✅ [Frontend] ${payload.products.length} produtos renderizados para query: "${payload.query}"`);
+                }
+              }
+              
               // ✅ TERMINAR STREAMING: Processar both 'complete' and 'end'
               if (payload.type === 'complete' || payload.type === 'end') {
                 console.log(`🏁 [Frontend] Stream finalizado com tipo: ${payload.type}, conteúdo final: ${full.length} chars`);
