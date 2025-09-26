@@ -1,0 +1,185 @@
+Entendi: mesmo com os patches, o bot ainda “fala genérico” e não usa os produtos reais do seu catálogo (vide “drpne”, “perfume”, “iphone”, “perfumes”).
+Isso indica que o LLM ainda consegue responder sem estar ancorado no resultado da busca. Vamos “fechar a porteira” do lado do backend para que ele só possa falar sobre itens que vieram do seu DB — e, se não vier nada, ele não inventa e pede refinamento.
+
+Abaixo está um plano objetivo + trechos de código para você colar.
+
+1) Gate de Catálogo (catálogo primeiro, ou nada)
+
+Regra: só há resposta “com produtos” se o catalogo retornou itens válidos. “Sugestões” servem apenas para reformular a query e tentar de novo – nunca viram “produto”.
+
+type Product = {
+  id: string; title: string; storeName?: string; priceUSD?: number; imageUrl?: string; url?: string;
+};
+
+function isValidProduct(p: any): p is Product {
+  return !!(p && p.id && p.title && (p.storeName || p.storeSlug));
+}
+
+async function searchCatalogFirst(q: string): Promise<Product[]> {
+  const candidates: any[] = await fetchFromEndpoints(q);         // inclui /api/products/search primeiro
+  const products = (candidates?.products ?? candidates?.results ?? candidates?.items ?? [])
+                   .filter(isValidProduct);
+  return products;
+}
+
+async function robustSearch(q: string): Promise<Product[]> {
+  // 1) Catálogo com a query original
+  let prods = await searchCatalogFirst(q);
+  if (prods.length > 0) return prods;
+
+  // 2) Reformular a partir de suggestions (se houver), e tentar de novo no catálogo
+  const sug = await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(q)}`);
+  const suggestions: string[] = Array.isArray(sug?.suggestions) ? sug.suggestions.slice(0,3) : [];
+  if (suggestions.length > 0) {
+    const reformulated = suggestions.join(' ');
+    prods = await searchCatalogFirst(reformulated);
+    if (prods.length > 0) return prods;
+  }
+
+  // 3) Correção de digitação simples (ver seção 4)
+  const fixed = autocorrect(q);            // “drpne” → “drone”
+  if (fixed !== q) {
+    prods = await searchCatalogFirst(fixed);
+    if (prods.length > 0) return prods;
+  }
+
+  return [];
+}
+
+
+Resultado: nunca entra “produto fake” no pipeline. Se vier vazio → o LLM não pode inventar.
+
+2) Hard Grounding no Prompt + Saída Estruturada (IDs obrigatórios)
+
+Regra: o LLM só pode citar produtos cujos IDs você forneceu. Se a lista estiver vazia, ele deve pedir refinamento (categoria, cidade, preço) e não descrever nada genérico.
+
+const products = await robustSearch(userQuery); // do passo 1
+const productSet = products.slice(0, 8).map(p => ({
+  id: p.id, title: p.title, store: p.storeName, priceUSD: p.priceUSD, imageUrl: p.imageUrl, url: p.url
+}));
+
+const system = `
+Você é o assistente do Click Ofertas.
+REGRAS:
+1) NUNCA invente produtos. Você SÓ pode mencionar itens que estejam em "product_set".
+2) Se "product_set" estiver vazio, diga que não encontrou e peça ao usuário para refinar (categoria, cidade, orçamento).
+3) Não descreva marcas genéricas ou modelos que não estejam no "product_set".
+Responda em PT-BR, objetiva e clara.
+`;
+
+const input = [
+  { role: "system", content: system },
+  { role: "user", content: userQuery },
+  { role: "developer", content: JSON.stringify({ product_set: productSet }) }
+];
+
+const response = await client.responses.create({
+  model: "gpt-4.1",
+  input,
+  response_format: {
+    type: "json_schema",
+    json_schema: {
+      name: "click_ofertas_products",
+      schema: {
+        type: "object",
+        required: ["items", "message"],
+        properties: {
+          items: {
+            type: "array",
+            items: {
+              type: "object",
+              required: ["id"],
+              properties: {
+                id: { type: "string" },             // deve existir em product_set
+                why: { type: "string" }             // motivo da seleção
+              }
+            }
+          },
+          message: { type: "string" }               // texto para o usuário
+        }
+      },
+      strict: true
+    }
+  }
+});
+
+// ✅ Validação SERVIDOR-SIDE: só aceite IDs do product_set
+const allowedIds = new Set(productSet.map(p => p.id));
+const items = (response.output[0]?.content[0]?.json?.items ?? []).filter((it: any) => allowedIds.has(it.id));
+
+
+Se items.length === 0 ou productSet.length === 0, o servidor não envia “lista genérica” ao cliente. Em vez disso, manda o message (pedindo refinamento) e 0 produtos.
+
+3) Renderização no Frontend: sempre por ID
+
+Evite passar texto pronto do LLM como “cartões”. Em vez disso, pegue os IDs que ele retornou e renderize a partir do seu catálogo (você já tem os dados no productSet):
+
+// no backend
+return {
+  type: "products",
+  message: response.output[0].content[0].json.message,
+  items: items.map(it => productSet.find(p => p.id === it.id)) // objetos completos e confiáveis
+};
+
+
+Isso mata a alucinação na raiz: a UI só usa seus dados.
+
+4) Correção de digitação (evitar “drpne”)
+
+Implemente um autocorretor simples para top categorias/marcas (rápido e eficaz):
+
+const DICT = ["drone","perfume","iphone","motorola","xiaomi","soja","milho","lattafa","yara","asad"];
+function autocorrect(q: string): string {
+  const terms = q.toLowerCase().split(/\s+/);
+  return terms.map(t => closest(t, DICT) ?? t).join(' ');
+}
+function closest(token: string, dict: string[]): string | null {
+  let best: string | null = null, bestScore = 0;
+  for (const w of dict) {
+    const s = jaccard(token, w); // ou distância de Levenshtein simples
+    if (s > bestScore) { bestScore = s; best = w; }
+  }
+  return bestScore >= 0.72 ? best : null;
+}
+function jaccard(a: string, b: string): number {
+  const S = new Set(a), T = new Set(b);
+  const inter = [...S].filter(x => T.has(x)).length;
+  return inter / (S.size + T.size - inter);
+}
+
+
+“drpne” → “drone”; melhora recall sem depender do modelo.
+
+5) Política “sem catálogo, sem resposta de produto”
+
+No servidor, centralize a regra:
+
+if (productSet.length === 0) {
+  return {
+    type: "message",
+    message: "Não encontrei produtos para essa busca. Quer tentar informar categoria (ex.: drone, perfume), cidade e faixa de preço?"
+  };
+}
+
+
+Nada de “Perfume Floral”, “iPhone SE 2020” etc. Se não tiver item do DB, não há lista.
+
+6) Telemetria para caçar inconsistências (rápido)
+
+Logue por requisição:
+
+query_original, query_reformulated, query_autocorrected
+
+results_count, store_count, ids_retornados_pelo_llm (todos devem ∈ product_set)
+
+status: HIT_DB, HIT_SUG_REFORMULATE, HIT_AUTOCORRECT, NO_RESULTS
+
+Isso mostra onde está “vazando” genericidade.
+
+O que isso resolve nos seus exemplos
+
+“drpne” → autocorreção → consulta catálogo → se achou, lista real; se não, pede refinamento (sem inventar).
+
+“perfume” / “perfumes” → se o catálogo tem Lattafa Yara/Asad, eles vêm com ID/loja/preço; se não tem, o bot não descreverá perfumes genéricos.
+
+“iphone” → idem: só renderiza o que existe no seu DB; nada de “iPhone 15 128GB – US$ 350” se esse item não estiver cadastrado.

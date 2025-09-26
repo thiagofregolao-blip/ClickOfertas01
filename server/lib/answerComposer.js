@@ -1,4 +1,85 @@
-/** Busca produtos para fundamentar a resposta (RAG melhorado) - Agora com memória conversacional */
+// 🔧 GATE DE CATÁLOGO - Só produtos reais passam por aqui
+function isValidProduct(p) {
+  return !!(p && p.id && p.title && (p.storeName || p.storeSlug));
+}
+
+async function searchCatalogFirst(q, origin) {
+  console.log(`🔍 [searchCatalogFirst] Buscando no catálogo: "${q}"`);
+  
+  const endpoints = [
+    `${origin}/api/products/search?q=${encodeURIComponent(q)}`, // direto no banco
+    `${origin}/api/click/suggest?q=${encodeURIComponent(q)}`,
+    `${origin}/api/suggest?q=${encodeURIComponent(q)}`,
+    `${origin}/suggest?q=${encodeURIComponent(q)}`,
+    `${origin}/api/search/suggestions?q=${encodeURIComponent(q)}`
+  ];
+
+  for (const url of endpoints) {
+    try {
+      console.log(`📡 [searchCatalogFirst] Tentando: ${url}`);
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Extrair produtos de qualquer formato de resposta
+        const rawProducts = data?.products || data?.results || data?.items || data?.data?.results || [];
+        
+        // Filtrar só produtos válidos
+        const validProducts = rawProducts.filter(isValidProduct);
+        
+        if (validProducts.length > 0) {
+          console.log(`✅ [searchCatalogFirst] Encontrados ${validProducts.length} produtos válidos em ${url}`);
+          return validProducts;
+        }
+      }
+    } catch (error) {
+      console.log(`❌ [searchCatalogFirst] Erro em ${url}:`, error.message);
+    }
+  }
+  
+  console.log(`⚠️ [searchCatalogFirst] Nenhum produto válido encontrado para "${q}"`);
+  return [];
+}
+
+async function robustSearch(q, origin) {
+  console.log(`🚀 [robustSearch] Iniciando busca robusta para: "${q}"`);
+  
+  // 1) Catálogo com a query original
+  let products = await searchCatalogFirst(q, origin);
+  if (products.length > 0) {
+    console.log(`✅ [robustSearch] Sucesso com query original: ${products.length} produtos`);
+    return products;
+  }
+
+  // 2) Reformular a partir de suggestions (se houver), e tentar de novo no catálogo
+  try {
+    console.log(`🔄 [robustSearch] Tentando buscar suggestions para reformular...`);
+    const sugResponse = await fetch(`${origin}/api/suggest?q=${encodeURIComponent(q)}`);
+    if (sugResponse.ok) {
+      const sugData = await sugResponse.json();
+      const suggestions = Array.isArray(sugData?.suggestions) ? sugData.suggestions.slice(0, 3) : [];
+      
+      if (suggestions.length > 0) {
+        const reformulated = suggestions.join(' ');
+        console.log(`🔄 [robustSearch] Tentando query reformulada: "${reformulated}"`);
+        products = await searchCatalogFirst(reformulated, origin);
+        if (products.length > 0) {
+          console.log(`✅ [robustSearch] Sucesso com query reformulada: ${products.length} produtos`);
+          return products;
+        }
+      }
+    }
+  } catch (error) {
+    console.log(`❌ [robustSearch] Erro ao buscar suggestions:`, error.message);
+  }
+
+  // 3) TODO: Correção de digitação simples (implementar em próxima tarefa)
+  
+  console.log(`❌ [robustSearch] Nenhum produto encontrado para "${q}"`);
+  return [];
+}
+
+/** Busca produtos para fundamentar a resposta (RAG melhorado) - Agora com Gate de Catálogo */
 export async function buildGrounding(origin, q, sessionId = null) {
   console.log(`🔍 [buildGrounding] Iniciando busca para: "${q}" (sessão: ${sessionId || 'sem sessão'})`);
   
@@ -96,214 +177,36 @@ export async function buildGrounding(origin, q, sessionId = null) {
     }
   }
   
-  const tryFetch = async (url) => {
-    try { 
-      console.log(`📡 [buildGrounding] Fazendo requisição: ${url}`);
-      const r = await fetch(url); 
-      if (r.ok) {
-        const data = await r.json();
-        console.log(`✅ [buildGrounding] Resposta recebida:`, {
-          productsCount: data?.products?.length || 0,
-          firstProduct: data?.products?.[0] ? {
-            id: data.products[0].id,
-            title: data.products[0].title,
-            storeName: data.products[0].storeName
-          } : null
-        });
-        return data;
-      }
-    } catch (error) {
-      console.log(`❌ [buildGrounding] Erro na requisição ${url}:`, error.message);
-    }
-    return { products: [] };
-  };
+  // 🔧 GATE DE CATÁLOGO: Usar robustSearch para buscar apenas produtos reais
+  const rawProducts = await robustSearch(q, origin);
   
-  // 🔧 PATCH C: Query original PRIMEIRO - melhor recall para categorias PT-BR (drone, perfume, etc.)
-  console.log(`📝 [buildGrounding] Usando query original: "${q}"`);
-  let primaryQuery = q;
-  
-  // 🔧 CORREÇÃO: Adicionar endpoint direto ao catálogo + busca em outros endpoints
-  const endpoints = [
-    `${origin}/api/products/search?q=${encodeURIComponent(primaryQuery)}`, // direto no banco
-    `${origin}/api/click/suggest?q=${encodeURIComponent(primaryQuery)}`,
-    `${origin}/api/suggest?q=${encodeURIComponent(primaryQuery)}`,
-    `${origin}/suggest?q=${encodeURIComponent(primaryQuery)}`,
-    `${origin}/api/search/suggestions?q=${encodeURIComponent(primaryQuery)}`
-  ];
-
-  // Util: considera "tem dado" se achar produtos/sugestões/resultados com length>0
-  const hasPayload = (d) => {
-    if (!d) return false;
-    const keys = ['products','results','items'];
-    for (const k of keys) {
-      if (Array.isArray(d[k]) && d[k].length > 0) return true;
-    }
-    if (Array.isArray(d?.data?.results) && d.data.results.length > 0) return true;
-    if (Array.isArray(d?.suggestions) && d.suggestions.length > 0) return true;
-    return false;
-  };
-
-  let sug = null;
-  for (const url of endpoints) {
-    const d = await tryFetch(url);
-    if (hasPayload(d)) { sug = d; break; }
-  }
-  // se nada veio, `sug` fica null e você cai no fallback mais adiante
-  
-  console.log(`📦 [buildGrounding] Dados brutos recebidos:`, {
-    hasProducts: !!sug?.products,
-    productsLength: sug?.products?.length || 0,
-    hasSuggestions: !!sug?.suggestions,
-    suggestionsLength: sug?.suggestions?.length || 0,
-    hasResults: !!sug?.results,
-    resultsLength: sug?.results?.length || 0,
-    hasItems: !!sug?.items,
-    itemsLength: sug?.items?.length || 0,
-    topLevelKeys: sug ? Object.keys(sug) : []
-  });
-  
-  // 🔧 PATCH B: Normalização com primeira lista não-vazia (não trava no products: [])
-  const firstNonEmpty = (...arrs) => arrs.find(a => Array.isArray(a) && a.length > 0) || [];
-  
-  if (!sug?.products || sug.products.length === 0) {
-    console.log(`🔧 [buildGrounding] Tentando normalizar dados de outros formatos...`);
-    
-    // Detectar fonte de dados alternativa - primeira lista não-vazia
-    const rawItems = firstNonEmpty(
-      sug?.products,
-      sug?.results,
-      sug?.items,
-      sug?.data?.results
-    );
-    
-    if (rawItems.length > 0) {
-      console.log(`✅ [buildGrounding] Encontrados ${rawItems.length} items para normalizar`);
-      console.log(`📝 [buildGrounding] Primeiro item exemplo:`, JSON.stringify(rawItems[0], null, 2).slice(0, 500));
-      
-      // 🔧 PATCH D: Mapear para formato padrão com preços multi-moeda
-      sug.products = rawItems.map((p, index) => ({
-        id: p.id || p.productId || p._id || `item-${index}`,
-        title: p.title || p.name || '',
-        category: p.category || '',
-        price: { 
-          USD: p.priceUSD ?? p.price?.USD ?? (typeof p.price === 'number' ? p.price : undefined),
-          PYG: p.pricePYG ?? p.price?.PYG,
-          BRL: p.priceBRL ?? p.price?.BRL
-        },
-        premium: !!p.premium,
-        storeName: p.storeName || p.store?.name || '',
-        storeSlug: p.storeSlug || p.store?.slug || '',
-        imageUrl: p.imageUrl || p.image || (p.images && p.images[0]) || null
-      }));
-      
-      console.log(`🎯 [buildGrounding] Normalizados ${sug.products.length} produtos`);
-    } else if (sug?.suggestions && sug.suggestions.length > 0) {
-      // 🔧 CORREÇÃO: Usar suggestions para reformular query, NÃO converter em produtos artificiais
-      console.log(`🔄 [buildGrounding] Tentando reformular query com suggestions: ${sug.suggestions.slice(0, 3)}`);
-      const reformulated = sug.suggestions.slice(0, 3).join(' ');
-      
-      // Tentar buscar com query reformulada
-      const retryEndpoints = [
-        `${origin}/api/products/search?q=${encodeURIComponent(reformulated)}`, // direto no banco
-        `${origin}/api/click/suggest?q=${encodeURIComponent(reformulated)}`,
-        `${origin}/api/suggest?q=${encodeURIComponent(reformulated)}`,
-        `${origin}/suggest?q=${encodeURIComponent(reformulated)}`,
-        `${origin}/api/search/suggestions?q=${encodeURIComponent(reformulated)}`
-      ];
-
-      for (const url of retryEndpoints) {
-        const d = await tryFetch(url);
-        if (hasPayload(d)) { 
-          sug = d; 
-          console.log(`✅ [buildGrounding] Query reformulada funcionou com: "${reformulated}"`);
-          break; 
-        }
-      }
-    }
-  }
-  
-  // 🔄 PATCH C: Fallback com termos-chave se query original não retornou produtos
-  if (!sug || !hasPayload(sug)) {
-    console.log(`🔄 [buildGrounding] Query original não retornou produtos. Tentando termos-chave como fallback...`);
-    
-    // Extrair termos-chave para fallback
-    const keywords = [];
-    const patterns = [
-      /([A-Z]\d+[A-Z]*)/g,           // Códigos como A3081, A2411, etc
-      /iPhone\s*\d+/gi,             // iPhone 16, iPhone 15, etc  
-      /\d+GB/gi,                    // 128GB, 256GB, etc
-      /Samsung Galaxy \w+/gi,       // Samsung Galaxy S24, etc
-      /MacBook \w+/gi,              // MacBook Pro, etc
-      /\b(?:BLACK|WHITE|BLUE|RED|GOLD|SILVER|TEAL|PINK|PURPLE|GREEN)\b/gi, // Cores
-      /\b(?:PRO|MAX|PLUS|MINI|AIR|ULTRA)\b/gi // Variantes
-    ];
-    
-    patterns.forEach(pattern => {
-      const matches = q.match(pattern);
-      if (matches) keywords.push(...matches);
-    });
-    
-    if (keywords.length > 0) {
-      const narrowed = keywords.slice(0, 4).join(' '); // Máximo 4 termos específicos
-      console.log(`🎯 [buildGrounding] Tentando com termos-chave extraídos: "${narrowed}"`);
-      
-      const keywordEndpoints = [
-        `${origin}/api/products/search?q=${encodeURIComponent(narrowed)}`, // direto no banco
-        `${origin}/api/click/suggest?q=${encodeURIComponent(narrowed)}`,
-        `${origin}/api/suggest?q=${encodeURIComponent(narrowed)}`,
-        `${origin}/suggest?q=${encodeURIComponent(narrowed)}`,
-        `${origin}/api/search/suggestions?q=${encodeURIComponent(narrowed)}`
-      ];
-
-      for (const url of keywordEndpoints) {
-        const d = await tryFetch(url);
-        if (hasPayload(d)) { 
-          sug = d; 
-          console.log(`✅ [buildGrounding] Fallback com termos-chave funcionou!`);
-          break; 
-        }
-      }
-    }
-  }
-  
-  // 🔄 Fallback final: se nem query original nem termos-chave funcionaram
-  if (!sug || !hasPayload(sug)) {
-    console.log(`🔄 [buildGrounding] Nenhuma estratégia retornou produtos. Criando resposta vazia...`);
-    sug = { products: [] };
-  }
-  
-  // 🔧 PATCH D: Mapear produtos com dados completos incluindo conversão automática PYG→USD
-  const allProducts = (sug?.products || []).map(p => ({
+  // Normalizar produtos para formato padrão com conversão PYG→USD
+  const products = rawProducts.map(p => ({
     id: p.id, 
     title: p.title, 
     category: p.category || "",
     priceUSD: (
       p.price?.USD ??
+      p.priceUSD ??
       (p.price?.PYG ? Math.round(p.price.PYG / 7200) : undefined) // câmbio aproximado PYG→USD
     ), 
     premium: !!p.premium,
     storeName: p.storeName || "",
     storeSlug: p.storeSlug || "",
-    imageUrl: p.imageUrl || null
+    imageUrl: p.imageUrl || p.image || (p.images && p.images[0]) || null
   }));
-
-  // 🔧 CORREÇÃO: Filtro produtos válidos - só com ID, título e loja
-  const products = allProducts.filter(p => p.id && p.title && (p.storeName || p.storeSlug));
   
-  console.log(`🔍 [buildGrounding] Filtro de produtos válidos: ${allProducts.length} → ${products.length} (removidos ${allProducts.length - products.length} inválidos)`);
-  
-  console.log(`🎯 [buildGrounding] Produtos mapeados:`, {
+  console.log(`🎯 [buildGrounding] Produtos processados pelo Gate de Catálogo:`, {
     count: products.length,
     titles: products.map(p => p.title).slice(0, 3)
   });
 
-  // 🔧 PATCH E: Diversidade por loja inteligente - mais produtos se só há uma loja
+  // Diversidade por loja inteligente
   const diverseProducts = [];
   const storeCount = new Map();
   
-  // Calcular número de lojas únicas
   const totalStores = new Set(products.map(p => p.storeSlug || p.storeName).filter(Boolean)).size;
-  const perStoreCap = totalStores <= 1 ? 8 : 2; // se só 1 loja, permita até 8
+  const perStoreCap = totalStores <= 1 ? 8 : 2;
   
   console.log(`🏪 [buildGrounding] Estratégia de diversidade: ${totalStores} loja(s), máximo ${perStoreCap} produtos por loja`);
   
@@ -315,12 +218,11 @@ export async function buildGrounding(origin, q, sessionId = null) {
       diverseProducts.push(product);
       storeCount.set(storeId, currentCount + 1);
       
-      // Parar quando tivermos 8 produtos diversos
       if (diverseProducts.length >= 8) break;
     }
   }
   
-  // Se ainda não temos 8, completar com produtos restantes
+  // Completar com produtos restantes se necessário
   if (diverseProducts.length < 8) {
     const remaining = products.filter(p => !diverseProducts.includes(p));
     diverseProducts.push(...remaining.slice(0, 8 - diverseProducts.length));
