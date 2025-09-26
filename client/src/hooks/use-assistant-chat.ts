@@ -186,7 +186,7 @@ export function useAssistantChat({
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  // Load session with messages
+  // Load session with messages (suspended while streaming)
   const messagesQuery = useQuery({
     queryKey: ['assistant', 'messages', sessionId],
     queryFn: async () => {
@@ -208,7 +208,7 @@ export function useAssistantChat({
         return { messages: [] };
       }
     },
-    enabled: !!sessionId,
+    enabled: !!sessionId && !isStreaming, // Suspend while streaming
   });
 
   // Update messages when query data changes
@@ -221,10 +221,24 @@ export function useAssistantChat({
     }
   }, [messagesQuery.data]);
 
+  // REF para mensagem de streaming ativa
+  const streamingMessageIdRef = useRef<string | null>(null);
+
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
       if (!sessionId) throw new Error('No active session');
+
+      console.log('🚀 [Frontend] Iniciando envio de mensagem:', { content, sessionId });
+
+      // Abortar streaming anterior se existir
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        console.log('🛑 [Frontend] Stream anterior abortado');
+      }
+
+      // Reset requestId before new stream
+      latestRequestIdRef.current = null;
 
       // Add user message immediately to UI
       const userMessage: AssistantMessage = {
@@ -245,11 +259,16 @@ export function useAssistantChat({
         isStreaming: true,
       };
       
+      // Track active streaming message
+      streamingMessageIdRef.current = assistantMessage.id;
+      
       setMessages(prev => [...prev, assistantMessage]);
       setIsStreaming(true);
 
-      // PATCH A: Stream compatível com POST /api/assistant/stream
+      // Create new abort controller
       abortControllerRef.current = new AbortController();
+      
+      console.log('📡 [Frontend] Fazendo fetch para /api/assistant/stream');
       
       const response = await fetch('/api/assistant/stream', {
         method: 'POST',
@@ -259,113 +278,160 @@ export function useAssistantChat({
         },
         body: JSON.stringify({ sessionId, message: content, context: null }),
         signal: abortControllerRef.current.signal,
+        cache: 'no-store',
       });
 
-      if (!response.ok || !response.body) throw new Error('Falha no streaming');
+      console.log('📡 [Frontend] Response recebida:', {
+        ok: response.ok,
+        status: response.status,
+        contentType: response.headers.get('Content-Type'),
+        hasBody: !!response.body
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      if (!response.body) {
+        throw new Error('Response body is null');
+      }
+      
+      if (response.body.locked) {
+        console.error('❌ [Frontend] Response body is locked');
+        throw new Error('Response body is locked');
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
-      let full = '';
+      let accumulatedText = '';
+      let eventCount = 0;
+
+      console.log('🔄 [Frontend] Iniciando loop de leitura SSE');
 
       try {
         while (true) {
           const { value, done } = await reader.read();
-          if (done) break;
+          if (done) {
+            console.log('🏁 [Frontend] Reader done');
+            break;
+          }
+          
           buffer += decoder.decode(value, { stream: true });
-
-          // eventos SSE chegam como linhas "data: {...}\n\n"
-          const parts = buffer.split('\n\n');
-          buffer = parts.pop() || '';
-
-          for (const chunk of parts) {
-            const line = chunk.trim().replace(/^data:\s?/, '');
-            try {
-              const payload = JSON.parse(line);
-              
-              // 🆔 ANTI-CORRIDA: Processar meta com requestId
-              if (payload.type === 'meta') {
-                latestRequestIdRef.current = payload.requestId;
-                console.log(`🆔 [Frontend] Novo requestId: ${payload.requestId}`);
-                continue;
-              }
-              
-              // 🚫 FILTRO: Ignorar events de requests antigos
-              if (latestRequestIdRef.current && payload.requestId !== latestRequestIdRef.current) {
-                console.log(`🚫 [Frontend] Ignorando event de requestId antigo: ${payload.requestId}`);
-                continue;
-              }
-              
-              // 🌊 STREAMING: Processar deltas incrementais
-              if (payload.type === 'delta' && payload.text) {
-                full += payload.text;
-                setMessages((prev) => {
-                  const copy = [...prev];
-                  const last = copy[copy.length - 1];
-                  if (last?.role === 'assistant') {
-                    copy[copy.length - 1] = { ...last, content: full }; // Usar texto acumulado completo
-                  }
-                  return copy;
-                });
-              }
-              
-              // 📝 PARAGRAPH: Finalização do parágrafo
-              if (payload.type === 'paragraph_done') {
-                console.log(`📝 [Frontend] Parágrafo completo: ${full.length} chars`);
-              }
-              
-              // 📦 CHUNK: Compatibilidade com versão antiga
-              if (payload.type === 'chunk' && payload.text) {
-                full += payload.text;
-                setMessages((prev) => {
-                  const copy = [...prev];
-                  const last = copy[copy.length - 1];
-                  if (last?.role === 'assistant') {
-                    copy[copy.length - 1] = { ...last, content: (last.content || '') + payload.text };
-                  }
-                  return copy;
-                });
-              }
-              
-              // 🛒 PRODUTOS: Renderizar lista enviada pelo backend
-              if (payload.type === 'products' && payload.products) {
-                console.log(`🛒 [Frontend] Produtos recebidos:`, {
-                  count: payload.products.length,
-                  query: payload.query,
-                  products: payload.products.map((p: any) => ({ id: p.id, name: p.name || p.title }))
-                });
+          
+          // Parse SSE frames: look for \n\n separators
+          let frameEndIndex;
+          while ((frameEndIndex = buffer.indexOf('\n\n')) >= 0) {
+            const frame = buffer.slice(0, frameEndIndex);
+            buffer = buffer.slice(frameEndIndex + 2);
+            
+            // Parse each line in the frame
+            for (const line of frame.split('\n')) {
+              if (line.startsWith('data:')) {
+                const jsonData = line.slice(5).trim(); // Remove 'data:' prefix
                 
-                // Usar as funções existentes para renderizar produtos
-                setRecommended(payload.products.slice(0, 3)); // Primeiros 3 na coluna direita
-                setFeed(payload.products); // Todos na lista de resultados
+                if (!jsonData) continue; // Skip empty data lines
                 
-                // Atualizar estado de que temos resultados
-                if (payload.products.length > 0) {
-                  console.log(`✅ [Frontend] ${payload.products.length} produtos renderizados para query: "${payload.query}"`);
+                try {
+                  const event = JSON.parse(jsonData);
+                  eventCount++;
+                  
+                  console.log(`📨 [Frontend] Event ${eventCount}:`, {
+                    type: event.type,
+                    requestId: event.requestId,
+                    textLength: event.text?.length || 0,
+                    productsCount: event.products?.length || 0
+                  });
+                  
+                  // Handle meta event - set requestId
+                  if (event.type === 'meta') {
+                    latestRequestIdRef.current = event.requestId;
+                    console.log(`🆔 [Frontend] RequestId set to: ${event.requestId}`);
+                    continue;
+                  }
+                  
+                  // Anti-race: Skip events from old requests
+                  if (latestRequestIdRef.current && event.requestId !== latestRequestIdRef.current) {
+                    console.log(`🚫 [Frontend] Skipping old requestId: ${event.requestId}`);
+                    continue;
+                  }
+                  
+                  // Handle delta streaming
+                  if (event.type === 'delta' && event.text) {
+                    accumulatedText += event.text;
+                    
+                    // Update message using functional setState
+                    setMessages(prev => {
+                      const messageId = streamingMessageIdRef.current;
+                      if (!messageId) return prev;
+                      
+                      return prev.map(msg => 
+                        msg.id === messageId 
+                          ? { ...msg, content: accumulatedText }
+                          : msg
+                      );
+                    });
+                  }
+                  
+                  // Handle paragraph completion
+                  if (event.type === 'paragraph_done') {
+                    console.log(`📝 [Frontend] Paragraph done. Length: ${accumulatedText.length}`);
+                  }
+                  
+                  // Handle products
+                  if (event.type === 'products' && event.products) {
+                    console.log(`🛒 [Frontend] Products received:`, {
+                      count: event.products.length,
+                      query: event.query
+                    });
+                    
+                    setRecommended(event.products.slice(0, 3));
+                    setFeed(event.products);
+                    
+                    // Update memory with products
+                    await updateSessionMemory(event.products, event.query);
+                  }
+                  
+                  // Handle completion
+                  if (event.type === 'complete') {
+                    console.log(`✅ [Frontend] Stream complete. Final text length: ${accumulatedText.length}`);
+                    setIsStreaming(false);
+                    
+                    // Finalize streaming message
+                    setMessages(prev => {
+                      const messageId = streamingMessageIdRef.current;
+                      if (!messageId) return prev;
+                      
+                      return prev.map(msg => 
+                        msg.id === messageId 
+                          ? { ...msg, content: accumulatedText, isStreaming: false }
+                          : msg
+                      );
+                    });
+                    
+                    streamingMessageIdRef.current = null;
+                    break;
+                  }
+                  
+                } catch (parseError) {
+                  console.warn('⚠️ [Frontend] JSON parse error:', parseError, 'Data:', jsonData.slice(0, 100));
                 }
               }
-              
-              // ✅ TERMINAR STREAMING: Processar both 'complete' and 'end'
-              if (payload.type === 'complete' || payload.type === 'end') {
-                console.log(`🏁 [Frontend] Stream finalizado com tipo: ${payload.type}, conteúdo final: ${full.length} chars`);
-                setIsStreaming(false);
-                setMessages(prev => prev.map(msg => 
-                  msg.id === assistantMessage.id 
-                    ? { ...msg, isStreaming: false, content: full } // Garantir conteúdo final
-                    : msg
-                ));
-              }
-            } catch {}
+            }
           }
         }
       } finally {
         reader.releaseLock();
         setIsStreaming(false);
+        streamingMessageIdRef.current = null;
+        console.log(`📊 [Frontend] Stream ended. Total events: ${eventCount}, Final text: ${accumulatedText.slice(0, 100)}...`);
       }
     },
     onSuccess: () => {
-      // Invalidate messages to get the final server state
-      queryClient.invalidateQueries({ queryKey: ['assistant', 'messages', sessionId] });
+      // Don't invalidate queries while streaming to avoid interference
+      if (!isStreaming) {
+        queryClient.invalidateQueries({ queryKey: ['assistant', 'messages', sessionId] });
+      }
     },
     onError: (error) => {
       console.error('Error sending message:', error);
