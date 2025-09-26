@@ -1,0 +1,176 @@
+Claro! Achei 3 causas prováveis (e fáceis de corrigir) no seu fluxo de busca — e já deixo os patches prontos.
+
+click-assistant-debug
+
+Onde está “quebrando”
+
+Curto-circuito na seleção de endpoint
+Você faz:
+
+let sug = (await tryFetch(url1)) || (await tryFetch(url2)) || ...
+
+
+Só que tryFetch retorna { products: [] } quando falha. Em JavaScript, objeto vazio é truthy, então você não tenta os próximos endpoints mesmo sem resultados. Resultado: busca “morre” no primeiro endpoint, vazio.
+
+Normalização não dispara com array vazio
+Depois você faz:
+
+const rawItems = sug?.products || sug?.results || sug?.items || ...
+
+
+Se sug.products for [], isso é truthy, então rawItems vira [] e você não cai nas outras chaves (results, items, etc.), perdendo resultados que vieram com outro nome.
+
+Query “estreita” demais
+O extrator de termos (cores em inglês, “PRO/MAX”, “iPhone 16” etc.) pode “apertar” a busca e piorar recall em PT-BR (ex.: “milho”, “soja”, “Xiaomi”, “Motorola”). Você já tem fallback, mas ele roda tarde.
+
+Correções (patches prontos)
+A) Buscar no primeiro endpoint que tiver dados de verdade
+
+Troque a atribuição de sug por um iterador que tenta todos e retorna o primeiro com conteúdo:
+
+// substitua o bloco que monta `sug` por:
+const endpoints = [
+  `${origin}/api/click/suggest?q=${encodeURIComponent(primaryQuery)}`,
+  `${origin}/api/suggest?q=${encodeURIComponent(primaryQuery)}`,
+  `${origin}/suggest?q=${encodeURIComponent(primaryQuery)}`,
+  `${origin}/api/search/suggestions?q=${encodeURIComponent(primaryQuery)}`
+];
+
+// util: considera "tem dado" se achar produtos/sugestões/resultados com length>0
+const hasPayload = (d) => {
+  if (!d) return false;
+  const keys = ['products','results','items'];
+  for (const k of keys) {
+    if (Array.isArray(d[k]) && d[k].length > 0) return true;
+  }
+  if (Array.isArray(d?.data?.results) && d.data.results.length > 0) return true;
+  if (Array.isArray(d?.suggestions) && d.suggestions.length > 0) return true;
+  return false;
+};
+
+let sug = null;
+for (const url of endpoints) {
+  const d = await tryFetch(url);
+  if (hasPayload(d)) { sug = d; break; }
+}
+// se nada veio, `sug` fica null e você cai no fallback mais adiante
+
+
+Por quê funciona: você só “aceita” um endpoint quando ele realmente trouxe dados, em vez de parar no primeiro objeto truthy.
+
+B) Normalização: escolha a primeira lista não vazia
+
+Substitua este trecho:
+
+const rawItems = sug?.products || sug?.results || sug?.items || sug?.data?.results || [];
+
+
+por:
+
+const firstNonEmpty = (...arrs) => arrs.find(a => Array.isArray(a) && a.length > 0) || [];
+const rawItems = firstNonEmpty(
+  sug?.products,
+  sug?.results,
+  sug?.items,
+  sug?.data?.results
+);
+
+
+E aplique a mesma lógica no bloco de fallback:
+
+const fallbackItems = firstNonEmpty(
+  fallbackSug?.products,
+  fallbackSug?.results,
+  fallbackSug?.items,
+  fallbackSug?.data?.results
+);
+
+
+Assim você não “trava” no products: [] quando os dados vierem em results, items etc.
+
+C) Estratégia de consulta: rode original → termos (não o inverso)
+
+Hoje você tenta primeiro com termos “estreitos” (ex.: “PRO / MAX / 256GB”), e só depois cai no original. Inverta a ordem para melhorar o recall em PT-BR:
+
+// 1) tente com a query ORIGINAL
+let sug = await fetchFromEndpoints(q);     // usando o loop do patch (A)
+
+// 2) se vier vazio, tente com os termos-chave (se existirem)
+if (!sug) {
+  const keywords = /* ...extração como já faz... */;
+  if (keywords.length > 0) {
+    const narrowed = keywords.slice(0,4).join(' ');
+    sug = await fetchFromEndpoints(narrowed);
+  }
+}
+
+
+Isso evita perder resultados para “milho”, “soja”, “Xiaomi”, “Pedro Juan”, etc., que não batem com seus patterns em inglês.
+
+D) Normalização de preço e moeda (Paraguai)
+
+Seu mapeamento só preenche priceUSD, então muitos itens ficam undefined. Amplie:
+
+price: { 
+  USD: p.priceUSD ?? p.price?.USD ?? (typeof p.price === 'number' ? p.price : undefined),
+  PYG: p.pricePYG ?? p.price?.PYG,
+  BRL: p.priceBRL ?? p.price?.BRL
+},
+
+
+E, ao montar priceUSD no retorno:
+
+priceUSD: (
+  p.price?.USD ??
+  (p.price?.PYG ? Math.round(p.price.PYG / 7200) : undefined) // câmbio aproximado; ajuste para seu rate real
+),
+
+
+Como você opera em USD por padrão, isso evita perder preço quando sua API retornar PYG/BRL.
+
+E) Diversidade por loja (não derrube resultado único)
+
+Se toda a busca vier de uma loja só, hoje você limita a 2 e joga fora o resto. Ajuste:
+
+const totalStores = new Set(products.map(p => p.storeSlug || p.storeName).filter(Boolean)).size;
+const perStoreCap = totalStores <= 1 ? 8 : 2; // se só 1 loja, permita até 8
+
+for (const product of products) {
+  const storeId = product.storeSlug || product.storeName || 'unknown';
+  const current = storeCount.get(storeId) || 0;
+  if (current < perStoreCap) {
+    diverseProducts.push(product);
+    storeCount.set(storeId, current + 1);
+    if (diverseProducts.length >= 8) break;
+  }
+}
+
+
+Assim você não exibe só “2 itens” quando tudo vem de uma loja dominante.
+
+F) (Opcional) Memória: não “forçar” contexto antigo
+
+Se deíctico foi detectado mas não há produto em foco, hoje você injeta lastShownProducts. Para evitar “fantasmas” de buscas passadas, só reutilize se a nova query tiver mesma categoria ou alta similaridade:
+
+const similarEnough = (a,b) => a && b && a.toLowerCase() === b.toLowerCase();
+// ... depois de obter sessionMemory:
+if (sessionMemory?.lastShownProducts?.length > 0) {
+  const sameCategory = similarEnough(sessionMemory.lastCategory, /*categoria inferida da nova q*/ '');
+  if (sameCategory) {
+     contextualProducts = sessionMemory.lastShownProducts.slice(0,3);
+  }
+}
+
+Checklist rápido de validação
+
+ Endpoint A vazio → tenta B/C/D automaticamente
+
+ results/items agora entram na normalização
+
+ Query original roda antes do filtro por termos “estreitos”
+
+ Preço aparece (USD/convertido de PYG/BRL)
+
+ Quando só há 1 loja → pode mostrar até 8 itens
+
+ Memória não “polui” nova busca

@@ -76,10 +76,19 @@ export async function buildGrounding(origin, q, sessionId = null) {
           }
         }
         
-        // Se não há produto específico em foco mas há produtos mostrados anteriormente
+        // 🔧 PATCH F: Se não há produto específico em foco mas há produtos mostrados anteriormente
         if (sessionMemory.lastShownProducts?.length > 0) {
-          contextualProducts = sessionMemory.lastShownProducts.slice(0, 3);
-          console.log(`📋 [buildGrounding] Usando produtos do contexto como base (${contextualProducts.length} produtos)`);
+          // Verificar similaridade para evitar "fantasmas" de buscas passadas
+          const similarEnough = (a, b) => a && b && a.toLowerCase() === b.toLowerCase();
+          const currentCategory = ''; // inferir categoria da nova query seria ideal
+          const sameCategory = similarEnough(sessionMemory.lastCategory, currentCategory);
+          
+          if (sameCategory || !sessionMemory.lastCategory) {
+            contextualProducts = sessionMemory.lastShownProducts.slice(0, 3);
+            console.log(`📋 [buildGrounding] Usando produtos do contexto como base (${contextualProducts.length} produtos)`);
+          } else {
+            console.log(`🚫 [buildGrounding] Ignorando contexto anterior - categorias diferentes`);
+          }
         }
       }
     } catch (error) {
@@ -109,36 +118,36 @@ export async function buildGrounding(origin, q, sessionId = null) {
     return { products: [] };
   };
   
-  // 🧠 Estratégia inteligente: extrair termos-chave PRIMEIRO para busca mais precisa
-  const keywords = [];
-  const patterns = [
-    /([A-Z]\d+[A-Z]*)/g,           // Códigos como A3081, A2411, etc
-    /iPhone\s*\d+/gi,             // iPhone 16, iPhone 15, etc  
-    /\d+GB/gi,                    // 128GB, 256GB, etc
-    /Samsung Galaxy \w+/gi,       // Samsung Galaxy S24, etc
-    /MacBook \w+/gi,              // MacBook Pro, etc
-    /\b(?:BLACK|WHITE|BLUE|RED|GOLD|SILVER|TEAL|PINK|PURPLE|GREEN)\b/gi, // Cores
-    /\b(?:PRO|MAX|PLUS|MINI|AIR|ULTRA)\b/gi // Variantes
-  ];
-  
-  patterns.forEach(pattern => {
-    const matches = q.match(pattern);
-    if (matches) keywords.push(...matches);
-  });
-  
-  // Priorizar busca com termos específicos se encontrados
+  // 🔧 PATCH C: Query original PRIMEIRO - melhor recall para categorias PT-BR (drone, perfume, etc.)
+  console.log(`📝 [buildGrounding] Usando query original: "${q}"`);
   let primaryQuery = q;
-  if (keywords.length > 0) {
-    primaryQuery = keywords.slice(0, 4).join(' '); // Máximo 4 termos mais específicos
-    console.log(`🎯 [buildGrounding] Usando termos-chave extraídos: "${primaryQuery}"`);
-  } else {
-    console.log(`📝 [buildGrounding] Usando query original: "${primaryQuery}"`);
-  }
   
-  let sug = (await tryFetch(`${origin}/api/click/suggest?q=${encodeURIComponent(primaryQuery)}`)) ||
-            (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(primaryQuery)}`)) ||
-            (await tryFetch(`${origin}/suggest?q=${encodeURIComponent(primaryQuery)}`)) ||
-            (await tryFetch(`${origin}/api/search/suggestions?q=${encodeURIComponent(primaryQuery)}`));
+  // 🔧 PATCH A: Buscar no primeiro endpoint que tiver dados de verdade (não apenas truthy vazio)
+  const endpoints = [
+    `${origin}/api/click/suggest?q=${encodeURIComponent(primaryQuery)}`,
+    `${origin}/api/suggest?q=${encodeURIComponent(primaryQuery)}`,
+    `${origin}/suggest?q=${encodeURIComponent(primaryQuery)}`,
+    `${origin}/api/search/suggestions?q=${encodeURIComponent(primaryQuery)}`
+  ];
+
+  // Util: considera "tem dado" se achar produtos/sugestões/resultados com length>0
+  const hasPayload = (d) => {
+    if (!d) return false;
+    const keys = ['products','results','items'];
+    for (const k of keys) {
+      if (Array.isArray(d[k]) && d[k].length > 0) return true;
+    }
+    if (Array.isArray(d?.data?.results) && d.data.results.length > 0) return true;
+    if (Array.isArray(d?.suggestions) && d.suggestions.length > 0) return true;
+    return false;
+  };
+
+  let sug = null;
+  for (const url of endpoints) {
+    const d = await tryFetch(url);
+    if (hasPayload(d)) { sug = d; break; }
+  }
+  // se nada veio, `sug` fica null e você cai no fallback mais adiante
   
   console.log(`📦 [buildGrounding] Dados brutos recebidos:`, {
     hasProducts: !!sug?.products,
@@ -152,24 +161,33 @@ export async function buildGrounding(origin, q, sessionId = null) {
     topLevelKeys: sug ? Object.keys(sug) : []
   });
   
-  // 🔧 Normalização robusta: detectar formato de resposta e converter para formato padrão
+  // 🔧 PATCH B: Normalização com primeira lista não-vazia (não trava no products: [])
+  const firstNonEmpty = (...arrs) => arrs.find(a => Array.isArray(a) && a.length > 0) || [];
+  
   if (!sug?.products || sug.products.length === 0) {
     console.log(`🔧 [buildGrounding] Tentando normalizar dados de outros formatos...`);
     
-    // Detectar fonte de dados alternativa
-    const rawItems = sug?.products || sug?.results || sug?.items || sug?.data?.results || [];
+    // Detectar fonte de dados alternativa - primeira lista não-vazia
+    const rawItems = firstNonEmpty(
+      sug?.products,
+      sug?.results,
+      sug?.items,
+      sug?.data?.results
+    );
     
     if (rawItems.length > 0) {
       console.log(`✅ [buildGrounding] Encontrados ${rawItems.length} items para normalizar`);
       console.log(`📝 [buildGrounding] Primeiro item exemplo:`, JSON.stringify(rawItems[0], null, 2).slice(0, 500));
       
-      // Mapear para formato padrão esperado pela IA
+      // 🔧 PATCH D: Mapear para formato padrão com preços multi-moeda
       sug.products = rawItems.map((p, index) => ({
         id: p.id || p.productId || p._id || `item-${index}`,
         title: p.title || p.name || '',
         category: p.category || '',
         price: { 
-          USD: p.priceUSD ?? p.price?.USD ?? (typeof p.price === 'number' ? p.price : undefined)
+          USD: p.priceUSD ?? p.price?.USD ?? (typeof p.price === 'number' ? p.price : undefined),
+          PYG: p.pricePYG ?? p.price?.PYG,
+          BRL: p.priceBRL ?? p.price?.BRL
         },
         premium: !!p.premium,
         storeName: p.storeName || p.store?.name || '',
@@ -193,59 +211,64 @@ export async function buildGrounding(origin, q, sessionId = null) {
     }
   }
   
-  // 🔄 Fallback final: se termos específicos não retornaram produtos, tentar query original
-  if (!sug?.products || sug.products.length === 0) {
-    console.log(`🔄 [buildGrounding] Termos específicos não retornaram produtos. Tentando query original como fallback...`);
+  // 🔄 PATCH C: Fallback com termos-chave se query original não retornou produtos
+  if (!sug || !hasPayload(sug)) {
+    console.log(`🔄 [buildGrounding] Query original não retornou produtos. Tentando termos-chave como fallback...`);
     
-    const fallbackSug = (await tryFetch(`${origin}/api/click/suggest?q=${encodeURIComponent(q)}`)) ||
-                       (await tryFetch(`${origin}/api/suggest?q=${encodeURIComponent(q)}`)) ||
-                       (await tryFetch(`${origin}/suggest?q=${encodeURIComponent(q)}`)) ||
-                       (await tryFetch(`${origin}/api/search/suggestions?q=${encodeURIComponent(q)}`));
+    // Extrair termos-chave para fallback
+    const keywords = [];
+    const patterns = [
+      /([A-Z]\d+[A-Z]*)/g,           // Códigos como A3081, A2411, etc
+      /iPhone\s*\d+/gi,             // iPhone 16, iPhone 15, etc  
+      /\d+GB/gi,                    // 128GB, 256GB, etc
+      /Samsung Galaxy \w+/gi,       // Samsung Galaxy S24, etc
+      /MacBook \w+/gi,              // MacBook Pro, etc
+      /\b(?:BLACK|WHITE|BLUE|RED|GOLD|SILVER|TEAL|PINK|PURPLE|GREEN)\b/gi, // Cores
+      /\b(?:PRO|MAX|PLUS|MINI|AIR|ULTRA)\b/gi // Variantes
+    ];
     
-    // Normalização robusta do fallback também
-    if (!fallbackSug?.products || fallbackSug.products.length === 0) {
-      const fallbackItems = fallbackSug?.products || fallbackSug?.results || fallbackSug?.items || fallbackSug?.data?.results || [];
+    patterns.forEach(pattern => {
+      const matches = q.match(pattern);
+      if (matches) keywords.push(...matches);
+    });
+    
+    if (keywords.length > 0) {
+      const narrowed = keywords.slice(0, 4).join(' '); // Máximo 4 termos específicos
+      console.log(`🎯 [buildGrounding] Tentando com termos-chave extraídos: "${narrowed}"`);
       
-      if (fallbackItems.length > 0) {
-        console.log(`🔧 [buildGrounding] Normalizando ${fallbackItems.length} items do fallback`);
-        fallbackSug.products = fallbackItems.map((p, index) => ({
-          id: p.id || p.productId || p._id || `fallback-${index}`,
-          title: p.title || p.name || '',
-          category: p.category || '',
-          price: { 
-            USD: p.priceUSD ?? p.price?.USD ?? (typeof p.price === 'number' ? p.price : undefined)
-          },
-          premium: !!p.premium,
-          storeName: p.storeName || p.store?.name || '',
-          storeSlug: p.storeSlug || p.store?.slug || '',
-          imageUrl: p.imageUrl || p.image || (p.images && p.images[0]) || null
-        }));
-      } else if (fallbackSug?.suggestions) {
-        fallbackSug.products = fallbackSug.suggestions.map((title, index) => ({
-          id: `fallback-${index}`,
-          title: title,
-          category: "",
-          price: { USD: null },
-          premium: false,
-          storeName: "",
-          storeSlug: "",
-          imageUrl: null
-        }));
+      const keywordEndpoints = [
+        `${origin}/api/click/suggest?q=${encodeURIComponent(narrowed)}`,
+        `${origin}/api/suggest?q=${encodeURIComponent(narrowed)}`,
+        `${origin}/suggest?q=${encodeURIComponent(narrowed)}`,
+        `${origin}/api/search/suggestions?q=${encodeURIComponent(narrowed)}`
+      ];
+
+      for (const url of keywordEndpoints) {
+        const d = await tryFetch(url);
+        if (hasPayload(d)) { 
+          sug = d; 
+          console.log(`✅ [buildGrounding] Fallback com termos-chave funcionou!`);
+          break; 
+        }
       }
-    }
-    
-    if (fallbackSug?.products && fallbackSug.products.length > 0) {
-      console.log(`✅ [buildGrounding] Fallback com query original funcionou! Encontrados ${fallbackSug.products.length} produtos`);
-      sug = fallbackSug;
     }
   }
   
-  // Mapear produtos com dados completos
+  // 🔄 Fallback final: se nem query original nem termos-chave funcionaram
+  if (!sug || !hasPayload(sug)) {
+    console.log(`🔄 [buildGrounding] Nenhuma estratégia retornou produtos. Criando resposta vazia...`);
+    sug = { products: [] };
+  }
+  
+  // 🔧 PATCH D: Mapear produtos com dados completos incluindo conversão automática PYG→USD
   const products = (sug?.products || []).map(p => ({
     id: p.id, 
     title: p.title, 
     category: p.category || "",
-    priceUSD: p.price?.USD ?? undefined, 
+    priceUSD: (
+      p.price?.USD ??
+      (p.price?.PYG ? Math.round(p.price.PYG / 7200) : undefined) // câmbio aproximado PYG→USD
+    ), 
     premium: !!p.premium,
     storeName: p.storeName || "",
     storeSlug: p.storeSlug || "",
@@ -257,15 +280,21 @@ export async function buildGrounding(origin, q, sessionId = null) {
     titles: products.map(p => p.title).slice(0, 3)
   });
 
-  // Garantir diversidade de lojas - máximo 2 produtos por loja
+  // 🔧 PATCH E: Diversidade por loja inteligente - mais produtos se só há uma loja
   const diverseProducts = [];
   const storeCount = new Map();
   
+  // Calcular número de lojas únicas
+  const totalStores = new Set(products.map(p => p.storeSlug || p.storeName).filter(Boolean)).size;
+  const perStoreCap = totalStores <= 1 ? 8 : 2; // se só 1 loja, permita até 8
+  
+  console.log(`🏪 [buildGrounding] Estratégia de diversidade: ${totalStores} loja(s), máximo ${perStoreCap} produtos por loja`);
+  
   for (const product of products) {
-    const storeId = product.storeSlug || product.storeName;
+    const storeId = product.storeSlug || product.storeName || 'unknown';
     const currentCount = storeCount.get(storeId) || 0;
     
-    if (currentCount < 2) {
+    if (currentCount < perStoreCap) {
       diverseProducts.push(product);
       storeCount.set(storeId, currentCount + 1);
       
