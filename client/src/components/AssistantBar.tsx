@@ -566,17 +566,19 @@ export default function AssistantBar() {
   };
 
   const startStream = async (message: string) => {
+    // 🔒 CONTROLE DE CONCORRÊNCIA: Só um stream por vez
     if (readerRef.current) {
+      console.log('🔒 [AssistantBar] Cancelando stream anterior');
       try { await readerRef.current.cancel(); } catch {}
       readerRef.current = null;
     }
     
-    // 🔄 RESET COMPLETO DE ESTADO
-    console.log('🔄 [AssistantBar] Resetando estado para nova consulta:', message);
+    // 🔄 RESET APENAS STREAMING (NÃO produtos)
+    console.log('🔄 [AssistantBar] Iniciando nova consulta:', message);
     setIsTyping(true);
     setStreaming('');
     // Reset flags críticas
-    pendingSearchRef.current = message; // Manter mensagem como pendente
+    pendingSearchRef.current = message;
     hasTriggeredSearchRef.current = false;
     
     console.log('📡 [AssistantBar] Iniciando stream para:', message);
@@ -605,6 +607,7 @@ export default function AssistantBar() {
       const decoder = new TextDecoder();
       let buffer = '';
       let assistantMessage = '';
+      let assistantMessageId = `assistant-${Date.now()}`;
       
       console.log('👂 [AssistantBar] Reader iniciado, aguardando chunks...');
       
@@ -711,8 +714,10 @@ export default function AssistantBar() {
                 pendingSearchRef.current = '';
               }
               
-              // Adicionar mensagem completa do assistente ao chat
-              setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage }]);
+              // 🔧 FINALIZAR: Só adicionar se há mensagem válida
+              if (assistantMessage.trim()) {
+                setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage.trim() }]);
+              }
               setStreaming('');
               return;
             } else if (p.type === 'meta' || p.type === 'paragraph_done') {
@@ -737,9 +742,9 @@ export default function AssistantBar() {
         }
       }
       
-      // Se terminar sem 'end', ainda adicionar a mensagem
-      if (assistantMessage) {
-        setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage }]);
+      // 🔧 FALLBACK: Se terminar sem 'end', ainda adicionar a mensagem (evitar duplicatas)
+      if (assistantMessage.trim() && !chatMessages.some(m => m.text === assistantMessage.trim())) {
+        setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage.trim() }]);
         setStreaming('');
       }
     } catch (e) {
