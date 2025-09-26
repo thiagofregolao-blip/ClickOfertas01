@@ -124,7 +124,29 @@ function autocorrect(q) {
 
 /** Busca produtos para fundamentar a resposta (RAG melhorado) - Agora com Gate de Catálogo */
 export async function buildGrounding(origin, q, sessionId = null) {
+  const startTime = Date.now();
+  
+  // 📊 TELEMETRIA INÍCIO
+  const telemetry = {
+    query_original: q,
+    query_corrected: null,
+    autocorrect_applied: false,
+    timestamp: new Date().toISOString(),
+    session_id: sessionId,
+    status: 'processing',
+    processing_time_ms: null,
+    results_count: 0,
+    context_type: 'normal_search',
+    memory_used: false,
+    focused_product_id: null
+  };
+  
   console.log(`🔍 [buildGrounding] Iniciando busca para: "${q}" (sessão: ${sessionId || 'sem sessão'})`);
+  console.log(`📊 [TELEMETRIA] Busca iniciada:`, { 
+    query_original: telemetry.query_original,
+    session_id: telemetry.session_id,
+    timestamp: telemetry.timestamp 
+  });
   
   // 🧠 SISTEMA DE MEMÓRIA CONVERSACIONAL
   let sessionMemory = null;
@@ -184,6 +206,11 @@ export async function buildGrounding(origin, q, sessionId = null) {
           
           if (focusedProduct) {
             console.log(`🎯 [buildGrounding] Produto em foco encontrado: "${focusedProduct.title}"`);
+            
+            // 📊 TELEMETRIA: Produto em foco detectado
+            telemetry.context_type = 'focused_product';
+            telemetry.focused_product_id = focusedProduct.id;
+            telemetry.memory_used = true;
             
             // Retornar diretamente o produto em foco + produtos relacionados do contexto
             const relatedProducts = sessionMemory.lastShownProducts
@@ -273,11 +300,25 @@ export async function buildGrounding(origin, q, sessionId = null) {
 
   const top8 = diverseProducts.slice(0, 8);
   
+  // 📊 TELEMETRIA FINAL
+  telemetry.processing_time_ms = Date.now() - startTime;
+  telemetry.results_count = products.length;
+  telemetry.status = products.length > 0 ? 'success' : 'no_results';
+  
   console.log(`🚀 [buildGrounding] Resultado final:`, {
     all: products.length,
     top3: top8.slice(0, 3).length,
     top8: top8.length,
     diverseStores: [...storeCount.entries()]
+  });
+  
+  console.log(`📊 [TELEMETRIA] Busca finalizada:`, {
+    ...telemetry,
+    results_summary: {
+      total: products.length,
+      top8_count: top8.length,
+      stores_count: [...storeCount.keys()].length
+    }
   });
   
   return { top3: top8.slice(0, 3), top8, all: products };
