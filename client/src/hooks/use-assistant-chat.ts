@@ -326,11 +326,14 @@ export function useAssistantChat({
                   return copy;
                 });
               }
-              if (payload.type === 'complete') {
+              
+              // ✅ TERMINAR STREAMING: Processar both 'complete' and 'end'
+              if (payload.type === 'complete' || payload.type === 'end') {
+                console.log(`🏁 [Frontend] Stream finalizado com tipo: ${payload.type}, conteúdo final: ${full.length} chars`);
                 setIsStreaming(false);
                 setMessages(prev => prev.map(msg => 
                   msg.id === assistantMessage.id 
-                    ? { ...msg, isStreaming: false }
+                    ? { ...msg, isStreaming: false, content: full } // Garantir conteúdo final
                     : msg
                 ));
               }

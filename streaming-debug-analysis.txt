@@ -1,0 +1,256 @@
+# Análise do Problema de Streaming - Click Ofertas
+
+## 🔍 Problema Reportado:
+Indicador "digitando" aparece mas conteúdo desaparece sem mostrar resultados
+
+---
+
+## 📱 FRONTEND - Listener SSE (use-assistant-chat.ts linhas 254-342)
+
+```typescript
+// Estabelece conexão SSE
+const response = await fetch('/api/assistant/stream', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'text/event-stream',
+  },
+  body: JSON.stringify({ sessionId, message: content, context: null }),
+  signal: abortControllerRef.current.signal,
+});
+
+if (!response.ok || !response.body) throw new Error('Falha no streaming');
+
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
+let buffer = '';
+let full = '';
+
+try {
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    // eventos SSE chegam como linhas "data: {...}\n\n"
+    const parts = buffer.split('\n\n');
+    buffer = parts.pop() || '';
+
+    for (const chunk of parts) {
+      const line = chunk.trim().replace(/^data:\s?/, '');
+      try {
+        const payload = JSON.parse(line);
+        
+        // 🆔 ANTI-CORRIDA: Processar meta com requestId
+        if (payload.type === 'meta') {
+          latestRequestIdRef.current = payload.requestId;
+          console.log(`🆔 [Frontend] Novo requestId: ${payload.requestId}`);
+          continue;
+        }
+        
+        // 🚫 FILTRO: Ignorar events de requests antigos
+        if (latestRequestIdRef.current && payload.requestId !== latestRequestIdRef.current) {
+          console.log(`🚫 [Frontend] Ignorando event de requestId antigo: ${payload.requestId}`);
+          continue;
+        }
+        
+        // 🌊 STREAMING: Processar deltas incrementais
+        if (payload.type === 'delta' && payload.text) {
+          full += payload.text;
+          setMessages((prev) => {
+            const copy = [...prev];
+            const last = copy[copy.length - 1];
+            if (last?.role === 'assistant') {
+              copy[copy.length - 1] = { ...last, content: full }; // Usar texto acumulado completo
+            }
+            return copy;
+          });
+        }
+        
+        // 📦 CHUNK: Compatibilidade com versão antiga
+        if (payload.type === 'chunk' && payload.text) {
+          full += payload.text;
+          setMessages((prev) => {
+            const copy = [...prev];
+            const last = copy[copy.length - 1];
+            if (last?.role === 'assistant') {
+              copy[copy.length - 1] = { ...last, content: (last.content || '') + payload.text };
+            }
+            return copy;
+          });
+        }
+        
+        // ✅ COMPLETE: Finalizar streaming
+        if (payload.type === 'complete') {
+          setIsStreaming(false);
+          setMessages(prev => prev.map(msg => 
+            msg.id === assistantMessage.id 
+              ? { ...msg, isStreaming: false }
+              : msg
+          ));
+        }
+        
+      } catch {}
+    }
+  }
+} finally {
+  reader.releaseLock();
+  setIsStreaming(false);
+}
+```
+
+---
+
+## 🖥️ BACKEND - Stream SSE (server/routes.ts linhas 7008-7408)
+
+```javascript
+// 🆔 ANTI-CORRIDA: Gerar requestId único
+const requestId = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+
+res.writeHead(200, { 'Content-Type':'text/event-stream', 'Cache-Control':'no-cache', 'Connection':'keep-alive' });
+const write = (d:any)=> res.write(`data: ${JSON.stringify({...d, requestId})}\n\n`);
+
+// Enviar meta com requestId primeiro
+write({ type:'meta', requestId });
+
+// 🎪 SMALL TALK: Resposta direta sem busca de produtos
+if (intent === 'SMALL_TALK') {
+  console.log(`💬 [assistant/stream] Small talk detectado - resposta direta`);
+  
+  const smallTalkSystem = `Você é o "Clique", consultor virtual do Click Ofertas...`;
+  
+  const stream = await clickClient.chat.completions.create({
+    model: process.env.CHAT_MODEL || 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: smallTalkSystem },
+      { role: 'user', content: message }
+    ],
+    temperature: 0.7,
+    max_tokens: 150,
+    stream: true
+  });
+
+  let fullText = '';
+  
+  // 🌊 STREAMING: Enviar deltas para efeito "digitando"
+  for await (const part of stream) {
+    const t = part.choices?.[0]?.delta?.content || '';
+    if (!t) continue;
+    fullText += t;
+    write({ type: 'delta', text: t }); // ⚡ EFEITO DIGITANDO
+  }
+  
+  await storage.createAssistantMessage({ 
+    sessionId, 
+    content: fullText, 
+    role:'assistant', 
+    metadata:{ 
+      streamed: true, 
+      intent: 'SMALL_TALK',
+      noProductSearch: true,
+      requestId
+    } 
+  });
+  
+  console.log(`🏁 [assistant/stream] Small talk finalizado - enviando end`);
+  write({ type:'end' });
+  res.end();
+  return;
+}
+
+// FLUXO PRINCIPAL: Busca de produtos
+// ... busca produtos, gera prompt ...
+
+if (!productSet || productSet.length === 0) {
+  console.log(`⚠️ [assistant/stream] ProductSet vazio - enviando mensagem de refinamento`);
+  
+  const refinementMessage = "Não achei itens agora. Me diz **categoria** (drone, perfume) e **orçamento** que eu garimpo ofertas boas para você! 😉";
+  
+  // Enviar mensagem com streaming
+  write({ type:'delta', text: refinementMessage });
+  
+  await storage.createAssistantMessage({ 
+    sessionId, 
+    content: refinementMessage, 
+    role:'assistant', 
+    metadata:{ 
+      streamed: true, 
+      hardGrounding: true, 
+      productSetEmpty: true 
+    } 
+  });
+  
+  console.log(`🏁 [assistant/stream] Catálogo vazio finalizado - enviando end`);
+  write({ type:'end' });
+  res.end();
+  return;
+}
+
+// STREAMING PRINCIPAL COM PRODUTOS
+// ... gera resposta com LLM ...
+
+for await (const chunk of stream) {
+  const piece = chunk.choices?.[0]?.delta?.content || '';
+  if (!piece) continue;
+  
+  full += piece; 
+  write({ type:'chunk', text: piece });
+  if (over>0) break;
+}
+
+llmResponse = full;
+
+// Enviar produtos
+const productsToSend = (ground.top8?.length > 0 ? ground.top8 : ground.top3 || []).map(product => ({
+  ...product,
+  name: product.title,
+}));
+
+if (productsToSend.length > 0) {
+  write({ 
+    type: 'products', 
+    products: productsToSend,
+    query: message,
+    focusedProduct,
+    recommendations,
+    hardGrounding: false
+  });
+}
+
+await storage.createAssistantMessage({ 
+  sessionId, 
+  content: llmResponse, 
+  role:'assistant', 
+  metadata:{ 
+    streamed: true, 
+    hardGrounding: !!requiresJsonOutput,
+    hasProducts: productSet?.length > 0 
+  } 
+});
+
+console.log(`🏁 [assistant/stream] Streaming principal finalizado - enviando end`);
+write({ type:'end' }); 
+res.end();
+```
+
+---
+
+## 🔍 ANÁLISE DO PROBLEMA:
+
+### Possíveis Causas:
+1. **Evento `type:'end'` não sendo processado** - Frontend não reconhece fim do stream
+2. **Conflito entre eventos `delta` e `chunk`** - Dois tipos de eventos para streaming  
+3. **Estado `isStreaming` não sendo limpo** - Indicador fica ativo mas mensagem some
+4. **Falta de evento `complete`** - Frontend espera por `complete` mas backend envia `end`
+5. **Race condition** - Múltiplas requisições sobrepostas
+
+### Inconsistências Encontradas:
+- Backend envia `type:'end'` mas frontend espera `type:'complete'`
+- Backend envia `type:'chunk'` no fluxo principal mas `type:'delta'` no small talk
+- Frontend tem lógica para `complete` mas backend nunca envia esse tipo
+
+### Correções Necessárias:
+1. Padronizar eventos: usar apenas `delta` e `end` consistentemente
+2. Garantir que frontend processe evento `type:'end'` corretamente  
+3. Verificar limpeza do estado `isStreaming`
+4. Adicionar logs de debug no frontend para rastrear eventos recebidos
