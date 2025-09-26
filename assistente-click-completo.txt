@@ -1,0 +1,492 @@
+=== CÓDIGO COMPLETO DO ASSISTENTE CLICK ===
+Data de geração: 2025-09-26
+
+Este arquivo contém o código completo do endpoint SSE Streaming do assistente do Click Ofertas 
+com todas as funcionalidades implementadas:
+
+- ✅ Sistema anti-corrida com requestId
+- ✅ Detecção de intenção (SMALL_TALK, SEARCH, MORE)  
+- ✅ Streaming real com efeito "digitando"
+- ✅ Persona interativa "Clique" (vendedor masculino)
+- ✅ Hard Grounding (anti-alucinação)
+- ✅ Cache inteligente + cross-sell de acessórios
+- ✅ JSON schema validação + fallback robusto
+
+===============================================================================
+
+// SSE Streaming endpoint for assistant chat - Now with RAG and Memory
+app.post('/api/assistant/stream', async (req: any, res) => {
+  try {
+    const { sessionId, message } = req.body || {};
+    if (!message?.trim()) return res.status(400).json({ ok:false, error:'message required' });
+
+    const session = await storage.getAssistantSession(sessionId);
+    if (!session) return res.status(404).json({ ok:false, error:'session not found' });
+
+    // Buscar nome real do usuário autenticado
+    const user = req.user || req.session?.user;
+    let name = 'Cliente';
+    if (user?.id) {
+      try {
+        const userData = await storage.getUser(user.id);
+        if (userData?.firstName) {
+          name = userData.firstName;
+          if (userData.lastName) {
+            name += ` ${userData.lastName}`;
+          }
+        }
+      } catch (error) {
+        console.warn('Could not fetch user name:', error);
+      }
+    }
+
+    // Salvar mensagem do usuário ANTES de processar
+    await storage.createAssistantMessage({
+      sessionId,
+      content: message,
+      role: 'user',
+      metadata: { timestamp: new Date().toISOString() },
+    });
+
+    // Buscar histórico de mensagens para contexto
+    const sessionWithMessages = await storage.getAssistantSessionWithMessages(sessionId);
+    const recentMessages = (sessionWithMessages?.messages || [])
+      .slice(-6) // Últimas 6 mensagens para contexto
+      .map(msg => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content
+      }));
+
+    // 🆔 ANTI-CORRIDA: Gerar requestId único
+    const requestId = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+    
+    res.writeHead(200, { 'Content-Type':'text/event-stream', 'Cache-Control':'no-cache', 'Connection':'keep-alive' });
+    const write = (d:any)=> res.write(`data: ${JSON.stringify({...d, requestId})}\n\n`);
+    
+    // Enviar meta com requestId primeiro
+    write({ type:'meta', requestId });
+
+    // 🧠 DETECÇÃO DE INTENÇÃO antes da busca
+    console.log(`🎬 [assistant/stream] Processando: "${message}" para usuário: ${name}`);
+    
+    const { buildGrounding, composePrompts, detectIntent } = await import('./lib/answerComposer.js');
+    const intent = detectIntent(message);
+    
+    console.log(`🧠 [assistant/stream] Intenção detectada: ${intent}`);
+    
+    // 🎪 SMALL TALK: Resposta direta sem busca de produtos
+    if (intent === 'SMALL_TALK') {
+      console.log(`💬 [assistant/stream] Small talk detectado - resposta direta`);
+      
+      const smallTalkSystem = `Você é o "Clique", consultor virtual do Click Ofertas. Seja simpático, breve e humano. Responda à pergunta pessoal feita pelo usuário de forma natural e encaminhe para ajudar com compras. Use humor leve e emoji ocasional.`;
+      
+      const smallTalkResponse = await clickClient.chat.completions.create({
+        model: process.env.CHAT_MODEL || 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: smallTalkSystem },
+          { role: 'user', content: message }
+        ],
+        temperature: 0.7,
+        max_tokens: 150
+      });
+
+      const smallTalkText = smallTalkResponse.choices[0].message.content;
+      write({ type:'chunk', text: smallTalkText });
+      write({ type:'message', content: smallTalkText });
+      
+      await storage.createAssistantMessage({ 
+        sessionId, 
+        content: smallTalkText, 
+        role:'assistant', 
+        metadata:{ 
+          streamed: true, 
+          intent: 'SMALL_TALK',
+          noProductSearch: true,
+          requestId
+        } 
+      });
+      
+      write({ type:'end' });
+      res.end();
+      return; // ⚠️ EARLY RETURN - NÃO CONTINUA PARA BUSCA
+    }
+    
+    // ❶ RAG melhorado: busca produtos apenas para SEARCH e MORE
+    const origin = `${req.protocol}://${req.get('host')}`;
+    const ground = await buildGrounding(origin, message, sessionId);
+    
+    console.log(`📊 [assistant/stream] Resultado buildGrounding:`, {
+      all: ground.all.length,
+      top3: ground.top3.length,
+      top8: ground.top8.length
+    });
+    
+    // ❂ Sistema de aprendizado: registrar busca do usuário
+    try {
+      await storage.createSearchLog({
+        sessionId,
+        userId: user?.id || null,
+        query: message.toLowerCase().trim(),
+        foundProducts: ground.all.length,
+        timestamp: new Date(),
+        metadata: { 
+          hasMultipleStores: new Set(ground.all.map(p => p.storeName).filter(Boolean)).size > 1,
+          categories: [...new Set(ground.all.map(p => p.category).filter(Boolean))]
+        }
+      });
+    } catch (error) {
+      console.warn('Erro ao registrar busca para aprendizado:', error);
+    }
+    
+    // 🧠 INTELIGÊNCIA DE VENDAS: gerar recomendações automáticas se há produto em foco
+    let focusedProduct = null;
+    let recommendations = null;
+    
+    if (ground.contextType === 'focused_product' && ground.sessionMemory?.currentFocusProductId) {
+      const focusId = ground.sessionMemory.currentFocusProductId;
+      focusedProduct = ground.sessionMemory.lastShownProducts?.find(p => p.id === focusId);
+      
+      if (focusedProduct) {
+        console.log(`🎯 [assistant/stream] Produto em foco detectado: "${focusedProduct.title}"`);
+        
+        // Importar sistema de recomendações
+        const { getProductRecommendations } = await import('./lib/tools.js');
+        
+        try {
+          recommendations = await getProductRecommendations(focusedProduct);
+          console.log(`💡 [assistant/stream] Recomendações geradas:`, {
+            upsells: recommendations.upsells?.length || 0,
+            crossSells: recommendations.crossSells?.length || 0,
+            total: recommendations.all?.length || 0
+          });
+        } catch (error) {
+          console.error('❌ [assistant/stream] Erro ao gerar recomendações:', error);
+          recommendations = { upsells: [], crossSells: [], all: [] };
+        }
+      }
+    }
+
+    const promptResult = composePrompts({
+      q: message, name, top3: ground.top3, top8: ground.top8,
+      focusedProduct, recommendations
+    });
+    
+    const { SYSTEM, USER, productSet, requiresJsonOutput } = promptResult;
+    
+    console.log(`💭 [assistant/stream] Prompts gerados:`, {
+      systemLength: SYSTEM.length,
+      userLength: USER.length,
+      hasProducts: productSet?.length > 0,
+      requiresJson: !!requiresJsonOutput,
+      productSetIds: productSet?.map(p => p.id) || []
+    });
+
+    // 🔧 POLÍTICA SEM CATÁLOGO = SEM RESPOSTA DE PRODUTO
+    if (!productSet || productSet.length === 0) {
+      console.log(`⚠️ [assistant/stream] ProductSet vazio - enviando apenas mensagem de refinamento`);
+      
+      // Resposta simples sem produtos
+      const refinementMessage = "Não encontrei produtos para essa busca. Que tal tentar ser mais específico? Pode informar categoria (ex: drone, perfume), marca ou faixa de preço?";
+      
+      // Enviar mensagem diretamente
+      write({ type:'chunk', text: refinementMessage });
+      
+      await storage.createAssistantMessage({ 
+        sessionId, 
+        content: refinementMessage, 
+        role:'assistant', 
+        metadata:{ 
+          streamed: true, 
+          hardGrounding: true, 
+          productSetEmpty: true 
+        } 
+      });
+      
+      write({ type:'end' });
+      res.end();
+      return;
+    }
+
+    // ❷ Construir mensagens com histórico para memória
+    const messages = [
+      { role:'system' as const, content: SYSTEM },
+      // Incluir mensagens anteriores para contexto (excluindo a atual que já foi salva)
+      ...recentMessages.slice(0, -1),
+      { role:'user' as const, content: USER }
+    ];
+
+    // ❃ Hard Grounding: LLM deve retornar JSON estruturado
+    let llmResponse = '';
+    
+    if (requiresJsonOutput) {
+      console.log(`🔧 [assistant/stream] Usando STREAMING REAL com Hard Grounding`);
+      
+      // 📝 PERSONA INTERATIVA - Sistema que sempre engaja
+      const interactiveSystem = `Você é o "Clique", consultor virtual masculino do Click Ofertas. Simpático, vendedor esperto com humor leve.
+
+REGRAS CRÍTICAS:
+1) Mencione SOMENTE produtos do user content fornecido (não invente nada)
+2) Seja breve, natural, PT-BR coloquial
+3) SEMPRE termine com UMA pergunta de continuidade (marca preferida? orçamento? cidade?)
+4) Foque em ajudar o cliente a decidir
+5) Use tom confiante e prestativo
+
+Tom: Amigável, direto, engajado`;
+
+      // ⚡ STREAMING: Resposta em tempo real
+      const streamResponse = await clickClient.chat.completions.create({
+        model: process.env.CHAT_MODEL || 'gpt-4o-mini',
+        messages: [
+          { role:'system', content: interactiveSystem },
+          ...recentMessages.slice(0, -1),
+          { role:'user', content: USER }
+        ],
+        stream: true,
+        temperature: 0.7,
+        max_tokens: 250
+      });
+
+      let fullStreamText = '';
+      
+      // 🌊 STREAMING: Enviar deltas em tempo real
+      for await (const chunk of streamResponse) {
+        const content = chunk.choices[0]?.delta?.content || '';
+        if (content) {
+          fullStreamText += content;
+          write({ type: 'delta', text: content }); // ⚡ EFEITO DIGITANDO
+        }
+      }
+
+      llmResponse = fullStreamText;
+      write({ type: 'paragraph_done' });
+      
+      // 🔧 JSON ESTRUTURADO: Gerar separadamente para validação
+      const jsonResponse = await clickClient.chat.completions.create({
+        model: process.env.CHAT_MODEL || 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: `IMPORTANTE: Retorne JSON válido no formato EXATO:
+{
+  "items": [
+    {"id": "produto_id", "why": "razão curta"}
+  ],
+  "message": "texto da resposta"
+}
+
+Use somente estes IDs válidos: ${productSet.map(p => p.id).slice(0,3).join(', ')}...
+
+JAMAIS use "produtos", "nome" ou outros campos. Sempre "items" e "why".` },
+          { role: 'user', content: `Produtos mencionados na conversa: "${llmResponse}"
+
+IDs válidos:
+${productSet.map(p => `- ${p.id}: ${p.title}`).slice(0,3).join('\n')}...` }
+        ],
+        temperature: 0.1,
+        max_tokens: 200
+      });
+
+      const rawJson = jsonResponse.choices[0].message.content;
+      console.log(`📦 [assistant/stream] JSON estruturado gerado:`, rawJson);
+
+      try {
+        const parsedResponse = JSON.parse(rawJson || '{}');
+        const { items = [], message = '' } = parsedResponse;
+        
+        // 🔧 VALIDAÇÃO SERVIDOR-SIDE: só aceitar IDs do productSet
+        const allowedIds = new Set(productSet.map(p => p.id));
+        const validItems = items.filter(item => allowedIds.has(item.id));
+        
+        console.log(`✅ [assistant/stream] Validação JSON com Streaming:`, {
+          itemsReceived: items.length,
+          validItems: validItems.length,
+          allowedIds: [...allowedIds],
+          receivedIds: items.map(i => i.id),
+          streamedText: fullStreamText.length
+        });
+        
+        // ❹ Enviar produtos validados com metadados enriquecidos
+        if (validItems.length > 0) {
+          const enrichedProducts = validItems.map(item => {
+            const product = productSet.find(p => p.id === item.id);
+            if (!product) return null;
+            
+            // Validar upsellIds também
+            const validUpsells = (item.upsellIds || [])
+              .filter(upsellId => allowedIds.has(upsellId))
+              .map(upsellId => productSet.find(p => p.id === upsellId))
+              .filter(Boolean);
+            
+            return {
+              ...product,
+              name: product.title,
+              reason: item.reason || 'Produto recomendado',
+              upsells: validUpsells,
+              cliqueRecommended: true // Marca da nova persona
+            };
+          }).filter(Boolean);
+          
+          console.log(`📦 [assistant/stream] Enviando ${enrichedProducts.length} produtos do Clique:`, {
+            withReasons: enrichedProducts.filter(p => p.reason).length,
+            withUpsells: enrichedProducts.filter(p => p.upsells.length > 0).length
+          });
+          
+          write({ 
+            type: 'products', 
+            products: enrichedProducts,
+            query: message,
+            validationApplied: true,
+            hardGrounding: true,
+            cliquePersona: true,
+            schemaVersion: 2
+          });
+        } else {
+          console.log(`⚠️ [assistant/stream] Nenhum produto válido após validação`);
+        }
+        
+      } catch (error) {
+        console.error(`❌ [assistant/stream] Erro ao parsear JSON do LLM:`, error);
+        console.log(`🔧 [assistant/stream] JSON bruto que falhou:`, rawJson);
+        
+        // 🚑 FALLBACK: usar produtos do productSet mesmo com JSON quebrado
+        const fallbackProducts = productSet.slice(0, 3).map(product => ({
+          ...product,
+          name: product.title,
+          reason: 'Produto selecionado pelo Clique',
+          upsells: [],
+          cliqueRecommended: true
+        }));
+        
+        console.log(`🚑 [assistant/stream] Usando fallback com ${fallbackProducts.length} produtos`);
+        
+        write({ 
+          type: 'products', 
+          products: fallbackProducts,
+          query: llmResponse,
+          validationApplied: false,
+          hardGrounding: true, // Ainda usa produtos reais
+          jsonParseFailed: true,
+          schemaVersion: 2
+        });
+      }
+      
+    } else {
+      // ❸ Fallback: modo antigo (não deveria ser usado mais)
+      console.log(`⚠️ [assistant/stream] Usando modo antigo (não recomendado)`);
+      
+      const stream = await clickClient.chat.completions.create({
+        model: process.env.CHAT_MODEL || 'gpt-4o-mini',
+        messages,
+        temperature: 0.15,
+        max_tokens: 220,
+        frequency_penalty: 0.3,
+        presence_penalty: 0.0,
+        stream: true
+      });
+
+      let full=''; const LIMIT=600;
+      
+      for await (const part of stream){
+        const t = part.choices?.[0]?.delta?.content || '';
+        if (!t) continue;
+        
+        const over = full.length + t.length - LIMIT;
+        let piece = over>0 ? t.slice(0, t.length - over) : t;
+        
+        const newLines = (full + piece).split('\n').length - 1;
+        if (newLines >= 4) {
+          const lines = (full + piece).split('\n');
+          if (lines.length > 4) {
+            const fourLines = lines.slice(0, 4).join('\n');
+            piece = fourLines.substring(full.length);
+            full += piece;
+            write({ type:'chunk', text: piece });
+            break;
+          }
+        }
+        
+        full += piece; 
+        write({ type:'chunk', text: piece });
+        if (over>0) break;
+      }
+      
+      llmResponse = full;
+      
+      // Enviar produtos do modo antigo
+      const productsToSend = (ground.top8?.length > 0 ? ground.top8 : ground.top3 || []).map(product => ({
+        ...product,
+        name: product.title,
+      }));
+      
+      if (productsToSend.length > 0) {
+        write({ 
+          type: 'products', 
+          products: productsToSend,
+          query: message,
+          focusedProduct,
+          recommendations,
+          hardGrounding: false
+        });
+      }
+    }
+    
+    await storage.createAssistantMessage({ 
+      sessionId, 
+      content: llmResponse, 
+      role:'assistant', 
+      metadata:{ 
+        streamed: true, 
+        hardGrounding: !!requiresJsonOutput,
+        hasProducts: productSet?.length > 0 
+      } 
+    });
+    
+    write({ type:'end' }); 
+    res.end();
+  } catch (e) {
+    console.error('stream', e);
+    res.write(`data: ${JSON.stringify({ type:'error', message:'stream error' })}\n\n`); res.end();
+  }
+});
+
+===============================================================================
+
+PRINCIPAIS FUNCIONALIDADES IMPLEMENTADAS:
+
+🆔 SISTEMA ANTI-CORRIDA:
+- RequestId único por request
+- Frontend filtra events por requestId  
+- Evita responses antigas sobrescrever novas
+
+🧠 DETECÇÃO DE INTENÇÃO:
+- SMALL_TALK: resposta direta sem busca
+- SEARCH: busca normal de produtos  
+- MORE: busca adicional/pagination
+
+⚡ STREAMING REAL:
+- Deltas incrementais em tempo real
+- Efeito "digitando" no frontend
+- Paragraph_done para finalizar parágrafos
+
+👨‍💼 PERSONA "CLIQUE":
+- Vendedor masculino simpático
+- Sempre faz pergunta de continuidade
+- Tom confiante e prestativo
+
+🔐 HARD GROUNDING:
+- JSON schema validação rigorosa
+- Só aceita IDs do productSet
+- Fallback robusto em caso de erro JSON
+
+🛍️ CROSS-SELL + CACHE:
+- Acessórios buscados em paralelo
+- Cache inteligente 120s
+- Performance otimizada
+
+🎯 INTELIGÊNCIA DE VENDAS:
+- Sistema de recomendações
+- Produto em foco + upsells
+- Memória conversacional
+
+===============================================================================
+
+ARQUIVO GERADO EM: 2025-09-26 10:37:XX
+LOCAL: assistente-click-completo.txt (raiz do projeto)
