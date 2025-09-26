@@ -332,7 +332,7 @@ export function useAssistantChat({
                 console.log(`🛒 [Frontend] Produtos recebidos:`, {
                   count: payload.products.length,
                   query: payload.query,
-                  products: payload.products.map(p => ({ id: p.id, name: p.name || p.title }))
+                  products: payload.products.map((p: any) => ({ id: p.id, name: p.name || p.title }))
                 });
                 
                 // Usar as funções existentes para renderizar produtos

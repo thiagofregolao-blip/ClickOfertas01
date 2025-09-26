@@ -7013,6 +7013,28 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       // Enviar meta com requestId primeiro
       write({ type:'meta', requestId });
 
+      // 🔒 WATCHDOG: Fail-safe para garantir presença de conteúdo
+      let lastDelta = Date.now();
+      const watchdog = setInterval(() => {
+        if (Date.now() - lastDelta > 7000) {
+          console.log(`⏰ [assistant/stream] Watchdog ativado - enviando fallback após 7s sem conteúdo`);
+          write({ type: 'delta', text: '\n💭 (conferindo as melhores ofertas...) ' });
+          lastDelta = Date.now();
+        }
+      }, 4000);
+
+      // Limpar watchdog quando request for fechado
+      req.on('close', () => {
+        console.log(`🧹 [assistant/stream] Request fechado - limpando watchdog`);
+        clearInterval(watchdog);
+      });
+
+      // Função helper para atualizar lastDelta
+      const writeWithHeartbeat = (data: any) => {
+        if (data.type === 'delta') lastDelta = Date.now();
+        write(data);
+      };
+
       // 🧠 DETECÇÃO DE INTENÇÃO antes da busca
       console.log(`🎬 [assistant/stream] Processando: "${message}" para usuário: ${name}`);
       
@@ -7045,7 +7067,7 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
           const t = part.choices?.[0]?.delta?.content || '';
           if (!t) continue;
           fullText += t;
-          write({ type: 'delta', text: t }); // ⚡ EFEITO DIGITANDO
+          writeWithHeartbeat({ type: 'delta', text: t }); // ⚡ EFEITO DIGITANDO
         }
         
         await storage.createAssistantMessage({ 
@@ -7212,7 +7234,7 @@ Tom: Amigável, direto, engajado`;
           const content = chunk.choices[0]?.delta?.content || '';
           if (content) {
             fullStreamText += content;
-            write({ type: 'delta', text: content }); // ⚡ EFEITO DIGITANDO
+            writeWithHeartbeat({ type: 'delta', text: content }); // ⚡ EFEITO DIGITANDO
           }
         }
 
@@ -7407,10 +7429,15 @@ ${productSet.map(p => `- ${p.id}: ${p.title}`).slice(0,3).join('\n')}...` }
       }
       
       console.log(`🏁 [assistant/stream] Streaming principal finalizado - enviando complete`);
+      
+      // 🧹 LIMPAR WATCHDOG antes de finalizar
+      clearInterval(watchdog);
+      
       write({ type:'complete' }); 
       res.end();
     } catch (e) {
       console.error('stream', e);
+      clearInterval(watchdog); // 🧹 Limpar watchdog em caso de erro
       res.write(`data: ${JSON.stringify({ type:'error', message:'stream error' })}\n\n`); res.end();
     }
   });
@@ -8040,6 +8067,43 @@ ${productSet.map(p => `- ${p.id}: ${p.title}`).slice(0,3).join('\n')}...` }
       console.error('Erro ao definir produto em foco:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
+  });
+
+  // 🔧 ENDPOINT DE TESTE SSE - Diagnosticar se streaming básico funciona
+  app.get("/_sse_echo", (req, res) => {
+    console.log(`🧪 [/_sse_echo] Iniciando teste de streaming SSE`);
+    
+    res.writeHead(200, { 
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform', 
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*'
+    });
+    res.flushHeaders?.();
+
+    const send = (event: string, data: any) => {
+      res.write(`event: ${event}\n`);
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+      console.log(`🧪 [/_sse_echo] Enviado: ${event} ->`, data);
+    };
+
+    send("meta", { t: Date.now(), requestId: `test-${Date.now()}` });
+    
+    let i = 0;
+    const interval = setInterval(() => {
+      send("delta", { text: ` teste #${++i}` });
+      if (i >= 5) { 
+        clearInterval(interval); 
+        send("complete", { final: true }); 
+        console.log(`🧪 [/_sse_echo] Teste concluído`);
+        res.end(); 
+      }
+    }, 800);
+
+    req.on("close", () => { 
+      console.log(`🧪 [/_sse_echo] Conexão fechada pelo cliente`);
+      clearInterval(interval); 
+    });
   });
 
   const httpServer = createServer(app);

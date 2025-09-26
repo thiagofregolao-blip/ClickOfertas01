@@ -1,0 +1,214 @@
+Entendi — se agora você “manda o comando e nada aparece”, temos um bloqueio antes do primeiro chunk. Quando isso acontece, quase sempre é um (ou mais) destes pontos:
+
+0) Diagnóstico relâmpago (2 testes que isolam o problema)
+
+T1. curl direto no backend
+Se este teste não mostrar linhas chegando, o problema é no backend/proxy, não no front:
+
+curl -N -H 'Accept: text/event-stream' https://SEU_BACKEND/ai/chat/stream?message=quero%20um%20iphone
+
+
+Você deve ver algo como:
+
+event: meta
+data: {"requestId":"..."}     <— em segundos
+
+event: delta
+data: {"text":"..."}
+
+event: done
+data: {}
+
+
+T2. Endpoint de “eco” (autoteste de SSE)
+Crie temporariamente uma rota só de teste. Se isso não streamar, o problema é header/proxy:
+
+// GET /_sse_echo  (adicione no mesmo servidor do chat)
+app.get("/_sse_echo", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders?.();
+
+  const send = (event: string, data: any) => {
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  send("meta", { t: Date.now() });
+  let i = 0;
+  const iv = setInterval(() => {
+    send("delta", { text: ` #${++i}` });
+    if (i >= 5) { clearInterval(iv); send("done", {}); res.end(); }
+  }, 800);
+
+  req.on("close", () => { clearInterval(iv); });
+});
+
+
+Depois:
+
+curl -N https://SEU_BACKEND/_sse_echo
+
+
+Se isso não streamar, veja a seção “Proxy/Headers” abaixo.
+
+1) Se o front for web (navegador), EventSource NÃO suporta POST
+
+No browser, new EventSource(url) é GET apenas. Se você migrou o backend para POST e não usa um polyfill específico, o navegador não vai abrir o stream.
+
+✅ Conserto seguro:
+
+Exponha GET em /ai/chat/stream e passe message por query:
+GET /ai/chat/stream?message=quero%20um%20iphone
+
+Ou mantenha o POST apenas para mobile/Flutter (que usa lib com POST). Para web, ofereça GET.
+
+Exemplo (suporta os dois):
+
+app.all("/ai/chat/stream", async (req, res) => {
+  const method = req.method;
+  const message = method === "GET" ? String(req.query.message || "") : String(req.body?.message || "");
+  // ...segue o mesmo fluxo, só mudamos como obtemos 'message'
+});
+
+2) Headers/proxy que matam o streaming
+
+Verifique estes 4 pontos (no Nginx/Cloudflare/Vercel ou onde roda):
+
+Sem compressão nessa rota:
+gzip off; (Nginx) / desabilite “Compression” para esse path.
+
+Sem buffering:
+proxy_buffering off; (Nginx).
+
+Headers SSE corretos no backend:
+
+Content-Type: text/event-stream; charset=utf-8
+Cache-Control: no-cache, no-transform
+Connection: keep-alive
+
+
+Sem Content-Length (não fixe tamanho na resposta).
+
+Se T1/T2 não streamarem, isso é o culpado 90% das vezes.
+
+3) Garanta que sempre haja algo para “digitar”
+
+Se você pediu response_format só com JSON final, o modelo pode não emitir response.output_text.delta. Resultado: “digitando…” pisca e some.
+
+✅ Conserto: sempre produza texto e só depois mande os cards/JSON. Ex.:
+
+const stream = await client.responses.stream({
+  model: "gpt-4.1",
+  input: [
+    { role: "system", content: systemMessage },
+    { role: "user", content: userMsg },
+    { role: "developer", content: JSON.stringify({ product_set, accessory_set }) }
+  ],
+  // Evite response_format que sufoque o texto; deixe o modelo falar.
+});
+
+stream.on("event", (e:any) => {
+  if (e.type === "response.output_text.delta") {
+    send(res, "delta", { text: e.delta });
+  }
+});
+stream.on("end", async () => {
+  const final = await stream.finalResponse();
+  const payload = extractValidatedPayload(final, product_set, accessory_set);
+  send(res, "cards", payload);   // 🛒 cards após validar IDs
+  send(res, "done", {});
+  res.end();
+});
+
+
+Se a busca vier vazia, mande um delta humano antes do done:
+
+if (product_set.length === 0 && accessory_set.length === 0) {
+  send(res, "delta", { text: "Não achei itens agora. Qual **memória** (128/256GB) e **cidade**? Eu garimpo ofertas 😉" });
+  send(res, "done", {}); res.end(); return;
+}
+
+4) Fail-safe de “presença” (o usuário não vê nada? mande um ping humano)
+
+Watchdog se nenhum delta chegar em 7s:
+
+let lastDelta = Date.now();
+const wd = setInterval(() => {
+  if (Date.now() - lastDelta > 7000) {
+    send(res, "delta", { text: "\n(um instante… conferindo as melhores ofertas) " });
+    lastDelta = Date.now();
+  }
+}, 4000);
+
+// atualize lastDelta quando vier delta real
+
+5) Compatibilidade de eventos (não deixe o front “mudo”)
+
+Se o front ainda usa onmessage + data.type, mantenha modo compatível (até migrar):
+
+const SSE_COMPAT = true;
+function send(res:any, event:string, payload:any) {
+  res.write(`event: ${event}\n`);
+  res.write(`data: ${JSON.stringify(payload)}\n\n`);
+  if (SSE_COMPAT) res.write(`data: ${JSON.stringify({ type: event, ...payload })}\n\n`);
+}
+
+
+No front (web), tenha ambos:
+
+const es = new EventSource("/ai/chat/stream?message=" + encodeURIComponent(msg));
+
+es.onmessage = (evt) => {            // legado
+  const d = JSON.parse(evt.data || "{}");
+  if (d.type === "delta")  appendTyping(d.text);
+  if (d.type === "cards")  renderCards(d.items, d.message);
+  if (d.type === "done")   finalizeBubble();
+};
+
+es.addEventListener("delta",  (e)=> appendTyping(JSON.parse(e.data).text));
+es.addEventListener("cards",  (e)=> { const d = JSON.parse(e.data); renderCards(d.items, d.message); });
+es.addEventListener("done",   ()=> finalizeBubble());
+
+6) requestId e cancelamento (o “sumir do nada” clássico)
+
+Se, ao enviar a 2ª mensagem, você fecha o stream anterior, o front pode descartar os eventos que estavam chegando.
+
+Sempre envie um meta com requestId assim que abrir:
+
+send(res, "meta", { requestId });
+
+
+No front, ignore eventos cujo requestId ≠ latestRequestId.
+
+Ao iniciar nova mensagem do usuário, cancele o EventSource anterior (ou deixe o filtro por requestId ativo).
+
+7) origin correto atrás de proxy (para a BUSCA funcionar)
+
+Use x-forwarded-*:
+
+const proto = req.get('x-forwarded-proto') || req.protocol;
+const host  = req.get('x-forwarded-host')  || req.get('host');
+const origin = `${proto}://${host}`;
+
+
+Se a busca falhar, o modelo fica sem produtos e você termina sem texto útil.
+
+Checklist final (marque agora)
+
+ T1 curl -N no /ai/chat/stream mostra meta → delta(s) → done
+
+ GET habilitado para web (POST só se usar lib/polyfill)
+
+ Proxy com proxy_buffering off; e gzip off; para a rota
+
+ Backend sempre envia algum delta antes do done (ou watchdog)
+
+ Modo SSE compatível ligado (até migrar o front)
+
+ Front escuta onmessage (data.type) e eventos nomeados
+
+ requestId usado para não descartar o stream atual
+
+ origin com x-forwarded-* (busca não quebra)
