@@ -7007,10 +7007,50 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       res.writeHead(200, { 'Content-Type':'text/event-stream', 'Cache-Control':'no-cache', 'Connection':'keep-alive' });
       const write = (d:any)=> res.write(`data: ${JSON.stringify(d)}\n\n`);
 
-      // ❶ RAG melhorado: busca produtos e prepara fatos
+      // 🧠 DETECÇÃO DE INTENÇÃO antes da busca
       console.log(`🎬 [assistant/stream] Processando: "${message}" para usuário: ${name}`);
       
-      const { buildGrounding, composePrompts } = await import('./lib/answerComposer.js');
+      const { buildGrounding, composePrompts, detectIntent } = await import('./lib/answerComposer.js');
+      const intent = detectIntent(message);
+      
+      console.log(`🧠 [assistant/stream] Intenção detectada: ${intent}`);
+      
+      // 🎪 SMALL TALK: Resposta direta sem busca de produtos
+      if (intent === 'SMALL_TALK') {
+        console.log(`💬 [assistant/stream] Small talk detectado - resposta direta`);
+        
+        const smallTalkSystem = `Você é o "Clique", consultor virtual do Click Ofertas. Seja simpático, breve e humano. Responda à pergunta pessoal feita pelo usuário de forma natural e encaminhe para ajudar com compras. Use humor leve e emoji ocasional.`;
+        
+        const smallTalkResponse = await clickClient.chat.completions.create({
+          model: process.env.CHAT_MODEL || 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: smallTalkSystem },
+            { role: 'user', content: message }
+          ],
+          temperature: 0.7,
+          max_tokens: 150
+        });
+
+        const smallTalkText = smallTalkResponse.choices[0].message.content;
+        write({ type:'chunk', text: smallTalkText });
+        
+        await storage.createAssistantMessage({ 
+          sessionId, 
+          content: smallTalkText, 
+          role:'assistant', 
+          metadata:{ 
+            streamed: true, 
+            intent: 'SMALL_TALK',
+            noProductSearch: true 
+          } 
+        });
+        
+        write({ type:'end' });
+        res.end();
+        return;
+      }
+      
+      // ❶ RAG melhorado: busca produtos apenas para SEARCH e MORE
       const origin = `${req.protocol}://${req.get('host')}`;
       const ground = await buildGrounding(origin, message, sessionId);
       
@@ -7139,31 +7179,53 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
           const allowedIds = new Set(productSet.map(p => p.id));
           const validItems = items.filter(item => allowedIds.has(item.id));
           
-          console.log(`✅ [assistant/stream] Validação JSON:`, {
+          console.log(`✅ [assistant/stream] Validação JSON (Schema v2):`, {
             itemsReceived: items.length,
             validItems: validItems.length,
             allowedIds: [...allowedIds],
-            receivedIds: items.map(i => i.id)
+            receivedIds: items.map(i => i.id),
+            hasReasons: items.some(i => i.reason),
+            hasUpsells: items.some(i => i.upsellIds?.length > 0)
           });
 
-          // Enviar mensagem do LLM
-          llmResponse = message || 'Confira os produtos selecionados!';
+          // Enviar mensagem do "Clique" 
+          llmResponse = message || 'Confira os produtos selecionados! 😊';
           write({ type:'chunk', text: llmResponse });
           
-          // ❹ Enviar apenas produtos com IDs validados
+          // ❹ Enviar produtos validados com metadados enriquecidos
           if (validItems.length > 0) {
-            const validProducts = validItems.map(item => 
-              productSet.find(p => p.id === item.id)
-            ).filter(Boolean);
+            const enrichedProducts = validItems.map(item => {
+              const product = productSet.find(p => p.id === item.id);
+              if (!product) return null;
+              
+              // Validar upsellIds também
+              const validUpsells = (item.upsellIds || [])
+                .filter(upsellId => allowedIds.has(upsellId))
+                .map(upsellId => productSet.find(p => p.id === upsellId))
+                .filter(Boolean);
+              
+              return {
+                ...product,
+                name: product.title,
+                reason: item.reason || 'Produto recomendado',
+                upsells: validUpsells,
+                cliqueRecommended: true // Marca da nova persona
+              };
+            }).filter(Boolean);
             
-            console.log(`📦 [assistant/stream] Enviando ${validProducts.length} produtos validados`);
+            console.log(`📦 [assistant/stream] Enviando ${enrichedProducts.length} produtos do Clique:`, {
+              withReasons: enrichedProducts.filter(p => p.reason).length,
+              withUpsells: enrichedProducts.filter(p => p.upsells.length > 0).length
+            });
             
             write({ 
               type: 'products', 
-              products: validProducts.map(p => ({ ...p, name: p.title })),
+              products: enrichedProducts,
               query: message,
               validationApplied: true,
-              hardGrounding: true
+              hardGrounding: true,
+              cliquePersona: true,
+              schemaVersion: 2
             });
           } else {
             console.log(`⚠️ [assistant/stream] Nenhum produto válido após validação`);

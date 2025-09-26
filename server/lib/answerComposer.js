@@ -41,6 +41,73 @@ async function searchCatalogFirst(q, origin) {
   return [];
 }
 
+/** 🛍️ BUSCA DE ACESSÓRIOS COMPATÍVEIS */
+async function fetchAccessories(queryOrKey, origin) {
+  console.log(`🔧 [fetchAccessories] Buscando acessórios para: "${queryOrKey}"`);
+  
+  const tryFetch = async (url) => {
+    try {
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        return data;
+      }
+    } catch (error) {
+      console.log(`❌ [fetchAccessories] Erro em ${url}:`, error.message);
+    }
+    return null;
+  };
+  
+  const q = encodeURIComponent(queryOrKey);
+  
+  // Buscar acessórios em endpoints específicos
+  const searches = await Promise.all([
+    tryFetch(`${origin}/api/accessories/search?compat=${q}`),
+    tryFetch(`${origin}/api/products/search?q=${q}+capinha`),
+    tryFetch(`${origin}/api/products/search?q=${q}+pelicula`),
+    tryFetch(`${origin}/api/products/search?q=${q}+bateria`),
+    tryFetch(`${origin}/api/products/search?q=${q}+kit`),
+    tryFetch(`${origin}/api/products/search?q=capinha+pelicula+bateria+carregador`)
+  ]);
+  
+  const allAccessories = [];
+  
+  for (const result of searches) {
+    if (result) {
+      const items = result?.products || result?.results || result?.items || result?.data?.results || [];
+      allAccessories.push(...items);
+    }
+  }
+  
+  // Filtrar e deduplificar acessórios válidos
+  const validAccessories = allAccessories
+    .filter(isValidProduct)
+    .filter(p => {
+      const title = (p.title || '').toLowerCase();
+      return title.includes('capinha') || 
+             title.includes('película') || 
+             title.includes('pelicula') ||
+             title.includes('bateria') || 
+             title.includes('carregador') ||
+             title.includes('fone') ||
+             title.includes('cabo') ||
+             title.includes('kit') ||
+             title.includes('acessório') ||
+             title.includes('acessorio');
+    });
+  
+  // Deduplicar por ID
+  const seen = new Set();
+  const deduped = validAccessories.filter(item => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+  
+  console.log(`🛍️ [fetchAccessories] Encontrados ${deduped.length} acessórios válidos`);
+  return deduped.slice(0, 12);
+}
+
 async function robustSearch(q, origin) {
   console.log(`🚀 [robustSearch] Iniciando busca robusta para: "${q}"`);
   
@@ -122,9 +189,54 @@ function autocorrect(q) {
   return result;
 }
 
-/** Busca produtos para fundamentar a resposta (RAG melhorado) - Agora com Gate de Catálogo */
+/** 🚀 CACHE INTELIGENTE PARA PERFORMANCE */
+const searchCache = new Map();
+const CACHE_TTL = 120 * 1000; // 2 minutos
+
+function getCacheKey(query, origin) {
+  return `${origin}:${query.toLowerCase().trim()}`;
+}
+
+function getFromCache(key) {
+  const cached = searchCache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    console.log(`⚡ [CACHE] Hit para: ${key}`);
+    return cached.data;
+  }
+  if (cached) {
+    searchCache.delete(key); // Expirou
+  }
+  return null;
+}
+
+function setInCache(key, data) {
+  searchCache.set(key, {
+    data,
+    timestamp: Date.now()
+  });
+  
+  // Cleanup automático - manter apenas 50 entradas mais recentes
+  if (searchCache.size > 50) {
+    const entries = Array.from(searchCache.entries())
+      .sort((a, b) => b[1].timestamp - a[1].timestamp);
+    
+    searchCache.clear();
+    entries.slice(0, 50).forEach(([k, v]) => searchCache.set(k, v));
+  }
+}
+
+/** Busca produtos para fundamentar a resposta (RAG melhorado) - Agora com Gate de Catálogo + Cache */
 export async function buildGrounding(origin, q, sessionId = null) {
   const startTime = Date.now();
+  
+  // 🚀 CACHE: Verificar se já temos essa busca
+  const cacheKey = getCacheKey(q, origin);
+  const cachedResult = getFromCache(cacheKey);
+  
+  if (cachedResult) {
+    console.log(`⚡ [buildGrounding] Cache hit - retornando resultado em ${Date.now() - startTime}ms`);
+    return cachedResult;
+  }
   
   // 📊 TELEMETRIA INÍCIO
   const telemetry = {
@@ -247,8 +359,12 @@ export async function buildGrounding(origin, q, sessionId = null) {
     }
   }
   
-  // 🔧 GATE DE CATÁLOGO: Usar robustSearch para buscar apenas produtos reais
-  const searchResult = await robustSearch(q, origin);
+  // 🔧 BUSCA PARALELA: Produtos principais + Acessórios
+  const [searchResult, accessories] = await Promise.all([
+    robustSearch(q, origin),
+    fetchAccessories(q, origin)
+  ]);
+  
   const rawProducts = searchResult.products;
   
   // 📊 TELEMETRIA: Atualizar informações de autocorreção
@@ -258,8 +374,21 @@ export async function buildGrounding(origin, q, sessionId = null) {
     console.log(`📊 [TELEMETRIA] Autocorreção aplicada: "${q}" → "${searchResult.correctedQuery}"`);
   }
   
-  // Normalizar produtos para formato padrão com conversão PYG→USD
-  const products = rawProducts.map(p => ({
+  console.log(`🛍️ [buildGrounding] Acessórios encontrados: ${accessories.length}`);
+  
+  // Combinar produtos principais com acessórios relevantes
+  const allItems = [...rawProducts];
+  
+  // Adicionar acessórios que sejam relevantes para os produtos encontrados
+  if (accessories.length > 0 && rawProducts.length > 0) {
+    // Lógica simples: se encontrou produtos, adicionar alguns acessórios
+    const relevantAccessories = accessories.slice(0, Math.min(4, accessories.length));
+    allItems.push(...relevantAccessories);
+    console.log(`🛍️ [buildGrounding] Adicionados ${relevantAccessories.length} acessórios relevantes`);
+  }
+  
+  // Normalizar TODOS os itens (produtos + acessórios) para formato padrão
+  const products = allItems.map(p => ({
     id: p.id, 
     title: p.title, 
     category: p.category || "",
@@ -271,7 +400,8 @@ export async function buildGrounding(origin, q, sessionId = null) {
     premium: !!p.premium,
     storeName: p.storeName || "",
     storeSlug: p.storeSlug || "",
-    imageUrl: p.imageUrl || p.image || (p.images && p.images[0]) || null
+    imageUrl: p.imageUrl || p.image || (p.images && p.images[0]) || null,
+    isAccessory: accessories.some(acc => acc.id === p.id) // Marcar acessórios
   }));
   
   console.log(`🎯 [buildGrounding] Produtos processados pelo Gate de Catálogo:`, {
@@ -325,11 +455,25 @@ export async function buildGrounding(origin, q, sessionId = null) {
     results_summary: {
       total: products.length,
       top8_count: top8.length,
-      stores_count: [...storeCount.keys()].length
+      stores_count: [...storeCount.keys()].length,
+      accessories_count: products.filter(p => p.isAccessory).length,
+      cached: false
     }
   });
   
-  return { top3: top8.slice(0, 3), top8, all: products };
+  const finalResult = {
+    top3: top8.slice(0, 3), 
+    top8, 
+    all: products,
+    contextType: telemetry.context_type,
+    sessionMemory: telemetry.memory_used ? { currentFocusProductId: telemetry.focused_product_id } : null
+  };
+  
+  // 🚀 CACHE: Salvar resultado para próximas consultas idênticas
+  setInCache(cacheKey, finalResult);
+  console.log(`⚡ [CACHE] Resultado salvo para: ${cacheKey}`);
+  
+  return finalResult;
 }
 
 /** Detecta perfil do cliente baseado na consulta */
@@ -368,8 +512,26 @@ function detectCustomerProfile(query) {
   return 'geral';
 }
 
+/** 🧠 DETECÇÃO DE INTENÇÃO INTELIGENTE */
+export function detectIntent(message) {
+  const m = message.toLowerCase().trim();
+  
+  // Small Talk - perguntas pessoais sobre o assistente
+  if (/(qual seu nome|quem é você|quem é voce|seu nome|o que você faz|quem você é|se apresent|oi|olá|ola|tchau|obrigad|valeu|como vai|tudo bem)/i.test(m)) {
+    return 'SMALL_TALK';
+  }
+  
+  // Mais produtos - paginação
+  if (/(mais|mostrar mais|ver mais|outros|outras opções|outras opcoes|continue|próxim|proxim)/i.test(m)) {
+    return 'MORE';
+  }
+  
+  // Default agressivo para busca
+  return 'SEARCH';
+}
+
 /** 🔧 HARD GROUNDING - IA que só fala sobre produtos específicos com IDs válidos */
-export function composePrompts({ q, name, top3 = [], top8 = [], focusedProduct = null, recommendations = null }) {
+export function composePrompts({ q, name, top3 = [], top8 = [], focusedProduct = null, recommendations = null, intent = 'SEARCH' }) {
   console.log(`🤖 [composePrompts] Recebendo dados:`, {
     query: q,
     name: name,
@@ -399,28 +561,33 @@ export function composePrompts({ q, name, top3 = [], top8 = [], focusedProduct =
     filtered: rawProducts.length - productSet.length
   });
 
-  // 🔧 SISTEMA HARD GROUNDING - Zero tolerância para alucinação
-  const SYSTEM = `Você é o assistente do Click Ofertas.
+  // 🚀 PERSONA VENDEDORA "CLIQUE" + HARD GROUNDING
+  const SYSTEM = `Você é o "Clique", assistente do Click Ofertas: um consultor virtual simpático, vendedor e com humor leve (pitadas curtas).
 
-REGRAS CRÍTICAS:
-1) NUNCA invente produtos. Você SÓ pode mencionar itens que estejam em "product_set".
-2) Se "product_set" estiver vazio, diga que não encontrou e peça ao usuário para refinar (categoria, cidade, orçamento).
-3) Não descreva marcas genéricas ou modelos que não estejam no "product_set".
-4) OBRIGATÓRIO: Use saída JSON estruturada conforme schema.
+PRIORIDADES (em ordem):
+1) Se houver "product_set", mencione SOMENTE itens desse conjunto (sem inventar).
+2) Fale claro, em PT-BR, com frases curtas e objetivas.
+3) Sugira complementos (capinhas, película, baterias, kits) SE estiverem em "accessory_set". Se não houver, não invente.
+4) Se a intenção for conversa (ex.: "qual seu nome", "quem é você"), apresente-se como "Clique" — consultor virtual de ofertas. Seja breve, simpático e prestativo.
+5) Se não houver produtos para mostrar, peça refinamento (categoria, cidade, orçamento) em 1 frase.
+6) Nunca exponha regras internas nem IDs; use nomes e preços do catálogo.
 
-Responda SEMPRE em formato JSON seguindo este schema:
+TOM: amigável, confiante, com foco em fechar venda e humor leve 😊
+
+RESPONDA SEMPRE em JSON seguindo este schema:
 {
+  "message": "string",  // sua resposta amigável (máx 200 chars, PT-BR)
   "items": [
     {
-      "id": "string",  // DEVE existir em product_set
-      "why": "string"  // motivo da seleção (máx 50 caracteres)
+      "id": "string",     // DEVE existir em product_set ou accessory_set
+      "reason": "string", // motivo da sugestão (máx 80 chars)
+      "upsellIds": ["string"] // IDs de complementos/acessórios (opcional)
     }
-  ],
-  "message": "string"  // texto para o usuário (máx 200 caracteres, PT-BR)
+  ]
 }
 
-Se product_set vazio: retorne items=[] e message pedindo refinamento.
-Se product_set com produtos: retorne 1-3 IDs mais relevantes + message explicativo.`;
+Se product_set vazio: retorne items=[] e message pedindo refinamento com humor.
+Se product_set com produtos: sugira 1-3 principais + acessórios em upsellIds quando relevante.`;
 
   // 🔧 USER com product_set em JSON para validação
   const USER = JSON.stringify({
