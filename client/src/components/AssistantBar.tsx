@@ -594,6 +594,7 @@ export default function AssistantBar() {
           const line = chunk.trim().replace(/^data:\s?/, '');
           try {
             const p = JSON.parse(line);
+            console.log('🔍 [AssistantBar] Evento recebido:', { type: p.type, hasProducts: !!p.products, productsLength: p.products?.length });
             if (p.type === 'chunk' && p.text) {
               assistantMessage += p.text;
               
