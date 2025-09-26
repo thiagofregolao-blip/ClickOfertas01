@@ -319,7 +319,7 @@ function detectCustomerProfile(query) {
   return 'geral';
 }
 
-/** IA natural e inteligente do Click Ofertas */
+/** 🔧 HARD GROUNDING - IA que só fala sobre produtos específicos com IDs válidos */
 export function composePrompts({ q, name, top3 = [], top8 = [], focusedProduct = null, recommendations = null }) {
   console.log(`🤖 [composePrompts] Recebendo dados:`, {
     query: q,
@@ -330,170 +330,67 @@ export function composePrompts({ q, name, top3 = [], top8 = [], focusedProduct =
     hasRecommendations: !!recommendations
   });
   
-  // Usar top8 se disponível, senão top3
-  const products = top8.length > 0 ? top8 : top3;
-  console.log(`📋 [composePrompts] Produtos processados para IA:`, {
-    count: products.length,
-    storeCount: new Set(products.map(p => p.storeName).filter(Boolean)).size
+  // 🔧 GATE DE VALIDAÇÃO: Só produtos com ID, título e loja válidos
+  const rawProducts = top8.length > 0 ? top8 : top3;
+  const productSet = rawProducts
+    .filter(p => p && p.id && p.title && (p.storeName || p.storeSlug))
+    .slice(0, 8)
+    .map(p => ({
+      id: p.id,
+      title: p.title,
+      store: p.storeName || p.storeSlug || 'Loja não informada',
+      priceUSD: p.priceUSD || null,
+      imageUrl: p.imageUrl || null,
+      url: p.url || null
+    }));
+
+  console.log(`🔧 [composePrompts] ProductSet processado:`, {
+    original: rawProducts.length,
+    valid: productSet.length,
+    filtered: rawProducts.length - productSet.length
   });
-  
-  // Incluir recomendações no contexto de produtos se disponível
-  let allProductsContext = products;
-  let recommendationInstructions = '';
-  
-  if (focusedProduct && recommendations) {
-    console.log(`🎯 [composePrompts] Produto em foco detectado:`, focusedProduct.title);
-    console.log(`💡 [composePrompts] Recomendações disponíveis:`, {
-      upsells: recommendations.upsells?.length || 0,
-      crossSells: recommendations.crossSells?.length || 0,
-      total: recommendations.all?.length || 0
-    });
-    
-    // Adicionar recomendações ao contexto
-    if (recommendations.all && recommendations.all.length > 0) {
-      allProductsContext = [...products, ...recommendations.all];
-      
-      // Instrução SEM dados específicos para evitar JSON na resposta
-      recommendationInstructions = `
-MODO VENDAS CONSULTIVAS ATIVADO:
-- Cliente demonstrou interesse em produto específico - use isso como gancho
-- Há opções de upgrade e produtos complementares disponíveis
-- Seja proativo em sugerir produtos relacionados da mesma categoria
-- Use técnica consultiva: "Já que você está interessado em [categoria], que tal considerar também..."
-- Foque em benefícios e comparações de valor
-- Os produtos serão mostrados automaticamente na interface - você só precisa orientar a escolha`;
+
+  // 🔧 SISTEMA HARD GROUNDING - Zero tolerância para alucinação
+  const SYSTEM = `Você é o assistente do Click Ofertas.
+
+REGRAS CRÍTICAS:
+1) NUNCA invente produtos. Você SÓ pode mencionar itens que estejam em "product_set".
+2) Se "product_set" estiver vazio, diga que não encontrou e peça ao usuário para refinar (categoria, cidade, orçamento).
+3) Não descreva marcas genéricas ou modelos que não estejam no "product_set".
+4) OBRIGATÓRIO: Use saída JSON estruturada conforme schema.
+
+Responda SEMPRE em formato JSON seguindo este schema:
+{
+  "items": [
+    {
+      "id": "string",  // DEVE existir em product_set
+      "why": "string"  // motivo da seleção (máx 50 caracteres)
     }
-  }
-  
-  // Analisar diversidade de lojas ANTES do console.log
-  const uniqueStores = new Set(products.map(p => p.storeName).filter(Boolean));
-  const storeCount = uniqueStores.size;
-  
-  // FACTS removido do prompt para evitar JSON na resposta da IA
-  console.log(`📝 [composePrompts] Produtos processados:`, {
-    totalProducts: allProductsContext.length,
-    hasRecommendations: !!recommendations,
-    storeCount
+  ],
+  "message": "string"  // texto para o usuário (máx 200 caracteres, PT-BR)
+}
+
+Se product_set vazio: retorne items=[] e message pedindo refinamento.
+Se product_set com produtos: retorne 1-3 IDs mais relevantes + message explicativo.`;
+
+  // 🔧 USER com product_set em JSON para validação
+  const USER = JSON.stringify({
+    query: q,
+    customer_name: name && name !== 'Cliente' ? name : null,
+    product_set: productSet
   });
-  
-  // Detectar contexto da conversa
-  const hasMultipleProducts = products.length > 1;
-  const isFirstInteraction = !name || name === 'Cliente';
-  const customerProfile = detectCustomerProfile(q);
-  
-  // Lógica para uso do nome mais natural
-  const realName = name && name !== 'Cliente' ? name : null;
-  const queryHash = q.split('').reduce((a, b) => (a << 5) - a + b.charCodeAt(0), 0);
-  const shouldUseName = isFirstInteraction ? !!realName : (realName && Math.abs(queryHash) % 3 === 0);
-  const nameToUse = shouldUseName ? realName : null;
-  
-  // Detectar tipo de pergunta para ajustar personalidade
-  const isPersonalQuestion = /\b(nome|quem é|quem você|como te chama|se apresent|boa noite|boa tarde|bom dia|oi|olá|prazer|tchau|obrigad|valeu)\b/i.test(q);
-  const isProductQuestion = products.length > 0 || /\b(quero|preciso|busco|interesse|comprar|produto|preço|valor|oferta|desconto)\b/i.test(q);
-  
-  // Sistema de prompts CONTEXTUAL - varia entre conversacional e vendedor
-  const systemVariations = isPersonalQuestion ? [
-    "Sou seu assistente amigável do Click Ofertas! 😊 Respondo de forma natural e humana. Quando falamos sobre produtos, sou especialista em ajudar você a encontrar a melhor opção.",
-    "Olá! Sou o assistente virtual do Click Ofertas 🤖 Tenho uma personalidade amigável e conversacional. Quando você precisa de produtos, me transformo em consultor especializado!",
-    "Prazer! Sou seu assistente pessoal do Click Ofertas ✨ Converso naturalmente sobre qualquer assunto, e quando você quer comprar algo, uso todo meu conhecimento em produtos para ajudar!"
-  ] : [
-    "Você é o VENDEDOR SÊNIOR do Click Ofertas! 🛍️ Age como um consultor de vendas experiente: proativo, conhece produtos, sugere complementos e sempre busca a melhor solução pro cliente. Seu objetivo é AJUDAR O CLIENTE A COMPRAR CERTO, não apenas informar!",
-    "Sou o ESPECIALISTA EM VENDAS do Click Ofertas! 🇵🇾 Como um vendedor top de loja física: conheço produtos, comparo vantagens, sugiro acessórios e sempre ofereço alternativas. Meu foco é FECHAR A VENDA com satisfação total do cliente!",
-    "VENDEDOR PROFISSIONAL aqui! 🤖 Trabalho como os melhores consultores de loja: analiso necessidades, apresento produtos, sugiro upgrades quando vale a pena e sempre penso no conjunto completo que o cliente precisa. VENDA CONSULTIVA é minha especialidade!"
-  ];
-  
-  const responseStyles = isPersonalQuestion ? [
-    "Seja natural e conversacional. Responda à pergunta de forma amigável e humana. Mantenha tom leve e acessível.",
-    "Converse de forma espontânea e calorosa. Seja você mesmo, sem pressão comercial. A naturalidade é sua marca registrada.",
-    "Personalidade amigável e descontraída. Responda com entusiasmo genuíno. Seja o assistente que as pessoas gostam de conversar!"
-  ] : [
-    "Age como vendedor experiente: sempre sugira produtos complementares, compare vantagens e desvantagens, faça perguntas inteligentes. Pense no CONJUNTO que o cliente precisa.",
-    "Comportamento de vendas consultiva: destaque diferenciais únicos, mencione acessórios importantes, sugira versões superiores quando vale a pena. Seja PROATIVO nas sugestões.",
-    "Vendedor top de shopping: conhece bem os produtos, compara marcas, sugere o que realmente agrega valor. Sempre ofereça MAIS DE UMA OPÇÃO para o cliente escolher."
-  ];
-  
-  const systemIndex = Math.abs(queryHash) % systemVariations.length;
-  const styleIndex = Math.abs(queryHash) % responseStyles.length;
-  
-  // Regras específicas baseadas no tipo de pergunta
-  const specificRules = isPersonalQuestion ? [
-    "REGRAS DE CONVERSA NATURAL:",
-    "- Responda de forma amigável e direta à pergunta feita",
-    "- Use máximo 2-3 linhas para manter fluidez",
-    "- Seja natural, sem forçar vendas desnecessárias",
-    "- Mantenha o foco no que foi perguntado",
-    "- Se apresente como 'assistente do Click Ofertas' quando perguntarem seu nome"
-  ] : [
-    "REGRAS DE VENDAS PROFISSIONAIS:",
-    "- MÁXIMO 4 linhas, mas sempre SUGIRA produtos relacionados",
-    "- NUNCA invente preços ou dados, use apenas informações reais",
-    "- Quando encontrar produtos, destaque os PRINCIPAIS BENEFÍCIOS de cada um",
-    "- SEMPRE ofereça 2-3 opções para o cliente escolher (diferentes faixas de preço)",
-    "- Se cliente perguntar sobre UM produto específico, sugira COMPLEMENTOS automaticamente",
-    "- Use técnicas de vendas: âncoragem de preços, comparações, criação de valor",
-    "- FECHE sempre com uma pergunta ou ação ('Qual te chama mais atenção?', 'Quer ver mais detalhes?')",
-    "- Você VENDE pelo Click Ofertas, não apenas informa. Seu sucesso = vendas realizadas",
-    storeCount > 1 ? `- VANTAGEM: encontrou produtos em ${storeCount} lojas - destaque opções variadas` : "",
-    "- Seja consultivo mas DIRETO: cliente quer decidir, não apenas informações infinitas",
-    recommendationInstructions // Incluir instruções de recomendação quando disponível
-  ];
 
-  const SYSTEM = [
-    systemVariations[systemIndex],
-    responseStyles[styleIndex],
-    ...specificRules
-  ].filter(Boolean).join("\n");
+  console.log(`💭 [composePrompts] Hard Grounding ativado:`, {
+    systemLength: SYSTEM.length,
+    userLength: USER.length,
+    hasProducts: productSet.length > 0,
+    productIds: productSet.map(p => p.id)
+  });
 
-  // Instruções de VENDAS específicas por perfil de cliente
-  const contextInstructions = {
-    'gamer': "VENDA TÉCNICA: Foque em FPS, specs, performance real. Sugira acessórios essenciais (mouse gamer, headset). Gamer compra conjunto completo!",
-    'profissional': "VENDA CORPORATIVA: Destaque ROI, produtividade, confiabilidade. Sempre ofereça pacote completo (notebook + acessórios profissionais). Justifique investimento maior pela durabilidade.",
-    'estudante': "VENDA INTELIGENTE: Mostre custo-benefício, versões anteriores com desconto, parcelamento. Sugira produtos que 'crescem' com o estudante (upgrades futuros).",
-    'doméstico': "VENDA FAMILIAR: Facilidade de uso, entretenimento para toda família. Bundle familiar é chave (TV + soundbar + streaming). Pense no conjunto residencial.",
-    'econômico': "VENDA DE OPORTUNIDADE: Destaque promoções limitadas, compare preços Brasil vs Paraguai. Crie urgência. Mostre economia real em números.",
-    'premium': "VENDA DE VALOR: Enfatize exclusividade, diferenciais únicos, status. Cliente premium quer o melhor, não o mais barato. Sugira upgrades que valem a pena.",
-    'geral': "VENDA CONSULTIVA: Equilibre preço/qualidade, ofereça 3 opções (bom/ótimo/premium). Descubra necessidade real e venda solução completa."
+  return { 
+    SYSTEM, 
+    USER, 
+    productSet,  // Para validação no servidor
+    requiresJsonOutput: true  // Indica que precisa validar JSON
   };
-
-  // Instruções de AÇÃO COMERCIAL baseadas nos produtos encontrados
-  let actionInstruction = "";
-  if (products.length === 0) {
-    actionInstruction = "SEM PRODUTOS: Pergunte sobre necessidades específicas, sugira categorias relacionadas, descubra orçamento. Seja proativo para entender o que realmente procura.";
-  } else if (products.length === 1) {
-    actionInstruction = "UM PRODUTO: Destaque benefícios únicos, compare com Brasil, sugira acessórios/complementos essenciais. Crie PACOTE de valor para o cliente.";
-  } else if (storeCount > 1) {
-    actionInstruction = `MÚLTIPLAS LOJAS: VANTAGEM! ${products.length} produtos em ${storeCount} lojas = mais opções. Compare preços, destaque diferenças, sugira melhor custo-benefício para o perfil do cliente.`;
-  } else {
-    actionInstruction = `MÚLTIPLOS PRODUTOS: Compare modelos, crie escala de valor (básico/intermediário/premium), sugira o ideal para cada necessidade. Feche perguntando preferência.`;
-  }
-
-  // 🔧 CORREÇÃO: Incluir produtos REAIS no prompt da IA (sem JSON para evitar reprodução)
-  let productSummary = "";
-  if (products.length === 0) {
-    productSummary = "NENHUM produto encontrado no catálogo para esta busca. NUNCA invente produtos. Pergunte por categoria específica, marca ou preço para refinar a busca.";
-  } else {
-    const top3Products = products.slice(0, 3);
-    productSummary = `PRODUTOS DISPONÍVEIS NO CATÁLOGO:
-${top3Products.map((p, i) => {
-  const price = p.priceUSD ? `US$ ${p.priceUSD}` : 'Consultar preço';
-  return `${i + 1}. "${p.title}" - ${p.storeName} - ${price}`;
-}).join('\n')}${products.length > 3 ? `\n(+ ${products.length - 3} outros produtos similares disponíveis)` : ''}
-
-IMPORTANTE: Você SÓ pode falar sobre estes produtos ESPECÍFICOS do catálogo. NUNCA invente nomes, preços ou modelos que não estão nesta lista.`;
-  }
-    
-  const userPromptParts = [
-    `Consulta do cliente: "${q}"`,
-    productSummary,
-    `Contexto do cliente: ${contextInstructions[customerProfile]}`,
-    actionInstruction
-  ];
-  
-  if (nameToUse) {
-    userPromptParts.splice(1, 0, `Nome do cliente: ${nameToUse}`);
-  }
-
-  const USER = userPromptParts.join("\n\n");
-
-  return { SYSTEM, USER };
 }
