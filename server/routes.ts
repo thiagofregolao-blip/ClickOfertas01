@@ -7211,19 +7211,31 @@ Tom: Amigável, direto, engajado`;
         const jsonResponse = await clickClient.chat.completions.create({
           model: process.env.CHAT_MODEL || 'gpt-4o-mini',
           messages: [
-            { role: 'system', content: `Retorne JSON no formato EXATO: {"items": [{"id": "produto_id", "why": "motivo"}], "message": "texto"}. Use APENAS IDs: ${productSet.map(p => p.id).join(', ')}` },
-            { role: 'user', content: `Conversa: "${llmResponse}"\n\nProdutos disponíveis:\n${productSet.map(p => `${p.id}: ${p.title}`).join('\n')}` }
+            { role: 'system', content: `IMPORTANTE: Retorne JSON válido no formato EXATO:
+{
+  "items": [
+    {"id": "produto_id", "why": "razão curta"}
+  ],
+  "message": "texto da resposta"
+}
+
+Use somente estes IDs válidos: ${productSet.map(p => p.id).slice(0,3).join(', ')}...
+
+JAMAIS use "produtos", "nome" ou outros campos. Sempre "items" e "why".` },
+            { role: 'user', content: `Produtos mencionados na conversa: "${llmResponse}"
+
+IDs válidos:
+${productSet.map(p => `- ${p.id}: ${p.title}`).slice(0,3).join('\n')}...` }
           ],
           temperature: 0.1,
-          max_tokens: 300,
-          response_format: { type: "json_object" }
+          max_tokens: 200
         });
 
         const rawJson = jsonResponse.choices[0].message.content;
         console.log(`📦 [assistant/stream] JSON estruturado gerado:`, rawJson);
 
         try {
-          const parsedResponse = JSON.parse(rawJson);
+          const parsedResponse = JSON.parse(rawJson || '{}');
           const { items = [], message = '' } = parsedResponse;
           
           // 🔧 VALIDAÇÃO SERVIDOR-SIDE: só aceitar IDs do productSet
@@ -7279,10 +7291,28 @@ Tom: Amigável, direto, engajado`;
           
         } catch (error) {
           console.error(`❌ [assistant/stream] Erro ao parsear JSON do LLM:`, error);
+          console.log(`🔧 [assistant/stream] JSON bruto que falhou:`, rawJson);
           
-          // Fallback: mensagem de erro
-          llmResponse = "Desculpe, houve um erro interno. Tente reformular sua pergunta.";
-          write({ type:'chunk', text: llmResponse });
+          // 🚑 FALLBACK: usar produtos do productSet mesmo com JSON quebrado
+          const fallbackProducts = productSet.slice(0, 3).map(product => ({
+            ...product,
+            name: product.title,
+            reason: 'Produto selecionado pelo Clique',
+            upsells: [],
+            cliqueRecommended: true
+          }));
+          
+          console.log(`🚑 [assistant/stream] Usando fallback com ${fallbackProducts.length} produtos`);
+          
+          write({ 
+            type: 'products', 
+            products: fallbackProducts,
+            query: llmResponse,
+            validationApplied: false,
+            hardGrounding: true, // Ainda usa produtos reais
+            jsonParseFailed: true,
+            schemaVersion: 2
+          });
         }
         
       } else {
