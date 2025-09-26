@@ -7211,7 +7211,7 @@ Tom: Amigável, direto, engajado`;
         const jsonResponse = await clickClient.chat.completions.create({
           model: process.env.CHAT_MODEL || 'gpt-4o-mini',
           messages: [
-            { role: 'system', content: `Baseado na conversa, retorne JSON com produtos mencionados. Use APENAS IDs: ${productSet.map(p => p.id).join(', ')}` },
+            { role: 'system', content: `Retorne JSON no formato EXATO: {"items": [{"id": "produto_id", "why": "motivo"}], "message": "texto"}. Use APENAS IDs: ${productSet.map(p => p.id).join(', ')}` },
             { role: 'user', content: `Conversa: "${llmResponse}"\n\nProdutos disponíveis:\n${productSet.map(p => `${p.id}: ${p.title}`).join('\n')}` }
           ],
           temperature: 0.1,
