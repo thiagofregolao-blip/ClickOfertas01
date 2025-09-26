@@ -7027,23 +7027,30 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
         
         const smallTalkSystem = `Você é o "Clique", consultor virtual do Click Ofertas. Seja simpático, breve e humano. Responda à pergunta pessoal feita pelo usuário de forma natural e encaminhe para ajudar com compras. Use humor leve e emoji ocasional.`;
         
-        const smallTalkResponse = await clickClient.chat.completions.create({
+        const stream = await clickClient.chat.completions.create({
           model: process.env.CHAT_MODEL || 'gpt-4o-mini',
           messages: [
             { role: 'system', content: smallTalkSystem },
             { role: 'user', content: message }
           ],
           temperature: 0.7,
-          max_tokens: 150
+          max_tokens: 150,
+          stream: true
         });
 
-        const smallTalkText = smallTalkResponse.choices[0].message.content;
-        write({ type:'chunk', text: smallTalkText });
-        write({ type:'message', content: smallTalkText });
+        let fullText = '';
+        
+        // 🌊 STREAMING: Enviar deltas para efeito "digitando"
+        for await (const part of stream) {
+          const t = part.choices?.[0]?.delta?.content || '';
+          if (!t) continue;
+          fullText += t;
+          write({ type: 'delta', text: t }); // ⚡ EFEITO DIGITANDO
+        }
         
         await storage.createAssistantMessage({ 
           sessionId, 
-          content: smallTalkText, 
+          content: fullText, 
           role:'assistant', 
           metadata:{ 
             streamed: true, 
@@ -7053,13 +7060,17 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
           } 
         });
         
+        console.log(`🏁 [assistant/stream] Small talk finalizado - enviando end`);
         write({ type:'end' });
         res.end();
         return; // ⚠️ EARLY RETURN - NÃO CONTINUA PARA BUSCA
       }
       
       // ❶ RAG melhorado: busca produtos apenas para SEARCH e MORE
-      const origin = `${req.protocol}://${req.get('host')}`;
+      // 🔧 CORREÇÃO: origin com x-forwarded headers para proxy/CDN
+      const proto = req.get('x-forwarded-proto') || req.protocol;
+      const host = req.get('x-forwarded-host') || req.get('host');
+      const origin = `${proto}://${host}`;
       const ground = await buildGrounding(origin, message, sessionId);
       
       console.log(`📊 [assistant/stream] Resultado buildGrounding:`, {
@@ -7132,11 +7143,11 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       if (!productSet || productSet.length === 0) {
         console.log(`⚠️ [assistant/stream] ProductSet vazio - enviando apenas mensagem de refinamento`);
         
-        // Resposta simples sem produtos
-        const refinementMessage = "Não encontrei produtos para essa busca. Que tal tentar ser mais específico? Pode informar categoria (ex: drone, perfume), marca ou faixa de preço?";
+        // 🔧 CORREÇÃO: Mensagem melhorada com tom vendedor Clique
+        const refinementMessage = "Não achei itens agora. Me diz **categoria** (drone, perfume) e **orçamento** que eu garimpo ofertas boas para você! 😉";
         
-        // Enviar mensagem diretamente
-        write({ type:'chunk', text: refinementMessage });
+        // Enviar mensagem com streaming
+        write({ type:'delta', text: refinementMessage });
         
         await storage.createAssistantMessage({ 
           sessionId, 
@@ -7149,6 +7160,7 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
           } 
         });
         
+        console.log(`🏁 [assistant/stream] Catálogo vazio finalizado - enviando end`);
         write({ type:'end' });
         res.end();
         return;
@@ -7386,6 +7398,7 @@ ${productSet.map(p => `- ${p.id}: ${p.title}`).slice(0,3).join('\n')}...` }
         } 
       });
       
+      console.log(`🏁 [assistant/stream] Streaming principal finalizado - enviando end`);
       write({ type:'end' }); 
       res.end();
     } catch (e) {
