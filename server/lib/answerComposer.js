@@ -48,7 +48,7 @@ async function robustSearch(q, origin) {
   let products = await searchCatalogFirst(q, origin);
   if (products.length > 0) {
     console.log(`✅ [robustSearch] Sucesso com query original: ${products.length} produtos`);
-    return products;
+    return { products, correctedQuery: null, autocorrectApplied: false };
   }
 
   // 2) Reformular a partir de suggestions (se houver), e tentar de novo no catálogo
@@ -65,7 +65,7 @@ async function robustSearch(q, origin) {
         products = await searchCatalogFirst(reformulated, origin);
         if (products.length > 0) {
           console.log(`✅ [robustSearch] Sucesso com query reformulada: ${products.length} produtos`);
-          return products;
+          return { products, correctedQuery: null, autocorrectApplied: false };
         }
       }
     }
@@ -80,12 +80,12 @@ async function robustSearch(q, origin) {
     products = await searchCatalogFirst(autocorrected, origin);
     if (products.length > 0) {
       console.log(`✅ [robustSearch] Sucesso com autocorreção: ${products.length} produtos`);
-      return products;
+      return { products, correctedQuery: autocorrected, autocorrectApplied: true };
     }
   }
   
   console.log(`❌ [robustSearch] Nenhum produto encontrado para "${q}"`);
-  return [];
+  return { products: [], correctedQuery: null, autocorrectApplied: false };
 }
 
 // 🔧 AUTOCORRETOR para corrigir erros de digitação comuns
@@ -248,7 +248,15 @@ export async function buildGrounding(origin, q, sessionId = null) {
   }
   
   // 🔧 GATE DE CATÁLOGO: Usar robustSearch para buscar apenas produtos reais
-  const rawProducts = await robustSearch(q, origin);
+  const searchResult = await robustSearch(q, origin);
+  const rawProducts = searchResult.products;
+  
+  // 📊 TELEMETRIA: Atualizar informações de autocorreção
+  if (searchResult.autocorrectApplied) {
+    telemetry.query_corrected = searchResult.correctedQuery;
+    telemetry.autocorrect_applied = true;
+    console.log(`📊 [TELEMETRIA] Autocorreção aplicada: "${q}" → "${searchResult.correctedQuery}"`);
+  }
   
   // Normalizar produtos para formato padrão com conversão PYG→USD
   const products = rawProducts.map(p => ({
