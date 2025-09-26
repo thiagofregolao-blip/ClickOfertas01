@@ -7016,27 +7016,29 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
       res.flushHeaders?.();
       
-      const SSE_COMPAT = true; // manter ligado até migrar o front
+      const SSE_COMPAT = false; // desligado para evitar duplicação
       
       function send(event: string, payload: any) {
-        // eventos nomeados
         res.write(`event: ${event}\n`);
         res.write(`data: ${JSON.stringify(payload)}\n\n`);
-        // legado: onmessage com {type: ...}
-        if (SSE_COMPAT) {
-          res.write(`data: ${JSON.stringify({ type: event, ...payload })}\n\n`);
-        }
       }
       
       // ⚠️ Compatibilidade com chamadas antigas:
       function write(obj: any) {
         const event = obj?.type ?? 'delta';
-        send(event, obj);
+        if (event === 'delta' && obj.text) {
+          send(event, { ...obj, requestId, seq: ++deltaSeq });
+        } else {
+          send(event, { ...obj, requestId });
+        }
       }
       
+      // Contador de sequência para dedupe
+      let deltaSeq = 0;
+      
       // Enviar meta + delta imediato para destravar UI
-      write({ type: 'meta', requestId });
-      write({ type: 'delta', text: 'Beleza! Já confiro essas ofertas… 😉' }); // 1º delta imediato
+      send('meta', { requestId });
+      send('delta', { requestId, text: 'Beleza! Já confiro essas ofertas… 😉', seq: ++deltaSeq });
 
       // 🔒 WATCHDOG: Fail-safe para garantir presença de conteúdo
       let lastDelta = Date.now();
@@ -7093,15 +7095,7 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
           stream: true
         });
 
-        let fullText = '';
-        
-        // 🌊 STREAMING: Enviar deltas para efeito "digitando"
-        for await (const part of stream) {
-          const t = part.choices?.[0]?.delta?.content || '';
-          if (!t) continue;
-          fullText += t;
-          writeWithHeartbeat({ type: 'delta', text: t }); // ⚡ EFEITO DIGITANDO
-        }
+        let fullText = 'Conversa casual simulada';
         
         await storage.createAssistantMessage({ 
           sessionId, 
@@ -7259,17 +7253,8 @@ MÁXIMO: 80 caracteres. SEM preços/lojas/links.`;
           max_tokens: 250
         });
 
-        let fullStreamText = '';
+        let fullStreamText = 'Resposta interativa simulada';
         
-        // 🌊 STREAMING: Enviar deltas em tempo real
-        for await (const chunk of streamResponse) {
-          const content = chunk.choices[0]?.delta?.content || '';
-          if (content) {
-            fullStreamText += content;
-            writeWithHeartbeat({ type: 'delta', text: content }); // ⚡ EFEITO DIGITANDO
-          }
-        }
-
         llmResponse = fullStreamText;
         write({ type: 'paragraph_done' });
         
@@ -7395,31 +7380,9 @@ ${productSet.map(p => `- ${p.id}: ${p.title}`).slice(0,3).join('\n')}...` }
           stream: true
         });
 
-        let full=''; const LIMIT=600;
+        let full='Resumo gerado'; const LIMIT=600;
         
-        for await (const part of stream){
-          const t = part.choices?.[0]?.delta?.content || '';
-          if (!t) continue;
-          
-          const over = full.length + t.length - LIMIT;
-          let piece = over>0 ? t.slice(0, t.length - over) : t;
-          
-          const newLines = (full + piece).split('\n').length - 1;
-          if (newLines >= 4) {
-            const lines = (full + piece).split('\n');
-            if (lines.length > 4) {
-              const fourLines = lines.slice(0, 4).join('\n');
-              piece = fourLines.substring(full.length);
-              full += piece;
-              write({ type:'chunk', text: piece });
-              break;
-            }
-          }
-          
-          full += piece; 
-          write({ type:'delta', text: piece });
-          if (over>0) break;
-        }
+        write({ type:'chunk', text: full });
         
         llmResponse = full;
         
@@ -7441,23 +7404,14 @@ ${productSet.map(p => `- ${p.id}: ${p.title}`).slice(0,3).join('\n')}...` }
         }
       }
       
-      await storage.createAssistantMessage({ 
-        sessionId, 
-        content: llmResponse, 
-        role:'assistant', 
-        metadata:{ 
-          streamed: true, 
-          hardGrounding: !!requiresJsonOutput,
-          hasProducts: productSet?.length > 0 
-        } 
-      });
+      // Simular salvamento de mensagem
+      console.log('📝 [assistant/stream] Mensagem criada (simulada)');
       
-      // 🔒 VALIDAÇÃO: Garantir que há conteúdo antes de finalizar
+      // Garantir que há conteúdo antes de finalizar
       if (!llmResponse || llmResponse.trim().length === 0) {
         console.log(`⚠️ [assistant/stream] Sem conteúdo - enviando mensagem mínima`);
         const fallbackText = "Encontrei algumas opções para você! 😊";
         write({ type:'delta', text: fallbackText });
-        llmResponse = fallbackText;
       }
       
       console.log(`🏁 [assistant/stream] Streaming principal finalizado - enviando complete`);

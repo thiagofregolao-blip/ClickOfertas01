@@ -1,0 +1,138 @@
+Entendi o bug: o texto está duplicando/embaralhando (“CliqueClique… options options…”) e os cards não aparecem. Isso acontece quando o mesmo delta é processado duas vezes. No seu caso, isso está vindo de dois lugares ao mesmo tempo:
+
+Backend manda o mesmo conteúdo em dois formatos (modo compatível):
+event: delta e também data: {"type":"delta", ...}.
+Se o front escuta ambos, você concatena duas vezes.
+
+Você pode estar “dando saída” duas vezes do stream do modelo:
+
+uma via Responses API (response.output_text.delta) e
+
+outra via Chat Completions (choices[0].delta.content).
+Se os dois handlers estão ativos, cada token sai duas vezes.
+
+Além disso, quando chega products, pode estar sendo descartado por “requestId” diferente, ou sobrescrito por um fetchSuggest tardio.
+
+A seguir, patches mínimos e certeiros.
+
+PASSO 1 — Escolha um formato de evento AGORA (elimina texto duplicado)
+
+Opção A (mais simples agora): desligue o compat no backend.
+
+const SSE_COMPAT = false; // <<< desliga o espelho {type:...}
+function send(event: string, payload: any) {
+  res.write(`event: ${event}\n`);
+  res.write(`data: ${JSON.stringify(payload)}\n\n`);
+}
+
+
+OU, se ainda não puder:
+
+Opção B (com compat ligado), mas o front só processa UM canal
+
+No front, remova o onmessage legado ou ignore mensagens com {type:"delta"} quando já veio event: delta.
+
+Dica rápida: crie uma flag global namedEventsSeen=true após o primeiro event:; se ela for true, ignore qualquer payload que venha só com type.
+
+PASSO 2 — Garanta que só existe um emissor de delta do modelo
+
+No backend, não mapeie os dois engines ao mesmo tempo. Escolha Responses ou Chat Completions. Padrão recomendado:
+
+// Responses API — único produtor de deltas
+const stream = await client.responses.stream({ model:"gpt-4.1", input:[...] });
+
+stream.on("event", (e: any) => {
+  if (e.type === "response.output_text.delta" && e.delta) {
+    send("delta", { requestId, text: e.delta, seq: ++deltaSeq });
+  }
+});
+stream.on("end", async () => {
+  // ... enviar products e done ...
+});
+
+
+Se você ainda tem o loop do Chat Completions (for await (const part of stream)), remova-o enquanto usa responses.stream. Não deixe os dois.
+
+PASSO 3 — Numere os deltas (dedupe à prova de bala)
+
+No backend:
+
+let deltaSeq = 0;
+send("delta", { requestId, text: "Beleza! Já confiro… 😉", seq: ++deltaSeq });
+
+
+Em cada delta, inclua seq: ++deltaSeq.
+
+No front:
+
+const lastSeqByReq = new Map<string, number>();
+
+function handleDelta(d) {
+  const req = d.requestId;
+  const last = lastSeqByReq.get(req) ?? 0;
+  if (d.seq && d.seq <= last) return; // drop duplicado/atrasado
+  lastSeqByReq.set(req, d.seq || (last + 1));
+  appendTyping(d.text);
+}
+
+PASSO 4 — Garanta um único caminho de leitura no front
+
+Se você está usando EventSource:
+
+Use apenas addEventListener("delta"|"cards"|"done") ou apenas onmessage.
+
+Não use os dois. Se precisar manter compat, faça:
+
+let preferNamed = false;
+
+es.addEventListener("delta", (e) => {
+  preferNamed = true;
+  const d = JSON.parse(e.data); handleDelta(d);
+});
+
+es.onmessage = (e) => {
+  if (preferNamed) return; // já estamos usando eventos nomeados
+  const d = JSON.parse(e.data||"{}");
+  if (d.type === "delta") handleDelta(d);
+  if (d.type === "products") renderCards(d.products, d.query);
+  if (d.type === "done" || d.type === "complete" || d.type === "end") finalizeBubble();
+};
+
+
+Se você está usando fetch + ReadableStream com parser próprio: não processe duas vezes o mesmo bloco (quando vier event: e também {type:...}). Escolha um dentro do parser.
+
+PASSO 5 — Produtos que “somem”: segure a UI do SSE
+
+Não rode fetchSuggest() depois que chegou products via SSE no mesmo request.
+Use a flag:
+
+const haveProductsInThisRequestRef = useRef(false);
+
+// quando chegar products:
+haveProductsInThisRequestRef.current = true;
+
+// antes de chamar fetchSuggest:
+if (haveProductsInThisRequestRef.current) return; // não sobrescreve a UI
+
+
+Confirme que o requestId é o mesmo em delta, products e done. Se products vier com outro requestId, o front vai ignorar (e parecer que “sumiu”).
+
+PASSO 6 — Segurança final (não trava em “digitando…”)
+
+Backend: sempre mande um primeiro delta (curto) e sempre finalize com done (ou complete).
+
+Front: só desligue “digitando…” no primeiro delta; e tenha um timeout de 7–10s que gera uma frase de presença se nada chegar.
+
+Checklist de 1 minuto
+
+ SSE_COMPAT=false OU front só processa um canal.
+
+ Apenas Responses API emite delta (sem Chat Completions junto).
+
+ Deltas com seq e front com dedupe por (requestId, seq).
+
+ fetchSuggest() não roda após products do SSE no mesmo request.
+
+ done/complete sempre emitido.
+
+ Teste com curl -N → ver delta … delta … products … done.

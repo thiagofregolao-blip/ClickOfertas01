@@ -38,6 +38,12 @@ export function useAssistantChat({
   
   // 🆔 ANTI-CORRIDA: Track do requestId mais recente
   const latestRequestIdRef = useRef<string | null>(null);
+  
+  // 📝 DEDUPE: Track de sequência por request
+  const lastSeqByReqRef = useRef<Map<string, number>>(new Map());
+  
+  // 🚫 PRODUCTS GUARD: Impede fetchSuggest após SSE products
+  const haveProductsInThisRequestRef = useRef<boolean>(false);
 
   // 🧠 MEMÓRIA CONVERSACIONAL - Sistema de Vendedor Inteligente
   const [sessionMemory, setSessionMemory] = useState<any>(null);
@@ -346,6 +352,11 @@ export function useAssistantChat({
                   // Handle meta event - set requestId
                   if (event.type === 'meta') {
                     latestRequestIdRef.current = event.requestId;
+                    
+                    // Reset flags para novo request
+                    haveProductsInThisRequestRef.current = false;
+                    lastSeqByReqRef.current.set(event.requestId, 0);
+                    
                     console.log(`🆔 [Frontend] RequestId set to: ${event.requestId}`);
                     continue;
                   }
@@ -356,8 +367,25 @@ export function useAssistantChat({
                     continue;
                   }
                   
-                  // Handle delta streaming
+                  // Handle delta streaming com dedupe
                   if (event.type === 'delta' && event.text) {
+                    const currentRequestId = event.requestId;
+                    const seq = event.seq;
+                    
+                    // Check if this is the latest request
+                    if (currentRequestId && currentRequestId !== latestRequestIdRef.current) {
+                      continue;
+                    }
+                    
+                    // Dedupe por sequência
+                    if (currentRequestId && seq) {
+                      const lastSeq = lastSeqByReqRef.current.get(currentRequestId) ?? 0;
+                      if (seq <= lastSeq) {
+                        continue;
+                      }
+                      lastSeqByReqRef.current.set(currentRequestId, seq);
+                    }
+                    
                     accumulatedText += event.text;
                     
                     // Update message using functional setState
@@ -380,10 +408,15 @@ export function useAssistantChat({
                   
                   // Handle products
                   if (event.type === 'products' && event.products) {
-                    console.log(`🛒 [Frontend] Products received:`, {
-                      count: event.products.length,
-                      query: event.query
-                    });
+                    const currentRequestId = event.requestId;
+                    
+                    // Check if this is the latest request
+                    if (currentRequestId && currentRequestId !== latestRequestIdRef.current) {
+                      continue;
+                    }
+                    
+                    // Marcar que recebemos products via SSE
+                    haveProductsInThisRequestRef.current = true;
                     
                     setRecommended(event.products.slice(0, 3));
                     setFeed(event.products);
