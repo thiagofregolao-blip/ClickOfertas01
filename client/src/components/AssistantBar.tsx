@@ -87,7 +87,10 @@ export default function AssistantBar() {
   
   // Event listeners para integração com header
   useEffect(() => {
+    console.log('🎧 [AssistantBar] Registrando event listeners');
+    
     const handleHeaderFocus = (e: CustomEvent) => {
+      console.log('🎯 [AssistantBar] Header focus event received:', e.detail);
       if (e.detail?.source === 'header') {
         setOpen(true);
         setShowResults(true);
@@ -99,12 +102,19 @@ export default function AssistantBar() {
     };
     
     const handleHeaderSubmit = (e: CustomEvent) => {
+      console.log('🚀 [AssistantBar] Header submit event received:', { 
+        detail: e.detail, 
+        sessionId: sessionIdRef.current,
+        hasSession: !!sessionIdRef.current 
+      });
+      
       if (e.detail?.source === 'header' && e.detail.query) {
         const query = e.detail.query;
         const now = Date.now();
         
         // Prevenir submissões duplicadas (cooldown de 500ms)
         if (lastHeaderQueryRef.current === query && now - lastHeaderSubmitTime.current < 500) {
+          console.log('🚫 [AssistantBar] Duplicate submission blocked');
           return;
         }
         
@@ -118,6 +128,7 @@ export default function AssistantBar() {
         
         // Processar a busca usando sessionIdRef para evitar closure stale
         if (sessionIdRef.current) {
+          console.log('✅ [AssistantBar] Session available, starting stream for:', query);
           pendingSearchRef.current = query;
           hasTriggeredSearchRef.current = false;
           
@@ -276,6 +287,7 @@ export default function AssistantBar() {
           const data = await res.json();
           const id = data.session?.id;
           if (id) {
+            console.log('🎉 [AssistantBar] Session created successfully:', id);
             setSessionId(id);
             sessionCache.set(key, { id, ts: now });
             if (data.greeting) setGreeting(data.greeting);
@@ -284,7 +296,11 @@ export default function AssistantBar() {
               setTopBox(products.slice(0, 3));
               setFeed(products.slice(3));
             }
+          } else {
+            console.warn('⚠️ [AssistantBar] No session ID in response:', data);
           }
+        } else {
+          console.error('❌ [AssistantBar] Session creation failed:', res.status, res.statusText);
         }
       } catch (e) {
         console.error('Session error:', e);
