@@ -296,9 +296,27 @@ export function useAssistantChat({
                 continue;
               }
               
+              // 🌊 STREAMING: Processar deltas incrementais
+              if (payload.type === 'delta' && payload.text) {
+                full += payload.text;
+                setMessages((prev) => {
+                  const copy = [...prev];
+                  const last = copy[copy.length - 1];
+                  if (last?.role === 'assistant') {
+                    copy[copy.length - 1] = { ...last, content: full }; // Usar texto acumulado completo
+                  }
+                  return copy;
+                });
+              }
+              
+              // 📝 PARAGRAPH: Finalização do parágrafo
+              if (payload.type === 'paragraph_done') {
+                console.log(`📝 [Frontend] Parágrafo completo: ${full.length} chars`);
+              }
+              
+              // 📦 CHUNK: Compatibilidade com versão antiga
               if (payload.type === 'chunk' && payload.text) {
                 full += payload.text;
-                // atualize a última mensagem do assistente na UI aqui
                 setMessages((prev) => {
                   const copy = [...prev];
                   const last = copy[copy.length - 1];

@@ -7166,18 +7166,61 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       let llmResponse = '';
       
       if (requiresJsonOutput) {
-        console.log(`🔧 [assistant/stream] Usando Hard Grounding com JSON estruturado`);
+        console.log(`🔧 [assistant/stream] Usando STREAMING REAL com Hard Grounding`);
         
-        const response = await clickClient.chat.completions.create({
+        // 📝 PERSONA INTERATIVA - Sistema que sempre engaja
+        const interactiveSystem = `Você é o "Clique", consultor virtual masculino do Click Ofertas. Simpático, vendedor esperto com humor leve.
+
+REGRAS CRÍTICAS:
+1) Mencione SOMENTE produtos do user content fornecido (não invente nada)
+2) Seja breve, natural, PT-BR coloquial
+3) SEMPRE termine com UMA pergunta de continuidade (marca preferida? orçamento? cidade?)
+4) Foque em ajudar o cliente a decidir
+5) Use tom confiante e prestativo
+
+Tom: Amigável, direto, engajado`;
+
+        // ⚡ STREAMING: Resposta em tempo real
+        const streamResponse = await clickClient.chat.completions.create({
           model: process.env.CHAT_MODEL || 'gpt-4o-mini',
-          messages,
+          messages: [
+            { role:'system', content: interactiveSystem },
+            ...recentMessages.slice(0, -1),
+            { role:'user', content: USER }
+          ],
+          stream: true,
+          temperature: 0.7,
+          max_tokens: 250
+        });
+
+        let fullStreamText = '';
+        
+        // 🌊 STREAMING: Enviar deltas em tempo real
+        for await (const chunk of streamResponse) {
+          const content = chunk.choices[0]?.delta?.content || '';
+          if (content) {
+            fullStreamText += content;
+            write({ type: 'delta', text: content }); // ⚡ EFEITO DIGITANDO
+          }
+        }
+
+        llmResponse = fullStreamText;
+        write({ type: 'paragraph_done' });
+        
+        // 🔧 JSON ESTRUTURADO: Gerar separadamente para validação
+        const jsonResponse = await clickClient.chat.completions.create({
+          model: process.env.CHAT_MODEL || 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: `Baseado na conversa, retorne JSON com produtos mencionados. Use APENAS IDs: ${productSet.map(p => p.id).join(', ')}` },
+            { role: 'user', content: `Conversa: "${llmResponse}"\n\nProdutos disponíveis:\n${productSet.map(p => `${p.id}: ${p.title}`).join('\n')}` }
+          ],
           temperature: 0.1,
-          max_tokens: 400,
+          max_tokens: 300,
           response_format: { type: "json_object" }
         });
 
-        const rawJson = response.choices[0].message.content;
-        console.log(`📦 [assistant/stream] JSON bruto do LLM:`, rawJson);
+        const rawJson = jsonResponse.choices[0].message.content;
+        console.log(`📦 [assistant/stream] JSON estruturado gerado:`, rawJson);
 
         try {
           const parsedResponse = JSON.parse(rawJson);
@@ -7187,18 +7230,13 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
           const allowedIds = new Set(productSet.map(p => p.id));
           const validItems = items.filter(item => allowedIds.has(item.id));
           
-          console.log(`✅ [assistant/stream] Validação JSON (Schema v2):`, {
+          console.log(`✅ [assistant/stream] Validação JSON com Streaming:`, {
             itemsReceived: items.length,
             validItems: validItems.length,
             allowedIds: [...allowedIds],
             receivedIds: items.map(i => i.id),
-            hasReasons: items.some(i => i.reason),
-            hasUpsells: items.some(i => i.upsellIds?.length > 0)
+            streamedText: fullStreamText.length
           });
-
-          // Enviar mensagem do "Clique" 
-          llmResponse = message || 'Confira os produtos selecionados! 😊';
-          write({ type:'chunk', text: llmResponse });
           
           // ❹ Enviar produtos validados com metadados enriquecidos
           if (validItems.length > 0) {
