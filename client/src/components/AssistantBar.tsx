@@ -646,10 +646,7 @@ export default function AssistantBar() {
               console.log('📦 [AssistantBar] ✅ Produtos recebidos (evento separado):', p.products?.length || 0);
               
               if (p.products && p.products.length > 0) {
-                // Atualizar memória da sessão com produtos mostrados
-                if (sessionId) {
-                  updateSessionMemory(p.products, p.query || '');
-                }
+                console.log('✅ [AssistantBar] Produtos válidos encontrados:', p.products.length);
                 
                 // Exibir produtos na interface
                 setTopBox(p.products.slice(0, 3));
