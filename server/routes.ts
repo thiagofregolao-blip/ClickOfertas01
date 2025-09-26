@@ -6971,7 +6971,7 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       return;
     }
 
-    // ========= SSE HEADERS =========
+    // SSE Headers
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
@@ -6982,19 +6982,9 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       res.write(`event: ${event}\n`);
       res.write(`data: ${JSON.stringify(payload)}\n\n`);
     };
-    const writeDelta = (text: string) => send('delta', { text });
-    const complete = () => { send('complete', {}); res.end(); };
 
-    // ========= Watchdog =========
-    let lastDelta = Date.now();
-    const ping = () => { if (Date.now() - lastDelta > 6000) { writeDelta(' '); lastDelta = Date.now(); } };
-    const watchdog = setInterval(ping, 3000);
-    const cleanup = () => clearInterval(watchdog);
-    req.on('close', cleanup);
-
-    // ========= Persistência básica =========
+    // Persistência
     try {
-      // Get or create session
       let session = await storage.getAssistantSession(sessionId);
       if (!session) {
         session = await storage.createAssistantSession({
@@ -7008,25 +6998,22 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
         sessionId, 
         role: 'user', 
         content: message, 
-        metadata: { t: Date.now() } 
+        metadata: { timestamp: new Date().toISOString() } 
       });
     } catch (error) {
       console.warn('Erro ao salvar mensagem:', error);
     }
 
-    // ========= Tool: buscarOfertas (implementado com searchSuggestions) =========
+    // Tool: buscarOfertas
     async function buscarOfertas(args: { query: string; cidade?: string; precoMax?: number; maxResultados?: number; }) {
-      console.log(`🔍 [buscarOfertas] Executando busca:`, args);
-      const { query, cidade, precoMax, maxResultados = 10 } = args || {};
+      const { query, cidade, precoMax, maxResultados = 12 } = args || {};
       
       try {
-        // Usar searchSuggestions existente
         const { searchSuggestions } = await import('./lib/tools.js');
         const searchResult = await searchSuggestions(query);
         
         let products = searchResult.products || [];
         
-        // Filtrar por preço se especificado
         if (precoMax) {
           products = products.filter(p => {
             const price = p.price?.USD || 0;
@@ -7034,16 +7021,11 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
           });
         }
         
-        // Limitar quantidade
         const sorted = products.slice(0, maxResultados);
         
-        console.log(`📦 [buscarOfertas] Encontrados ${sorted.length} produtos para "${query}"`);
-        
-        // Enviar produtos para o frontend imediatamente
         if (sorted.length > 0) {
           send('products', {
             products: sorted.map((p: any) => ({ ...p, name: p.title })),
-            schemaVersion: 2,
             query,
             hardGrounding: true
           });
@@ -7051,162 +7033,153 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
         
         return sorted;
       } catch (error) {
-        console.error('❌ [buscarOfertas] Erro na busca:', error);
+        console.error('Erro na busca:', error);
         return [];
       }
     }
 
-    // ========= Laço multi-turno com tools =========
-    const system = [
-      'Você é o "Clique", consultor do Click Ofertas.',
-      'Se precisar de catálogo, use a ferramenta buscarOfertas.',
-      'Responda curto, amigável e em PT-BR.',
-      'Quando encontrar produtos, mencione apenas que listou as melhores opções.'
-    ].join(' ');
+    // Sistema conversacional natural
+    const SYSTEM_STYLE = `
+Você é o Assistente do Click Ofertas.
+Fale em PT-BR, tom humano, leve e bem-humorado (no máx 1 emoji por resposta).
+Quando houver produtos, faça um resumo curto e liste em bullets: Título — US$preço — Cidade.
+Sempre que fizer sentido, sugira itens relacionados (upsell/cross-sell) usando os resultados disponíveis.
+Se não houver resultados, explique de forma simpática e peça modelo/cidade/faixa de preço.
+`.trim();
 
-    const tools = [
+    const TOOLS = [
       {
-        type: 'function',
+        type: "function",
         function: {
-          name: 'buscarOfertas',
-          description: 'Busca ofertas no catálogo por termo e filtros.',
+          name: "buscarOfertas",
+          description: "Busca ofertas por termo/cidade/preço (retorna array de produtos).",
           parameters: {
-            type: 'object',
+            type: "object",
             properties: {
-              query: { type: 'string', description: 'Termo de busca (produto, categoria)' },
-              cidade: { type: 'string', description: 'Cidade para filtrar ofertas' },
-              precoMax: { type: 'number', description: 'Preço máximo em USD' },
-              maxResultados: { type: 'integer', minimum: 1, maximum: 50, default: 10 }
+              query: { type: "string", description: "termo de busca (ex.: iphone, perfumes)" },
+              cidade: { type: "string", description: "cidade/região (ex.: Pedro Juan)" },
+              precoMax: { type: "number", description: "preço máximo (USD)" },
+              maxResultados: { type: "integer", default: 12, minimum: 1, maximum: 50 }
             },
-            required: ['query']
+            required: []
           }
         }
       }
     ];
 
-    // mensagem inicial p/ UX
-    send('meta', { ok: true });
-    writeDelta('Beleza! Já confiro isso… 😉');
-    lastDelta = Date.now();
-
-    // Util: agrega tool_calls que chegam por partes durante o stream
-    type ToolBuffer = { id: string; name: string; args: string };
-    const toolBuffers = new Map<string, ToolBuffer>();
-
-    // estado da conversa
-    const msgs: Array<{ role: 'system' | 'user' | 'assistant' | 'tool'; content?: string; name?: string; tool_call_id?: string; }> = [
-      { role: 'system', content: system },
-      { role: 'user', content: message }
+    const msgs = [
+      { role: "system" as const, content: SYSTEM_STYLE },
+      { role: "user" as const, content: message }
     ];
 
-    const model = process.env.CHAT_MODEL || 'gpt-4o-mini';
+    send('meta', { ok: true });
 
     try {
-      // loop até o modelo não pedir mais tools
+      // Laço para tool calling
       for (let turn = 0; turn < 3; turn++) {
-        let fullText = '';
-
-        const stream = await clickClient.chat.completions.create({
-          model,
+        const resp = await clickClient.chat.completions.create({
+          model: process.env.CHAT_MODEL || "gpt-4o-mini",
+          temperature: 0.5,
           messages: msgs,
-          tools,
-          tool_choice: 'auto',
-          temperature: 0.3,
+          tools: TOOLS,
+          tool_choice: "auto",
           stream: true
         });
 
-        // ====== STREAMING DE VERDADE (sem hardcode) — lê todos os chunks ======
-        for await (const chunk of stream) {
+        let fullText = '';
+        let toolCalls: any[] = [];
+        let hasToolCalls = false;
+
+        for await (const chunk of resp) {
           const choice = chunk?.choices?.[0];
           const delta = choice?.delta;
 
-          // Texto token-a-token
+          // Texto
           if (delta?.content) {
             fullText += delta.content;
-            writeDelta(delta.content);
-            lastDelta = Date.now();
+            send('delta', { text: delta.content });
           }
 
-          // Tool-calls chegam em partes → agregamos por id
-          const tc = delta?.tool_calls;
-          if (tc && tc.length > 0) {
-            for (const t of tc) {
-              const id = t.id!;
-              const name = t.function?.name || toolBuffers.get(id)?.name || '';
-              const argsPiece = t.function?.arguments || '';
-              const prev = toolBuffers.get(id);
-              toolBuffers.set(id, {
-                id,
-                name,
-                args: (prev?.args || '') + argsPiece
-              });
-            }
-          }
-        }
-
-        // Se houve tool_calls neste turno, executa e continua o loop
-        if (toolBuffers.size > 0) {
-          for (const [, call] of toolBuffers) {
-            try {
-              const parsed = JSON.parse(call.args || '{}');
-              if (call.name === 'buscarOfertas') {
-                const produtos = await buscarOfertas(parsed);
-                // DEVOLVER AO MODELO — role:"tool" + tool_call_id + content STRING JSON
-                msgs.push({
-                  role: 'tool',
-                  name: 'buscarOfertas',
-                  tool_call_id: call.id,
-                  content: JSON.stringify({ data: produtos })
-                });
-              } else {
-                msgs.push({
-                  role: 'tool',
-                  name: call.name,
-                  tool_call_id: call.id,
-                  content: JSON.stringify({ ok: true })
-                });
+          // Tool calls
+          if (delta?.tool_calls) {
+            hasToolCalls = true;
+            for (const tc of delta.tool_calls) {
+              if (tc.index !== undefined) {
+                if (!toolCalls[tc.index]) {
+                  toolCalls[tc.index] = { id: tc.id, type: 'function', function: { name: '', arguments: '' } };
+                }
+                if (tc.function?.name) {
+                  toolCalls[tc.index].function.name = tc.function.name;
+                }
+                if (tc.function?.arguments) {
+                  toolCalls[tc.index].function.arguments += tc.function.arguments;
+                }
               }
-            } catch (err) {
-              console.error('❌ [tool] Erro ao parsear argumentos:', err);
+            }
+          }
+        }
+
+        // Adicionar mensagem do assistant com tool_calls se necessário
+        if (hasToolCalls && toolCalls.length > 0) {
+          msgs.push({
+            role: "assistant" as const,
+            content: fullText || null,
+            tool_calls: toolCalls.map(tc => ({
+              id: tc.id,
+              type: "function" as const,
+              function: {
+                name: tc.function.name,
+                arguments: tc.function.arguments
+              }
+            }))
+          });
+
+          // Executar as tools
+          for (const call of toolCalls) {
+            if (call.function?.name === "buscarOfertas") {
+              let args = {};
+              try { 
+                args = JSON.parse(call.function.arguments || "{}"); 
+              } catch (e) {
+                console.error('Erro ao parsear argumentos:', e);
+              }
+              
+              const produtos = await buscarOfertas(args);
+
               msgs.push({
-                role: 'tool',
-                name: call.name,
+                role: "tool" as const,
                 tool_call_id: call.id,
-                content: JSON.stringify({ error: 'bad_arguments' })
+                name: "buscarOfertas",
+                content: JSON.stringify({ data: produtos })
               });
             }
           }
-          toolBuffers.clear();
-          // volta ao topo para o modelo integrar o resultado das tools
-          continue;
+          continue; // volta pro modelo integrar os dados
         }
 
-        // Sem tool-calls → resposta final deste turno
-        if (!fullText.trim()) {
-          writeDelta('Não consegui completar agora. Tente especificar categoria e orçamento. ');
-          fullText = 'Resposta padrão quando não encontra produtos.';
-        }
-
+        // Resposta final
+        const text = fullText.trim() || "Poxa, buguei por aqui 😅 tenta reformular a pergunta?";
+        
         try {
           await storage.createAssistantMessage({
             sessionId,
             role: 'assistant',
-            content: fullText || 'OK.',
-            metadata: { streamed: true, turn }
+            content: text,
+            metadata: { streamed: true, timestamp: new Date().toISOString() }
           });
         } catch (error) {
           console.warn('Erro ao salvar resposta:', error);
         }
 
-        break; // terminou
+        break;
       }
     } catch (error) {
-      console.error('❌ [assistant/stream] Erro no streaming:', error);
-      writeDelta('Ops, algo deu errado. Tente novamente!');
+      console.error('Erro no chat:', error);
+      send('delta', { text: "Ops! Dei uma tropeçada aqui 🤹 Tenta de novo?" });
     }
 
-    cleanup();
-    complete();
+    send('complete', {});
+    res.end();
   });
 
   // Get assistant session with messages (with ownership check)

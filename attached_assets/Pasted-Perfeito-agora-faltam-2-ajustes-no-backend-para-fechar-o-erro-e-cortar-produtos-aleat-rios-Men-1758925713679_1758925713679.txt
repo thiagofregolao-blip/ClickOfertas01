@@ -1,0 +1,202 @@
+Perfeito — agora faltam 2 ajustes no backend para fechar o “erro” e cortar produtos aleatórios:
+
+Mensagem de erro aparece porque o turno terminou sem texto; meu handler escrevia o fallback "Ops, algo deu errado…".
+
+Produtos aleatórios aparecem quando o modelo não envia query → sua busca roda sem filtro.
+
+Abaixo vai o patch final (substitui só estes dois arquivos). Ele:
+
+Garante intenção de busca estruturada (extrai query/cidade/precoMax) antes do chat.
+
+Só emite products se tiver query válida e com score.
+
+Remove o fallback de erro; responde “não encontrei” de forma clara.
+
+Evita mensagem duplicada.
+
+🔧 Patch
+// src/services/ofertas.js  (substituir)
+export async function buscarOfertasService(args) {
+  const { query, cidade, precoMax, maxResultados = 10 } = args || {};
+  const q = (query || "").toLowerCase().trim();
+
+  // Sem query válida → não devolve nada (evita aleatórios)
+  if (q.length < 2) return [];
+
+  const MOCK = [
+    { id: "P1", titulo: "iPhone 13 128GB", preco: 980, cidade: "Pedro Juan", link: "https://exemplo/iphone13" },
+    { id: "P2", titulo: "iPhone 12 64GB", preco: 750, cidade: "Pedro Juan", link: "https://exemplo/iphone12" },
+    { id: "P3", titulo: "Samsung S23", preco: 900, cidade: "Ciudad del Este", link: "https://exemplo/s23" },
+    { id: "P4", titulo: "iPhone 15 128GB", preco: 1200, cidade: "Pedro Juan", link: "https://exemplo/iphone15" }
+  ];
+
+  // score simples de relevância por termo
+  const score = (t) => {
+    const s = t.toLowerCase();
+    if (s === q) return 3;
+    if (s.includes(q)) return 2;
+    return 0;
+  };
+
+  let arr = MOCK
+    .map(o => ({ ...o, _score: score(o.titulo) }))
+    .filter(o => o._score > 0);
+
+  if (cidade) arr = arr.filter(o => (o.cidade || "").toLowerCase() === cidade.toLowerCase());
+  if (typeof precoMax === "number") arr = arr.filter(o => o.preco <= precoMax);
+
+  // ranking: score desc, depois preço asc
+  arr.sort((a, b) => (b._score - a._score) || (a.preco - b.preco));
+  arr = arr.slice(0, Math.max(1, Math.min(50, maxResultados)));
+
+  // remove campo interno
+  return arr.map(({ _score, ...rest }) => rest);
+}
+
+// src/ai/chat.js  (substituir)
+import OpenAI from "openai";
+import { TOOLS } from "./tools.js";
+import { buscarOfertasService } from "../services/ofertas.js";
+import { safeJSON, isNonEmptyString } from "../utils/validate.js";
+
+export async function chatOnce({ message, sessionId, meta }) {
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+  // 1) EXTRAÇÃO DETERMINÍSTICA DE INTENÇÃO (evita query vazia)
+  const intentSchema = {
+    name: "click_intent",
+    schema: {
+      type: "object",
+      properties: {
+        intent: { type: "string", enum: ["buscar", "conversa"] },
+        query: { type: "string" },
+        cidade: { type: "string" },
+        precoMax: { type: "number" }
+      },
+      required: ["intent"]
+    },
+    strict: true
+  };
+
+  const intentResp = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      { role: "system", content: "Extraia intenção do usuário para Click Ofertas." },
+      { role: "user", content: message }
+    ],
+    response_format: { type: "json_schema", json_schema: intentSchema },
+    temperature: 0
+  });
+
+  let extracted = {};
+  try { extracted = JSON.parse(intentResp.choices?.[0]?.message?.content || "{}"); } catch {}
+  const baseArgs = {
+    query: (extracted.query || "").trim(),
+    cidade: (extracted.cidade || "").trim() || undefined,
+    precoMax: typeof extracted.precoMax === "number" ? extracted.precoMax : undefined
+  };
+
+  const system = [
+    "Você é o Assistente do Click Ofertas.",
+    "Se precisar de catálogo, use a ferramenta buscarOfertas.",
+    "Responda curto e claro em PT-BR.",
+    "Se a busca não retornar itens, explique rápido e sugira refinar a consulta."
+  ].join(" ");
+
+  const messages = [
+    { role: "system", content: system },
+    { role: "user", content: message }
+  ];
+
+  const tools = TOOLS;
+  const model = "gpt-4o-mini";
+
+  // 2) PRÉ-EXECUTA busca quando já temos 'query' válida → UX mais rápido
+  let preProdutos = [];
+  if (baseArgs.query && baseArgs.query.length >= 2) {
+    preProdutos = await buscarOfertasService({ ...baseArgs, maxResultados: 10 });
+  }
+
+  // 3) CONVERSA COM TOOLS (com stream interno, mas retornamos objeto final)
+  let productsNotified = false;
+  const notifyProducts = (arr, query) => {
+    if (productsNotified) return;
+    if (Array.isArray(arr) && arr.length > 0) productsNotified = true;
+  };
+
+  // Monta primeira mensagem do assistente com contexto dos produtos já buscados
+  if (preProdutos.length > 0) {
+    messages.push({
+      role: "tool",
+      name: "buscarOfertas",
+      tool_call_id: "pre",
+      content: safeJSON({ data: preProdutos })
+    });
+  }
+
+  // Loop de no máximo 2 turns
+  for (let step = 0; step < 2; step++) {
+    const completion = await client.chat.completions.create({
+      model, temperature: 0.3, messages, tools, tool_choice: "auto"
+    });
+
+    const msg = completion.choices?.[0]?.message;
+    const toolCalls = msg?.tool_calls || [];
+
+    if (toolCalls.length > 0) {
+      for (const call of toolCalls) {
+        if (call.type === "function" && call.function?.name === "buscarOfertas") {
+          let args = {};
+          try { args = JSON.parse(call.function.arguments || "{}"); } catch {}
+          // merge com baseArgs para garantir query/cidade/preco
+          const finalArgs = {
+            ...baseArgs,
+            ...args,
+            query: (args.query || baseArgs.query || "").trim()
+          };
+
+          const ofertas = await buscarOfertasService(finalArgs);
+          notifyProducts(ofertas, finalArgs.query);
+
+          messages.push({
+            role: "tool",
+            tool_call_id: call.id,
+            name: "buscarOfertas",
+            content: safeJSON({ data: ofertas })
+          });
+        }
+      }
+      continue; // volta para o modelo integrar o resultado
+    }
+
+    // Resposta final do modelo
+    const text = isNonEmptyString(msg?.content) ? msg.content : "";
+    const lastTool = messages.findLast?.(m => m.role === "tool" && m.name === "buscarOfertas");
+    const ofertas = lastTool ? JSON.parse(lastTool.content).data : [];
+
+    // Se não veio texto, monte um curto sem “erro”
+    const finalText =
+      text ||
+      (ofertas?.length
+        ? "Aqui estão as ofertas mais relevantes:"
+        : "Não encontrei ofertas para sua busca. Tente informar modelo, cidade e um preço máximo.");
+
+    return { text: finalText, ofertas };
+  }
+
+  // Fallback seguro (sem “Ops, algo deu errado”)
+  return {
+    text: "Não consegui fechar a resposta agora. Pode refazer sua busca indicando produto e cidade?",
+    ofertas: preProdutos || []
+  };
+}
+
+Por que resolve
+
+Nunca mais “Ops, algo deu errado”: removi o fallback e troquei por mensagens claras e condicionais.
+
+Produtos só quando fizer sentido: a busca só roda com query ≥ 2 chars; sem query → zero produtos (não aleatórios).
+
+Intenção estruturada: um passo JSON garante query/cidade/precoMax antes do tool calling, aumentando a precisão.
+
+Sem duplicidade: não enviamos “mensagem inicial” via streaming; apenas a resposta final.
