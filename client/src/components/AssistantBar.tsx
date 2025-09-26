@@ -645,7 +645,8 @@ export default function AssistantBar() {
             isValidEvent = true;
             console.log('✅ [DEBUG] Evento JSON válido:', p.type);
             
-            if (p.type === 'chunk' && p.text) {
+            if ((p.type === 'chunk' || p.type === 'delta') && p.text) {
+              console.log('✅ [DEBUG] Processando texto delta/chunk:', p.text.substring(0, 50));
               assistantMessage += p.text;
               setStreaming(assistantMessage);
               
@@ -704,7 +705,8 @@ export default function AssistantBar() {
                   // Não exibir produtos inválidos
                 }
               }
-            } else if (p.type === 'end') {
+            } else if (p.type === 'end' || p.type === 'complete') {
+              console.log('🏁 [DEBUG] Stream finalizado com tipo:', p.type);
               // Fallback: se ainda há busca pendente, executar agora
               if (pendingSearchRef.current && !hasTriggeredSearchRef.current) {
                 fetchSuggest(pendingSearchRef.current);
@@ -716,8 +718,11 @@ export default function AssistantBar() {
               setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage }]);
               setStreaming('');
               return;
+            } else if (p.type === 'meta' || p.type === 'paragraph_done') {
+              // Eventos informativos que não precisam processamento
+              console.log('ℹ️ [DEBUG] Evento informativo:', p.type);
             } else {
-              console.log('⚠️ [DEBUG] Evento JSON desconhecido:', p.type);
+              console.log('⚠️ [DEBUG] Evento não processado:', p.type);
             }
           } catch (error) {
             // 🚨 CRÍTICO: SÓ adicionar ao texto se NÃO parecer JSON malformado

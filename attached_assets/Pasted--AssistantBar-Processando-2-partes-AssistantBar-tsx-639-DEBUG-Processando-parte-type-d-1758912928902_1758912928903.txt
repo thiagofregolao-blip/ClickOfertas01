@@ -1,0 +1,1315 @@
+🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"hp","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"aux","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":".jpeg","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":")\n\n","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":".jpeg","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":")\n\n","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"3","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":".","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"3","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":".","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":" **","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"i","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" **","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"i","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"Phone","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":" ","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"Phone","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" ","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"15","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":" ","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"15","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" ","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"128","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"GB","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"128","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"GB","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"**","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":" -","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"**","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" -","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":" R","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"$","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" R","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"$","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"350","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"\n","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"350","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"\n","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"  ","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":" !","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"  ","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" !","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"[","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"i","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"[","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"i","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"Phone","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":" ","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"Phone","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" ","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"15","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"](","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"15","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"](","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"https","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"://","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"https","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"://","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"cell","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"shop","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"cell","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"shop","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":".com","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"/media","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":".com","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"/media","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"/catalog","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"/product","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"/catalog","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"/product","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"/","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"3","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"/","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"3","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"/","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"0","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"/","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"0","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"/","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"303","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"/","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"303","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"273","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"2","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"273","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"2","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"_","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"1","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"_","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"1","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"_","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"1","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"_","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"1","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":".jpg","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":")\n\n","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":".jpg","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":")\n\n","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"4","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":".","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"4","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":".","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":" **","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"Apple","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" **","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"Apple","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":" IP","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"HONE","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" IP","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"HONE","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":" ","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"13","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" ","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"13","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":" PRO","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":" MAX","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" PRO","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" MAX","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":" ","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"128","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" ","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"128","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"GB","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":" GRAPH","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"GB","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" GRAPH","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"ITE","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":" C","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"ITE","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" C","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"PO","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"**","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"PO","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"**","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":" -","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":" R","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" -","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" R","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"$","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"450","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"$","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"450","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"\n","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"  ","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"\n","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"  ","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":" !","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"[","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" !","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"[","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"IPH","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"ONE","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"IPH","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"ONE","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":" ","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"13","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" ","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"13","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":" PRO","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":" MAX","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" PRO","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" MAX","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":" GRAPH","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"ITE","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" GRAPH","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"ITE","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"](","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"https","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"](","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"https","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"://","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"click","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"://","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"click","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"of","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"ertas","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"of","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"ertas","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":".com","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"/uploads","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":".com","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"/uploads","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"/product","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"-b","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"/product","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"-b","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"anks","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"/images","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"anks","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"/images","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"/","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"175","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"/","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"175","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"867","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"005","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"867","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"005","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"432","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"0","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"432","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"0","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"-bg","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"9","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"-bg","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"9","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"w","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"8","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"w","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"8","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"b","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"8","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"b","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"8","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"tt","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":".jpeg","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"tt","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":".jpeg","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":")\n\n","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":"5","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":")\n\n","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"5","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":".","requestId":"1758912872075-10h7im"}
+
+data: {"type":"delta","text":" **","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 2 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":".","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":" **","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"delta","text":"Apple","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 1 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"delta","text":"Apple","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: delta
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: delta
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"paragraph_done","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 1 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"paragraph_done","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: paragraph_done
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: paragraph_done
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"products","products":[{"id":"bank_8303c62e-d2d3-4e72-8263-7f4fc6aafaea","title":"Apple IPHONE 12 PRO MAX A2411 256GB SILVER CPO","store":"Atacado Store","priceUSD":450,"imageUrl":"/uplo...
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 1 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"products","products":[{"id":"bank_8303c62e-d2d3-4e72-8263-7f4fc6aafaea","title":"Apple IPHONE 12 PRO MAX A2411 256GB SILVER CPO","store":"Ata...
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: products
+AssistantBar.tsx:666 📦 [AssistantBar] ✅ Produtos recebidos (evento separado): 3
+AssistantBar.tsx:679 ✅ [HARD GROUNDING] Validação frontend: {received: 3, valid: 3, filtered: 0, hardGrounding: true, validationApplied: true}
+AssistantBar.tsx:701 📦 [HARD GROUNDING] ✅ Interface atualizada com produtos validados por ID
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:622 📦 [AssistantBar] Chunk recebido: data: {"type":"complete","requestId":"1758912872075-10h7im"}
+
+
+AssistantBar.tsx:628 🔄 [AssistantBar] Processando 1 partes
+AssistantBar.tsx:639 🔍 [DEBUG] Processando parte: {"type":"complete","requestId":"1758912872075-10h7im"}
+AssistantBar.tsx:646 ✅ [DEBUG] Evento JSON válido: complete
+AssistantBar.tsx:720 ⚠️ [DEBUG] Evento JSON desconhecido: complete
+AssistantBar.tsx:617 🏁 [AssistantBar] Stream finalizado
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
+AssistantBar.tsx:18 👤 [AssistantBar] UID: u-f8j78y UserName: Cliente
+AssistantBar.tsx:12 🚀 [AssistantBar] Componente sendo renderizado/inicializado
