@@ -1,0 +1,183 @@
+Beleza — o “está digitando…” que nunca sai + “Buscando ofertas…” parado é stream aberto sem chegar delta nem done no front. Vou te passar um kit de correção à prova de travamento: 1 patch no backend (sempre solta um primeiro delta imediato + watchdog + done garantido) e 1 patch no front (parser SSE robusto + timeout de segurança + botão “cancelar”).
+
+1) Backend: nunca deixe o stream mudo
+1.1. Headers SSE + flush (sem compressão)
+function sseHeaders(res:any) {
+  res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  // se usar Express compression, DESATIVE nesta rota
+  res.flushHeaders?.();
+}
+
+1.2. Envie meta + primeiro delta imediato (destrava o “digitando”)
+const requestId = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+const SSE_COMPAT = true; // manter ligado até migrar o front
+
+function send(event:string, payload:any) {
+  res.write(`event: ${event}\n`);
+  res.write(`data: ${JSON.stringify({ ...payload, requestId })}\n\n`);
+  if (SSE_COMPAT) res.write(`data: ${JSON.stringify({ type: event, ...payload, requestId })}\n\n`);
+}
+
+sseHeaders(res);
+send("meta", { requestId });
+send("delta", { text: "Beleza! Deixa comigo… 😉" }); // <-- destrava UI já no início
+
+1.3. Watchdog de presença + done garantido
+let lastDelta = Date.now();
+const wd = setInterval(() => {
+  if (Date.now() - lastDelta > 7000) {        // 7s sem texto? manda sinal de vida
+    send("delta", { text: "\n(um instante… garimpando ofertas) " });
+    lastDelta = Date.now();
+  }
+}, 4000);
+
+req.on("close", () => clearInterval(wd));
+
+async function finish() {
+  clearInterval(wd);
+  send("done", {});
+  res.end();
+}
+
+1.4. Mapear todos os tipos de evento do SDK para delta
+
+Dependendo do SDK (Responses vs Chat Completions), o tipo muda. Cubra os dois:
+
+const stream = await client.responses.stream({ model: "gpt-4.1", input: [...] });
+
+stream.on("event", (e:any) => {
+  // Responses API (novo)
+  if (e.type === "response.output_text.delta" && e.delta) { lastDelta = Date.now(); send("delta", { text: e.delta }); }
+  if (e.type === "response.refusal.delta" && e.delta)      { lastDelta = Date.now(); send("delta", { text: e.delta }); }
+  // Chat Completions (legado)
+  const t = e?.choices?.[0]?.delta?.content;
+  if (t) { lastDelta = Date.now(); send("delta", { text: t }); }
+});
+
+stream.on("end", async () => {
+  // gere os cards/JSON se precisar, **mas SEM nunca deixar de finalizar**
+  // ...
+  await finish();
+});
+
+stream.on("error", async () => { await finish(); });
+
+1.5. Catálogo vazio → sempre um delta antes de encerrar
+if (product_set.length === 0 && accessory_set.length === 0) {
+  send("delta", { text: "Não achei itens agora. Diz pra mim **memória** (128/256GB) e **cidade** que eu garimpo ofertas boas 😉" });
+  await finish();
+  return;
+}
+
+
+Com isso, mesmo se a OpenAI atrasar ou o catálogo vier vazio, o usuário vê texto e o stream encerra corretamente.
+
+2) Frontend: parser SSE robusto + timeout + cancelar
+2.1. Suportar eventos nomeados e o legado {type:...}
+function parseSSELines(chunk: string): Array<{event?:string, data?:string}> {
+  // divide por “\n\n” preservando pares event/data
+  const blocks = chunk.split(/\n\n+/);
+  const out:any[] = [];
+  for (const b of blocks) {
+    if (!b.trim()) continue;
+    const ev = /(?:^|\n)event:\s*(.+)/.exec(b)?.[1]?.trim();
+    const da = /(?:^|\n)data:\s*(.+)/.exec(b)?.[1];
+    if (da) out.push({ event: ev, data: da });
+  }
+  return out;
+}
+
+function handleSSEPayload(raw: string) {
+  let payload: any;
+  try { payload = JSON.parse(raw); } catch { return; }
+
+  // modo legado: onmessage com {type:"delta"...}
+  const t = payload.type || ""; 
+  const evt = payload.event || ""; // caso backend mande dentro também
+
+  const kind = (evt || t || "").toLowerCase();
+
+  if (kind === "meta") { latestRequestId = payload.requestId; showTyping(); return; }
+  if (kind === "delta") { appendTyping(payload.text || ""); return; }
+  if (kind === "cards") { renderCards(payload.items, payload.message); return; }
+  if (kind === "done" || kind === "complete" || kind === "end") { finalizeTypingBubble(); return; }
+
+  // fallback: se não vier 'type', mas veio campo esperado
+  if (payload.text) appendTyping(payload.text);
+  if (payload.items) renderCards(payload.items, payload.message);
+}
+
+
+No loop de leitura (ReadableStream.getReader()), troque:
+
+const text = decoder.decode(value, { stream: true });
+for (const {event,data} of parseSSELines(text)) {
+  handleSSEPayload(data);
+}
+
+2.2. Timeout de segurança no front (não ficar eterno em “digitando”)
+let safetyTimer: any = null;
+
+function armSafetyTimer() {
+  clearTimeout(safetyTimer);
+  safetyTimer = setTimeout(() => {
+    if (isTyping) {
+      appendTyping("\n(continuo aqui… quase lá) ");
+      // se nada chegar mais 8s, encerra com bolha mínima
+      setTimeout(() => isTyping && finalizeTypingBubble("(me diz a cidade e orçamento que acelero a busca)"), 8000);
+    }
+  }, 7000);
+}
+
+// chame no início do stream e rearme a cada delta:
+showTyping(); armSafetyTimer();
+// ...
+if (kind === "delta") { armSafetyTimer(); }
+if (kind === "done")  { clearTimeout(safetyTimer); }
+
+2.3. Botão Cancelar (AbortController)
+
+Ao iniciar o stream, guarde o AbortController e exponha um botão “Cancelar”. Ao cancelar:
+
+finalize a bolha com o que já tem,
+
+limpe “digitando”.
+
+3) Dois vilões comuns (confere aí)
+
+GET x POST (web): no navegador, EventSource só suporta GET. Se sua web usa EventSource, exponha GET /ai/chat/stream?message=... (deixe POST para o Flutter).
+
+Proxy: Nginx/Cloudflare com proxy_buffering on ou gzip on → o navegador só vê no fim. Coloque para a rota de stream:
+
+proxy_buffering off;
+gzip off;
+
+4) “Produtos aparecem e somem” — garantir que o SSE “ganha” do suggest
+
+No front, mantenha o guard que te passei:
+
+Só rode fetchSuggest() se ainda não chegou products neste request.
+
+Quando chegar products via SSE: haveProductsInThisRequestRef.current = true;
+
+Dentro de fetchSuggest(): se haveProductsInThisRequestRef.current === true, return (não limpa os cards).
+
+Checklist rápido (faça agora)
+
+ Backend manda meta + delta imediato, watchdog, e sempre done.
+
+ Eventos do SDK mapeados para delta (Responses ou Chat).
+
+ Catálogo vazio → delta humano + done (nunca encerra mudo).
+
+ Front parseia eventos nomeados e {type:...}.
+
+ Timeout de 7s no front com mensagem de presença (e finalize em 15s se continuar mudo).
+
+ GET habilitado para web ou polyfill de POST-SSE.
+
+ Proxy sem buffering/gzip para a rota.
+
+ Guard contra fetchSuggest sobrescrever produtos do SSE.

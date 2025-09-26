@@ -7007,11 +7007,26 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       // 🆔 ANTI-CORRIDA: Gerar requestId único
       const requestId = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
       
-      res.writeHead(200, { 'Content-Type':'text/event-stream', 'Cache-Control':'no-cache', 'Connection':'keep-alive' });
-      const write = (d:any)=> res.write(`data: ${JSON.stringify({...d, requestId})}\n\n`);
+      // 🔧 Headers SSE corretos + flush (sem compressão)
+      res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+      res.setHeader("Cache-Control", "no-cache, no-transform");
+      res.setHeader("Connection", "keep-alive");
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.flushHeaders?.();
       
-      // Enviar meta com requestId primeiro
-      write({ type:'meta', requestId });
+      const SSE_COMPAT = true; // manter ligado até migrar o front
+      
+      function send(event: string, payload: any) {
+        res.write(`event: ${event}\n`);
+        res.write(`data: ${JSON.stringify({ ...payload, requestId })}\n\n`);
+        if (SSE_COMPAT) res.write(`data: ${JSON.stringify({ type: event, ...payload, requestId })}\n\n`);
+      }
+      
+      // Enviar meta com requestId primeiro + delta imediato
+      send("meta", { requestId });
+      send("delta", { text: "Beleza! Deixa comigo… 😉" }); // destrava UI já no início
 
       // 🔒 WATCHDOG: Fail-safe para garantir presença de conteúdo
       let lastDelta = Date.now();
@@ -7032,8 +7047,15 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       // Função helper para atualizar lastDelta
       const writeWithHeartbeat = (data: any) => {
         if (data.type === 'delta') lastDelta = Date.now();
-        write(data);
+        send(data.type || 'delta', data);
       };
+      
+      // Função para finalizar stream
+      async function finish() {
+        clearInterval(watchdog);
+        send("done", {});
+        res.end();
+      }
 
       // 🧠 DETECÇÃO DE INTENÇÃO antes da busca
       console.log(`🎬 [assistant/stream] Processando: "${message}" para usuário: ${name}`);
@@ -7083,8 +7105,7 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
         });
         
         console.log(`🏁 [assistant/stream] Small talk finalizado - enviando complete`);
-        write({ type:'complete' });
-        res.end();
+        await finish();
         return; // ⚠️ EARLY RETURN - NÃO CONTINUA PARA BUSCA
       }
       

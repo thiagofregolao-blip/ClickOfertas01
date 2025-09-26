@@ -77,6 +77,8 @@ export default function AssistantBar() {
   const activeRequestIdRef = useRef<string | null>(null);
   const haveProductsInThisRequestRef = useRef(false); // trava contra fetchSuggest sobrescrever
   const firingRef = useRef(false);
+  const safetyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestRequestIdRef = useRef<string | null>(null);
 
   // Estados para animações da barra de busca
   const [displayText, setDisplayText] = useState('');
@@ -637,7 +639,30 @@ export default function AssistantBar() {
         return true;
       };
       
+      // 🕰️ Timeout de segurança no front (não ficar eterno em "digitando")
+      function armSafetyTimer() {
+        if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current);
+        safetyTimerRef.current = setTimeout(() => {
+          if (isTyping) {
+            assistantMessage += "\n(continuo aqui… quase lá) ";
+            setStreaming(assistantMessage);
+            // se nada chegar mais 8s, encerra com bolha mínima
+            safetyTimerRef.current = setTimeout(() => {
+              if (isTyping) {
+                assistantMessage += " (me diz a cidade e orçamento que acelero a busca)";
+                setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage.trim() }]);
+                setIsTyping(false);
+                setStreaming('');
+              }
+            }, 8000);
+          }
+        }, 7000);
+      }
+      
       console.log('👂 [AssistantBar] Reader iniciado, aguardando chunks...');
+      
+      // 🚀 Iniciar timeout de segurança
+      armSafetyTimer();
       
       while (true) {
         const { value, done } = await reader.read();
@@ -669,45 +694,72 @@ export default function AssistantBar() {
           // 🧠 PARSER ROBUSTO: Tentar JSON primeiro, só aceitar texto se NÃO for JSON malformado
           let isValidEvent = false;
           try {
-            // 🔄 Compatibilidade dupla de eventos
-            let dataPayload = line;
-            if (line.startsWith('event:')) {
-              // formato SSE nomeado: 'event: X\ndata: {...}'
-              const lines = line.split('\n');
-              const dataLine = lines.find(l => l.startsWith('data:'));
-              dataPayload = dataLine ? dataLine.replace(/^data:\s?/, '') : '';
+            // 🔄 Parser SSE robusto - compatibilidade dupla de eventos
+            let payload: any;
+            try {
+              // Tentar direto como JSON {type:...}
+              payload = JSON.parse(line);
+            } catch {
+              // Se falhar, tentar como evento nomeado
+              if (line.includes('event:') && line.includes('data:')) {
+                const eventMatch = /event:\s*(.+)/.exec(line);
+                const dataMatch = /data:\s*(.+)/.exec(line);
+                if (dataMatch) {
+                  try {
+                    const eventType = eventMatch?.[1]?.trim() || 'message';
+                    const data = JSON.parse(dataMatch[1]);
+                    payload = { ...data, type: eventType, event: eventType };
+                  } catch {
+                    continue; // JSON inválido
+                  }
+                }
+              } else {
+                continue; // Formato desconhecido
+              }
             }
-            const p = JSON.parse(dataPayload);
+            
             isValidEvent = true;
-            console.log('✅ [DEBUG] Evento JSON válido:', p.type);
+            console.log('✅ [DEBUG] Evento SSE processado:', payload.type || payload.event);
             
             // 🚫 Validar se evento é da requisição atual
-            if (!acceptEvent(p)) continue;
+            if (!acceptEvent(payload)) continue;
             
-            if ((p.type === 'chunk' || p.type === 'delta') && p.text) {
-              console.log('✅ [DEBUG] Processando texto delta/chunk:', p.text.substring(0, 50));
-              if (isTyping) setIsTyping(false); // 🔄 desligar aqui, no primeiro delta real
-              assistantMessage += p.text;
-              setStreaming(assistantMessage);
-              
-              // 🔍 Detectar quando assistente fala sobre buscar e executar busca pendente (apenas uma vez)
-              const spokeAboutSearch = /busca|procurando|opções|aqui estão|vou buscar|procurar/i.test(assistantMessage);
-              if (pendingSearchRef.current && !hasTriggeredSearchRef.current && spokeAboutSearch && !haveProductsInThisRequestRef.current) {
-                // Só usamos suggest como fallback ANTES de chegar produtos reais
-                fetchSuggest(pendingSearchRef.current);
-                hasTriggeredSearchRef.current = true;
-                // NÃO limpe pendingSearch ainda — deixe o SSE "products" decidir
+            // 🆔 Handler SSE unificado
+            const eventType = (payload.type || payload.event || '').toLowerCase();
+            
+            if (eventType === 'meta') {
+              latestRequestIdRef.current = payload.requestId;
+              armSafetyTimer(); // Rearmar timer
+              continue;
+            }
+            
+            if (eventType === 'delta' || eventType === 'chunk') {
+              if (payload.text) {
+                console.log('✅ [DEBUG] Processando texto delta/chunk:', payload.text.substring(0, 50));
+                if (isTyping) setIsTyping(false); // 🔄 desligar aqui, no primeiro delta real
+                assistantMessage += payload.text;
+                setStreaming(assistantMessage);
+                armSafetyTimer(); // Rearmar timer a cada delta
+                
+                // 🔍 Detectar quando assistente fala sobre buscar
+                const spokeAboutSearch = /busca|procurando|opções|aqui estão|vou buscar|procurar/i.test(assistantMessage);
+                if (pendingSearchRef.current && !hasTriggeredSearchRef.current && spokeAboutSearch && !haveProductsInThisRequestRef.current) {
+                  fetchSuggest(pendingSearchRef.current);
+                  hasTriggeredSearchRef.current = true;
+                }
               }
-            } else if (p.type === 'products') {
-              // 🔄 Marcar que chegaram produtos pela IA e impedir que o suggest limpe
+              continue;
+            }
+            
+            if (eventType === 'products' || eventType === 'cards') {
+              // 🔄 Marcar que chegaram produtos pela IA
               haveProductsInThisRequestRef.current = true;
               
-              // 🔧 HARD GROUNDING FRONTEND: Só produtos com ID válido
-              console.log('📦 [AssistantBar] ✅ Produtos recebidos (evento separado):', p.products?.length || 0);
+              console.log('📦 [AssistantBar] ✅ Produtos recebidos via SSE:', payload.products?.length || payload.items?.length || 0);
               
-              if (p.products && p.products.length > 0) {
-                // 🔧 VALIDAÇÃO RIGOROSA: Só produtos com ID, título e dados básicos
-                const validProducts = p.products.filter((product: any) => 
+              const products = payload.products || payload.items || [];
+              if (products.length > 0) {
+                const validProducts = products.filter((product: any) => 
                   product && 
                   product.id && 
                   (typeof product.id === 'string' || typeof product.id === 'number') &&
@@ -716,59 +768,48 @@ export default function AssistantBar() {
                   (product.title || product.name).trim().length > 0
                 );
                 
-                console.log('✅ [HARD GROUNDING] Validação frontend:', {
-                  received: p.products.length,
-                  valid: validProducts.length,
-                  filtered: p.products.length - validProducts.length,
-                  hardGrounding: p.hardGrounding || false,
-                  validationApplied: p.validationApplied || false
-                });
-                
                 if (validProducts.length > 0) {
-                  // Normalizar produtos para interface
                   const normalizedProducts = validProducts.map((product: any) => ({
                     ...product,
                     name: product.name || product.title,
                     title: product.title || product.name,
-                    validatedById: true // Marca que passou pela validação
+                    validatedById: true
                   }));
                   
-                  // Exibir apenas produtos validados na interface
                   setTopBox(normalizedProducts.slice(0, 3));
                   setFeed(normalizedProducts.slice(3));
                   setShowResults(true);
                   
                   console.log('📦 [HARD GROUNDING] ✅ Interface atualizada com produtos validados por ID');
-                } else {
-                  console.warn('⚠️ [HARD GROUNDING] Nenhum produto válido após validação frontend');
-                  // Não exibir produtos inválidos
                 }
               }
-            } else if (p.type === 'end' || p.type === 'complete') {
-              console.log('🏁 [DEBUG] Stream finalizado com tipo:', p.type);
-              // Fallback: se ainda há busca pendente, executar agora
+              continue;
+            }
+            
+            if (eventType === 'done' || eventType === 'complete' || eventType === 'end') {
+              console.log('🏁 [DEBUG] Stream finalizado com tipo:', eventType);
+              if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current);
+              
+              // Fallback de busca se necessário
               if (pendingSearchRef.current && !hasTriggeredSearchRef.current) {
                 fetchSuggest(pendingSearchRef.current);
                 hasTriggeredSearchRef.current = true;
                 pendingSearchRef.current = '';
               }
               
-              // 🔧 FINALIZAR: Adicionar mensagem ou fallback
+              // Finalizar mensagem
               if (assistantMessage.trim()) {
                 setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage.trim() }]);
               } else {
-                // fallback verbal se não veio nada:
                 setChatMessages(prev => [...prev, { type: 'assistant', text: "Estou aqui 👍 Me diga a categoria e a cidade que eu já busco ofertas." }]);
               }
               setStreaming('');
-              // NÃO dê 'return' — apenas marque leitura como encerrada e deixe o loop quebrar naturalmente
+              setIsTyping(false);
               break;
-            } else if (p.type === 'meta' || p.type === 'paragraph_done') {
-              // Eventos informativos que não precisam processamento
-              console.log('ℹ️ [DEBUG] Evento informativo:', p.type);
-            } else {
-              console.log('⚠️ [DEBUG] Evento não processado:', p.type);
             }
+            
+            // O novo handler SSE acima já processou o evento
+            continue;
           } catch (error) {
             // 🚨 CRÍTICO: SÓ adicionar ao texto se NÃO parecer JSON malformado
             const looksLikeJSON = line.includes('{') && (line.includes('"type"') || line.includes('"products"'));
@@ -786,13 +827,17 @@ export default function AssistantBar() {
       }
       
       // 🔧 FALLBACK: Se terminar sem 'end', ainda adicionar a mensagem (evitar duplicatas)
+      if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current);
       if (assistantMessage.trim() && !chatMessages.some(m => m.text === assistantMessage.trim())) {
         setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage.trim() }]);
         setStreaming('');
+        setIsTyping(false);
       }
     } catch (e) {
       console.error('Stream error:', e);
+      if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current);
       setIsTyping(false);
+      setStreaming('');
     }
   };
 
