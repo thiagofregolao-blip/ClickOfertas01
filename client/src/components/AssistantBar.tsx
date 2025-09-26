@@ -555,12 +555,14 @@ export default function AssistantBar() {
     }
     
     // 🔄 RESET COMPLETO DE ESTADO
-    console.log('🔄 [AssistantBar] Resetando estado para nova consulta');
+    console.log('🔄 [AssistantBar] Resetando estado para nova consulta:', message);
     setIsTyping(true);
     setStreaming('');
     // Reset flags críticas
     pendingSearchRef.current = message; // Manter mensagem como pendente
     hasTriggeredSearchRef.current = false;
+    
+    console.log('📡 [AssistantBar] Iniciando stream para:', message);
     
     try {
       const res = await fetch('/api/assistant/stream', {
@@ -587,21 +589,34 @@ export default function AssistantBar() {
       let buffer = '';
       let assistantMessage = '';
       
+      console.log('👂 [AssistantBar] Reader iniciado, aguardando chunks...');
+      
       while (true) {
         const { value, done } = await reader.read();
-        if (done) break;
+        if (done) {
+          console.log('🏁 [AssistantBar] Stream finalizado');
+          break;
+        }
         
-        buffer += decoder.decode(value, { stream: true });
+        const chunk = decoder.decode(value, { stream: true });
+        console.log('📦 [AssistantBar] Chunk recebido:', chunk.substring(0, 200) + (chunk.length > 200 ? '...' : ''));
+        
+        buffer += chunk;
         const parts = buffer.split('\n\n');
         buffer = parts.pop() || '';
         
-        for (const chunk of parts) {
-          const line = chunk.trim().replace(/^data:\s?/, '');
+        console.log('🔄 [AssistantBar] Processando', parts.length, 'partes');
+        
+        for (const part of parts) {
+          const line = part.trim().replace(/^data:\s?/, '');
           
           // 🛡️ PROTEÇÃO: Só processar linhas não vazias
-          if (!line) continue;
+          if (!line) {
+            console.log('⏭️ [DEBUG] Linha vazia ignorada');
+            continue;
+          }
           
-          console.log('🔍 [DEBUG] Processando chunk:', line.substring(0, 100) + (line.length > 100 ? '...' : ''));
+          console.log('🔍 [DEBUG] Processando parte:', line.substring(0, 150) + (line.length > 150 ? '...' : ''));
           
           // 🧠 PARSER ROBUSTO: Tentar JSON primeiro, só aceitar texto se NÃO for JSON malformado
           let isValidEvent = false;
