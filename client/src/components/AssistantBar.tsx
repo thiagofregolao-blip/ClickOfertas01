@@ -9,9 +9,13 @@ const sessionCache = new Map();
 const ONE_HOUR = 60 * 60 * 1000;
 
 export default function AssistantBar() {
+  console.log('🚀 [AssistantBar] Componente sendo renderizado/inicializado');
+  
   const [, setLocation] = useLocation();
   const uid = useMemo(() => localStorage.getItem('uid') || (localStorage.setItem('uid','u-'+Math.random().toString(36).slice(2,8)), localStorage.getItem('uid')!), []);
   const userName = useMemo(() => localStorage.getItem('userName') || 'Cliente', []);
+  
+  console.log('👤 [AssistantBar] UID:', uid, 'UserName:', userName);
   
   const [sessionId, setSessionId] = useState('');
   

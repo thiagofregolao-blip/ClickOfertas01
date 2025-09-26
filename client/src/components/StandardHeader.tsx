@@ -127,10 +127,20 @@ export default function StandardHeader() {
     if (e.key === 'Enter') {
       e.preventDefault();
       
+      const query = searchInput.trim();
+      console.log('📤 [Header] Disparando evento assistant:submit:', { query, source: 'header' });
+      
+      // Verificar se há listeners registrados
+      const listeners = (window as any)._eventListeners || {};
+      console.log('👂 [Header] Event listeners registrados:', Object.keys(listeners));
+      
       // Disparar evento para o AssistantBar processar
-      window.dispatchEvent(new CustomEvent('assistant:submit', { 
-        detail: { source: 'header', query: searchInput.trim() } 
-      }));
+      const event = new CustomEvent('assistant:submit', { 
+        detail: { source: 'header', query } 
+      });
+      
+      console.log('🚀 [Header] Evento criado e sendo disparado:', event);
+      window.dispatchEvent(event);
     }
   };
 
