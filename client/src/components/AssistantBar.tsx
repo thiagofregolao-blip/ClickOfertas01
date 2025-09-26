@@ -37,9 +37,8 @@ export default function AssistantBar() {
       // Alinhar estado da UI com onSubmit
       setOpen(false);
       setShowResults(true);
-      setFeed([]);
-      setTopBox([]);
-      setCombina([]);
+      // 🔧 NÃO LIMPAR produtos aqui - só limpar no onSubmit para nova busca
+      console.log('🔄 [AssistantBar] Mantendo produtos existentes durante processamento do header');
       
       // Usar mensagem contextual se disponível, senão usar termo de busca
       const messageToShow = contextualMessage || searchTerm;
