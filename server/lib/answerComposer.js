@@ -376,15 +376,56 @@ export async function buildGrounding(origin, q, sessionId = null) {
   
   console.log(`🛍️ [buildGrounding] Acessórios encontrados: ${accessories.length}`);
   
-  // Combinar produtos principais com acessórios relevantes
-  const allItems = [...rawProducts];
+  // 🎯 FILTRO DE RELEVÂNCIA INTELIGENTE
+  const isAccessoryQuery = /\b(capinha|película|pelicula|case|capa|protetor|bateria|carregador|fone|cabo|kit|suporte|tripé|tripe)\b/i.test(q);
+  const isProductQuery = /\b(iphone|samsung|tablet|notebook|drone|perfume|relogio|celular|smartphone|computador)\b/i.test(q);
   
-  // Adicionar acessórios que sejam relevantes para os produtos encontrados
-  if (accessories.length > 0 && rawProducts.length > 0) {
-    // Lógica simples: se encontrou produtos, adicionar alguns acessórios
-    const relevantAccessories = accessories.slice(0, Math.min(4, accessories.length));
+  console.log(`🎯 [buildGrounding] Análise da query:`, {
+    query: q,
+    isAccessoryQuery,
+    isProductQuery
+  });
+  
+  // Filtrar produtos principais por relevância do título
+  const relevantProducts = rawProducts.filter(p => {
+    if (!p.title) return false;
+    
+    const title = p.title.toLowerCase();
+    const query = q.toLowerCase();
+    
+    // Se é busca por acessório, priorizar produtos que são acessórios
+    if (isAccessoryQuery) {
+      const isAccessoryProduct = /\b(capinha|película|pelicula|case|capa|protetor|bateria|carregador|fone|cabo|kit|suporte|tripé|tripe)\b/i.test(title);
+      return isAccessoryProduct;
+    }
+    
+    // Se é busca por produto principal, filtrar acessórios irrelevantes
+    if (isProductQuery) {
+      const isUnrelatedAccessory = /\b(capinha|película|pelicula|bateria|carregador|fone|cabo|kit|suporte|tripé|tripe)\b/i.test(title) && 
+                                  !query.split(' ').some(term => term.length > 2 && title.includes(term));
+      if (isUnrelatedAccessory) {
+        console.log(`🚫 [buildGrounding] Filtrado acessório irrelevante: ${p.title}`);
+        return false;
+      }
+    }
+    
+    return true;
+  });
+  
+  console.log(`✅ [buildGrounding] Produtos após filtro de relevância: ${relevantProducts.length}/${rawProducts.length}`);
+  
+  // Combinar produtos filtrados com acessórios (apenas se busca específica por acessórios)
+  const allItems = [...relevantProducts];
+  
+  // Só adicionar acessórios se:
+  // 1. A busca é especificamente por acessórios, OU
+  // 2. Há poucos produtos principais E acessórios são claramente relacionados
+  if (accessories.length > 0 && (isAccessoryQuery || (relevantProducts.length < 3 && !isProductQuery))) {
+    const relevantAccessories = accessories.slice(0, Math.min(3, accessories.length));
     allItems.push(...relevantAccessories);
     console.log(`🛍️ [buildGrounding] Adicionados ${relevantAccessories.length} acessórios relevantes`);
+  } else {
+    console.log(`🚫 [buildGrounding] Acessórios ignorados - foco em produtos principais`);
   }
   
   // Normalizar TODOS os itens (produtos + acessórios) para formato padrão
