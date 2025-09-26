@@ -642,18 +642,47 @@ export default function AssistantBar() {
                 pendingSearchRef.current = ''; // Limpar busca pendente
               }
             } else if (p.type === 'products') {
-              // ✨ PRODUTOS: Processamento separado - NÃO adiciona ao chat
+              // 🔧 HARD GROUNDING FRONTEND: Só produtos com ID válido
               console.log('📦 [AssistantBar] ✅ Produtos recebidos (evento separado):', p.products?.length || 0);
               
               if (p.products && p.products.length > 0) {
-                console.log('✅ [AssistantBar] Produtos válidos encontrados:', p.products.length);
+                // 🔧 VALIDAÇÃO RIGOROSA: Só produtos com ID, título e dados básicos
+                const validProducts = p.products.filter((product: any) => 
+                  product && 
+                  product.id && 
+                  (typeof product.id === 'string' || typeof product.id === 'number') &&
+                  String(product.id).trim().length > 0 &&
+                  (product.title || product.name) &&
+                  (product.title || product.name).trim().length > 0
+                );
                 
-                // Exibir produtos na interface
-                setTopBox(p.products.slice(0, 3));
-                setFeed(p.products.slice(3));
-                setShowResults(true);
+                console.log('✅ [HARD GROUNDING] Validação frontend:', {
+                  received: p.products.length,
+                  valid: validProducts.length,
+                  filtered: p.products.length - validProducts.length,
+                  hardGrounding: p.hardGrounding || false,
+                  validationApplied: p.validationApplied || false
+                });
                 
-                console.log('📦 [AssistantBar] ✅ Interface atualizada com produtos');
+                if (validProducts.length > 0) {
+                  // Normalizar produtos para interface
+                  const normalizedProducts = validProducts.map((product: any) => ({
+                    ...product,
+                    name: product.name || product.title,
+                    title: product.title || product.name,
+                    validatedById: true // Marca que passou pela validação
+                  }));
+                  
+                  // Exibir apenas produtos validados na interface
+                  setTopBox(normalizedProducts.slice(0, 3));
+                  setFeed(normalizedProducts.slice(3));
+                  setShowResults(true);
+                  
+                  console.log('📦 [HARD GROUNDING] ✅ Interface atualizada com produtos validados por ID');
+                } else {
+                  console.warn('⚠️ [HARD GROUNDING] Nenhum produto válido após validação frontend');
+                  // Não exibir produtos inválidos
+                }
               }
             } else if (p.type === 'end') {
               // Fallback: se ainda há busca pendente, executar agora
