@@ -7065,16 +7065,46 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
         }
       }
 
-      const { SYSTEM, USER } = composePrompts({
+      const promptResult = composePrompts({
         q: message, name, top3: ground.top3, top8: ground.top8,
         focusedProduct, recommendations
       });
       
+      const { SYSTEM, USER, productSet, requiresJsonOutput } = promptResult;
+      
       console.log(`💭 [assistant/stream] Prompts gerados:`, {
         systemLength: SYSTEM.length,
         userLength: USER.length,
-        hasProducts: USER.includes('Produtos encontrados')
+        hasProducts: productSet?.length > 0,
+        requiresJson: !!requiresJsonOutput,
+        productSetIds: productSet?.map(p => p.id) || []
       });
+
+      // 🔧 POLÍTICA SEM CATÁLOGO = SEM RESPOSTA DE PRODUTO
+      if (!productSet || productSet.length === 0) {
+        console.log(`⚠️ [assistant/stream] ProductSet vazio - enviando apenas mensagem de refinamento`);
+        
+        // Resposta simples sem produtos
+        const refinementMessage = "Não encontrei produtos para essa busca. Que tal tentar ser mais específico? Pode informar categoria (ex: drone, perfume), marca ou faixa de preço?";
+        
+        // Enviar mensagem diretamente
+        write({ type:'chunk', text: refinementMessage });
+        
+        await storage.createAssistantMessage({ 
+          sessionId, 
+          content: refinementMessage, 
+          role:'assistant', 
+          metadata:{ 
+            streamed: true, 
+            hardGrounding: true, 
+            productSetEmpty: true 
+          } 
+        });
+        
+        write({ type:'end' });
+        res.end();
+        return;
+      }
 
       // ❷ Construir mensagens com histórico para memória
       const messages = [
@@ -7084,71 +7114,142 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
         { role:'user' as const, content: USER }
       ];
 
-      // ❸ Prompt com memória e temperatura baixa (evita genericão)
-      const stream = await clickClient.chat.completions.create({
-        model: process.env.CHAT_MODEL || 'gpt-4o-mini',
-        messages,
-        temperature: 0.15,
-        max_tokens: 220,
-        frequency_penalty: 0.3,
-        presence_penalty: 0.0,
-        stream: true
-      });
-
-      let full=''; const LIMIT=600; // Reduzido para compensar limite de linhas
-      let lineCount = 0;
+      // ❃ Hard Grounding: LLM deve retornar JSON estruturado
+      let llmResponse = '';
       
-      for await (const part of stream){
-        const t = part.choices?.[0]?.delta?.content || '';
-        if (!t) continue;
+      if (requiresJsonOutput) {
+        console.log(`🔧 [assistant/stream] Usando Hard Grounding com JSON estruturado`);
         
-        // Verificar limite de caracteres
-        const over = full.length + t.length - LIMIT;
-        let piece = over>0 ? t.slice(0, t.length - over) : t;
-        
-        // Verificar limite de linhas (máximo 4)
-        const newLines = (full + piece).split('\n').length - 1;
-        if (newLines >= 4) {
-          // Encontrar posição da 4ª linha e cortar lá
-          const lines = (full + piece).split('\n');
-          if (lines.length > 4) {
-            const fourLines = lines.slice(0, 4).join('\n');
-            piece = fourLines.substring(full.length);
-            full += piece;
-            write({ type:'chunk', text: piece });
-            break;
+        const response = await clickClient.chat.completions.create({
+          model: process.env.CHAT_MODEL || 'gpt-4o-mini',
+          messages,
+          temperature: 0.1,
+          max_tokens: 400,
+          response_format: { type: "json_object" }
+        });
+
+        const rawJson = response.choices[0].message.content;
+        console.log(`📦 [assistant/stream] JSON bruto do LLM:`, rawJson);
+
+        try {
+          const parsedResponse = JSON.parse(rawJson);
+          const { items = [], message = '' } = parsedResponse;
+          
+          // 🔧 VALIDAÇÃO SERVIDOR-SIDE: só aceitar IDs do productSet
+          const allowedIds = new Set(productSet.map(p => p.id));
+          const validItems = items.filter(item => allowedIds.has(item.id));
+          
+          console.log(`✅ [assistant/stream] Validação JSON:`, {
+            itemsReceived: items.length,
+            validItems: validItems.length,
+            allowedIds: [...allowedIds],
+            receivedIds: items.map(i => i.id)
+          });
+
+          // Enviar mensagem do LLM
+          llmResponse = message || 'Confira os produtos selecionados!';
+          write({ type:'chunk', text: llmResponse });
+          
+          // ❹ Enviar apenas produtos com IDs validados
+          if (validItems.length > 0) {
+            const validProducts = validItems.map(item => 
+              productSet.find(p => p.id === item.id)
+            ).filter(Boolean);
+            
+            console.log(`📦 [assistant/stream] Enviando ${validProducts.length} produtos validados`);
+            
+            write({ 
+              type: 'products', 
+              products: validProducts.map(p => ({ ...p, name: p.title })),
+              query: message,
+              validationApplied: true,
+              hardGrounding: true
+            });
+          } else {
+            console.log(`⚠️ [assistant/stream] Nenhum produto válido após validação`);
           }
+          
+        } catch (error) {
+          console.error(`❌ [assistant/stream] Erro ao parsear JSON do LLM:`, error);
+          
+          // Fallback: mensagem de erro
+          llmResponse = "Desculpe, houve um erro interno. Tente reformular sua pergunta.";
+          write({ type:'chunk', text: llmResponse });
         }
         
-        full += piece; 
-        write({ type:'chunk', text: piece });
-        if (over>0) break;
-      }
-      
-      // ❹ DEPOIS da resposta completa, enviar produtos encontrados
-      console.log(`📦 [assistant/stream] Resposta completa. Enviando produtos...`);
-      
-      // Preparar produtos para frontend (normalizar campos)
-      const productsToSend = (ground.top8?.length > 0 ? ground.top8 : ground.top3 || []).map(product => ({
-        ...product,
-        name: product.title, // Normalizar title -> name para frontend
-      }));
-      
-      if (productsToSend.length > 0) {
-        console.log(`📦 [assistant/stream] Enviando ${productsToSend.length} produtos para interface`);
+      } else {
+        // ❸ Fallback: modo antigo (não deveria ser usado mais)
+        console.log(`⚠️ [assistant/stream] Usando modo antigo (não recomendado)`);
         
-        // Evento especial para produtos
-        write({ 
-          type: 'products', 
-          products: productsToSend,
-          query: message,
-          focusedProduct,
-          recommendations
+        const stream = await clickClient.chat.completions.create({
+          model: process.env.CHAT_MODEL || 'gpt-4o-mini',
+          messages,
+          temperature: 0.15,
+          max_tokens: 220,
+          frequency_penalty: 0.3,
+          presence_penalty: 0.0,
+          stream: true
         });
+
+        let full=''; const LIMIT=600;
+        
+        for await (const part of stream){
+          const t = part.choices?.[0]?.delta?.content || '';
+          if (!t) continue;
+          
+          const over = full.length + t.length - LIMIT;
+          let piece = over>0 ? t.slice(0, t.length - over) : t;
+          
+          const newLines = (full + piece).split('\n').length - 1;
+          if (newLines >= 4) {
+            const lines = (full + piece).split('\n');
+            if (lines.length > 4) {
+              const fourLines = lines.slice(0, 4).join('\n');
+              piece = fourLines.substring(full.length);
+              full += piece;
+              write({ type:'chunk', text: piece });
+              break;
+            }
+          }
+          
+          full += piece; 
+          write({ type:'chunk', text: piece });
+          if (over>0) break;
+        }
+        
+        llmResponse = full;
+        
+        // Enviar produtos do modo antigo
+        const productsToSend = (ground.top8?.length > 0 ? ground.top8 : ground.top3 || []).map(product => ({
+          ...product,
+          name: product.title,
+        }));
+        
+        if (productsToSend.length > 0) {
+          write({ 
+            type: 'products', 
+            products: productsToSend,
+            query: message,
+            focusedProduct,
+            recommendations,
+            hardGrounding: false
+          });
+        }
       }
       
-      await storage.createAssistantMessage({ sessionId, content: full, role:'assistant', metadata:{ streamed:true } });
-      write({ type:'end' }); res.end();
+      await storage.createAssistantMessage({ 
+        sessionId, 
+        content: llmResponse, 
+        role:'assistant', 
+        metadata:{ 
+          streamed: true, 
+          hardGrounding: !!requiresJsonOutput,
+          hasProducts: productSet?.length > 0 
+        } 
+      });
+      
+      write({ type:'end' }); 
+      res.end();
     } catch (e) {
       console.error('stream', e);
       res.write(`data: ${JSON.stringify({ type:'error', message:'stream error' })}\n\n`); res.end();
