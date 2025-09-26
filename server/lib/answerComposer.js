@@ -73,10 +73,53 @@ async function robustSearch(q, origin) {
     console.log(`❌ [robustSearch] Erro ao buscar suggestions:`, error.message);
   }
 
-  // 3) TODO: Correção de digitação simples (implementar em próxima tarefa)
+  // 3) Correção de digitação simples
+  const autocorrected = autocorrect(q);
+  if (autocorrected !== q) {
+    console.log(`🔧 [robustSearch] Autocorreção: "${q}" → "${autocorrected}"`);
+    products = await searchCatalogFirst(autocorrected, origin);
+    if (products.length > 0) {
+      console.log(`✅ [robustSearch] Sucesso com autocorreção: ${products.length} produtos`);
+      return products;
+    }
+  }
   
   console.log(`❌ [robustSearch] Nenhum produto encontrado para "${q}"`);
   return [];
+}
+
+// 🔧 AUTOCORRETOR para corrigir erros de digitação comuns
+const DICT = ["drone","perfume","iphone","motorola","xiaomi","soja","milho","lattafa","yara","asad","perfumes","celular","smartphone","tablet","notebook","laptop","fone","headset","mouse","teclado","monitor","tv","camera","relogio","watch"];
+
+function jaccard(a, b) {
+  const S = new Set(a);
+  const T = new Set(b);
+  const inter = [...S].filter(x => T.has(x)).length;
+  return inter / (S.size + T.size - inter);
+}
+
+function closest(token, dict) {
+  let best = null, bestScore = 0;
+  for (const w of dict) {
+    const s = jaccard(token, w);
+    if (s > bestScore) { 
+      bestScore = s; 
+      best = w; 
+    }
+  }
+  return bestScore >= 0.72 ? best : null;
+}
+
+function autocorrect(q) {
+  const terms = q.toLowerCase().split(/\s+/);
+  const corrected = terms.map(t => closest(t, DICT) ?? t);
+  const result = corrected.join(' ');
+  
+  if (result !== q.toLowerCase()) {
+    console.log(`🔧 [autocorrect] "${q}" → "${result}"`);
+  }
+  
+  return result;
 }
 
 /** Busca produtos para fundamentar a resposta (RAG melhorado) - Agora com Gate de Catálogo */
