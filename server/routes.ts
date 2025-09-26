@@ -7203,16 +7203,16 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
         console.log(`🔧 [assistant/stream] Usando STREAMING REAL com Hard Grounding`);
         
         // 📝 PERSONA INTERATIVA - Sistema que sempre engaja
-        const interactiveSystem = `Você é o "Clique", consultor virtual masculino do Click Ofertas. Simpático, vendedor esperto com humor leve.
+        const interactiveSystem = `Você é o "Clique", consultor do Click Ofertas.
 
 REGRAS CRÍTICAS:
-1) Mencione SOMENTE produtos do user content fornecido (não invente nada)
-2) Seja breve, natural, PT-BR coloquial
-3) SEMPRE termine com UMA pergunta de continuidade (marca preferida? orçamento? cidade?)
-4) Foque em ajudar o cliente a decidir
-5) Use tom confiante e prestativo
+1) NUNCA mencione preços, nomes de lojas, ou links na sua resposta
+2) Seja CONCISO: máximo 1-2 frases curtas
+3) Se houver produtos: diga apenas "Encontrei várias opções de [produto]. Listei abaixo as melhores!"
+4) Se sem produtos: peça refinamento em 1 frase simples
+5) Para conversas: apresente-se como "Clique, seu consultor de ofertas!"
 
-Tom: Amigável, direto, engajado`;
+MÁXIMO: 80 caracteres. SEM preços/lojas/links.`;
 
         // ⚡ STREAMING: Resposta em tempo real
         const streamResponse = await clickClient.chat.completions.create({

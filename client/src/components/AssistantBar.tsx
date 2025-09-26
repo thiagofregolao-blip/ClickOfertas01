@@ -406,11 +406,9 @@ export default function AssistantBar() {
     // 3. Usuário está focado no campo
     setShowSuggestions(!!value && value.length >= 2 && !open && isSearchFocused);
     
-    // Só limpar dados se não estiver mostrando resultados (overlay ativo)
-    if (!value.trim() && !showResults) {
-      setFeed([]);
-      setTopBox([]);
-      setCombina([]);
+    // 🔧 NÃO LIMPAR produtos automaticamente - só quando nova busca
+    // Só limpar sugestões se não há valor
+    if (!value.trim()) {
       setShowSuggestions(false);
       return;
     }
