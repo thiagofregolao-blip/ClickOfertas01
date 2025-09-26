@@ -7004,8 +7004,14 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
           content: msg.content
         }));
 
+      // 🆔 ANTI-CORRIDA: Gerar requestId único
+      const requestId = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+      
       res.writeHead(200, { 'Content-Type':'text/event-stream', 'Cache-Control':'no-cache', 'Connection':'keep-alive' });
-      const write = (d:any)=> res.write(`data: ${JSON.stringify(d)}\n\n`);
+      const write = (d:any)=> res.write(`data: ${JSON.stringify({...d, requestId})}\n\n`);
+      
+      // Enviar meta com requestId primeiro
+      write({ type:'meta', requestId });
 
       // 🧠 DETECÇÃO DE INTENÇÃO antes da busca
       console.log(`🎬 [assistant/stream] Processando: "${message}" para usuário: ${name}`);
@@ -7033,6 +7039,7 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
 
         const smallTalkText = smallTalkResponse.choices[0].message.content;
         write({ type:'chunk', text: smallTalkText });
+        write({ type:'message', content: smallTalkText });
         
         await storage.createAssistantMessage({ 
           sessionId, 
@@ -7041,13 +7048,14 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
           metadata:{ 
             streamed: true, 
             intent: 'SMALL_TALK',
-            noProductSearch: true 
+            noProductSearch: true,
+            requestId
           } 
         });
         
         write({ type:'end' });
         res.end();
-        return;
+        return; // ⚠️ EARLY RETURN - NÃO CONTINUA PARA BUSCA
       }
       
       // ❶ RAG melhorado: busca produtos apenas para SEARCH e MORE

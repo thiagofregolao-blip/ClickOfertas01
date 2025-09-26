@@ -35,6 +35,9 @@ export function useAssistantChat({
   const [recommended, setRecommended] = useState<any[]>([]);
   const [feed, setFeed] = useState<any[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
+  
+  // 🆔 ANTI-CORRIDA: Track do requestId mais recente
+  const latestRequestIdRef = useRef<string | null>(null);
 
   // 🧠 MEMÓRIA CONVERSACIONAL - Sistema de Vendedor Inteligente
   const [sessionMemory, setSessionMemory] = useState<any>(null);
@@ -279,6 +282,20 @@ export function useAssistantChat({
             const line = chunk.trim().replace(/^data:\s?/, '');
             try {
               const payload = JSON.parse(line);
+              
+              // 🆔 ANTI-CORRIDA: Processar meta com requestId
+              if (payload.type === 'meta') {
+                latestRequestIdRef.current = payload.requestId;
+                console.log(`🆔 [Frontend] Novo requestId: ${payload.requestId}`);
+                continue;
+              }
+              
+              // 🚫 FILTRO: Ignorar events de requests antigos
+              if (latestRequestIdRef.current && payload.requestId !== latestRequestIdRef.current) {
+                console.log(`🚫 [Frontend] Ignorando event de requestId antigo: ${payload.requestId}`);
+                continue;
+              }
+              
               if (payload.type === 'chunk' && payload.text) {
                 full += payload.text;
                 // atualize a última mensagem do assistente na UI aqui
