@@ -1,0 +1,207 @@
+Bora resolver isso de vez. Eu li seu AssistantBar.tsx e o laudo que você mandou. O backend está OK; o problema está no frontend (corrida entre streams + um fetchSuggest que sobrescreve os cards recebidos por SSE). Vou te dar patches cirúrgicos que param os sumiços dos produtos, evitam frases repetidas e consertam o “digitando”.
+
+3 bugs que causam exatamente o que você descreveu (com base no seu arquivo):
+
+Sem controle de “requisição atual”: você não usa requestId (nem descarta chunks antigos). Quando outro stream começa, os eventos do anterior ainda chegam e bagunçam estado.
+
+fetchSuggest() roda depois do SSE e limpa topBox/feed com um resultado diferente (às vezes vazio). Resultado: os produtos aparecem e somem logo depois.
+
+Typing: você liga setIsTyping(true), mas desliga antes do primeiro delta (logo após fetch()), então o “digitando” some e o usuário acha que travou. 
+
+AssistantBar_ANALISE
+
+A seguir, patches prontos. Cole exatamente onde indicado.
+
+1) Trave a sessão do stream por requestId (descartar eventos velhos)
+
+Acima dos estados, adicione:
+
+const activeRequestIdRef = useRef<string | null>(null);
+const haveProductsInThisRequestRef = useRef(false); // trava contra fetchSuggest sobrescrever
+
+
+Dentro de startStream, logo após fetch retornar (e antes de ler o body), gere e salve um id:
+
+// gere um requestId local (se o backend não enviar)
+const reqId = `r-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+activeRequestIdRef.current = reqId;
+haveProductsInThisRequestRef.current = false;
+
+
+Crie um helper pra aceitar apenas eventos da requisição corrente:
+
+const acceptEvent = (payload: any) => {
+  // Se o backend mandar requestId no JSON, valide:
+  if (payload?.requestId && activeRequestIdRef.current && payload.requestId !== activeRequestIdRef.current) {
+    console.log('⏭️ descartando evento de request antigo', payload.requestId);
+    return false;
+  }
+  return true;
+};
+
+
+Dentro do loop de chunks, antes de processar cada p (JSON parseado), valide:
+
+if (!acceptEvent(p)) continue;
+
+
+Resultado: um novo startStream invalida o anterior; nada “apaga” a resposta em curso. 
+
+AssistantBar_ANALISE
+
+2) Pare o fetchSuggest de sobrescrever os produtos do SSE
+2.1. Só permita fetchSuggest se ainda não chegaram produtos neste request
+
+No bloco onde você chama fetchSuggest quando detecta palavras no texto do assistente, troque:
+
+if (pendingSearchRef.current && !hasTriggeredSearchRef.current && (
+  assistantMessage.toLowerCase().includes('busca') ||
+  assistantMessage.toLowerCase().includes('procurando') ||
+  assistantMessage.toLowerCase().includes('opções') ||
+  assistantMessage.toLowerCase().includes('aqui estão') ||
+  assistantMessage.toLowerCase().includes('vou buscar') ||
+  assistantMessage.toLowerCase().includes('procurar')
+)) {
+  fetchSuggest(pendingSearchRef.current);
+  hasTriggeredSearchRef.current = true;
+  pendingSearchRef.current = '';
+}
+
+
+por:
+
+const spokeAboutSearch = /busca|procurando|opções|aqui estão|vou buscar|procurar/i.test(assistantMessage);
+if (pendingSearchRef.current && !hasTriggeredSearchRef.current && spokeAboutSearch && !haveProductsInThisRequestRef.current) {
+  // Só usamos suggest como fallback ANTES de chegar produtos reais
+  fetchSuggest(pendingSearchRef.current);
+  hasTriggeredSearchRef.current = true;
+  // NÃO limpe pendingSearch ainda — deixe o SSE "products" decidir
+}
+
+2.2. Marque que chegaram produtos pela IA e impeça que o suggest limpe
+
+No handler de p.type === 'products', antes de setTopBox(...):
+
+haveProductsInThisRequestRef.current = true;
+
+
+E dentro de fetchSuggest, não limpe produtos se já temos produtos neste request:
+
+const fetchSuggest = async (q: string) => {
+  if (!q.trim() || loadingSug) return;
+  setLoadingSug(true);
+
+  try {
+    // Se já chegaram produtos por SSE neste request, NÃO toque na UI de produtos
+    if (haveProductsInThisRequestRef.current) {
+      console.log('↩️ fetchSuggest cancelado: já há produtos do SSE neste request');
+      return;
+    }
+
+    // ... restante do código como está ...
+  } finally {
+    setLoadingSug(false);
+  }
+};
+
+
+Agora os produtos não somem: o suggest vira fallback (antes do SSE) e não um “limpador” AFTER. 
+
+AssistantBar_ANALISE
+
+3) Conserte o “digitando” (só desligar após o 1º delta)
+
+No início do startStream remova este trecho:
+
+// Remover indicador de digitação quando começar a receber resposta
+setIsTyping(false);
+
+
+E ligue/desligue assim:
+
+setIsTyping(true);   // antes de iniciar a leitura
+
+// dentro do loop: quando receber o primeiro delta/chunk válido
+if ((p.type === 'chunk' || p.type === 'delta') && p.text) {
+  if (isTyping) setIsTyping(false); // desligar aqui, no primeiro delta real
+  // ... resto inalterado ...
+}
+
+
+Com isso, o “digitando” fica visível até o primeiro texto chegar, evitando a sensação de sumiço. 
+
+AssistantBar_ANALISE
+
+4) Não fechar o stream “mudo” → sempre promova o texto/mostre fallback
+
+No fim do while (true) (quando done), você já tem um fallback. Garanta que também adiciona a última mensagem ao chat mesmo se o backend mandar complete sem deltas:
+
+// já existe um fallback depois do loop — mantenha.
+// mas dentro do handler de 'end'/'complete', retire o 'return' seco:
+} else if (p.type === 'end' || p.type === 'complete') {
+  // ... seu código ...
+  if (assistantMessage.trim()) {
+    setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage.trim() }]);
+  } else {
+    // fallback verbal se não veio nada:
+    setChatMessages(prev => [...prev, { type: 'assistant', text: "Estou aqui 👍 Me diga a categoria e a cidade que eu já busco ofertas." }]);
+  }
+  setStreaming('');
+  // NÃO dê 'return' — apenas marque leitura como encerrada e deixe o loop quebrar naturalmente
+}
+
+
+Evita “acaba o stream e não aparece nada”. 
+
+AssistantBar_ANALISE
+
+5) Dupla compatibilidade de eventos (se o backend alternar formato)
+
+Seu parser hoje só lida com data: {...} (JSON). Se o backend enviar eventos nomeados (event: products), o seu .replace(/^data:/,'') vai deixar “event: ...\ndata: ...” e cair no “JSON malformado”.
+
+Patch rápido no parsing do part:
+
+// antes de JSON.parse(line):
+let dataPayload = line;
+if (line.startsWith('event:')) {
+  // formato SSE nomeado: 'event: X\ndata: {...}'
+  const lines = line.split('\n');
+  const dataLine = lines.find(l => l.startsWith('data:'));
+  dataPayload = dataLine ? dataLine.replace(/^data:\s?/, '') : '';
+}
+const p = JSON.parse(dataPayload);
+
+
+Assim, você aguenta tanto onmessage {type:...} quanto event: nomeado — sem quebrar. 
+
+AssistantBar_ANALISE
+
+6) Evite duplicar submissões (frases repetidas)
+
+Você já tem throttling no header, mas o formulário também chama startStream. Garanta que um caminho dispara por vez:
+
+No listener handleHeaderSubmit, retorne false/stopPropagation no evento customizado (se você controlar o emissor), ou adicione uma flag curta:
+
+const firingRef = useRef(false);
+
+// dentro de handleHeaderSubmit, logo no início:
+if (firingRef.current) return;
+firingRef.current = true;
+setTimeout(() => (firingRef.current = false), 800);
+
+
+Isso elimina as mensagens repetidas por turnos duplicados. 
+
+AssistantBar_ANALISE
+
+Checklist rápido (valide aí)
+
+ Produtos não somem mais (SSE “ganha” do suggest; suggest não limpa).
+
+ “Digitando” só apaga após o 1º delta.
+
+ Nada de frases repetidas (anti-duplo disparo).
+
+ Eventos antigos são ignorados (requestId/guard).
+
+ Parser lida com eventos nomeados e {type:...}.

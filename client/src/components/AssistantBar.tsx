@@ -74,6 +74,9 @@ export default function AssistantBar() {
   const sessionIdRef = useRef('');
   const lastHeaderQueryRef = useRef('');
   const lastHeaderSubmitTime = useRef(0);
+  const activeRequestIdRef = useRef<string | null>(null);
+  const haveProductsInThisRequestRef = useRef(false); // trava contra fetchSuggest sobrescrever
+  const firingRef = useRef(false);
 
   // Estados para animações da barra de busca
   const [displayText, setDisplayText] = useState('');
@@ -110,6 +113,11 @@ export default function AssistantBar() {
         sessionId: sessionIdRef.current,
         hasSession: !!sessionIdRef.current 
       });
+      
+      // 🚫 Anti-duplicação
+      if (firingRef.current) return;
+      firingRef.current = true;
+      setTimeout(() => (firingRef.current = false), 800);
       
       if (e.detail?.source === 'header' && e.detail.query) {
         const query = e.detail.query;
@@ -465,8 +473,16 @@ export default function AssistantBar() {
   };
 
   const fetchSuggest = async (term: string) => {
+    if (!term.trim() || loadingSug) return;
     setLoadingSug(true);
+    
     try {
+      // 📦 Se já chegaram produtos por SSE neste request, NÃO toque na UI de produtos
+      if (haveProductsInThisRequestRef.current) {
+        console.log('↩️ fetchSuggest cancelado: já há produtos do SSE neste request');
+        return;
+      }
+      
       let r = await fetch(`/suggest?q=${encodeURIComponent(term)}`);
       if (!r.ok) r = await fetch(`/api/suggest?q=${encodeURIComponent(term)}`);
       const d = await r.json();
@@ -599,8 +615,10 @@ export default function AssistantBar() {
         return;
       }
       
-      // Remover indicador de digitação quando começar a receber resposta
-      setIsTyping(false);
+      // 🆔 gere um requestId local (se o backend não enviar)
+      const reqId = `r-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+      activeRequestIdRef.current = reqId;
+      haveProductsInThisRequestRef.current = false;
       
       const reader = res.body.getReader();
       readerRef.current = reader;
@@ -608,6 +626,16 @@ export default function AssistantBar() {
       let buffer = '';
       let assistantMessage = '';
       let assistantMessageId = `assistant-${Date.now()}`;
+      
+      // 🚫 Helper para aceitar apenas eventos da requisição corrente
+      const acceptEvent = (payload: any) => {
+        // Se o backend mandar requestId no JSON, valide:
+        if (payload?.requestId && activeRequestIdRef.current && payload.requestId !== activeRequestIdRef.current) {
+          console.log('⏭️ descartando evento de request antigo', payload.requestId);
+          return false;
+        }
+        return true;
+      };
       
       console.log('👂 [AssistantBar] Reader iniciado, aguardando chunks...');
       
@@ -641,28 +669,39 @@ export default function AssistantBar() {
           // 🧠 PARSER ROBUSTO: Tentar JSON primeiro, só aceitar texto se NÃO for JSON malformado
           let isValidEvent = false;
           try {
-            const p = JSON.parse(line);
+            // 🔄 Compatibilidade dupla de eventos
+            let dataPayload = line;
+            if (line.startsWith('event:')) {
+              // formato SSE nomeado: 'event: X\ndata: {...}'
+              const lines = line.split('\n');
+              const dataLine = lines.find(l => l.startsWith('data:'));
+              dataPayload = dataLine ? dataLine.replace(/^data:\s?/, '') : '';
+            }
+            const p = JSON.parse(dataPayload);
             isValidEvent = true;
             console.log('✅ [DEBUG] Evento JSON válido:', p.type);
             
+            // 🚫 Validar se evento é da requisição atual
+            if (!acceptEvent(p)) continue;
+            
             if ((p.type === 'chunk' || p.type === 'delta') && p.text) {
               console.log('✅ [DEBUG] Processando texto delta/chunk:', p.text.substring(0, 50));
+              if (isTyping) setIsTyping(false); // 🔄 desligar aqui, no primeiro delta real
               assistantMessage += p.text;
               setStreaming(assistantMessage);
               
-              // Detectar quando assistente fala sobre buscar e executar busca pendente (apenas uma vez)
-              if (pendingSearchRef.current && !hasTriggeredSearchRef.current && 
-                  (assistantMessage.toLowerCase().includes('busca') || 
-                   assistantMessage.toLowerCase().includes('procurando') ||
-                   assistantMessage.toLowerCase().includes('opções') ||
-                   assistantMessage.toLowerCase().includes('aqui estão') ||
-                   assistantMessage.toLowerCase().includes('vou buscar') ||
-                   assistantMessage.toLowerCase().includes('procurar'))) {
+              // 🔍 Detectar quando assistente fala sobre buscar e executar busca pendente (apenas uma vez)
+              const spokeAboutSearch = /busca|procurando|opções|aqui estão|vou buscar|procurar/i.test(assistantMessage);
+              if (pendingSearchRef.current && !hasTriggeredSearchRef.current && spokeAboutSearch && !haveProductsInThisRequestRef.current) {
+                // Só usamos suggest como fallback ANTES de chegar produtos reais
                 fetchSuggest(pendingSearchRef.current);
                 hasTriggeredSearchRef.current = true;
-                pendingSearchRef.current = ''; // Limpar busca pendente
+                // NÃO limpe pendingSearch ainda — deixe o SSE "products" decidir
               }
             } else if (p.type === 'products') {
+              // 🔄 Marcar que chegaram produtos pela IA e impedir que o suggest limpe
+              haveProductsInThisRequestRef.current = true;
+              
               // 🔧 HARD GROUNDING FRONTEND: Só produtos com ID válido
               console.log('📦 [AssistantBar] ✅ Produtos recebidos (evento separado):', p.products?.length || 0);
               
@@ -714,12 +753,16 @@ export default function AssistantBar() {
                 pendingSearchRef.current = '';
               }
               
-              // 🔧 FINALIZAR: Só adicionar se há mensagem válida
+              // 🔧 FINALIZAR: Adicionar mensagem ou fallback
               if (assistantMessage.trim()) {
                 setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage.trim() }]);
+              } else {
+                // fallback verbal se não veio nada:
+                setChatMessages(prev => [...prev, { type: 'assistant', text: "Estou aqui 👍 Me diga a categoria e a cidade que eu já busco ofertas." }]);
               }
               setStreaming('');
-              return;
+              // NÃO dê 'return' — apenas marque leitura como encerrada e deixe o loop quebrar naturalmente
+              break;
             } else if (p.type === 'meta' || p.type === 'paragraph_done') {
               // Eventos informativos que não precisam processamento
               console.log('ℹ️ [DEBUG] Evento informativo:', p.type);
