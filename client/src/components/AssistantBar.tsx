@@ -523,11 +523,14 @@ export default function AssistantBar() {
     const t = query.trim();
     if (!t || !sessionId) return;
     
+    // 🔄 RESET COMPLETO para nova consulta
+    console.log('🔄 [onSubmit] Resetando estado para nova consulta:', t);
+    
     // Armazenar termo para buscar após o chat informar
     pendingSearchRef.current = t;
     hasTriggeredSearchRef.current = false; // Reset flag
     
-    // Limpar produtos existentes
+    // Limpar produtos existentes SEMPRE
     setTopBox([]);
     setFeed([]);
     setCombina([]);
@@ -551,9 +554,13 @@ export default function AssistantBar() {
       readerRef.current = null;
     }
     
-    // Mostrar indicador de digitação
+    // 🔄 RESET COMPLETO DE ESTADO
+    console.log('🔄 [AssistantBar] Resetando estado para nova consulta');
     setIsTyping(true);
     setStreaming('');
+    // Reset flags críticas
+    pendingSearchRef.current = message; // Manter mensagem como pendente
+    hasTriggeredSearchRef.current = false;
     
     try {
       const res = await fetch('/api/assistant/stream', {
@@ -590,8 +597,19 @@ export default function AssistantBar() {
         
         for (const chunk of parts) {
           const line = chunk.trim().replace(/^data:\s?/, '');
+          
+          // 🛡️ PROTEÇÃO: Só processar linhas não vazias
+          if (!line) continue;
+          
+          console.log('🔍 [DEBUG] Processando chunk:', line.substring(0, 100) + (line.length > 100 ? '...' : ''));
+          
+          // 🧠 PARSER ROBUSTO: Tentar JSON primeiro, só aceitar texto se NÃO for JSON malformado
+          let isValidEvent = false;
           try {
             const p = JSON.parse(line);
+            isValidEvent = true;
+            console.log('✅ [DEBUG] Evento JSON válido:', p.type);
+            
             if (p.type === 'chunk' && p.text) {
               assistantMessage += p.text;
               setStreaming(assistantMessage);
@@ -609,8 +627,8 @@ export default function AssistantBar() {
                 pendingSearchRef.current = ''; // Limpar busca pendente
               }
             } else if (p.type === 'products') {
-              // ✨ NOVO: Evento de produtos enviado após resposta da IA
-              console.log('📦 [AssistantBar] Produtos recebidos:', p.products?.length || 0);
+              // ✨ PRODUTOS: Processamento separado - NÃO adiciona ao chat
+              console.log('📦 [AssistantBar] ✅ Produtos recebidos (evento separado):', p.products?.length || 0);
               
               if (p.products && p.products.length > 0) {
                 // Atualizar memória da sessão com produtos mostrados
@@ -623,7 +641,7 @@ export default function AssistantBar() {
                 setFeed(p.products.slice(3));
                 setShowResults(true);
                 
-                console.log('📦 [AssistantBar] Interface atualizada com produtos');
+                console.log('📦 [AssistantBar] ✅ Interface atualizada com produtos');
               }
             } else if (p.type === 'end') {
               // Fallback: se ainda há busca pendente, executar agora
@@ -637,10 +655,21 @@ export default function AssistantBar() {
               setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage }]);
               setStreaming('');
               return;
+            } else {
+              console.log('⚠️ [DEBUG] Evento JSON desconhecido:', p.type);
             }
-          } catch {
-            assistantMessage += line;
-            setStreaming(assistantMessage);
+          } catch (error) {
+            // 🚨 CRÍTICO: SÓ adicionar ao texto se NÃO parecer JSON malformado
+            const looksLikeJSON = line.includes('{') && (line.includes('"type"') || line.includes('"products"'));
+            
+            if (looksLikeJSON) {
+              console.warn('🚨 [DEBUG] JSON malformado detectado - IGNORANDO:', line.substring(0, 50));
+              // NÃO adicionar ao assistantMessage - ignorar JSON malformado
+            } else {
+              console.log('📝 [DEBUG] Texto simples adicionado:', line.substring(0, 50));
+              assistantMessage += line;
+              setStreaming(assistantMessage);
+            }
           }
         }
       }
@@ -692,9 +721,17 @@ export default function AssistantBar() {
     const message = overlayInput.trim();
     if (!message || !sessionId) return;
     
+    // 🔄 RESET para overlay message
+    console.log('🔄 [sendOverlayMessage] Nova consulta via overlay:', message);
+    
     // Armazenar termo para buscar após o chat informar (mesmo padrão do onSubmit)
     pendingSearchRef.current = message;
     hasTriggeredSearchRef.current = false; // Reset flag
+    
+    // Limpar produtos existentes para nova consulta
+    setTopBox([]);
+    setFeed([]);
+    setCombina([]);
     
     // Adicionar mensagem do usuário
     setChatMessages(prev => [...prev, { type: 'user', text: message }]);
