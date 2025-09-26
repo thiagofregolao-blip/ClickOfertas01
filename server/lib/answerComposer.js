@@ -122,8 +122,9 @@ export async function buildGrounding(origin, q, sessionId = null) {
   console.log(`📝 [buildGrounding] Usando query original: "${q}"`);
   let primaryQuery = q;
   
-  // 🔧 PATCH A: Buscar no primeiro endpoint que tiver dados de verdade (não apenas truthy vazio)
+  // 🔧 CORREÇÃO: Adicionar endpoint direto ao catálogo + busca em outros endpoints
   const endpoints = [
+    `${origin}/api/products/search?q=${encodeURIComponent(primaryQuery)}`, // direto no banco
     `${origin}/api/click/suggest?q=${encodeURIComponent(primaryQuery)}`,
     `${origin}/api/suggest?q=${encodeURIComponent(primaryQuery)}`,
     `${origin}/suggest?q=${encodeURIComponent(primaryQuery)}`,
@@ -196,18 +197,28 @@ export async function buildGrounding(origin, q, sessionId = null) {
       }));
       
       console.log(`🎯 [buildGrounding] Normalizados ${sug.products.length} produtos`);
-    } else if (sug?.suggestions) {
-      console.log(`🔄 [buildGrounding] Convertendo suggestions para formato products`);
-      sug.products = sug.suggestions.map((title, index) => ({
-        id: `suggestion-${index}`,
-        title: title,
-        category: "",
-        price: { USD: null },
-        premium: false,
-        storeName: "",
-        storeSlug: "",
-        imageUrl: null
-      }));
+    } else if (sug?.suggestions && sug.suggestions.length > 0) {
+      // 🔧 CORREÇÃO: Usar suggestions para reformular query, NÃO converter em produtos artificiais
+      console.log(`🔄 [buildGrounding] Tentando reformular query com suggestions: ${sug.suggestions.slice(0, 3)}`);
+      const reformulated = sug.suggestions.slice(0, 3).join(' ');
+      
+      // Tentar buscar com query reformulada
+      const retryEndpoints = [
+        `${origin}/api/products/search?q=${encodeURIComponent(reformulated)}`, // direto no banco
+        `${origin}/api/click/suggest?q=${encodeURIComponent(reformulated)}`,
+        `${origin}/api/suggest?q=${encodeURIComponent(reformulated)}`,
+        `${origin}/suggest?q=${encodeURIComponent(reformulated)}`,
+        `${origin}/api/search/suggestions?q=${encodeURIComponent(reformulated)}`
+      ];
+
+      for (const url of retryEndpoints) {
+        const d = await tryFetch(url);
+        if (hasPayload(d)) { 
+          sug = d; 
+          console.log(`✅ [buildGrounding] Query reformulada funcionou com: "${reformulated}"`);
+          break; 
+        }
+      }
     }
   }
   
@@ -237,6 +248,7 @@ export async function buildGrounding(origin, q, sessionId = null) {
       console.log(`🎯 [buildGrounding] Tentando com termos-chave extraídos: "${narrowed}"`);
       
       const keywordEndpoints = [
+        `${origin}/api/products/search?q=${encodeURIComponent(narrowed)}`, // direto no banco
         `${origin}/api/click/suggest?q=${encodeURIComponent(narrowed)}`,
         `${origin}/api/suggest?q=${encodeURIComponent(narrowed)}`,
         `${origin}/suggest?q=${encodeURIComponent(narrowed)}`,
@@ -261,7 +273,7 @@ export async function buildGrounding(origin, q, sessionId = null) {
   }
   
   // 🔧 PATCH D: Mapear produtos com dados completos incluindo conversão automática PYG→USD
-  const products = (sug?.products || []).map(p => ({
+  const allProducts = (sug?.products || []).map(p => ({
     id: p.id, 
     title: p.title, 
     category: p.category || "",
@@ -274,6 +286,11 @@ export async function buildGrounding(origin, q, sessionId = null) {
     storeSlug: p.storeSlug || "",
     imageUrl: p.imageUrl || null
   }));
+
+  // 🔧 CORREÇÃO: Filtro produtos válidos - só com ID, título e loja
+  const products = allProducts.filter(p => p.id && p.title && (p.storeName || p.storeSlug));
+  
+  console.log(`🔍 [buildGrounding] Filtro de produtos válidos: ${allProducts.length} → ${products.length} (removidos ${allProducts.length - products.length} inválidos)`);
   
   console.log(`🎯 [buildGrounding] Produtos mapeados:`, {
     count: products.length,
@@ -505,10 +522,20 @@ MODO VENDAS CONSULTIVAS ATIVADO:
     actionInstruction = `MÚLTIPLOS PRODUTOS: Compare modelos, crie escala de valor (básico/intermediário/premium), sugira o ideal para cada necessidade. Feche perguntando preferência.`;
   }
 
-  // Construir USER prompt mais inteligente (SEM JSON completo para evitar reprodução)
-  const productSummary = products.length > 0 
-    ? `Produtos encontrados: ${products.length} opções disponíveis (${[...uniqueStores].join(', ')}) - detalhes serão mostrados automaticamente na interface`
-    : "Nenhum produto encontrado para esta busca.";
+  // 🔧 CORREÇÃO: Incluir produtos REAIS no prompt da IA (sem JSON para evitar reprodução)
+  let productSummary = "";
+  if (products.length === 0) {
+    productSummary = "NENHUM produto encontrado no catálogo para esta busca. NUNCA invente produtos. Pergunte por categoria específica, marca ou preço para refinar a busca.";
+  } else {
+    const top3Products = products.slice(0, 3);
+    productSummary = `PRODUTOS DISPONÍVEIS NO CATÁLOGO:
+${top3Products.map((p, i) => {
+  const price = p.priceUSD ? `US$ ${p.priceUSD}` : 'Consultar preço';
+  return `${i + 1}. "${p.title}" - ${p.storeName} - ${price}`;
+}).join('\n')}${products.length > 3 ? `\n(+ ${products.length - 3} outros produtos similares disponíveis)` : ''}
+
+IMPORTANTE: Você SÓ pode falar sobre estes produtos ESPECÍFICOS do catálogo. NUNCA invente nomes, preços ou modelos que não estão nesta lista.`;
+  }
     
   const userPromptParts = [
     `Consulta do cliente: "${q}"`,

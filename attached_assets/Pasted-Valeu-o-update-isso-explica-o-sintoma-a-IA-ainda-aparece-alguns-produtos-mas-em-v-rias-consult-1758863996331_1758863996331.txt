@@ -1,0 +1,160 @@
+Valeu o update — isso explica o sintoma: a IA ainda “aparece” alguns produtos, mas em várias consultas ela volta a textos genéricos (“iPhone SE 2020”, “Perfume Floral”) porque o seu grounding está promovendo “suggestions” a “products” quando o endpoint não retorna itens reais. A partir daí, o modelo não tem IDs/lojas/preços e completa no chute.
+
+Onde está causando isso (no seu código)
+
+No normalize, quando não há products, você converte suggestions em “produtos” artificiais (sem ID/loja/preço):
+isso ocorre neste bloco — repara que cada “suggestion” vira { id:'suggestion-0', title:'...' }.
+
+
+click-assistant-debug
+
+ 
+
+click-assistant-debug
+
+ 
+
+click-assistant-debug
+
+O mesmo padrão se repete no fallback (de novo converte “suggestions” em “products”):
+
+
+click-assistant-debug
+
+ 
+
+click-assistant-debug
+
+Com isso, o retorno de buildGrounding() inclui “produtos” que não são do seu banco (não têm storeName, price, etc.), e o LLM não tem como ancorar a resposta em dados reais.
+
+Conserto em 3 passos (cirúrgico e eficaz)
+1) Nunca trate suggestions como products
+
+Use sugestões só para reformular a query e tentar buscar de novo no seu backend/DB. Remova os blocos que mapeiam suggestions → products e troque por:
+
+// ❌ REMOVER: conversão de suggestions em products
+// ✅ USAR suggestions para reformular a busca
+if ((!sug?.products || sug.products.length === 0) && Array.isArray(sug?.suggestions) && sug.suggestions.length > 0) {
+  const reformulated = sug.suggestions.slice(0, 3).join(' ');
+  const retry = await fetchFromEndpoints(reformulated); // mesma lógica dos seus endpoints
+  if (retry?.products?.length > 0) {
+    sug = retry;
+  }
+}
+
+
+Resultado: só entram no pipeline produtos reais (com ID/loja/preço). As sugestões passam a ser query assistida, não “dado”.
+
+2) Adicione uma rota direta ao seu banco/serviço de catálogo
+
+Hoje você tenta apenas suggest/suggestions. Se o seu catálogo fica atrás de /api/products/search (ou similar), inclua esse endpoint (com auth, se precisar):
+
+async function fetchFromEndpoints(query) {
+  const endpoints = [
+    `${origin}/api/products/search?q=${encodeURIComponent(query)}`, // <-- direto no seu catálogo
+    `${origin}/api/click/suggest?q=${encodeURIComponent(query)}`,
+    `${origin}/api/suggest?q=${encodeURIComponent(query)}`,
+    `${origin}/suggest?q=${encodeURIComponent(query)}`,
+    `${origin}/api/search/suggestions?q=${encodeURIComponent(query)}`
+  ];
+  for (const url of endpoints) {
+    const d = await tryFetch(url);
+    if (hasPayload(d)) return d; // hasPayload = products/results/items com length>0
+  }
+  return null;
+}
+
+
+Assim, mesmo quando “suggest” falhar, você consulta o seu banco e volta com produtos verdadeiros.
+
+3) Política de resposta “Só falar do que veio do banco”
+
+Passe os produtos retornados como contexto fechado e exija que a IA só use aqueles IDs/títulos. Na sua chamada à Responses API:
+
+const grounding = await buildGrounding(userQuery); // retorna { top8, all }
+const productSet = grounding.top8.map(p => ({
+  id: p.id, title: p.title, store: p.storeName, priceUSD: p.priceUSD, imageUrl: p.imageUrl
+}));
+
+const system = `
+Você é o assistente do Click Ofertas.
+NUNCA invente produto. VOCÊ SÓ PODE citar itens cujo id esteja na lista "product_set".
+Se a lista vier vazia, diga que não encontrou e peça para refinar (categoria, cidade, preço).
+Responda em PT-BR.
+`;
+
+const input = [
+  { role: "system", content: system },
+  { role: "user", content: userQuery },
+  {
+    role: "developer",
+    content: JSON.stringify({ product_set: productSet }) // <-- contexto estruturado
+  }
+];
+
+// Opcional: peça saída estruturada
+const response = await client.responses.create({
+  model: "gpt-4.1",
+  input,
+  response_format: {
+    type: "json_schema",
+    json_schema: {
+      name: "click_ofertas_products",
+      schema: {
+        type: "object",
+        required: ["items", "explanation"],
+        properties: {
+          items: {
+            type: "array",
+            items: {
+              type: "object",
+              required: ["id"],
+              properties: {
+                id: { type: "string" }, // deve bater com product_set.id
+                reason: { type: "string" }
+              }
+            }
+          },
+          explanation: { type: "string" }
+        }
+      }
+    }
+  }
+});
+
+
+Depois você valida que todo items[i].id está no product_set. Se algum não estiver, descarta e pede ao modelo uma nova tentativa (ou mostra uma mensagem “não encontrei produtos no catálogo para essa busca”).
+
+Salvaguardas extras (recomendado)
+
+Filtro mínimo de “produto válido” ao normalizar:
+
+const products = (sug?.products || []).map(...).filter(p => p.id && p.title && (p.storeName || p.storeSlug));
+
+
+Assim, nenhum “produto” sem campos essenciais entra no set.
+
+
+click-assistant-debug
+
+Resposta “sem alucinação”: se products.length === 0, devolva:
+
+return { top3: [], top8: [], all: [], status: "NO_RESULTS" };
+
+
+e o prompt do modelo já orienta a não inventar e pedir refinamento (cidade, categoria, preço).
+
+Logs: continue registrando os títulos que entram no set (você já faz algo nessa linha).
+
+
+click-assistant-debug
+
+Recap do porquê isso resolve
+
+Você elimina a origem dos textos genéricos (o mapping de suggestions → products).
+
+Garante que só dados reais do seu banco entram na resposta.
+
+Força o LLM a referenciar IDs válidos do product_set (sem “inventar”).
+
+Mantém boa UX: se não tiver item, o assistente explica e pede filtro — em vez de alucinar.
