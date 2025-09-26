@@ -19,6 +19,11 @@ async function searchCatalogFirst(q, origin) {
       console.log(`📡 [searchCatalogFirst] Tentando: ${url}`);
       const response = await fetch(url);
       if (response.ok) {
+        const ct = response.headers.get('content-type') || '';
+        if (!ct.toLowerCase().includes('application/json')) {
+          console.log(`⚠️ [searchCatalogFirst] Resposta não-JSON ignorada: ${url}`);
+          continue;
+        }
         const data = await response.json();
         
         // Extrair produtos de qualquer formato de resposta
@@ -45,29 +50,35 @@ async function searchCatalogFirst(q, origin) {
 async function fetchAccessories(queryOrKey, origin) {
   console.log(`🔧 [fetchAccessories] Buscando acessórios para: "${queryOrKey}"`);
   
-  const tryFetch = async (url) => {
+  async function tryFetchJSON(url, ms = 2500) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
     try {
-      const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
-        return data;
+      const r = await fetch(url, { signal: ctrl.signal });
+      if (!r.ok) return null;
+      const ct = r.headers.get('content-type') || '';
+      if (!ct.toLowerCase().includes('application/json')) {
+        // HTML/Texto? não é JSON → ignore em silêncio
+        return null;
       }
-    } catch (error) {
-      console.log(`❌ [fetchAccessories] Erro em ${url}:`, error.message);
+      return await r.json();
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(t);
     }
-    return null;
-  };
+  }
   
   const q = encodeURIComponent(queryOrKey);
   
   // Buscar acessórios em endpoints específicos
   const searches = await Promise.all([
-    tryFetch(`${origin}/api/accessories/search?compat=${q}`),
-    tryFetch(`${origin}/api/products/search?q=${q}+capinha`),
-    tryFetch(`${origin}/api/products/search?q=${q}+pelicula`),
-    tryFetch(`${origin}/api/products/search?q=${q}+bateria`),
-    tryFetch(`${origin}/api/products/search?q=${q}+kit`),
-    tryFetch(`${origin}/api/products/search?q=capinha+pelicula+bateria+carregador`)
+    tryFetchJSON(`${origin}/api/accessories/search?compat=${q}`),
+    tryFetchJSON(`${origin}/api/products/search?q=${q}+capinha`),
+    tryFetchJSON(`${origin}/api/products/search?q=${q}+pelicula`),
+    tryFetchJSON(`${origin}/api/products/search?q=${q}+bateria`),
+    tryFetchJSON(`${origin}/api/products/search?q=${q}+kit`),
+    tryFetchJSON(`${origin}/api/products/search?q=capinha+pelicula+bateria+carregador`)
   ]);
   
   const allAccessories = [];

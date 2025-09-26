@@ -1,0 +1,150 @@
+Respira — dá pra arrumar rápido. O crash veio de duas referências inexistentes que ficaram no seu código novo:
+
+write is not defined → você removeu/renomeou o helper mas ainda tem chamadas write(...).
+
+watchdog is not defined → o timer não foi declarado antes de dar clearInterval(watchdog).
+
+Além disso, seus logs mostram várias respostas HTML nos endpoints /api/products/search e /api/accessories/search (erro “Unexpected token '<'”), então o parser tentou JSON.parse num HTML de 404/erro e quebrou a busca. Isso não derruba o servidor, mas faz a IA ficar “digitando para sempre” se você não fecha o stream.
+
+Abaixo vai um patch cirúrgico para deixar tudo operando agora, sem reescrever nada grande.
+
+1) Traga de volta um helper compatível (write) e o send novo
+
+Cole estes helpers onde você escreve no SSE (no mesmo escopo onde tem res):
+
+const SSE_COMPAT = true; // deixe true até o front migrar 100%
+
+function send(event: string, payload: any) {
+  // eventos nomeados
+  res.write(`event: ${event}\n`);
+  res.write(`data: ${JSON.stringify(payload)}\n\n`);
+  // legado: onmessage com {type: ...}
+  if (SSE_COMPAT) {
+    res.write(`data: ${JSON.stringify({ type: event, ...payload })}\n\n`);
+  }
+}
+
+// ⚠️ Compatibilidade com chamadas antigas:
+function write(obj: any) {
+  const event = obj?.type ?? 'delta';
+  send(event, obj);
+}
+
+
+Com isso, todas as chamadas antigas write({ type:'chunk'|'delta'|'products'|'end'|'complete', ... }) voltam a funcionar. Se você já usa send('delta', {text}), beleza — ambos coexistem.
+
+2) Declare e limpe o watchdog com segurança
+
+Antes de criar o intervalo:
+
+let watchdog: NodeJS.Timeout | null = null;
+watchdog = setInterval(() => {
+  // se ficar mudo, mande um delta de presença
+  write({ type: 'delta', text: '\n(um instante… garimpando ofertas) ' });
+}, 7000);
+
+// ... no fim OU em qualquer catch/finally:
+if (watchdog) { clearInterval(watchdog); watchdog = null; }
+
+
+Assim some o erro “watchdog is not defined” e você nunca deixa o stream “mudo”.
+
+3) Nunca tente fazer JSON de HTML (proteção no tryFetch)
+
+Troque seu fetch util por este guard de Content-Type:
+
+async function tryFetchJSON(url: string, ms = 2500) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal });
+    if (!r.ok) return null;
+    const ct = r.headers.get('content-type') || '';
+    if (!ct.toLowerCase().includes('application/json')) {
+      // HTML/Texto? não é JSON → ignore em silêncio
+      return null;
+    }
+    return await r.json();
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+
+E troque nas chamadas problemáticas:
+
+const cat = await tryFetchJSON(`${origin}/api/products/search?q=${q}`);
+const acc = await tryFetchJSON(`${origin}/api/accessories/search?compat=${q}`);
+
+
+Isso elimina os “Unexpected token '<' … not valid JSON” dos logs e impede travas na pipeline.
+
+4) Garanta texto e finalização em TODO fluxo
+
+Logo que abrir o stream:
+
+write({ type: 'meta', requestId });        // opcional
+write({ type: 'delta', text: 'Beleza! Já confiro essas ofertas… 😉' }); // 1º delta imediato
+
+
+Quando a busca vier vazia:
+
+write({ type: 'delta', text: 'Não achei itens agora. Me diz **memória** (128/256GB) e **cidade** que eu garimpo ofertas 😉' });
+write({ type: 'complete' }); // ou 'done' se o front espera isso
+if (watchdog) clearInterval(watchdog);
+res.end();
+return;
+
+
+Quando terminar o stream da OpenAI:
+
+// Se tiver cards:
+write({ type: 'products', products: top8, query });
+// Fechamento padronizado:
+write({ type: 'complete' });
+if (watchdog) clearInterval(watchdog);
+res.end();
+
+
+Importante: sempre emita um complete/done no fim; senão o front fica preso em “digitando…”.
+
+5) Mapeie TODOS os eventos do SDK para “delta”
+
+Para a Responses API e para Chat Completions (se usar):
+
+// Responses API
+stream.on('event', (e: any) => {
+  if (e.type === 'response.output_text.delta' && e.delta) {
+    write({ type: 'delta', text: e.delta });
+  }
+  if (e.type === 'response.refusal.delta' && e.delta) {
+    write({ type: 'delta', text: e.delta });
+  }
+});
+// Chat Completions (fallback)
+for await (const chunk of stream) {
+  const t = chunk?.choices?.[0]?.delta?.content;
+  if (t) write({ type: 'delta', text: t });
+}
+
+6) (Frontend) duas linhas que evitam “sumir” e “piscar”
+
+No handler do SSE (onde você processa o JSON):
+
+Só desligue “está digitando…” depois do primeiro delta válido.
+
+Ao receber type:'products', não chame seu fetchSuggest(); só renderize o que veio do SSE nesse request (use a flag haveProductsInThisRequestRef que te passei antes).
+
+Checklist de 60 segundos
+
+ O servidor sobe sem crash (sumiram write/watchdog undefined).
+
+ curl -N no seu /assistant/stream mostra: meta? → delta → (talvez products) → complete.
+
+ Logs de “Unexpected token '<'” sumiram (guard de Content-Type).
+
+ Front não trava em “digitando” (tem delta inicial + complete).
+
+ Produtos não somem (SSE manda products, suggest não sobrescreve).

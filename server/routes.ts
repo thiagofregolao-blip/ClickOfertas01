@@ -7019,29 +7019,40 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       const SSE_COMPAT = true; // manter ligado até migrar o front
       
       function send(event: string, payload: any) {
+        // eventos nomeados
         res.write(`event: ${event}\n`);
-        res.write(`data: ${JSON.stringify({ ...payload, requestId })}\n\n`);
-        if (SSE_COMPAT) res.write(`data: ${JSON.stringify({ type: event, ...payload, requestId })}\n\n`);
+        res.write(`data: ${JSON.stringify(payload)}\n\n`);
+        // legado: onmessage com {type: ...}
+        if (SSE_COMPAT) {
+          res.write(`data: ${JSON.stringify({ type: event, ...payload })}\n\n`);
+        }
       }
       
-      // Enviar meta com requestId primeiro + delta imediato
-      send("meta", { requestId });
-      send("delta", { text: "Beleza! Deixa comigo… 😉" }); // destrava UI já no início
+      // ⚠️ Compatibilidade com chamadas antigas:
+      function write(obj: any) {
+        const event = obj?.type ?? 'delta';
+        send(event, obj);
+      }
+      
+      // Enviar meta + delta imediato para destravar UI
+      write({ type: 'meta', requestId });
+      write({ type: 'delta', text: 'Beleza! Já confiro essas ofertas… 😉' }); // 1º delta imediato
 
       // 🔒 WATCHDOG: Fail-safe para garantir presença de conteúdo
       let lastDelta = Date.now();
-      const watchdog = setInterval(() => {
+      let watchdog: NodeJS.Timeout | null = null;
+      watchdog = setInterval(() => {
         if (Date.now() - lastDelta > 7000) {
           console.log(`⏰ [assistant/stream] Watchdog ativado - enviando fallback após 7s sem conteúdo`);
-          write({ type: 'delta', text: '\n💭 (conferindo as melhores ofertas...) ' });
+          write({ type: 'delta', text: '\n(um instante… garimpando ofertas) ' });
           lastDelta = Date.now();
         }
-      }, 4000);
+      }, 7000);
 
       // Limpar watchdog quando request for fechado
       req.on('close', () => {
         console.log(`🧹 [assistant/stream] Request fechado - limpando watchdog`);
-        clearInterval(watchdog);
+        if (watchdog) { clearInterval(watchdog); watchdog = null; }
       });
 
       // Função helper para atualizar lastDelta
@@ -7052,8 +7063,8 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       
       // Função para finalizar stream
       async function finish() {
-        clearInterval(watchdog);
-        send("done", {});
+        if (watchdog) { clearInterval(watchdog); watchdog = null; }
+        write({ type: 'complete' });
         res.end();
       }
 
@@ -7452,13 +7463,13 @@ ${productSet.map(p => `- ${p.id}: ${p.title}`).slice(0,3).join('\n')}...` }
       console.log(`🏁 [assistant/stream] Streaming principal finalizado - enviando complete`);
       
       // 🧹 LIMPAR WATCHDOG antes de finalizar
-      clearInterval(watchdog);
+      if (watchdog) { clearInterval(watchdog); watchdog = null; }
       
       write({ type:'complete' }); 
       res.end();
     } catch (e) {
       console.error('stream', e);
-      clearInterval(watchdog); // 🧹 Limpar watchdog em caso de erro
+      if (watchdog) { clearInterval(watchdog); watchdog = null; } // 🧹 Limpar watchdog em caso de erro
       res.write(`data: ${JSON.stringify({ type:'error', message:'stream error' })}\n\n`); res.end();
     }
   });
