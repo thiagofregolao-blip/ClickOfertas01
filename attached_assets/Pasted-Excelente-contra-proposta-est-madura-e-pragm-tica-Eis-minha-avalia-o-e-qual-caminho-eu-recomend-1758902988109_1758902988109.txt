@@ -1,0 +1,91 @@
+Excelente contra-proposta — está madura e pragmática. Eis minha avaliação e qual caminho eu recomendo:
+
+Resumo da minha análise
+
+Fase 1 (2–5): concordo 100%. São mudanças isoladas, reversíveis e resolvem sintomas imediatos (texto “em bloco”, buscas atrás de proxy, término do stream e UX no vazio).
+
+Fase 2 (1): seu alerta é correto. Trocar de onmessage + data.type para eventos nomeados (event: delta) quebra se o front não estiver pronto. Adotar modo compatível (duplo formato) é o caminho mais seguro.
+
+Melhor caminho (recomendado)
+
+Implemente já a Fase 1 (2–5).
+
+Introduza o envio “duplo” de eventos (compat) por flag de servidor — e migre o front gradualmente.
+
+Depois que o front estiver escutando eventos nomeados, desligue o legado (onmessage).
+
+1) Backend com modo compatível (através de flag)
+const SSE_COMPAT = process.env.SSE_COMPAT === "1"; // habilite durante a migração
+
+function send(res, event, payload) {
+  // evento nomeado (novo)
+  res.write(`event: ${event}\n`);
+  res.write(`data: ${JSON.stringify(payload)}\n\n`);
+
+  if (SSE_COMPAT) {
+    // fallback legado: onmessage + {type: event}
+    res.write(`data: ${JSON.stringify({ type: event, ...payload })}\n\n`);
+  }
+}
+
+
+Hoje: ligue SSE_COMPAT=1 para não quebrar ninguém.
+
+Depois: quando o front for atualizado, troque SSE_COMPAT=0.
+
+2) Frontend — dois padrões de listener
+
+Legado (atual):
+
+es.onmessage = (evt) => {
+  const data = JSON.parse(evt.data || "{}");
+  if (data.type === "delta") appendTyping(data.text);
+  if (data.type === "cards") renderCards(data.items, data.message);
+  if (data.type === "done") finish();
+};
+
+
+Novo (nomeado):
+
+es.addEventListener("delta",  (evt) => appendTyping(JSON.parse(evt.data).text));
+es.addEventListener("cards",  (evt) => { const d = JSON.parse(evt.data); renderCards(d.items, d.message); });
+es.addEventListener("done",   () => finish());
+es.addEventListener("error",  () => showError());
+
+
+Estratégia: mantenha ambos por um tempo (ou branch por feature flag de front).
+
+3) Telemetria de migração (evita regressão silenciosa)
+
+Logue contagem de eventos por tipo (delta/cards/done) e tempo até 1º delta.
+
+Alerta se não chegar done após X segundos.
+
+Métrica: % de turnos com delta em < 1500 ms (alvo inicial).
+
+Checagens rápidas antes de subir
+
+ “Small talk” agora streama (ver delta chegando) e dá early return.
+
+ origin com x-forwarded-* resolve busca em produção.
+
+ Sempre emite done (uma vez).
+
+ Catálogo vazio → mensagem útil (sem “seja mais específico”).
+
+ SSE_COMPAT=1 ligado (transição segura).
+
+ Front aceita ambos os formatos (ou, pelo menos, o legado continua intacto).
+
+Resposta à sua pergunta
+
+“Como está o EventSource no frontend?”
+Se hoje você usa apenas onmessage filtrando data.type, siga seu plano: ative o modo compatível no backend, atualize o front para também ouvir eventos nomeados (com addEventListener("delta", ...)), teste e só então desligue o compat.
+
+Se quiser, eu reviso o trecho do front que consome o SSE e já te devolvo com:
+
+suporte a ambos os modos,
+
+state para efeito “digitando” (concatenando delta),
+
+e cancelamento limpo do stream anterior.

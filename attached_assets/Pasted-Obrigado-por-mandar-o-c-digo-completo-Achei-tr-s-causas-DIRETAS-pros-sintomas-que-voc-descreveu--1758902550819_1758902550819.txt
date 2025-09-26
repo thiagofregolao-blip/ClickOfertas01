@@ -1,0 +1,129 @@
+Obrigado por mandar o “código completo”. Achei três causas DIRETAS pros sintomas que você descreveu — e deixo os patches prontos logo abaixo:
+
+(A) O servidor NÃO está emitindo eventos SSE nomeados (está mandando tudo como message com um campo type dentro do JSON). Se o seu front espera eventos delta/cards/done, ele nunca “vê” o efeito digitando.
+
+(B) O ramo de small talk não streama (manda um bloco só), então também não aparece “digitando…”.
+
+(C) A construção do origin pode estar errada atrás de proxy (usa req.protocol/host), quebrando a busca (ex.: “quero um iphone” → “não encontrei”). Use x-forwarded-proto/host.
+
+(As evidências e trechos que apontam esses comportamentos estão no arquivo que você enviou.) 
+
+assistente-click-completo
+
+✅ Correções cirúrgicas (cole no seu endpoint)
+1) SSE de verdade: eventos nomeados (event:)
+
+Substitua seu helper write por eventos SSE canônicos:
+
+// Antes:
+// const write = (d:any)=> res.write(`data: ${JSON.stringify({...d, requestId})}\n\n`);
+
+// Depois:
+function send(event: string, payload: any) {
+  res.write(`event: ${event}\n`);
+  res.write(`data: ${JSON.stringify({ ...payload, requestId })}\n\n`);
+}
+
+
+E troque TODOS os write({...}) por:
+
+send("meta", { requestId });
+send("delta", { text });            // durante o streaming
+send("cards", { products, message });
+send("done", {});
+send("error", { message: "..." });
+
+
+Resultado: o front passa a receber eventos delta em tempo real → efeito “digitando” funciona.
+Hoje você usa type:"chunk"/type:"delta" dentro do JSON, porém sem event: ...; o EventSource trata tudo como um único tipo (message), e sua UI provavelmente filtra por evento — daí “nada aparece” durante a digitação. 
+
+assistente-click-completo
+
+2) Small talk com streaming (sem “bloco único”)
+
+Troque o bloco de small talk para usar stream e enviar delta:
+
+if (intent === 'SMALL_TALK') {
+  const stream = await clickClient.chat.completions.create({
+    model: process.env.CHAT_MODEL || 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: smallTalkSystem },
+      { role: 'user', content: message }
+    ],
+    temperature: 0.7,
+    max_tokens: 150,
+    stream: true
+  });
+
+  let full = '';
+  for await (const part of stream) {
+    const t = part.choices?.[0]?.delta?.content || '';
+    if (!t) continue;
+    full += t;
+    send('delta', { text: t });     // <- agora “digita” de verdade
+  }
+  send('done', {});
+  res.end();
+  return; // EARLY RETURN
+}
+
+
+Antes, você mandava um write({ type:'chunk', text: smallTalkText }) em uma tacada — não tem “digitando”. 
+
+assistente-click-completo
+
+3) Corrigir origin atrás de proxy (quebra de busca)
+
+Troque:
+
+const origin = `${req.protocol}://${req.get('host')}`;
+
+
+por:
+
+const proto = req.get('x-forwarded-proto') || req.protocol;
+const host  = req.get('x-forwarded-host')  || req.get('host');
+const origin = `${proto}://${host}`;
+
+
+Em produção (proxy/CDN), req.protocol/host podem não refletir o domínio público e a porta correta. Isso “aponta” seu buildGrounding pros endpoints errados e a IA responde “não encontrei”. 
+
+assistente-click-completo
+
+4) Padronize o “fim do stream” (evite cair no limbo)
+
+No seu código há mistura de paragraph_done, end e ausência de done. Padronize com um único evento:
+
+send('done', {});
+res.end();
+
+
+E remova envios duplicados. Isso evita o “sumir sem responder” quando o front espera done.
+
+5) (Opcional, mas recomendado) Tire a “trava” de UX no catálogo vazio
+
+Hoje o fallback manda uma frase pouco útil (“seja mais específico”). Troque por algo orientado à ação (masculino, vendedor), mantendo o early return:
+
+if (!productSet || productSet.length === 0) {
+  send('delta', { text: "Não achei itens agora. Me diz **memória** (128/256GB) e **cidade** que eu garimpo ofertas boas 😉" });
+  send('done', {});
+  res.end();
+  return;
+}
+
+
+assistente-click-completo
+
+🧪 Checklist rápido pra validar agora
+
+Efeito digitando: rode curl -N e confirme que chegam eventos event: delta em sequência.
+
+Small talk (“qual seu nome”): deve streamar, não bloco único.
+
+Busca “quero um iphone”: com o origin corrigido, o catálogo volta; se vier vazio, mensagem útil (não genérica).
+
+Fim: sempre chega event: done.
+
+Frontend: seu listener do EventSource deve renderizar delta e cards e encerrar em done.
+
+Se quiser, me manda o trecho do front (EventSource/Flutter) que consome os eventos — eu já te devolvo com o handler correto (on meta/delta/cards/done/error) e um mini estado “digitando…”.
