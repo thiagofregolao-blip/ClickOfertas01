@@ -3,7 +3,6 @@ import { useLocation } from 'wouter';
 import { LazyImage } from './lazy-image';
 import { useSuggestions } from '@/hooks/use-suggestions';
 import { Search } from 'lucide-react';
-import { parseAssistantProducts, removeProductsJsonFromText, hasProductsJson } from '@/lib/assistantParser';
 
 // Sessão simples por usuário (cache 1h)
 const sessionCache = new Map();
@@ -580,7 +579,6 @@ export default function AssistantBar() {
       const decoder = new TextDecoder();
       let buffer = '';
       let assistantMessage = '';
-      let productsProcessed = false; // Flag para evitar reprocessamento
       
       while (true) {
         const { value, done } = await reader.read();
@@ -594,60 +592,18 @@ export default function AssistantBar() {
           const line = chunk.trim().replace(/^data:\s?/, '');
           try {
             const p = JSON.parse(line);
-            console.log('🔍 [AssistantBar] Evento recebido:', { type: p.type, hasProducts: !!p.products, productsLength: p.products?.length });
             if (p.type === 'chunk' && p.text) {
               assistantMessage += p.text;
-              
-              // 🔧 PARSER DE PRODUTOS: Detectar e processar JSON inline na resposta da IA (apenas uma vez)
-              let cleanedMessage = assistantMessage;
-              if (!productsProcessed && hasProductsJson(assistantMessage)) {
-                try {
-                  console.log('🎯 [AssistantBar] JSON de produtos detectado na resposta da IA');
-                  
-                  // Extrair e processar produtos
-                  const baseUrl = window.location.origin;
-                  const parsedProducts = parseAssistantProducts(assistantMessage, baseUrl);
-                  
-                  console.log('📦 [AssistantBar] Produtos extraídos:', parsedProducts.products?.length || 0);
-                  
-                  // Marcar como processado para evitar reprocessamento
-                  productsProcessed = true;
-                  
-                  // Atualizar interface com produtos
-                  if (parsedProducts.products && parsedProducts.products.length > 0) {
-                    // Atualizar memória da sessão com produtos mostrados
-                    if (sessionId) {
-                      updateSessionMemory(parsedProducts.products, parsedProducts.query || '');
-                    }
-                    
-                    // Exibir produtos na interface
-                    setTopBox(parsedProducts.products.slice(0, 3));
-                    setFeed(parsedProducts.products.slice(3));
-                    setShowResults(true);
-                    
-                    console.log('✅ [AssistantBar] Interface atualizada com produtos extraídos do texto da IA');
-                  }
-                } catch (error) {
-                  console.warn('⚠️ [AssistantBar] Erro ao processar produtos inline:', error);
-                  // Em caso de erro, usar mensagem original
-                  cleanedMessage = assistantMessage;
-                }
-              }
-              
-              // Sempre remover JSON do texto exibido (mesmo se já processado)
-              cleanedMessage = removeProductsJsonFromText(assistantMessage);
-              
-              // Exibir texto limpo (sem JSON)
-              setStreaming(cleanedMessage);
+              setStreaming(assistantMessage);
               
               // Detectar quando assistente fala sobre buscar e executar busca pendente (apenas uma vez)
               if (pendingSearchRef.current && !hasTriggeredSearchRef.current && 
-                  (cleanedMessage.toLowerCase().includes('busca') || 
-                   cleanedMessage.toLowerCase().includes('procurando') ||
-                   cleanedMessage.toLowerCase().includes('opções') ||
-                   cleanedMessage.toLowerCase().includes('aqui estão') ||
-                   cleanedMessage.toLowerCase().includes('vou buscar') ||
-                   cleanedMessage.toLowerCase().includes('procurar'))) {
+                  (assistantMessage.toLowerCase().includes('busca') || 
+                   assistantMessage.toLowerCase().includes('procurando') ||
+                   assistantMessage.toLowerCase().includes('opções') ||
+                   assistantMessage.toLowerCase().includes('aqui estão') ||
+                   assistantMessage.toLowerCase().includes('vou buscar') ||
+                   assistantMessage.toLowerCase().includes('procurar'))) {
                 fetchSuggest(pendingSearchRef.current);
                 hasTriggeredSearchRef.current = true;
                 pendingSearchRef.current = ''; // Limpar busca pendente
@@ -677,11 +633,8 @@ export default function AssistantBar() {
                 pendingSearchRef.current = '';
               }
               
-              // Adicionar mensagem completa do assistente ao chat (versão limpa sem JSON)
-              const finalCleanedMessage = hasProductsJson(assistantMessage) 
-                ? removeProductsJsonFromText(assistantMessage) 
-                : assistantMessage;
-              setChatMessages(prev => [...prev, { type: 'assistant', text: finalCleanedMessage }]);
+              // Adicionar mensagem completa do assistente ao chat
+              setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage }]);
               setStreaming('');
               return;
             }
@@ -692,12 +645,9 @@ export default function AssistantBar() {
         }
       }
       
-      // Se terminar sem 'end', ainda adicionar a mensagem (versão limpa)
+      // Se terminar sem 'end', ainda adicionar a mensagem
       if (assistantMessage) {
-        const finalCleanedMessage = hasProductsJson(assistantMessage) 
-          ? removeProductsJsonFromText(assistantMessage) 
-          : assistantMessage;
-        setChatMessages(prev => [...prev, { type: 'assistant', text: finalCleanedMessage }]);
+        setChatMessages(prev => [...prev, { type: 'assistant', text: assistantMessage }]);
         setStreaming('');
       }
     } catch (e) {
