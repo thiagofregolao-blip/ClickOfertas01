@@ -10,6 +10,7 @@ export interface ConversationContext {
   ultimosModelos?: string[];          // Modelos mencionados recentemente
   acessoriosSugeridos?: string[];     // Acessórios sugeridos para evitar repetição
   rngSeed?: number;                   // Seed para RNG determinístico por sessão
+  turn?: number;                      // Número do turno na sessão para rotação
   lastUpdated?: string;               // Timestamp da última atualização
 }
 
@@ -98,12 +99,32 @@ export async function adicionarModeloRecente(sessionId: string, modelo: string):
 }
 
 /**
+ * Avança e retorna índice (0..len-1) para rotação determinística por sessão
+ */
+export async function nextVariant(sessionId: string, key: string, len: number): Promise<number> {
+  try {
+    const contexto = await obterContextoSessao(sessionId) || {};
+    const variantKey = `__v_${key}` as keyof ConversationContext;
+    const current = (contexto as any)[variantKey] ?? -1;
+    const next = (current + 1) % Math.max(1, len);
+    
+    await salvarContextoSessao(sessionId, { [variantKey]: next } as any);
+    console.log(`🎲 [Variant] ${sessionId}:${key} ${current} → ${next} (max: ${len})`);
+    return next;
+  } catch (error) {
+    console.error(`❌ [Variant] Erro em ${sessionId}:${key}:`, error);
+    return 0; // Fallback para primeira opção
+  }
+}
+
+/**
  * Limpa o contexto conversacional da sessão
  */
 export async function limparContextoSessao(sessionId: string): Promise<void> {
   await salvarContextoSessao(sessionId, {
     focoAtual: null,
     ultimaQuery: null,
-    ultimosModelos: []
+    ultimosModelos: [],
+    turn: 0
   });
 }

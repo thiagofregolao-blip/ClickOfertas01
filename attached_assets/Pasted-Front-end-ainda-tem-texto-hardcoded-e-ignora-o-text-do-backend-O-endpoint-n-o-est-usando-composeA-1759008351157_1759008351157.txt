@@ -1,0 +1,139 @@
+Front-end ainda tem texto hardcoded e ignora o text do backend.
+
+O endpoint não está usando composeAnswer (ou não está dando await/passando sessionId).
+
+A rotação por sessão não foi ligada (o índice não avança → sempre variação 0).
+
+Vamos fechar isso com um patch à prova de bala: rotação determinística por sessão + uso obrigatório do compose + sanity log.
+
+Patch 1 — contador de turno por sessão (rotação garantida)
+*** a/src/services/sessionStore.ts
+--- b/src/services/sessionStore.ts
+@@
+ export type SessionPayload = {
+   focoAtual?: string|null;
+   lastQuery?: string|null;
+   categoriaAtual?: string|null;
+   nomeCliente?: string|null;
+   acessorios?: string[];
+   rngSeed?: number;
++  turn?: number;         // <- NOVO: número do turno na sessão
+ };
+@@
+ export async function updateSession(id: string, data: Partial<SessionPayload>){ const prev=mem.get(id)??{}; mem.set(id,{...prev,...data}); }
+ 
+ // util: avança e devolve índice (0..len-1) por sessão/chave
+ export function nextVariant(id: string, key: string, len: number): number {
+   const s = mem.get(id) ?? {};
+   const k = `__v_${key}` as keyof SessionPayload;
+   // @ts-ignore
+   const cur = (s[k] as number | undefined) ?? -1;
+   // @ts-ignore
+   s[k] = (cur + 1) % Math.max(1, len);
+   mem.set(id, s);
+   // @ts-ignore
+   return s[k] as number;
+ }
+
+Patch 2 — composeAnswer usa rotação + await (sem RNG fixo)
+*** a/src/nlg/say.ts
+--- b/src/nlg/say.ts
+@@
+-import { tGreet, tFound, tNoResults, tClarify, tCrossSell, greet, found, noResults } from "./templates";
++import { tGreet, tFound, tNoResults, tClarify, tCrossSell, greet, found, noResults } from "./templates";
+ import { nextAccessorySuggestion } from "../logic/crossSell";
+ import type { ConversationMemory } from "../types/memory";
+-import { mulberry32 } from "../utils/rng";
+-import { nextVariant } from "../services/sessionStore";
++import { nextVariant } from "../services/sessionStore";
+ 
+-type Block = { type:"text"; text:string } | { type:"products"; items:any[] };
++type Block = { type:"text"; text:string } | { type:"products"; items:any[] };
+ export interface ComposeArgs {
+   query: { produto?:string; categoria?:string; modelo?:string; marca?:string; queryFinal?:string; faltando?: Array<"modelo"|"marca"|"armazenamento">; };
+   items: any[];
+   memory: ConversationMemory;
+ }
+-export function composeAnswer(args: ComposeArgs & { sessionId?: string }): Block[] {
+-  const persona = SalesPersona; const { query, items, memory } = args; const blocks: Block[] = [];
+-  // seed: quanto mais variar, melhor (hora atual + foco) — valor será setado no orchestrator
+-  const rng = mulberry32((Date.now() >>> 10) ^ Math.floor(Math.random()*1e9));
+-  if (!memory.lastQuery && !query.produto && !query.categoria) {
++export function composeAnswer(args: ComposeArgs & { sessionId: string }): Block[] {
++  const persona = SalesPersona; const { query, items, memory, sessionId } = args; const blocks: Block[] = [];
++  if (!memory.lastQuery && !query.produto && !query.categoria) {
+     // rotação determinística por sessão
+-    const idx = args.sessionId ? nextVariant(args.sessionId, "greet", greet.length) : 0;
++    const idx = nextVariant(sessionId, "greet", greet.length);
+     const text = greet[idx].replace("{emoji}", "✨");
+     blocks.push({ type:"text", text });
+   }
+   if (items.length>0){
+-    const idx = args.sessionId ? nextVariant(args.sessionId, "found", found.length) : 0;
++    const idx = nextVariant(sessionId, "found", found.length);
+     const base = found[idx]
+       .replace("{count}", String(query ? (query as any).count ?? items.length : items.length))
+       .replace("{cat}", (query.categoria ?? query.produto ?? "itens") as string)
+       .replace("{query}", query.queryFinal ?? query.produto ?? query.categoria ?? "")
+       .replace("{emoji}", "😄");
+     blocks.push({ type:"text", text: base });
+@@
+   } else {
+-    const idx = args.sessionId ? nextVariant(args.sessionId, "nores", noResults.length) : 0;
++    const idx = nextVariant(sessionId, "nores", noResults.length);
+     const need = (query.faltando?.[0] ?? "mais detalhes") as string;
+     const hint = need==="modelo" ? "o **modelo** (ex.: 12, 13 Pro)" : need==="marca" ? "a **marca** (ex.: Apple, Samsung)" : "a **capacidade** (ex.: 128GB)";
+     const text = noResults[idx]
+       .replace("{query}", query.queryFinal ?? query.produto ?? "")
+       .replace("{hint}", hint)
+       .replace("{emoji}", "😉");
+     blocks.push({ type:"text", text });
+   }
+   return blocks;
+ }
+
+Patch 3 — endpoint usa composeAnswer (e nunca string fixa)
+*** a/server/routes.ts
+--- b/server/routes.ts
+@@
+-    const blocks = composeAnswer({ items, query: query!, memory: { focoAtual: query?.produto ?? null } as any, sessionId: sid });
+-    const text = blocks.filter(b=>b.type==="text").map(b=>b.text).join("\n\n");
++    const blocks = composeAnswer({
++      items,
++      query: query!,
++      memory: { focoAtual: query?.produto ?? null } as any,
++      sessionId: sid
++    });
++    const text = blocks.filter(b => b.type === "text").map(b => b.text).join("\n\n");
+     return res.json({ ok:true, kind:"PRODUCT", text, queryFinal: query?.queryFinal, items, debug: { original: message, canon: canonMsg, query } });
+
+Verificação rápida (pega bug de texto hardcoded)
+
+Rode no projeto:
+
+grep -R 'Dê uma olhada' -n src server
+
+
+Se aparecer fora de src/nlg/templates.ts, remova: é um texto fixo antigo que o front está renderizando (e ignora as variações).
+
+Sanity logs (temporários)
+
+No endpoint, logo antes do return:
+
+console.log("[answer]", {
+  textPreview: text.slice(0, 60),
+  variantFound: (blocks.find(b=>b.type==="text") as any)?.text
+});
+
+
+Você deve ver a frase mudar a cada nova mensagem dentro da mesma sessão (ex.: “Ótimo!…”, depois “Boa escolha!…”, depois “😄 Achei…” e assim por diante).
+
+TL;DR
+
+Sim, aquele bug do pick atrapalhava, mas o problema persiste quando:
+
+o front/endpoint ainda usa string fixa, ou
+
+a rotação não está ligada.
+
+Com os 3 patches acima (rotação + compose obrigatório + caça ao hardcode), as respostas variam de verdade.
