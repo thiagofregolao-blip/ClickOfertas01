@@ -1,5 +1,5 @@
 // src/nlp/intent.ts
-import { normPTBR, tokenCanonProduct, tokenCanonCategory } from "../utils/lang-ptbr.js";
+import { normPTBR, tokenCanonProduct, tokenCanonCategory, tokenizePTBR } from "../utils/lang-ptbr.js";
 
 export type Intent =
   | "PRODUCT_SEARCH"
@@ -64,6 +64,16 @@ export function classifyIntent(msg: string): IntentResult {
     };
   }
 
-  // Frases curtas tipo "linha 12" sem contexto caem em UNKNOWN.
+  // --------- FALLBACK HARDENING ---------
+  // Se chegou aqui, nenhuma regra bateu. Para não travar a UX, assuma busca de produto
+  // quando a mensagem é 1 termo "simples" (sem espaços) e alfanumérica.
+  const toks = tokenizePTBR(m);
+  if (toks.length === 1 && /^[a-z0-9\-]+$/i.test(toks[0])) {
+    return {
+      intent: "PRODUCT_SEARCH",
+      entities: { product: toks[0] }
+    };
+  }
+  // Caso contrário, realmente desconhecido.
   return { intent: "UNKNOWN" };
 }

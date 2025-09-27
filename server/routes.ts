@@ -7593,6 +7593,7 @@ Regras:
       // 🔄 PIPELINE ÚNICO: processar mensagem através do pipeline centralizado
       const { processUserMessage } = await import('../src/assistant/pipeline.js');
       const pipelineResult = await processUserMessage(sessionId, message);
+      console.log("[assistant/stream]", { msg: message, canonMsg: pipelineResult.canonMsg, intent: pipelineResult.intent, shouldSearch: pipelineResult.shouldSearch });
       
       console.log(`🤖 [Pipeline] Resultado:`, pipelineResult.debug);
 
@@ -8343,6 +8344,23 @@ Regras:
       console.log(`🧪 [/_sse_echo] Conexão fechada pelo cliente`);
       clearInterval(interval); 
     });
+  });
+
+  // Debug endpoint para diagnóstico do dicionário canônico
+  app.get("/debug/canon", async (req, res) => {
+    try {
+      const { loadCanon } = await import("../src/nlp/canon.store.js");
+      const c = loadCanon();
+      res.json({
+        products: Object.keys(c.productCanon ?? {}).length,
+        categories: Object.keys(c.categoryCanon ?? {}).length,
+        sampleProducts: Object.entries(c.productCanon).slice(0, 10),
+        sampleCategories: Object.keys(c.categoryCanon).slice(0, 10),
+      });
+    } catch (error) {
+      console.error("Erro no debug canon:", error);
+      res.status(500).json({ error: "Erro interno" });
+    }
   });
 
   const httpServer = createServer(app);

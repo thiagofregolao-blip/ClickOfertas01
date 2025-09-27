@@ -19,13 +19,7 @@ export function tokenCanonCategory(t: string): string | null {
   return canonCategory(s) ?? null;
 }
 
-// Singularização simples PT-BR
-function toSingularPTBR(word: string): string {
-  if (word.endsWith('s') && word.length > 2) {
-    return word.slice(0, -1);
-  }
-  return word;
-}
+// Singularização simples PT-BR já foi definida acima
 
 /**
  * Normaliza texto em português brasileiro:
@@ -519,14 +513,6 @@ export function canonicalCategoryFromText(msg: string): string | null {
 }
 
 // === NOVA API DINÂMICA ===
-
-export function tokenCanonProduct(t: string): string | null {
-  return canonProduct(t) ?? null;
-}
-
-export function tokenCanonCategory(t: string): string | null {
-  return canonCategory(t) ?? null;
-}
 
 // Versões dinâmicas das funções de canonização
 export function dynamicCanonicalProduct(msg: string): string | null {

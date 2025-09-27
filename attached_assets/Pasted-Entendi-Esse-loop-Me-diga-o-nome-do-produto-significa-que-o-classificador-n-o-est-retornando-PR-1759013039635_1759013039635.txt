@@ -1,0 +1,137 @@
+Entendi. Esse loop “Me diga o nome do produto…” significa que o classificador não está retornando PRODUCT_SEARCH (para blusa e até iphone). Vou te dar um patch seguro que:
+
+Instrumenta (log + endpoint) pra ver, em runtime, o que o classificador está devolvendo.
+
+Liga um fallback hardening no classifyIntent: se não achar nada, mas a mensagem for “uma palavra válida”, assume busca de produto (melhor que travar).
+
+Garante que o endpoint realmente usa o intent retornado (log no /assistant/query).
+
+É um “airbag”: mesmo se o canon.json não carregar, iphone, blusa, drone etc. entram como busca.
+
+1) Logs no endpoint (ver intent + tokens)
+*** a/server/routes.ts
+--- b/server/routes.ts
+@@
+ router.post("/assistant/query", async (req, res, next) => {
+   try {
+     const { message } = req.body as { message?: string };
+     if (!message || !message.trim()) return res.status(400).json({ ok:false, error:"Mensagem vazia" });
+     const sid = String(req.sessionID ?? req.headers["x-session-id"] ?? "anon");
+-    const { intent, canonMsg, query } = await processUserMessage(sid, message);
++    const { intent, canonMsg, query } = await processUserMessage(sid, message);
++    console.log("[assistant/query]", { msg: message, canonMsg, intent: intent?.intent, query });
+
+2) Endpoint de diagnóstico do dicionário
+*** /dev/null
+--- a/server/debug-canon.ts
+@@
++import type { Router } from "express";
++import { loadCanon } from "../src/nlp/canon.store";
++
++export function mountCanonDebug(router: Router) {
++  router.get("/debug/canon", (_req, res) => {
++    const c = loadCanon();
++    res.json({
++      products: Object.keys(c.productCanon ?? {}).length,
++      categories: Object.keys(c.categoryCanon ?? {}).length,
++      sampleProducts: Object.entries(c.productCanon).slice(0, 10),
++      sampleCategories: Object.keys(c.categoryCanon).slice(0, 10),
++    });
++  });
++}
+
+
+E registre isso onde você cria suas rotas (ex.: no mesmo arquivo do router principal):
+
+*** a/server/routes.ts
+--- b/server/routes.ts
+@@
++import { mountCanonDebug } from "./debug-canon";
+@@
++mountCanonDebug(router);
+
+3) Fallback robusto no classificador
+*** a/src/nlp/intent.ts
+--- b/src/nlp/intent.ts
+@@
+-import { normPTBR, tokenizePTBR } from "../utils/lang-ptbr";
++import { normPTBR, tokenizePTBR } from "../utils/lang-ptbr";
+ import { tokenCanonProduct, tokenCanonCategory } from "../utils/lang-ptbr";
+ 
+@@
+ export function classifyIntent(msg: string): IntentResult {
+   const m = normPTBR(msg);
+   if (m.length < 2) return { intent: "UNKNOWN" };
+@@
+   if (productCanon || categoryCanon) {
+@@
+     };
+   }
+-  return { intent: "UNKNOWN" };
++  // --------- FALLBACK HARDENING ---------
++  // Se chegou aqui, nenhuma regra bateu. Para não travar a UX, assuma busca de produto
++  // quando a mensagem é 1 termo “simples” (sem espaços) e alfanumérica.
++  const toks = tokenizePTBR(m);
++  if (toks.length === 1 && /^[a-z0-9\-]+$/i.test(toks[0])) {
++    return {
++      intent: "PRODUCT_SEARCH",
++      entities: { product: toks[0] }
++    };
++  }
++  // Caso contrário, realmente desconhecido.
++  return { intent: "UNKNOWN" };
+ }
+
+4) Interpretação usa esse fallback também
+*** a/src/modules/buscaProduto.ts
+--- b/src/modules/buscaProduto.ts
+@@
+-import { tokenCanonProduct } from "../utils/lang-ptbr";
++import { tokenCanonProduct, tokenizePTBR } from "../utils/lang-ptbr";
+@@
+ export function interpretarBusca(msg: string, memoria: ConversationMemory): ProdutoQuery {
+   // tenta produto do texto (canon), senão usa foco/último
+-  let produto = undefined as string | undefined;
+-  for (const t of msg.split(/\s+/)) {
++  let produto = undefined as string | undefined;
++  for (const t of tokenizePTBR(msg)) {
+     const p = tokenCanonProduct(t);
+     if (p) { produto = p; break; }
+   }
+   produto = produto ?? (memoria?.focoAtual ?? memoria?.lastQuery ?? undefined);
+
+5) Sanity-check rápido no runtime
+
+Chame GET /debug/canon → deve retornar contagens > 0.
+
+Veja os logs de console.log("[assistant/query]", …) ao digitar “blusa”, “iphone”:
+
+intent deve vir PRODUCT_SEARCH.
+
+query.produto deve ser “blusa” / “iphone”.
+
+Se ainda vier UNKNOWN, a causa é outra rota sendo usada (talvez o front esteja chamando um endpoint antigo). Faça um grep:
+
+grep -R "Me diga o nome do produto" -n .
+grep -R "/assistant/query" -n .
+
+
+Se a frase aparecer no front (React), ele está ignorando o text do backend e rendendo um placeholder fixo → remova.
+
+Se existir outro endpoint (ex.: /api/assistant antigo) sendo chamado, redirecione o front para POST /assistant/query atualizado.
+
+6) Plano de rollback seguro
+
+Mesmo sem data/canon.json, o classificador agora assume busca quando o usuário digita um único termo válido (ex.: “blusa”, “iphone”, “lego”).
+
+Assim, não entra mais no loop de “Me diga o nome do produto”.
+
+Se quiser, te mando um __tests__/intent.fallback.spec.ts que valida:
+
+“blusa” → PRODUCT_SEARCH.
+
+“iphone” → PRODUCT_SEARCH.
+
+“que horas são?” → TIME_QUERY.
+
+Pensando
