@@ -7,6 +7,8 @@ Click Ofertas Paraguai is a web application designed to help store owners create
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Execute tasks without describing steps during execution - only show results.
+App color palette: Red to orange gradient (not blue).
 
 ## Recent Changes
 
