@@ -129,3 +129,5 @@ export function extrairContexto(msg: string) {
     normalizada: normPTBR(msg)
   };
 }
+
+export const PRODUTOS_RX = /\b(iphone|apple|galaxy|samsung|xiaomi|motorola|pixel)\b/i;

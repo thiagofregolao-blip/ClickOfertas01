@@ -7564,7 +7564,7 @@ Regras:
   // Memória local para usuários Gemini
   const memoriaUsuarios: Record<string, any> = {};
 
-  // POST /api/assistant/gemini/stream - Gemini Assistant with "ask-then-show" behavior  
+  // POST /api/assistant/gemini/stream - Gemini Assistant with new conversation orchestrator 
   app.post('/api/assistant/gemini/stream', async (req: any, res) => {
     const { message, sessionId, horaLocal } = req.body;
     const user = req.user || req.session?.user;
@@ -7582,99 +7582,43 @@ Regras:
     };
 
     try {
-      // Importar módulos
-      const { buscarOfertas } = await import('./lib/gemini/busca.js');
-      const { persistSessionAndMessage, getSessionMessages, salvarResposta } = await import('./lib/gemini/session.js');
-      const { gerarSaudacao, saudacaoInicial, classificarIntencao, responderPorIntencao, interpretarRefinamento, detectarIntencaoFollowUp, responderFollowUp, gerarRespostaConversacional, gerarPerguntaLeve, gerarFollowUp } = await import('./lib/gemini/respostas.js');
-      const { detectarComparacao, extrairModelosComparacao, gerarComparacao } = await import('./lib/gemini/comparador.js');
+      // Usar o novo orquestrador de conversação
+      const { runAssistant } = await import('../src/services/conversation.js');
+      const { persistSessionAndMessage, salvarResposta } = await import('./lib/gemini/session.js');
 
       await persistSessionAndMessage(sessionId, userId, message);
-      const mensagens = await getSessionMessages(sessionId);
-      const memoria = memoriaUsuarios[userId] || {};
+      
+      // Executar assistente com roteamento inteligente
+      const result = await runAssistant(sessionId, message);
+      
+      console.log(`🤖 [Gemini] Resultado do assistente: kind=${result.kind}, query="${result.queryFinal}"`);
 
-      // Classificação de intenção
-      const tipoIntencao = classificarIntencao(message);
-      const respostaIntencao = responderPorIntencao(tipoIntencao, userName, horaLocal);
-      if (respostaIntencao) {
-        send('delta', { text: respostaIntencao });
-        send('complete', { provider: 'gemini' });
-        return res.end();
+      // Resposta baseada no tipo de intenção
+      if (result.kind === "PRODUCT") {
+        // Produto: enviar texto conversacional + produtos (Ask-Then-Show)
+        const numProdutos = result.items?.length || 0;
+        const textoResposta = numProdutos > 0 
+          ? `Ótimo! Encontrei ${numProdutos} produtos para "${result.queryFinal}". Dê uma olhada:`
+          : `Não encontrei produtos para "${result.queryFinal}". Tente com outro termo!`;
+        
+        send('delta', { text: textoResposta });
+        
+        // Aguardar um pouco para a conversa aparecer primeiro
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Depois enviar produtos se houver (Ask-Then-Show)
+        if (result.items && result.items.length > 0) {
+          send('products', { products: result.items, query: result.queryFinal, provider: 'gemini' });
+        }
+        
+        await salvarResposta(sessionId, textoResposta);
+      } else {
+        // Small talk, help, time, out of domain: só texto
+        const textoResposta = result.text || "Como posso ajudar você hoje?";
+        send('delta', { text: textoResposta });
+        await salvarResposta(sessionId, textoResposta);
       }
 
-      // Follow-up inteligente
-      const intencao = detectarIntencaoFollowUp(message);
-      if (intencao) {
-        const resposta = responderFollowUp(intencao);
-        send('delta', { text: resposta });
-        send('complete', { provider: 'gemini' });
-        return res.end();
-      }
-
-      // Detecção de comparação de produtos
-      if (detectarComparacao(message)) {
-        const modelos = extrairModelosComparacao(message);
-        const comparacao = gerarComparacao(modelos);
-        send('delta', { text: comparacao });
-        send('complete', { provider: 'gemini' });
-        return res.end();
-      }
-
-      // 🧠 CONTEXTO CONVERSACIONAL INTELIGENTE COM PERSISTÊNCIA
-      console.log('📥 [Contexto Gemini] Processando mensagem:', `"${message}"`);
-      
-      // 1. Recuperar contexto da sessão (persistente no banco)
-      const contextoAnterior = await obterContextoSessao(sessionId);
-      const focoAnterior = contextoAnterior?.focoAtual || null;
-      console.log('🔍 [Contexto Gemini] Foco anterior recuperado:', focoAnterior);
-      
-      // 2. Detectar novo foco na mensagem atual
-      const focoNovo = detectarFoco(message);
-      console.log('🎯 [Contexto Gemini] Foco detectado na mensagem:', focoNovo);
-      
-      // 3. Montar query final com slot filling inteligente
-      const finalQuery = montarConsulta(message, focoAnterior);
-      console.log('🧠 [Contexto Gemini] Query original:', `"${message}"`);
-      console.log('🧠 [Contexto Gemini] Foco anterior:', focoAnterior);
-      console.log('🧠 [Contexto Gemini] Query final (slot filling):', `"${finalQuery}"`);
-      
-      // 4. Atualizar contexto se novo foco foi detectado
-      if (focoNovo) {
-        await atualizarFocoSessao(sessionId, focoNovo);
-        console.log('💾 [Contexto Gemini] Foco atualizado na sessão:', focoNovo);
-      }
-      
-      // 5. Salvar informações da query atual
-      await salvarContextoSessao(sessionId, {
-        ultimaQuery: finalQuery
-      });
-
-      // Buscar produtos
-      const produtos = await buscarOfertas({ query: finalQuery });
-      
-      // Atualizar memória
-      memoriaUsuarios[userId] = {
-        ...memoria,
-        ultimaBusca: finalQuery,
-        produtosVistos: produtos.map((p: any) => p.id),
-      };
-
-      // Gerar resposta
-      const saudacao = mensagens.length <= 1 ? gerarSaudacao(userName, horaLocal) : '';
-      const resposta = gerarRespostaConversacional(finalQuery, produtos, memoriaUsuarios[userId]);
-      const pergunta = gerarFollowUp(finalQuery);
-
-      const textoFinal = [saudacao, resposta, pergunta].filter(Boolean).join(' ');
-      send('delta', { text: textoFinal });
-
-      // Aguardar um pouco para a conversa aparecer primeiro
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Depois enviar produtos se houver (Ask-Then-Show)
-      if (produtos.length > 0) {
-        send('products', { products: produtos, query: finalQuery, provider: 'gemini' });
-      }
-
-      await salvarResposta(sessionId, textoFinal);
       send('complete', { provider: 'gemini' });
       res.end();
     } catch (error) {
