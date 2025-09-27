@@ -512,11 +512,11 @@ export default function GeminiAssistantBar() {
       {/* Barra Principal Gemini - Visual diferenciado */}
       <div className="relative w-full max-w-4xl mx-auto px-4 mt-4">
         <div className="relative">
-          <div className="relative flex items-center bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-950/30 dark:to-blue-950/30 border-2 border-emerald-200/50 dark:border-emerald-700/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
+          <div className="relative flex items-center bg-gradient-to-r from-primary/5 to-blue-50 dark:from-primary/10 dark:to-blue-950/30 border-2 border-primary/20 dark:border-primary/30 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
             
             {/* Ícone Gemini */}
             <div className="absolute left-4 flex items-center">
-              <Sparkles className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <Sparkles className="h-5 w-5 text-primary dark:text-primary/80" />
             </div>
             
             {/* Input */}
@@ -531,8 +531,8 @@ export default function GeminiAssistantBar() {
                   onSubmit(e as any);
                 }
               }}
-              placeholder={displayText || "🤖 Gemini: Show-then-ask - busca inteligente..."}
-              className="w-full pl-12 pr-20 py-4 text-lg bg-transparent border-0 outline-none placeholder-emerald-500/70 dark:placeholder-emerald-400/70 text-gray-900 dark:text-gray-100"
+              placeholder={displayText || "🤖 Gemini: Ask-then-show - busca inteligente..."}
+              className="w-full pl-12 pr-20 py-4 text-lg bg-transparent border-0 outline-none placeholder-primary/60 dark:placeholder-primary/70 text-gray-900 dark:text-gray-100"
               data-testid="input-gemini-search"
               autoComplete="off"
             />
@@ -542,7 +542,7 @@ export default function GeminiAssistantBar() {
               type="submit"
               onClick={onSubmit}
               disabled={!query.trim() || !sessionId}
-              className="absolute right-4 flex items-center justify-center w-10 h-10 bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute right-4 flex items-center justify-center w-10 h-10 bg-primary hover:bg-primary/90 disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="button-gemini-search"
             >
               <Search className="h-5 w-5" />
@@ -550,23 +550,23 @@ export default function GeminiAssistantBar() {
           </div>
           
           {/* Badge Gemini */}
-          <div className="absolute -top-2 left-6 px-3 py-1 bg-gradient-to-r from-emerald-500 to-blue-500 text-white text-xs font-bold rounded-full shadow-md">
+          <div className="absolute -top-2 left-6 px-3 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full shadow-md">
             GEMINI AI
           </div>
         </div>
 
         {/* Sugestões de Autocomplete */}
         {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-700 rounded-xl shadow-xl z-50 max-h-80 overflow-y-auto">
+          <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-primary/30 dark:border-primary/40 rounded-xl shadow-xl z-50 max-h-80 overflow-y-auto">
             {suggestions.map((suggestion, index) => (
               <button
                 key={index}
                 onClick={() => onSuggestionClick(suggestion)}
-                className="w-full px-4 py-3 text-left hover:bg-emerald-50 dark:hover:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-800 last:border-b-0 transition-colors"
+                className="w-full px-4 py-3 text-left hover:bg-primary/10 dark:hover:bg-primary/20 border-b border-primary/10 dark:border-primary/20 last:border-b-0 transition-colors"
                 data-testid={`suggestion-gemini-${index}`}
               >
                 <div className="flex items-center">
-                  <Search className="h-4 w-4 text-emerald-500 mr-3" />
+                  <Search className="h-4 w-4 text-primary mr-3" />
                   <span className="text-gray-900 dark:text-gray-100">{suggestion}</span>
                 </div>
               </button>
@@ -581,12 +581,12 @@ export default function GeminiAssistantBar() {
           <div className="bg-white dark:bg-gray-900 w-full max-w-6xl h-[90vh] rounded-2xl shadow-2xl flex flex-col">
             
             {/* Header simples sem busca */}
-            <div className="p-6 border-b border-emerald-200 dark:border-emerald-700 flex-shrink-0">
+            <div className="p-6 border-b border-primary/20 dark:border-primary/30 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <Sparkles className="h-6 w-6 text-emerald-600 dark:text-emerald-400 mr-2" />
-                  <h2 className="text-xl font-bold text-emerald-600 dark:text-emerald-400">Gemini Assistant</h2>
-                  <span className="ml-2 px-2 py-1 bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 text-xs rounded-full">
+                  <Sparkles className="h-6 w-6 text-primary dark:text-primary/80 mr-2" />
+                  <h2 className="text-xl font-bold text-primary dark:text-primary/80">Gemini Assistant</h2>
+                  <span className="ml-2 px-2 py-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary/80 text-xs rounded-full">
                     Ask-Then-Show
                   </span>
                 </div>
@@ -604,13 +604,13 @@ export default function GeminiAssistantBar() {
             <div className="flex-1 flex overflow-hidden">
               
               {/* Chat Gemini */}
-              <div className="w-1/3 border-r border-emerald-200 dark:border-emerald-700 flex flex-col">
-                <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20">
-                  <h3 className="font-semibold text-emerald-700 dark:text-emerald-300 flex items-center">
+              <div className="w-1/3 border-r border-primary/20 dark:border-primary/30 flex flex-col">
+                <div className="p-4 bg-primary/5 dark:bg-primary/10">
+                  <h3 className="font-semibold text-primary dark:text-primary/80 flex items-center">
                     <Sparkles className="h-4 w-4 mr-2" />
                     Gemini Chat
                   </h3>
-                  <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-1">
+                  <p className="text-sm text-primary/70 dark:text-primary/60 mt-1">
                     Conversa primeiro, mostra depois
                   </p>
                 </div>
@@ -620,7 +620,7 @@ export default function GeminiAssistantBar() {
                     <div key={i} className={`${msg.type === 'user' ? 'text-right' : 'text-left'}`}>
                       <div className={`inline-block max-w-[80%] p-3 rounded-2xl ${
                         msg.type === 'user' 
-                          ? 'bg-emerald-500 text-white' 
+                          ? 'bg-primary text-primary-foreground' 
                           : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
                       }`}>
                         <p className="text-sm">{msg.text}</p>
@@ -633,10 +633,10 @@ export default function GeminiAssistantBar() {
                       <div className="inline-block max-w-[80%] p-3 rounded-2xl bg-gray-100 dark:bg-gray-800">
                         {isTyping && !streaming && (
                           <div className="flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                            <span className="text-xs text-emerald-600 ml-2">Gemini pensando...</span>
+                            <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                            <span className="text-xs text-primary ml-2">Gemini pensando...</span>
                           </div>
                         )}
                         {streaming && (
@@ -652,21 +652,21 @@ export default function GeminiAssistantBar() {
               <div className="flex-1 overflow-y-auto p-6">
                 {loadingSug && (
                   <div className="text-center py-8">
-                    <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                    <p className="text-emerald-600 dark:text-emerald-400 mt-2">Gemini procurando...</p>
+                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    <p className="text-primary dark:text-primary/80 mt-2">Gemini procurando...</p>
                   </div>
                 )}
 
                 {/* Top Box */}
                 {topBox.length > 0 && (
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-emerald-700 dark:text-emerald-300 mb-4 flex items-center">
+                    <h3 className="text-lg font-semibold text-primary dark:text-primary/80 mb-4 flex items-center">
                       <Sparkles className="h-5 w-5 mr-2" />
                       Destaques Gemini
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {topBox.map((product, index) => (
-                        <div key={product.id || index} className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-emerald-200 dark:border-emerald-700">
+                        <div key={product.id || index} className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-primary/20 dark:border-primary/30">
                           <LazyImage
                             src={product.imageUrl || '/placeholder-product.jpg'}
                             alt={product.title || product.name}
@@ -677,7 +677,7 @@ export default function GeminiAssistantBar() {
                               {product.title || product.name}
                             </h4>
                             {product.price?.USD && (
-                              <p className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">
+                              <p className="text-primary dark:text-primary/80 font-bold text-lg">
                                 ${product.price.USD}
                               </p>
                             )}
@@ -696,12 +696,12 @@ export default function GeminiAssistantBar() {
                 {/* Feed */}
                 {feed.length > 0 && (
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-emerald-700 dark:text-emerald-300 mb-4">
+                    <h3 className="text-lg font-semibold text-primary dark:text-primary/80 mb-4">
                       Resultados Gemini
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                       {feed.map((product, index) => (
-                        <div key={product.id || index} className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-emerald-200 dark:border-emerald-700">
+                        <div key={product.id || index} className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-primary/20 dark:border-primary/30">
                           <LazyImage
                             src={product.imageUrl || '/placeholder-product.jpg'}
                             alt={product.title || product.name}
@@ -712,7 +712,7 @@ export default function GeminiAssistantBar() {
                               {product.title || product.name}
                             </h4>
                             {product.price?.USD && (
-                              <p className="text-emerald-600 dark:text-emerald-400 font-bold">
+                              <p className="text-primary dark:text-primary/80 font-bold">
                                 ${product.price.USD}
                               </p>
                             )}
@@ -731,8 +731,8 @@ export default function GeminiAssistantBar() {
                 {/* Estado vazio */}
                 {!loadingSug && topBox.length === 0 && feed.length === 0 && (
                   <div className="text-center py-12">
-                    <Sparkles className="h-16 w-16 text-emerald-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
+                    <Sparkles className="h-16 w-16 text-primary/50 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-primary dark:text-primary/80 mb-2">
                       Gemini Assistant Pronto!
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400">
@@ -744,21 +744,21 @@ export default function GeminiAssistantBar() {
             </div>
             
             {/* Input no Rodapé */}
-            <div className="p-6 border-t border-emerald-200 dark:border-emerald-700 flex-shrink-0">
+            <div className="p-6 border-t border-primary/20 dark:border-primary/30 flex-shrink-0">
               <form onSubmit={onOverlaySubmit} className="flex gap-3">
                 <input
                   type="text"
                   value={overlayInput}
                   onChange={(e) => setOverlayInput(e.target.value)}
                   placeholder="🤖 Digite seu produto (ex.: iPhone, drone, perfume)..."
-                  className="flex-1 px-4 py-3 border border-emerald-300 dark:border-emerald-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-800 dark:text-white"
+                  className="flex-1 px-4 py-3 border border-primary/30 dark:border-primary/40 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-800 dark:text-white"
                   data-testid="input-gemini-overlay"
                   autoFocus
                 />
                 <button
                   type="submit"
                   disabled={!overlayInput.trim() || !sessionId}
-                  className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50"
+                  className="px-6 py-3 bg-primary hover:bg-primary/90 disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50"
                   data-testid="button-submit-gemini"
                 >
                   <Search className="h-5 w-5" />
