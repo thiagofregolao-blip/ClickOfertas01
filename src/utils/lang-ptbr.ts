@@ -10,6 +10,7 @@ export function normPTBR(s: string): string {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "") // remove acentos
+    .replace(/[^\p{L}\p{N}\s]/gu, " ") // remove pontuação ?!.,:
     .replace(/\s+/g, " ")
     .trim();
   // Expansões comuns PT-BR para melhorar matching
@@ -22,11 +23,7 @@ export function normPTBR(s: string): string {
     .replace(/\bpq\b/g, "porque")
     .replace(/\bblz\b/g, "beleza")
     .replace(/\btv's\b/g, "tvs")
-    .replace(/\biphone's\b/g, "iphones")
-    // Normalizar hífens e pontuação para espaços
-    .replace(/[-_]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+    .replace(/\biphone's\b/g, "iphones");
 }
 
 export const NUM_EXTENSO: Record<string, string> = {
@@ -396,8 +393,16 @@ export function toSingularPTBR(word: string): string {
   return w;
 }
 
+// Palavras de enchimento que não definem intenção
+const STOPWORDS = new Set([
+  "e","tambem","também","mais","por","favor","pf","porfa",
+  "quero","queria","gostaria","mostra","mostrar","me","ver",
+  "algum","alguns","alguma","algumas","tem","temos","voc","voce","voces",
+  "de","do","da","os","as","um","uma","uns","umas","ai","aí","porfavor"
+]);
+
 export function tokenizePTBR(msg: string): string[] {
-  return normPTBR(msg).split(/\s+/g);
+  return normPTBR(msg).split(/\s+/g).filter(t => t && !STOPWORDS.has(t));
 }
 
 export function canonicalProductFromText(msg: string): string | null {

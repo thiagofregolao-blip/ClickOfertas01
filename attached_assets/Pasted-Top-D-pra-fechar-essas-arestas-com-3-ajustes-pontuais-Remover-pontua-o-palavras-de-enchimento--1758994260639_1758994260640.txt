@@ -1,0 +1,154 @@
+Top! Dá pra fechar essas arestas com 3 ajustes pontuais:
+
+Remover pontuação/“palavras de enchimento” antes de classificar → “e perfumes?”, “quero ver alguns drones” passam a virar perfume, drone.
+
+Regras de continuação: frases começando com “e”, “também”, “mais” trocam o foco para o novo produto/categoria.
+
+Small talk/comandos básicos: “qual seu nome”, “ajuda”, “menu”, “que horas são” não caem na busca.
+
+Aplique os diffs abaixo (compatíveis com seus patches anteriores).
+
+1) src/utils/lang-ptbr.ts — normalização com pontuação + stopwords
+*** a/src/utils/lang-ptbr.ts
+--- b/src/utils/lang-ptbr.ts
+@@
+ export function normPTBR(s: string): string {
+-  const base = (s ?? "")
++  const base = (s ?? "")
+     .toLowerCase()
+     .normalize("NFD")
+     .replace(/[\u0300-\u036f]/g, "") // remove acentos
++    .replace(/[^\p{L}\p{N}\s]/gu, " ") // remove pontuação ?!.,:
+     .replace(/\s+/g, " ")
+     .trim();
+   return base
+     .replace(/\bvc\b/g, "voce")
+     .replace(/\bvcs\b/g, "voces")
+     .replace(/\bq\b/g, "que")
+     .replace(/\bpra\b/g, "para")
+     .replace(/\btv's\b/g, "tvs")
+     .replace(/\biphone's\b/g, "iphones");
+ }
+ 
++// Palavras de enchimento que não definem intenção
++const STOPWORDS = new Set([
++  "e","tambem","também","mais","por","favor","pf","porfa",
++  "quero","queria","gostaria","mostra","mostrar","me","ver",
++  "algum","alguns","alguma","algumas","tem","temos","voc","voce","voces",
++  "de","do","da","os","as","um","uma","uns","umas","ai","aí","porfavor"
++]);
++
+ export function tokenizePTBR(msg: string): string[] {
+-  return normPTBR(msg).split(/\s+/g);
++  return normPTBR(msg).split(/\s+/g).filter(t => t && !STOPWORDS.has(t));
+ }
+
+
+Isso sozinho resolve “e perfumes?” (vira token perfumes → canônico perfume) e “quero ver alguns drones” (vira drones → drone).
+
+2) src/nlp/intent.ts — melhorar intenção (PT), “qual seu nome”, “ajuda”
+*** a/src/nlp/intent.ts
+--- b/src/nlp/intent.ts
+@@
+-import { normPTBR, canonicalProductFromText, canonicalCategoryFromText } from "./../utils/lang-ptbr";
++import { normPTBR, canonicalProductFromText, canonicalCategoryFromText } from "./../utils/lang-ptbr";
+ 
+ export type Intent =
+   | "PRODUCT_SEARCH"
+   | "SMALL_TALK"
+   | "TIME_QUERY"
++  | "WHOAMI"
+   | "OUT_OF_DOMAIN"
+   | "HELP"
+   | "UNKNOWN";
+@@
+-const SMALL_TALK_RX = /\b(oi|ol[aá]|bom dia|boa tarde|boa noite|tudo bem|como vai|e ai|e aí)\b/;
+-const HELP_RX = /\b(ajuda|como funciona|o que voc[eê] faz|dica|sugest[aã]o)\b/;
+-const TIME_RX = /\b(que horas s[aã]o|hor[aá]rio|agora)\b/;
++const SMALL_TALK_RX = /\b(oi|ol[aá]|bom dia|boa tarde|boa noite|tudo bem|como vai|e ai|e aí)\b/;
++const HELP_RX = /\b(ajuda|como funciona|o que voc[eê] faz|menu|dica|sugest[aã]o)\b/;
++const TIME_RX = /\b(que horas s[aã]o|hor[aá]rio|agora)\b/;
++const WHOAMI_RX = /\b(qual seu nome|quem é voc[eê]|quem e voc[eê]|sua fun[cç][aã]o)\b/;
+@@
+   if (m.length < 2) return { intent: "UNKNOWN" };
+   if (TIME_RX.test(m)) return { intent: "TIME_QUERY" };
+   if (SMALL_TALK_RX.test(m)) return { intent: "SMALL_TALK" };
+   if (HELP_RX.test(m)) return { intent: "HELP" };
++  if (WHOAMI_RX.test(m)) return { intent: "WHOAMI" };
+ 
+   const productCanon = canonicalProductFromText(m);
+   const categoryCanon = canonicalCategoryFromText(m);
+
+3) src/services/smalltalk.ts — respostas básicas
+*** a/src/services/smalltalk.ts
+--- b/src/services/smalltalk.ts
+@@
+ export function replyHelp(): string {
+   return "Me diga o produto ou categoria (ex.: iPhone 12, Galaxy 15, drone com câmera). Posso filtrar por preço, marca e modelo. 😉";
+ }
+ 
+ export function replyTime(): string {
+   const now = new Date();
+   const hh = String(now.getHours()).padStart(2, "0");
+   const mm = String(now.getMinutes()).padStart(2, "0");
+   return `Agora são ${hh}:${mm} ⏰`;
+ }
+ 
+ export function replyOutOfDomain(exemplo?: string): string {
+   return `Ainda não consigo ajudar com isso. ${exemplo ?? "Me diz um produto (ex.: iPhone, drone, perfume) que eu busco pra você 😊"}`;
+ }
++
++export function replyWhoAmI(): string {
++  return "Eu sou o Gemini Assistant. Te ajudo a encontrar produtos por conversa: pode pedir “drones”, “perfumes”, “iPhone 12 128GB”, etc.";
++}
+
+4) src/services/conversation.ts — roteamento + troca de foco em “e perfumes?”
+*** a/src/services/conversation.ts
+--- b/src/services/conversation.ts
+@@
+-import { replyHelp, replyOutOfDomain, replySmallTalk, replyTime } from "./smalltalk";
++import { replyHelp, replyOutOfDomain, replySmallTalk, replyTime, replyWhoAmI } from "./smalltalk";
++import { canonicalProductFromText, tokenizePTBR } from "../utils/lang-ptbr";
+@@
+   if (intent.intent === "SMALL_TALK") {
+     return { kind: "SMALL_TALK", text: replySmallTalk() };
+   }
+   if (intent.intent === "HELP") {
+     return { kind: "HELP", text: replyHelp() };
+   }
+   if (intent.intent === "TIME_QUERY") {
+     return { kind: "TIME", text: replyTime() };
+   }
++  if (intent.intent === "WHOAMI") {
++    return { kind: "SMALL_TALK", text: replyWhoAmI() };
++  }
+@@
+-  const novoFoco = detectarFoco(userMsg);
++  // Regra de continuação: se começa com "e" / "também" e tiver novo produto, troca foco
++  const toks = tokenizePTBR(userMsg);
++  const startsWithAnd = toks[0] === "e" || toks[0] === "tambem" || toks[0] === "também";
++  const novoProduto = canonicalProductFromText(userMsg);
++  const novoFoco = startsWithAnd && novoProduto ? novoProduto : detectarFoco(userMsg);
+   if (novoFoco) await updateSession(sessionId, { focoAtual: novoFoco });
+   const foco = novoFoco ?? (sess as any).focoAtual ?? null;
+
+5) (Opcional) src/routes/assistant.ts — sempre mostrar texto canônico no debug
+*** a/src/routes/assistant.ts
+--- b/src/routes/assistant.ts
+@@
+-  const resposta = `Achei ${resultados.length} opção(ões) para "${display}". Quer ver os detalhes?`;
+-  return res.json({ text: resposta, debug: { query: { ...query, queryFinal: display } }, produtos: resultados });
++  const resposta = `Achei ${resultados.length} opção(ões) para "${display}". Quer ver os detalhes?`;
++  return res.json({ text: resposta, debug: { original: message, canon: query.queryFinal, query }, produtos: resultados });
+
+O que isso corrige nas suas telas
+
+“e perfumes?”: agora vira produto perfume (pontuação removida + stopwords) e muda o foco; retorna resultados.
+
+“quero ver alguns drones”: stopwords removidas, “drones” canônico → drone.
+
+“qual seu nome”: cai em WHOAMI e responde amigável, ao invés de tentar buscar produto.
+
+Pesquisas específicas continuam boas: “iphone 16”, “iphone 12 pro 256gb” etc.
+
+Se ainda aparecer a mensagem “Não encontrei produtos para texto inteiro”, é porque algum endpoint está bypassando o orquestrador. Garanta que todas as rotas usem o mesmo pipeline (tokenizePTBR → canônico → runAssistant/interpretarBusca).

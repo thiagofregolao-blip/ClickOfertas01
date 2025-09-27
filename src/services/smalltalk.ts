@@ -22,3 +22,7 @@ export function replyTime(): string {
 export function replyOutOfDomain(exemplo?: string): string {
   return `Ainda não consigo ajudar com isso. ${exemplo ?? "Me diz um produto (ex.: iPhone, drone, perfume) que eu busco pra você 😊"}`;
 }
+
+export function replyWhoAmI(): string {
+  return `Eu sou o Gemini Assistant. Te ajudo a encontrar produtos por conversa: pode pedir "drones", "perfumes", "iPhone 12 128GB", etc.`;
+}

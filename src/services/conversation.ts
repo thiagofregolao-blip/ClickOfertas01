@@ -2,7 +2,8 @@
 import { classifyIntent } from "../nlp/intent";
 import { montarConsulta, detectarFoco, extrairModeloPTBR } from "../../server/lib/gemini/query-builder.js";
 import { obterContextoSessao, salvarContextoSessao } from "../../server/lib/gemini/context-storage.js";
-import { replyHelp, replyOutOfDomain, replySmallTalk, replyTime } from "./smalltalk";
+import { replyHelp, replyOutOfDomain, replySmallTalk, replyTime, replyWhoAmI } from "./smalltalk";
+import { canonicalProductFromText, tokenizePTBR, normPTBR } from "../utils/lang-ptbr.js";
 
 export interface AssistantResult {
   kind: "SMALL_TALK" | "HELP" | "TIME" | "PRODUCT" | "OUT_OF_DOMAIN";
@@ -58,10 +59,18 @@ export async function runAssistant(sessionId: string, userMsg: string): Promise<
   if (intent.intent === "TIME_QUERY") {
     return { kind: "TIME", text: replyTime() };
   }
+  if (intent.intent === "WHOAMI") {
+    return { kind: "SMALL_TALK", text: replyWhoAmI() };
+  }
 
   // 2) Produto (ou UNKNOWN que podemos resolver por contexto)
   const sess = (await obterContextoSessao(sessionId)) ?? {};
-  const novoFoco = detectarFoco(msgCanonica); // Usar versão canônica
+  
+  // Regra de continuação: se começa com "e" / "também" / "mais" e tiver novo produto, troca foco
+  const firstToken = normPTBR(userMsg).split(/\s+/)[0];
+  const startsWithAnd = ["e", "tambem", "também", "mais"].includes(firstToken);
+  const novoProduto = canonicalProductFromText(userMsg);
+  const novoFoco = startsWithAnd && novoProduto ? novoProduto : detectarFoco(msgCanonica);
   
   // 🔄 CORREÇÃO CRÍTICA: Se veio um novo foco explícito, resetar categoria/slots antigos
   if (novoFoco) {
