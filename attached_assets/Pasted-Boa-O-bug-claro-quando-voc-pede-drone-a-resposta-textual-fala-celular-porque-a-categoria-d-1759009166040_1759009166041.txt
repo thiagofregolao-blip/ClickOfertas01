@@ -1,0 +1,108 @@
+Boa! O bug é claro: quando você pede “drone”, a resposta textual fala “celular” porque a categoria da sessão ficou presa em celular (da busca anterior de iPhone). No processUserMessage nós só atualizamos focoAtual, não limpamos/atualizamos categoriaAtual. Aí:
+
+interpretarBusca lê memoria.categoriaAtual → continua “celular”.
+
+composeAnswer usa categoria ?? produto → imprime “celular”.
+
+E ainda dispara a pergunta de modelo (12/13/Pro), pois categoria === "celular".
+
+Patch enxuto (corrige agora)
+1) Atualizar pipeline para resetar categoria quando muda o produto
+*** a/src/assistant/pipeline.ts
+--- b/src/assistant/pipeline.ts
+@@
+ export async function processUserMessage(sessionId: string, raw: string){
+   const canonMsg = singularizePhrase(raw);
+   const intent = classifyIntent(canonMsg);
+   if (intent.intent !== "PRODUCT_SEARCH") return { intent, canonMsg };
+   const sess = (await getSession(sessionId)) ?? {};
+-  if (intent.entities?.product) await updateSession(sessionId, { focoAtual:intent.entities.product });
++  // Se veio novo produto, zera categoria e lastQuery pra não “grudar” celular em drone
++  if (intent.entities?.product) {
++    const mudou = intent.entities.product !== (sess as any).focoAtual;
++    await updateSession(sessionId, {
++      focoAtual: intent.entities.product,
++      categoriaAtual: mudou ? (intent.entities.category ?? null) : ((sess as any).categoriaAtual ?? intent.entities.category ?? null),
++      lastQuery: mudou ? null : ((sess as any).lastQuery ?? null),
++    });
++  } else if (intent.entities?.category) {
++    // Atualiza categoria explícita mesmo sem trocar o produto
++    await updateSession(sessionId, { categoriaAtual: intent.entities.category });
++  }
+@@
+-  const query = interpretarBusca(canonMsg, { focoAtual:intent.entities?.product ?? (sess as any).focoAtual ?? null, lastQuery: (sess as any).lastQuery ?? null } as any);
++  const query = interpretarBusca(
++    canonMsg,
++    {
++      focoAtual: intent.entities?.product ?? (sess as any).focoAtual ?? null,
++      lastQuery: (sess as any).lastQuery ?? null,
++      categoriaAtual: intent.entities?.category ?? (sess as any).categoriaAtual ?? null,
++    } as any
++  );
+   await updateSession(sessionId, { lastQuery: query.produto ?? (sess as any).lastQuery ?? null });
+-  return { intent, canonMsg, query };
++  return { intent, canonMsg, query };
+ }
+
+2) Garantir que a categoria do intent prevalece no interpretarBusca
+*** a/src/modules/buscaProduto.ts
+--- b/src/modules/buscaProduto.ts
+@@
+-export function interpretarBusca(msg: string, memoria: ConversationMemory): ProdutoQuery {
++export function interpretarBusca(msg: string, memoria: ConversationMemory): ProdutoQuery {
+   const produto = canonicalProductFromText(msg) ?? memoria?.focoAtual ?? memoria?.lastQuery ?? undefined;
+   const { modelo, armazenamento } = extractModel(msg);
+   const marca = extractBrand(msg);
+   const atributos = extractAttributes(msg);
+-  const categoria = memoria?.categoriaAtual ?? undefined;
++  // se a sessão já tem categoria, usa; se não, tenta inferir por produto
++  let categoria = memoria?.categoriaAtual ?? undefined;
++  if (!categoria && produto) {
++    if (produto === "iphone" || produto === "galaxy" || produto === "pixel" || produto === "motorola" || produto === "xiaomi") {
++      categoria = "celular";
++    } else if (produto === "drone") {
++      categoria = "drone";
++    }
++  }
+@@
+   const parts = [produto, modelo, armazenamento, marca].filter(Boolean) as string[];
+   const queryFinal = parts.join(" ").trim();
+   return { produto, modelo, marca, armazenamento, atributos, categoria, queryFinal };
+ }
+
+3) Defesa extra no NLG (se categoria ≠ produto, priorizar o produto para exibir)
+*** a/src/nlg/say.ts
+--- b/src/nlg/say.ts
+@@
+-    const base = found[idx]
+-      .replace("{count}", String(query ? (query as any).count ?? items.length : items.length))
+-      .replace("{cat}", (query.categoria ?? query.produto ?? "itens") as string)
++    const catDisplay = (query.produto && query.categoria && query.produto !== query.categoria)
++      ? (query.produto as string)
++      : ((query.categoria ?? query.produto ?? "itens") as string);
++    const base = found[idx]
++      .replace("{count}", String(items.length))
++      .replace("{cat}", catDisplay)
+       .replace("{query}", query.queryFinal ?? query.produto ?? query.categoria ?? "")
+       .replace("{emoji}", "😄");
+
+
+Com isso, mesmo que alguma rota esqueça de limpar a categoria, a frase mostrará “drone” (e não “celular”), e as perguntas de modelo deixam de aparecer para “drone”.
+
+Testes rápidos (manuais)
+
+Fluxo: “iphone” → depois “drone” → depois “drones”.
+
+A frase deve mostrar drone nas duas últimas.
+
+Não perguntar mais por modelo 12/13 após “drone”.
+
+Fluxo: “drone” → “e perfumes?”
+
+Deve trocar o foco e exibir perfume.
+
+Fluxo: “galaxy 15 256gb”
+
+Categoria “celular”, perguntas coerentes (marca não, capacidade já preenchida).
+
+Se algo ainda “vazar”, me diga o nome do endpoint que está chamando a busca (às vezes tem uma rota /api/search direta que não usa o pipeline).
