@@ -7228,10 +7228,19 @@ Regras:
 
       const text = sanitizeChat(completion.choices?.[0]?.message?.content || base);
 
-      // Entrega: produtos primeiro (se houver), depois chat curto
+      // Entrega: CHAT PRIMEIRO (Ask-Then-Show), produtos depois se necessário
+      // Nota: Esta é a versão OpenAI que mantém Show-Then-Ask para compatibilidade
       if (ofertas.length > 0) {
+        const produtosFormatados = ofertas.map((p: any) => ({ ...p, name: p.title }));
+        
+        // 💾 SALVAR PRODUTOS NA SESSÃO para follow-up futuro (OpenAI)
+        // Nota: No contexto OpenAI, sessionId pode não estar definido, usar com segurança
+        if (sessionId) {
+          salvarProdutosSessao(sessionId, produtosFormatados);
+        }
+        
         send('products', {
-          products: ofertas.map((p: any) => ({ ...p, name: p.title })),
+          products: produtosFormatados,
           query: finalQuery,
           hardGrounding: true
         });
@@ -7261,6 +7270,63 @@ Regras:
   });
 
   // ===== FUNÇÕES DE FOLLOW-UP INTELIGENTE GEMINI =====
+  
+  // Cache de produtos mostrados por sessão (TTL 1 hora)
+  const sessionProductsCache = new Map<string, { products: any[], timestamp: number }>();
+  const SESSION_TTL = 60 * 60 * 1000; // 1 hora
+  
+  // Salva produtos mostrados na sessão
+  function salvarProdutosSessao(sessionId: string, products: any[]) {
+    sessionProductsCache.set(sessionId, {
+      products: products.slice(0, 10), // Máximo 10 produtos
+      timestamp: Date.now()
+    });
+    console.log(`💾 [Gemini Session] Salvando ${products.length} produtos para sessão ${sessionId}`);
+  }
+  
+  // Recupera produtos da sessão
+  function obterProdutosSessao(sessionId: string): any[] {
+    const cached = sessionProductsCache.get(sessionId);
+    if (!cached) return [];
+    
+    // Verificar TTL
+    if (Date.now() - cached.timestamp > SESSION_TTL) {
+      sessionProductsCache.delete(sessionId);
+      return [];
+    }
+    
+    return cached.products;
+  }
+  
+  // Resolve índice/ordinal para produto específico
+  function resolverIndiceProduto(mensagem: string, produtos: any[]) {
+    const msg = mensagem.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    
+    // Mapeamento completo de ordinais em português (1-10)
+    const ordinais = {
+      'primeiro': 0, '1': 0, 'numero 1': 0, 'item 1': 0, '1º': 0, '1°': 0, 'no 1': 0, '#1': 0,
+      'segundo': 1, '2': 1, 'numero 2': 1, 'item 2': 1, '2º': 1, '2°': 1, 'no 2': 1, '#2': 1,
+      'terceiro': 2, '3': 2, 'numero 3': 2, 'item 3': 2, '3º': 2, '3°': 2, 'no 3': 2, '#3': 2,
+      'quarto': 3, '4': 3, 'numero 4': 3, 'item 4': 3, '4º': 3, '4°': 3, 'no 4': 3, '#4': 3,
+      'quinto': 4, '5': 4, 'numero 5': 4, 'item 5': 4, '5º': 4, '5°': 4, 'no 5': 4, '#5': 4,
+      'sexto': 5, '6': 5, 'numero 6': 5, 'item 6': 5, '6º': 5, '6°': 5, 'no 6': 5, '#6': 5,
+      'setimo': 6, '7': 6, 'numero 7': 6, 'item 7': 6, '7º': 6, '7°': 6, 'no 7': 6, '#7': 6,
+      'oitavo': 7, '8': 7, 'numero 8': 7, 'item 8': 7, '8º': 7, '8°': 7, 'no 8': 7, '#8': 7,
+      'nono': 8, '9': 8, 'numero 9': 8, 'item 9': 8, '9º': 8, '9°': 8, 'no 9': 8, '#9': 8,
+      'decimo': 9, '10': 9, 'numero 10': 9, 'item 10': 9, '10º': 9, '10°': 9, 'no 10': 9, '#10': 9,
+      'ultimo': produtos.length - 1, 'final': produtos.length - 1, 'de baixo': produtos.length - 1
+    };
+    
+    for (const [ordinal, index] of Object.entries(ordinais)) {
+      if (msg.includes(ordinal) && index < produtos.length) {
+        const produto = produtos[index as number];
+        console.log(`🎯 [Gemini Índice] Resolvido "${ordinal}" → produto[${index}]: ${produto?.title || produto?.name}`);
+        return { index: index as number, produto };
+      }
+    }
+    
+    return null;
+  }
   
   // Detecta intenção de follow-up com cobertura ampla em português
   function detectarIntencaoFollowUpGemini(mensagem: string) {
@@ -7344,9 +7410,10 @@ Regras:
     return texto.trim().replace(/[^\w\s\-]/gi, "").toLowerCase();
   }
 
-  // Verifica se a mensagem é uma resposta a produtos mostrados
-  function isRespostaAProdutos(mensagem: string, memoryContext: any) {
+  // Verifica se a mensagem é uma resposta a produtos mostrados (usando sessão)
+  function isRespostaAProdutos(mensagem: string, sessionId: string) {
     const msg = limparTextoGemini(mensagem);
+    const produtosSessao = obterProdutosSessao(sessionId);
     
     // Palavras-chave expandidas que indicam follow-up
     const palavrasFollowUp = [
@@ -7357,16 +7424,38 @@ Regras:
     ];
     
     const temPalavraFollowUp = palavrasFollowUp.some(palavra => msg.includes(palavra));
-    const temContextoProdutos = memoryContext?.products && memoryContext.products > 0;
+    const temProdutosSessao = produtosSessao.length > 0;
     
     // Log detalhado para debugging
     console.log(`🔍 [Gemini Follow-up Check] Mensagem: "${mensagem}"`);
     console.log(`🔍 [Gemini Follow-up Check] Msg limpa: "${msg}"`);
     console.log(`🔍 [Gemini Follow-up Check] Tem palavra follow-up: ${temPalavraFollowUp}`);
-    console.log(`🔍 [Gemini Follow-up Check] Tem contexto produtos: ${temContextoProdutos} (${memoryContext?.products} produtos)`);
-    console.log(`🔍 [Gemini Follow-up Check] É resposta a produtos: ${temPalavraFollowUp && temContextoProdutos}`);
+    console.log(`🔍 [Gemini Follow-up Check] Produtos na sessão: ${produtosSessao.length}`);
+    console.log(`🔍 [Gemini Follow-up Check] É resposta a produtos: ${temPalavraFollowUp && temProdutosSessao}`);
     
-    return temPalavraFollowUp && temContextoProdutos;
+    return temPalavraFollowUp && temProdutosSessao;
+  }
+  
+  // Processa follow-up com resolução de índices
+  function processarFollowUpCompleto(mensagem: string, sessionId: string) {
+    const produtosSessao = obterProdutosSessao(sessionId);
+    const intencao = detectarIntencaoFollowUpGemini(mensagem);
+    
+    console.log(`🤖 [Gemini Follow-up] Processando: intencao="${intencao}", produtos=${produtosSessao.length}`);
+    
+    // Se for escolha por índice, resolver produto específico
+    if (intencao === "escolher_por_indice") {
+      const resolucao = resolverIndiceProduto(mensagem, produtosSessao);
+      if (resolucao) {
+        const { produto } = resolucao;
+        return `Perfeito! 👆 Você escolheu: "${produto.title || produto.name}". Ótima escolha! Posso te dar mais detalhes ou ajudar com outras informações.`;
+      }
+    }
+    
+    // Resposta padrão baseada na intenção
+    const resposta = responderFollowUpGemini(intencao);
+    console.log(`🤖 [Gemini Follow-up] Resposta: "${resposta}"`);
+    return resposta;
   }
 
   // POST /api/assistant/gemini/stream - Gemini Assistant with "ask-then-show" behavior
@@ -7489,11 +7578,15 @@ Regras:
     try {
       let userQuery = String(message || "").trim();
 
-      // 🧠 VERIFICAÇÃO DE FOLLOW-UP INTELIGENTE
-      const intencaoFollowUp = detectarIntencaoFollowUpGemini(userQuery);
-      if (intencaoFollowUp && isRespostaAProdutos(userQuery, memoryContext)) {
-        console.log(`🤖 [Gemini Follow-up] Intenção detectada: ${intencaoFollowUp}`);
-        const respostaFollowUp = responderFollowUpGemini(intencaoFollowUp);
+      // 🧠 VERIFICAÇÃO DE FOLLOW-UP INTELIGENTE (ANTES DA LLM)
+      console.log(`🔍 [Gemini Pipeline] Verificando follow-up para: "${userQuery}"`);
+      
+      if (isRespostaAProdutos(userQuery, sessionId)) {
+        console.log(`🎯 [Gemini Pipeline] FOLLOW-UP DETECTADO - Interceptando antes da LLM`);
+        
+        const respostaFollowUp = processarFollowUpCompleto(userQuery, sessionId);
+        console.log(`✅ [Gemini Pipeline] LLM BYPASSED - Resposta direta: "${respostaFollowUp}"`);
+        
         send('delta', { text: respostaFollowUp });
         
         try {
@@ -7501,7 +7594,13 @@ Regras:
             sessionId,
             role: 'assistant',
             content: respostaFollowUp,
-            metadata: { streamed: true, timestamp: new Date().toISOString(), provider: 'gemini', followUp: true }
+            metadata: { 
+              streamed: true, 
+              timestamp: new Date().toISOString(), 
+              provider: 'gemini', 
+              followUp: true,
+              llmBypassed: true
+            }
           });
         } catch (error) {
           console.warn('Erro ao salvar follow-up Gemini:', error);
@@ -7510,6 +7609,8 @@ Regras:
         send('complete', {});
         res.end();
         return;
+      } else {
+        console.log(`⏭️ [Gemini Pipeline] Não é follow-up - Continuando para LLM`);
       }
 
       // 1) CONTEXTO INTELIGENTE: Enriquecer query vaga com histórico
@@ -7633,8 +7734,13 @@ Regras:
       
       // Depois enviar produtos se houver
       if (ofertas.length > 0) {
+        const produtosFormatados = ofertas.map((p: any) => ({ ...p, name: p.title }));
+        
+        // 💾 SALVAR PRODUTOS NA SESSÃO para follow-up futuro
+        salvarProdutosSessao(sessionId, produtosFormatados);
+        
         send('products', {
-          products: ofertas.map((p: any) => ({ ...p, name: p.title })),
+          products: produtosFormatados,
           query: finalQuery,
           hardGrounding: true,
           provider: 'gemini'
