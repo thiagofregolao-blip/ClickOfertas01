@@ -901,18 +901,31 @@ export default function AssistantBar() {
 
   // Auto-scroll para última mensagem com timing e suavidade
   const scrollToBottom = () => {
+    // Forçar múltiplos scrolls para garantir
     setTimeout(() => {
       if (chatScrollRef.current) {
+        console.log('🔄 [ScrollToBottom] Forçando scroll - altura:', chatScrollRef.current.scrollHeight);
+        
+        // Método 1: scrollTo com smooth
         chatScrollRef.current.scrollTo({
           top: chatScrollRef.current.scrollHeight,
           behavior: 'smooth'
         });
+        
+        // Método 2: scrollTop direto como fallback após um delay
+        setTimeout(() => {
+          if (chatScrollRef.current) {
+            chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+            console.log('✅ [ScrollToBottom] Scroll forçado executado');
+          }
+        }, 50);
       }
     }, 100);
   };
 
-  // Auto-scroll quando mensagens mudam ou durante streaming
+  // Auto-scroll quando mensagens mudam ou durante streaming  
   useEffect(() => {
+    console.log('🎯 [UseEffect] Scroll disparado - mensagens:', chatMessages.length, 'streaming:', !!streaming, 'typing:', isTyping);
     scrollToBottom();
   }, [chatMessages, streaming, isTyping]);
 
