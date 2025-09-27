@@ -7585,6 +7585,8 @@ Regras:
       // Usar o novo orquestrador de conversação
       const { runAssistant } = await import('../src/services/conversation.js');
       const { persistSessionAndMessage, salvarResposta } = await import('./lib/gemini/session.js');
+      const { obterContextoSessao, salvarContextoSessao } = await import('./lib/gemini/context-storage.js');
+      const { strSeed, mulberry32 } = await import('../src/utils/rng.js');
 
       await persistSessionAndMessage(sessionId, userId, message);
       
@@ -7616,9 +7618,40 @@ Regras:
         }
         
         const numProdutos = produtos.length;
+        
+        // 🎲 RNG DETERMINÍSTICO: Templates com variação por sessão
+        const sess = (await obterContextoSessao(sessionId)) ?? {};
+        let seed = (sess as any).rngSeed ?? strSeed(sessionId + ":" + Date.now());
+        if (!(sess as any).rngSeed) {
+          await salvarContextoSessao(sessionId, { rngSeed: seed });
+        }
+        const rng = mulberry32(seed);
+        
+        // Templates variados para found/noResults (aplicando patch)
+        const foundTemplates = [
+          `Ótimo! Encontrei {count} produtos para "{query}". Dê uma olhada:`,
+          `Boa escolha! Separei {count} opções de "{query}" pra você. 👍`,
+          `🔥 Achei {count} resultado(s) que combinam com "{query}".`
+        ];
+        
+        const noResultsTemplates = [
+          `Não encontrei produtos para "{query}". Tente com outro termo!`,
+          `Hmm, nada por aqui para "{query}". 🤔 Quer tentar outra marca?`,
+          `Zerado pra "{query}". Que tal especificar mais detalhes?`
+        ];
+        
+        // Escolher template usando RNG (patch aplicado)
         const textoResposta = numProdutos > 0 
-          ? `Ótimo! Encontrei ${numProdutos} produtos para "${pipelineResult.query}". Dê uma olhada:`
-          : `Não encontrei produtos para "${pipelineResult.query}". Tente com outro termo!`;
+          ? foundTemplates[Math.floor(rng() * foundTemplates.length)]
+              .replace("{count}", String(numProdutos))
+              .replace("{query}", pipelineResult.query!)
+          : noResultsTemplates[Math.floor(rng() * noResultsTemplates.length)]
+              .replace("{query}", pipelineResult.query!);
+        
+        // Avançar seed para próxima resposta
+        const nextSeed = (seed + 0x9E3779B9) >>> 0;
+        await salvarContextoSessao(sessionId, { rngSeed: nextSeed });
+        console.log(`🎲 [Gemini] Template seed: ${seed} → next: ${nextSeed}, chosen: "${textoResposta}"`);;
         
         // 🔍 DEBUG: Log completo se busca vazia
         if (numProdutos === 0) {
