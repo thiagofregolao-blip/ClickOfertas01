@@ -1,0 +1,202 @@
+Valeu pelo retorno — bora fechar isso de forma objetiva.
+
+O que está acontecendo (pelos seus prints)
+
+Chat duplica a mesma fala → duas chamadas do frontend (ou StrictMode), mas deixo um guard no backend também.
+
+Sem produtos em “quero o 12 / iphone 12” → sua busca está “dura”: não entende contexto (“12” depois de “iphone”) e o match não é tolerante (acentos, variações, palavras extras).
+
+IA volta a perguntar cidade/preço → quando ela não “vê” produtos, tenta interrogar.
+
+O que vou mudar (sem engessar a IA)
+
+Busca inteligente (robusta): normaliza acentos, pontuação, tokeniza e faz match por tokens/numero; entende que “quero o 12” depois de “iphone” = “iphone 12”.
+
+Memória curta de contexto por sessão: guarda último foco (“iphone”, “perfumes”, “drone”).
+
+Prefetch com “query final” (mensagem + contexto), então a IA vê produtos e não interroga.
+
+Sanitização total do chat (sem links/imagens) e fala curta.
+
+Guard anti-dupla-chamada no backend (idempotência simples).
+
+Abaixo, patches pequenos (substitua só estes trechos).
+
+1) src/services/catalog.js — busca robusta
+// src/services/catalog.js
+// ✅ mantenha seu CATALOGO real; deixo aqui a busca mais inteligente.
+
+const normalize = (s="") =>
+  s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+const tokenize = (s="") =>
+  normalize(s).replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
+
+/**
+ * Busca tolerante por tokens (inclui números: "12", "128").
+ * Retorna itens casados por título/marca/categoria.
+ */
+export async function buscarOfertas({ query, maxResultados = 12 } = {}) {
+  const q = String(query || "").trim();
+  if (!q) return [];
+
+  const qTokens = tokenize(q);
+  if (qTokens.length === 0) return [];
+
+  // mapeie para seus campos reais
+  const fields = (p) => [
+    p.titulo || "",
+    p.marca || "",
+    p.categoria || ""
+  ].map(normalize).join(" ");
+
+  // score: +2 para token que aparece inteiro, +1 para número parcial
+  const score = (prod) => {
+    const hay = fields(prod);
+    let s = 0;
+    for (const t of qTokens) {
+      if (!t) continue;
+      if (hay.includes(` ${t} `) || hay.startsWith(t+" ") || hay.endsWith(" "+t) || hay === t) s += 2;
+      else if (/^\d+$/g.test(t) && hay.includes(t)) s += 1; // números dentro do texto
+    }
+    return s;
+  };
+
+  const ranked = (globalThis.CATALOGO || []).map(p => ({ p, s: score(p) }))
+    .filter(x => x.s > 0)
+    .sort((a,b) => (b.s - a.s) || ((a.p.preco ?? 0) - (b.p.preco ?? 0)))
+    .slice(0, Math.max(1, Math.min(50, maxResultados)))
+    .map(x => x.p);
+
+  return ranked;
+}
+
+// Exporte CATALOGO se você estiver usando mock aqui.
+// export const CATALOGO = [ ... ];
+
+
+Essa busca entende “iphone 12”, “quero o 12” (se for combinado com contexto), “128”, e ignora acentos/maiusc./pontuação.
+
+2) src/ai/chat.js — contexto + prefetch + fala curta
+// src/ai/chat.js
+import { openai } from "./openai.js";
+import { buscarOfertas } from "../services/catalog.js";
+
+// memória curta em processo (por sessão)
+const ctx = new Map(); // sessionId -> { foco: "iphone" }
+
+const SYSTEM_STYLE = `
+Você é o Assistente de Compras do Click Ofertas.
+Tom natural, bem-humorado (máx 1 emoji), útil.
+No chat: não cole links/URLs/imagens e não liste catálogos; use no máx 2 frases.
+Mostre primeiro: nunca bloqueie pedindo cidade/preço; faça no máx 1 pergunta leve DEPOIS de mostrar algo.
+`.trim();
+
+const clean = (t="") => String(t)
+  .replace(/!\[[^\]]*]\([^)]+\)/g,"")
+  .replace(/\[([^\]]+)]\(([^)]+)\)/g,"$1")
+  .replace(/https?:\/\/\S+/g,"")
+  .replace(/\s{2,}/g," ")
+  .trim();
+
+// inferir foco simples (marca/categoria) para memória
+const focoFrom = (msg="") => {
+  const m = msg.toLowerCase();
+  if (/\biphone|apple\b/.test(m)) return "iphone";
+  if (/\bgalaxy|samsung\b/.test(m)) return "samsung";
+  if (/\bperfume(s)?\b/.test(m)) return "perfume";
+  if (/\bdrone(s)?\b/.test(m)) return "drone";
+  return null;
+};
+
+// monta query final combinando contexto + mensagem curta (ex.: "quero o 12" => "iphone 12")
+function buildFinalQuery(message, focoPrev) {
+  const msg = message.trim();
+  const hasBrandWord = /\b(iphone|apple|samsung|galaxy|drone|perfume)\b/i.test(msg);
+  const hasNumber = /\b\d{2,4}\b/.test(msg); // 12, 128, 256, 2024 etc.
+
+  if (!hasBrandWord && hasNumber && focoPrev) {
+    return `${focoPrev} ${msg}`;  // exemplo: "iphone 12"
+  }
+  return msg; // caso geral
+}
+
+export async function chatOnce({ message, sessionId="anon" }) {
+  const focoNovo = focoFrom(message);
+  const focoPrev = ctx.get(sessionId)?.foco || focoNovo || focoFrom("");// fallback nulo
+  if (focoNovo) ctx.set(sessionId, { foco: focoNovo });
+
+  const finalQuery = buildFinalQuery(message, focoPrev);
+
+  // PREFETCH: sempre busca com a "finalQuery"
+  const ofertas = await buscarOfertas({ query: finalQuery, maxResultados: 12 });
+
+  // escolhe frase-base
+  let base;
+  if (ofertas.length > 0) {
+    // genérico ou específico
+    const tokens = finalQuery.trim().split(/\s+/);
+    const segmento = (focoPrev || focoNovo || /iphone|apple/i.test(finalQuery) ? "aparelhos da Apple"
+                    : /samsung|galaxy/i.test(finalQuery) ? "aparelhos Samsung"
+                    : /drone/i.test(finalQuery) ? "drones"
+                    : /perfume/i.test(finalQuery) ? "perfumes"
+                    : "esses produtos");
+    base = (tokens.length <= 2)
+      ? `Vejo que você está de olho em ${segmento}. Listei alguns modelos abaixo. Me diga qual você quer! 😉`
+      : `Achei opções e deixei nos resultados abaixo. Quer que eu afine por variação/modelo?`;
+  } else {
+    base = `Não encontrei itens com esse termo. Me diga o modelo exato que você quer ver 🙂`;
+  }
+
+  // Só uso o modelo para lapidar tom (sem tools, sem interrogatório)
+  const completion = await openai.chat.completions.create({
+    model: process.env.CHAT_MODEL || "gpt-4o-mini",
+    temperature: 0.4,
+    messages: [
+      { role: "system", content: SYSTEM_STYLE },
+      { role: "user", content: `Reescreva em 1–2 frases, sem links/imagens: "${base}"` }
+    ]
+  });
+
+  const text = clean(completion.choices?.[0]?.message?.content || base);
+
+  return { text, ofertas };
+}
+
+
+O que isso resolve:
+
+“quero o 12” logo após “iphone” vira query “iphone 12” → encontra.
+
+“iphone 12” com variações/acentos/palavras extras → match por tokens/numero encontra.
+
+IA não entra em interrogatório porque sempre mostramos algo (ou um caminho) e lapidamos o texto sem permitir tools nesse turno.
+
+Sem links/imagens no chat (sanitização).
+
+Fala sempre curta.
+
+3) (Opcional) Guard anti-duplicidade no backend
+// server.js — antes das rotas
+const recent = new Set();
+setInterval(()=>recent.clear(), 3000);
+
+// na rota /ai/chat
+app.post("/ai/chat", async (req,res)=>{
+  const key = JSON.stringify({ m:req.body?.message, s:req.body?.sessionId });
+  if (recent.has(key)) return res.json({ text: "", ofertas: [] }); // ou ignore
+  recent.add(key);
+  // ... segue chatOnce
+});
+
+Teste esperado
+
+“iphone” → mostra iPhones no painel; chat curto + pergunta leve.
+
+“quero o 12” → usa contexto e mostra iPhone 12 (sem ficar genérico).
+
+“iphone 12” → lista no painel; chat curto; nada de link.
+
+“drone” / “perfumes” → mostra itens; pergunta leve só depois.
+
+Silêncio do usuário → o assistente continua ajudando; nunca trava pedindo cidade/preço.
