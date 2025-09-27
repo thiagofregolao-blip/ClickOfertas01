@@ -7482,7 +7482,8 @@ Regras:
       // Importar módulos
       const { buscarOfertas } = await import('./lib/gemini/busca.js');
       const { persistSessionAndMessage, getSessionMessages, salvarResposta } = await import('./lib/gemini/session.js');
-      const { gerarSaudacao, saudacaoInicial, classificarIntencao, responderPorIntencao, interpretarRefinamento, detectarIntencaoFollowUp, responderFollowUp, gerarRespostaConversacional, gerarPerguntaLeve } = await import('./lib/gemini/respostas.js');
+      const { gerarSaudacao, saudacaoInicial, classificarIntencao, responderPorIntencao, interpretarRefinamento, detectarIntencaoFollowUp, responderFollowUp, gerarRespostaConversacional, gerarPerguntaLeve, gerarFollowUp } = await import('./lib/gemini/respostas.js');
+      const { detectarComparacao, extrairModelosComparacao, gerarComparacao } = await import('./lib/gemini/comparador.js');
 
       await persistSessionAndMessage(sessionId, userId, message);
       const mensagens = await getSessionMessages(sessionId);
@@ -7506,6 +7507,15 @@ Regras:
         return res.end();
       }
 
+      // Detecção de comparação de produtos
+      if (detectarComparacao(message)) {
+        const modelos = extrairModelosComparacao(message);
+        const comparacao = gerarComparacao(modelos);
+        send('delta', { text: comparacao });
+        send('complete', { provider: 'gemini' });
+        return res.end();
+      }
+
       // Refinamento semântico
       const refinamento = interpretarRefinamento(message, memoria);
       const contexto = mensagens.map((m: any) => m.content).join(' | ');
@@ -7524,7 +7534,7 @@ Regras:
       // Gerar resposta
       const saudacao = mensagens.length <= 1 ? gerarSaudacao(userName, horaLocal) : '';
       const resposta = gerarRespostaConversacional(finalQuery, produtos, memoriaUsuarios[userId]);
-      const pergunta = gerarPerguntaLeve(finalQuery);
+      const pergunta = gerarFollowUp(finalQuery);
 
       const textoFinal = [saudacao, resposta, pergunta].filter(Boolean).join(' ');
       send('delta', { text: textoFinal });

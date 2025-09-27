@@ -1,0 +1,179 @@
+Melhorias implementadas diretamente no seu código
+Interpretação semântica de frases complexas
+
+Refinamento contextual com histórico
+
+Classificador de intenção leve
+
+Comparação de produtos (ex: “12 vs 13”)
+
+Respostas dinâmicas com tom de vendedor
+
+Sugestões proativas
+
+Memória por usuário (mantida local para MVP)
+
+Modularização completa
+
+📦 Estrutura de arquivos atualizada
+Código
+/gemini-assistant
+├── index.js                     → Endpoint principal
+├── memoria.js                  → Memória por usuário
+├── interpretador.js            → Parsing semântico de frases
+├── comparador.js               → Comparação de modelos
+├── respostas.js                → Geração de respostas e follow-up
+├── intent.js                   → Classificação de intenção
+├── .env                        → Configuração de API (se necessário)
+📦 index.js (principal)
+js
+import express from 'express';
+import bodyParser from 'body-parser';
+import { getMemory, updateMemory } from './memoria.js';
+import { interpretarFraseProduto } from './interpretador.js';
+import { detectarComparacao, extrairModelosComparacao, gerarComparacao } from './comparador.js';
+import { classificarIntencao, responderPorIntencao } from './intent.js';
+import { gerarRespostaConversacional, gerarFollowUp } from './respostas.js';
+
+const app = express();
+app.use(bodyParser.json());
+
+app.post('/api/assistant', async (req, res) => {
+  const { message, sessionId, horaLocal, user } = req.body;
+  const userId = user.id;
+  const userName = user.name;
+
+  const memoria = getMemory(userId);
+  const tipoIntencao = classificarIntencao(message);
+  const respostaIntencao = responderPorIntencao(tipoIntencao, userName, horaLocal);
+  if (respostaIntencao) return res.json({ text: respostaIntencao });
+
+  if (detectarComparacao(message)) {
+    const modelos = extrairModelosComparacao(message);
+    const resposta = gerarComparacao(modelos);
+    return res.json({ text: resposta });
+  }
+
+  const queryInterpretada = interpretarFraseProduto(message, memoria);
+  const finalQuery = queryInterpretada || message;
+
+  updateMemory(userId, { ultimaBusca: finalQuery });
+
+  const resposta = gerarRespostaConversacional(finalQuery, memoria);
+  const followUp = gerarFollowUp(finalQuery);
+
+  res.json({ text: `${resposta} ${followUp}`.trim() });
+});
+
+app.listen(3000, () => console.log('Gemini Assistant rodando na porta 3000'));
+📦 memoria.js
+js
+const memoriaUsuarios = {};
+
+export function getMemory(userId) {
+  return memoriaUsuarios[userId] || {};
+}
+
+export function updateMemory(userId, dados) {
+  memoriaUsuarios[userId] = {
+    ...memoriaUsuarios[userId],
+    ...dados
+  };
+}
+📦 interpretador.js
+js
+export function interpretarFraseProduto(msg, memoria) {
+  const texto = msg.toLowerCase();
+  const produto = /iphone|galaxy|drone|perfume|notebook|celular/.exec(texto)?.[0];
+  const modelo = /\b(12|13|14|15|s22|s23|128gb|256gb)\b/.exec(texto)?.[0];
+  const marca = /apple|samsung|dior|calvin klein|motorola|lg/.exec(texto)?.[0];
+  const tipo = /masculino|feminino|compacto|potente|boa câmera|bateria/.exec(texto)?.[0];
+
+  let query = '';
+  if (produto) query += produto;
+  if (modelo) query += ` ${modelo}`;
+  if (marca) query += ` ${marca}`;
+  if (tipo) query += ` ${tipo}`;
+
+  if (!produto && memoria?.ultimaBusca) query = `${memoria.ultimaBusca} ${texto}`;
+
+  return query.trim() || null;
+}
+📦 comparador.js
+js
+const produtosCatalogo = {
+  'iphone 12': {
+    modelo: 'iPhone 12',
+    chip: 'A14 Bionic',
+    camera: 'Dupla 12MP',
+    tela: 'OLED 6.1"',
+    preco: 450
+  },
+  'iphone 13': {
+    modelo: 'iPhone 13',
+    chip: 'A15 Bionic',
+    camera: 'Dupla 12MP com estabilização',
+    tela: 'OLED 6.1"',
+    preco: 500
+  },
+  'iphone 15': {
+    modelo: 'iPhone 15',
+    chip: 'A16 Bionic',
+    camera: 'Tripla 48MP',
+    tela: 'OLED 6.1" ProMotion',
+    preco: 650
+  }
+};
+
+export function detectarComparacao(msg) {
+  return /\b(versus|vs|comparar|diferença entre|qual melhor)\b/.test(msg.toLowerCase());
+}
+
+export function extrairModelosComparacao(msg) {
+  const modelos = [];
+  const texto = msg.toLowerCase();
+  ['12', '13', '14', '15'].forEach(num => {
+    if (texto.includes(num)) modelos.push(`iphone ${num}`);
+  });
+  return modelos;
+}
+
+export function gerarComparacao(modelos) {
+  if (modelos.length < 2) return 'Me diga dois modelos que você quer comparar 😉';
+
+  const [m1, m2] = modelos;
+  const p1 = produtosCatalogo[m1];
+  const p2 = produtosCatalogo[m2];
+
+  if (!p1 || !p2) return 'Não encontrei dados suficientes para comparar esses modelos 😕';
+
+  return `📱 Comparando ${p1.modelo} vs ${p2.modelo}:\n\n` +
+    `- Chip: ${p1.chip} vs ${p2.chip}\n` +
+    `- Câmera: ${p1.camera} vs ${p2.camera}\n` +
+    `- Tela: ${p1.tela} vs ${p2.tela}\n` +
+    `- Preço estimado: $${p1.preco} vs $${p2.preco}\n\n` +
+    `Me diz qual te interessou mais que eu te mostro as ofertas!`;
+}
+📦 intent.js
+js
+export function classificarIntencao(msg) {
+  const texto = msg.toLowerCase();
+  if (/qual seu nome|quem é você/.test(texto)) return 'pergunta_sobre_ia';
+  if (/que horas são|hora agora/.test(texto)) return 'pergunta_hora';
+  if (/bom dia|boa tarde|boa noite|oi|olá/.test(texto)) return 'saudacao';
+  return null;
+}
+
+export function responderPorIntencao(tipo, nome, horaLocal) {
+  switch (tipo) {
+    case 'pergunta_sobre_ia':
+      return `Sou seu assistente de compras, ${nome}! Sempre pronto pra te ajudar 🛍️`;
+    case 'pergunta_hora':
+      const hora = horaLocal ?? new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      return `Agora são ${hora} aqui! Quer aproveitar pra ver as ofertas da manhã? ☀️`;
+    case 'saudacao':
+      return `Bom dia, ${nome}! 👋 Me diz o que você está procurando hoje.`;
+    default:
+      return null;
+  }
+}

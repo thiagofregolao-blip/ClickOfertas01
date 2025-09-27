@@ -33,10 +33,10 @@ export function responderPorIntencao(tipo: string | null, nome: string, horaLoca
 export function interpretarFraseProduto(msg: string, memoria: any) {
   const texto = msg.toLowerCase();
 
-  const produto = /iphone|galaxy|drone|perfume|notebook|celular/.exec(texto)?.[0];
-  const modelo = /\b(12|13|14|15|s22|s23|128gb|256gb)\b/.exec(texto)?.[0];
-  const marca = /apple|samsung|dior|calvin klein|motorola|lg/.exec(texto)?.[0];
-  const tipo = /masculino|feminino|compacto|potente|boa câmera|bateria/.exec(texto)?.[0];
+  const produto = /\b(iphone|galaxy|drone|perfume|notebook|laptop|celular|smartphone|tablet|fone|mouse|teclado|monitor|tv|smartwatch|airpods)\b/.exec(texto)?.[0];
+  const modelo = /\b(12|13|14|15|16|s22|s23|s24|128gb|256gb|512gb|1tb|pro|max|mini|se|plus|ultra)\b/.exec(texto)?.[0];
+  const marca = /\b(apple|samsung|xiaomi|dior|calvin klein|lg|motorola|dell|asus|nike|adidas|sony|hp|lenovo|acer)\b/.exec(texto)?.[0];
+  const tipo = /\b(masculino|feminino|compacto|potente|boa câmera|câmera|bateria|barato|caro|novo|usado|original|importado|nacional|gamer|profissional|básico)\b/.exec(texto)?.[0];
 
   let query = '';
   if (produto) query += produto;
@@ -83,7 +83,7 @@ export function responderFollowUp(tipo: string) {
 
 export function gerarRespostaConversacional(query: string, produtos: any[], memoria: any) {
   if (produtos.length === 0) return 'Não achei nada com esse termo. Me dá mais detalhes que eu busco certinho 🙂';
-  const segmento = detectarSegmento(query, produtos);
+  const segmento = detectarSegmento(query);
   const marcaFavorita = memoria?.marca_preferida;
 
   const frases = [
@@ -104,12 +104,22 @@ export function gerarPerguntaLeve(query: string) {
   if (/iphone/i.test(query)) return 'Prefere linha 12, 13 ou 15?';
   if (/drone/i.test(query)) return 'Quer um modelo compacto ou com câmera parruda?';
   if (/perfume/i.test(query)) return 'Tem alguma marca favorita (Dior, Calvin Klein...)?';
+  if (/notebook|laptop/i.test(query)) return 'Quer um modelo gamer, profissional ou básico?';
   return '';
 }
 
-function detectarSegmento(query: string, produtos: any[]) {
+export function gerarFollowUp(query: string) {
+  if (/iphone/i.test(query)) return 'Prefere linha 12, 13 ou 15?';
+  if (/drone/i.test(query)) return 'Quer um modelo compacto ou com câmera parruda?';
+  if (/perfume/i.test(query)) return 'Tem alguma marca favorita (Dior, Calvin Klein...)?';
+  if (/notebook|laptop/i.test(query)) return 'Quer um modelo gamer, profissional ou básico?';
+  return '';
+}
+
+function detectarSegmento(query: string) {
   if (/perfume/i.test(query)) return 'perfumes';
   if (/iphone|celular|smartphone/i.test(query)) return 'celulares';
   if (/drone/i.test(query)) return 'drones';
+  if (/notebook|laptop/i.test(query)) return 'notebooks';
   return 'produtos';
 }
