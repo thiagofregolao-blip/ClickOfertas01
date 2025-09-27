@@ -1,6 +1,6 @@
 // src/nlg/templates.ts
-import { PersonaConfig, pick } from "../persona/salesPersona";
-import { RNG } from "../utils/rng";
+import { PersonaConfig } from "../persona/salesPersona";
+import { RNG, pickWithRng as pick } from "../utils/rng";
 
 type Dict<T> = Record<string, T>;
 
