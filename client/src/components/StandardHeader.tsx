@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocation, Link } from "wouter";
-import { Search, X, BarChart3 } from "lucide-react";
+import { Search, X, BarChart3, Sparkles } from "lucide-react";
 import AssistantBar from "@/components/AssistantBar";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -156,55 +156,57 @@ export default function StandardHeader() {
         {/* Segunda linha: Barra de Busca (Mobile abaixo, Desktop na linha anterior) */}
         {isMobile && (
           <div className="mb-2">
-            <form 
-              className="w-full relative" 
-              onSubmit={(e) => { 
-                e.preventDefault();
-                const query = searchInput.trim();
-                window.dispatchEvent(new CustomEvent('assistant:submit', { 
-                  detail: { source: 'header', query } 
-                }));
-              }}
-              data-anchor="search-form"
-            >
-              <div className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
-                {/* Robozinho Animado */}
-                <div className={`w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs relative overflow-hidden ${robotAnimation}`}>
-                  <div className="relative">
-                    <div className="w-5 h-5 bg-white rounded-sm relative">
-                      <div className="absolute top-1 left-1 w-1 h-1 bg-indigo-600 rounded-full animate-pulse"></div>
-                      <div className="absolute top-1 right-1 w-1 h-1 bg-indigo-600 rounded-full animate-pulse"></div>
-                      <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-0.5 bg-indigo-400 rounded-full"></div>
-                      <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-0.5 h-1 bg-yellow-400"></div>
-                      <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-yellow-400 rounded-full animate-ping"></div>
-                    </div>
+            {/* Barra Premium Gemini - Design modernizado */}
+            <div className="w-full relative">
+              <form 
+                className="w-full relative" 
+                onSubmit={(e) => { 
+                  e.preventDefault();
+                  const query = searchInput.trim();
+                  window.dispatchEvent(new CustomEvent('assistant:submit', { 
+                    detail: { source: 'header', query } 
+                  }));
+                }}
+                data-anchor="search-form"
+              >
+                <div className="relative flex items-center bg-gradient-to-r from-primary/5 to-orange-50 dark:from-primary/10 dark:to-orange-950/30 border-2 border-primary/20 dark:border-primary/30 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
+                  
+                  {/* Ícone Gemini */}
+                  <div className="absolute left-4 flex items-center">
+                    <Sparkles className="h-5 w-5 text-primary dark:text-primary/80" />
                   </div>
+                  
+                  {/* Input */}
+                  <input
+                    type="text"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    onKeyDown={handleKeyDown}
+                    placeholder={isSearchFocused || searchInput ? "🤖 Gemini: Ask-then-show - busca inteligente..." : (displayText || "🤖 Gemini: Ask-then-show - busca inteligente...")}
+                    className="w-full pl-12 pr-20 py-4 text-lg bg-transparent border-0 outline-none placeholder-primary/60 dark:placeholder-primary/70 text-gray-900 dark:text-gray-100"
+                    data-testid="search-input"
+                    autoComplete="off"
+                  />
+                  
+                  {/* Botão de busca modernizado */}
+                  <button
+                    type="submit"
+                    disabled={!searchInput.trim()}
+                    className="absolute right-4 flex items-center justify-center w-10 h-10 bg-primary hover:bg-primary/90 disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-testid="button-search-submit"
+                  >
+                    <Search className="h-5 w-5" />
+                  </button>
                 </div>
-                <Input
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onFocus={handleFocus}
-                  onBlur={handleBlur}
-                  onKeyDown={handleKeyDown}
-                  placeholder={isSearchFocused || searchInput ? "Converse com o Click" : (displayText || "TESTE FORCADO!")}
-                  className="flex-1 outline-none border-0 bg-transparent text-base shadow-none focus:ring-0 focus-visible:ring-0"
-                  data-testid="search-input"
-                />
-                <button 
-                  type="button"
-                  onClick={() => {
-                    const query = searchInput.trim();
-                    window.dispatchEvent(new CustomEvent('assistant:submit', { 
-                      detail: { source: 'header', query } 
-                    }));
-                  }}
-                  className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" 
-                  data-testid="button-search-submit"
-                >
-                  Enviar
-                </button>
-              </div>
-            </form>
+                
+                {/* Badge Gemini - Visível e bem posicionado */}
+                <div className="absolute -top-2 left-6 px-3 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full shadow-md">
+                  GEMINI AI
+                </div>
+              </form>
+            </div>
           </div>
         )}
       </div>
