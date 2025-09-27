@@ -105,8 +105,21 @@ export async function processUserMessage(sessionId: string, raw: string): Promis
   // Reset de foco quando há novo produto explícito
   if (novoFoco) {
     console.log(`🎯 [Pipeline] Novo foco detectado: "${novoFoco}"`);
+    
+    // Inferir categoria baseada no produto
+    let novaCategoria: string | null = null;
+    if (novoFoco === "iphone" || novoFoco === "galaxy" || novoFoco === "pixel" || 
+        novoFoco === "motorola" || novoFoco === "xiaomi") {
+      novaCategoria = "celular";
+    } else if (novoFoco === "drone") {
+      novaCategoria = "drone";
+    } else if (novoFoco === "perfume") {
+      novaCategoria = "perfume";
+    }
+    
     await salvarContextoSessao(sessionId, { 
       focoAtual: novoFoco, 
+      categoriaAtual: novaCategoria,
       ultimaQuery: null,
       lastUpdated: new Date().toISOString()
     });

@@ -11,6 +11,7 @@ export interface ConversationContext {
   acessoriosSugeridos?: string[];     // Acessórios sugeridos para evitar repetição
   rngSeed?: number;                   // Seed para RNG determinístico por sessão
   turn?: number;                      // Número do turno na sessão para rotação
+  categoriaAtual?: string | null;     // Categoria atual inferida (celular, drone, perfume...)
   lastUpdated?: string;               // Timestamp da última atualização
 }
 
