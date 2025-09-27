@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share, BarChart3, Plus, Smartphone, Droplets, Laptop, Monitor, Brain, Sparkles } from "lucide-react";
+import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share, BarChart3, Plus, Smartphone, Droplets, Laptop, Monitor, Brain } from "lucide-react";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import LoginPage from "@/components/login-page";
@@ -30,7 +30,6 @@ import { RectangularScratchCard } from "@/components/RectangularScratchCard";
 import StandardHeader from "@/components/StandardHeader";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import AssistantBar from "@/components/AssistantBar";
-import GeminiAssistantBar from "@/components/GeminiAssistantBar";
 import type { StoreWithProducts, Product, InstagramStoryWithDetails } from "@shared/schema";
 import logoUrl from '../assets/logo.jpg';
 
@@ -66,9 +65,6 @@ export default function StoresGallery() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
-  // Estado para a barra Gemini no header
-  const [geminiSearchInput, setGeminiSearchInput] = useState('');
-  
   // Note: Assistant functionality moved to StandardHeader to avoid duplication
   
   // Assistant functionality handled by StandardHeader
@@ -80,38 +76,6 @@ export default function StoresGallery() {
   // Handle search input changes
   const handleSearchInputChange = (value: string) => {
     setSearchInput(value);
-  };
-
-  // Handlers para a barra Gemini no header
-  const handleGeminiSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setGeminiSearchInput(e.target.value);
-  };
-
-  const handleGeminiSearchFocus = () => {
-    // Disparar evento para o GeminiAssistantBar escutar
-    console.log('🎯 [Cards Header] Gemini focus triggered, dispatching event:', { query: geminiSearchInput });
-    window.dispatchEvent(new CustomEvent('gemini-assistant:focus', { 
-      detail: { source: 'gemini-header', query: geminiSearchInput } 
-    }));
-  };
-
-  const handleGeminiSearchSubmit = (e: React.FormEvent | React.MouseEvent) => {
-    e.preventDefault();
-    const query = geminiSearchInput.trim();
-    if (query) {
-      console.log('📤 [Cards Header] Disparando evento Gemini gemini-assistant:submit:', { query, source: 'gemini-header' });
-      
-      // Disparar evento para o GeminiAssistantBar processar
-      window.dispatchEvent(new CustomEvent('gemini-assistant:submit', { 
-        detail: { source: 'gemini-header', query } 
-      }));
-    }
-  };
-
-  const handleGeminiSearchKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleGeminiSearchSubmit(e as any);
-    }
   };
 
   // Assistant message handling moved to StandardHeader
@@ -794,48 +758,6 @@ export default function StoresGallery() {
                     Comparar Preços
                   </Button>
                 </Link>
-
-                {/* Barra Gemini - Visual Premium */}
-                <div className="relative flex-shrink-0 w-80">
-                  <form onSubmit={handleGeminiSearchSubmit} className="relative">
-                    <div className="relative flex items-center bg-gradient-to-r from-primary/5 to-orange-50 dark:from-primary/10 dark:to-orange-950/30 border-2 border-primary/20 dark:border-primary/30 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
-                      
-                      {/* Ícone Gemini */}
-                      <div className="absolute left-3 flex items-center">
-                        <Sparkles className="h-4 w-4 text-primary dark:text-primary/80" />
-                      </div>
-                      
-                      {/* Input */}
-                      <input
-                        type="text"
-                        value={geminiSearchInput}
-                        onChange={handleGeminiSearchInputChange}
-                        onFocus={handleGeminiSearchFocus}
-                        onKeyDown={handleGeminiSearchKeyDown}
-                        placeholder="🤖 Gemini: Ask-then-show - busca inteligente..."
-                        className="w-full pl-10 pr-12 py-2.5 text-sm bg-transparent border-0 outline-none placeholder-primary/60 dark:placeholder-primary/70 text-gray-900 dark:text-gray-100"
-                        data-testid="input-gemini-search-header"
-                        autoComplete="off"
-                      />
-                      
-                      {/* Botão de busca */}
-                      <button
-                        type="submit"
-                        onClick={handleGeminiSearchSubmit}
-                        disabled={!geminiSearchInput.trim()}
-                        className="absolute right-2 flex items-center justify-center w-8 h-8 bg-primary hover:bg-primary/90 disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                        data-testid="button-gemini-search-header"
-                      >
-                        <Search className="h-4 w-4" />
-                      </button>
-                    </div>
-                    
-                    {/* Badge Gemini */}
-                    <div className="absolute -top-1.5 left-4 px-2 py-0.5 bg-primary text-primary-foreground text-xs font-bold rounded-full shadow-md" data-testid="badge-gemini-ai">
-                      GEMINI AI
-                    </div>
-                  </form>
-                </div>
                 
                 {/* Click Pro Assistant Bar - A BARRA É O ASSISTENTE */}
                 <div className="flex-1 max-w-4xl">
@@ -998,7 +920,7 @@ export default function StoresGallery() {
 
       {/* SEÇÃO DE BANNERS - Desktop apenas */}
       {!searchQuery.trim() && !isMobile && (
-        <div className="bg-white border-b pt-16">
+        <div className="bg-white border-b pt-4 mt-10">
           {/* Banner ocupando toda a largura da tela */}
           <BannerSection isSearchActive={false} />
         </div>
@@ -1371,9 +1293,6 @@ export default function StoresGallery() {
           </div>
         </div>
       )}
-
-      {/* GeminiAssistantBar - Processa eventos da barra Gemini do header */}
-      <GeminiAssistantBar />
 
     </div>
   );

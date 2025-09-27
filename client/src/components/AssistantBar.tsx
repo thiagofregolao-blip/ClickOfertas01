@@ -933,6 +933,27 @@ export default function AssistantBar() {
     <>
       {/* WRAPPER RELATIVE para ancorar */} 
       <div className="w-full relative">
+        {/* Barra = chat */}
+        <form ref={chatRef} onSubmit={onSubmit} className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
+          <div className="w-7 h-7 grid place-content-center text-lg">🤖</div>
+          <input
+            value={query}
+            onChange={e => onChange(e.target.value)}
+            onFocus={() => {
+              setIsSearchFocused(true);
+              onFocus();
+            }}
+            onBlur={(e) => {
+              // Delay para permitir clique nas sugestões
+              setTimeout(() => setIsSearchFocused(false), 200);
+              setTimeout(() => setShowSuggestions(false), 200);
+            }}
+            placeholder={isSearchFocused || query ? "Converse com o Click (ex.: iPhone 15 em CDE)" : (displayText || "Carregando frases...")}
+            className="flex-1 outline-none text-base"
+            data-testid="search-input"
+          />
+          <button className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" type="submit">Click</button>
+        </form>
 
         {/* DROPDOWN DE SUGESTÕES (aparece enquanto usuário digita) */}
         {showSuggestions && hasResults && !open && (

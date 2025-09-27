@@ -156,39 +156,55 @@ export default function StandardHeader() {
         {/* Segunda linha: Barra de Busca (Mobile abaixo, Desktop na linha anterior) */}
         {isMobile && (
           <div className="mb-2">
-            <div className="flex items-center space-x-2">
-              <div className="flex-1 relative">
+            <form 
+              className="w-full relative" 
+              onSubmit={(e) => { 
+                e.preventDefault();
+                const query = searchInput.trim();
+                window.dispatchEvent(new CustomEvent('assistant:submit', { 
+                  detail: { source: 'header', query } 
+                }));
+              }}
+              data-anchor="search-form"
+            >
+              <div className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
+                {/* Robozinho Animado */}
+                <div className={`w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white grid place-content-center text-xs relative overflow-hidden ${robotAnimation}`}>
+                  <div className="relative">
+                    <div className="w-5 h-5 bg-white rounded-sm relative">
+                      <div className="absolute top-1 left-1 w-1 h-1 bg-indigo-600 rounded-full animate-pulse"></div>
+                      <div className="absolute top-1 right-1 w-1 h-1 bg-indigo-600 rounded-full animate-pulse"></div>
+                      <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-0.5 bg-indigo-400 rounded-full"></div>
+                      <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-0.5 h-1 bg-yellow-400"></div>
+                      <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-yellow-400 rounded-full animate-ping"></div>
+                    </div>
+                  </div>
+                </div>
                 <Input
-                  type="text"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onFocus={handleFocus}
                   onBlur={handleBlur}
                   onKeyDown={handleKeyDown}
-                  placeholder={isSearchFocused || searchInput ? "Digite sua busca..." : (displayText || "Digite sua busca...")}
-                  className="bg-white/90 border border-white/50 text-gray-800 placeholder-gray-600"
+                  placeholder={isSearchFocused || searchInput ? "Converse com o Click" : (displayText || "TESTE FORCADO!")}
+                  className="flex-1 outline-none border-0 bg-transparent text-base shadow-none focus:ring-0 focus-visible:ring-0"
                   data-testid="search-input"
                 />
-                {searchInput && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-gray-500 hover:text-gray-700"
-                    onClick={() => setSearchInput('')}
-                    data-testid="button-clear-search"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
+                <button 
+                  type="button"
+                  onClick={() => {
+                    const query = searchInput.trim();
+                    window.dispatchEvent(new CustomEvent('assistant:submit', { 
+                      detail: { source: 'header', query } 
+                    }));
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" 
+                  data-testid="button-search-submit"
+                >
+                  Enviar
+                </button>
               </div>
-              <Button
-                onClick={handleSearch}
-                className="bg-white/90 hover:bg-white text-primary border border-white/50"
-                data-testid="button-search"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
+            </form>
           </div>
         )}
       </div>
