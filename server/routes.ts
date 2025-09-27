@@ -7193,6 +7193,217 @@ Regras:
     res.end();
   });
 
+  // POST /api/assistant/gemini/stream - Gemini Assistant with "show-then-ask" behavior
+  app.post('/api/assistant/gemini/stream', async (req: any, res) => {
+    const { message, sessionId } = req.body;
+    const user = req.user || req.session?.user;
+
+    if (!message || !sessionId) {
+      return res.status(400).json({ error: 'Message and sessionId required' });
+    }
+
+    // Configuração SSE
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.flushHeaders?.();
+
+    const send = (event: string, payload: any) => {
+      res.write(`event: ${event}\n`);
+      res.write(`data: ${JSON.stringify(payload)}\n\n`);
+    };
+
+    // Persistência
+    try {
+      let session = await storage.getAssistantSession(sessionId);
+      if (!session) {
+        session = await storage.createAssistantSession({
+          id: sessionId,
+          userId: user?.id || null,
+          metadata: { createdAt: new Date().toISOString(), provider: 'gemini' },
+        });
+      }
+      
+      await storage.createAssistantMessage({ 
+        sessionId, 
+        role: 'user', 
+        content: message, 
+        metadata: { timestamp: new Date().toISOString(), provider: 'gemini' } 
+      });
+    } catch (error) {
+      console.warn('Erro ao salvar mensagem Gemini:', error);
+    }
+
+    // Tool: buscarOfertas (reutilizar a mesma função)
+    async function buscarOfertas(args: { query: string; maxResultados?: number; }) {
+      const { query, maxResultados = 12 } = args || {};
+      
+      const q = String(query || "").toLowerCase().trim();
+      if (!q) return [];
+      
+      try {
+        const { searchSuggestions } = await import('./lib/tools.js');
+        const searchResult = await searchSuggestions(q);
+        
+        let products = searchResult.products || [];
+        
+        // Ranking simples por preço
+        products.sort((a: any, b: any) => (a.price?.USD || 0) - (b.price?.USD || 0));
+        const sorted = products.slice(0, Math.max(1, Math.min(50, maxResultados)));
+        
+        if (sorted.length > 0) {
+          send('products', {
+            products: sorted.map((p: any) => ({ ...p, name: p.title })),
+            query,
+            hardGrounding: true,
+            provider: 'gemini'
+          });
+        }
+        
+        return sorted;
+      } catch (error) {
+        console.error('Erro na busca Gemini:', error);
+        return [];
+      }
+    }
+
+    // =============== MENSAGENS EXATAS GEMINI (templates) =================
+
+    // 1) Quando a consulta é genérica (ex.: "iphone", "perfumes", "drone")
+    function msgGenericFoundGemini(segmento: string) {
+      return `Boa! Separei alguns ${segmento} que estão valendo a pena. Quer focar em algum modelo específico? 😉`;
+    }
+
+    // 2) Quando encontrou itens específicos (ex.: "iphone 13")
+    function msgSpecificFoundGemini() {
+      return "Achei opções e deixei nos resultados abaixo. Quer que eu refine por armazenamento/cor?";
+    }
+
+    // 3) Quando não encontrou nada
+    function msgNoResultsGemini() {
+      return "Não achei itens com esse termo. Me diga o modelo exato para eu buscar certinho 🙂";
+    }
+
+    // 4) Pergunta leve (máx 1) depois de mostrar – opcional
+    function msgSoftQuestionGemini(tema: string) {
+      return `Prefere ${tema}? Posso ajustar os resultados.`;
+    }
+
+    // 5) Sanitização de qualquer texto do modelo (garantia dupla no chat)
+    function sanitizeChatGemini(text = "") {
+      return String(text)
+        .replace(/!\[[^\]]*\]\([^)]+\)/g, "")        // imagens
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")   // links → só texto
+        .replace(/https?:\/\/\S+/g, "")             // URLs cruas
+        .replace(/\s{2,}/g, " ")
+        .trim();
+    }
+
+    // 6) Deduções simples para frase genérica
+    function segmentoDaQueryGemini(query: string, ofertas: any[] = []) {
+      const q = (query || "").toLowerCase();
+      const marcas = new Set(ofertas.map(o => (o.marca || "").toLowerCase()));
+      const tem = (s: string) => q.includes(s) || [...marcas].some(m => m.includes(s));
+      if (tem("iphone") || tem("apple")) return "aparelhos da Apple";
+      if (tem("samsung") || tem("galaxy")) return "aparelhos Samsung";
+      if (tem("drone")) return "drones";
+      if (tem("perfume")) return "perfumes";
+      return "esses produtos";
+    }
+
+    send('meta', { ok: true, provider: 'gemini' });
+
+    try {
+      const userQuery = String(message || "").trim();
+
+      // 1) Mostra primeiro (prefetch com a própria mensagem) - SEMPRE
+      const ofertas = userQuery ? await buscarOfertas({ query: userQuery, maxResultados: 12 }) : [];
+
+      // 2) Decide mensagem "exata" a partir do contexto (Heurística simples)
+      let text;
+      if (ofertas.length === 0) {
+        text = msgNoResultsGemini();
+      } else {
+        // Heurística: se a query tem 1–2 palavras => genérico; caso contrário específico
+        const tokens = userQuery.split(/\s+/).filter(Boolean);
+        if (tokens.length <= 2) {
+          text = msgGenericFoundGemini(segmentoDaQueryGemini(userQuery, ofertas));
+        } else {
+          text = msgSpecificFoundGemini();
+        }
+      }
+
+      // 3) Usar Gemini para lapidar o tom (sem permitir tool/refinamentos automáticos)
+      try {
+        // Importar Gemini
+        const { GoogleGenAI } = await import('@google/genai');
+        const geminiAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+        
+        const model = geminiAI.getGenerativeModel({ model: 'gemini-2.0-flash-preview' });
+        
+        const polishPrompt = `Você é o Assistente de Compras do Click Ofertas.
+Tom: natural, bem-humorado (1 emoji no máx quando couber), direto ao ponto.
+Regras:
+- Mostre primeiro: nunca bloqueie a conversa pedindo cidade/preço. Pergunte só se agregar valor e no máx 1 pergunta.
+- No chat: não cole links/URLs/imagens; não liste catálogos. A lista completa aparece no painel de resultados.
+- Seja útil como um vendedor amigo: sugira comparações, opções próximas e dicas curtas.
+
+Reescreva de forma natural e simpática, 1–2 frases no máximo, sem links/imagens: "${text}"`;
+
+        const result = await model.generateContent(polishPrompt);
+        const polished = sanitizeChatGemini(result.response.text() || text);
+
+        // 4) (Opcional) 1 pergunta leve após mostrar
+        let pergunta = "";
+        if (ofertas.length > 0) {
+          // Exemplos de temas específicos
+          if (/iphone|apple/i.test(userQuery)) pergunta = msgSoftQuestionGemini("linha 13 ou 15");
+          else if (/drone/i.test(userQuery)) pergunta = msgSoftQuestionGemini("compacto ou câmera mais parruda");
+          else if (/perfume/i.test(userQuery)) pergunta = msgSoftQuestionGemini("marcas favoritas (Dior, Calvin Klein...)");
+        }
+        const finalText = sanitizeChatGemini([polished, pergunta].filter(Boolean).join(" "));
+
+        // 5) Entrega: chat curto + ofertas para o painel
+        send('delta', { text: finalText });
+        
+        try {
+          await storage.createAssistantMessage({
+            sessionId,
+            role: 'assistant',
+            content: finalText,
+            metadata: { streamed: true, timestamp: new Date().toISOString(), provider: 'gemini', showThenAsk: true }
+          });
+        } catch (error) {
+          console.warn('Erro ao salvar resposta Gemini:', error);
+        }
+        
+      } catch (geminiError) {
+        console.error('Erro no Gemini:', geminiError);
+        // Fallback com mensagem template direta
+        send('delta', { text });
+        
+        try {
+          await storage.createAssistantMessage({
+            sessionId,
+            role: 'assistant',
+            content: text,
+            metadata: { streamed: true, timestamp: new Date().toISOString(), provider: 'gemini', fallback: true }
+          });
+        } catch (error) {
+          console.warn('Erro ao salvar resposta Gemini fallback:', error);
+        }
+      }
+
+    } catch (error) {
+      console.error('Erro no chat Gemini:', error);
+      send('delta', { text: "Me diga o nome do produto (ex.: 'iphone') que eu listo pra você!" });
+    }
+
+    send('complete', { provider: 'gemini' });
+    res.end();
+  });
+
   // Get assistant session with messages (with ownership check)
   app.get('/api/assistant/sessions/:sessionId', async (req: any, res) => {
     try {

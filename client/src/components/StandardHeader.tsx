@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useLocation, Link } from "wouter";
 import { Search, X, BarChart3 } from "lucide-react";
 import AssistantBar from "@/components/AssistantBar";
+import GeminiAssistantBar from "@/components/GeminiAssistantBar";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 
@@ -89,6 +90,11 @@ export default function StandardHeader() {
     window.dispatchEvent(new CustomEvent('assistant:focus', { 
       detail: { source: 'header', query: searchInput } 
     }));
+    
+    // Disparar evento para o GeminiAssistantBar escutar  
+    window.dispatchEvent(new CustomEvent('gemini-assistant:focus', { 
+      detail: { source: 'gemini-header', query: searchInput } 
+    }));
   };
 
   // Retomar animação quando desfoca
@@ -141,14 +147,25 @@ export default function StandardHeader() {
       
       console.log('🚀 [Header] Evento criado e sendo disparado:', event);
       window.dispatchEvent(event);
+      
+      // Disparar evento para o GeminiAssistantBar processar
+      const geminiEvent = new CustomEvent('gemini-assistant:submit', { 
+        detail: { source: 'gemini-header', query } 
+      });
+      
+      console.log('🤖 [Header] Evento Gemini criado e sendo disparado:', geminiEvent);
+      window.dispatchEvent(geminiEvent);
     }
   };
 
 
   return (
     <>
-    {/* Componente completo do assistente */}
+    {/* Componente completo do assistente OpenAI */}
     <AssistantBar />
+    
+    {/* Componente Gemini Assistant - Show-then-Ask */}
+    <GeminiAssistantBar />
     
     <div className="sticky top-0 z-50" style={{background: 'linear-gradient(to bottom right, #F04940, #FA7D22)'}}>
       <div className={`py-4 px-2 ${isMobile ? 'px-4' : 'ml-[5%]'}`}>
@@ -159,9 +176,13 @@ export default function StandardHeader() {
             <form 
               className="w-full relative" 
               onSubmit={(e) => { 
-                e.preventDefault(); 
+                e.preventDefault();
+                const query = searchInput.trim();
                 window.dispatchEvent(new CustomEvent('assistant:submit', { 
-                  detail: { source: 'header', query: searchInput.trim() } 
+                  detail: { source: 'header', query } 
+                }));
+                window.dispatchEvent(new CustomEvent('gemini-assistant:submit', { 
+                  detail: { source: 'gemini-header', query } 
                 }));
               }}
               data-anchor="search-form"
@@ -192,8 +213,12 @@ export default function StandardHeader() {
                 <button 
                   type="button"
                   onClick={() => {
+                    const query = searchInput.trim();
                     window.dispatchEvent(new CustomEvent('assistant:submit', { 
-                      detail: { source: 'header', query: searchInput.trim() } 
+                      detail: { source: 'header', query } 
+                    }));
+                    window.dispatchEvent(new CustomEvent('gemini-assistant:submit', { 
+                      detail: { source: 'gemini-header', query } 
                     }));
                   }}
                   className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" 
