@@ -7617,44 +7617,39 @@ Regras:
           console.log(`📦 [Pipeline] Fallback: ${produtos.length} produtos`);
         }
         
-        const numProdutos = produtos.length;
+        // 🎯 USAR COMPOSE ANSWER: Sistema unificado de templates com rotação
+        const { composeAnswer } = await import('../src/nlg/say.js');
         
-        // 🎲 RNG DETERMINÍSTICO: Templates com variação por sessão
-        const sess = (await obterContextoSessao(sessionId)) ?? {};
-        let seed = (sess as any).rngSeed ?? strSeed(sessionId + ":" + Date.now());
-        if (!(sess as any).rngSeed) {
-          await salvarContextoSessao(sessionId, { rngSeed: seed });
-        }
-        const rng = mulberry32(seed);
+        const query = {
+          produto: pipelineResult.query,
+          categoria: pipelineResult.intentType === 'PRODUCT_SEARCH' ? 'celular' : undefined,
+          queryFinal: pipelineResult.query,
+          count: produtos.length
+        };
         
-        // Templates variados para found/noResults (aplicando patch)
-        const foundTemplates = [
-          `Ótimo! Encontrei {count} produtos para "{query}". Dê uma olhada:`,
-          `Boa escolha! Separei {count} opções de "{query}" pra você. 👍`,
-          `🔥 Achei {count} resultado(s) que combinam com "{query}".`
-        ];
+        const memory = { 
+          focoAtual: pipelineResult.query,
+          lastQuery: null,
+          acessoriosSugeridos: []
+        };
         
-        const noResultsTemplates = [
-          `Não encontrei produtos para "{query}". Tente com outro termo!`,
-          `Hmm, nada por aqui para "{query}". 🤔 Quer tentar outra marca?`,
-          `Zerado pra "{query}". Que tal especificar mais detalhes?`
-        ];
+        // Gerar resposta usando sistema unificado
+        const blocks = await composeAnswer({ 
+          items: produtos, 
+          query, 
+          memory,
+          sessionId 
+        });
         
-        // Escolher template usando RNG (patch aplicado)
-        const textoResposta = numProdutos > 0 
-          ? foundTemplates[Math.floor(rng() * foundTemplates.length)]
-              .replace("{count}", String(numProdutos))
-              .replace("{query}", pipelineResult.query!)
-          : noResultsTemplates[Math.floor(rng() * noResultsTemplates.length)]
-              .replace("{query}", pipelineResult.query!);
-        
-        // Avançar seed para próxima resposta
-        const nextSeed = (seed + 0x9E3779B9) >>> 0;
-        await salvarContextoSessao(sessionId, { rngSeed: nextSeed });
-        console.log(`🎲 [Gemini] Template seed: ${seed} → next: ${nextSeed}, chosen: "${textoResposta}"`);;
+        const textoResposta = blocks
+          .filter(b => b.type === "text")
+          .map(b => b.text)
+          .join("\n\n");
+          
+        console.log(`🎲 [Gemini] ComposeAnswer usado, sessão: ${sessionId}, resposta: "${textoResposta.slice(0, 50)}..."`);
         
         // 🔍 DEBUG: Log completo se busca vazia
-        if (numProdutos === 0) {
+        if (produtos.length === 0) {
           console.log(`❌ [Pipeline DEBUG] BUSCA VAZIA:`, pipelineResult.debug);
         }
         
