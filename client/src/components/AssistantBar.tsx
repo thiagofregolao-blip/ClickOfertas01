@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { LazyImage } from './lazy-image';
 import { useSuggestions } from '@/hooks/use-suggestions';
-import { Search } from 'lucide-react';
+import { Search, Sparkles } from 'lucide-react';
 
 // Sessão simples por usuário (cache 1h)
 const sessionCache = new Map();
@@ -933,27 +933,51 @@ export default function AssistantBar() {
     <>
       {/* WRAPPER RELATIVE para ancorar */} 
       <div className="w-full relative">
-        {/* Barra = chat */}
-        <form ref={chatRef} onSubmit={onSubmit} className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
-          <div className="w-7 h-7 grid place-content-center text-lg">🤖</div>
-          <input
-            value={query}
-            onChange={e => onChange(e.target.value)}
-            onFocus={() => {
-              setIsSearchFocused(true);
-              onFocus();
-            }}
-            onBlur={(e) => {
-              // Delay para permitir clique nas sugestões
-              setTimeout(() => setIsSearchFocused(false), 200);
-              setTimeout(() => setShowSuggestions(false), 200);
-            }}
-            placeholder={isSearchFocused || query ? "Converse com o Click (ex.: iPhone 15 em CDE)" : (displayText || "Carregando frases...")}
-            className="flex-1 outline-none text-base"
-            data-testid="search-input"
-          />
-          <button className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" type="submit">Click</button>
-        </form>
+        {/* Barra Premium Gemini - Visual modernizado com semântica correta */}
+        <div className="relative">
+          <form ref={chatRef} onSubmit={onSubmit} className="relative flex items-center bg-gradient-to-r from-primary/5 to-orange-50 dark:from-primary/10 dark:to-orange-950/30 border-2 border-primary/20 dark:border-primary/30 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
+            
+            {/* Ícone Gemini */}
+            <div className="absolute left-4 flex items-center">
+              <Sparkles className="h-5 w-5 text-primary dark:text-primary/80" />
+            </div>
+            
+            {/* Input */}
+            <input
+              type="text"
+              value={query}
+              onChange={e => onChange(e.target.value)}
+              onFocus={() => {
+                setIsSearchFocused(true);
+                onFocus();
+              }}
+              onBlur={(e) => {
+                // Delay para permitir clique nas sugestões
+                setTimeout(() => setIsSearchFocused(false), 200);
+                setTimeout(() => setShowSuggestions(false), 200);
+              }}
+              placeholder={isSearchFocused || query ? "🤖 Gemini: Ask-then-show - busca inteligente..." : (displayText || "🤖 Gemini: Ask-then-show - busca inteligente...")}
+              className="w-full pl-12 pr-20 py-4 text-lg bg-transparent border-0 outline-none placeholder-primary/60 dark:placeholder-primary/70 text-gray-900 dark:text-gray-100"
+              data-testid="search-input"
+              autoComplete="off"
+            />
+            
+            {/* Botão de busca modernizado */}
+            <button
+              type="submit"
+              disabled={!query.trim()}
+              className="absolute right-4 flex items-center justify-center w-10 h-10 bg-primary hover:bg-primary/90 disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              data-testid="button-search-submit"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+          </form>
+          
+          {/* Badge Gemini - Visível e bem posicionado */}
+          <div className="absolute -top-2 left-6 px-3 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full shadow-md">
+            GEMINI AI
+          </div>
+        </div>
 
         {/* DROPDOWN DE SUGESTÕES (aparece enquanto usuário digita) */}
         {showSuggestions && hasResults && !open && (
