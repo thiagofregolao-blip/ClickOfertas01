@@ -7588,35 +7588,41 @@ Regras:
 
       await persistSessionAndMessage(sessionId, userId, message);
       
-      // 🔍 DEBUG: Log mensagem original para rastreamento
-      console.log(`📥 [Gemini DEBUG] Mensagem original: "${message}"`);
+      // 🔄 PIPELINE ÚNICO: processar mensagem através do pipeline centralizado
+      const { processUserMessage } = await import('../src/assistant/pipeline.js');
+      const pipelineResult = await processUserMessage(sessionId, message);
       
-      // Executar assistente com roteamento inteligente
-      const result = await runAssistant(sessionId, message);
-      
-      console.log(`🤖 [Gemini] Resultado do assistente:`, {
-        kind: result.kind,
-        queryFinal: result.queryFinal,
-        itemsCount: result.items?.length || 0,
-        originalMessage: message
-      });
+      console.log(`🤖 [Pipeline] Resultado:`, pipelineResult.debug);
 
-      // Resposta baseada no tipo de intenção
-      if (result.kind === "PRODUCT") {
-        // Produto: enviar texto conversacional + produtos (Ask-Then-Show)
-        const numProdutos = result.items?.length || 0;
-        const textoResposta = numProdutos > 0 
-          ? `Ótimo! Encontrei ${numProdutos} produtos para "${result.queryFinal}". Dê uma olhada:`
-          : `Não encontrei produtos para "${result.queryFinal}". Tente com outro termo!`;
+      // Resposta baseada na decisão do pipeline
+      if (!pipelineResult.shouldSearch) {
+        // Small talk, help, time, whoami, out of domain: só texto
+        const textoResposta = pipelineResult.text || "Como posso ajudar você hoje?";
+        send('delta', { text: textoResposta });
+        await salvarResposta(sessionId, textoResposta);
+      } else {
+        // Busca de produtos: usar query estruturada do pipeline
+        const { buscarOfertas } = await import('./lib/gemini/busca.js');
         
-        // 🔍 DEBUG: Log completo da transformação
+        // Busca inicial com query canônica
+        let produtos = await buscarOfertas({ query: pipelineResult.query! });
+        console.log(`📦 [Pipeline] Busca inicial: ${produtos.length} produtos para "${pipelineResult.query}"`);
+        
+        // Fallback progressivo se veio vazio
+        if (produtos.length === 0 && pipelineResult.canonMsg !== pipelineResult.debug.original.toLowerCase().trim()) {
+          console.log(`🔄 [Pipeline] Fallback com mensagem original`);
+          produtos = await buscarOfertas({ query: pipelineResult.debug.original });
+          console.log(`📦 [Pipeline] Fallback: ${produtos.length} produtos`);
+        }
+        
+        const numProdutos = produtos.length;
+        const textoResposta = numProdutos > 0 
+          ? `Ótimo! Encontrei ${numProdutos} produtos para "${pipelineResult.query}". Dê uma olhada:`
+          : `Não encontrei produtos para "${pipelineResult.query}". Tente com outro termo!`;
+        
+        // 🔍 DEBUG: Log completo se busca vazia
         if (numProdutos === 0) {
-          console.log(`❌ [Gemini DEBUG] BUSCA VAZIA:`, {
-            mensagemOriginal: message,
-            queryFinal: result.queryFinal,
-            produtos: numProdutos,
-            motivo: "Possível problema de canonicalização"
-          });
+          console.log(`❌ [Pipeline DEBUG] BUSCA VAZIA:`, pipelineResult.debug);
         }
         
         send('delta', { text: textoResposta });
@@ -7625,15 +7631,10 @@ Regras:
         await new Promise(resolve => setTimeout(resolve, 500));
         
         // Depois enviar produtos se houver (Ask-Then-Show)
-        if (result.items && result.items.length > 0) {
-          send('products', { products: result.items, query: result.queryFinal, provider: 'gemini' });
+        if (produtos.length > 0) {
+          send('products', { products: produtos, query: pipelineResult.query, provider: 'gemini' });
         }
         
-        await salvarResposta(sessionId, textoResposta);
-      } else {
-        // Small talk, help, time, out of domain: só texto
-        const textoResposta = result.text || "Como posso ajudar você hoje?";
-        send('delta', { text: textoResposta });
         await salvarResposta(sessionId, textoResposta);
       }
 

@@ -1,0 +1,201 @@
+Aqui vai o que falta e como fechar — sem reescrever o que já tem:
+
+O que manter (👍)
+
+Camadas separadas: intent → interpretar → busca → respostas.
+
+Módulos de memória e comparador.
+
+Endpoint único do assistente.
+
+O que incluir (⚠️ faltando hoje)
+
+Pipeline único obrigatório (middleware)
+Toda entrada deve passar por:
+normalize → tokenize(stopwords/pontuação) → canônico(PT/ES + singular) → intent → slot-filling(memória) → busca estruturada.
+
+Evita rotas/trechos usando o “texto bruto” (causa do “drone/drones”).
+
+Dicionários canônicos PT/ES + singularização
+Já te passei PRODUCT_CANON/CATEGORY_CANON + toSingularPTBR.
+
+Garanta que todas as rotas usem isso antes da busca.
+
+Roteador de intenção robusto
+Fluxos: PRODUCT_SEARCH | SMALL_TALK | HELP | TIME | WHOAMI | OUT_OF_DOMAIN.
+
+“e perfumes?” troca o foco; “qual seu nome” não vai pra busca.
+
+Slot filling + foco persistente
+
+focoAtual (produto/categoria) e últimos atributos.
+
+Se o usuário disser só “linha 12”, componha com focoAtual.
+
+Resetar foco quando vier um novo produto explícito.
+
+Busca estruturada (sem “categoria:” no texto)
+Contrato da busca deve aceitar filtros:
+{ produto, categoria, modelo, marca, armazenamento, atributos }
+
+Texto livre só para boost; se vazio, fallback relaxando filtros (remove categoria, depois atributos).
+
+Rankeador simples
+Score por match de campo (produto>modelo>marca>armazenamento>atributos>texto); ordene por esse score.
+
+Stopwords + pontuação
+Remover “e, também, quero ver, alguns, ?!” antes da classificação.
+
+Resolve “e perfumes?” e “quero ver alguns drones”.
+
+Testes de regressão
+
+“drone” → ok
+
+“drones” → ok (mesmo resultado)
+
+“iphone” → “linha 12” → “iphone 12”
+
+“e perfumes?” após “drone” → troca foco e retorna
+
+“qual seu nome” → small talk (não busca)
+
+Micro-patch (enxuto) pra colar agora
+
+Ideia: forçar o pipeline em 1 só lugar (antes de qualquer busca).
+
+// src/assistant/pipeline.ts
+import { singularizePhrase } from "../utils/singularize";
+import { interpretarBusca } from "../modules/buscaProduto";
+import { classifyIntent } from "../nlp/intent"; // seu intent
+import { getSession, updateSession } from "../services/sessionStore";
+
+export async function processUserMessage(sessionId: string, raw: string) {
+  const canonMsg = singularizePhrase(raw);             // PT/ES + plural→singular
+  const intent = classifyIntent(canonMsg);             // PRODUCT/SMALL_TALK/etc.
+
+  // small talk/utilidades
+  if (intent.intent !== "PRODUCT_SEARCH") return { intent, canonMsg };
+
+  const sess = (await getSession(sessionId)) ?? {};
+  // slot filling + foco
+  if (intent.entities?.product) {
+    await updateSession(sessionId, { focoAtual: intent.entities.product });
+  }
+  const query = interpretarBusca(canonMsg, { focoAtual: intent.entities?.product ?? sess.focoAtual, lastQuery: sess.lastQuery });
+  await updateSession(sessionId, { lastQuery: query.produto ?? sess.lastQuery });
+  return { intent, canonMsg, query };
+}
+
+// server/routes.ts (endpoint do assistente) – usa SEMPRE o pipeline
+router.post("/assistant/query", async (req, res, next) => {
+  try {
+    const sid = String(req.sessionID ?? "anon");
+    const { message } = req.body as { message: string };
+    const { intent, canonMsg, query } = await processUserMessage(sid, message);
+
+    if (intent.intent !== "PRODUCT_SEARCH") {
+      return res.json({ ok: true, kind: intent.intent, text: replyFor(intent) }); // suas respostas
+    }
+
+    const itens = await buscarProdutos(query);  // filtros estruturados
+    if (!itens.length) {
+      const itensRelax = await buscarProdutos({ ...query, categoria: undefined, atributos: undefined, modelo: undefined });
+      if (!itensRelax.length) {
+        return res.json({ ok: true, text: "Não achei nada 😕. Quer tentar outra marca/modelo?", debug: { canonMsg, query } });
+      }
+      return res.json({ ok: true, text: `Achei ${itensRelax.length} opções`, produtos: itensRelax, debug: { canonMsg, query } });
+    }
+    return res.json({ ok: true, text: `Achei ${itens.length} opções`, produtos: itens, debug: { canonMsg, query } });
+  } catch (e) { next(e); }
+});
+
+Checklist final (se marcar todos, o buscador “trava” menos que gente grande)
+
+ Toda rota passa por pipeline único (nada de usar mensagem crua).
+
+ Dicionários PT/ES + singularização antes da intenção.
+
+ Stopwords e pontuação removidas.
+
+ Intent router com SMALL_TALK/HELP/TIME/WHOAMI.
+
+ Slot filling + reset de foco quando há novo produto/categoria.
+
+ Busca estruturada (sem “categoria:” colada no texto) + fallback progressivo.
+
+ Rankeador por campos.
+
+ Testes cobrindo drone/drones, “e perfumes?”, “qual seu nome”, “linha 12”.
+
+Resposta à sua pergunta
+
+Fazendo desse jeito (pipeline único + canônicos + filtros estruturados + intent router + fallback), sim, você resolve os problemas que vimos e o buscador passa a se comportar de forma consistente — tanto para consultas específicas quanto para conversa natural com plural, “e …?”, e comandos básicos.
+
+Você disse:
+so com esse micro pactch vai resolver entao?
+Programador Senior - Dev GPT — Replit Ready disse:
+Pensou por 9s
+
+Quase. O micro-patch (pipeline) resolve o sintoma — mensagem crua escapando para a busca — desde que os blocos de base já estejam no projeto. Se faltar algum deles, o micro-patch sozinho não dá conta.
+
+O que PRECISA existir para o micro-patch funcionar
+
+Normalização + singularização
+utils/lang-ptbr.ts com tokenizePTBR, toSingularPTBR, dicionários PT/ES (PRODUCT_CANON, CATEGORY_CANON).
+utils/singularize.ts com singularizePhrase().
+
+Intent router
+nlp/intent.ts com PRODUCT_SEARCH | SMALL_TALK | HELP | TIME | WHOAMI | OUT_OF_DOMAIN.
+
+Interpretador
+modules/buscaProduto.ts com interpretarBusca() (slot-filling: produto/modelo/armazenamento/marca/atributos, usando foco).
+
+Busca estruturada + fallback
+modules/catalogo.ts com buscarProdutos() recebendo filtros (sem “categoria:…” no texto) e relaxando filtros quando vier vazio + ranking simples.
+
+Sessão/memória
+services/sessionStore.ts com focoAtual/lastQuery.
+
+Se esses 5 itens já estão no seu repo (pelos patches anteriores), sim — aplicar o micro-patch e forçar todas as rotas a passarem por ele costuma eliminar:
+
+plural/singular (“drone” ⇄ “drones”),
+
+“e perfumes?” (stopwords/pontuação),
+
+perguntas básicas (caem em SMALL_TALK/WHOAMI/TIME, não na busca),
+
+“categoria grudada no texto”.
+
+Passos práticos (garantem que ele “pega” tudo)
+
+Use o pipeline em 100% das entradas
+No routes.ts/assistant.ts, chame processUserMessage() e NUNCA mande req.body.message direto para a busca.
+
+Mate endpoints paralelos que chamam buscarProdutos sem o pipeline ou envolva-os com singularizePhrase() + interpretarBusca().
+
+Logs de sanidade (temporário) antes da busca:
+
+console.log("[query]", { original, canonMsg, intent: intent.intent, query });
+
+
+Se aparecer original="drones" e canonMsg="drone", você está no caminho certo.
+
+Smoke tests (rápidos)
+
+“drone” → lista
+
+“drones” → mesma lista
+
+“iphone” → “linha 12” → vira “iphone 12”
+
+“e perfumes?” após drone → troca foco e lista perfumes
+
+“qual seu nome?” → resposta de WHOAMI (não busca)
+
+Resumo
+
+Micro-patch + blocos base = resolve.
+
+Micro-patch sozinho = não (se faltar dicionário/intent/busca estruturada/memória).
+Siga o checklist acima e ele fecha os problemas que você mostrou nas telas.
