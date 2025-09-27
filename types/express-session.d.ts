@@ -5,7 +5,7 @@ declare module "express-session" {
     user?: {
       id: string;
       email?: string | null;
-      isSuperAdmin?: boolean;
+      isSuperAdmin?: boolean | null;
       storeName?: string;
     } | null;
   }
