@@ -151,7 +151,7 @@ export async function runAssistant(sessionId: string, userMsg: string): Promise<
     lastQuery: (sess as any).ultimaQuery ?? null,
     acessoriosSugeridos: (sess as any).acessoriosSugeridos ?? []
   };
-  const blocks = composeAnswer({ 
+  const blocks = await composeAnswer({ 
     items, 
     query: {
       produto: produto ?? undefined,
@@ -160,7 +160,8 @@ export async function runAssistant(sessionId: string, userMsg: string): Promise<
       marca: undefined, // TODO: extrair marca se necessário
       queryFinal
     }, 
-    memory 
+    memory,
+    sessionId
   }, seed);
 
   // 6) Avançar seed para próxima resposta e persistir memória atualizada
@@ -178,6 +179,6 @@ export async function runAssistant(sessionId: string, userMsg: string): Promise<
     kind: "PRODUCT", 
     queryFinal: queryFinal, 
     items, 
-    text: blocks.filter(b => b.type === "text").map(b => b.text).join("\n\n") 
+    text: blocks.filter((b: any) => b.type === "text").map((b: any) => b.text).join("\n\n") 
   };
 }
