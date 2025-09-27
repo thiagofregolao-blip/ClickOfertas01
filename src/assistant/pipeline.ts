@@ -4,31 +4,10 @@ import { classifyIntent } from "../nlp/intent.js";
 import { replyHelp, replyOutOfDomain, replySmallTalk, replyTime, replyWhoAmI } from "../services/smalltalk.js";
 import { montarConsulta, detectarFoco } from "../../server/lib/gemini/query-builder.js";
 import { obterContextoSessao, salvarContextoSessao } from "../../server/lib/gemini/context-storage.js";
-import { canonicalProductFromText, normPTBR } from "../utils/lang-ptbr.js";
+import { canonicalProductFromText, normPTBR, dynamicCanonicalProduct } from "../utils/lang-ptbr.js";
 import { strSeed, mulberry32 } from "../utils/rng.js";
 
-// Mapeamento produto → categoria padrão (PROD_TO_CAT)
-const PROD_TO_CAT: Record<string, string> = {
-  // Celulares
-  iphone: "celular", galaxy: "celular", pixel: "celular", 
-  motorola: "celular", xiaomi: "celular", celular: "celular",
-  // Drones
-  drone: "drone",
-  // Perfumes
-  perfume: "perfume",
-  // Roupas / Moda
-  blusa: "roupa", camiseta: "roupa", vestido: "roupa", 
-  saia: "roupa", calca: "roupa", jaqueta: "roupa", roupa: "roupa",
-  // Informática
-  notebook: "informatica", laptop: "informatica", computador: "informatica",
-  monitor: "informatica", teclado: "informatica", mouse: "informatica",
-  // TV
-  tv: "tv",
-  // Câmeras
-  camera: "camera",
-  // Áudio
-  fone: "audio", speaker: "audio", soundbar: "audio"
-};
+// Sistema dinâmico de canonização substituiu o PROD_TO_CAT hardcoded
 
 export interface PipelineResult {
   intent: string;

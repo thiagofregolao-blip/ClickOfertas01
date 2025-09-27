@@ -1,3 +1,8 @@
+// Imports para canonização dinâmica
+import { canonProduct, canonCategory } from "../nlp/canon.store";
+import { findBestFuzzyMatch } from "../nlp/fuzzy";
+import { trackUnknownToken } from "../observability/unknown-terms";
+
 /**
  * Normaliza texto em português brasileiro:
  * - Converte para minúscula
@@ -483,6 +488,93 @@ export function canonicalCategoryFromText(msg: string): string | null {
     if (c) {
       console.log(`🏷️ [canonicalCategory] Detectado token: "${t}" → "${c}"`);
       return c;
+    }
+  }
+  
+  return null;
+}
+
+// === NOVA API DINÂMICA ===
+
+export function tokenCanonProduct(t: string): string | null {
+  return canonProduct(t) ?? null;
+}
+
+export function tokenCanonCategory(t: string): string | null {
+  return canonCategory(t) ?? null;
+}
+
+// Versões dinâmicas das funções de canonização
+export function dynamicCanonicalProduct(msg: string): string | null {
+  const normalizedMsg = normPTBR(msg);
+  const toks = tokenizePTBR(normalizedMsg);
+  
+  for (const t of toks) {
+    // 1. Tentar canonização direta
+    const directCanon = canonProduct(t);
+    if (directCanon) {
+      console.log(`🏷️ [dynamicCanonicalProduct] Detectado direto: "${t}" → "${directCanon}"`);
+      return directCanon;
+    }
+    
+    // 2. Tentar singular
+    const singularCanon = canonProduct(toSingularPTBR(t));
+    if (singularCanon) {
+      console.log(`🏷️ [dynamicCanonicalProduct] Detectado singular: "${t}" → "${singularCanon}"`);
+      return singularCanon;
+    }
+    
+    // 3. Tentar fuzzy match
+    const fuzzyMatch = findBestFuzzyMatch(t, Object.keys(canonProduct), 2);
+    if (fuzzyMatch) {
+      const fuzzyCanon = canonProduct(fuzzyMatch);
+      if (fuzzyCanon) {
+        console.log(`🏷️ [dynamicCanonicalProduct] Detectado fuzzy: "${t}" → "${fuzzyMatch}" → "${fuzzyCanon}"`);
+        return fuzzyCanon;
+      }
+    }
+    
+    // 4. Coletar termo desconhecido
+    if (t.length > 2) {
+      trackUnknownToken(t);
+    }
+  }
+  
+  return null;
+}
+
+export function dynamicCanonicalCategory(msg: string): string | null {
+  const normalizedMsg = normPTBR(msg);
+  const toks = tokenizePTBR(normalizedMsg);
+  
+  for (const t of toks) {
+    // 1. Tentar canonização direta
+    const directCanon = canonCategory(t);
+    if (directCanon) {
+      console.log(`🏷️ [dynamicCanonicalCategory] Detectado direto: "${t}" → "${directCanon}"`);
+      return directCanon;
+    }
+    
+    // 2. Tentar singular
+    const singularCanon = canonCategory(toSingularPTBR(t));
+    if (singularCanon) {
+      console.log(`🏷️ [dynamicCanonicalCategory] Detectado singular: "${t}" → "${singularCanon}"`);
+      return singularCanon;
+    }
+    
+    // 3. Tentar fuzzy match
+    const fuzzyMatch = findBestFuzzyMatch(t, Object.keys(canonCategory), 2);
+    if (fuzzyMatch) {
+      const fuzzyCanon = canonCategory(fuzzyMatch);
+      if (fuzzyCanon) {
+        console.log(`🏷️ [dynamicCanonicalCategory] Detectado fuzzy: "${t}" → "${fuzzyMatch}" → "${fuzzyCanon}"`);
+        return fuzzyCanon;
+      }
+    }
+    
+    // 4. Coletar termo desconhecido
+    if (t.length > 2) {
+      trackUnknownToken(t);
     }
   }
   

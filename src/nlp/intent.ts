@@ -1,5 +1,5 @@
 // src/nlp/intent.ts
-import { normPTBR, canonicalProductFromText, canonicalCategoryFromText } from "../utils/lang-ptbr.js";
+import { normPTBR, canonicalProductFromText, canonicalCategoryFromText, dynamicCanonicalProduct, dynamicCanonicalCategory } from "../utils/lang-ptbr.js";
 
 export type Intent =
   | "PRODUCT_SEARCH"
@@ -31,8 +31,9 @@ export function classifyIntent(msg: string): IntentResult {
   if (HELP_RX.test(m)) return { intent: "HELP" };
   if (WHOAMI_RX.test(m)) return { intent: "WHOAMI" };
 
-  const productCanon = canonicalProductFromText(m);
-  const categoryCanon = canonicalCategoryFromText(m);
+  // Usar sistema dinâmico de canonização
+  const productCanon = dynamicCanonicalProduct(m);
+  const categoryCanon = dynamicCanonicalCategory(m);
   if (productCanon || categoryCanon) {
     const isDrone = DRONE_RX.test(m) || productCanon === "drone" || categoryCanon === "drone";
     return {
