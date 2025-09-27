@@ -7262,21 +7262,62 @@ Regras:
 
   // ===== FUNÇÕES DE FOLLOW-UP INTELIGENTE GEMINI =====
   
-  // Detecta intenção de follow-up
+  // Detecta intenção de follow-up com cobertura ampla em português
   function detectarIntencaoFollowUpGemini(mensagem: string) {
-    const msg = mensagem.toLowerCase();
-    if (msg.includes("gostei") || msg.includes("quero esse") || msg.includes("vou levar") || msg.includes("me interessa")) {
+    const msg = mensagem.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Remove acentos
+    
+    // Confirmar escolha - variantes amplas
+    const confirmarPalavras = [
+      'gostei', 'gosto', 'quero', 'vou levar', 'me interessa', 'interessante', 
+      'esse', 'essa', 'este', 'esta', 'aquele', 'aquela', 'isso', 'perfeito',
+      'otimo', 'legal', 'boa', 'bom', 'escolho', 'vou de', 'me agrada',
+      'curtiu', 'top', 'show', 'massa'
+    ];
+    if (confirmarPalavras.some(palavra => msg.includes(palavra))) {
       return "confirmar_escolha";
     }
-    if (msg.includes("não gostei") || msg.includes("mostra outros") || msg.includes("tem mais") || msg.includes("outras opções")) {
+    
+    // Rejeitar opções - variantes amplas  
+    const rejeitarPalavras = [
+      'nao gostei', 'nao gosto', 'nao quero', 'nao me interessa', 'nao serve',
+      'mostra outros', 'tem mais', 'outras opcoes', 'algo diferente', 'nao e isso',
+      'nao combina', 'nao da', 'nao rola', 'nenhum desses', 'tem outras',
+      'procuro outro', 'diferente', 'nao curto', 'nao e bem isso'
+    ];
+    if (rejeitarPalavras.some(palavra => msg.includes(palavra))) {
       return "rejeitar_opcoes";
     }
-    if (msg.includes("128gb") || msg.includes("256gb") || msg.includes("cor preta") || msg.includes("mais barato") || msg.includes("menor preço")) {
+    
+    // Refinar busca - especificações técnicas e preferências
+    const refinarPalavras = [
+      '128gb', '256gb', '512gb', '1tb', 'cor preta', 'cor branca', 'preto', 'branco',
+      'mais barato', 'menor preco', 'mais caro', 'premium', 'basico', 'simples',
+      'maior', 'menor', 'grande', 'pequeno', 'compacto', 'pro max', 'mini',
+      'dourado', 'prata', 'azul', 'verde', 'rosa', 'vermelho'
+    ];
+    if (refinarPalavras.some(palavra => msg.includes(palavra))) {
       return "refinar_busca";
     }
-    if (msg.includes("qual melhor") || msg.includes("me recomenda") || msg.includes("qual escolher")) {
+    
+    // Pedir recomendação - orientação
+    const recomendarPalavras = [
+      'qual melhor', 'me recomenda', 'qual escolher', 'o que acha', 'sua opiniao',
+      'qual voce indica', 'me ajuda', 'nao sei qual', 'em duvida', 'qual vale mais',
+      'recomendacao', 'sugestao', 'dica', 'conselho'
+    ];
+    if (recomendarPalavras.some(palavra => msg.includes(palavra))) {
       return "pedir_recomendacao";
     }
+    
+    // Escolha por índice - seleção específica
+    const indicePalavras = [
+      'o primeiro', 'o segundo', 'o terceiro', 'o ultimo', 'o de cima', 'o de baixo',
+      'esse ai', 'esse da', 'numero 1', 'numero 2', 'numero 3', 'item 1', 'item 2'
+    ];
+    if (indicePalavras.some(palavra => msg.includes(palavra))) {
+      return "escolher_por_indice";
+    }
+    
     return null;
   }
 
@@ -7291,6 +7332,8 @@ Regras:
         return "Entendi! 🔍 Vou ajustar a busca com base no que você prefere.";
       case "pedir_recomendacao":
         return "Claro! 💡 Com base nas opções disponíveis, posso te dar algumas dicas.";
+      case "escolher_por_indice":
+        return "Perfeito! 👆 Você escolheu uma opção específica. Vou te dar mais detalhes sobre ela.";
       default:
         return "Se quiser refinar a busca ou ver mais opções, é só me dizer! 😊";
     }
@@ -7304,9 +7347,24 @@ Regras:
   // Verifica se a mensagem é uma resposta a produtos mostrados
   function isRespostaAProdutos(mensagem: string, memoryContext: any) {
     const msg = limparTextoGemini(mensagem);
-    const palavrasFollowUp = ["gostei", "quero", "não gostei", "outros", "mais", "melhor", "recomenda", "escolher", "qual"];
+    
+    // Palavras-chave expandidas que indicam follow-up
+    const palavrasFollowUp = [
+      "gostei", "gosto", "quero", "nao gostei", "nao gosto", "outros", "mais", "melhor", 
+      "recomenda", "escolher", "qual", "esse", "essa", "isso", "aquele", "primeiro", 
+      "segundo", "terceiro", "ultimo", "legal", "top", "show", "massa", "diferente",
+      "barato", "caro", "preto", "branco", "grande", "pequeno", "gb", "pro", "max"
+    ];
+    
     const temPalavraFollowUp = palavrasFollowUp.some(palavra => msg.includes(palavra));
     const temContextoProdutos = memoryContext?.products && memoryContext.products > 0;
+    
+    // Log detalhado para debugging
+    console.log(`🔍 [Gemini Follow-up Check] Mensagem: "${mensagem}"`);
+    console.log(`🔍 [Gemini Follow-up Check] Msg limpa: "${msg}"`);
+    console.log(`🔍 [Gemini Follow-up Check] Tem palavra follow-up: ${temPalavraFollowUp}`);
+    console.log(`🔍 [Gemini Follow-up Check] Tem contexto produtos: ${temContextoProdutos} (${memoryContext?.products} produtos)`);
+    console.log(`🔍 [Gemini Follow-up Check] É resposta a produtos: ${temPalavraFollowUp && temContextoProdutos}`);
     
     return temPalavraFollowUp && temContextoProdutos;
   }

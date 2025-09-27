@@ -66,18 +66,18 @@ export default function GeminiAssistantBar() {
     sessionIdRef.current = sessionId;
   }, [sessionId]);
 
-  // Frases específicas para Gemini - "show-then-ask" theme
+  // Frases específicas para Gemini - "ask-then-show" theme  
   const geminiPhrases = [
-    "🤖 IA Gemini: Mostra primeiro, pergunta depois!",
-    "✨ Gemini powered: Busca inteligente sem interrogatório",
-    "🚀 IA que entende: Nunca pergunta cidade/preço",
-    "💎 Gemini search: Show-then-ask philosophy",
-    "🎯 Busca direta com IA Gemini - zero burocracia",
-    "⚡ Gemini: Prefetch automático + chat curto",
-    "🔍 Show-then-ask: A nova forma de buscar",
-    "🤖 Gemini IA: Tom natural, máximo 1 emoji",
-    "💫 Busca primeira, conversa depois - Gemini style",
-    "🎪 IA Gemini: Sem travas, só resultados!"
+    "🤖 IA Gemini: Conversa primeiro, mostra depois!",
+    "✨ Gemini powered: Chat inteligente + follow-up",
+    "🚀 IA que entende: Pergunta antes de mostrar",
+    "💎 Gemini search: Ask-then-show philosophy",
+    "🎯 Chat natural com IA Gemini - sem pressa",
+    "⚡ Gemini: Conversa inteligente + busca precisa",
+    "🔍 Ask-then-show: Entende suas intenções",
+    "🤖 Gemini IA: Follow-up inteligente sempre",
+    "💫 Conversa primeira, produtos depois - Gemini style",
+    "🎪 IA Gemini: Entende 'gostei' e 'quero esse'!"
   ];
 
   // Event listeners para integração com header - versão Gemini
@@ -611,7 +611,7 @@ export default function GeminiAssistantBar() {
                     Gemini Chat
                   </h3>
                   <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-1">
-                    Mostra primeiro, pergunta depois
+                    Conversa primeiro, mostra depois
                   </p>
                 </div>
                 
