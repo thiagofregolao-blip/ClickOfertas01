@@ -17,5 +17,6 @@ export const SalesPersona: PersonaConfig = {
 
 // util p/ escolher variações
 export function pick<T>(arr: T[], rng: () => number): T {
-  return arr[Math.floor(rng() * arr.length) % arr.length];
+  // índice já vem no range [0, len-1]; não use % de novo
+  return arr[Math.floor(rng() * arr.length)];
 }
