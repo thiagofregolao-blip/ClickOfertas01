@@ -7500,6 +7500,19 @@ Regras:
       console.warn('Erro ao salvar mensagem Gemini:', error);
     }
 
+    // 🔍 INTERCEPTAÇÃO PRECOCE: Verificar follow-up ANTES de qualquer LLM
+    console.log(`🔍 [Gemini Follow-up Check] Verificando mensagem: "${message}" para sessão: ${sessionId}`);
+    
+    if (isRespostaAProdutos(message, sessionId)) {
+      console.log(`🎯 [Gemini Follow-up Check] INTERCEPTADO! Processando follow-up sem LLM`);
+      const respostaFollowUp = processarFollowUpCompleto(message, sessionId);
+      send('delta', { text: respostaFollowUp });
+      send('done', {});
+      return res.end();
+    }
+    
+    console.log(`📋 [Gemini Follow-up Check] Não é follow-up, prosseguindo com busca normal`);
+
     // Tool: buscarOfertas (reutilizar a mesma função)
     async function buscarOfertas(args: { query: string; maxResultados?: number; }) {
       const { query, maxResultados = 12 } = args || {};
