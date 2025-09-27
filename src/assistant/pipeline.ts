@@ -4,7 +4,8 @@ import { classifyIntent } from "../nlp/intent.js";
 import { replyHelp, replyOutOfDomain, replySmallTalk, replyTime, replyWhoAmI } from "../services/smalltalk.js";
 import { montarConsulta, detectarFoco } from "../../server/lib/gemini/query-builder.js";
 import { obterContextoSessao, salvarContextoSessao } from "../../server/lib/gemini/context-storage.js";
-import { canonicalProductFromText, normPTBR, dynamicCanonicalProduct } from "../utils/lang-ptbr.js";
+import { normPTBR, tokenCanonProduct } from "../utils/lang-ptbr.js";
+import { productDefaultCategory } from "../nlp/canon.store.js";
 import { strSeed, mulberry32 } from "../utils/rng.js";
 
 // Sistema dinâmico de canonização substituiu o PROD_TO_CAT hardcoded
@@ -101,15 +102,20 @@ export async function processUserMessage(sessionId: string, raw: string): Promis
   // Regra de continuação: "e perfumes", "mais drone", etc.
   const firstToken = normPTBR(raw).split(/\s+/)[0];
   const startsWithAnd = ["e", "tambem", "também", "mais"].includes(firstToken);
-  const novoProduto = canonicalProductFromText(raw);
+  // tenta produto do texto (canon), senão usa foco/último
+  let novoProduto = undefined as string | undefined;
+  for (const t of raw.split(/\s+/)) {
+    const p = tokenCanonProduct(t);
+    if (p) { novoProduto = p; break; }
+  }
   const novoFoco = startsWithAnd && novoProduto ? novoProduto : detectarFoco(canonMsg);
   
   // Reset de foco quando há novo produto explícito
   if (novoFoco) {
     console.log(`🎯 [Pipeline] Novo foco detectado: "${novoFoco}"`);
     
-    // Inferir categoria baseada no produto usando mapeamento
-    const novaCategoria = PROD_TO_CAT[novoFoco] ?? null;
+    // Inferir categoria baseada no produto usando canonização dinâmica
+    const novaCategoria = productDefaultCategory(novoFoco) ?? null;
     
     await salvarContextoSessao(sessionId, { 
       focoAtual: novoFoco, 

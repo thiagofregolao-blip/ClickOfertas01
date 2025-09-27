@@ -3,6 +3,30 @@ import { canonProduct, canonCategory } from "../nlp/canon.store";
 import { findBestFuzzyMatch } from "../nlp/fuzzy";
 import { trackUnknownToken } from "../observability/unknown-terms";
 
+// Funções auxiliares com fallback e singularização
+export function tokenCanonProduct(t: string): string | null {
+  const c = canonProduct(t);
+  if (c) return c;
+  // fallback via singularização simples
+  const s = toSingularPTBR(t);
+  return canonProduct(s) ?? null;
+}
+
+export function tokenCanonCategory(t: string): string | null {
+  const c = canonCategory(t);
+  if (c) return c;
+  const s = toSingularPTBR(t);
+  return canonCategory(s) ?? null;
+}
+
+// Singularização simples PT-BR
+function toSingularPTBR(word: string): string {
+  if (word.endsWith('s') && word.length > 2) {
+    return word.slice(0, -1);
+  }
+  return word;
+}
+
 /**
  * Normaliza texto em português brasileiro:
  * - Converte para minúscula

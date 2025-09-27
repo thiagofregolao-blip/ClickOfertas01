@@ -9,16 +9,54 @@ type CanonData = {
   brands: string[];
 };
 
+// Fallback mínimo — não deixe o sistema cego se o canon.json não carregar
+const DEFAULT_CANON = {
+  productCanon: {
+    iphone: "iphone", iphones: "iphone", apple: "iphone",
+    galaxy: "galaxy", samsung: "galaxy",
+    drone: "drone", drones: "drone", dji: "drone", mavic: "drone",
+    perfume: "perfume", perfumes: "perfume",
+    tv: "tv", televisao: "tv", televisores: "tv",
+    blusa: "blusa", blusas: "blusa"
+  },
+  categoryCanon: {
+    celular: "celular", smartphone: "celular", telefonos: "celular",
+    drone: "drone", tv: "tv", perfumaria: "perfumaria",
+    roupa: "roupa"
+  },
+  productToCategory: {
+    iphone: "celular", galaxy: "celular", drone: "drone",
+    perfume: "perfumaria", tv: "tv", blusa: "roupa"
+  },
+  brands: ["apple","samsung","dji","motorola","xiaomi","google"]
+};
+
 let CACHE: CanonData | null = null;
 
 export function loadCanon(): CanonData {
   if (CACHE) return CACHE;
-  const p = path.resolve("data/canon.json");
-  const raw = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, "utf8")) : {
-    productCanon: {}, categoryCanon: {}, productToCategory: {}, brands: []
-  };
-  CACHE = raw as CanonData;
-  return CACHE!;
+  try {
+    const p = process.env.CANON_PATH
+      ? path.resolve(process.env.CANON_PATH)
+      : path.resolve(process.cwd(), "data/canon.json");
+    if (fs.existsSync(p)) {
+      const raw = JSON.parse(fs.readFileSync(p, "utf8")) as CanonData;
+      const pc = Object.keys(raw.productCanon ?? {}).length;
+      const cc = Object.keys(raw.categoryCanon ?? {}).length;
+      if (pc > 0 && cc > 0) {
+        CACHE = raw;
+        console.log(`[canon] carregado de ${p} | produtos=${pc} categorias=${cc}`);
+        return CACHE;
+      }
+      console.warn("[canon] arquivo encontrado mas vazio — usando fallback embutido");
+    } else {
+      console.warn("[canon] data/canon.json não encontrado — usando fallback embutido");
+    }
+  } catch (e) {
+    console.error("[canon] falha ao ler canon.json — usando fallback embutido", e);
+  }
+  CACHE = DEFAULT_CANON as CanonData;
+  return CACHE;
 }
 
 export function canonProduct(token: string): string | null {

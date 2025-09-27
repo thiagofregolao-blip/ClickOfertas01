@@ -1,5 +1,5 @@
 // src/nlp/intent.ts
-import { normPTBR, canonicalProductFromText, canonicalCategoryFromText, dynamicCanonicalProduct, dynamicCanonicalCategory } from "../utils/lang-ptbr.js";
+import { normPTBR, tokenCanonProduct, tokenCanonCategory } from "../utils/lang-ptbr.js";
 
 export type Intent =
   | "PRODUCT_SEARCH"
@@ -31,17 +31,34 @@ export function classifyIntent(msg: string): IntentResult {
   if (HELP_RX.test(m)) return { intent: "HELP" };
   if (WHOAMI_RX.test(m)) return { intent: "WHOAMI" };
 
-  // Usar sistema dinâmico de canonização
-  const productCanon = dynamicCanonicalProduct(m);
-  const categoryCanon = dynamicCanonicalCategory(m);
+  // 1) tenta canônico
+  let productCanon: string | null = null;
+  let categoryCanon: string | null = null;
+  for (const t of m.split(/\s+/)) {
+    if (!productCanon) productCanon = tokenCanonProduct(t);
+    if (!categoryCanon) categoryCanon = tokenCanonCategory(t);
+  }
+
+  // 2) heurísticas antigas (regex) como rede de segurança
+  if (!productCanon && /\b(iphone|apple)\b/.test(m)) productCanon = "iphone";
+  if (!productCanon && /\b(galaxy|samsung)\b/.test(m)) productCanon = "galaxy";
+  if (!productCanon && /\b(drone|drones|mavic|dji)\b/.test(m)) productCanon = "drone";
+  if (!productCanon && /\b(perfume|perfumes|perfumaria|perfumeria)\b/.test(m)) productCanon = "perfume";
+  if (!productCanon && /\b(tv|televisor|televis(ao|aoes|oes))\b/.test(m)) productCanon = "tv";
+  if (!productCanon && /\b(blusa|blusas)\b/.test(m)) productCanon = "blusa";
   if (productCanon || categoryCanon) {
     const isDrone = DRONE_RX.test(m) || productCanon === "drone" || categoryCanon === "drone";
     return {
       intent: "PRODUCT_SEARCH",
       entities: {
-        category: categoryCanon ?? (productCanon === "drone" ? "drone"
-                    : productCanon === "iphone" || productCanon === "galaxy" ? "celular"
-                    : productCanon ?? undefined),
+        category: categoryCanon ?? (
+          productCanon === "drone" ? "drone" :
+          productCanon === "iphone" || productCanon === "galaxy" ? "celular" :
+          productCanon === "perfume" ? "perfumaria" :
+          productCanon === "tv" ? "tv" :
+          productCanon === "blusa" ? "roupa" :
+          productCanon ?? undefined
+        ),
         product: productCanon ?? undefined,
       },
     };

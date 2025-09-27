@@ -1,0 +1,198 @@
+sso indica que o classificador não está encontrando produto nenhum após ativar o dicionário dinâmico. Resultado: cai sempre no fallback “Me diga o nome do produto…”.
+
+A causa típica nessa migração é uma destas:
+
+data/canon.json não existe no runtime, ou foi gerado vazio.
+
+canon.store.ts falha ao carregar e retorna {}.
+
+O classifyIntent ficou 100% dependente do canônico e parou de usar os regex/heurísticas antigas.
+
+Segue um patch seguro: carrega o canônico se existir; se não, usa um fallback embutido (iphone, galaxy, drone, perfume, …) e mantém as heurísticas (regex) para não travar nunca.
+
+1) Loader com fallback embutido + logs
+*** a/src/nlp/canon.store.ts
+--- b/src/nlp/canon.store.ts
+@@
+-import fs from "fs";
+-import path from "path";
++import fs from "fs";
++import path from "path";
++
++// Fallback mínimo — não deixe o sistema cego se o canon.json não carregar
++const DEFAULT_CANON = {
++  productCanon: {
++    iphone: "iphone", iphones: "iphone", apple: "iphone",
++    galaxy: "galaxy", samsung: "galaxy",
++    drone: "drone", drones: "drone", dji: "drone", mavic: "drone",
++    perfume: "perfume", perfumes: "perfume",
++    tv: "tv", televisao: "tv", televisores: "tv",
++    blusa: "blusa", blusas: "blusa"
++  },
++  categoryCanon: {
++    celular: "celular", smartphone: "celular", telefonos: "celular",
++    drone: "drone", tv: "tv", perfumaria: "perfumaria",
++    roupa: "roupa"
++  },
++  productToCategory: {
++    iphone: "celular", galaxy: "celular", drone: "drone",
++    perfume: "perfumaria", tv: "tv", blusa: "roupa"
++  },
++  brands: ["apple","samsung","dji","motorola","xiaomi","google"]
++};
+@@
+-let CACHE: CanonData | null = null;
++let CACHE: CanonData | null = null;
+ 
+ export function loadCanon(): CanonData {
+-  if (CACHE) return CACHE;
+-  const p = path.resolve("data/canon.json");
+-  const raw = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, "utf8")) : {
+-    productCanon:{}, categoryCanon:{}, productToCategory:{}, brands:[]
+-  };
+-  CACHE = raw as CanonData;
+-  return CACHE!;
++  if (CACHE) return CACHE;
++  try {
++    const p = process.env.CANON_PATH
++      ? path.resolve(process.env.CANON_PATH)
++      : path.resolve(process.cwd(), "data/canon.json");
++    if (fs.existsSync(p)) {
++      const raw = JSON.parse(fs.readFileSync(p, "utf8")) as CanonData;
++      const pc = Object.keys(raw.productCanon ?? {}).length;
++      const cc = Object.keys(raw.categoryCanon ?? {}).length;
++      if (pc > 0 && cc > 0) {
++        CACHE = raw;
++        console.log(`[canon] carregado de ${p} | produtos=${pc} categorias=${cc}`);
++        return CACHE;
++      }
++      console.warn("[canon] arquivo encontrado mas vazio — usando fallback embutido");
++    } else {
++      console.warn("[canon] data/canon.json não encontrado — usando fallback embutido");
++    }
++  } catch (e) {
++    console.error("[canon] falha ao ler canon.json — usando fallback embutido", e);
++  }
++  CACHE = DEFAULT_CANON as CanonData;
++  return CACHE;
+ }
+
+2) Util PT/ES com fallback + singularização
+*** a/src/utils/lang-ptbr.ts
+--- b/src/utils/lang-ptbr.ts
+@@
+-import { canonProduct, canonCategory } from "../nlp/canon.store";
++import { canonProduct, canonCategory } from "../nlp/canon.store";
+ 
+ export function tokenCanonProduct(t: string): string | null {
+-  return canonProduct(t) ?? null;
++  const c = canonProduct(t);
++  if (c) return c;
++  // fallback via singularização simples
++  const s = toSingularPTBR(t);
++  return canonProduct(s) ?? null;
+ }
+ export function tokenCanonCategory(t: string): string | null {
+-  return canonCategory(t) ?? null;
++  const c = canonCategory(t);
++  if (c) return c;
++  const s = toSingularPTBR(t);
++  return canonCategory(s) ?? null;
+ }
+
+3) Classificador: canon OU heurísticas (nunca trava)
+*** a/src/nlp/intent.ts
+--- b/src/nlp/intent.ts
+@@
+-import { normPTBR, canonicalProductFromText, canonicalCategoryFromText } from "../utils/lang-ptbr";
++import { normPTBR, tokenizePTBR } from "../utils/lang-ptbr";
++import { tokenCanonProduct, tokenCanonCategory } from "../utils/lang-ptbr";
+ 
+@@
+ export function classifyIntent(msg: string): IntentResult {
+   const m = normPTBR(msg);
+   if (m.length < 2) return { intent: "UNKNOWN" };
+   if (TIME_RX.test(m)) return { intent: "TIME_QUERY" };
+   if (SMALL_TALK_RX.test(m)) return { intent: "SMALL_TALK" };
+   if (HELP_RX.test(m)) return { intent: "HELP" };
+   if (WHOAMI_RX.test(m)) return { intent: "WHOAMI" };
+ 
+-  const productCanon  = canonicalProductFromText(m);
+-  const categoryCanon = canonicalCategoryFromText(m);
++  // 1) tenta canônico
++  let productCanon: string | null = null;
++  let categoryCanon: string | null = null;
++  for (const t of tokenizePTBR(m)) {
++    if (!productCanon) productCanon = tokenCanonProduct(t);
++    if (!categoryCanon) categoryCanon = tokenCanonCategory(t);
++  }
++
++  // 2) heurísticas antigas (regex) como rede de segurança
++  if (!productCanon && /\b(iphone|apple)\b/.test(m)) productCanon = "iphone";
++  if (!productCanon && /\b(galaxy|samsung)\b/.test(m)) productCanon = "galaxy";
++  if (!productCanon && /\b(drone|drones|mavic|dji)\b/.test(m)) productCanon = "drone";
++  if (!productCanon && /\b(perfume|perfumes|perfumaria|perfumeria)\b/.test(m)) productCanon = "perfume";
++  if (!productCanon && /\b(tv|televisor|televis(ao|aoes|oes))\b/.test(m)) productCanon = "tv";
+ 
+   if (productCanon || categoryCanon) {
+     const isDrone = /\b(drone|drones|mavic|dj[ií])\b/.test(m);
+     return {
+       intent: "PRODUCT_SEARCH",
+       entities: {
+         product: productCanon ?? undefined,
+-        category: categoryCanon ?? (productCanon === "drone" ? "drone"
+-                   : productCanon === "iphone" || productCanon === "galaxy" ? "celular"
+-                   : productCanon ?? undefined),
++        category: categoryCanon ?? (
++          productCanon === "drone" ? "drone" :
++          productCanon === "iphone" || productCanon === "galaxy" ? "celular" :
++          productCanon ?? undefined
++        ),
+       }
+     };
+   }
+   return { intent: "UNKNOWN" };
+ }
+
+4) Interpretador: categoria padrão vinda do canon (majority vote)
+*** a/src/modules/buscaProduto.ts
+--- b/src/modules/buscaProduto.ts
+@@
+-import { normPTBR, NUM_EXTENSO, canonicalProductFromText } from "../utils/lang-ptbr";
++import { normPTBR, NUM_EXTENSO } from "../utils/lang-ptbr";
++import { tokenCanonProduct } from "../utils/lang-ptbr";
++import { productDefaultCategory } from "../nlp/canon.store";
+@@
+ export function interpretarBusca(msg: string, memoria: ConversationMemory): ProdutoQuery {
+-  const produto = canonicalProductFromText(msg) ?? memoria?.focoAtual ?? memoria?.lastQuery ?? undefined;
++  // tenta produto do texto (canon), senão usa foco/último
++  let produto = undefined as string | undefined;
++  for (const t of msg.split(/\s+/)) {
++    const p = tokenCanonProduct(t);
++    if (p) { produto = p; break; }
++  }
++  produto = produto ?? (memoria?.focoAtual ?? memoria?.lastQuery ?? undefined);
+@@
+-  let categoria = memoria?.categoriaAtual ?? (produto ? PROD_TO_CAT[produto] : undefined);
++  let categoria = memoria?.categoriaAtual ?? (produto ? productDefaultCategory(produto) ?? undefined : undefined);
+
+5) Log de sanidade (temporário)
+
+No endpoint, antes do return:
+
+console.log("[assist]", {
+  msg: message,
+  canonLoaded: true,
+  query: query,
+});
+
+6) Checklist rápido
+
+Rode local: node scripts/build-canon.ts e confira data/canon.json commitado/deployado.
+
+Em produção, verifique o log: [canon] carregado de ... | produtos=xxxx categorias=yy.
+Se aparecer “usando fallback embutido”, o arquivo não foi encontrado→ ajuste CANON_PATH ou inclua data/canon.json.
+
+Faça 3 buscas: “iphone”, “drone”, “blusa”. O texto deve citar as categorias corretas e nunca pedir “me diga o nome…” em loop.
+
+Com esse fallback + heurísticas, mesmo que o canônico dinâmico falhe, a IA não trava e continua entendendo termos populares. Quando o canon.json estiver ok, ela usa o dicionário grande automaticamente.
