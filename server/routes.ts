@@ -8,6 +8,36 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import AdmZip from "adm-zip";
+import nlp from 'compromise'; // Para NLP leve
+import fuzzysearch from 'fuzzysearch'; // Para matching fuzzy
+import pRetry from 'p-retry'; // Para retries
+import winston from 'winston'; // Logging estruturado
+import NodeCache from 'node-cache'; // Cache in-memory
+import { z } from 'zod'; // Validação
+
+// Configurar logger
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(),
+  transports: [new winston.transports.Console()],
+});
+
+// Cache in-memory para buscas (TTL: 5min)
+const searchCache = new NodeCache({ stdTTL: 300 });
+
+// Expansão de categorias para segmentoDaQuery (mantido para fallback)
+function segmentoDaQueryGemini(query: string, ofertas: any[] = []) {
+  const q = (query || "").toLowerCase();
+  const marcas = new Set(ofertas.map(o => (o.marca || "").toLowerCase()));
+  const tem = (s: string) => q.includes(s) || [...marcas].some(m => m.includes(s));
+  if (tem("iphone") || tem("apple")) return "aparelhos da Apple";
+  if (tem("samsung") || tem("galaxy")) return "aparelhos Samsung";
+  if (tem("drone")) return "drones";
+  if (tem("perfume")) return "perfumes";
+  if (tem("notebook") || tem("laptop")) return "notebooks";
+  if (tem("tv") || tem("televisão")) return "TVs";
+  return "esses produtos";
+}
 
 // Middleware para verificar autenticação (sessão manual ou Replit Auth)
 const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
@@ -7262,12 +7292,18 @@ Regras:
 
   // POST /api/assistant/gemini/stream - Gemini Assistant with "show-then-ask" behavior
   app.post('/api/assistant/gemini/stream', async (req: any, res) => {
-    const { message, sessionId } = req.body;
-    const user = req.user || req.session?.user;
-
-    if (!message || !sessionId) {
-      return res.status(400).json({ error: 'Message and sessionId required' });
+    // Validação com Zod
+    const schema = z.object({
+      message: z.string().min(1),
+      sessionId: z.string().min(1),
+    });
+    const parsed = schema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Invalid request: ' + parsed.error.message });
     }
+
+    const { message, sessionId } = parsed.data;
+    const user = req.user || req.session?.user;
 
     // Configuração SSE
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
@@ -7281,223 +7317,311 @@ Regras:
       res.write(`data: ${JSON.stringify(payload)}\n\n`);
     };
 
-    // Persistência
+    // Persistência com retry
+    const saveWithRetry = async (operation: () => Promise<any>) => {
+      return pRetry(operation, { retries: 3, onFailedAttempt: (error) => logger.warn(`Retry tentativa: ${error.attemptNumber}, erro: ${error.message}`) });
+    };
+
+    let session: any;
     try {
-      let session = await storage.getAssistantSession(sessionId);
+      session = await saveWithRetry(() => storage.getAssistantSession(sessionId));
       if (!session) {
-        session = await storage.createAssistantSession({
+        session = await saveWithRetry(() => storage.createAssistantSession({
           id: sessionId,
           userId: user?.id || null,
-          metadata: { createdAt: new Date().toISOString(), provider: 'gemini' },
-        });
+          metadata: { createdAt: new Date().toISOString(), provider: 'gemini', contextSummary: {} }, // Adicionado contextSummary
+        }));
       }
       
-      await storage.createAssistantMessage({ 
+      await saveWithRetry(() => storage.createAssistantMessage({ 
         sessionId, 
         role: 'user', 
         content: message, 
         metadata: { timestamp: new Date().toISOString(), provider: 'gemini' } 
-      });
+      }));
     } catch (error) {
-      console.warn('Erro ao salvar mensagem Gemini:', error);
+      logger.error('Erro persistente ao salvar mensagem Gemini:', error);
     }
 
-    // Tool: buscarOfertas (reutilizar a mesma função)
-    async function buscarOfertas(args: { query: string; maxResultados?: number; }) {
-      const { query, maxResultados = 12 } = args || {};
+    // Anti-duplicidade: Checar última mensagem
+    try {
+      const messages = await storage.getAssistantMessages(sessionId);
+      const lastUserMsg = messages.filter(m => m.role === 'user').slice(-2, -1)[0]?.content;
+      if (lastUserMsg === message) {
+        send('delta', { text: "Ei, já respondi isso! Quer refinar a busca?" });
+        send('complete', { provider: 'gemini' });
+        res.end();
+        return;
+      }
+    } catch (error) {
+      logger.warn('Erro ao checar duplicidade:', error);
+    }
+
+    // Tool: buscarOfertas (melhorada com fuzzy, ranking avançado, cache, filtros e sinônimos)
+    async function buscarOfertas(args: { query: string; maxResultados?: number; minPrice?: number; maxPrice?: number; brand?: string; }) {
+      const { query, maxResultados = 12, minPrice, maxPrice, brand } = args || {};
       
       const q = String(query || "").toLowerCase().trim();
       if (!q) return [];
       
+      // Dicionário de sinônimos
+      const synonyms: Record<string, string[]> = {
+        celular: ['smartphone', 'telefone'],
+        perfume: ['fragrância', 'colônia'],
+        notebook: ['laptop', 'computador portátil'],
+        tv: ['televisão', 'smart tv'],
+      };
+      
+      // Expandir query com sinônimos
+      const expandedQueries = [q, ...(synonyms[q.split(' ')[0]] || [])];
+      
+      // Cache key
+      const cacheKey = `${q}|${minPrice}|${maxPrice}|${brand}`;
+      const cached = searchCache.get(cacheKey);
+      if (cached) {
+        logger.info(`Cache hit para query: ${q}`);
+        return cached as any[];
+      }
+      
       try {
         const { searchSuggestions } = await import('./lib/tools.js');
-        const searchResult = await searchSuggestions(q);
+        let products: any[] = [];
         
-        let products = searchResult.products || [];
+        // Tentar busca com queries expandidas
+        for (const searchQuery of expandedQueries) {
+          const searchResult = await searchSuggestions(searchQuery);
+          products = [...products, ...(searchResult.products || [])];
+        }
         
-        // Ranking simples por preço
-        products.sort((a: any, b: any) => (a.price?.USD || 0) - (b.price?.USD || 0));
+        // Remover duplicatas
+        products = Array.from(new Map(products.map(p => [p.id, p])).values());
+        
+        // Normalização e fuzzy matching
+        products = products.filter(p => 
+          expandedQueries.some(sq => fuzzysearch(sq, (p.title || '').toLowerCase()) || fuzzysearch(sq, (p.marca || '').toLowerCase()))
+        );
+        
+        // Filtros dinâmicos
+        if (minPrice) products = products.filter(p => (p.price?.USD || 0) >= minPrice);
+        if (maxPrice) products = products.filter(p => (p.price?.USD || 0) <= maxPrice);
+        if (brand) products = products.filter(p => (p.marca || '').toLowerCase() === brand.toLowerCase());
+        
+        // Ranking avançado: preço ponderado por rating (assumindo rating 0-5)
+        products.sort((a: any, b: any) => {
+          const scoreA = (a.price?.USD || 0) * (1 - (a.rating || 0) / 5);
+          const scoreB = (b.price?.USD || 0) * (1 - (b.rating || 0) / 5);
+          return scoreA - scoreB;
+        });
+        
         const sorted = products.slice(0, Math.max(1, Math.min(50, maxResultados)));
         
-        // Não enviar produtos automaticamente - será controlado pela lógica Ask-Then-Show
+        // Cache result
+        searchCache.set(cacheKey, sorted);
         
         return sorted;
       } catch (error) {
-        console.error('Erro na busca Gemini:', error);
+        logger.error('Erro na busca Gemini:', error);
         return [];
       }
     }
 
-    // =============== MENSAGENS EXATAS GEMINI (templates) =================
-
-    // 1) Quando a consulta é genérica (ex.: "iphone", "perfumes", "drone")
-    function msgGenericFoundGemini(segmento: string) {
-      return `Boa! Separei alguns ${segmento} que estão valendo a pena. Quer focar em algum modelo específico? 😉`;
-    }
-
-    // 2) Quando encontrou itens específicos (ex.: "iphone 13")
-    function msgSpecificFoundGemini() {
-      return "Achei opções e deixei nos resultados abaixo. Quer que eu refine por armazenamento/cor?";
-    }
-
-    // 3) Quando não encontrou nada
-    function msgNoResultsGemini(originalQuery?: string) {
-      if (originalQuery && /\b(modelo|versão|linha)\s*\d+\b/i.test(originalQuery)) {
-        return "Não achei esse modelo específico. Que tal tentar 'iphone 13' ou 'samsung s24'? 🙂";
-      }
-      return "Não achei itens com esse termo. Me diga o modelo exato para eu buscar certinho 🙂";
-    }
-
-    // 4) Pergunta leve (máx 1) depois de mostrar – opcional
-    function msgSoftQuestionGemini(tema: string) {
-      return `Prefere ${tema}? Posso ajustar os resultados.`;
-    }
-
-    // 5) Sanitização de qualquer texto do modelo (garantia dupla no chat)
+    // Sanitização expandida (adiciona remoção de PII e promoções indesejadas)
     function sanitizeChatGemini(text = "") {
       return String(text)
         .replace(/!\[[^\]]*\]\([^)]+\)/g, "")        // imagens
         .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")   // links → só texto
         .replace(/https?:\/\/\S+/g, "")             // URLs cruas
+        .replace(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, "[PII]") // Exemplo: remover SSN-like
+        .replace(/promoção especial|desconto exclusivo/g, "") // Remover promoções hard-coded
         .replace(/\s{2,}/g, " ")
         .trim();
     }
 
-    // 6) Deduções simples para frase genérica
-    function segmentoDaQueryGemini(query: string, ofertas: any[] = []) {
-      const q = (query || "").toLowerCase();
-      const marcas = new Set(ofertas.map(o => (o.marca || "").toLowerCase()));
-      const tem = (s: string) => q.includes(s) || [...marcas].some(m => m.includes(s));
-      if (tem("iphone") || tem("apple")) return "aparelhos da Apple";
-      if (tem("samsung") || tem("galaxy")) return "aparelhos Samsung";
-      if (tem("drone")) return "drones";
-      if (tem("perfume")) return "perfumes";
-      return "esses produtos";
-    }
+    // Watchdog para evitar travamentos
+    const watchdogTimeout = setTimeout(() => {
+      send('delta', { text: "Algo deu errado, mas que tal buscar 'iPhone 13' ou 'Samsung S24'? 😊" });
+      send('complete', { provider: 'gemini' });
+      res.end();
+    }, 10000);
 
     send('meta', { ok: true, provider: 'gemini' });
 
     try {
       let userQuery = String(message || "").trim();
 
-      // 1) CONTEXTO INTELIGENTE: Enriquecer query vaga com histórico
+      // 1) CONTEXTO INTELIGENTE: Enriquecer query vaga com histórico (melhorado com NLP, summary persistente e preferências)
       let finalQuery = userQuery;
+      let contextSummary = session.metadata.contextSummary || {};
       
-      // Detectar queries vagas com modelo/número (regex robusta do arquiteto)
-      const vagueModelMatch = userQuery.match(/(quero|procuro|tem|modelo|vers[ãa]o|o|a|esse|este)?\s*(?:modelo|vers[ãa]o)?\s*(\d{1,3})(?:\s*(pro\s*max|pro\s*|max|plus|mini|se|promax))?/i);
+      // Regex expandida
+      const vagueModelMatch = userQuery.match(/(quero|procuro|tem|modelo|vers[ãa]o|o|a|esse|este|pro|max|plus|mini|se)?\s*(\d{1,3})(?:\s*(pro\s*max|pro\s*|max|plus|mini|se|promax))?/ig);
       const numericOnlyMatch = userQuery.match(/^\d{1,3}(?:\s*(pro\s*max|pro|max|plus|mini|se))?$/i);
       
-      const needsContext = (vagueModelMatch || numericOnlyMatch) && !/\b(iphone|samsung|xiaomi|apple|perfume|drone|celular|smartphone)\b/i.test(userQuery);
+      const needsContext = (vagueModelMatch || numericOnlyMatch) && !/\b(iphone|samsung|xiaomi|apple|perfume|drone|celular|smartphone|notebook|tv)\b/i.test(userQuery);
       
       if (needsContext) {
         try {
           const messages = await storage.getAssistantMessages(sessionId);
-          // Buscar nas últimas 10 mensagens do usuário por contexto de marca
           const recentUserMessages = messages
             .filter(m => m.role === 'user')
             .slice(-10)
             .reverse();
           
-          const contextMatch = recentUserMessages.find(m => 
-            /\b(iphone|apple|samsung|galaxy|xiaomi|perfume|drone|celular|smartphone)\b/i.test(m.content)
-          );
-          
-          if (contextMatch) {
-            const anchor = contextMatch.content.match(/\b(iphone|apple|samsung|galaxy|xiaomi|perfume|drone|celular|smartphone)\b/i)?.[0];
-            if (anchor) {
-              // Extrair só a parte do modelo (número + variante)
-              let modelString = '';
-              if (vagueModelMatch) {
-                const number = vagueModelMatch[2];
-                const variant = vagueModelMatch[3] || '';
-                modelString = `${number} ${variant}`.trim();
-              } else if (numericOnlyMatch) {
-                modelString = numericOnlyMatch[0];
-              }
-              
-              finalQuery = `${anchor} ${modelString}`.replace(/\s+/g, ' ').trim();
-              console.log('🧠 [Context] Enriquecendo query:', `"${userQuery}" → "${finalQuery}" usando anchor "${anchor}"`);
+          // Usar NLP para extrair entidades
+          let contextAnchor = '';
+          for (const msg of recentUserMessages) {
+            const doc = nlp(msg.content);
+            const entities = doc.topics().out('array'); // Extrai tópicos/marcas
+            const potentialAnchor = entities.find(e => /iphone|apple|samsung|galaxy|xiaomi|perfume|drone|celular|smartphone|notebook|tv/i.test(e));
+            if (potentialAnchor) {
+              contextAnchor = potentialAnchor;
+              break;
             }
+          }
+          
+          // Fallback para contextSummary persistente
+          if (!contextAnchor && contextSummary.ultimaMarca) {
+            contextAnchor = contextSummary.ultimaMarca;
+          }
+          
+          if (contextAnchor) {
+            let modelString = '';
+            if (vagueModelMatch) {
+              const number = vagueModelMatch[0].match(/\d+/)?.[0] || '';
+              const variant = vagueModelMatch[0].match(/(pro\s*max|pro|max|plus|mini|se)/i)?.[0] || '';
+              modelString = `${number} ${variant}`.trim();
+            } else if (numericOnlyMatch) {
+              modelString = numericOnlyMatch[0];
+            }
+            
+            finalQuery = `${contextAnchor} ${modelString}`.replace(/\s+/g, ' ').trim();
+            logger.info(`🧠 [Context] Enriquecendo query: "${userQuery}" → "${finalQuery}" usando anchor "${contextAnchor}"`);
+            
+            // Extrair preferências via NLP
+            const doc = nlp(userQuery);
+            const priceTerms = doc.match('(barato|caro|orçamento|preço até|preço máximo)').out('array');
+            const colorTerms = doc.match('(azul|vermelho|preto|branco|dourado)').out('array');
+            
+            contextSummary = {
+              ...contextSummary,
+              ultimaMarca: contextAnchor,
+              preferencias: {
+                preco: priceTerms.length > 0 ? priceTerms[0] : contextSummary.preferencias?.preco,
+                cor: colorTerms.length > 0 ? colorTerms[0] : contextSummary.preferencias?.cor,
+              },
+            };
+            
+            // Atualizar contextSummary
+            await saveWithRetry(() => storage.updateAssistantSession(sessionId, { metadata: { ...session.metadata, contextSummary } }));
           } else {
-            console.log('🧠 [Context] Nenhum contexto encontrado nas últimas mensagens');
+            logger.info('🧠 [Context] Nenhum contexto encontrado');
           }
         } catch (error) {
-          console.warn('❌ Erro ao buscar contexto:', error);
+          logger.warn('❌ Erro ao buscar contexto:', error);
         }
       }
 
-      // 2) Mostra primeiro (prefetch com a query enriquecida) - SEMPRE
-      const ofertas = finalQuery ? await buscarOfertas({ query: finalQuery, maxResultados: 12 }) : [];
-      console.log('🔍 [Final Search] Buscando com query final:', `"${finalQuery}"`);
-      console.log('✅ [Final Search] Encontrados', ofertas.length, 'produtos');
+      // 2) Mostra primeiro (prefetch com a query enriquecida) - SEMPRE (com filtros dinâmicos se aplicável)
+      // Exemplo: extrair filtros da query (simples, pode expandir)
+      let minPrice, maxPrice, brand;
+      if (/preço mínimo (\d+)/i.test(userQuery)) minPrice = parseInt(RegExp.$1);
+      if (/preço máximo (\d+)/i.test(userQuery)) maxPrice = parseInt(RegExp.$1);
+      if (/marca (\w+)/i.test(userQuery)) brand = RegExp.$1;
+      
+      const ofertas = finalQuery ? await buscarOfertas({ query: finalQuery, maxResultados: 12, minPrice, maxPrice, brand }) : [];
+      logger.info(`🔍 [Final Search] Buscando com query final: "${finalQuery}" | Encontrados: ${ofertas.length} produtos`);
 
-      // 2) Decide mensagem "exata" a partir do contexto (Heurística simples)
-      let text;
-      if (ofertas.length === 0) {
-        text = msgNoResultsGemini(message); // Passa a query original para contexto
-      } else {
-        // Heurística: se a query tem 1–2 palavras => genérico; caso contrário específico
-        const tokens = userQuery.split(/\s+/).filter(Boolean);
-        if (tokens.length <= 2) {
-          text = msgGenericFoundGemini(segmentoDaQueryGemini(userQuery, ofertas));
-        } else {
-          text = msgSpecificFoundGemini();
-        }
-      }
-
-      // 3) Resposta específica baseada nos produtos encontrados
+      // 3) Resposta fluida com Gemini
       let finalMessage;
       if (ofertas.length > 0) {
-        // Se há produtos, forçar resposta específica baseada nos dados reais
         const topProducts = ofertas.slice(0, 3);
         const productList = topProducts.map(p => 
           `${p.title} por $${p.price?.USD || 'consultar'} na ${p.storeName}`
         ).join(', ');
-        
-        try {
-          // Importar Gemini
-          const { GoogleGenerativeAI } = await import('@google/generative-ai');
-          const geminiAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-          
-          const model = geminiAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-          
-          const simplePrompt = `Responda como vendedor amigável. Mencione EXATAMENTE estes produtos: ${productList}. Use 1 emoji. Máximo 2 frases.`;
 
-          const result = await model.generateContent(simplePrompt);
+        try {
+          const { GoogleGenerativeAI } = await import('@google/generative-ai');
+          const geminiAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || '');
+          
+          const model = geminiAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' }); // Atualizado para versão mais recente
+          
+          const systemPrompt = `
+            Você é um assistente de compras amigável e fluido, como um vendedor experiente em uma loja.
+            Responda em português, com tom natural e conversacional, sem soar robótico.
+            Sempre mostre os produtos encontrados primeiro, destacando detalhes como preço ou loja de forma breve.
+            Inclua uma pergunta leve para engajar o usuário, com base no contexto da query.
+            Evite pedir informações obrigatórias ou bloquear a conversa; faça suposições inteligentes se necessário.
+          `;
+
+          const prompt = `
+            ${systemPrompt}
+            O usuário perguntou: "${userQuery}".
+            Produtos encontrados: ${productList}.
+            Contexto da sessão: ${JSON.stringify(contextSummary)}.
+            Gere uma resposta fluida, mencionando os produtos e fazendo uma pergunta leve para refinar a busca.
+          `;
+
+          const result = await model.generateContent(prompt);
           finalMessage = sanitizeChatGemini(result.response.text() || `Encontrei: ${productList} 📱`);
+          
+          // Logging de uso (tokens)
+          if ((result as any).usage) {
+            logger.info(`Gemini usage: prompt_tokens: ${(result as any).usage.promptTokenCount}, completion_tokens: ${(result as any).usage.completionTokenCount}`);
+          }
         } catch (geminiError) {
-          console.error('Erro no Gemini:', geminiError);
-          // Fallback INTELIGENTE com dados específicos dos produtos
+          logger.error('Erro no Gemini:', geminiError);
+          // Fallback dinâmico (mantém fluidez)
           const count = ofertas.length;
           const firstProduct = topProducts[0];
-          if (count === 1) {
-            finalMessage = `Achei ${firstProduct.title} por $${firstProduct.price?.USD || 'consultar'} na ${firstProduct.storeName}! 📱`;
-          } else if (count <= 3) {
-            finalMessage = `Encontrei ${count} opções: ${productList}. Qual te interessa? 📱`;
-          } else {
-            finalMessage = `Separei ${count} opções de ${segmentoDaQueryGemini(userQuery, ofertas)}. Primeiros: ${productList} 📱`;
-          }
+          finalMessage = count === 1
+            ? `Olha, achei um ${firstProduct.title} por $${firstProduct.price?.USD || 'consultar'} na ${firstProduct.storeName}. Quer saber mais sobre ele? 😊`
+            : `Encontrei ${count} opções, como ${productList}. Algum desses te interessa ou quer refinar a busca? 😊`;
         }
       } else {
-        // Se não há produtos, usar template direto
-        finalMessage = msgNoResultsGemini(message);
+        // Resposta fluida para nenhum resultado
+        try {
+          const { GoogleGenerativeAI } = await import('@google/generative-ai');
+          const geminiAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || '');
+          const model = geminiAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+
+          const systemPrompt = `
+            Você é um assistente de compras amigável e fluido.
+            Responda em português, com tom natural, sugerindo alternativas ou perguntas para manter a conversa.
+            Evite dizer que precisa de mais informações; faça suposições baseadas no contexto.
+          `;
+
+          const prompt = `
+            ${systemPrompt}
+            O usuário perguntou: "${userQuery}".
+            Nenhum produto foi encontrado.
+            Contexto da sessão: ${JSON.stringify(contextSummary)}.
+            Sugira uma alternativa ou faça uma pergunta para continuar a conversa.
+          `;
+
+          const result = await model.generateContent(prompt);
+          finalMessage = sanitizeChatGemini(result.response.text());
+        } catch (geminiError) {
+          logger.error('Erro no Gemini (no results):', geminiError);
+          finalMessage = `Não achei nada para "${userQuery}", mas que tal tentar algo como "iPhone 13" ou "Samsung S24"? 😊`;
+        }
       }
 
-      // 4) (Opcional) 1 pergunta leve após mostrar
-      let pergunta = "";
-      if (ofertas.length > 0) {
-        // Exemplos de temas específicos
-        if (/iphone|apple/i.test(userQuery)) pergunta = msgSoftQuestionGemini("linha 13 ou 15");
-        else if (/drone/i.test(userQuery)) pergunta = msgSoftQuestionGemini("compacto ou câmera mais parruda");
-        else if (/perfume/i.test(userQuery)) pergunta = msgSoftQuestionGemini("marcas favoritas (Dior, Calvin Klein...)");
-      }
-      const finalText = sanitizeChatGemini([finalMessage, pergunta].filter(Boolean).join(" "));
-
-      // 5) Entrega: CONVERSA PRIMEIRO, depois produtos (Ask-Then-Show)
-      send('delta', { text: finalText });
+      // 4) Reduzir perguntas repetitivas
+      const recentMessages = await storage.getAssistantMessages(sessionId);
+      const recentAssistantMessages = recentMessages
+        .filter(m => m.role === 'assistant' && m.metadata?.askThenShow)
+        .slice(-3);
+      const hasRecentQuestion = recentAssistantMessages.some(m => m.content.includes('?'));
       
-      // Aguardar um pouco para a conversa aparecer primeiro
-      await new Promise(resolve => setTimeout(resolve, 500));
+      if (hasRecentQuestion) {
+        finalMessage = finalMessage.replace(/\?.*$/, '.'); // Remover pergunta se já fez recentemente
+      }
+
+      // 5) Entrega: chat primeiro + produtos depois (Ask-Then-Show)
+      send('delta', { text: finalMessage });
+      
+      // Aguardar para que o chat apareça primeiro
+      await new Promise(resolve => setTimeout(resolve, 800));
       
       // Depois enviar produtos se houver
       if (ofertas.length > 0) {
@@ -7509,24 +7633,21 @@ Regras:
         });
       }
       
-      try {
-        await storage.createAssistantMessage({
-          sessionId,
-          role: 'assistant',
-          content: finalText,
-          metadata: { streamed: true, timestamp: new Date().toISOString(), provider: 'gemini', askThenShow: true }
-        });
-      } catch (error) {
-        console.warn('Erro ao salvar resposta Gemini:', error);
-      }
+      await saveWithRetry(() => storage.createAssistantMessage({
+        sessionId,
+        role: 'assistant',
+        content: finalMessage,
+        metadata: { streamed: true, timestamp: new Date().toISOString(), provider: 'gemini', askThenShow: true }
+      }));
 
     } catch (error) {
-      console.error('Erro no chat Gemini:', error);
-      send('delta', { text: "Me diga o nome do produto (ex.: 'iphone') que eu listo pra você!" });
+      logger.error('Erro no chat Gemini:', error);
+      send('delta', { text: "Não consegui processar agora, mas posso sugerir alguns iPhones populares, como o iPhone 13 por $600. Quer continuar? 😊" });
     }
 
     send('complete', { provider: 'gemini' });
     res.end();
+    clearTimeout(watchdogTimeout);
   });
 
   // Get assistant session with messages (with ownership check)
