@@ -7321,19 +7321,18 @@ Regras:
       let userQuery = String(message || "").trim();
 
       // 1) CONTEXTO INTELIGENTE: Enriquecer query vaga com histórico
-      const needsContext = (
-        // Deteta padrões como "modelo 12", "o 13", "versão pro", "quero o 15"
-        /\b(modelo|versão|linha|o|quero|esse|este|aquele)\s*(o\s*)?\d+\b/i.test(userQuery) ||
-        // Ou apenas números isolados "12", "13 pro", "15 max"
-        /^\d+\s*(pro|max|mini|plus)?$/i.test(userQuery.trim()) ||
-        // Ou frases vagas como "o 12", "esse modelo", "quero esse"
-        /^(o|esse|este|aquele)\s+\d+/i.test(userQuery.trim())
-      ) && !/\b(iphone|samsung|xiaomi|apple|perfume|drone|celular|smartphone)\b/i.test(userQuery);
+      let finalQuery = userQuery;
+      
+      // Detectar queries vagas com modelo/número (regex robusta do arquiteto)
+      const vagueModelMatch = userQuery.match(/(quero|procuro|tem|modelo|vers[ãa]o|o|a|esse|este)?\s*(?:modelo|vers[ãa]o)?\s*(\d{1,3})(?:\s*(pro\s*max|pro\s*|max|plus|mini|se|promax))?/i);
+      const numericOnlyMatch = userQuery.match(/^\d{1,3}(?:\s*(pro\s*max|pro|max|plus|mini|se))?$/i);
+      
+      const needsContext = (vagueModelMatch || numericOnlyMatch) && !/\b(iphone|samsung|xiaomi|apple|perfume|drone|celular|smartphone)\b/i.test(userQuery);
       
       if (needsContext) {
         try {
           const messages = await storage.getAssistantMessages(sessionId);
-          // Buscar nas últimas 10 mensagens do usuário por contexto de produto/marca
+          // Buscar nas últimas 10 mensagens do usuário por contexto de marca
           const recentUserMessages = messages
             .filter(m => m.role === 'user')
             .slice(-10)
@@ -7344,11 +7343,20 @@ Regras:
           );
           
           if (contextMatch) {
-            const contextWord = contextMatch.content.match(/\b(iphone|apple|samsung|galaxy|xiaomi|perfume|drone|celular|smartphone)\b/i)?.[0];
-            if (contextWord) {
-              const originalQuery = userQuery;
-              userQuery = `${contextWord} ${userQuery}`.replace(/\s+/g, ' ').trim();
-              console.log('🧠 [Context] Enriquecendo query:', `"${originalQuery}" → "${userQuery}"`);
+            const anchor = contextMatch.content.match(/\b(iphone|apple|samsung|galaxy|xiaomi|perfume|drone|celular|smartphone)\b/i)?.[0];
+            if (anchor) {
+              // Extrair só a parte do modelo (número + variante)
+              let modelString = '';
+              if (vagueModelMatch) {
+                const number = vagueModelMatch[2];
+                const variant = vagueModelMatch[3] || '';
+                modelString = `${number} ${variant}`.trim();
+              } else if (numericOnlyMatch) {
+                modelString = numericOnlyMatch[0];
+              }
+              
+              finalQuery = `${anchor} ${modelString}`.replace(/\s+/g, ' ').trim();
+              console.log('🧠 [Context] Enriquecendo query:', `"${userQuery}" → "${finalQuery}" usando anchor "${anchor}"`);
             }
           } else {
             console.log('🧠 [Context] Nenhum contexto encontrado nas últimas mensagens');
@@ -7359,7 +7367,9 @@ Regras:
       }
 
       // 2) Mostra primeiro (prefetch com a query enriquecida) - SEMPRE
-      const ofertas = userQuery ? await buscarOfertas({ query: userQuery, maxResultados: 12 }) : [];
+      const ofertas = finalQuery ? await buscarOfertas({ query: finalQuery, maxResultados: 12 }) : [];
+      console.log('🔍 [Final Search] Buscando com query final:', `"${finalQuery}"`);
+      console.log('✅ [Final Search] Encontrados', ofertas.length, 'produtos');
 
       // 2) Decide mensagem "exata" a partir do contexto (Heurística simples)
       let text;
