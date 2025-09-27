@@ -48,17 +48,21 @@ export async function runAssistant(sessionId: string, userMsg: string): Promise<
   const queryFinal = montarConsulta(userMsg, foco ?? undefined);
 
   // Se não temos foco e nem produto explícito, e também não há modelo → fora de domínio
-  const pareceProduto = /\b(iphone|galaxy|samsung|apple|xiaomi|motorola|pixel|celular|telefone|smartphone|drone|perfume|notebook|laptop|tv|televis[aã]o)\b/i.test(
-    userMsg
-  );
-  if (!pareceProduto && !foco && !temModelo && intent.intent !== "PRODUCT_SEARCH") {
+  if (!foco && !temModelo && intent.intent !== "PRODUCT_SEARCH") {
     return {
       kind: "OUT_OF_DOMAIN",
       text: replyOutOfDomain("Posso buscar por iPhone 12, Galaxy 15, drone com câmera, perfumes…"),
     };
   }
 
-  // 3) Busca de produto
-  const { items } = await searchProducts(queryFinal);
-  return { kind: "PRODUCT", queryFinal, items };
+  // 3) Busca de produto - agora aproveita categoria quando disponível
+  let queryComCategoria = queryFinal;
+  if (intent.entities?.category && intent.entities.category !== intent.entities?.product) {
+    queryComCategoria = `${queryFinal} categoria:${intent.entities.category}`;
+    console.log(`🏷️ [Conversation] Enriquecendo busca com categoria: "${queryComCategoria}"`);
+  }
+  
+  const { items } = await searchProducts(queryComCategoria);
+  console.log(`🔍 [Conversation] Busca realizada: query="${queryComCategoria}", resultados=${items.length}`);
+  return { kind: "PRODUCT", queryFinal: queryComCategoria, items };
 }

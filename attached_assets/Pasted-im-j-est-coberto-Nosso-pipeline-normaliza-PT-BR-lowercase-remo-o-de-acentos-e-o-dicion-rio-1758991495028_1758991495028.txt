@@ -1,0 +1,62 @@
+im — já está coberto. Nosso pipeline normaliza PT-BR (lowercase + remoção de acentos) e o dicionário/intent têm entradas em português (singular/plural e sinônimos). Ex.:
+
+“vocês têm drones?” → produto canônico drone
+
+“quero televisões 4k” → tv
+
+“mostra perfumes importados” → perfume
+
+“linha doze do iPhone” → iphone 12
+
+Se quiser reforçar ainda mais o PT-BR (gírias/variações), aplique este mini-patch:
+
+*** a/src/utils/lang-ptbr.ts
+--- b/src/utils/lang-ptbr.ts
+@@
+ export function normPTBR(s: string): string {
+-  return (s ?? "")
++  const base = (s ?? "")
+     .toLowerCase()
+     .normalize("NFD")
+     .replace(/[\u0300-\u036f]/g, "") // remove acentos
+     .replace(/\s+/g, " ")
+     .trim();
++  // Expansões comuns PT-BR para melhorar matching
++  return base
++    .replace(/\bvc\b/g, "voce")
++    .replace(/\bvcs\b/g, "voces")
++    .replace(/\bq\b/g, "que")
++    .replace(/\bpra\b/g, "para")
++    .replace(/\btv's\b/g, "tvs")
++    .replace(/\biphone's\b/g, "iphones");
+ }
+@@
+ export function toSingularPTBR(word: string): string {
+   const w = normPTBR(word);
+   if (PRODUCT_CANON[w]) return PRODUCT_CANON[w];
+-  if (w.endsWith("oes")) return w.slice(0, -3) + "ao";
+-  if (w.endsWith("oes")) return w.slice(0, -3) + "ão"; // duplicado
++  // plurais mais comuns em PT-BR
++  if (w.endsWith("oes")) return w.slice(0, -3) + "ao";   // televisoes -> televisao
+   if (w.endsWith("aes")) return w.slice(0, -3) + "ao";   // paes -> pao
+   if (w.endsWith("ais")) return w.slice(0, -3) + "al";   // canais -> canal
+   if (w.endsWith("eis")) return w.slice(0, -3) + "el";   // papeis -> papel
+   if (w.endsWith("is"))  return w.slice(0, -1) + "l";    // funis -> funil
+   if (w.endsWith("ns"))  return w.slice(0, -2) + "m";    // bons -> bom
+   if (w.length > 3 && w.endsWith("s")) return w.slice(0, -1); // perfumes -> perfume
+   return w;
+ }
+
+Exemplos para você testar agora
+
+“vocês tem drones?” / “vocês têm drones?” → drone
+
+“tem tvs 4k?” / “tem televisões 4k?” → tv
+
+“fones de ouvido bluetooth” → fone
+
+“geladeiras frost free” → eletrodomestico
+
+“cosméticos faciais” → cosmetico
+
+“calçados femininos / zapatillas” → calcado
