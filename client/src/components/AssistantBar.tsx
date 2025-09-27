@@ -899,11 +899,16 @@ export default function AssistantBar() {
     startStream(message);
   };
 
-  // Auto-scroll para última mensagem
+  // Auto-scroll para última mensagem com timing e suavidade
   const scrollToBottom = () => {
-    if (chatScrollRef.current) {
-      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-    }
+    setTimeout(() => {
+      if (chatScrollRef.current) {
+        chatScrollRef.current.scrollTo({
+          top: chatScrollRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
   };
 
   // Auto-scroll quando mensagens mudam ou durante streaming
@@ -1073,7 +1078,7 @@ export default function AssistantBar() {
             <div className="mb-4">
               <div className="rounded-2xl border bg-white/95 backdrop-blur p-3 shadow-sm">
                 <div className="text-xs text-gray-500 mb-1">Click Assistant</div>
-                <div ref={chatScrollRef} className="rounded-xl bg-gray-50 border p-3 max-h-[200px] overflow-auto">
+                <div ref={chatScrollRef} className="rounded-xl bg-gray-50 border p-3 max-h-[300px] overflow-y-auto">
                   {/* Histórico de mensagens */}
                   {chatMessages.map((msg, idx) => (
                     <div key={idx} className={`mb-2 ${msg.type === 'user' ? 'text-right' : ''}`}>
