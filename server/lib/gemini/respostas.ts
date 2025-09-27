@@ -32,35 +32,21 @@ export function responderPorIntencao(tipo: string | null, nome: string, horaLoca
 
 export function interpretarFraseProduto(msg: string, memoria: any) {
   const texto = msg.toLowerCase();
-  
-  // Extrair entidades principais
-  const produto = /\b(iphone|galaxy|drone|perfume|notebook|celular|smartphone|tablet|fone|mouse|teclado|monitor|tv|smartwatch|airpods)\b/.exec(texto)?.[0];
-  const modelo = /\b(12|13|14|15|16|s22|s23|s24|128gb|256gb|512gb|1tb|pro|max|mini|se|plus|ultra)\b/.exec(texto)?.[0];
-  const marca = /\b(apple|samsung|xiaomi|dior|calvin klein|lg|motorola|dell|asus|nike|adidas|sony)\b/.exec(texto)?.[0];
-  const atributo = /(masculino|feminino|compacto|potente|boa câmera|câmera|bateria|barato|caro|novo|usado|original|importado|nacional)/g;
-  const atributos = [...texto.matchAll(atributo)].map(m => m[0]);
-  
+
+  const produto = /iphone|galaxy|drone|perfume|notebook|celular/.exec(texto)?.[0];
+  const modelo = /\b(12|13|14|15|s22|s23|128gb|256gb)\b/.exec(texto)?.[0];
+  const marca = /apple|samsung|dior|calvin klein|motorola|lg/.exec(texto)?.[0];
+  const tipo = /masculino|feminino|compacto|potente|boa câmera|bateria/.exec(texto)?.[0];
+
   let query = '';
-  
-  // Construir query inteligente
-  if (produto) {
-    query += produto;
-    if (modelo) query += ` ${modelo}`;
-    if (marca) query += ` ${marca}`;
-    if (atributos.length > 0) query += ` ${atributos.join(' ')}`;
-  }
-  // Fallback: usar última busca se não tiver produto explícito mas tiver refinamentos
-  else if (!produto && memoria?.ultimaBusca && (modelo || marca || atributos.length > 0)) {
-    query = `${memoria.ultimaBusca} ${texto}`;
-  }
-  // Fallback: frases de refinamento genéricas
-  else if (!produto && memoria?.ultimaBusca) {
-    const refinamentos = /(mais barato|mais caro|outra|outro|diferente|melhor|pior|com|sem)\s/.exec(texto)?.[0];
-    if (refinamentos) {
-      query = `${memoria.ultimaBusca} ${texto}`;
-    }
-  }
-  
+  if (produto) query += produto;
+  if (modelo) query += ` ${modelo}`;
+  if (marca) query += ` ${marca}`;
+  if (tipo) query += ` ${tipo}`;
+
+  // fallback: usar última busca se não tiver produto explícito
+  if (!produto && memoria?.ultimaBusca) query = `${memoria.ultimaBusca} ${texto}`;
+
   return query.trim() || null;
 }
 

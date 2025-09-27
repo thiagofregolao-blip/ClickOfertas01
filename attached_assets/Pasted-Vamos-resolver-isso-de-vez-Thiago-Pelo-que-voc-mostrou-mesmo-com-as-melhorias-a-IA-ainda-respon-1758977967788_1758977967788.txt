@@ -1,0 +1,67 @@
+Vamos resolver isso de vez, Thiago. Pelo que você mostrou, mesmo com as melhorias, a IA ainda responde com:
+
+“Não achei nada com esse termo. Me dá mais detalhes…”
+
+quando você escreve frases como:
+
+“o que você pode me dizer da linha 15”
+
+“quero um iphone com boa câmera”
+
+“tem perfume masculino da Dior?”
+
+Isso indica que o sistema ainda está tratando frases como buscas diretas, sem interpretar o conteúdo semântico. Vamos atacar isso com uma solução mais robusta e modular.
+
+✅ Diagnóstico técnico
+O erro persiste porque:
+
+A IA não extrai entidades da frase (produto, marca, modelo, atributo)
+
+Não conecta com o histórico da conversa (ex: “linha 15” → iPhone)
+
+Não reescreve a query antes de buscar ou enviar ao modelo
+
+🛠️ Solução completa: Módulo de interpretação semântica
+Aqui está o código que você pode adicionar ao seu projeto para resolver isso:
+
+📦 lib/interpretador.js
+js
+export function interpretarFraseProduto(msg, memoria) {
+  const texto = msg.toLowerCase();
+
+  const produto = /iphone|galaxy|drone|perfume|notebook|celular/.exec(texto)?.[0];
+  const modelo = /\b(12|13|14|15|s22|s23|128gb|256gb)\b/.exec(texto)?.[0];
+  const marca = /apple|samsung|dior|calvin klein|motorola|lg/.exec(texto)?.[0];
+  const tipo = /masculino|feminino|compacto|potente|boa câmera|bateria/.exec(texto)?.[0];
+
+  let query = '';
+  if (produto) query += produto;
+  if (modelo) query += ` ${modelo}`;
+  if (marca) query += ` ${marca}`;
+  if (tipo) query += ` ${tipo}`;
+
+  // fallback: usar última busca se não tiver produto explícito
+  if (!produto && memoria?.ultimaBusca) query = `${memoria.ultimaBusca} ${texto}`;
+
+  return query.trim() || null;
+}
+🔁 Integração no endpoint principal
+No seu index.js ou assistant.js, substitua o refinamento atual por:
+
+js
+import { interpretarFraseProduto } from './interpretador.js';
+
+const queryInterpretada = interpretarFraseProduto(message, memory);
+const finalQuery = queryInterpretada || message;
+💬 Resultado esperado
+Você diz:
+
+“o que você pode me dizer da linha 15”
+
+A IA transforma isso em:
+
+iphone 15
+
+E responde com:
+
+“O iPhone 15 é top de linha! Tem câmera parruda, chip A16 e design premium. Quer ver os modelos disponíveis?”
