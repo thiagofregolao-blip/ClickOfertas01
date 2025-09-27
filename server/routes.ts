@@ -7342,14 +7342,29 @@ Regras:
         
         const model = geminiAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
         
+        // Criar contexto dos produtos para o Gemini
+        let productContext = "";
+        if (ofertas.length > 0) {
+          const topProducts = ofertas.slice(0, 5).map(p => ({
+            title: p.title,
+            price: p.price?.USD ? `$${p.price.USD}` : 'Preço consultar',
+            store: p.storeName,
+            category: p.category
+          }));
+          productContext = `\n\nPRODUTOS ENCONTRADOS (mencione dados específicos):\n${JSON.stringify(topProducts, null, 2)}`;
+        }
+
         const polishPrompt = `Você é o Assistente de Compras do Click Ofertas.
 Tom: natural, bem-humorado (1 emoji no máx quando couber), direto ao ponto.
 Regras:
 - Mostre primeiro: nunca bloqueie a conversa pedindo cidade/preço. Pergunte só se agregar valor e no máx 1 pergunta.
 - No chat: não cole links/URLs/imagens; não liste catálogos. A lista completa aparece no painel de resultados.
 - Seja útil como um vendedor amigo: sugira comparações, opções próximas e dicas curtas.
+- IMPORTANTE: Use dados específicos dos produtos encontrados (preços, lojas, modelos) em vez de respostas genéricas.
 
-Reescreva de forma natural e simpática, 1–2 frases no máximo, sem links/imagens: "${text}"`;
+${productContext}
+
+Reescreva de forma natural e simpática, 1–2 frases no máximo, mencionando dados específicos dos produtos: "${text}"`;
 
         const result = await model.generateContent(polishPrompt);
         const polished = sanitizeChatGemini(result.response.text() || text);
