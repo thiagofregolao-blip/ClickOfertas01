@@ -1,0 +1,78 @@
+Sim — isso explica 100% a repetição.
+O % arr.length na pick pode zerar o índice e você sempre cair no primeiro template. Bora corrigir e garantir variação real.
+
+Patch rápido (3 pontos)
+1) Corrigir pick (ou usar util já pronto)
+*** a/src/persona/salesPersona.ts
+--- b/src/persona/salesPersona.ts
+@@
+-export function pick<T>(arr:T[], rng:() => number){ return arr[Math.floor(rng()*arr.length) % arr.length]; }
++// índice já vem no range [0, len-1]; não use % de novo
++export function pick<T>(arr:T[], rng:() => number){ 
++  return arr[Math.floor(rng()*arr.length)];
++}
+
+
+Alternativa: usar o helper robusto já existente.
+
+*** a/src/nlg/templates.ts
+--- b/src/nlg/templates.ts
+@@
+-import { PersonaConfig, pick } from "../persona/salesPersona";
++import { PersonaConfig } from "../persona/salesPersona";
++import { pickWithRng as pick } from "../utils/rng";
+
+2) RNG estável por sessão (não recriar toda resposta)
+
+Garanta que você não instancia o RNG com Date.now() em composeAnswer. Use a seed guardada na sessão.
+
+*** a/src/nlg/say.ts
+--- b/src/nlg/say.ts
+@@
+-import { mulberry32 } from "../utils/rng";
++import { mulberry32 } from "../utils/rng";
++import { getSession } from "../services/sessionStore";
+@@
+-export function composeAnswer(args: ComposeArgs & { sessionId?: string }): Block[] {
+-  const persona = SalesPersona; const { query, items, memory } = args; const blocks: Block[] = [];
+-  // seed: quanto mais variar, melhor (hora atual + foco) — valor será setado no orchestrator
+-  const rng = mulberry32((Date.now() >>> 10) ^ Math.floor(Math.random()*1e9));
++export async function composeAnswer(args: ComposeArgs & { sessionId?: string }): Promise<Block[]> {
++  const persona = SalesPersona; const { query, items, memory, sessionId } = args; const blocks: Block[] = [];
++  const sess = sessionId ? (await getSession(sessionId)) ?? {} : {};
++  const seed = (sess as any).rngSeed ?? 123456789;        // já setada no pipeline
++  const rng = mulberry32(seed);
+@@
+-  return blocks;
++  return blocks;
+}
+
+
+E no endpoint/orquestrador, lembre que composeAnswer virou assíncrona:
+
+-const blocks = composeAnswer({ items, query, memory, sessionId: sid });
++const blocks = await composeAnswer({ items, query, memory, sessionId: sid });
+
+3) (Opcional) Logger temporário
+// em composeAnswer, logo após criar `rng`
+console.debug("[nlg] rng first picks", {
+  g: Math.floor(rng()*3),
+  f: Math.floor(rng()*3),
+  n: Math.floor(rng()*3)
+});
+
+Smoke test (2 minutos)
+
+Envie “iphone” 3 vezes na mesma sessão → veja frases diferentes do bloco “found”.
+
+Nova sessão → pode começar por outra variação (seed diferente).
+
+Verifique os logs [nlg] rng first picks variando.
+
+TL;DR
+
+Sim, o % arr.length causava o bug.
+
+Corrigindo a pick (ou usando pickWithRng) + RNG por sessão, as mensagens param de repetir.
+
+Não recrie RNG com Date.now() a cada resposta; use a seed persistida da sessão.
