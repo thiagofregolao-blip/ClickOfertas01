@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share, BarChart3, Plus, Smartphone, Droplets, Laptop, Monitor, Brain, Sparkles } from "lucide-react";
+import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share, BarChart3, Plus, Smartphone, Droplets, Laptop, Monitor, Brain } from "lucide-react";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import LoginPage from "@/components/login-page";
@@ -20,7 +20,6 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { useTypewriter } from "@/hooks/use-typewriter";
 import { useAnalytics } from "@/lib/analytics";
 import { useIntelligentSearch } from "@/hooks/use-intelligent-search";
-import { useSuggestions } from "@/hooks/use-suggestions";
 import { LazyImage } from "@/components/lazy-image";
 import { SearchResultItem } from "@/components/search-result-item";
 import { StoreResultItem } from "@/components/store-result-item";
@@ -65,6 +64,8 @@ export default function StoresGallery() {
   const [searchInput, setSearchInput] = useState(urlSearch);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  
+  // Note: Assistant functionality moved to StandardHeader to avoid duplication
   
   // Assistant functionality handled by StandardHeader
   const searchQuery = useDebounce(searchInput, 500); // Debounce de 500ms
@@ -758,30 +759,9 @@ export default function StoresGallery() {
                   </Button>
                 </Link>
                 
-                {/* Barra de busca simples */}
+                {/* Click Pro Assistant Bar - A BARRA É O ASSISTENTE */}
                 <div className="flex-1 max-w-4xl">
-                  <div className="relative">
-                    <div className="relative flex items-center bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
-                      
-                      {/* Ícone de busca */}
-                      <div className="absolute left-4 flex items-center">
-                        <Search className="h-5 w-5 text-gray-400" />
-                      </div>
-                      
-                      {/* Input */}
-                      <input
-                        type="text"
-                        value={searchInput}
-                        onChange={(e) => handleSearchInputChange(e.target.value)}
-                        onFocus={() => setIsSearchFocused(true)}
-                        onBlur={() => setIsSearchFocused(false)}
-                        placeholder={currentText || "Buscar produtos..."}
-                        className="w-full pl-12 pr-4 py-4 text-lg bg-transparent border-0 outline-none placeholder-gray-400 text-gray-900 dark:text-gray-100"
-                        data-testid="input-search"
-                        autoComplete="off"
-                      />
-                    </div>
-                  </div>
+                  <AssistantBar />
                 </div>
 
                 {/* Sino de notificações - Desktop */}
@@ -1083,7 +1063,7 @@ export default function StoresGallery() {
           }}
         />
       </div>
-
+      
       {/* Product Detail Modal */}
       <ProductDetailModal
         product={selectedProduct}

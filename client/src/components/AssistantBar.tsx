@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { LazyImage } from './lazy-image';
 import { useSuggestions } from '@/hooks/use-suggestions';
-import { Search, Sparkles } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 // Sessão simples por usuário (cache 1h)
 const sessionCache = new Map();
@@ -931,6 +931,132 @@ export default function AssistantBar() {
 
   return (
     <>
+      {/* WRAPPER RELATIVE para ancorar */} 
+      <div className="w-full relative">
+        {/* Barra = chat */}
+        <form ref={chatRef} onSubmit={onSubmit} className="flex items-center gap-2 rounded-2xl px-4 py-2 bg-white shadow border">
+          <div className="w-7 h-7 grid place-content-center text-lg">🤖</div>
+          <input
+            value={query}
+            onChange={e => onChange(e.target.value)}
+            onFocus={() => {
+              setIsSearchFocused(true);
+              onFocus();
+            }}
+            onBlur={(e) => {
+              // Delay para permitir clique nas sugestões
+              setTimeout(() => setIsSearchFocused(false), 200);
+              setTimeout(() => setShowSuggestions(false), 200);
+            }}
+            placeholder={isSearchFocused || query ? "Converse com o Click (ex.: iPhone 15 em CDE)" : (displayText || "Carregando frases...")}
+            className="flex-1 outline-none text-base"
+            data-testid="search-input"
+          />
+          <button className="px-3 py-1.5 rounded-lg bg-black text-white hover:opacity-90" type="submit">Click</button>
+        </form>
+
+        {/* DROPDOWN DE SUGESTÕES (aparece enquanto usuário digita) */}
+        {showSuggestions && hasResults && !open && (
+          <div className="absolute left-0 right-0 top-full mt-1 z-30">
+            <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg p-3 max-h-60 overflow-y-auto">
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => onSuggestionClick(suggestion)}
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full text-sm font-medium transition-colors border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
+                    data-testid={`suggestion-${index}`}
+                  >
+                    <Search className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                    <span className="text-gray-700 dark:text-gray-200">{suggestion}</span>
+                  </button>
+                ))}
+              </div>
+              {suggestionsLoading && (
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-2">
+                  <div className="w-3 h-3 border border-gray-300 dark:border-gray-600 border-t-gray-600 dark:border-t-gray-400 rounded-full animate-spin"></div>
+                  Buscando sugestões...
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* DROPDOWN ancorado (apenas Chat + 3 recomendados) */}
+        {open && (
+          <div className="absolute left-0 right-0 top-full mt-2 z-40">
+            <div className="mx-auto max-w-5xl grid grid-cols-12 gap-4">
+              {/* Chat com scroll */}
+              <div className="col-span-12 lg:col-span-9">
+                <div className="rounded-2xl border bg-white/90 backdrop-blur p-3 shadow-sm">
+                  <div className="text-xs text-gray-500 mb-1">Click Assistant</div>
+                  <div className="rounded-xl bg-gray-50 border p-3 max-h-[220px] overflow-auto">
+                    {/* Saudação inicial se não houver mensagens */}
+                    {chatMessages.length === 0 && !streaming && greeting && (
+                      <div className="mb-2">{greeting}</div>
+                    )}
+                    
+                    {/* Histórico de mensagens */}
+                    {chatMessages.map((msg, idx) => (
+                      <div key={idx} className={`mb-2 ${msg.type === 'user' ? 'text-right' : ''}`}>
+                        {msg.type === 'user' ? (
+                          <span className="inline-block bg-blue-500 text-white px-3 py-1 rounded-lg max-w-xs">{msg.text}</span>
+                        ) : (
+                          <div className="whitespace-pre-wrap">{msg.text}</div>
+                        )}
+                      </div>
+                    ))}
+                    
+                    {/* Indicador de digitação */}
+                    {isTyping && (
+                      <div className="mb-2 text-gray-500 italic">Click Assistant está digitando...</div>
+                    )}
+                    
+                    {/* Streaming da resposta atual */}
+                    {streaming && (
+                      <div className="mb-2 whitespace-pre-wrap">{streaming}</div>
+                    )}
+                  </div>
+                  {loadingSug && <div className="text-xs text-gray-500 mt-2">Buscando ofertas…</div>}
+                </div>
+              </div>
+
+              {/* 3 recomendados */}
+              <div className="col-span-12 lg:col-span-3">
+                <div className="rounded-2xl border bg-white/90 backdrop-blur p-4 shadow-sm">
+                  <div className="text-sm font-semibold mb-3">Produtos Recomendados</div>
+                  {topBox.length === 0 ? (
+                    <div className="text-xs text-gray-500">Converse comigo e eu trago as melhores opções!</div>
+                  ) : (
+                    <div className="grid gap-3">
+                      {topBox.map(p => (
+                        <button key={p.id} onClick={() => goProduct(p)} className="text-left p-3 rounded-xl border hover:shadow-sm transition" data-testid={`card-product-${p.id}`}>
+                          <div className="flex items-start gap-2 mb-2">
+                            {/* Logo da loja */}
+                            <div className="w-6 h-6 flex-shrink-0">
+                              <LazyImage
+                                src={p.storeLogoUrl || '/api/placeholder/24/24'}
+                                alt={p.storeName || 'Loja'}
+                                className="w-full h-full object-contain bg-gray-50 rounded border"
+                                placeholder="🏪"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium truncate mb-1">{p.title}</div>
+                              <div className="text-xs text-gray-500 mb-1">{p.storeName || p.category || '—'}</div>
+                              <div className="text-sm">{p.price?.USD ? `USD ${p.price.USD}` : 'sem preço'}</div>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* OVERLAY FIXO DE RESULTADOS (só aparece após submit) */}
       {showResults && (
