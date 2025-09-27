@@ -187,6 +187,7 @@ export default function StoresGallery() {
   const [selectedStore, setSelectedStore] = useState<StoreWithProducts | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
   const analytics = useAnalytics();
   
   // Instagram Stories state
@@ -1169,9 +1170,9 @@ export default function StoresGallery() {
                     </div>
 
                     {/* Sugestões do Gemini */}
-                    {geminiShowSuggestions && suggestionsData?.suggestions && (
+                    {geminiShowSuggestions && geminiSuggestions && geminiSuggestions.length > 0 && (
                       <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                        {suggestionsData.suggestions.map((suggestion, index) => (
+                        {geminiSuggestions.map((suggestion, index) => (
                           <button
                             key={index}
                             className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-b-0"
