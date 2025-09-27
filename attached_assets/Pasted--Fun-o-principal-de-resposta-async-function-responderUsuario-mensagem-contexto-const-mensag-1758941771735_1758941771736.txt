@@ -1,0 +1,77 @@
+// Função principal de resposta
+async function responderUsuario(mensagem, contexto) {
+  const mensagemSanitizada = limparTexto(mensagem);
+  const intencaoFollowUp = detectarIntencaoFollowUp(mensagemSanitizada);
+
+  // Se for uma resposta após mostrar produtos
+  if (intencaoFollowUp) {
+    return responderFollowUp(intencaoFollowUp);
+  }
+
+  // Detecta se a mensagem é vaga
+  const precisaContexto = regexVaga.test(mensagemSanitizada);
+  const contextoEnriquecido = precisaContexto ? enriquecerContexto(contexto) : contexto;
+
+  // Chamada à API Gemini
+  try {
+    const respostaGemini = await chamarGemini(mensagemSanitizada, contextoEnriquecido);
+    return formatarResposta(respostaGemini);
+  } catch (erro) {
+    console.warn("Erro na API Gemini:", erro);
+    const produtos = await buscarProdutos(mensagemSanitizada);
+    return mostrarProdutosComPrompt(produtos);
+  }
+}
+
+// Detecta intenção de follow-up
+function detectarIntencaoFollowUp(mensagem) {
+  const msg = mensagem.toLowerCase();
+  if (msg.includes("gostei") || msg.includes("quero esse") || msg.includes("vou levar")) {
+    return "confirmar_escolha";
+  }
+  if (msg.includes("não gostei") || msg.includes("mostra outros") || msg.includes("tem mais")) {
+    return "rejeitar_opcoes";
+  }
+  if (msg.includes("128gb") || msg.includes("cor preta") || msg.includes("mais barato")) {
+    return "refinar_busca";
+  }
+  return null;
+}
+
+// Responde com base na intenção
+function responderFollowUp(intencao) {
+  switch (intencao) {
+    case "confirmar_escolha":
+      return "Ótima escolha! Posso te ajudar a finalizar ou mostrar acessórios compatíveis 🛍️";
+    case "rejeitar_opcoes":
+      return "Sem problemas! Vou buscar outras opções que talvez te agradem mais 🔄";
+    case "refinar_busca":
+      return "Entendi! Vou ajustar a busca com base no que você quer 🔍";
+    default:
+      return "Se quiser refinar ou ver mais, é só me dizer 😉";
+  }
+}
+
+// Mostra produtos com uma pergunta leve
+function mostrarProdutosComPrompt(produtos) {
+  const lista = formatarListaProdutos(produtos);
+  return `${lista}\n\nGostou de algum? Posso te ajudar a escolher 😊`;
+}
+
+// Funções auxiliares (mantidas do seu código original)
+function limparTexto(texto) {
+  return texto.trim().replace(/[^\w\s]/gi, "").toLowerCase();
+}
+
+function enriquecerContexto(contexto) {
+  return contexto + " | usuário está buscando algo específico";
+}
+
+function formatarListaProdutos(produtos) {
+  return produtos.map((p, i) => `${i + 1}. ${p.nome} - ${p.preco}`).join("\n");
+}
+
+async function buscarProdutos(query) {
+  // Mantém sua lógica de busca original
+  return await chamarBuscaGemini(query);
+}

@@ -7260,7 +7260,58 @@ Regras:
     res.end();
   });
 
-  // POST /api/assistant/gemini/stream - Gemini Assistant with "show-then-ask" behavior
+  // ===== FUNÇÕES DE FOLLOW-UP INTELIGENTE GEMINI =====
+  
+  // Detecta intenção de follow-up
+  function detectarIntencaoFollowUpGemini(mensagem: string) {
+    const msg = mensagem.toLowerCase();
+    if (msg.includes("gostei") || msg.includes("quero esse") || msg.includes("vou levar") || msg.includes("me interessa")) {
+      return "confirmar_escolha";
+    }
+    if (msg.includes("não gostei") || msg.includes("mostra outros") || msg.includes("tem mais") || msg.includes("outras opções")) {
+      return "rejeitar_opcoes";
+    }
+    if (msg.includes("128gb") || msg.includes("256gb") || msg.includes("cor preta") || msg.includes("mais barato") || msg.includes("menor preço")) {
+      return "refinar_busca";
+    }
+    if (msg.includes("qual melhor") || msg.includes("me recomenda") || msg.includes("qual escolher")) {
+      return "pedir_recomendacao";
+    }
+    return null;
+  }
+
+  // Responde com base na intenção detectada
+  function responderFollowUpGemini(intencao: string) {
+    switch (intencao) {
+      case "confirmar_escolha":
+        return "Ótima escolha! 🎉 Posso te ajudar com mais detalhes ou mostrar acessórios compatíveis.";
+      case "rejeitar_opcoes":
+        return "Sem problemas! 🔄 Vou buscar outras opções que talvez te agradem mais.";
+      case "refinar_busca":
+        return "Entendi! 🔍 Vou ajustar a busca com base no que você prefere.";
+      case "pedir_recomendacao":
+        return "Claro! 💡 Com base nas opções disponíveis, posso te dar algumas dicas.";
+      default:
+        return "Se quiser refinar a busca ou ver mais opções, é só me dizer! 😊";
+    }
+  }
+
+  // Limpa e normaliza texto para análise
+  function limparTextoGemini(texto: string) {
+    return texto.trim().replace(/[^\w\s\-]/gi, "").toLowerCase();
+  }
+
+  // Verifica se a mensagem é uma resposta a produtos mostrados
+  function isRespostaAProdutos(mensagem: string, memoryContext: any) {
+    const msg = limparTextoGemini(mensagem);
+    const palavrasFollowUp = ["gostei", "quero", "não gostei", "outros", "mais", "melhor", "recomenda", "escolher", "qual"];
+    const temPalavraFollowUp = palavrasFollowUp.some(palavra => msg.includes(palavra));
+    const temContextoProdutos = memoryContext?.products && memoryContext.products > 0;
+    
+    return temPalavraFollowUp && temContextoProdutos;
+  }
+
+  // POST /api/assistant/gemini/stream - Gemini Assistant with "ask-then-show" behavior
   app.post('/api/assistant/gemini/stream', async (req: any, res) => {
     const { message, sessionId } = req.body;
     const user = req.user || req.session?.user;
@@ -7379,6 +7430,29 @@ Regras:
 
     try {
       let userQuery = String(message || "").trim();
+
+      // 🧠 VERIFICAÇÃO DE FOLLOW-UP INTELIGENTE
+      const intencaoFollowUp = detectarIntencaoFollowUpGemini(userQuery);
+      if (intencaoFollowUp && isRespostaAProdutos(userQuery, memoryContext)) {
+        console.log(`🤖 [Gemini Follow-up] Intenção detectada: ${intencaoFollowUp}`);
+        const respostaFollowUp = responderFollowUpGemini(intencaoFollowUp);
+        send('delta', { text: respostaFollowUp });
+        
+        try {
+          await storage.createAssistantMessage({
+            sessionId,
+            role: 'assistant',
+            content: respostaFollowUp,
+            metadata: { streamed: true, timestamp: new Date().toISOString(), provider: 'gemini', followUp: true }
+          });
+        } catch (error) {
+          console.warn('Erro ao salvar follow-up Gemini:', error);
+        }
+        
+        send('complete', {});
+        res.end();
+        return;
+      }
 
       // 1) CONTEXTO INTELIGENTE: Enriquecer query vaga com histórico
       let finalQuery = userQuery;
