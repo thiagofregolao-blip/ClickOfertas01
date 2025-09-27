@@ -8,6 +8,37 @@ export function saudacaoInicial(mensagens: any[]) {
   return mensagens.length <= 1;
 }
 
+export function classificarIntencao(msg: string) {
+  const texto = msg.toLowerCase();
+  if (/qual seu nome|quem é você|quem está falando/.test(texto)) return 'pergunta_sobre_ia';
+  if (/que horas são|hora agora/.test(texto)) return 'pergunta_hora';
+  if (/^(bom dia|boa tarde|boa noite|oi|olá)$/i.test(texto.trim())) return 'saudacao';
+  return null;
+}
+
+export function responderPorIntencao(tipo: string | null, nome: string, horaLocal?: number) {
+  switch (tipo) {
+    case 'pergunta_sobre_ia':
+      return `Sou seu assistente de compras, ${nome}! Sempre pronto pra te ajudar a encontrar o que quiser 🛍️`;
+    case 'pergunta_hora':
+      const hora = horaLocal ? `${horaLocal}:00` : new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      return `Agora são ${hora} aqui! Quer aproveitar pra ver as ofertas da manhã? ☀️`;
+    case 'saudacao':
+      return `${gerarSaudacao(nome, horaLocal)} Me diz o que você está procurando hoje.`;
+    default:
+      return null;
+  }
+}
+
+export function interpretarRefinamento(message: string, memoria: any) {
+  const msg = message.toLowerCase();
+  const ultimaBusca = memoria?.ultimaBusca?.toLowerCase();
+  if (ultimaBusca?.includes('iphone') && /\b(12|13|15)\b/.test(msg)) {
+    return `iphone ${msg.match(/\b(12|13|15)\b/)![0]}`;
+  }
+  return null;
+}
+
 export function detectarIntencaoFollowUp(msg: string) {
   const m = msg.toLowerCase();
   if (m.includes('gostei') || m.includes('quero esse')) return 'confirmar';
@@ -45,7 +76,7 @@ export function gerarRespostaConversacional(query: string, produtos: any[], memo
 }
 
 export function gerarPerguntaLeve(query: string) {
-  if (/iphone/i.test(query)) return 'Prefere linha 13 ou 15?';
+  if (/iphone/i.test(query)) return 'Prefere linha 12, 13 ou 15?';
   if (/drone/i.test(query)) return 'Quer um modelo compacto ou com câmera parruda?';
   if (/perfume/i.test(query)) return 'Tem alguma marca favorita (Dior, Calvin Klein...)?';
   return '';

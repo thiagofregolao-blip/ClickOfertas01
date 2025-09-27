@@ -1,0 +1,159 @@
+// gemini.ts — Endpoint principal
+
+const memoriaUsuarios = {};
+
+export async function handler(req, res) {
+  const { message, sessionId, horaLocal } = req.body;
+  const user = req.user || req.session?.user;
+  const userName = user?.name || 'cliente';
+  const userId = user?.id;
+
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders?.();
+
+  const send = (event, payload) => {
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(payload)}\n\n`);
+  };
+
+  await persistSessionAndMessage(sessionId, userId, message);
+  const mensagens = await getSessionMessages(sessionId);
+  const memoria = memoriaUsuarios[userId] || {};
+
+  // Classificação de intenção
+  const tipoIntencao = classificarIntencao(message);
+  const respostaIntencao = responderPorIntencao(tipoIntencao, userName, horaLocal);
+  if (respostaIntencao) {
+    send('delta', { text: respostaIntencao });
+    send('complete', { provider: 'gemini' });
+    return res.end();
+  }
+
+  // Follow-up inteligente
+  const intencao = detectarIntencaoFollowUp(message);
+  if (intencao) {
+    const resposta = responderFollowUp(intencao);
+    send('delta', { text: resposta });
+    send('complete', { provider: 'gemini' });
+    return res.end();
+  }
+
+  // Refinamento semântico
+  const refinamento = interpretarRefinamento(message, memoria);
+  const contexto = mensagens.map(m => m.text).join(' | ');
+  const finalQuery = refinamento || (message.length < 4 ? `${contexto} ${message}` : message);
+
+  // Buscar produtos
+  const produtos = await buscarOfertas({ query: finalQuery });
+  send('products', { products: produtos, query: finalQuery, provider: 'gemini' });
+
+  // Atualizar memória
+  memoriaUsuarios[userId] = {
+    ...memoria,
+    ultimaBusca: finalQuery,
+    produtosVistos: produtos.map(p => p.id),
+  };
+
+  // Gerar resposta
+  const saudacao = mensagens.length <= 1 ? gerarSaudacao(userName, horaLocal) : '';
+  const resposta = gerarRespostaConversacional(finalQuery, produtos, memoriaUsuarios[userId]);
+  const pergunta = gerarPerguntaLeve(finalQuery);
+
+  const textoFinal = [saudacao, resposta, pergunta].filter(Boolean).join(' ');
+  send('delta', { text: textoFinal });
+
+  await salvarResposta(sessionId, textoFinal);
+  send('complete', { provider: 'gemini' });
+  res.end();
+}
+
+// Utilitários
+
+function gerarSaudacao(nome, horaLocal) {
+  const hora = horaLocal ?? new Date().getHours();
+  const base = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+  return `${base}, ${nome}! 👋`;
+}
+
+function classificarIntencao(msg) {
+  const texto = msg.toLowerCase();
+  if (/qual seu nome|quem é você|quem está falando/.test(texto)) return 'pergunta_sobre_ia';
+  if (/que horas são|hora agora/.test(texto)) return 'pergunta_hora';
+  if (/bom dia|boa tarde|boa noite|oi|olá/.test(texto)) return 'saudacao';
+  return null;
+}
+
+function responderPorIntencao(tipo, nome, horaLocal) {
+  switch (tipo) {
+    case 'pergunta_sobre_ia':
+      return `Sou seu assistente de compras, ${nome}! Sempre pronto pra te ajudar a encontrar o que quiser 🛍️`;
+    case 'pergunta_hora':
+      const hora = horaLocal ?? new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      return `Agora são ${hora} aqui! Quer aproveitar pra ver as ofertas da manhã? ☀️`;
+    case 'saudacao':
+      return `Bom dia, ${nome}! 👋 Me diz o que você está procurando hoje.`;
+    default:
+      return null;
+  }
+}
+
+function detectarIntencaoFollowUp(msg) {
+  const m = msg.toLowerCase();
+  if (m.includes('gostei') || m.includes('quero esse')) return 'confirmar';
+  if (m.includes('não gostei') || m.includes('mostra outros')) return 'rejeitar';
+  if (m.includes('128gb') || m.includes('mais barato')) return 'refinar';
+  return null;
+}
+
+function responderFollowUp(tipo) {
+  switch (tipo) {
+    case 'confirmar': return 'Ótima escolha! Posso te ajudar a finalizar ou mostrar acessórios 🛍️';
+    case 'rejeitar': return 'Sem problemas! Vou buscar outras opções que talvez te agradem mais 🔄';
+    case 'refinar': return 'Entendi! Vou ajustar a busca com base no que você quer 🔍';
+    default: return 'Se quiser refinar ou ver mais, é só me dizer 😉';
+  }
+}
+
+function interpretarRefinamento(message, memoria) {
+  const msg = message.toLowerCase();
+  const ultimaBusca = memoria?.ultimaBusca?.toLowerCase();
+  if (ultimaBusca?.includes('iphone') && /\b(12|13|15)\b/.test(msg)) {
+    return `iphone ${msg.match(/\b(12|13|15)\b/)[0]}`;
+  }
+  return null;
+}
+
+function gerarRespostaConversacional(query, produtos, memoria) {
+  if (produtos.length === 0) return 'Não achei nada com esse termo. Me dá mais detalhes que eu busco certinho 🙂';
+  const segmento = detectarSegmento(query, produtos);
+  const marcaFavorita = memoria?.marca_preferida;
+
+  const frases = [
+    `Olha só, ${segmento} é comigo mesmo! Separei umas opções que estão com preço ótimo 💸`,
+    `Você vai curtir essas sugestões de ${segmento}. Se quiser algo mais específico, me dá um toque 😉`,
+    `Tem bastante coisa boa rolando em ${segmento}. Dá uma olhada e me diz o que achou 👀`,
+    `Separei umas opções de ${segmento} que estão fazendo sucesso. Se tiver uma marca em mente, me fala que eu afino a busca 🔍`
+  ];
+
+  if (marcaFavorita) {
+    frases.push(`Como você curte ${marcaFavorita}, achei umas opções que podem te agradar 😎`);
+  }
+
+  return frases[Math.floor(Math.random() * frases.length)];
+}
+
+function gerarPerguntaLeve(query) {
+  if (/iphone/i.test(query)) return 'Prefere linha 12, 13 ou 15?';
+  if (/drone/i.test(query)) return 'Quer um modelo compacto ou com câmera parruda?';
+  if (/perfume/i.test(query)) return 'Tem alguma marca favorita (Dior, Calvin Klein...)?';
+  return '';
+}
+
+function detectarSegmento(query, produtos) {
+  if (/perfume/i.test(query)) return 'perfumes';
+  if (/iphone|celular|smartphone/i.test(query)) return 'celulares';
+  if (/drone/i.test(query)) return 'drones';
+  return 'produtos';
+}

@@ -7458,6 +7458,9 @@ Regras:
     return resposta;
   }
 
+  // Memória local para usuários Gemini
+  const memoriaUsuarios: Record<string, any> = {};
+
   // POST /api/assistant/gemini/stream - Gemini Assistant with "ask-then-show" behavior  
   app.post('/api/assistant/gemini/stream', async (req: any, res) => {
     const { message, sessionId, horaLocal } = req.body;
@@ -7479,17 +7482,17 @@ Regras:
       // Importar módulos
       const { buscarOfertas } = await import('./lib/gemini/busca.js');
       const { persistSessionAndMessage, getSessionMessages, salvarResposta } = await import('./lib/gemini/session.js');
-      const { gerarSaudacao, saudacaoInicial, detectarIntencaoFollowUp, responderFollowUp, gerarRespostaConversacional, gerarPerguntaLeve } = await import('./lib/gemini/respostas.js');
-      const { getUserMemory, updateUserMemory } = await import('./lib/gemini/memoria.js');
+      const { gerarSaudacao, saudacaoInicial, classificarIntencao, responderPorIntencao, interpretarRefinamento, detectarIntencaoFollowUp, responderFollowUp, gerarRespostaConversacional, gerarPerguntaLeve } = await import('./lib/gemini/respostas.js');
 
       await persistSessionAndMessage(sessionId, userId, message);
       const mensagens = await getSessionMessages(sessionId);
-      const memoria = await getUserMemory(userId);
+      const memoria = memoriaUsuarios[userId] || {};
 
-      // Saudações simples
-      if (/^(bom dia|boa tarde|boa noite|oi|olá)$/i.test(message.trim())) {
-        const saudacao = gerarSaudacao(userName, horaLocal);
-        send('delta', { text: `${saudacao} Como posso te ajudar hoje? 😊` });
+      // Classificação de intenção
+      const tipoIntencao = classificarIntencao(message);
+      const respostaIntencao = responderPorIntencao(tipoIntencao, userName, horaLocal);
+      if (respostaIntencao) {
+        send('delta', { text: respostaIntencao });
         send('complete', { provider: 'gemini' });
         return res.end();
       }
@@ -7503,22 +7506,24 @@ Regras:
         return res.end();
       }
 
-      // Enriquecer contexto
+      // Refinamento semântico
+      const refinamento = interpretarRefinamento(message, memoria);
       const contexto = mensagens.map((m: any) => m.content).join(' | ');
-      const finalQuery = message.length < 4 ? `${contexto} ${message}` : message;
+      const finalQuery = refinamento || (message.length < 4 ? `${contexto} ${message}` : message);
 
       // Buscar produtos
       const produtos = await buscarOfertas({ query: finalQuery });
       
       // Atualizar memória
-      await updateUserMemory(userId, { 
-        ultimaBusca: finalQuery, 
-        produtosVistos: produtos.map((p: any) => p.id) 
-      });
+      memoriaUsuarios[userId] = {
+        ...memoria,
+        ultimaBusca: finalQuery,
+        produtosVistos: produtos.map((p: any) => p.id),
+      };
 
       // Gerar resposta
-      const saudacao = saudacaoInicial(mensagens) ? gerarSaudacao(userName, horaLocal) : '';
-      const resposta = gerarRespostaConversacional(finalQuery, produtos, memoria);
+      const saudacao = mensagens.length <= 1 ? gerarSaudacao(userName, horaLocal) : '';
+      const resposta = gerarRespostaConversacional(finalQuery, produtos, memoriaUsuarios[userId]);
       const pergunta = gerarPerguntaLeve(finalQuery);
 
       const textoFinal = [saudacao, resposta, pergunta].filter(Boolean).join(' ');
