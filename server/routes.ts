@@ -9,6 +9,10 @@ import path from "path";
 import fs from "fs";
 import AdmZip from "adm-zip";
 
+// 🧠 Importações para contexto conversacional inteligente
+import { obterContextoSessao, salvarContextoSessao, atualizarFocoSessao } from "./lib/gemini/context-storage.js";
+import { montarConsulta, detectarFoco, extrairModeloPTBR, extrairProduto } from "./lib/gemini/query-builder.js";
+
 // Middleware para verificar autenticação (sessão manual ou Replit Auth)
 const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
   try {
@@ -7065,30 +7069,10 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
   const tokenize = (s = "") =>
     normalize(s).replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
 
-  // Memória curta em processo (por sessão) - conforme código anexado
-  const contextMemory = new Map(); // sessionId -> { foco: "iphone" }
-
-  // Inferir foco simples (marca/categoria) para memória - conforme código anexado
-  const focoFrom = (msg = "") => {
-    const m = msg.toLowerCase();
-    if (/\biphone|apple\b/.test(m)) return "iphone";
-    if (/\bgalaxy|samsung\b/.test(m)) return "samsung";
-    if (/\bperfume(s)?\b/.test(m)) return "perfume";
-    if (/\bdrone(s)?\b/.test(m)) return "drone";
-    return null;
-  };
-
-  // Monta query final combinando contexto + mensagem curta - conforme código anexado
-  function buildFinalQuery(message: string, focoPrev: string | null) {
-    const msg = message.trim();
-    const hasBrandWord = /\b(iphone|apple|samsung|galaxy|drone|perfume)\b/i.test(msg);
-    const hasNumber = /\b\d{2,4}\b/.test(msg); // 12, 128, 256, 2024 etc.
-
-    if (!hasBrandWord && hasNumber && focoPrev) {
-      return `${focoPrev} ${msg}`;  // exemplo: "iphone 12"
-    }
-    return msg; // caso geral
-  }
+  // 🧠 CONTEXTO CONVERSACIONAL INTELIGENTE
+  // Substituído: memória volátil → persistência no banco
+  // Melhorado: NLP básico → interpretação semântica avançada PT-BR
+  console.log('🎯 [Context System] Sistema de contexto conversacional ativado com persistência no banco');
 
   // SSE Streaming endpoint for assistant chat - Now with RAG and Memory + Context Intelligence
   app.post('/api/assistant/stream', async (req: any, res) => {
@@ -7280,16 +7264,38 @@ Regras:
     send('meta', { ok: true });
 
     try {
-      // CONTEXTO INTELIGENTE conforme código anexado
-      const focoNovo = focoFrom(message);
-      const focoPrev = contextMemory.get(sessionId)?.foco || focoNovo || null;
-      if (focoNovo) contextMemory.set(sessionId, { foco: focoNovo });
-
-      const finalQuery = buildFinalQuery(message, focoPrev);
-      console.log('🧠 [Context] Query original:', `"${message}"`, 'Foco anterior:', focoPrev, 'Query final:', `"${finalQuery}"`);
-
-      // PREFETCH: sempre busca com a "finalQuery" conforme código anexado
+      // 🧠 CONTEXTO CONVERSACIONAL INTELIGENTE COM PERSISTÊNCIA
+      console.log('📥 [Contexto] Processando mensagem:', `"${message}"`);
+      
+      // 1. Recuperar contexto da sessão (persistente no banco)
+      const contextoAnterior = await obterContextoSessao(sessionId);
+      const focoAnterior = contextoAnterior?.focoAtual || null;
+      console.log('🔍 [Contexto] Foco anterior recuperado:', focoAnterior);
+      
+      // 2. Detectar novo foco na mensagem atual
+      const focoNovo = detectarFoco(message);
+      console.log('🎯 [Contexto] Foco detectado na mensagem:', focoNovo);
+      
+      // 3. Montar query final com slot filling inteligente
+      const finalQuery = montarConsulta(message, focoAnterior);
+      console.log('🧠 [Contexto] Query original:', `"${message}"`);
+      console.log('🧠 [Contexto] Foco anterior:', focoAnterior);
+      console.log('🧠 [Contexto] Query final (slot filling):', `"${finalQuery}"`);
+      
+      // 4. Atualizar contexto se novo foco foi detectado
+      if (focoNovo) {
+        await atualizarFocoSessao(sessionId, focoNovo);
+        console.log('💾 [Contexto] Foco atualizado na sessão:', focoNovo);
+      }
+      
+      // 5. Salvar informações da query atual
+      await salvarContextoSessao(sessionId, {
+        ultimaQuery: finalQuery
+      });
+      
+      // 6. Executar busca com query inteligente
       const ofertas = await buscarOfertas({ query: finalQuery, maxResultados: 12 });
+      console.log('🔍 [Busca] Produtos encontrados:', ofertas.length);
 
       // Escolhe frase-base conforme código anexado
       let base;

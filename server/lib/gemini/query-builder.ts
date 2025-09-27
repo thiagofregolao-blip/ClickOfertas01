@@ -1,5 +1,5 @@
 // server/lib/gemini/query-builder.ts
-import { normPTBR, NUM_EXTENSO, PADROES_MODELO, PRODUTOS_REGEX } from "./ptbr-utils.js";
+import { normPTBR, NUM_EXTENSO, PADROES_MODELO, PRODUTOS_REGEX, PADROES_ESCOLHA } from "./ptbr-utils.js";
 
 /**
  * Extrai o "modelo" a partir da frase (ex.: "12", "12 pro", "13").
