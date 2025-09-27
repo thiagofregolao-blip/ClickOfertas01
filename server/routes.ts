@@ -6961,7 +6961,43 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
     }
   });
 
-  // SSE Streaming endpoint for assistant chat - Now with RAG and Memory
+  // Guard anti-duplicidade no backend (conforme código anexado)
+  const recent = new Set();
+  setInterval(() => recent.clear(), 3000);
+
+  // Funções utilitárias para busca robusta (conforme código anexado)
+  const normalize = (s = "") =>
+    s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+  const tokenize = (s = "") =>
+    normalize(s).replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
+
+  // Memória curta em processo (por sessão) - conforme código anexado
+  const contextMemory = new Map(); // sessionId -> { foco: "iphone" }
+
+  // Inferir foco simples (marca/categoria) para memória - conforme código anexado
+  const focoFrom = (msg = "") => {
+    const m = msg.toLowerCase();
+    if (/\biphone|apple\b/.test(m)) return "iphone";
+    if (/\bgalaxy|samsung\b/.test(m)) return "samsung";
+    if (/\bperfume(s)?\b/.test(m)) return "perfume";
+    if (/\bdrone(s)?\b/.test(m)) return "drone";
+    return null;
+  };
+
+  // Monta query final combinando contexto + mensagem curta - conforme código anexado
+  function buildFinalQuery(message: string, focoPrev: string | null) {
+    const msg = message.trim();
+    const hasBrandWord = /\b(iphone|apple|samsung|galaxy|drone|perfume)\b/i.test(msg);
+    const hasNumber = /\b\d{2,4}\b/.test(msg); // 12, 128, 256, 2024 etc.
+
+    if (!hasBrandWord && hasNumber && focoPrev) {
+      return `${focoPrev} ${msg}`;  // exemplo: "iphone 12"
+    }
+    return msg; // caso geral
+  }
+
+  // SSE Streaming endpoint for assistant chat - Now with RAG and Memory + Context Intelligence
   app.post('/api/assistant/stream', async (req: any, res) => {
     const { message, sessionId } = req.body || {};
     const user = req.user || req.session?.user;
@@ -6970,6 +7006,21 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       res.status(400).json({ success: false, message: 'Message is required' });
       return;
     }
+
+    // Guard anti-duplicidade - conforme código anexado
+    const key = JSON.stringify({ m: message, s: sessionId });
+    if (recent.has(key)) {
+      res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-transform');
+      res.setHeader('Connection', 'keep-alive');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.flushHeaders?.();
+      res.write(`event: complete\n`);
+      res.write(`data: ${JSON.stringify({})}\n\n`);
+      res.end();
+      return;
+    }
+    recent.add(key);
 
     // SSE Headers
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
@@ -7004,34 +7055,50 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       console.warn('Erro ao salvar mensagem:', error);
     }
 
-    // Tool: buscarOfertas (simplificado)
+    // Busca robusta conforme código anexado
     async function buscarOfertas(args: { query: string; maxResultados?: number; }) {
       const { query, maxResultados = 12 } = args || {};
       
-      const q = String(query || "").toLowerCase().trim();
-      if (!q) return []; // sem query → sem itens
-      
+      const q = String(query || "").trim();
+      if (!q) return [];
+
+      const qTokens = tokenize(q);
+      if (qTokens.length === 0) return [];
+
       try {
         const { searchSuggestions } = await import('./lib/tools.js');
         const searchResult = await searchSuggestions(q);
         
         let products = searchResult.products || [];
+
+        // Score: +2 para token que aparece inteiro, +1 para número parcial
+        const score = (prod: any) => {
+          const fields = [
+            prod.title || "",
+            prod.marca || prod.brand || "",
+            prod.category || ""
+          ].map(normalize).join(" ");
+          
+          let s = 0;
+          for (const t of qTokens) {
+            if (!t) continue;
+            if (fields.includes(` ${t} `) || fields.startsWith(t + " ") || fields.endsWith(" " + t) || fields === t) s += 2;
+            else if (/^\d+$/g.test(t) && fields.includes(t)) s += 1; // números dentro do texto
+          }
+          return s;
+        };
+
+        const ranked = products.map((p: any) => ({ p, s: score(p) }))
+          .filter((x: any) => x.s > 0)
+          .sort((a: any, b: any) => (b.s - a.s) || ((a.p.price?.USD ?? 0) - (b.p.price?.USD ?? 0)))
+          .slice(0, Math.max(1, Math.min(50, maxResultados)))
+          .map((x: any) => x.p);
+
+        console.log('🔍 [Busca Robusta] Query:', `"${q}"`, 'Tokens:', qTokens, 'Encontrados:', ranked.length);
         
-        // Ranking simples por preço
-        products.sort((a: any, b: any) => (a.price?.USD || 0) - (b.price?.USD || 0));
-        const sorted = products.slice(0, Math.max(1, Math.min(50, maxResultados)));
-        
-        if (sorted.length > 0) {
-          send('products', {
-            products: sorted.map((p: any) => ({ ...p, name: p.title })),
-            query,
-            hardGrounding: true
-          });
-        }
-        
-        return sorted;
+        return ranked;
       } catch (error) {
-        console.error('Erro na busca:', error);
+        console.error('Erro na busca robusta:', error);
         return [];
       }
     }
@@ -7121,64 +7188,64 @@ Regras:
     send('meta', { ok: true });
 
     try {
-      const userQuery = String(message || "").trim();
+      // CONTEXTO INTELIGENTE conforme código anexado
+      const focoNovo = focoFrom(message);
+      const focoPrev = contextMemory.get(sessionId)?.foco || focoNovo || null;
+      if (focoNovo) contextMemory.set(sessionId, { foco: focoNovo });
 
-      // 1) Mostra primeiro (prefetch com a própria mensagem)
-      const ofertas = userQuery ? await buscarOfertas({ query: userQuery, maxResultados: 12 }) : [];
+      const finalQuery = buildFinalQuery(message, focoPrev);
+      console.log('🧠 [Context] Query original:', `"${message}"`, 'Foco anterior:', focoPrev, 'Query final:', `"${finalQuery}"`);
 
-      // 2) Decide mensagem "exata" a partir do contexto
-      let text;
-      if (ofertas.length === 0) {
-        text = msgNoResults();
+      // PREFETCH: sempre busca com a "finalQuery" conforme código anexado
+      const ofertas = await buscarOfertas({ query: finalQuery, maxResultados: 12 });
+
+      // Escolhe frase-base conforme código anexado
+      let base;
+      if (ofertas.length > 0) {
+        // genérico ou específico
+        const tokens = finalQuery.trim().split(/\s+/);
+        const segmento = (focoPrev || focoNovo || /iphone|apple/i.test(finalQuery) ? "aparelhos da Apple"
+                        : /samsung|galaxy/i.test(finalQuery) ? "aparelhos Samsung"
+                        : /drone/i.test(finalQuery) ? "drones"
+                        : /perfume/i.test(finalQuery) ? "perfumes"
+                        : "esses produtos");
+        base = (tokens.length <= 2)
+          ? `Vejo que você está de olho em ${segmento}. Listei alguns modelos abaixo. Me diga qual você quer! 😉`
+          : `Achei opções e deixei nos resultados abaixo. Quer que eu afine por variação/modelo?`;
       } else {
-        // Heurística simples: se a query tem 1–2 palavras => genérico; caso contrário específico.
-        const tokens = userQuery.split(/\s+/).filter(Boolean);
-        if (tokens.length <= 2) {
-          text = msgGenericFound(segmentoDaQuery(userQuery, ofertas));
-        } else {
-          text = msgSpecificFound();
-        }
+        base = `Não encontrei itens com esse termo. Me diga o modelo exato que você quer ver 🙂`;
       }
 
-      // 3) Pede ao modelo para lapidar o tom (sem permitir tool/refinamentos automáticos)
-      const polish = await clickClient.chat.completions.create({
+      // Só uso o modelo para lapidar tom (sem tools, sem interrogatório) conforme código anexado
+      const completion = await clickClient.chat.completions.create({
         model: process.env.CHAT_MODEL || "gpt-4o-mini",
         temperature: 0.4,
         messages: [
-          { role: "system" as const, content: SYSTEM_STYLE },
-          { role: "user" as const, content: `Reescreva de forma natural e simpática, 1–2 frases no máximo, sem links/imagens: "${text}"` }
+          { role: "system", content: SYSTEM_STYLE },
+          { role: "user", content: `Reescreva em 1–2 frases, sem links/imagens: "${base}"` }
         ]
       });
-      const polished = sanitizeChat(polish.choices?.[0]?.message?.content || text);
 
-      // 4) (Opcional) 1 pergunta leve após mostrar
-      let pergunta = "";
-      if (ofertas.length > 0) {
-        // exemplos de temas – ajuste se quiser
-        if (/iphone|apple/i.test(userQuery)) pergunta = msgSoftQuestion("linha 13 ou 15");
-        else if (/drone/i.test(userQuery)) pergunta = msgSoftQuestion("compacto ou câmera mais parruda");
-        else if (/perfume/i.test(userQuery)) pergunta = msgSoftQuestion("marcas favoritas (Dior, Calvin Klein...)");
-      }
-      const finalText = sanitizeChat([polished, pergunta].filter(Boolean).join(" "));
+      const text = sanitizeChat(completion.choices?.[0]?.message?.content || base);
 
-      // 5) Entrega: produtos primeiro (se houver), depois chat curto
+      // Entrega: produtos primeiro (se houver), depois chat curto
       if (ofertas.length > 0) {
         send('products', {
           products: ofertas.map((p: any) => ({ ...p, name: p.title })),
-          query: userQuery,
+          query: finalQuery,
           hardGrounding: true
         });
       }
 
       // Enviar resposta final via streaming
-      send('delta', { text: finalText });
+      send('delta', { text });
       
       try {
         await storage.createAssistantMessage({
           sessionId,
           role: 'assistant',
-          content: finalText,
-          metadata: { streamed: true, timestamp: new Date().toISOString(), showThenAsk: true }
+          content: text,
+          metadata: { streamed: true, timestamp: new Date().toISOString(), showThenAsk: true, contextApplied: finalQuery !== message }
         });
       } catch (error) {
         console.warn('Erro ao salvar resposta:', error);
