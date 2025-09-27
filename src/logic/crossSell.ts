@@ -4,6 +4,8 @@ export const ACCESSORIES_BY_CATEGORY: Record<string, string[]> = {
   drone: ["bateria extra", "hélices", "case rígido", "cartão sd", "hub de carga", "protetor de hélices"],
   perfume: ["kit presente", "necessaire", "miniatura"],
   tv: ["soundbar", "suporte parede", "cabo hdmi", "controle universal"],
+  // novo: vestuário
+  roupa: ["cinto", "bolsa", "meia-calça", "lenço", "organizador de armário"]
 };
 
 export function nextAccessorySuggestion(cat?: string, already: string[] = []): string[] {

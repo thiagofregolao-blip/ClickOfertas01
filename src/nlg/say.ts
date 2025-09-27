@@ -66,7 +66,10 @@ export async function composeAnswer(args: ComposeArgs & { sessionId: string }): 
     }
 
     // Cross-sell (sem repetir)
-    const cat = query.categoria ?? query.produto;
+    // 🛡️ DEFESA: Priorizar produto sobre categoria quando conflitam
+    const cat = (query.produto && query.categoria && query.produto !== query.categoria)
+      ? query.produto
+      : (query.categoria ?? query.produto);
     const novos = nextAccessorySuggestion(cat, memory.acessoriosSugeridos ?? []);
     if (novos.length) {
       const crossSellTemplates = [

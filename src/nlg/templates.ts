@@ -72,6 +72,11 @@ const crossSell: Dict<string[]> = {
     "Que tal uma **soundbar** pra completar? {emoji}",
     "Precisa de **suporte de parede** ou **cabo HDMI**?",
     "Posso sugerir **controle universal** e **extensão filtrada**."
+  ],
+  roupa: [
+    "Quer um **cinto** ou **bolsa** pra combinar? {emoji}",
+    "Que tal **meia-calça** ou **lenço** pra completar o look?",
+    "Posso sugerir **organizador de armário** pra manter tudo em ordem."
   ]
 };
 
@@ -118,7 +123,10 @@ export function tClarify(ctx: MsgCtx) {
 }
 
 export function tCrossSell(ctx: MsgCtx) {
-  const key = (ctx.categoria ?? ctx.produto) ?? "";
+  // 🛡️ DEFESA: Priorizar produto sobre categoria quando conflitam
+  const key = (ctx.produto && ctx.categoria && ctx.produto !== ctx.categoria)
+    ? ctx.produto
+    : (ctx.categoria ?? ctx.produto) ?? "";
   const bank = crossSell[key];
   if (!bank) return null;
   
