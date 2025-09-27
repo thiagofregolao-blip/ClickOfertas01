@@ -7036,24 +7036,17 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       }
     }
 
-    // Frases por termo genérico
-    const GENERICOS = [
-      { rx: /\biphone?\b/i, frase: "aparelhos da Apple" },
-      { rx: /\b(apple)\b/i, frase: "aparelhos da Apple" },
-      { rx: /\bgalaxy|s2[3-5]\b/i, frase: "aparelhos Samsung" },
-      { rx: /\bsamsung\b/i, frase: "aparelhos Samsung" },
-      { rx: /\bdrone[s]?\b/i, frase: "drones" },
-      { rx: /\bperfume[s]?\b/i, frase: "perfumes" }
-    ];
+    // Frase curta baseada no termo/brand
+    function fraseResumo(query: string, ofertas: any[]) {
+      const q = (query || "").toLowerCase();
+      const marcas = new Set((ofertas || []).map(o => (o.marca || "").toLowerCase()));
+      const tem = (s: string) => q.includes(s) || [...marcas].some(m => m.includes(s));
 
-    // Função para detectar termos genéricos
-    function detectarGenerico(msg: string) {
-      const t = String(msg || "").trim();
-      if (t.split(/\s+/).length > 4) return null; // frase grande: não tratamos como genérico
-      for (const g of GENERICOS) {
-        if (g.rx.test(t)) return g.frase;
-      }
-      return null;
+      if (tem("iphone") || tem("apple")) return "aparelhos da Apple";
+      if (tem("samsung") || tem("galaxy")) return "aparelhos Samsung";
+      if (tem("drone")) return "drones";
+      if (tem("perfume")) return "perfumes";
+      return "esses produtos";
     }
 
     // Função para sanitizar texto (remover links/imagens)
@@ -7075,15 +7068,15 @@ Você é o Assistente do Click Ofertas.
 
     const TOOLS = [
       {
-        type: "function",
+        type: "function" as const,
         function: {
           name: "buscarOfertas",
           description: "Busca ofertas por termo (query). Retorna array de produtos do catálogo.",
           parameters: {
-            type: "object",
+            type: "object" as const,
             properties: {
-              query: { type: "string", description: "termo de busca, ex.: 'iphone', 'perfume'" },
-              maxResultados: { type: "integer", default: 12, minimum: 1, maximum: 50 }
+              query: { type: "string" as const, description: "termo de busca, ex.: 'iphone', 'perfume'" },
+              maxResultados: { type: "integer" as const, default: 12, minimum: 1, maximum: 50 }
             },
             required: ["query"]
           }
@@ -7098,15 +7091,54 @@ Você é o Assistente do Click Ofertas.
 
     send('meta', { ok: true });
 
-    // 1) Verificar se é termo genérico
-    const fraseGenerica = detectarGenerico(message);
-    if (fraseGenerica) {
-      const produtos = await buscarOfertas({ query: message, maxResultados: 12 });
-      
-      const text = produtos.length > 0
-        ? `Vejo que você está buscando ${fraseGenerica}. Listei alguns modelos abaixo. Me fale qual o modelo você gostaria de comprar!`
-        : `Não encontrei ${fraseGenerica} com esse termo. Pode me dizer o modelo exato que você quer ver?`;
+    try {
+      const userQuery = String(message || "").trim();
 
+      // 1) Busca PRÉVIA *sempre* com o que o usuário digitou (prefetch)
+      let ofertas: any[] = [];
+      if (userQuery.length >= 2) {
+        ofertas = await buscarOfertas({ query: userQuery, maxResultados: 12 });
+        // Injetamos para dar contexto ao modelo (mas NÃO permitimos novas tool calls)
+        msgs.push({
+          role: "assistant" as const,
+          content: `Encontrei ${ofertas.length} produtos para "${userQuery}"`
+        });
+      }
+
+      // 2) Pedimos uma resposta do modelo apenas para "tom de voz"
+      //    tool_choice: "none" impede que ele volte a perguntar cidade/preço
+      const resp = await clickClient.chat.completions.create({
+        model: process.env.CHAT_MODEL || "gpt-4o-mini",
+        temperature: 0.5,
+        messages: msgs,
+        tools: TOOLS,
+        tool_choice: "none"
+      });
+
+      // 3) Ignoramos qualquer tentativa de listar itens/links e forçamos a frase curta
+      let text = sanitizeChat(resp.choices?.[0]?.message?.content || "");
+
+      if (ofertas.length > 0) {
+        const alvo = fraseResumo(userQuery, ofertas);
+        text = `Vejo que você está buscando ${alvo}. Listei alguns modelos abaixo. Me fale qual o modelo você gostaria de comprar!`;
+        
+        // Enviar produtos primeiro
+        send('products', {
+          products: ofertas.map((p: any) => ({ ...p, name: p.title })),
+          query: userQuery,
+          hardGrounding: true
+        });
+      } else {
+        // 4) Sem resultados → nada de cidade/preço
+        if (!text) {
+          text = "Não encontrei itens com esse termo. Diga o nome exato do modelo que você quer ver 🙂";
+        } else {
+          // garante que não haja listagem/links
+          text = sanitizeChat(text);
+        }
+      }
+
+      // Enviar resposta final
       send('delta', { text });
       
       try {
@@ -7114,126 +7146,12 @@ Você é o Assistente do Click Ofertas.
           sessionId,
           role: 'assistant',
           content: text,
-          metadata: { streamed: true, timestamp: new Date().toISOString(), genericTerm: true }
+          metadata: { streamed: true, timestamp: new Date().toISOString(), prefetch: true }
         });
       } catch (error) {
         console.warn('Erro ao salvar resposta:', error);
       }
 
-      send('complete', {});
-      res.end();
-      return;
-    }
-
-    try {
-      // 2) Caso NÃO seja genérico: padrão conversacional
-      for (let turn = 0; turn < 3; turn++) {
-        const resp = await clickClient.chat.completions.create({
-          model: process.env.CHAT_MODEL || "gpt-4o-mini",
-          temperature: 0.5,
-          messages: msgs,
-          tools: TOOLS,
-          tool_choice: "auto",
-          stream: true
-        });
-
-        let fullText = '';
-        let toolCalls: any[] = [];
-        let hasToolCalls = false;
-
-        for await (const chunk of resp) {
-          const choice = chunk?.choices?.[0];
-          const delta = choice?.delta;
-
-          // Texto
-          if (delta?.content) {
-            fullText += delta.content;
-            send('delta', { text: delta.content });
-          }
-
-          // Tool calls
-          if (delta?.tool_calls) {
-            hasToolCalls = true;
-            for (const tc of delta.tool_calls) {
-              if (tc.index !== undefined) {
-                if (!toolCalls[tc.index]) {
-                  toolCalls[tc.index] = { id: tc.id, type: 'function', function: { name: '', arguments: '' } };
-                }
-                if (tc.function?.name) {
-                  toolCalls[tc.index].function.name = tc.function.name;
-                }
-                if (tc.function?.arguments) {
-                  toolCalls[tc.index].function.arguments += tc.function.arguments;
-                }
-              }
-            }
-          }
-        }
-
-        // Adicionar mensagem do assistant com tool_calls se necessário
-        if (hasToolCalls && toolCalls.length > 0) {
-          msgs.push({
-            role: "assistant" as const,
-            content: fullText || null,
-            tool_calls: toolCalls.map(tc => ({
-              id: tc.id,
-              type: "function" as const,
-              function: {
-                name: tc.function.name,
-                arguments: tc.function.arguments
-              }
-            }))
-          });
-
-          // Executar as tools
-          for (const call of toolCalls) {
-            if (call.function?.name === "buscarOfertas") {
-              let args = {};
-              try { 
-                args = JSON.parse(call.function.arguments || "{}"); 
-              } catch (e) {
-                console.error('Erro ao parsear argumentos:', e);
-              }
-              
-              const produtos = await buscarOfertas(args);
-
-              msgs.push({
-                role: "tool" as const,
-                tool_call_id: call.id,
-                name: "buscarOfertas",
-                content: JSON.stringify({ data: produtos })
-              });
-            }
-          }
-          continue; // volta pro modelo integrar os dados
-        }
-
-        // Resposta final (sanitizada)
-        let text = sanitizeChat(fullText.trim());
-        
-        // Se há produtos, forçar resposta curta
-        const lastTool = [...msgs].reverse().find(x => x.role === "tool" && x.name === "buscarOfertas");
-        const hasProdutos = lastTool && JSON.parse(lastTool.content || '{}').data?.length > 0;
-        
-        if (hasProdutos) {
-          text = "Encontrei algumas opções e deixei nos resultados abaixo. Se quiser, diga o modelo exato para eu afinar 😉";
-        } else if (!text) {
-          text = "Não encontrei itens. Diga o nome exato do modelo que você quer ver 🙂";
-        }
-        
-        try {
-          await storage.createAssistantMessage({
-            sessionId,
-            role: 'assistant',
-            content: text,
-            metadata: { streamed: true, timestamp: new Date().toISOString() }
-          });
-        } catch (error) {
-          console.warn('Erro ao salvar resposta:', error);
-        }
-
-        break;
-      }
     } catch (error) {
       console.error('Erro no chat:', error);
       send('delta', { text: "Me diga o nome do produto (ex.: 'iphone') que eu listo pra você!" });

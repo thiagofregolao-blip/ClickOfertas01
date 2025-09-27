@@ -1,0 +1,126 @@
+O que vou fazer (consenso)
+
+Nunca perguntar cidade/preço.
+
+Sempre buscar com o que o usuário digitou (prefetch).
+
+Chat sem links e sem lista de produtos — só uma frase curta tipo:
+“Vejo que você está buscando aparelhos da Apple. Listei alguns modelos abaixo. Me fale qual modelo você gostaria de comprar!”
+
+Se não achar nada, o chat não pergunta cidade/preço; só pede o modelo exato.
+
+Os produtos aparecem só no bloco “Resultados da Pesquisa”.
+
+Abaixo está o patch final do src/ai/chat.js (substitui inteiro). Ele ignora qualquer tentativa do modelo de listar itens/links e sempre força a frase curta.
+
+// src/ai/chat.js — VERSÃO FINAL: sem perguntas, sem links, sem lista no chat
+import OpenAI from "openai";
+import { buscarOfertas } from "../services/catalog.js";
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Regras gerais (apenas estilo; a lógica decisiva está neste arquivo)
+const SYSTEM_STYLE = `
+Você é o Assistente do Click Ofertas.
+- No chat: nunca escreva links/URLs, nem markdown de imagem (![]()) ou de link ([]()).
+- Não invente produtos; use somente os retornados pela ferramenta.
+`.trim();
+
+// Tool mantida por compatibilidade; mas NÃO vamos deixar o modelo chamar.
+const TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "buscarOfertas",
+      description: "Busca ofertas por termo (query).",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string" },
+          maxResultados: { type: "integer", default: 12, minimum: 1, maximum: 50 }
+        },
+        required: ["query"]
+      }
+    }
+  }
+];
+
+// Limpeza de links/markdown
+function sanitizeChat(text = "") {
+  return String(text)
+    .replace(/!\[[^\]]*]\([^)]+\)/g, "")       // imagens
+    .replace(/\[([^\]]+)]\(([^)]+)\)/g, "$1")  // links -> texto
+    .replace(/https?:\/\/\S+/g, "")            // URLs cruas
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+// Frase curta baseada no termo/brand
+function fraseResumo(query, ofertas) {
+  const q = (query || "").toLowerCase();
+  const marcas = new Set((ofertas || []).map(o => (o.marca || "").toLowerCase()));
+  const tem = (s) => q.includes(s) || [...marcas].some(m => m.includes(s));
+
+  if (tem("iphone") || tem("apple")) return "aparelhos da Apple";
+  if (tem("samsung") || tem("galaxy")) return "aparelhos Samsung";
+  if (tem("drone")) return "drones";
+  if (tem("perfume")) return "perfumes";
+  return "esses produtos";
+}
+
+export async function chatOnce({ message }) {
+  const userQuery = String(message || "").trim();
+  const msgs = [
+    { role: "system", content: SYSTEM_STYLE },
+    { role: "user", content: userQuery }
+  ];
+
+  // 1) Busca PRÉVIA *sempre* com o que o usuário digitou.
+  let ofertas = [];
+  if (userQuery.length >= 2) {
+    ofertas = await buscarOfertas({ query: userQuery, maxResultados: 12 });
+    // Injetamos para dar contexto ao modelo (mas NÃO permitimos novas tool calls).
+    msgs.push({
+      role: "tool",
+      name: "buscarOfertas",
+      tool_call_id: "prefetch",
+      content: JSON.stringify({ data: ofertas })
+    });
+  }
+
+  // 2) Pedimos uma resposta do modelo apenas para “tom de voz”.
+  //    tool_choice: "none" impede que ele volte a perguntar cidade/preço.
+  const resp = await openai.chat.completions.create({
+    model: process.env.CHAT_MODEL || "gpt-4o-mini",
+    temperature: 0.5,
+    messages: msgs,
+    tools: TOOLS,
+    tool_choice: "none"
+  });
+
+  // 3) Ignoramos qualquer tentativa de listar itens/links e forçamos a frase curta.
+  let text = sanitizeChat(resp.choices?.[0]?.message?.content || "");
+
+  if (ofertas.length > 0) {
+    const alvo = fraseResumo(userQuery, ofertas);
+    text = `Vejo que você está buscando ${alvo}. Listei alguns modelos abaixo. Me fale qual o modelo você gostaria de comprar!`;
+    return { text, ofertas };
+  }
+
+  // 4) Sem resultados → nada de cidade/preço.
+  if (!text) {
+    text = "Não encontrei itens com esse termo. Diga o nome exato do modelo que você quer ver 🙂";
+  } else {
+    // garante que não haja listagem/links
+    text = sanitizeChat(text);
+  }
+  return { text, ofertas: [] };
+}
+
+Por que agora funciona
+
+Perguntas cortadas: tool_choice: "none" + retorno já com ofertas → o modelo não entra em “interrogatório”.
+
+Sem lista/links no chat: ignoramos a resposta longa do modelo e sempre devolvemos a frase curta quando há produtos.
+
+Resultados sempre no bloco de produtos: ofertas vem populado e você renderiza na grade.
