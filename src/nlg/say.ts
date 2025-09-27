@@ -4,6 +4,7 @@ import { tGreet, tFound, tNoResults, tClarify, tCrossSell } from "./templates";
 import { nextAccessorySuggestion } from "../logic/crossSell";
 import type { ConversationMemory } from "../types/memory";
 import { mulberry32 } from "../utils/rng";
+import { obterContextoSessao } from "../../server/lib/gemini/context-storage.js";
 
 type Block = { type: "text"; text: string } | { type: "products"; items: any[] };
 
@@ -11,14 +12,28 @@ export interface ComposeArgs {
   query: { produto?: string; categoria?: string; modelo?: string; marca?: string; queryFinal?: string; armazenamento?: string; faltando?: Array<"modelo"|"marca"|"armazenamento">; };
   items: any[];
   memory: ConversationMemory;
+  sessionId?: string;
 }
 
-export function composeAnswer(args: ComposeArgs, rngSeed?: number): Block[] {
+export async function composeAnswer(args: ComposeArgs, rngSeed?: number): Promise<Block[]> {
   const persona = SalesPersona;
-  const { query, items, memory } = args;
+  const { query, items, memory, sessionId } = args;
   const blocks: Block[] = [];
-  // usar seed da sessão se fornecido, caso contrário fallback para aleatório
-  const rng = mulberry32(rngSeed ?? ((Date.now() >>> 10) ^ Math.floor(Math.random()*1e9)));
+  
+  // Buscar seed da sessão diretamente (patch aplicado)
+  let seed = rngSeed;
+  if (!seed && sessionId) {
+    const sess = (await obterContextoSessao(sessionId)) ?? {};
+    seed = (sess as any).rngSeed ?? 123456789;
+  }
+  const rng = mulberry32(seed ?? 123456789);
+  
+  // Debug temporário para verificar variação
+  console.debug("[nlg] rng first picks", {
+    g: Math.floor(rng() * 3),
+    f: Math.floor(rng() * 3), 
+    n: Math.floor(rng() * 3)
+  });
 
   if (!memory.lastQuery && !query.produto && !query.categoria) {
     blocks.push({ type: "text", text: tGreet({ persona, rng }) });
