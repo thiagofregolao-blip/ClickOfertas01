@@ -30,6 +30,7 @@ import { RectangularScratchCard } from "@/components/RectangularScratchCard";
 import StandardHeader from "@/components/StandardHeader";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import AssistantBar from "@/components/AssistantBar";
+import GeminiAssistantBar from "@/components/GeminiAssistantBar";
 import type { StoreWithProducts, Product, InstagramStoryWithDetails } from "@shared/schema";
 import logoUrl from '../assets/logo.jpg';
 
@@ -88,6 +89,7 @@ export default function StoresGallery() {
 
   const handleGeminiSearchFocus = () => {
     // Disparar evento para o GeminiAssistantBar escutar
+    console.log('🎯 [Cards Header] Gemini focus triggered, dispatching event:', { query: geminiSearchInput });
     window.dispatchEvent(new CustomEvent('gemini-assistant:focus', { 
       detail: { source: 'gemini-header', query: geminiSearchInput } 
     }));
@@ -996,7 +998,7 @@ export default function StoresGallery() {
 
       {/* SEÇÃO DE BANNERS - Desktop apenas */}
       {!searchQuery.trim() && !isMobile && (
-        <div className="bg-white border-b pt-4 mt-10">
+        <div className="bg-white border-b pt-16">
           {/* Banner ocupando toda a largura da tela */}
           <BannerSection isSearchActive={false} />
         </div>
@@ -1369,6 +1371,9 @@ export default function StoresGallery() {
           </div>
         </div>
       )}
+
+      {/* GeminiAssistantBar - Processa eventos da barra Gemini do header */}
+      <GeminiAssistantBar />
 
     </div>
   );
