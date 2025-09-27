@@ -1,0 +1,203 @@
+Beleza! Li sua “ANÁLISE COMPLETA – 67 ERROS LSP” e montei um plano de correção com patches prontos (TypeScript/Node). Vou atacar por prioridade, com exemplos diretos que eliminam cada classe de erro.
+
+Prioridade 🔥 (compila agora)
+1) createAssistantSession não aceita id
+
+Erro #1 e #63: o objeto passado tem id, que não existe no tipo aceito. Remova id na criação e, se precisar do id, retorne do DB depois do insert.
+
+// server/lib/gemini/session.ts
+// ❌ errado
+// createAssistantSession({ id, userId, isActive, sessionData })
+
+// ✅ correto
+createAssistantSession({ userId, isActive, sessionData });
+
+2) req.session.user ausente no tipo
+
+Erros #2–#9 (8x): estenda o tipo do express-session via declaração global.
+
+// types/express-session.d.ts (novo arquivo em src/types/)
+import "express-session";
+
+declare module "express-session" {
+  interface SessionData {
+    user?: {
+      id: string;
+      email?: string | null;
+      roles?: string[];
+    } | null;
+  }
+}
+
+
+Reinicie o TS server depois de adicionar esse arquivo.
+
+3) Tipagem de memória/estado de conversa
+
+Erros #64–#67: objetos usados como {}; declare interface e inicialize.
+
+// types/memory.ts
+export interface ConversationMemory {
+  lastShownProducts: string[];
+  currentFocusProductId: string | null;
+  lastQuery: string | null;
+  conversationContext: Record<string, unknown>;
+}
+
+// onde cria/usa:
+let memory: ConversationMemory = {
+  lastShownProducts: [],
+  currentFocusProductId: null,
+  lastQuery: null,
+  conversationContext: {},
+};
+
+Prioridade 🔴 (alta)
+4) string | undefined/null onde precisa string
+
+Erros #10–#16 (7x): use guards utilitários, defaults ou ajuste a assinatura para aceitar string | null.
+
+// utils/guards.ts
+export function requireString(v: string | null | undefined, msg = "valor obrigatório"): string {
+  if (v == null || v === "") throw new Error(msg);
+  return v;
+}
+
+// uso:
+const userId = requireString(req.session.user?.id, "userId ausente");
+// ou default:
+const q = (maybeQuery ?? "").trim();
+
+
+Alternativa local: fn(maybeStr ?? "") se a função tolerar vazio.
+
+5) number vs string, Date vs string
+
+Erros #17–#21 (5x): converta antes de enviar a funções/schema que pedem string.
+
+const priceStr = String(priceNumber);
+const whenStr = date.toISOString();
+
+
+Se o schema estiver sob seu controle, considere tipar como number/Date para evitar casting em todo lugar.
+
+Prioridade 🟡 (média)
+6) error é unknown nos catch
+
+Erros #22–#33 (12x): type narrowing seguro.
+
+try {
+  // ...
+} catch (error: unknown) {
+  const msg = error instanceof Error ? error.message : String(error);
+  logger.error({ err: msg });
+  throw new Error(`Falha: ${msg}`);
+}
+
+7) Nº de argumentos incorreto
+
+Erros #34–#35: alinhe chamadas à assinatura real.
+
+// Expected 2, got 3 -> remova/una parâmetros extras
+// Expected 1, got 3 -> agrupe em objeto se a API mudou
+
+8) Tipos implícitos any
+
+Erros #36–#41 (6x): tipar variáveis e parâmetros.
+
+let activeGeneratedArts: Array<{ id: string; url: string }> = [];
+function mapFile(f: File): string { /* ... */ }
+
+9) Iteração de Map/Set (ES2015)
+
+Erros #49–#52 (4x): ou ajuste tsconfig ou use forEach.
+
+// tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "downlevelIteration": true
+  }
+}
+
+// ou
+mySet.forEach(v => { /* ... */ });
+myMap.forEach((val, key) => { /* ... */ });
+
+10) Tratando objeto como array (slice, length)
+
+Erros #53–#55: a resposta tem forma { items: T[]; total: number }. Use resp.items.
+
+// ❌ resp.slice(0, 10)
+// ✅
+const first10 = resp.items.slice(0, 10);
+const count = resp.items.length;
+
+11) Union types com propriedades não comuns
+
+Erros #58–#60: faça narrowing por discriminante type.
+
+type Event =
+  | { type: "product_view"; storeId: string; productId: string; page?: string; position?: number; extra?: any }
+  | { type: "product_click"; storeId: string; productId: string; page?: string; position?: number; extra?: any }
+  | { type: "search"; query: string; storeId?: string; category?: string; position?: number; extra?: any; resultsCount?: number };
+
+function handleEvent(e: Event) {
+  if (e.type === "search") {
+    // e.query OK
+  } else {
+    // e.productId OK
+  }
+}
+
+12) Nomes/métodos inexistentes
+
+Erros #61–#62: definir/renomear corretamente.
+
+// customPrompt -> defina ou troque por prompt
+const customPrompt = (t: string) => t;
+
+// getTopSearches -> método existente é getTopSearchTerms
+db.getTopSearchTerms(/* ... */);
+
+13) Propriedades ausentes/uso de {} como string/array
+
+Erros #42–#48: crie tipos sólidos e inicialize corretamente; evite usar {} onde espera string/any[].
+
+interface StoreWithProducts { imageUrl?: string; /* ... */ }
+const s: StoreWithProducts = getStore();
+// s.imageUrl?.replace(...)
+
+const text: string = String(possibleStringLike);
+const arr: any[] = Array.isArray(possibleArr) ? possibleArr : [];
+
+14) Tipos complexos incompatíveis (TrendingProduct)
+
+Erros #56–#57: mapeie o shape recebido para TrendingProduct.
+
+type TrendingProduct = { productName: string; totalScore: number; searchCount: number; viewCount: number; /* ... */ };
+
+const mapped: TrendingProduct[] = apiItems.map(i => ({
+  productName: i.name,
+  totalScore: scoreFrom(i), // defina regra
+  searchCount: i.searchCount ?? 0,
+  viewCount: i.viewCount ?? 0,
+}));
+
+Check rápido (o que muda no build)
+
+Adição de types/express-session.d.ts (merge de tipos) ✅
+
+tsconfig.json com target ≥ ES2015 e downlevelIteration: true (se quiser manter for..of em Map/Set) ✅
+
+Funções utilitárias (requireString) para matar todos os “string | undefined” ✅
+
+Interfaces de memória de conversa e inicialização padrão ✅
+
+Dica operacional
+
+Corrija por categoria (ordem acima). Cada commit foca uma categoria de erros (facilita rollback).
+
+Após 🔥/🔴, o projeto deve compilar e rodar o Gemini; o restante é hardening.
+
+Se quiser, me diga qual repositório/arquivos você quer que eu gere patch completo (posso te entregar diffs prontos por arquivo) com base nesses pontos.

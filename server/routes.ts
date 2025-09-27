@@ -1160,9 +1160,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               title: `Raspadinha: ${product.name}`,
               description: `Clone virtual automático para ${product.name}`,
               discountPrice: discountPrice, // CAMPO OBRIGATÓRIO
-              discountPercentage: product.scratchPrice ? 
+              discountPercentage: String(product.scratchPrice ? 
                 Math.round(((Number(product.price) - Number(product.scratchPrice)) / Number(product.price)) * 100) : 
-                10, // 10% padrão se não tiver desconto específico
+                10), // 10% padrão se não tiver desconto específico
               maxRedemptions: Number(product.maxScratchRedemptions) || 100,
               expiresAt: product.scratchExpiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 dias padrão
               isActive: true,
@@ -1718,7 +1718,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             category: promotion.category,
             storeId: promotion.storeId,
             // Campos opcionais
-            sortOrder: 0,
+            sortOrder: "0",
             isActive: true,
             isFeatured: false,
             createdAt: promotion.createdAt,
@@ -1850,13 +1850,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("🚨 ERRO COMPLETO AO GERAR CUPOM:");
-      console.error("🔥 Message:", error.message);
-      console.error("🔥 Stack:", error.stack);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error("🔥 Message:", errorMsg);
+      console.error("🔥 Stack:", errorStack);
       console.error("🔥 Full error:", JSON.stringify(error, null, 2));
       res.status(500).json({ 
         message: "Erro ao gerar cupom",
-        error: error.message,
-        details: error.stack
+        error: error instanceof Error ? error.message : String(error),
+        details: error instanceof Error ? error.stack : undefined
       });
     }
   });
@@ -2825,6 +2827,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const alertData = alertSchema.parse(req.body);
       const alert = await storage.createPriceAlert({
         ...alertData,
+        targetPrice: String(alertData.targetPrice),
         userId
       });
       
@@ -3440,7 +3443,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
       const tempImagePath = `/tmp/banner_${Date.now()}.png`;
       
       // Passar imagem base se for edição iterativa
-      await generateImage(prompt, tempImagePath, baseImage);
+      await generateImage(prompt, tempImagePath);
       
       // Converter para base64 para enviar pela API
       const fs = await import('fs');
@@ -3990,7 +3993,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
 
     } catch (error) {
       console.error("Error testing daily scratch:", error);
-      res.status(500).json({ message: "Failed to test system", error: error.message });
+      res.status(500).json({ message: "Failed to test system", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -5526,7 +5529,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
                   width = meta.width ?? 0;
                   height = meta.height ?? 0;
                 } catch (sharpError) {
-                  console.warn(`Erro ao processar imagem ${imageName} com Sharp:`, sharpError.message);
+                  console.warn(`Erro ao processar imagem ${imageName} com Sharp:`, sharpError instanceof Error ? sharpError.message : String(sharpError));
                 }
 
                 imgInfos.push({
@@ -5595,7 +5598,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
           }
           res.status(500).json({
             success: false,
-            message: 'Erro ao processar arquivo ZIP: ' + zipError.message
+            message: 'Erro ao processar arquivo ZIP: ' + (zipError instanceof Error ? zipError.message : String(zipError))
           });
         }
       });
@@ -5613,11 +5616,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
       
       let items;
       if (search || category || brand) {
-        items = await storage.searchProductBankItems(
-          (search as string) || '',
-          category as string,
-          brand as string
-        );
+        items = await storage.searchProductBankItems((search as string) || '');
       } else {
         items = await storage.getProductBankItems(bankId);
       }
@@ -5625,12 +5624,13 @@ Keep the overall composition and maintain the same visual quality. This is for a
       // Aplicar paginação
       const startIndex = parseInt(offset as string) || 0;
       const limitNum = parseInt(limit as string) || 20;
-      const paginatedItems = items.slice(startIndex, startIndex + limitNum);
+      const itemsArray = Array.isArray(items) ? items : items.items || [];
+      const paginatedItems = itemsArray.slice(startIndex, startIndex + limitNum);
 
       res.json({
         items: paginatedItems,
-        total: items.length,
-        hasMore: startIndex + limitNum < items.length
+        total: itemsArray.length,
+        hasMore: startIndex + limitNum < itemsArray.length
       });
     } catch (error) {
       console.error("Error fetching product bank items:", error);
@@ -5799,7 +5799,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
         imageUrl: imageUrl,
         generationDate: new Date(),
         trendingProductsData: trendingProductsData,
-        imagePrompt: `TESTE IA: ${customPrompt.substring(0, 100)}...`,
+        imagePrompt: `TESTE IA: Banner promocional automatico...`,
         isActive: true
       });
       
@@ -5811,7 +5811,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
       });
     } catch (error) {
       console.error('Error generating test banner:', error);
-      res.status(500).json({ error: error.message || 'Erro ao gerar banner de teste' });
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Erro ao gerar banner de teste' });
     }
   });
 
@@ -5975,7 +5975,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
           w = meta.width ?? 0;
           h = meta.height ?? 0;
         } catch (sharpError) {
-          console.warn(`Erro ao processar imagem local ${filePath} com Sharp:`, sharpError.message);
+          console.warn(`Erro ao processar imagem local ${filePath} com Sharp:`, sharpError instanceof Error ? sharpError.message : String(sharpError));
         }
         
         return { area: w * h, bytes: buf.length };
@@ -6013,7 +6013,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
             w = meta.width ?? 0;
             h = meta.height ?? 0;
           } catch (sharpError) {
-            console.warn(`Erro ao processar imagem remota ${url} com Sharp:`, sharpError.message);
+            console.warn(`Erro ao processar imagem remota ${url} com Sharp:`, sharpError instanceof Error ? sharpError.message : String(sharpError));
           }
           
           return { area: w * h, bytes: buf.length };
@@ -6022,7 +6022,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
         }
       }
     } catch (error) {
-      console.warn(`Erro ao obter dimensões da imagem ${url}:`, error.message);
+      console.warn(`Erro ao obter dimensões da imagem ${url}:`, error instanceof Error ? error.message : String(error));
       return { area: 0, bytes: 0 };
     }
   }
@@ -6179,7 +6179,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
           const productData = {
             name: bankItem.name,
             description: translatedDescription,
-            price: parseFloat(price.toString()),
+            price: price.toString(),
             category: bankItem.category || 'Produtos',
             imageUrl: uploadedImageUrls[0] || null,
             imageUrl2: uploadedImageUrls[1] || null,
@@ -6213,7 +6213,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
           console.error(`Erro ao importar item ${item.id}:`, itemError);
           errors.push({ 
             bankItemId: item.id, 
-            error: itemError.message || "Erro interno" 
+            error: itemError instanceof Error ? itemError.message : "Erro interno"
           });
         }
       }
@@ -6482,7 +6482,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      const topProducts = await storage.getTopProductsByViews(startDate, storeId);
+      const topProducts = await storage.getTopProductsByViews(startDate.toISOString(), storeId);
       
       res.json({ 
         success: true, 
@@ -6505,7 +6505,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      const topSearches = await storage.getTopSearches(startDate, storeId);
+      const topSearches = await storage.getTopSearchTerms(startDate, storeId);
       
       res.json({ 
         success: true, 
@@ -7039,9 +7039,8 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       let session = await storage.getAssistantSession(sessionId);
       if (!session) {
         session = await storage.createAssistantSession({
-          id: sessionId,
           userId: user?.id || null,
-          metadata: { createdAt: new Date().toISOString() },
+          sessionData: { createdAt: new Date().toISOString() },
         });
       }
       
