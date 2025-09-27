@@ -7,6 +7,29 @@ import { obterContextoSessao, salvarContextoSessao } from "../../server/lib/gemi
 import { canonicalProductFromText, normPTBR } from "../utils/lang-ptbr.js";
 import { strSeed, mulberry32 } from "../utils/rng.js";
 
+// Mapeamento produto → categoria padrão (PROD_TO_CAT)
+const PROD_TO_CAT: Record<string, string> = {
+  // Celulares
+  iphone: "celular", galaxy: "celular", pixel: "celular", 
+  motorola: "celular", xiaomi: "celular", celular: "celular",
+  // Drones
+  drone: "drone",
+  // Perfumes
+  perfume: "perfume",
+  // Roupas / Moda
+  blusa: "roupa", camiseta: "roupa", vestido: "roupa", 
+  saia: "roupa", calca: "roupa", jaqueta: "roupa", roupa: "roupa",
+  // Informática
+  notebook: "informatica", laptop: "informatica", computador: "informatica",
+  monitor: "informatica", teclado: "informatica", mouse: "informatica",
+  // TV
+  tv: "tv",
+  // Câmeras
+  camera: "camera",
+  // Áudio
+  fone: "audio", speaker: "audio", soundbar: "audio"
+};
+
 export interface PipelineResult {
   intent: string;
   canonMsg: string;
@@ -106,16 +129,8 @@ export async function processUserMessage(sessionId: string, raw: string): Promis
   if (novoFoco) {
     console.log(`🎯 [Pipeline] Novo foco detectado: "${novoFoco}"`);
     
-    // Inferir categoria baseada no produto
-    let novaCategoria: string | null = null;
-    if (novoFoco === "iphone" || novoFoco === "galaxy" || novoFoco === "pixel" || 
-        novoFoco === "motorola" || novoFoco === "xiaomi") {
-      novaCategoria = "celular";
-    } else if (novoFoco === "drone") {
-      novaCategoria = "drone";
-    } else if (novoFoco === "perfume") {
-      novaCategoria = "perfume";
-    }
+    // Inferir categoria baseada no produto usando mapeamento
+    const novaCategoria = PROD_TO_CAT[novoFoco] ?? null;
     
     await salvarContextoSessao(sessionId, { 
       focoAtual: novoFoco, 
