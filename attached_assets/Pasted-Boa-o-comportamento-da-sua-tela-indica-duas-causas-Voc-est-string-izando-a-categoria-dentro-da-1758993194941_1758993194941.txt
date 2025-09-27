@@ -1,0 +1,196 @@
+Boa — o comportamento da sua tela indica duas causas:
+
+Você está string-izando a categoria dentro da query (ex.: "perfume categoria:perfumaria"). O catálogo não entende isso como filtro → zero resultados.
+
+O foco/categoria anterior está ficando “grudado” e sobre-filtrando buscas seguintes (ex.: ficou informatica no foco; aí “iphone 12 pro” vira iphone… categoria:informatica).
+
+A correção é: passar categoria como campo estruturado (não no texto), relaxar filtros progressivamente quando vier vazio e resetar foco quando o usuário especifica novo produto/categoria.
+
+Aplique os patches abaixo (compatíveis com o que já te passei).
+
+1) Não concatenar “categoria:” na queryFinal
+*** a/src/modules/buscaProduto.ts
+--- b/src/modules/buscaProduto.ts
+@@
+ export interface ProdutoQuery {
+   produto?: string;       // ex.: "iphone", "drone", "tv"
+   modelo?: string;        // ex.: "12", "13 pro", "s23"
+   marca?: string;         // ex.: "apple", "samsung"
+   armazenamento?: string; // ex.: "128gb"
+   atributos?: string[];   // ex.: ["camera","bluetooth"]
+-  categoria?: string;     // opcional (quando o termo é categoria)
+-  queryFinal?: string;    // string pronta para o buscador (debug)
++  categoria?: string;     // opcional
++  queryFinal?: string;    // SOMENTE texto do produto (debug), sem “categoria:…”
+ }
+@@
+-  const parts = [produto, modelo, armazenamento, marca].filter(Boolean) as string[];
++  // texto de consulta livre (sem categoria, que vai como filtro)
++  const parts = [produto, modelo, armazenamento, marca].filter(Boolean) as string[];
+   query.queryFinal = parts.join(" ").trim();
+
+2) buscarProdutos aceitar filtros estruturados e fazer fallback
+*** a/src/modules/catalogo.ts
+--- b/src/modules/catalogo.ts
+@@
+-import { ProdutoQuery } from "./buscaProduto";
++import { ProdutoQuery } from "./buscaProduto";
+ 
+ export interface Produto {
+   id: string;
+   nome: string;         // "iPhone 12 128GB"
+   categoria: string;    // "celular", "drone", "tv", "perfume"...
+@@
+-export function buscarProdutos(query: ProdutoQuery): Produto[] {
+-  // 1) filtro booleano leve
+-  const prelim = catalogo.filter(p => {
+-    const byCategoriaOuProduto =
+-      (query.produto ? includesNorm(p.categoria, query.produto) || includesNorm(p.nome, query.produto) : true);
++export type BuscaOpts = {
++  categoria?: string | null;
++  produto?: string | null;
++  marca?: string | null;
++  modelo?: string | null;
++  armazenamento?: string | null;
++  atributos?: string[] | null;
++  texto?: string | null; // queryFinal (livre, sem categoria)
++};
++
++function filtrar(lista: Produto[], q: BuscaOpts): Produto[] {
++  return lista.filter(p => {
++    const byCategoria = q.categoria ? includesNorm(p.categoria, q.categoria) : true;
++
++    const byProduto =
++      q.produto ? includesNorm(p.categoria, q.produto) || includesNorm(p.nome, q.produto) : true;
+ 
+-    const byModelo = query.modelo ? includesNorm(p.modelo, query.modelo) || includesNorm(p.nome, query.modelo) : true;
++    const byModelo = q.modelo ? includesNorm(p.modelo, q.modelo) || includesNorm(p.nome, q.modelo) : true;
+ 
+-    const byMarca = query.marca ? includesNorm(p.marca, query.marca) || includesNorm(p.nome, query.marca) : true;
++    const byMarca = q.marca ? includesNorm(p.marca, q.marca) || includesNorm(p.nome, q.marca) : true;
+ 
+-    const byArm = query.armazenamento ? includesNorm(p.armazenamento, query.armazenamento) || includesNorm(p.nome, query.armazenamento) : true;
++    const byArm = q.armazenamento ? includesNorm(p.armazenamento, q.armazenamento) || includesNorm(p.nome, q.armazenamento) : true;
+ 
+-    const byAttrs = hasAllAttributes(p, query.atributos);
++    const byAttrs = hasAllAttributes(p, q.atributos ?? undefined);
+ 
+-    return byCategoriaOuProduto && byModelo && byMarca && byArm && byAttrs;
++    const byTexto = q.texto ? includesNorm(p.nome, q.texto) : true;
++
++    return byCategoria && byProduto && byModelo && byMarca && byArm && byAttrs && byTexto;
+   });
++}
+ 
+-  // 2) ordena por score
+-  const ranked = prelim
+-    .map(p => ({ p, s: score(p, query) }))
++export function buscarProdutos(query: ProdutoQuery): Produto[] {
++  // 1) tentativa completa (com categoria, se houver)
++  const full = filtrar(catalogo, {
++    categoria: query.categoria ?? null,
++    produto: query.produto ?? null,
++    marca: query.marca ?? null,
++    modelo: query.modelo ?? null,
++    armazenamento: query.armazenamento ?? null,
++    atributos: query.atributos ?? null,
++    texto: query.queryFinal ?? null,
++  });
++  let prelim = full;
++
++  // 2) fallback sem categoria (se nada encontrado e havia categoria)
++  if (!prelim.length && query.categoria) {
++    prelim = filtrar(catalogo, { ...query, categoria: null, texto: query.queryFinal ?? null });
++  }
++
++  // 3) fallback só com produto (relaxa modelo/armazenamento)
++  if (!prelim.length && query.produto) {
++    prelim = filtrar(catalogo, { produto: query.produto, categoria: null, marca: null, modelo: null, armazenamento: null, atributos: null, texto: null });
++  }
++
++  // 4) ordena por score
++  const ranked = prelim
++    .map(p => ({ p, s: score(p, query) }))
+     .sort((a, b) => b.s - a.s)
+     .map(x => x.p);
+-
+-  // 3) fallback: se vazio e havia plural, tenta singular (já normalizamos no interpretar)
+   return ranked;
+ }
+
+3) Zerar foco de categoria quando o usuário define outro produto/categoria
+*** a/src/services/conversation.ts
+--- b/src/services/conversation.ts
+@@
+-  const novoFoco = detectarFoco(userMsg);
+-  if (novoFoco) await updateSession(sessionId, { focoAtual: novoFoco });
+-  const foco = novoFoco ?? (sess as any).focoAtual ?? null;
++  const novoFoco = detectarFoco(userMsg);
++  // Se veio um novo foco explícito (ex.: "iphone", "perfumes"), reseta categoria/slots antigos
++  if (novoFoco) {
++    await updateSession(sessionId, { focoAtual: novoFoco, categoriaAtual: null, lastQuery: null });
++  }
++  const foco = novoFoco ?? (sess as any).focoAtual ?? null;
+@@
+-  const { items } = await searchProducts(queryFinal);
+-  if (items && Array.isArray(items) && items.length > 0) {
++  const { items } = await searchProducts(queryFinal /* passe objetos de filtro aqui se seu search aceitar */);
++  if (items?.length) {
+     return { kind: "PRODUCT", queryFinal, items };
+   }
+@@
+-  return { kind: "PRODUCT", queryFinal, items: [] };
++  return { kind: "PRODUCT", queryFinal, items: [] };
+
+
+(Se você usa o runAssistant+buscarProdutos, o fallback já está no buscarProdutos.)
+
+4) Endpoint do assistente – nunca ecoar “categoria:…”
+
+Garante que o front não mostre "iphone categoria:celular".
+
+*** a/src/routes/assistant.ts
+--- b/src/routes/assistant.ts
+@@
+-  if (resultados.length === 0) {
++  if (resultados.length === 0) {
+     return res.json({
+-      text: "Não achei nada com esse termo 😕. Quer tentar outra marca, modelo ou capacidade?",
+-      debug: { query },
++      text: "Não achei nada com esse termo 😕. Quer tentar outra marca, modelo ou capacidade?",
++      debug: { query: { ...query, queryFinal: query.queryFinal } },
+       produtos: [],
+     });
+   }
+ 
+-  const resposta = `Achei ${resultados.length} opção(ões) para "${query.queryFinal || message}". Quer ver os detalhes?`;
+-  return res.json({ text: resposta, debug: { query }, produtos: resultados });
++  const display = query.queryFinal || message;
++  const resposta = `Achei ${resultados.length} opção(ões) para "${display}". Quer ver os detalhes?`;
++  return res.json({ text: resposta, debug: { query: { ...query, queryFinal: display } }, produtos: resultados });
+
+5) Dica de diagnóstico (rápida)
+
+Logue no servidor antes da busca:
+
+console.log("[assistente] query", {
+  focoAtual: memoria?.focoAtual,
+  produto: query.produto,
+  categoria: query.categoria,
+  modelo: query.modelo,
+  armazenamento: query.armazenamento,
+  queryFinal: query.queryFinal
+});
+
+
+Se aparecer categoria: "informatica" quando você pediu “iphone”, está explicado o 0 resultado. Com o fallback acima, ele tentará sem categoria.
+
+Resultado esperado após o patch
+
+“drone” → resultados
+
+“drones” → mesmos resultados (canônico + retry)
+
+“perfumes” → resultados (categoria perfumaria); se ZERAR, tenta sem categoria e acha por produto=perfume.
+
+“iphone” → nunca mais “categoria:informatica” colada no texto; se categoria anterior atrapalhar, o fallback remove e volta a retornar.

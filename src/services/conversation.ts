@@ -62,12 +62,34 @@ export async function runAssistant(sessionId: string, userMsg: string): Promise<
   // 2) Produto (ou UNKNOWN que podemos resolver por contexto)
   const sess = (await obterContextoSessao(sessionId)) ?? {};
   const novoFoco = detectarFoco(msgCanonica); // Usar versão canônica
-  if (novoFoco) await salvarContextoSessao(sessionId, { focoAtual: novoFoco });
+  
+  // 🔄 CORREÇÃO CRÍTICA: Se veio um novo foco explícito, resetar categoria/slots antigos
+  if (novoFoco) {
+    console.log(`🧹 [runAssistant] Resetando contexto antigo - novo foco: "${novoFoco}"`);
+    await salvarContextoSessao(sessionId, { 
+      focoAtual: novoFoco, 
+      categoriaAtual: null, 
+      lastQuery: null,
+      lastUpdated: new Date().toISOString()
+    });
+  }
   const foco = novoFoco ?? (sess as any).focoAtual ?? null;
 
   // Se usuário só disse "linha 12", tenta compor com foco
   const temModelo = !!extrairModeloPTBR(msgCanonica); // Usar versão canônica
   const queryFinal = montarConsulta(msgCanonica, foco ?? undefined); // Usar versão canônica
+  
+  // 🔍 DEBUG: Log completo da transformação para diagnóstico
+  console.log(`📊 [runAssistant] DIAGNÓSTICO COMPLETO:`, {
+    mensagemOriginal: userMsg,
+    mensagemCanonica: msgCanonica,
+    focoDetectado: novoFoco,
+    focoAnterior: (sess as any).focoAtual,
+    focoFinal: foco,
+    queryFinal: queryFinal,
+    temModelo: temModelo,
+    intent: intent.intent
+  });
 
   // Se não temos foco e nem produto explícito, e também não há modelo → fora de domínio
   if (!foco && !temModelo && intent.intent !== "PRODUCT_SEARCH") {
@@ -77,14 +99,23 @@ export async function runAssistant(sessionId: string, userMsg: string): Promise<
     };
   }
 
-  // 3) Busca de produto - agora aproveita categoria quando disponível
-  let queryComCategoria = queryFinal;
-  if (intent.entities?.category && intent.entities.category !== intent.entities?.product) {
-    queryComCategoria = `${queryFinal} categoria:${intent.entities.category}`;
-    console.log(`🏷️ [Conversation] Enriquecendo busca com categoria: "${queryComCategoria}"`);
+  // 3) Busca de produto - NUNCA concatenar "categoria:" na string (correção crítica)
+  const { items } = await searchProducts(queryFinal);
+  console.log(`🔍 [Conversation] Busca realizada: query="${queryFinal}", resultados=${items.length}`);
+  
+  // 🔍 DEBUG: Se busca veio vazia, logar detalhes para diagnóstico
+  if (items.length === 0) {
+    console.log(`❌ [runAssistant] BUSCA VAZIA - DIAGNÓSTICO:`, {
+      queryFinal: queryFinal,
+      msgOriginal: userMsg,
+      msgCanonica: msgCanonica,
+      foco: foco,
+      categoriaIntent: intent.entities?.category,
+      motivo: "Possível problema na busca ou dados insuficientes"
+    });
+  } else {
+    console.log(`✅ [runAssistant] Busca bem-sucedida: ${items.length} produtos encontrados para "${queryFinal}"`);
   }
   
-  const { items } = await searchProducts(queryComCategoria);
-  console.log(`🔍 [Conversation] Busca realizada: query="${queryComCategoria}", resultados=${items.length}`);
-  return { kind: "PRODUCT", queryFinal: queryComCategoria, items };
+  return { kind: "PRODUCT", queryFinal: queryFinal, items };
 }

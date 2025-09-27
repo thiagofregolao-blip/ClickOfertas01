@@ -6,7 +6,17 @@ import { eq, and, or, sql, asc, desc, like, ilike } from "drizzle-orm";
 export async function searchSuggestions(query: string) {
   console.log(`🔍 [searchSuggestions] Buscando produtos para: "${query}"`);
   
-  if (!query || query.trim().length === 0) {
+  // 🔄 CORREÇÃO CRÍTICA: Canonicalizar query ANTES da busca
+  const { singularizePhrase } = await import("../../src/utils/singularize.js");
+  const canonicalQuery = singularizePhrase(query);
+  
+  if (canonicalQuery !== query.toLowerCase().trim()) {
+    console.log(`🔄 [searchSuggestions] Canonicalização: "${query}" → "${canonicalQuery}"`);
+  }
+  
+  const searchTerm = canonicalQuery.toLowerCase().trim();
+  
+  if (!searchTerm || searchTerm.length === 0) {
     // Retornar produtos populares se não há query
     const popularProducts = await db
       .select({
@@ -37,10 +47,10 @@ export async function searchSuggestions(query: string) {
     };
   }
 
-  const searchTerm = query.toLowerCase().trim();
+  // Usar termo canonicalizado já processado
   console.log(`🎯 [searchSuggestions] Termo de busca processado: "${searchTerm}"`);
 
-  // 1. Buscar na tabela products (produtos de lojas)
+  // 1. Buscar na tabela products (produtos de lojas) - PRIMEIRA TENTATIVA
   const storeProducts = await db
     .select({
       id: products.id,
@@ -105,6 +115,70 @@ export async function searchSuggestions(query: string) {
     : [...storeProducts, ...bankProducts]; // Priorizar store products normalmente
 
   console.log(`✅ [searchSuggestions] Encontrados ${matchingProducts.length} produtos para "${searchTerm}"`);
+  
+  // 🔄 FALLBACK: Se nada encontrado E query original era diferente, tentar com query original
+  if (matchingProducts.length === 0 && query.trim().toLowerCase() !== canonicalQuery) {
+    console.log(`🔄 [searchSuggestions] RETRY com query original: "${query}"`);
+    
+    const originalTerm = query.toLowerCase().trim();
+    const retryStoreProducts = await db
+      .select({
+        id: products.id,
+        title: products.name,
+        category: products.category,
+        price: sql<{ USD: number }>`JSON_BUILD_OBJECT('USD', CAST(${products.price} AS NUMERIC))`.as('price'),
+        premium: sql<boolean>`${products.isFeatured}`.as('premium'),
+        storeName: stores.name,
+        storeSlug: stores.slug,
+        imageUrl: products.imageUrl
+      })
+      .from(products)
+      .leftJoin(stores, eq(products.storeId, stores.id))
+      .where(and(
+        eq(products.isActive, true),
+        eq(stores.isActive, true),
+        or(
+          ilike(products.name, `%${originalTerm}%`),
+          ilike(products.description, `%${originalTerm}%`),
+          ilike(products.brand, `%${originalTerm}%`),
+          ilike(products.category, `%${originalTerm}%`),
+          ilike(stores.name, `%${originalTerm}%`)
+        )
+      ))
+      .limit(10);
+      
+    const retryBankProducts = await db
+      .select({
+        id: productBankItems.id,
+        title: productBankItems.name,
+        category: productBankItems.category,
+        price: sql<{ USD: number }>`JSON_BUILD_OBJECT('USD', 450)`.as('price'),
+        premium: sql<boolean>`false`.as('premium'),
+        storeName: sql<string>`'Atacado Store'`.as('storeName'),
+        storeSlug: sql<string>`'atacado-store'`.as('storeSlug'),
+        imageUrl: productBankItems.primaryImageUrl
+      })
+      .from(productBankItems)
+      .where(
+        or(
+          ilike(productBankItems.name, `%${originalTerm}%`),
+          ilike(productBankItems.description, `%${originalTerm}%`),
+          ilike(productBankItems.brand, `%${originalTerm}%`),
+          ilike(productBankItems.model, `%${originalTerm}%`),
+          ilike(productBankItems.category, `%${originalTerm}%`),
+          ilike(productBankItems.color, `%${originalTerm}%`),
+          ilike(productBankItems.storage, `%${originalTerm}%`)
+        )
+      )
+      .limit(10);
+      
+    const retryProducts = [...retryStoreProducts, ...retryBankProducts];
+    console.log(`🔄 [searchSuggestions] RETRY encontrou ${retryProducts.length} produtos`);
+    
+    if (retryProducts.length > 0) {
+      matchingProducts.push(...retryProducts);
+    }
+  }
   
   // Log dos primeiros produtos para debug
   if (matchingProducts.length > 0) {
