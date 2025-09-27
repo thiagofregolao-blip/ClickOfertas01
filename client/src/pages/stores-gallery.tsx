@@ -1566,7 +1566,9 @@ export default function StoresGallery() {
                         className="w-full h-32 object-cover rounded-md mb-2"
                       />
                       <h5 className="font-medium text-sm mb-1">{product.name}</h5>
-                      <p className="text-lg font-bold text-primary">{product.price}</p>
+                      <p className="text-lg font-bold text-primary">
+                        {product.price?.USD ? `$${product.price.USD}` : 'Consulte preço'}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -1593,7 +1595,9 @@ export default function StoresGallery() {
                         className="w-full h-24 object-cover rounded-md mb-2"
                       />
                       <h5 className="font-medium text-xs mb-1">{product.name}</h5>
-                      <p className="text-sm font-bold text-primary">{product.price}</p>
+                      <p className="text-sm font-bold text-primary">
+                        {product.price?.USD ? `$${product.price.USD}` : 'Consulte preço'}
+                      </p>
                     </div>
                   ))}
                 </div>
