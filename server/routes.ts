@@ -7281,7 +7281,10 @@ Regras:
     }
 
     // 3) Quando não encontrou nada
-    function msgNoResultsGemini() {
+    function msgNoResultsGemini(originalQuery?: string) {
+      if (originalQuery && /\b(modelo|versão|linha)\s*\d+\b/i.test(originalQuery)) {
+        return "Não achei esse modelo específico. Que tal tentar 'iphone 13' ou 'samsung s24'? 🙂";
+      }
       return "Não achei itens com esse termo. Me diga o modelo exato para eu buscar certinho 🙂";
     }
 
@@ -7315,15 +7318,36 @@ Regras:
     send('meta', { ok: true, provider: 'gemini' });
 
     try {
-      const userQuery = String(message || "").trim();
+      let userQuery = String(message || "").trim();
 
-      // 1) Mostra primeiro (prefetch com a própria mensagem) - SEMPRE
+      // 1) CONTEXTO INTELIGENTE: Enriquecer query vaga com histórico
+      if (/\b(modelo|versão|linha|pro|max|mini)\s*\d+\b/i.test(userQuery) && !/\b(iphone|samsung|xiaomi|apple|perfume|drone)\b/i.test(userQuery)) {
+        try {
+          const messages = await storage.getAssistantMessages(sessionId);
+          const lastSearch = messages
+            .filter(m => m.role === 'user')
+            .reverse()
+            .find(m => /\b(iphone|samsung|xiaomi|apple|perfume|drone)\b/i.test(m.content));
+          
+          if (lastSearch) {
+            const contextWord = lastSearch.content.match(/\b(iphone|samsung|xiaomi|apple|perfume|drone)\b/i)?.[0];
+            if (contextWord) {
+              userQuery = `${contextWord} ${userQuery}`;
+              console.log('🧠 [Context] Enriquecendo query:', `"${message}" → "${userQuery}"`);
+            }
+          }
+        } catch (error) {
+          console.warn('Erro ao buscar contexto:', error);
+        }
+      }
+
+      // 2) Mostra primeiro (prefetch com a query enriquecida) - SEMPRE
       const ofertas = userQuery ? await buscarOfertas({ query: userQuery, maxResultados: 12 }) : [];
 
       // 2) Decide mensagem "exata" a partir do contexto (Heurística simples)
       let text;
       if (ofertas.length === 0) {
-        text = msgNoResultsGemini();
+        text = msgNoResultsGemini(message); // Passa a query original para contexto
       } else {
         // Heurística: se a query tem 1–2 palavras => genérico; caso contrário específico
         const tokens = userQuery.split(/\s+/).filter(Boolean);
@@ -7356,12 +7380,20 @@ Regras:
           finalMessage = sanitizeChatGemini(result.response.text() || `Encontrei: ${productList} 📱`);
         } catch (geminiError) {
           console.error('Erro no Gemini:', geminiError);
-          // Fallback com dados específicos dos produtos
-          finalMessage = `Encontrei: ${productList} 📱`;
+          // Fallback INTELIGENTE com dados específicos dos produtos
+          const count = ofertas.length;
+          const firstProduct = topProducts[0];
+          if (count === 1) {
+            finalMessage = `Achei ${firstProduct.title} por $${firstProduct.price?.USD || 'consultar'} na ${firstProduct.storeName}! 📱`;
+          } else if (count <= 3) {
+            finalMessage = `Encontrei ${count} opções: ${productList}. Qual te interessa? 📱`;
+          } else {
+            finalMessage = `Separei ${count} opções de ${segmentoDaQueryGemini(userQuery, ofertas)}. Primeiros: ${productList} 📱`;
+          }
         }
       } else {
         // Se não há produtos, usar template direto
-        finalMessage = msgNoResultsGemini();
+        finalMessage = msgNoResultsGemini(message);
       }
 
       // 4) (Opcional) 1 pergunta leve após mostrar
