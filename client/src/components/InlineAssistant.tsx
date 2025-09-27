@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
 
 export interface InlineAssistantProps {
@@ -23,6 +23,7 @@ export default function InlineAssistant({
   personalizedGreeting = ''
 }: InlineAssistantProps) {
   const [input, setInput] = useState('');
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +32,18 @@ export default function InlineAssistant({
       setInput('');
     }
   };
+
+  // Auto-scroll para última mensagem na conversa
+  const scrollToBottom = () => {
+    if (messagesScrollRef.current) {
+      messagesScrollRef.current.scrollTop = messagesScrollRef.current.scrollHeight;
+    }
+  };
+
+  // Auto-scroll quando mensagens mudam ou durante streaming
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isStreaming, personalizedGreeting]);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-end lg:items-center lg:justify-center p-4" data-testid="assistant-container">
@@ -61,7 +74,7 @@ export default function InlineAssistant({
             <div className="col-span-12 lg:col-span-8 min-h-0 flex flex-col">
               <div className="rounded-2xl border bg-gray-50 p-4 flex-1 flex flex-col">
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto mb-4 space-y-3" data-testid="assistant-messages">
+                <div ref={messagesScrollRef} className="flex-1 overflow-y-auto mb-4 space-y-3" data-testid="assistant-messages">
                   {/* Show personalized greeting if available */}
                   {personalizedGreeting && (
                     <div className="bg-white p-3 rounded-lg shadow-sm">
