@@ -1,0 +1,401 @@
+Ótima pergunta. Pelo comportamento da tela, o problema não é “busca fraca”, e sim entendimento de contexto + interpretação frasal em PT-BR. Eis as causas mais prováveis (e como corrigir de forma objetiva):
+
+O que provavelmente está causando
+
+Histórico não é enviado ao motor de busca/IA
+
+A rota que processa “quero da linha 12” pode estar chamando a IA/busca sem o turno anterior (“iphone”).
+
+Resultado: a frase vira consulta isolada (“linha 12”), que não casa com nada.
+
+Memória de conversa só em RAM (ou inexistente)
+
+Se você guarda o “foco atual” (ex.: iphone) em Map/variável local, qualquer reload/escala limpa a memória.
+
+Em produção (ou no Replit ao reiniciar), o bot “esquece” o último produto.
+
+NLP muito literal
+
+O parser só reconhece números “soltos” (/(\d{2,4})/) e termos exatos (“iphone”), não entende padrões como:
+
+“da linha 12”, “modelo 12”, “versão 12”, “série 12”, “doze/treze/quinze” (por extenso).
+
+Sem regra de slot filling, a consulta não vira “iphone 12”.
+
+Normalização PT-BR incompleta
+
+Falta lowercase + remoção de acento + trim antes de extrair entidades.
+
+“versão” ≠ “versao” se você não normalizar.
+
+Builder de query não compõe com o foco
+
+Mesmo detectando “12”, se o builder não fizer final = focoAnterior + " " + detalhe, você perde a intenção.
+
+Correções diretas (com patch mínimo)
+1) Persistir foco/slots na sessão (não só em memória)
+
+Use a sessão do usuário (ex.: Redis/DB) para guardar o focoAtual e últimos produtos mostrados.
+
+// Ao detectar foco (ex.: usuário digitou "iphone"):
+await sessionStore.update(sessionId, { focoAtual: "iphone" });
+
+// Antes de montar a busca do turno atual:
+const { focoAtual } = await sessionStore.get(sessionId) ?? {};
+
+
+Se não tiver Redis agora, use um sessionData no seu próprio DB (tabela assistant_sessions). Evita perder estado em cada restart.
+
+2) Normalização PT-BR
+export function normPTBR(s: string) {
+  return s
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acento
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+3) Regras de linguagem para “linha/modelo/versão/série”
+
+Mapeie números por extenso e capture padrões comuns.
+
+const NUM_EXTENSO: Record<string, string> = {
+  "doze": "12", "doze pro": "12 pro",
+  "treze": "13", "quinze": "15"
+  // adicione "quatorze" -> "14" se sua base usar iPhone 14
+};
+
+function extrairModeloPTBR(msg: string): string | null {
+  const m = normPTBR(msg);
+
+  // 3.1 – número por extenso (com ou sem “pro”)
+  for (const [k, v] of Object.entries(NUM_EXTENSO)) {
+    if (m.includes(k)) return v;
+  }
+
+  // 3.2 – padrões “linha/modelo/versao/serie 12”
+  const rx = /\b(?:linha|modelo|versao|serie)\s*(?:do|da|de)?\s*(\d{1,4})(?:\s*pro)?\b/;
+  const r1 = m.match(rx);
+  if (r1) return r1[1];
+
+  // 3.3 – número solto (fallback)
+  const r2 = m.match(/\b(\d{2,4})\b/);
+  return r2 ? r2[1] : null;
+}
+
+4) Builder que compõe com foco anterior
+export function montarConsulta(finalMsg: string, focoAnterior?: string) {
+  const modelo = extrairModeloPTBR(finalMsg);           // "12"
+  const hasProduto = /\b(iphone|apple|galaxy|samsung)\b/i.test(finalMsg);
+
+  if (hasProduto && modelo) return `iphone ${modelo}`;   // usuário já falou "iphone 12"
+
+  if (!hasProduto && modelo && focoAnterior) {
+    return `${focoAnterior} ${modelo}`;                 // "quero da linha 12" -> "iphone 12"
+  }
+
+  // Só o produto, sem modelo: mantém foco
+  if (hasProduto && !modelo) {
+    return "iphone"; // ou termo detectado
+  }
+
+  // Nada detectado: retorne a frase original
+  return finalMsg;
+}
+
+5) Slot filling simples (máquina de estados leve)
+
+Slots: {produto, modelo, variante}.
+
+Se produto está preenchido no turno 1 e o turno 2 só preenche modelo, combine antes da busca.
+
+// Antes de chamar o buscador:
+const sess = await sessionStore.get(sessionId) ?? {};
+const queryFinal = montarConsulta(userMsg, sess.focoAtual);
+
+if (/^(iphone|galaxy|samsung|apple)\b/i.test(userMsg)) {
+  await sessionStore.update(sessionId, { focoAtual: "iphone" /* ou detectado */ });
+}
+
+Testes de regressão (rápidos)
+
+“iphone” → foco = iphone
+
+“quero da linha 12” → gera “iphone 12”
+
+“tem da linha 13 pro?” → “iphone 13 pro”
+
+“prefiro galaxy” → foco = galaxy
+
+“quero o 15” → “galaxy 15” (ou “iphone 15”, conforme foco)
+
+Resumo
+
+O bug da imagem acontece porque a frase depende do contexto do turno anterior e o sistema atual ou não persiste esse contexto, ou não possui regras/slot filling para transformar “linha 12” em “iphone 12”. Com as 5 mudanças acima (persistência de sessão, normalização PT-BR, regex de padrões, números por extenso e builder que compõe com o foco), o assistente passa a entender “quero da linha 12” corretamente. Quer que eu te entregue um patch pronto nesses arquivos (TS/Node) de acordo com a sua estrutura?
+
+Você disse:
+faça o patch
+Programador Senior - Dev GPT — Replit Ready disse:
+Pensou por 16s
+
+Perfeito — segue patch completo (TypeScript) para o bot entender frases tipo “quero da linha 12” usando memória de foco + NLP PT-BR e slot filling.
+
+Aplique com git apply -p0 <<'PATCH' ... PATCH na raiz do projeto.
+Paths sugeridos: ajuste se seu repo usar outros diretórios.
+
+1) 🔧 Utilitários PT-BR (normalização + números por extenso)
+*** /dev/null
+--- a/src/utils/lang-ptbr.ts
+@@
++// src/utils/lang-ptbr.ts
++// Utilitários de linguagem para PT-BR
++export function normPTBR(s: string): string {
++  return (s ?? "")
++    .toLowerCase()
++    .normalize("NFD")
++    .replace(/[\u0300-\u036f]/g, "") // remove acentos
++    .replace(/\s+/g, " ")
++    .trim();
++}
++
++// Números por extenso mais comuns em consultas de celular
++export const NUM_EXTENSO: Record<string, string> = {
++  "doze": "12",
++  "doze pro": "12 pro",
++  "treze": "13",
++  "treze pro": "13 pro",
++  "quatorze": "14",
++  "quatorze pro": "14 pro",
++  "quinze": "15",
++  "quinze pro": "15 pro",
++};
+
+2) 🧠 Extração de modelo e montagem de consulta (slot filling)
+*** /dev/null
+--- a/src/nlp/query-builder.ts
+@@
++// src/nlp/query-builder.ts
++import { normPTBR, NUM_EXTENSO } from "../utils/lang-ptbr";
++
++const PRODUTOS_RX = /\b(iphone|apple|galaxy|samsung|xiaomi|motorola|pixel)\b/i;
++
++/**
++ * Extrai o "modelo" a partir da frase (ex.: 12, "12 pro", "13").
++ * Cobre: "linha 12", "modelo 12", "versão 12", "série 12", números por extenso etc.
++ */
++export function extrairModeloPTBR(msg: string): string | null {
++  const m = normPTBR(msg);
++
++  // 1) números por extenso (com ou sem "pro")
++  for (const [k, v] of Object.entries(NUM_EXTENSO)) {
++    if (m.includes(k)) return v;
++  }
++
++  // 2) padrões com rótulo (linha/modelo/versao/serie)
++  const rotulo = /\b(?:linha|modelo|versao|versão|serie|série)\s*(?:do|da|de)?\s*(\d{1,4})(?:\s*(pro|plus|ultra))?\b/;
++  const r1 = m.match(rotulo);
++  if (r1) {
++    const numero = r1[1];
++    const sufixo = r1[2] ? ` ${r1[2]}` : "";
++    return `${numero}${sufixo}`;
++  }
++
++  // 3) número solto (fallback) — evita capturar CEP/ano porque diálogo é curto
++  const r2 = m.match(/\b(\d{2,4})(?:\s*(pro|plus|ultra))?\b/);
++  if (r2) {
++    const numero = r2[1];
++    const sufixo = r2[2] ? ` ${r2[2]}` : "";
++    return `${numero}${sufixo}`;
++  }
++
++  return null;
++}
++
++/**
++ * Monta a query final combinando o texto atual com o foco anterior (produto).
++ * Regras:
++ *  - Se a frase já tiver produto e modelo → retorna "produto modelo".
++ *  - Se só tiver modelo e existir focoAnterior → "focoAnterior modelo".
++ *  - Se só tiver produto → retorna produto (mantém foco).
++ *  - Caso contrário → retorna a frase original.
++ */
++export function montarConsulta(userMsg: string, focoAnterior?: string | null): string {
++  const hasProduto = PRODUTOS_RX.test(userMsg);
++  const modelo = extrairModeloPTBR(userMsg); // ex.: "12", "12 pro"
++
++  if (hasProduto && modelo) {
++    const produto = (userMsg.match(PRODUTOS_RX)?.[1] ?? "").toLowerCase();
++    return `${produto} ${modelo}`.trim();
++  }
++
++  if (!hasProduto && modelo && focoAnterior) {
++    return `${focoAnterior} ${modelo}`.trim();
++  }
++
++  if (hasProduto && !modelo) {
++    const produto = (userMsg.match(PRODUTOS_RX)?.[1] ?? "").toLowerCase();
++    return produto;
++  }
++
++  return userMsg;
++}
++
++/**
++ * Detecta e atualiza foco a partir da frase.
++ * Retorna o novo foco (ou null se nada detectado).
++ */
++export function detectarFoco(userMsg: string): string | null {
++  const m = userMsg.toLowerCase();
++  if (/\biphone|apple\b/.test(m)) return "iphone";
++  if (/\bgalaxy|samsung\b/.test(m)) return "galaxy";
++  if (/\bxiaomi\b/.test(m)) return "xiaomi";
++  if (/\bmotorola\b/.test(m)) return "motorola";
++  if (/\bpixel\b/.test(m)) return "pixel";
++  return null;
++}
+
+3) 💾 Store de sessão (persistência do foco)
+
+Se você já tem um store (Redis/DB), adapte a implementação — mantive fallback em memória.
+
+*** /dev/null
+--- a/src/services/sessionStore.ts
+@@
++// src/services/sessionStore.ts
++type SessionPayload = {
++  focoAtual?: string | null;
++  lastUpdatedAt?: string;
++  [k: string]: unknown;
++};
++
++// Fallback simples em memória (substitua por Redis/DB em produção)
++const mem = new Map<string, SessionPayload>();
++
++export async function getSession(sessionId: string): Promise<SessionPayload | null> {
++  return mem.get(sessionId) ?? null;
++}
++
++export async function updateSession(sessionId: string, data: Partial<SessionPayload>): Promise<void> {
++  const prev = mem.get(sessionId) ?? {};
++  mem.set(sessionId, { ...prev, ...data, lastUpdatedAt: new Date().toISOString() });
++}
+
+4) 🚏 Rota de stream/consulta — composição de query + atualização de foco
+
+Ajuste o caminho do arquivo da sua rota. Exemplo abaixo para src/routes/assistant/stream.ts.
+Troque searchProducts(queryFinal) pela sua função real de busca.
+
+*** a/src/routes/assistant/stream.ts
+--- b/src/routes/assistant/stream.ts
+@@
+-import type { Request, Response } from "express";
++import type { Request, Response } from "express";
++import { getSession, updateSession } from "../../services/sessionStore";
++import { montarConsulta, detectarFoco } from "../../nlp/query-builder";
+ 
+ export async function assistantStream(req: Request, res: Response) {
+-  const { message } = req.body as { message: string };
+-  // ... implementação antiga chamava direto o motor/busca com "message"
+-  const resultados = await searchProducts(message);
++  const { message } = req.body as { message: string };
++
++  // 1) Recupera sessão do usuário
++  const sessionId = String(req.sessionID ?? req.headers["x-session-id"] ?? "anon");
++  const sess = (await getSession(sessionId)) ?? {};
++
++  // 2) Atualiza foco se o turno atual mencionar produto
++  const novoFoco = detectarFoco(message);
++  if (novoFoco) {
++    await updateSession(sessionId, { focoAtual: novoFoco });
++  }
++
++  // 3) Monta a query final usando slot filling
++  const focoParaConsulta = novoFoco ?? (sess.focoAtual ?? null);
++  const queryFinal = montarConsulta(message, focoParaConsulta ?? undefined);
++
++  // 4) Chama sua busca com a query final (ex.: "iphone 12")
++  const resultados = await searchProducts(queryFinal);
+ 
+   return res.json({ ok: true, query: message, resultados });
+ }
+
+
+Dica: registre o queryFinal em logs para validar rapidamente nos testes manuais.
+
+5) ✅ Tipos auxiliares (opcional, mas recomendável)
+*** /dev/null
+--- a/src/types/conversation.ts
+@@
++// src/types/conversation.ts
++export interface ConversationMemory {
++  focoAtual: string | null;
++  lastQuery?: string | null;
++}
+
+6) 🧪 Testes rápidos (Jest) para regressão de NLP
+*** /dev/null
+--- a/test/query-builder.spec.ts
+@@
++// test/query-builder.spec.ts
++import { extrairModeloPTBR, montarConsulta } from "../src/nlp/query-builder";
++
++describe("NLP PT-BR - modelo", () => {
++  test("detecta 'linha 12'", () => {
++    expect(extrairModeloPTBR("quero da linha 12")).toBe("12");
++  });
++  test("detecta por extenso 'treze pro'", () => {
++    expect(extrairModeloPTBR("quero o da linha treze pro")).toBe("13 pro");
++  });
++  test("detecta número solto", () => {
++    expect(extrairModeloPTBR("tem o 14?")).toBe("14");
++  });
++});
++
++describe("montarConsulta", () => {
++  test("compõe com foco anterior", () => {
++    expect(montarConsulta("quero da linha 12", "iphone")).toBe("iphone 12");
++  });
++  test("usa produto e modelo no mesmo turno", () => {
++    expect(montarConsulta("iphone 13 pro", null)).toBe("iphone 13 pro");
++  });
++  test("retorna produto quando só o produto é mencionado", () => {
++    expect(montarConsulta("prefiro galaxy", null)).toBe("galaxy");
++  });
++});
+
+
+Se ainda não usa Jest, adicione o script:
+
+*** a/package.json
+--- b/package.json
+@@
+   "scripts": {
+-    "start": "node index.js"
++    "start": "node index.js",
++    "test": "jest"
+   }
+
+
+Caso esteja em TS puro, você pode rodar Jest com ts-jest ou compilar antes. Para simplicidade imediata, mantenha os testes em JS ou configure ts-jest.
+
+Como validar (manualmente)
+
+Mensagem 1: “iphone”
+
+focoAtual passa a “iphone”.
+
+Mensagem 2: “quero da linha 12”
+
+extrairModeloPTBR → “12”
+
+montarConsulta + focoAtual → “iphone 12”
+
+A busca é feita por “iphone 12” e os cards aparecem.
+
+Observações finais
+
+Se você já possui Redis/DB para sessões, troque sessionStore.ts pelo seu adaptador (mesma interface getSession/updateSession).
+
+O patch é idempotente: se a mensagem já vier “iphone 12”, a query final permanece “iphone 12”.
+
+Ampliar sinônimos é fácil: adicione marcas em PRODUTOS_RX e mapeie “ultra/plus/pro max” conforme seu catálogo.
