@@ -7588,10 +7588,18 @@ Regras:
 
       await persistSessionAndMessage(sessionId, userId, message);
       
+      // 🔍 DEBUG: Log mensagem original para rastreamento
+      console.log(`📥 [Gemini DEBUG] Mensagem original: "${message}"`);
+      
       // Executar assistente com roteamento inteligente
       const result = await runAssistant(sessionId, message);
       
-      console.log(`🤖 [Gemini] Resultado do assistente: kind=${result.kind}, query="${result.queryFinal}"`);
+      console.log(`🤖 [Gemini] Resultado do assistente:`, {
+        kind: result.kind,
+        queryFinal: result.queryFinal,
+        itemsCount: result.items?.length || 0,
+        originalMessage: message
+      });
 
       // Resposta baseada no tipo de intenção
       if (result.kind === "PRODUCT") {
@@ -7600,6 +7608,16 @@ Regras:
         const textoResposta = numProdutos > 0 
           ? `Ótimo! Encontrei ${numProdutos} produtos para "${result.queryFinal}". Dê uma olhada:`
           : `Não encontrei produtos para "${result.queryFinal}". Tente com outro termo!`;
+        
+        // 🔍 DEBUG: Log completo da transformação
+        if (numProdutos === 0) {
+          console.log(`❌ [Gemini DEBUG] BUSCA VAZIA:`, {
+            mensagemOriginal: message,
+            queryFinal: result.queryFinal,
+            produtos: numProdutos,
+            motivo: "Possível problema de canonicalização"
+          });
+        }
         
         send('delta', { text: textoResposta });
         

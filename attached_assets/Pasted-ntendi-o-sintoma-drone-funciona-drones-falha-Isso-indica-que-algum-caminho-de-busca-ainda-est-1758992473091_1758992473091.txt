@@ -1,0 +1,110 @@
+ntendi o sintoma: “drone” funciona, “drones” falha. Isso indica que algum caminho de busca ainda está usando o termo bruto da mensagem (ex.: "drones") em vez do termo canônico ("drone"). Ou seja, o patch de canônico/plural não está sendo chamado nesse endpoint.
+
+A correção é simples: forçar singularização/canônico antes de chamar a busca e fazer retry automático quando o resultado vier vazio.
+
+Aplique os 3 patches abaixo.
+
+1) Utilitário de singularização para qualquer frase
+// src/utils/singularize.ts
+import { tokenizePTBR, toSingularPTBR, PRODUCT_CANON } from "./lang-ptbr";
+
+/** Converte cada token para forma canônica/singular quando houver no dicionário. */
+export function singularizePhrase(msg: string): string {
+  const toks = tokenizePTBR(msg);
+  const mapped = toks.map(t => PRODUCT_CANON[t] ?? PRODUCT_CANON[toSingularPTBR(t)] ?? t);
+  return mapped.join(" ");
+}
+
+2) Endpoint do assistente — usa query canônica e retry
+
+Se você já usa runAssistant, mantenha. O essencial é NUNCA mandar o termo bruto para a busca.
+
+*** a/src/routes/assistant.ts
+--- b/src/routes/assistant.ts
+@@
+ import { interpretarBusca } from "../modules/buscaProduto";
+ import { buscarProdutos } from "../modules/catalogo";
++import { singularizePhrase } from "../utils/singularize";
+ 
+ app.post("/api/assistant", async (req, res) => {
+   const { message } = req.body as { message?: string };
+   if (!message || !message.trim()) {
+     return res.status(400).json({ text: "Mensagem vazia." });
+   }
+ 
+   const userId = req.session?.user?.id ?? "anon";
+   const memoria = getMemory(userId) ?? { focoAtual: null, lastQuery: null };
+ 
+-  const query = interpretarBusca(message, memoria);
+-  const resultados = buscarProdutos(query);
++  // 1) Normaliza/singulariza a frase ANTES de interpretar
++  const msgCanon = singularizePhrase(message);
++  const query = interpretarBusca(msgCanon, memoria);
++
++  // 2) Usa SEMPRE a query canônica
++  let resultados = buscarProdutos(query);
+ 
+   // persiste foco: se detectar produto/categoria, salva
+   if (query.produto) updateMemory(userId, { focoAtual: query.produto, lastQuery: query.produto });
+ 
+-  if (resultados.length === 0) {
++  // 3) Retry: se veio vazio e a mensagem original difere da canônica, tenta de novo
++  if (resultados.length === 0 && message.trim().toLowerCase() !== msgCanon) {
++    const queryRetry = interpretarBusca(msgCanon, memoria); // já canônico
++    resultados = buscarProdutos(queryRetry);
++  }
++
++  if (resultados.length === 0) {
+     return res.json({
+-      text: "Não achei nada com esse termo 😕. Quer tentar com outra marca ou modelo?"
++      text: "Não achei nada com esse termo 😕. Quer tentar com outra marca ou modelo?",
++      debug: { original: message, canon: msgCanon, query }
+     });
+   }
+ 
+-  const resposta = `Achei ${resultados.length} opções que combinam com o que você quer. Quer ver os detalhes?`;
+-  res.json({ text: resposta, produtos: resultados });
++  const resposta = `Achei ${resultados.length} opções para "${query.queryFinal || msgCanon}". Quer ver os detalhes?`;
++  res.json({ text: resposta, produtos: resultados, debug: { original: message, canon: msgCanon, query } });
+ });
+
+3) Rota de busca “crua” usada pelo front (se existir)
+
+Muitos front-ends têm uma rota direta (ex.: /api/search?q=...) que não passa pelo assistente. Se ela existir, aplique o mesmo tratamento:
+
+*** a/src/routes/search.ts
+--- b/src/routes/search.ts
+@@
+ import { buscarProdutos } from "../modules/catalogo";
++import { singularizePhrase } from "../utils/singularize";
++import { interpretarBusca } from "../modules/buscaProduto";
+ 
+ router.get("/api/search", (req, res) => {
+-  const q = String(req.query.q ?? "");
+-  const resultados = buscarProdutos({ produto: q, queryFinal: q });
++  const q = String(req.query.q ?? "");
++  const canon = singularizePhrase(q);
++  let resultados = buscarProdutos({ produto: canon, queryFinal: canon });
++  if (!resultados.length && canon !== q.toLowerCase()) {
++    // Retry com interpretador (modelo, marca, etc.)
++    const query = interpretarBusca(canon, { focoAtual: null, lastQuery: null } as any);
++    resultados = buscarProdutos(query);
++  }
+   return res.json({ items: resultados });
+ });
+
+Checklist de verificação (2 min)
+
+Faça um teste manual com logs:
+
+Digite “drone” → deve buscar por "drone".
+
+Digite “drones” → msgCanon deve ser "drone" (veja no debug), e os mesmos itens devem aparecer.
+
+Se “drone” aparece e “drones” não, é porque alguma rota ainda usa o termo bruto. Garanta que todo ponto que chama seu catálogo passe por singularizePhrase ou interpretarBusca.
+
+Por que dava o bug
+
+A captura da sua tela mostra a resposta: “Não encontrei produtos para ‘drones’”. Isso denuncia que o backend ecoou a string original (plural) na query.
+
+Depois do patch acima, a mensagem vira “drone” antes de consultar o catálogo — e, se algum lugar escapar, o retry cobre.
