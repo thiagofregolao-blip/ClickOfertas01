@@ -4,6 +4,8 @@ import { montarConsulta, detectarFoco, extrairModeloPTBR } from "../../server/li
 import { obterContextoSessao, salvarContextoSessao } from "../../server/lib/gemini/context-storage.js";
 import { replyHelp, replyOutOfDomain, replySmallTalk, replyTime, replyWhoAmI } from "./smalltalk";
 import { canonicalProductFromText, tokenizePTBR, normPTBR } from "../utils/lang-ptbr.js";
+import { composeAnswer } from "../nlg/say";
+import type { ConversationMemory } from "../types/memory";
 
 export interface AssistantResult {
   kind: "SMALL_TALK" | "HELP" | "TIME" | "PRODUCT" | "OUT_OF_DOMAIN";
@@ -77,8 +79,7 @@ export async function runAssistant(sessionId: string, userMsg: string): Promise<
     console.log(`🧹 [runAssistant] Resetando contexto antigo - novo foco: "${novoFoco}"`);
     await salvarContextoSessao(sessionId, { 
       focoAtual: novoFoco, 
-      categoriaAtual: null, 
-      lastQuery: null,
+      ultimaQuery: null,
       lastUpdated: new Date().toISOString()
     });
   }
@@ -126,5 +127,44 @@ export async function runAssistant(sessionId: string, userMsg: string): Promise<
     console.log(`✅ [runAssistant] Busca bem-sucedida: ${items.length} produtos encontrados para "${queryFinal}"`);
   }
   
-  return { kind: "PRODUCT", queryFinal: queryFinal, items };
+  // 4) Mapear produto para categoria para cross-sell (mapeamento expandido)
+  const produto = intent.entities?.product || foco || undefined;
+  const categoria = intent.entities?.category || 
+    (["iphone", "galaxy", "motorola", "xiaomi", "poco", "redmi", "samsung", "apple"].includes(produto || "") ? "celular" : 
+     produto === "drone" ? "drone" :
+     produto === "perfume" ? "perfume" :
+     ["tv", "televisao", "smart tv"].includes(produto || "") ? "tv" : undefined);
+  
+  // 5) Usar o sistema de persona para compor resposta
+  const memory: ConversationMemory = { 
+    focoAtual: foco, 
+    lastQuery: (sess as any).ultimaQuery ?? null,
+    acessoriosSugeridos: (sess as any).acessoriosSugeridos ?? []
+  };
+  const blocks = composeAnswer({ 
+    items, 
+    query: {
+      produto: produto ?? undefined,
+      categoria,
+      modelo: extrairModeloPTBR(msgCanonica) ?? undefined,
+      marca: undefined, // TODO: extrair marca se necessário
+      queryFinal
+    }, 
+    memory 
+  });
+
+  // 6) Persistir memória atualizada (incluindo acessórios sugeridos)
+  await salvarContextoSessao(sessionId, { 
+    focoAtual: foco,
+    ultimaQuery: queryFinal,
+    acessoriosSugeridos: memory.acessoriosSugeridos ?? [],
+    lastUpdated: new Date().toISOString()
+  });
+  
+  return { 
+    kind: "PRODUCT", 
+    queryFinal: queryFinal, 
+    items, 
+    text: blocks.filter(b => b.type === "text").map(b => b.text).join("\n\n") 
+  };
 }

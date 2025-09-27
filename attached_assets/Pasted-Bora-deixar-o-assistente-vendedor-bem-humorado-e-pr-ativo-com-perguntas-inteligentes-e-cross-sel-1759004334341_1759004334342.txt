@@ -1,0 +1,429 @@
+Bora deixar o assistente vendedor, bem-humorado e pró-ativo — com perguntas inteligentes e cross-sell (capinha, película, carregador etc.). Segue patch modular (TypeScript) pra plugar no que você já tem.
+
+1) Persona e tom
+// src/persona/salesPersona.ts
+export type HumorLevel = "suave" | "medio" | "alto";
+
+export interface PersonaConfig {
+  nome: string;
+  humor: HumorLevel;
+  emojiPack: string[];
+  tuteia: boolean; // falar "você" de forma mais próxima
+}
+
+export const SalesPersona: PersonaConfig = {
+  nome: "Gemini Assistant",
+  humor: "medio",
+  emojiPack: ["😉", "😄", "🛍️", "✨", "📦", "🚀"],
+  tuteia: true,
+};
+
+// util p/ escolher variações
+export function pick<T>(arr: T[], seed?: number): T {
+  return arr[(seed ?? Math.floor(Math.random() * arr.length)) % arr.length];
+}
+
+2) Templates de respostas (variações + placeholders)
+// src/nlg/templates.ts
+import { PersonaConfig, pick } from "../persona/salesPersona";
+
+type Dict<T> = Record<string, T>;
+
+export interface MsgCtx {
+  persona: PersonaConfig;
+  produto?: string;
+  categoria?: string;
+  modelo?: string;
+  marca?: string;
+  count?: number;
+  faltando?: Array<"modelo" | "marca" | "armazenamento">;
+  acessorios?: string[];
+}
+
+const greet: string[] = [
+  "Oi! {emoji} Bora achar a melhor oferta pra você?",
+  "E aí! {emoji} Me diz o que procura que eu garimpo aqui.",
+  "Bem-vindo(a)! {emoji} Posso buscar por iPhone, drone, perfume e muito mais."
+];
+
+const found: string[] = [
+  "Ótimo! Encontrei {count} {cat} para “{query}”. Dá uma olhada 👇",
+  "Boa escolha! Separei {count} opções de {cat} pra “{query}”. {emoji}",
+  "{emoji} Achei {count} resultado(s) que combinam com “{query}”."
+];
+
+const noResults: string[] = [
+  "Hmm, não achei nada pra “{query}”. {emoji} Quer tentar outra marca ou modelo?",
+  "Por aqui não rolou com “{query}”. Tenta especificar {hint} que eu encontro rapidinho!",
+  "Zerado pra “{query}”. {emoji} Se quiser, me diz {hint}."
+];
+
+const clarify: Dict<string[]> = {
+  modelo: [
+    "Prefere {produto} **{lista}**?",
+    "Tem algum {produto} **{lista}** em mente?",
+    "Quer ir de **{lista}** no {produto}?"
+  ],
+  marca: [
+    "Curte **Apple**, **Samsung** ou outra marca?",
+    "Tem marca preferida? (Apple, Samsung, Xiaomi…)",
+    "Posso filtrar por marca: **Apple**/**Samsung**/**Motorola**?"
+  ],
+  armazenamento: [
+    "Busca **64GB**, **128GB** ou **256GB**?",
+    "Qual capacidade agrada mais: **128GB**/**256GB**?",
+    "Quer espaço de **128GB** ou **256GB**?"
+  ]
+};
+
+const crossSell: Dict<string[]> = {
+  celular: [
+    "Aproveita e já quer **capinha** e **película**? Posso sugerir kits.",
+    "Quer incluir **carregador turbo** ou **fones BT** junto? {emoji}",
+    "Precisa de **cabo extra** ou **power bank** pra completar?"
+  ],
+  drone: [
+    "Pra drone, **bateria extra** e **hélices sobressalentes** salvam o dia. Te mostro?",
+    "Quer um **case rígido** ou **cartão SD** junto? {emoji}",
+    "Posso sugerir **protetor de hélices** e **hub de carga**."
+  ],
+  perfume: [
+    "Curte **kit presente** com nécessaire? {emoji}",
+    "Prefere **EDT** ou **EDP**? Posso sugerir ambos.",
+    "Quer ver **miniaturas** pra viagem junto?"
+  ],
+  tv: [
+    "Que tal uma **soundbar** pra completar? {emoji}",
+    "Precisa de **suporte de parede** ou **cabo HDMI**?",
+    "Posso sugerir **controle universal** e **extensão filtrada**."
+  ]
+};
+
+export function tGreet(ctx: MsgCtx) {
+  return pick(greet)
+    .replace("{emoji}", pick(ctx.persona.emojiPack));
+}
+
+export function tFound(ctx: MsgCtx & { query: string }) {
+  const cat = ctx.categoria ?? ctx.produto ?? "itens";
+  return pick(found)
+    .replace("{count}", String(ctx.count ?? 0))
+    .replace("{cat}", cat)
+    .replace("{query}", ctx.modelo ? `${ctx.produto} ${ctx.modelo}` : ctx.produto ?? ctx.categoria ?? ctx.marca ?? "produto")
+    .replace("{emoji}", pick(ctx.persona.emojiPack));
+}
+
+export function tNoResults(ctx: MsgCtx & { query: string }) {
+  const need = ctx.faltando?.[0] ?? "mais detalhes";
+  const hint = need === "modelo" ? "o **modelo** (ex.: 12, 13 Pro)" :
+              need === "marca" ? "a **marca** (ex.: Apple, Samsung)" :
+              "a **capacidade** (ex.: 128GB)";
+  return pick(noResults)
+    .replace("{query}", ctx.produto ?? ctx.categoria ?? ctx.marca ?? "termo")
+    .replace("{hint}", hint)
+    .replace("{emoji}", pick(ctx.persona.emojiPack));
+}
+
+export function tClarify(ctx: MsgCtx) {
+  if (!ctx.faltando?.length) return null;
+  const q = ctx.faltando[0];
+  const base = pick(clarify[q]);
+  const lista =
+    q === "modelo" ? "12, 13, 15…" :
+    q === "marca" ? "Apple, Samsung, Xiaomi…" :
+    "64GB, 128GB, 256GB";
+  return base
+    .replaceAll("{produto}", ctx.produto ?? "o produto")
+    .replaceAll("{lista}", lista);
+}
+
+export function tCrossSell(ctx: MsgCtx) {
+  const key = (ctx.categoria ?? ctx.produto) ?? "";
+  const bank = crossSell[key];
+  if (!bank) return null;
+  return pick(bank).replace("{emoji}", pick(ctx.persona.emojiPack));
+}
+
+3) Regras de cross-sell (para não repetir)
+// src/logic/crossSell.ts
+export const ACCESSORIES_BY_CATEGORY: Record<string, string[]> = {
+  celular: ["capinha", "película", "carregador turbo", "fones bluetooth", "power bank", "cabo usb-c"],
+  drone: ["bateria extra", "hélices", "case rígido", "cartão sd", "hub de carga", "protetor de hélices"],
+  perfume: ["kit presente", "necessaire", "miniatura"],
+  tv: ["soundbar", "suporte parede", "cabo hdmi", "controle universal"],
+};
+
+export function nextAccessorySuggestion(cat?: string, already: string[] = []): string[] {
+  if (!cat) return [];
+  const pool = ACCESSORIES_BY_CATEGORY[cat] ?? [];
+  return pool.filter(x => !already.includes(x)).slice(0, 2);
+}
+
+4) Memory (adicionar campos pra conversa)
+// src/types/memory.ts (adicione se ainda não tiver)
+export interface ConversationMemory {
+  focoAtual: string | null;       // ex.: "iphone" ou "drone"
+  lastQuery?: string | null;
+  nomeCliente?: string | null;
+  acessóriosSugeridos?: string[]; // para não repetir cross-sell
+}
+
+5) NLG – montar resposta final baseada no contexto
+// src/nlg/say.ts
+import { SalesPersona } from "../persona/salesPersona";
+import { tGreet, tFound, tNoResults, tClarify, tCrossSell } from "./templates";
+import { nextAccessorySuggestion } from "../logic/crossSell";
+import type { ConversationMemory } from "../types/memory";
+
+type Block = { type: "text"; text: string } | { type: "products"; items: any[] };
+
+export interface ComposeArgs {
+  query: { produto?: string; categoria?: string; modelo?: string; marca?: string; queryFinal?: string; faltando?: Array<"modelo"|"marca"|"armazenamento">; };
+  items: any[];
+  memory: ConversationMemory;
+}
+
+export function composeAnswer(args: ComposeArgs): Block[] {
+  const persona = SalesPersona;
+  const { query, items, memory } = args;
+  const blocks: Block[] = [];
+
+  if (!memory.lastQuery && !query.produto && !query.categoria) {
+    blocks.push({ type: "text", text: tGreet({ persona }) });
+  }
+
+  if (items.length > 0) {
+    blocks.push({
+      type: "text",
+      text: tFound({
+        persona,
+        produto: query.produto,
+        categoria: query.categoria,
+        modelo: query.modelo,
+        count: items.length,
+        query: query.queryFinal ?? query.produto ?? query.categoria ?? ""
+      })
+    });
+    blocks.push({ type: "products", items });
+
+    // Pergunta de esclarecimento se faltar slot
+    const falta: Array<"modelo" | "marca" | "armazenamento"> = [];
+    if (!query.modelo && (query.produto === "iphone" || query.categoria === "celular")) falta.push("modelo");
+    if (!query.marca && ["celular","tv","notebook"].includes(query.categoria ?? "")) falta.push("marca");
+    if (!query["armazenamento"] && query.produto === "iphone") falta.push("armazenamento");
+    const clar = tClarify({ persona, produto: query.produto, faltando: falta });
+    if (clar) blocks.push({ type: "text", text: clar });
+
+    // Cross-sell (sem repetir)
+    const cat = query.categoria ?? query.produto;
+    const novos = nextAccessorySuggestion(cat, memory.acessóriosSugeridos ?? []);
+    if (novos.length) {
+      blocks.push({ type: "text", text: tCrossSell({ persona, categoria: cat })! });
+    }
+  } else {
+    blocks.push({
+      type: "text",
+      text: tNoResults({
+        persona,
+        produto: query.produto,
+        categoria: query.categoria,
+        modelo: query.modelo,
+        faltando: query.faltando ?? ["modelo"],
+        query: query.queryFinal ?? query.produto ?? ""
+      })
+    });
+  }
+
+  return blocks;
+}
+
+6) Integrar no orquestrador (onde você já retorna itens)
+
+Só trocar a montagem de texto fixo pela composeAnswer.
+
+// src/services/conversation.ts (trecho na parte PRODUCT)
+import { composeAnswer } from "../nlg/say";
+import type { ConversationMemory } from "../types/memory";
+
+// ... dentro do runAssistant, após obter "items" e "query"
+const memory = (sess as ConversationMemory) ?? { focoAtual: null };
+const blocks = composeAnswer({ items, query: {
+  produto, categoria, modelo, marca, queryFinal
+}, memory });
+
+// Atualiza memória de acessórios sugeridos (evita repetição)
+if (!memory.acessóriosSugeridos) memory.acessóriosSugeridos = [];
+// (opcional) concat com o que foi sugerido no bloco de cross-sell
+
+return { kind: "PRODUCT", queryFinal, items, text: blocks.filter(b=>b.type==="text").map(b=>b.text).join("\n\n") };
+
+
+No front, se você já exibe “cards” + “bolha de texto”, só renderize text e a lista de items como faz hoje.
+
+7) Exemplos de comportamento após o patch
+
+Usuário: “quero um iphone”
+
+IA: “Boa escolha! Separei 12 opções de celular pra ‘iphone’. 😉
+Prefere 12, 13, 15…?
+Aproveita e já quer capinha e película?”
+
+Usuário: “drone”
+
+IA: “Achei 2 resultados que combinam com ‘drone’. ✨
+Pra drone, bateria extra e hélices salvam o dia. Te mostro?”
+
+Usuário: “perfumes”
+
+IA: “Separei 10 perfumes. 😄
+Curte kit presente com nécessaire?”
+
+Observações rápidas
+
+Variações naturais: cada resposta puxa um template diferente → menos repetição.
+
+Humor controlável: ajuste SalesPersona.humor/emojiPack.
+
+Cross-sell consciente: só sugere quando fizer sentido e sem repetir em sequência.
+
+Perguntas de esclarecimento: aparecem apenas se faltar slot relevante (modelo/marca/armazenamento).
+
+Quer que eu consolide tudo em um único diff para colar de uma vez? Ou ajusto o vocabulário (mais vendedor, mais formal)?
+
+Você disse:
+uma duvida, a ia só consegue responder com naturalidade com templates? voce tambem é programado assim?
+Programador Senior - Dev GPT — Replit Ready disse:
+Pensou por 20s
+
+Boa pergunta!
+
+Resposta curta
+
+Não: uma IA não precisa de templates para soar natural.
+
+Eu (este assistente) sou um modelo generativo (GPT-5 Thinking), ou seja, não dependo de frases fixas; gero a resposta palavra-a-palavra.
+
+Em produção, porém, o melhor é um modo híbrido: lógica e dados determinísticos + (opcional) um gerador para dar tom humano sem inventar nada.
+
+Opções de arquitetura (o que usar quando)
+
+Só templates
+
+✅ 100% previsível, zero alucinação, barato.
+
+❌ Pode parecer repetitivo.
+
+Gerativo “solto” (LLM faz tudo)
+
+✅ Super natural.
+
+❌ Risco de inventar produto/preço; difícil auditar.
+
+Híbrido (recomendado)
+
+Determinístico: intenção, slots, busca, regras de cross-sell e facts.
+
+Gerativo controlado: usa o LLM apenas para “virar frase” (estilo/variação), sem decidir conteúdo.
+
+Como aplicar o híbrido no seu projeto (ideia prática)
+
+Você já tem: intent → slots → busca → facts.
+
+Acrescente um “parafraseador” opcional: recebe facts e sugestões (itens, filtros, CTA, cross-sell) e devolve um texto no tom vendedor/humorado.
+
+// src/nlg/paraphrase.ts
+type Facts = {
+  intent: "PRODUCT"|"SMALL_TALK"|"HELP"|"TIME";
+  produto?: string; categoria?: string; modelo?: string; count?: number;
+  cross?: string[]; // ex.: ["capinha","película"]
+  // ⚠️ sem preço/links se não puderem ser mostrados
+};
+
+// Use seu provedor de LLM aqui; mantenha temperatura baixa (0.3–0.5)
+export async function paraphrase(facts: Facts, draft: string): Promise<string> {
+  const system = [
+    "Você é um vendedor simpático, direto e honesto.",
+    "Nunca invente produtos nem preços. Use apenas os fatos passados.",
+    "Faça perguntas curtas e ofereça complementos relevantes (cross-sell)."
+  ].join("\n");
+
+  const user = JSON.stringify({ facts, draft });
+
+  // pseudo-código de chamada; troque pelo seu SDK/cliente
+  const resp = await llm.generate({ system, user, temperature: 0.4, maxTokens: 120 });
+  return resp.text.trim();
+}
+
+
+Uso no fluxo:
+
+// Depois de montar facts e um draft simples (templates):
+const draft = composeAnswerTextDeterministico(facts); // seu template atual
+const textoFinal = await paraphrase(facts, draft).catch(() => draft); // fallback seguro
+
+
+Boas práticas do híbrido
+
+Deixe o LLM só estilizar; as decisões (o que recomendar/mostrar) ficam no seu código.
+
+Temperature baixa (0.3–0.5) → variação sem fugir do escopo.
+
+Guardrails: limite tokens; valide que o retorno não contém dados fora dos facts.
+
+Fallback: se o gerador falhar, use o texto determinístico (templates).
+
+Conclusão
+
+Templates não são obrigatórios; eles dão controle.
+
+O melhor resultado vem do modo híbrido: você garante correção e consistência; o gerador só dá tom humano e variação.
+
+Você disse:
+ok entao tenho que copiar esses dois ultimos codigos que voce me mandou?
+Programador Senior - Dev GPT — Replit Ready disse:
+
+Sim — copie os dois se quiser o melhor resultado:
+
+Pacote “determinístico vendedor” (persona + templates + cross-sell + compose): deixa as respostas variadas e úteis, sem depender de LLM.
+
+Parafraseador (híbrido, opcional): dá um toque ainda mais natural usando um LLM só para “refinar” o texto — com fallback seguro.
+
+O que copiar (ordem)
+
+src/persona/salesPersona.ts
+
+src/nlg/templates.ts
+
+src/logic/crossSell.ts
+
+src/types/memory.ts (add campos)
+
+src/nlg/say.ts (compose de mensagens)
+
+Integrar no runAssistant (usar composeAnswer em vez de texto fixo)
+
+Opcional (híbrido):
+7) src/nlg/paraphrase.ts
+8) No runAssistant, envolver o texto:
+
+// depois do composeAnswer
+let text = blocks.filter(b=>b.type==="text").map(b=>b.text).join("\n\n");
+// habilite com env
+if (process.env.USE_LLM_PARAPHRASE === "1") {
+  text = await paraphrase(
+    { intent: "PRODUCT", produto: query.produto, categoria: query.categoria, modelo: query.modelo, count: items.length, cross: [] },
+    text
+  ).catch(() => text);
+}
+
+Dica de configuração
+
+Coloque USE_LLM_PARAPHRASE=0 por padrão (fica só nos templates).
+
+Quando quiser mais naturalidade, ative USE_LLM_PARAPHRASE=1.
+
+Resultado
+
+Sem LLM: já fica humorado, vendedor e pró-ativo (com cross-sell e perguntas).
+
+Com LLM ligado: mantém os fatos do seu código e só melhora o tom.

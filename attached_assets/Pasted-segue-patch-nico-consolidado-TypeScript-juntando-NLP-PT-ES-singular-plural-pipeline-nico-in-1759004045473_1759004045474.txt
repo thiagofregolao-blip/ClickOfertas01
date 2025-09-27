@@ -1,0 +1,586 @@
+segue patch único consolidado (TypeScript) juntando: NLP PT/ES + singular/plural, pipeline único, intent router, memória/foco, busca estruturada com fallback e ranking, persona vendedor com templates (cross-sell), e parafraseador opcional via LLM.
+
+Aplique com git apply -p0 <<'PATCH'\n... \nPATCH na raiz do projeto.
+Ajuste paths se diferirem.
+
+*** /dev/null
+--- a/src/utils/lang-ptbr.ts
+@@
++// src/utils/lang-ptbr.ts
++// Normalização + tokenização + dicionários canônicos PT/ES (singular)
++export function normPTBR(s: string): string {
++  const base = (s ?? "")
++    .toLowerCase()
++    .normalize("NFD")
++    .replace(/[\u0300-\u036f]/g, "")           // remove acentos
++    .replace(/[^\p{L}\p{N}\s]/gu, " ")         // remove pontuação
++    .replace(/\s+/g, " ")
++    .trim();
++  return base
++    .replace(/\bvc\b/g, "voce")
++    .replace(/\bvcs\b/g, "voces")
++    .replace(/\bq\b/g, "que")
++    .replace(/\bpra\b/g, "para")
++    .replace(/\btv's\b/g, "tvs")
++    .replace(/\biphone's\b/g, "iphones");
++}
++
++const STOPWORDS = new Set([
++  "e","tambem","também","mais","por","favor","pf","porfa",
++  "quero","queria","gostaria","mostra","mostrar","me","ver",
++  "algum","alguns","alguma","algumas","tem","temos","voc","voce","voces",
++  "de","do","da","os","as","um","uma","uns","umas","ai","aí","porfavor"
++]);
++export function tokenizePTBR(msg: string): string[] {
++  return normPTBR(msg).split(/\s+/g).filter(t => t && !STOPWORDS.has(t));
++}
++
++export const NUM_EXTENSO: Record<string, string> = {
++  "doze":"12","doze pro":"12 pro","treze":"13","treze pro":"13 pro",
++  "quatorze":"14","quatorze pro":"14 pro","quinze":"15","quinze pro":"15 pro"
++};
++
++// Produtos/categorias canônicos (sempre singular, PT/ES)
++export const PRODUCT_CANON: Record<string,string> = {
++  celular:"celular",celulares:"celular",smartphone:"celular",smartphones:"celular",
++  telefono:"celular",telefonos:"celular", telefone:"celular", telefones:"celular",
++  iphone:"iphone", iphones:"iphone", apple:"iphone",
++  galaxy:"galaxy", galaxys:"galaxy", samsung:"galaxy",
++  motorola:"motorola", xiaomi:"xiaomi", pixel:"pixel",
++  drone:"drone", drones:"drone", mavic:"drone", dji:"drone",
++  tv:"tv", tvs:"tv", televisao:"tv", televisoes:"tv", televisaoes:"tv", televisor:"tv", televisores:"tv",
++  camera:"camera", cameras:"camera", filmadora:"camera", filmadoras:"camera", camara:"camera", camaras:"camera",
++  notebook:"notebook", notebooks:"notebook", laptop:"notebook", laptops:"notebook",
++  fone:"fone", fones:"fone", auricular:"fone", auriculares:"fone", headset:"fone", headsets:"fone",
++  soundbar:"soundbar", soundbars:"soundbar",
++  perfume:"perfume", perfumes:"perfume", perfumaria:"perfume", perfumeria:"perfume",
++  cosmetico:"cosmetico", cosmeticos:"cosmetico", cosmetica:"cosmetico",
++  eletronico:"eletronico", electronico:"eletronico", electronicos:"eletronico",
++  eletrodomestico:"eletrodomestico", eletrodomesticos:"eletrodomestico",
++  bebida:"bebida", bebidas:"bebida", whisky:"bebida", gin:"bebida", vodka:"bebida", cerveja:"bebida", vino:"bebida", vinos:"bebida",
++  alimento:"alimento", alimentos:"alimento", comestible:"alimento", comestibles:"alimento", chocolate:"alimento", chocolates:"alimento",
++  calcado:"calcado", calcados:"calcado", calzado:"calcado", calzados:"calcado",
++  zapatilla:"calcado", zapatillas:"calcado", zapato:"calcado", zapatos:"calcado",
++};
++
++export const CATEGORY_CANON: Record<string,string> = {
++  eletronico:"eletronico", electronico:"eletronico", electronicos:"eletronico", electronica:"eletronico",
++  celular:"celular", celulares:"celular", smartphone:"celular", telefonos:"celular",
++  camera:"camera", cameras:"camera", camara:"camera", camaras:"camera",
++  drone:"drone", drones:"drone",
++  tv:"tv", tvs:"tv", televisor:"tv", televisores:"tv",
++  informatica:"informatica", notebook:"informatica", laptop:"informatica", computadores:"informatica", pc:"informatica", pcs:"informatica",
++  perfumaria:"perfumaria", perfume:"perfumaria", perfumes:"perfumaria", perfumeria:"perfumaria",
++  cosmetico:"cosmetico", cosmeticos:"cosmetico", cosmetica:"cosmetico",
++  bebida:"bebida", bebidas:"bebida", vino:"bebida", cerveja:"bebida",
++  alimento:"alimento", alimentos:"alimento", comestibles:"alimento",
++  calcado:"calcado", calzados:"calcado", zapatilla:"calcado", zapato:"calcado",
++  esporte:"esporte", deportes:"esporte",
++  eletrodomestico:"eletrodomestico", electrodomestico:"eletrodomestico",
++  decoracao:"decoracao", decoracion:"decoracao", casa:"decoracao", hogar:"decoracao",
++  camping:"camping", brinquedo:"brinquedo", juguetes:"brinquedo",
++  roupa:"roupa", moda:"roupa", ropa:"roupa"
++};
++
++export function toSingularPTBR(word: string): string {
++  const w = normPTBR(word);
++  if (PRODUCT_CANON[w]) return PRODUCT_CANON[w];
++  if (w.endsWith("oes")) return w.slice(0,-3)+"ao";
++  if (w.endsWith("aes")) return w.slice(0,-3)+"ao";
++  if (w.endsWith("ais")) return w.slice(0,-3)+"al";
++  if (w.endsWith("eis")) return w.slice(0,-3)+"el";
++  if (w.endsWith("is"))  return w.slice(0,-1)+"l";
++  if (w.endsWith("ns"))  return w.slice(0,-2)+"m";
++  if (w.length>3 && w.endsWith("s")) return w.slice(0,-1);
++  return w;
++}
++export function canonicalProductFromText(msg: string): string | null {
++  for (const t of tokenizePTBR(msg)) {
++    const canon = PRODUCT_CANON[t] ?? PRODUCT_CANON[toSingularPTBR(t)];
++    if (canon) return canon;
++  }
++  return null;
++}
++export function canonicalCategoryFromText(msg: string): string | null {
++  for (const t of tokenizePTBR(msg)) {
++    const canon = CATEGORY_CANON[t] ?? CATEGORY_CANON[toSingularPTBR(t)];
++    if (canon) return canon;
++  }
++  return null;
++}
+
+*** /dev/null
+--- a/src/utils/singularize.ts
+@@
++// src/utils/singularize.ts
++import { tokenizePTBR, toSingularPTBR, PRODUCT_CANON } from "./lang-ptbr";
++export function singularizePhrase(msg: string): string {
++  const toks = tokenizePTBR(msg);
++  return toks.map(t => PRODUCT_CANON[t] ?? PRODUCT_CANON[toSingularPTBR(t)] ?? t).join(" ");
++}
+
+*** /dev/null
+--- a/src/nlp/intent.ts
+@@
++// src/nlp/intent.ts
++import { normPTBR, canonicalProductFromText, canonicalCategoryFromText } from "../utils/lang-ptbr";
++
++export type Intent = "PRODUCT_SEARCH" | "SMALL_TALK" | "TIME_QUERY" | "WHOAMI" | "OUT_OF_DOMAIN" | "HELP" | "UNKNOWN";
++export interface IntentResult { intent: Intent; entities?: { product?: string; category?: string; model?: string }; }
++
++const SMALL_TALK_RX = /\b(oi|ol[aá]|bom dia|boa tarde|boa noite|tudo bem|como vai|e ai|e aí)\b/;
++const HELP_RX       = /\b(ajuda|como funciona|o que voc[eê] faz|menu|dica|sugest[aã]o)\b/;
++const TIME_RX       = /\b(que horas s[aã]o|hor[aá]rio|agora)\b/;
++const WHOAMI_RX     = /\b(qual seu nome|quem [ée] voc[eê]|sua fun[cç][aã]o)\b/;
++const DRONE_RX      = /\b(drone|drones|mavic|dj[ií])\b/;
++
++export function classifyIntent(msg: string): IntentResult {
++  const m = normPTBR(msg);
++  if (m.length < 2) return { intent: "UNKNOWN" };
++  if (TIME_RX.test(m)) return { intent: "TIME_QUERY" };
++  if (SMALL_TALK_RX.test(m)) return { intent: "SMALL_TALK" };
++  if (HELP_RX.test(m)) return { intent: "HELP" };
++  if (WHOAMI_RX.test(m)) return { intent: "WHOAMI" };
++
++  const productCanon  = canonicalProductFromText(m);
++  const categoryCanon = canonicalCategoryFromText(m);
++  if (productCanon || categoryCanon) {
++    const isDrone = DRONE_RX.test(m) || productCanon === "drone" || categoryCanon === "drone";
++    return {
++      intent: "PRODUCT_SEARCH",
++      entities: {
++        product: productCanon ?? undefined,
++        category: categoryCanon ?? (productCanon === "drone" ? "drone"
++                   : productCanon === "iphone" || productCanon === "galaxy" ? "celular"
++                   : productCanon ?? undefined),
++      }
++    };
++  }
++  return { intent: "UNKNOWN" };
++}
+
+*** /dev/null
+--- a/src/services/smalltalk.ts
+@@
++// src/services/smalltalk.ts
++export function replySmallTalk(): string {
++  const pool = [
++    "Oi! 👋 Bora achar uma oferta top?",
++    "E aí! 😄 Me diz o produto que eu garimpo aqui.",
++    "Bem-vindo(a)! ✨ Posso buscar iPhone, drone, perfume e mais."
++  ];
++  return pool[Math.floor(Math.random()*pool.length)];
++}
++export function replyHelp(): string {
++  return "Me diga o produto/categoria (ex.: iPhone 12, Galaxy 15, drone com câmera). Posso filtrar por marca e capacidade 😉";
++}
++export function replyTime(): string {
++  const now=new Date();const hh=String(now.getHours()).padStart(2,"0");const mm=String(now.getMinutes()).padStart(2,"0");
++  return `Agora são ${hh}:${mm} ⏰`;
++}
++export function replyWhoAmI(): string {
++  return "Eu sou o Gemini Assistant — vendedor digital que te ajuda a achar ofertas e acessórios certos. 🛍️";
++}
++export function replyOutOfDomain(exemplo?: string): string {
++  return `Ainda não consigo ajudar com isso. ${exemplo ?? "Me diga um produto (ex.: iPhone, drone, perfume) que eu busco 😊"}`;
++}
+
+*** /dev/null
+--- a/src/services/sessionStore.ts
+@@
++// src/services/sessionStore.ts
++export type SessionPayload = { focoAtual?: string|null; lastQuery?: string|null; categoriaAtual?: string|null; nomeCliente?: string|null; acessorios?: string[] };
++const mem = new Map<string, SessionPayload>();
++export async function getSession(id: string){ return mem.get(id) ?? null; }
++export async function updateSession(id: string, data: Partial<SessionPayload>){ const prev=mem.get(id)??{}; mem.set(id,{...prev,...data}); }
+
+*** /dev/null
+--- a/src/modules/buscaProduto.ts
+@@
++// src/modules/buscaProduto.ts
++import { ConversationMemory } from "../types/memory";
++import { normPTBR, NUM_EXTENSO, canonicalProductFromText } from "../utils/lang-ptbr";
++
++export interface ProdutoQuery {
++  produto?: string;
++  modelo?: string;
++  marca?: string;
++  armazenamento?: string;
++  atributos?: string[];
++  categoria?: string;
++  queryFinal?: string;
++}
++
++function extractModel(msg: string): { modelo?: string; armazenamento?: string } {
++  const m = normPTBR(msg);
++  const out: { modelo?: string; armazenamento?: string } = {};
++  for (const [k,v] of Object.entries(NUM_EXTENSO)) { if (m.includes(k)) out.modelo = v; }
++  const r1 = m.match(/\b(?:linha|modelo|versao|versão|serie|série)\s*(?:do|da|de)?\s*(\d{1,4})(?:\s*(pro|max|plus|ultra))?\b/);
++  if (r1) out.modelo = `${r1[1]}${r1[2]?` ${r1[2]}`:""}`;
++  if (!out.modelo) {
++    const r2 = m.match(/\b(\d{2,4})(?:\s*(pro|max|plus|ultra))?\b/);
++    if (r2) out.modelo = `${r2[1]}${r2[2]?` ${r2[2]}`:""}`;
++  }
++  const arm = m.match(/\b(64|128|256|512)\s*gb\b/); if (arm) out.armazenamento = `${arm[1]}gb`;
++  return out;
++}
++function extractBrand(msg: string): string|undefined {
++  const m = normPTBR(msg);
++  return m.match(/\b(apple|samsung|motorola|xiaomi|google|sony|lg|dji|gopro|calvin klein|dior|philips|arno|brastemp)\b/)?.[1];
++}
++function extractAttributes(msg: string): string[] {
++  const m = normPTBR(msg); const out=new Set<string>();
++  const map: Record<string,string> = {
++    "boa camera":"camera","boa camara":"camera","camera boa":"camera","camara buena":"camera",
++    "bateria":"bateria","compacto":"compacto","potente":"potente",
++    "masculino":"masculino","feminino":"feminino","4k":"4k","bluetooth":"bluetooth","noise cancelling":"noise_cancelling"
++  };
++  for (const k in map){ if (m.includes(k)) out.add(map[k]); }
++  return [...out];
++}
++
++export function interpretarBusca(msg: string, memoria: ConversationMemory): ProdutoQuery {
++  const produto = canonicalProductFromText(msg) ?? memoria?.focoAtual ?? memoria?.lastQuery ?? undefined;
++  const { modelo, armazenamento } = extractModel(msg);
++  const marca = extractBrand(msg);
++  const atributos = extractAttributes(msg);
++  const categoria = memoria?.categoriaAtual ?? undefined;
++
++  const parts = [produto, modelo, armazenamento, marca].filter(Boolean) as string[];
++  const queryFinal = parts.join(" ").trim();
++  return { produto, modelo, marca, armazenamento, atributos, categoria, queryFinal };
++}
+
+*** /dev/null
+--- a/src/modules/catalogo.ts
+@@
++// src/modules/catalogo.ts
++import { ProdutoQuery } from "./buscaProduto";
++
++export interface Produto {
++  id: string;
++  nome: string;
++  categoria: string;
++  marca?: string;
++  modelo?: string;
++  armazenamento?: string;
++  atributos?: string[];
++  descricao?: string;
++}
++
++const catalogo: Produto[] = []; // substitua pelo seu repositório/DB
++
++const norm = (s?:string)=> (s??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
++const includesNorm=(a?:string,b?:string)=>!b||!a?true:norm(a).includes(norm(b));
++const hasAll=(p:Produto,attrs?:string[])=>!attrs||attrs.length===0?true:attrs.every(x=>new Set((p.atributos??[]).map(norm)).has(norm(x)));
++
++function score(p:Produto,q:ProdutoQuery){ let s=0;
++  if (q.produto && norm(p.categoria)===norm(q.produto)) s+=5;
++  if (q.modelo && includesNorm(p.modelo,q.modelo)) s+=4;
++  if (q.marca && includesNorm(p.marca,q.marca)) s+=3;
++  if (q.armazenamento && includesNorm(p.armazenamento,q.armazenamento)) s+=2;
++  if (q.atributos?.length) s+=q.atributos.length;
++  if (q.queryFinal && includesNorm(p.nome,q.queryFinal)) s+=3;
++  return s;
++}
++
++type BuscaOpts = { categoria?:string|null; produto?:string|null; marca?:string|null; modelo?:string|null; armazenamento?:string|null; atributos?:string[]|null; texto?:string|null; };
++function filtrar(lista:Produto[], q:BuscaOpts){
++  return lista.filter(p=>{
++    const byCat = q.categoria? includesNorm(p.categoria,q.categoria):true;
++    const byProd= q.produto? (includesNorm(p.categoria,q.produto)||includesNorm(p.nome,q.produto)):true;
++    const byMod = q.modelo? (includesNorm(p.modelo,q.modelo)||includesNorm(p.nome,q.modelo)):true;
++    const byMar = q.marca?  (includesNorm(p.marca,q.marca)||includesNorm(p.nome,q.marca)):true;
++    const byArm = q.armazenamento? (includesNorm(p.armazenamento,q.armazenamento)||includesNorm(p.nome,q.armazenamento)):true;
++    const byAtt = hasAll(p,q.atributos??undefined);
++    const byTxt = q.texto? includesNorm(p.nome,q.texto):true;
++    return byCat && byProd && byMod && byMar && byArm && byAtt && byTxt;
++  });
++}
++
++export function buscarProdutos(q: ProdutoQuery): Produto[] {
++  let prelim = filtrar(catalogo, { categoria:q.categoria??null, produto:q.produto??null, marca:q.marca??null, modelo:q.modelo??null, armazenamento:q.armazenamento??null, atributos:q.atributos??null, texto:q.queryFinal??null });
++  if (!prelim.length && q.categoria) prelim = filtrar(catalogo, { ...q, categoria:null, texto:q.queryFinal??null });
++  if (!prelim.length && q.produto)   prelim = filtrar(catalogo, { produto:q.produto, categoria:null, marca:null, modelo:null, armazenamento:null, atributos:null, texto:null });
++  return prelim.map(p=>({p,s:score(p,q)})).sort((a,b)=>b.s-a.s).map(x=>x.p);
++}
+
+*** /dev/null
+--- a/src/persona/salesPersona.ts
+@@
++// src/persona/salesPersona.ts
++export type HumorLevel = "suave"|"medio"|"alto";
++export interface PersonaConfig { nome:string; humor:HumorLevel; emojiPack:string[]; tuteia:boolean; }
++export const SalesPersona: PersonaConfig = { nome:"Gemini Assistant", humor:"medio", emojiPack:["😉","😄","🛍️","✨","📦","🚀"], tuteia:true };
++export function pick<T>(arr:T[], seed?:number){ return arr[(seed ?? Math.floor(Math.random()*arr.length)) % arr.length]; }
+
+*** /dev/null
+--- a/src/logic/crossSell.ts
+@@
++// src/logic/crossSell.ts
++export const ACCESSORIES_BY_CATEGORY: Record<string,string[]> = {
++  celular:["capinha","película","carregador turbo","fones bluetooth","power bank","cabo usb-c"],
++  drone:["bateria extra","hélices","case rígido","cartão sd","hub de carga","protetor de hélices"],
++  perfume:["kit presente","necessaire","miniatura"],
++  tv:["soundbar","suporte parede","cabo hdmi","controle universal"]
++};
++export function nextAccessorySuggestion(cat?:string, already:string[]=[]):string[]{
++  if(!cat) return []; const pool=ACCESSORIES_BY_CATEGORY[cat]??[]; return pool.filter(x=>!already.includes(x)).slice(0,2);
++}
+
+*** /dev/null
+--- a/src/nlg/templates.ts
+@@
++// src/nlg/templates.ts
++import { PersonaConfig, pick } from "../persona/salesPersona";
++type Dict<T> = Record<string,T>;
++export interface MsgCtx { persona: PersonaConfig; produto?: string; categoria?: string; modelo?: string; marca?: string; count?: number; faltando?: Array<"modelo"|"marca"|"armazenamento">; }
++const greet = [
++  "Oi! {emoji} Bora achar a melhor oferta pra você?",
++  "E aí! {emoji} Me diz o que procura que eu garimpo aqui.",
++  "Bem-vindo(a)! {emoji} Posso buscar por iPhone, drone, perfume e mais."
++];
++const found = [
++  "Ótimo! Encontrei {count} {cat} para “{query}”. Dá uma olhada 👇",
++  "Boa escolha! Separei {count} opções de {cat} pra “{query}”. {emoji}",
++  "{emoji} Achei {count} resultado(s) que combinam com “{query}”."
++];
++const noResults = [
++  "Hmm, não achei nada pra “{query}”. {emoji} Quer tentar outra marca ou modelo?",
++  "Por aqui não rolou com “{query}”. Tenta especificar {hint} que eu encontro rapidinho!",
++  "Zerado pra “{query}”. {emoji} Se quiser, me diz {hint}."
++];
++const clarify: Dict<string[]> = {
++  modelo:[
++    "Prefere {produto} **{lista}**?",
++    "Tem algum {produto} **{lista}** em mente?",
++    "Quer ir de **{lista}** no {produto}?"
++  ],
++  marca:[
++    "Curte **Apple**, **Samsung** ou outra marca?",
++    "Tem marca preferida? (Apple, Samsung, Xiaomi…)",
++    "Posso filtrar por marca: **Apple**/**Samsung**/**Motorola**?"
++  ],
++  armazenamento:[
++    "Busca **64GB**, **128GB** ou **256GB**?",
++    "Qual capacidade agrada mais: **128GB**/**256GB**?",
++    "Quer espaço de **128GB** ou **256GB**?"
++  ]
++};
++const crossSell: Dict<string[]> = {
++  celular:[
++    "Aproveita e já quer **capinha** e **película**? Posso sugerir kits.",
++    "Quer incluir **carregador turbo** ou **fones BT** junto? {emoji}",
++    "Precisa de **cabo extra** ou **power bank** pra completar?"
++  ],
++  drone:[
++    "Pra drone, **bateria extra** e **hélices** salvam o dia. Te mostro?",
++    "Quer um **case rígido** ou **cartão SD** junto? {emoji}",
++    "Posso sugerir **protetor de hélices** e **hub de carga**."
++  ],
++  perfume:[
++    "Curte **kit presente** com nécessaire? {emoji}",
++    "Prefere **EDT** ou **EDP**? Posso sugerir ambos.",
++    "Quer ver **miniaturas** pra viagem junto?"
++  ],
++  tv:[
++    "Que tal uma **soundbar** pra completar? {emoji}",
++    "Precisa de **suporte de parede** ou **cabo HDMI**?",
++    "Posso sugerir **controle universal** e **extensão filtrada**."
++  ]
++};
++export function tGreet(ctx: MsgCtx){ return pick(greet).replace("{emoji}", "✨"); }
++export function tFound(ctx: MsgCtx & { query: string }){
++  const cat = ctx.categoria ?? ctx.produto ?? "itens";
++  return pick(found).replace("{count}", String(ctx.count ?? 0))
++    .replace("{cat}", cat)
++    .replace("{query}", ctx.modelo ? `${ctx.produto} ${ctx.modelo}` : (ctx.produto ?? ctx.categoria ?? "produto"))
++    .replace("{emoji}", "😄");
++}
++export function tNoResults(ctx: MsgCtx & { query: string }){
++  const need = ctx.faltando?.[0] ?? "mais detalhes";
++  const hint = need==="modelo" ? "o **modelo** (ex.: 12, 13 Pro)" : need==="marca" ? "a **marca** (ex.: Apple, Samsung)" : "a **capacidade** (ex.: 128GB)";
++  return pick(noResults).replace("{query}", ctx.query).replace("{hint}", hint).replace("{emoji}", "😉");
++}
++export function tClarify(ctx: MsgCtx){
++  if (!ctx.faltando?.length) return null;
++  const q = ctx.faltando[0];
++  const base = pick(clarify[q]);
++  const lista = q==="modelo" ? "12, 13, 15…" : q==="marca" ? "Apple, Samsung, Xiaomi…" : "64GB, 128GB, 256GB";
++  return base.replaceAll("{produto}", ctx.produto ?? "o produto").replaceAll("{lista}", lista);
++}
++export function tCrossSell(ctx: MsgCtx){
++  const bank = crossSell[(ctx.categoria ?? ctx.produto) ?? ""];
++  if (!bank) return null; return pick(bank).replace("{emoji}", "🛍️");
++}
+
+*** /dev/null
+--- a/src/nlg/say.ts
+@@
++// src/nlg/say.ts
++import { SalesPersona } from "../persona/salesPersona";
++import { tGreet, tFound, tNoResults, tClarify, tCrossSell } from "./templates";
++import { nextAccessorySuggestion } from "../logic/crossSell";
++import type { ConversationMemory } from "../types/memory";
++
++type Block = { type:"text"; text:string } | { type:"products"; items:any[] };
++export interface ComposeArgs {
++  query: { produto?:string; categoria?:string; modelo?:string; marca?:string; queryFinal?:string; faltando?: Array<"modelo"|"marca"|"armazenamento">; };
++  items: any[];
++  memory: ConversationMemory;
++}
++export function composeAnswer(args: ComposeArgs): Block[] {
++  const persona = SalesPersona; const { query, items, memory } = args; const blocks: Block[] = [];
++  if (!memory.lastQuery && !query.produto && !query.categoria) blocks.push({ type:"text", text:tGreet({ persona }) });
++  if (items.length>0){
++    blocks.push({ type:"text", text: tFound({ persona, produto:query.produto, categoria:query.categoria, modelo:query.modelo, count:items.length, query: query.queryFinal ?? query.produto ?? query.categoria ?? "" }) });
++    blocks.push({ type:"products", items });
++    const falta: Array<"modelo"|"marca"|"armazenamento"> = [];
++    if (!query.modelo && (query.produto==="iphone" || query.categoria==="celular")) falta.push("modelo");
++    if (!query.marca && ["celular","tv","notebook"].includes(query.categoria ?? "")) falta.push("marca");
++    // @ts-ignore
++    if (!query.armazenamento && query.produto==="iphone") falta.push("armazenamento");
++    const clar=tClarify({ persona, produto:query.produto, faltando:falta }); if (clar) blocks.push({ type:"text", text:clar });
++    const cat = query.categoria ?? query.produto; const novos = nextAccessorySuggestion(cat, memory.acessorios ?? []);
++    if (novos.length){ const cross=tCrossSell({ persona, categoria:cat }); if (cross) blocks.push({ type:"text", text: cross }); }
++  } else {
++    blocks.push({ type:"text", text: tNoResults({ persona, produto:query.produto, categoria:query.categoria, modelo:query.modelo, faltando:query.faltando??["modelo"], query: query.queryFinal ?? query.produto ?? "" }) });
++  }
++  return blocks;
++}
+
+*** /dev/null
+--- a/src/nlg/paraphrase.ts
+@@
++// src/nlg/paraphrase.ts
++// Parafraseador opcional (ligado por env USE_LLM_PARAPHRASE=1)
++type Facts = { intent:"PRODUCT"|"SMALL_TALK"|"HELP"|"TIME"; produto?:string; categoria?:string; modelo?:string; count?:number; cross?:string[]; };
++export async function paraphrase(facts: Facts, draft: string): Promise<string> {
++  // Coloque aqui seu provedor de LLM; abaixo é só um stub/fallback
++  // Ex.: const resp = await openai.responses.create({...});
++  return draft; // fallback determinístico
++}
+
+*** /dev/null
+--- a/src/types/memory.ts
+@@
++// src/types/memory.ts
++export interface ConversationMemory {
++  focoAtual: string | null;
++  lastQuery?: string | null;
++  nomeCliente?: string | null;
++  categoriaAtual?: string | null;
++  acessorios?: string[];
++}
+
+*** /dev/null
+--- a/src/assistant/pipeline.ts
+@@
++// src/assistant/pipeline.ts
++import { singularizePhrase } from "../utils/singularize";
++import { classifyIntent } from "../nlp/intent";
++import { getSession, updateSession } from "../services/sessionStore";
++import { interpretarBusca } from "../modules/buscaProduto";
++
++export async function processUserMessage(sessionId: string, raw: string){
++  const canonMsg = singularizePhrase(raw);
++  const intent = classifyIntent(canonMsg);
++  if (intent.intent !== "PRODUCT_SEARCH") return { intent, canonMsg };
++  const sess = (await getSession(sessionId)) ?? {};
++  if (intent.entities?.product) await updateSession(sessionId, { focoAtual:intent.entities.product });
++  const query = interpretarBusca(canonMsg, { focoAtual:intent.entities?.product ?? (sess as any).focoAtual ?? null, lastQuery: (sess as any).lastQuery ?? null } as any);
++  await updateSession(sessionId, { lastQuery: query.produto ?? (sess as any).lastQuery ?? null });
++  return { intent, canonMsg, query };
++}
+
+*** /dev/null
+--- a/src/services/conversation.ts
+@@
++// src/services/conversation.ts
++import { classifyIntent } from "../nlp/intent";
++import { montarConsulta, detectarFoco, extrairModeloPTBR } from "../nlp/query-builder"; /* se já existir, senão ignore import */
++import { getSession, updateSession } from "./sessionStore";
++import { replyHelp, replyOutOfDomain, replySmallTalk, replyTime, replyWhoAmI } from "./smalltalk";
++import { canonicalProductFromText, tokenizePTBR, normPTBR } from "../utils/lang-ptbr";
++import { composeAnswer } from "../nlg/say";
++import type { ConversationMemory } from "../types/memory";
++import { buscarProdutos } from "../modules/catalogo";
++import { interpretarBusca } from "../modules/buscaProduto";
++
++export async function runAssistant(sessionId: string, userMsg: string){
++  const intent = classifyIntent(userMsg);
++  if (intent.intent === "SMALL_TALK") return { kind:"SMALL_TALK", text: replySmallTalk() };
++  if (intent.intent === "HELP")       return { kind:"HELP", text: replyHelp() };
++  if (intent.intent === "TIME_QUERY") return { kind:"TIME", text: replyTime() };
++  if (intent.intent === "WHOAMI")     return { kind:"SMALL_TALK", text: replyWhoAmI() };
++
++  const sess = (await getSession(sessionId)) ?? {};
++  const toks = tokenizePTBR(userMsg); const startsAnd = ["e","tambem","também"].includes(toks[0]);
++  const novoProduto = canonicalProductFromText(userMsg);
++  const novoFoco = startsAnd && novoProduto ? novoProduto : novoProduto;
++  if (novoFoco) await updateSession(sessionId, { focoAtual: novoFoco, categoriaAtual: null, lastQuery: null });
++  const foco = (novoFoco ?? (sess as any).focoAtual ?? null) as string|null;
++
++  const query = interpretarBusca(userMsg, { focoAtual:foco, lastQuery:(sess as any).lastQuery ?? null } as any);
++  const items = buscarProdutos(query);
++  const memory = (sess as ConversationMemory) ?? { focoAtual:null };
++  const blocks = composeAnswer({ items, query, memory });
++  const text = blocks.filter(b=>b.type==="text").map(b=>b.text).join("\n\n");
++  return { kind:"PRODUCT", queryFinal: query.queryFinal, items, text };
++}
+
+*** a/server/routes.ts
+--- b/server/routes.ts
+@@
+-import type { Request, Response } from "express";
++import type { Request, Response } from "express";
++import { processUserMessage } from "../src/assistant/pipeline";
++import { buscarProdutos } from "../src/modules/catalogo";
++import { composeAnswer } from "../src/nlg/say";
++import { replyHelp, replyOutOfDomain, replySmallTalk, replyTime, replyWhoAmI } from "../src/services/smalltalk";
+@@
+-router.post("/assistant/query", async (req, res, next) => {
+-  try {
+-    const { message } = req.body as { message?: string };
+-    const msg = requireString(message, "message é obrigatório");
+-    const sid = String(req.sessionID ?? req.headers["x-session-id"] ?? "anon");
+-
+-    const result = await runAssistant(sid, msg);
+-    // Resposta unificada para o front
+-    return res.json({
+-      ok: true,
+-      kind: result.kind,
+-      text: result.text,
+-      queryFinal: result.queryFinal,
+-      items: result.items,
+-    });
+-  } catch (e) { next(e); }
+-});
++router.post("/assistant/query", async (req, res, next) => {
++  try {
++    const { message } = req.body as { message?: string };
++    if (!message || !message.trim()) return res.status(400).json({ ok:false, error:"Mensagem vazia" });
++    const sid = String(req.sessionID ?? req.headers["x-session-id"] ?? "anon");
++    const { intent, canonMsg, query } = await processUserMessage(sid, message);
++    if (!intent || intent.intent !== "PRODUCT_SEARCH") {
++      const map:any = { SMALL_TALK: replySmallTalk(), HELP: replyHelp(), TIME_QUERY: replyTime(), WHOAMI: replyWhoAmI(), OUT_OF_DOMAIN: replyOutOfDomain() };
++      return res.json({ ok:true, kind: intent?.intent ?? "UNKNOWN", text: map[intent?.intent ?? "OUT_OF_DOMAIN"] });
++    }
++    const items = buscarProdutos(query!);
++    const blocks = composeAnswer({ items, query: query!, memory: { focoAtual: query?.produto ?? null } as any });
++    const text = blocks.filter(b=>b.type==="text").map(b=>b.text).join("\n\n");
++    return res.json({ ok:true, kind:"PRODUCT", text, queryFinal: query?.queryFinal, items, debug: { original: message, canon: canonMsg, query } });
++  } catch (e) { next(e); }
++});
+
+Notas rápidas
+
+O patch não amarra a nenhum provedor LLM. Se quiser o gerativo, implemente a chamada dentro de paraphrase.ts e use um USE_LLM_PARAPHRASE=1.
+
+A busca usa filtros estruturados e fallback (remove categoria/slots quando vazio) + ranking simples.
+
+As respostas agora têm tom de vendedor com cross-sell e perguntas inteligentes.
+
+Pipeline único garante plural/singular PT/ES, “e perfumes?”, small talk e comandos.
+
+Qualquer conflito de path/nomes, me diga que ajusto o diff exatamente para sua estrutura.

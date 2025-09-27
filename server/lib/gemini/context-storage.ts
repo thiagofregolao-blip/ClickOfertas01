@@ -8,6 +8,7 @@ export interface ConversationContext {
   focoAtual?: string | null;          // Produto atual no foco (ex: "iphone")
   ultimaQuery?: string | null;        // Última query executada
   ultimosModelos?: string[];          // Modelos mencionados recentemente
+  acessoriosSugeridos?: string[];     // Acessórios sugeridos para evitar repetição
   lastUpdated?: string;               // Timestamp da última atualização
 }
 
