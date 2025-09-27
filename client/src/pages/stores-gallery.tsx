@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share, BarChart3, Plus, Smartphone, Droplets, Laptop, Monitor, Brain } from "lucide-react";
+import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share, BarChart3, Plus, Smartphone, Droplets, Laptop, Monitor, Brain, Sparkles } from "lucide-react";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import LoginPage from "@/components/login-page";
@@ -759,9 +759,57 @@ export default function StoresGallery() {
                   </Button>
                 </Link>
                 
-                {/* Click Pro Assistant Bar - A BARRA É O ASSISTENTE */}
+                {/* Barra Principal Gemini - Visual diferenciado */}
                 <div className="flex-1 max-w-4xl">
-                  <AssistantBar />
+                  <div className="relative">
+                    <div className="relative flex items-center bg-gradient-to-r from-primary/5 to-orange-50 dark:from-primary/10 dark:to-orange-950/30 border-2 border-primary/20 dark:border-primary/30 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
+                      
+                      {/* Ícone Gemini */}
+                      <div className="absolute left-4 flex items-center">
+                        <Sparkles className="h-5 w-5 text-primary dark:text-primary/80" />
+                      </div>
+                      
+                      {/* Input */}
+                      <input
+                        type="text"
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onFocus={() => {
+                          // Focus handling pode ser adicionado aqui
+                        }}
+                        onBlur={() => {
+                          // Blur handling pode ser adicionado aqui
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            // Submit handling
+                          }
+                        }}
+                        placeholder="✨ Gemini powered: Chat inteligente + follow-up"
+                        className="w-full pl-12 pr-20 py-4 text-lg bg-transparent border-0 outline-none placeholder-primary/60 dark:placeholder-primary/70 text-gray-900 dark:text-gray-100"
+                        data-testid="input-gemini-search"
+                        autoComplete="off"
+                      />
+                      
+                      {/* Botão de busca */}
+                      <button
+                        type="submit"
+                        onClick={() => {
+                          // Submit logic
+                        }}
+                        disabled={!searchInput.trim()}
+                        className="absolute right-4 flex items-center justify-center w-10 h-10 bg-primary hover:bg-primary/90 disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        data-testid="button-gemini-search"
+                      >
+                        <Search className="h-5 w-5" />
+                      </button>
+                    </div>
+                    
+                    {/* Badge Gemini */}
+                    <div className="absolute -top-2 left-6 px-3 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full shadow-md">
+                      GEMINI AI
+                    </div>
+                  </div>
                 </div>
 
                 {/* Sino de notificações - Desktop */}
