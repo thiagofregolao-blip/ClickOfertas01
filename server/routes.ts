@@ -7036,12 +7036,48 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       }
     }
 
-    // Frase curta baseada no termo/brand
-    function fraseResumo(query: string, ofertas: any[]) {
-      const q = (query || "").toLowerCase();
-      const marcas = new Set((ofertas || []).map(o => (o.marca || "").toLowerCase()));
-      const tem = (s: string) => q.includes(s) || [...marcas].some(m => m.includes(s));
+    // =============== MENSAGENS EXATAS (templates) =================
 
+    // 1) Quando a consulta é genérica (ex.: "iphone", "perfumes", "drone")
+    function msgGenericFound(segmento: string) {
+      return `Vejo que você está buscando ${segmento}. Listei alguns modelos abaixo. Me diga qual você quer! 😉`;
+    }
+
+    // 2) Quando encontrou itens específicos (ex.: "iphone 13")
+    function msgSpecificFound() {
+      return "Achei opções e deixei nos resultados abaixo. Quer que eu refine por armazenamento/cor?";
+    }
+
+    // 3) Quando não encontrou nada
+    function msgNoResults() {
+      return "Não achei itens com esse termo. Me diga o modelo exato para eu buscar certinho 🙂";
+    }
+
+    // 4) Continuação natural quando o usuário muda o foco ("quero o 13")
+    function msgContextRefine(novoFoco: string) {
+      return `Beleza! Foquei em ${novoFoco}. Se preferir, eu comparo duas opções lado a lado.`;
+    }
+
+    // 5) Pergunta leve (máx 1) depois de mostrar – opcional
+    function msgSoftQuestion(tema: string) {
+      return `Prefere ${tema}? Posso ajustar os resultados.`;
+    }
+
+    // 6) Sanitização de qualquer texto do modelo (garantia dupla no chat)
+    function sanitizeChat(text = "") {
+      return String(text)
+        .replace(/!\[[^\]]*\]\([^)]+\)/g, "")        // imagens
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")   // links → só texto
+        .replace(/https?:\/\/\S+/g, "")             // URLs cruas
+        .replace(/\s{2,}/g, " ")
+        .trim();
+    }
+
+    // 7) Deduções simples para frase genérica
+    function segmentoDaQuery(query: string, ofertas: any[] = []) {
+      const q = (query || "").toLowerCase();
+      const marcas = new Set(ofertas.map(o => (o.marca || "").toLowerCase()));
+      const tem = (s: string) => q.includes(s) || [...marcas].some(m => m.includes(s));
       if (tem("iphone") || tem("apple")) return "aparelhos da Apple";
       if (tem("samsung") || tem("galaxy")) return "aparelhos Samsung";
       if (tem("drone")) return "drones";
@@ -7049,21 +7085,14 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       return "esses produtos";
     }
 
-    // Função para sanitizar texto (remover links/imagens)
-    function sanitizeChat(text = "") {
-      return String(text)
-        .replace(/!\[[^\]]*\]\([^)]+\)/g, "")       // imagens markdown
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")  // links markdown → só texto
-        .replace(/https?:\/\/\S+/g, "")            // URLs cruas
-        .replace(/\s{2,}/g, " ")
-        .trim();
-    }
-
-    // Sistema conversacional
+    // Sistema conversacional (show-then-ask, natural)
     const SYSTEM_STYLE = `
-Você é o Assistente do Click Ofertas.
-- No chat: nunca escreva links/URLs, nem markdown de imagem (![]()) ou de link ([]()).
-- Não invente produtos; use somente os retornados pela ferramenta.
+Você é o Assistente de Compras do Click Ofertas.
+Tom: natural, bem-humorado (1 emoji no máx quando couber), direto ao ponto.
+Regras:
+- Mostre primeiro: nunca bloqueie a conversa pedindo cidade/preço. Pergunte só se agregar valor e no máx 1 pergunta.
+- No chat: não cole links/URLs/imagens; não liste catálogos. A lista completa aparece no painel de resultados.
+- Seja útil como um vendedor amigo: sugira comparações, opções próximas e dicas curtas.
 `.trim();
 
     const TOOLS = [
@@ -7094,59 +7123,62 @@ Você é o Assistente do Click Ofertas.
     try {
       const userQuery = String(message || "").trim();
 
-      // 1) Busca PRÉVIA *sempre* com o que o usuário digitou (prefetch)
-      let ofertas: any[] = [];
-      if (userQuery.length >= 2) {
-        ofertas = await buscarOfertas({ query: userQuery, maxResultados: 12 });
-        // Injetamos para dar contexto ao modelo (mas NÃO permitimos novas tool calls)
-        msgs.push({
-          role: "assistant" as const,
-          content: `Encontrei ${ofertas.length} produtos para "${userQuery}"`
-        });
+      // 1) Mostra primeiro (prefetch com a própria mensagem)
+      const ofertas = userQuery ? await buscarOfertas({ query: userQuery, maxResultados: 12 }) : [];
+
+      // 2) Decide mensagem "exata" a partir do contexto
+      let text;
+      if (ofertas.length === 0) {
+        text = msgNoResults();
+      } else {
+        // Heurística simples: se a query tem 1–2 palavras => genérico; caso contrário específico.
+        const tokens = userQuery.split(/\s+/).filter(Boolean);
+        if (tokens.length <= 2) {
+          text = msgGenericFound(segmentoDaQuery(userQuery, ofertas));
+        } else {
+          text = msgSpecificFound();
+        }
       }
 
-      // 2) Pedimos uma resposta do modelo apenas para "tom de voz"
-      //    tool_choice: "none" impede que ele volte a perguntar cidade/preço
-      const resp = await clickClient.chat.completions.create({
+      // 3) Pede ao modelo para lapidar o tom (sem permitir tool/refinamentos automáticos)
+      const polish = await clickClient.chat.completions.create({
         model: process.env.CHAT_MODEL || "gpt-4o-mini",
-        temperature: 0.5,
-        messages: msgs,
-        tools: TOOLS,
-        tool_choice: "none"
+        temperature: 0.4,
+        messages: [
+          { role: "system" as const, content: SYSTEM_STYLE },
+          { role: "user" as const, content: `Reescreva de forma natural e simpática, 1–2 frases no máximo, sem links/imagens: "${text}"` }
+        ]
       });
+      const polished = sanitizeChat(polish.choices?.[0]?.message?.content || text);
 
-      // 3) Ignoramos qualquer tentativa de listar itens/links e forçamos a frase curta
-      let text = sanitizeChat(resp.choices?.[0]?.message?.content || "");
-
+      // 4) (Opcional) 1 pergunta leve após mostrar
+      let pergunta = "";
       if (ofertas.length > 0) {
-        const alvo = fraseResumo(userQuery, ofertas);
-        text = `Vejo que você está buscando ${alvo}. Listei alguns modelos abaixo. Me fale qual o modelo você gostaria de comprar!`;
-        
-        // Enviar produtos primeiro
+        // exemplos de temas – ajuste se quiser
+        if (/iphone|apple/i.test(userQuery)) pergunta = msgSoftQuestion("linha 13 ou 15");
+        else if (/drone/i.test(userQuery)) pergunta = msgSoftQuestion("compacto ou câmera mais parruda");
+        else if (/perfume/i.test(userQuery)) pergunta = msgSoftQuestion("marcas favoritas (Dior, Calvin Klein...)");
+      }
+      const finalText = sanitizeChat([polished, pergunta].filter(Boolean).join(" "));
+
+      // 5) Entrega: produtos primeiro (se houver), depois chat curto
+      if (ofertas.length > 0) {
         send('products', {
           products: ofertas.map((p: any) => ({ ...p, name: p.title })),
           query: userQuery,
           hardGrounding: true
         });
-      } else {
-        // 4) Sem resultados → nada de cidade/preço
-        if (!text) {
-          text = "Não encontrei itens com esse termo. Diga o nome exato do modelo que você quer ver 🙂";
-        } else {
-          // garante que não haja listagem/links
-          text = sanitizeChat(text);
-        }
       }
 
-      // Enviar resposta final
-      send('delta', { text });
+      // Enviar resposta final via streaming
+      send('delta', { text: finalText });
       
       try {
         await storage.createAssistantMessage({
           sessionId,
           role: 'assistant',
-          content: text,
-          metadata: { streamed: true, timestamp: new Date().toISOString(), prefetch: true }
+          content: finalText,
+          metadata: { streamed: true, timestamp: new Date().toISOString(), showThenAsk: true }
         });
       } catch (error) {
         console.warn('Erro ao salvar resposta:', error);

@@ -1,0 +1,282 @@
+Click Ofertas — Assistente de Compras (show-then-ask, natural)
+
+Stack & versão: Node 18+
+
+O que muda
+
+Mostra primeiro (prefetch com o texto do usuário).
+
+Chat curto, sem link/imagem, nunca lista produtos.
+
+Máx 1 pergunta opcional após exibir resultados.
+
+Mensagens exatas abaixo usadas só quando necessário (genérico/sem resultado/continuação).
+
+Árvore de diretórios
+click-assistant/
+├─ src/
+│  ├─ server.js
+│  ├─ ai/
+│  │  ├─ openai.js
+│  │  ├─ chat.js
+│  │  └─ messages.js        # ← mensagens exatas (templates)
+│  └─ services/
+│     └─ catalog.js         # mock; troque pelo seu catálogo real
+├─ package.json
+├─ .replit
+└─ replit.nix
+
+// package.json
+{
+  "name": "click-assistant",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node -e \"console.log('ok')\""
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "openai": "^4.56.0"
+  }
+}
+
+# .replit
+run = "npm install && npm run start"
+
+# replit.nix
+{ pkgs }: {
+  deps = [ pkgs.nodejs-18_x pkgs.nodePackages.npm ];
+}
+
+// src/ai/openai.js
+import OpenAI from "openai";
+export const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// src/services/catalog.js
+// 🔁 TROQUE PELO SEU DB/API mantendo a assinatura de buscarOfertas({query,maxResultados})
+const CATALOGO = [
+  { id: "P1", titulo: "iPhone 13 128GB", preco: 980, loja: "Cell Shop", imagem: "#", link: "#" , marca:"Apple", categoria:"celulares"},
+  { id: "P2", titulo: "iPhone 15 128GB", preco: 1199, loja: "Cell Shop", imagem: "#", link: "#", marca:"Apple", categoria:"celulares" },
+  { id: "P3", titulo: "Perfume Dior Sauvage EDT 100ml", preco: 135, loja: "Cell Shop", imagem: "#", link: "#", marca:"Dior", categoria:"perfumes" },
+  { id: "P4", titulo: "Drone DJI Mini 2", preco: 680, loja: "Shopping China", imagem:"#", link:"#", marca:"DJI", categoria:"drones" },
+  { id: "P5", titulo: "iPhone 12 64GB", preco: 750, loja: "Atacado Store", imagem:"#", link:"#", marca:"Apple", categoria:"celulares" }
+];
+
+export async function buscarOfertas({ query, maxResultados = 12 } = {}) {
+  const q = String(query || "").toLowerCase().trim();
+  if (!q) return [];
+  let arr = CATALOGO.filter(p =>
+    p.titulo.toLowerCase().includes(q) ||
+    (p.marca||"").toLowerCase().includes(q) ||
+    (p.categoria||"").toLowerCase().includes(q)
+  );
+  arr.sort((a,b)=> a.preco - b.preco);
+  return arr.slice(0, Math.max(1, Math.min(50, maxResultados)));
+}
+
+// src/ai/messages.js
+// =============== MENSAGENS EXATAS (templates) =================
+
+// 1) Quando a consulta é genérica (ex.: “iphone”, “perfumes”, “drone”)
+export function msgGenericFound(segmento) {
+  return `Vejo que você está buscando ${segmento}. Listei alguns modelos abaixo. Me diga qual você quer! 😉`;
+}
+
+// 2) Quando encontrou itens específicos (ex.: “iphone 13”)
+export function msgSpecificFound() {
+  return "Achei opções e deixei nos resultados abaixo. Quer que eu refine por armazenamento/cor?";
+}
+
+// 3) Quando não encontrou nada
+export function msgNoResults() {
+  return "Não achei itens com esse termo. Me diga o modelo exato para eu buscar certinho 🙂";
+}
+
+// 4) Continuação natural quando o usuário muda o foco (“quero o 13”)
+export function msgContextRefine(novoFoco) {
+  return `Beleza! Foquei em ${novoFoco}. Se preferir, eu comparo duas opções lado a lado.`;
+}
+
+// 5) Pergunta leve (máx 1) depois de mostrar – opcional
+export function msgSoftQuestion(tema) {
+  // exemplos: "linha 13 ou 15", "compacto ou bateria forte"
+  return `Prefere ${tema}? Posso ajustar os resultados.`;
+}
+
+// 6) Sanitização de qualquer texto do modelo (garantia dupla no chat)
+export function sanitizeChat(text = "") {
+  return String(text)
+    .replace(/!\[[^\]]*]\([^)]+\)/g, "")        // imagens
+    .replace(/\[([^\]]+)]\(([^)]+)\)/g, "$1")   // links → só texto
+    .replace(/https?:\/\/\S+/g, "")             // URLs cruas
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+// 7) Deduções simples para frase genérica
+export function segmentoDaQuery(query, ofertas=[]) {
+  const q = (query||"").toLowerCase();
+  const marcas = new Set(ofertas.map(o => (o.marca||"").toLowerCase()));
+  const tem = (s) => q.includes(s) || [...marcas].some(m => m.includes(s));
+  if (tem("iphone") || tem("apple")) return "aparelhos da Apple";
+  if (tem("samsung") || tem("galaxy")) return "aparelhos Samsung";
+  if (tem("drone")) return "drones";
+  if (tem("perfume")) return "perfumes";
+  return "esses produtos";
+}
+
+// src/ai/chat.js
+/**
+ * Política implementada:
+ * - Prefetch sempre (mostra primeiro, pergunta depois).
+ * - Chat curto (1–2 frases), sem links/imagens, NUNCA lista produtos.
+ * - IA continua natural: usamos templates só p/ manter experiência coesa.
+ */
+import { openai } from "./openai.js";
+import { buscarOfertas } from "../services/catalog.js";
+import {
+  msgGenericFound, msgSpecificFound, msgNoResults, msgContextRefine,
+  msgSoftQuestion, sanitizeChat, segmentoDaQuery
+} from "./messages.js";
+
+const SYSTEM_STYLE = `
+Você é o Assistente de Compras do Click Ofertas.
+Tom: natural, bem-humorado (1 emoji no máx quando couber), direto ao ponto.
+Regras:
+- Mostre primeiro: nunca bloqueie a conversa pedindo cidade/preço. Pergunte só se agregar valor e no máx 1 pergunta.
+- No chat: não cole links/URLs/imagens; não liste catálogos. A lista completa aparece no painel de resultados.
+- Seja útil como um vendedor amigo: sugira comparações, opções próximas e dicas curtas.
+`.trim();
+
+export async function chatOnce({ message }) {
+  const userQuery = String(message || "").trim();
+  const messages = [
+    { role: "system", content: SYSTEM_STYLE },
+    { role: "user", content: userQuery }
+  ];
+
+  // 1) Mostra primeiro (prefetch com a própria mensagem)
+  const ofertas = userQuery ? await buscarOfertas({ query: userQuery, maxResultados: 12 }) : [];
+
+  // 2) Decide mensagem “exata” a partir do contexto
+  let text;
+  if (ofertas.length === 0) {
+    text = msgNoResults();
+  } else {
+    // Heurística simples: se a query tem 1–2 palavras => genérico; caso contrário específico.
+    const tokens = userQuery.split(/\s+/).filter(Boolean);
+    if (tokens.length <= 2) {
+      text = msgGenericFound(segmentoDaQuery(userQuery, ofertas));
+    } else {
+      text = msgSpecificFound();
+    }
+  }
+
+  // 3) Pede ao modelo para lapidar o tom (sem permitir tool/refinamentos automáticos)
+  const polish = await openai.chat.completions.create({
+    model: process.env.CHAT_MODEL || "gpt-4o-mini",
+    temperature: 0.4,
+    messages: [
+      { role: "system", content: SYSTEM_STYLE },
+      { role: "user", content: `Reescreva de forma natural e simpática, 1–2 frases no máximo, sem links/imagens: "${text}"` }
+    ]
+  });
+  const polished = sanitizeChat(polish.choices?.[0]?.message?.content || text);
+
+  // 4) (Opcional) 1 pergunta leve após mostrar
+  let pergunta = "";
+  if (ofertas.length > 0) {
+    // exemplos de temas – ajuste se quiser
+    if (/iphone|apple/i.test(userQuery)) pergunta = msgSoftQuestion("linha 13 ou 15");
+    else if (/drone/i.test(userQuery))  pergunta = msgSoftQuestion("compacto ou câmera mais parruda");
+    else if (/perfume/i.test(userQuery)) pergunta = msgSoftQuestion("marcas favoritas (Dior, Calvin Klein...)");
+  }
+  const finalText = sanitizeChat([polished, pergunta].filter(Boolean).join(" "));
+
+  // 5) Entrega: chat curto + ofertas para o painel
+  return { text: finalText, ofertas };
+}
+
+// src/server.js
+import express from "express";
+import cors from "cors";
+import { chatOnce } from "./ai/chat.js";
+
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: "1mb" }));
+
+app.get("/health", (_req, res) => res.json({ ok: true }));
+
+// POST /ai/chat { message } -> { text, ofertas[] }
+app.post("/ai/chat", async (req, res) => {
+  try {
+    const { message } = req.body || {};
+    if (!message || typeof message !== "string") return res.status(400).json({ error: "message obrigatório" });
+    const result = await chatOnce({ message });
+    res.json(result);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ text: "Dei uma tropeçada aqui 🤹 Tenta de novo?", ofertas: [] });
+  }
+});
+
+// Demo rápida
+app.get("/", (_req, res) => {
+  res.type("html").send(`
+  <meta charset="utf-8" />
+  <h3>Click Assistant — demo</h3>
+  <input id="msg" style="width:420px" placeholder="ex.: iphone / drone / perfumes" />
+  <button onclick="send()">Enviar</button>
+  <pre id="out"></pre>
+  <script>
+  async function send(){
+    const r = await fetch('/ai/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ message: document.getElementById('msg').value })});
+    document.getElementById('out').textContent = JSON.stringify(await r.json(), null, 2);
+  }
+  </script>`);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("http://localhost:"+PORT));
+
+“Mensagens exatas” (resumo, para você revisar/editar)
+
+Genérico (iphone/drone/perfumes):
+Vejo que você está buscando {segmento}. Listei alguns modelos abaixo. Me diga qual você quer! 😉
+
+Específico (ex.: “iphone 13”):
+Achei opções e deixei nos resultados abaixo. Quer que eu refine por armazenamento/cor?
+
+Sem resultado:
+Não achei itens com esse termo. Me diga o modelo exato para eu buscar certinho 🙂
+
+Refino por contexto (ex.: “quero o 13”):
+Beleza! Foquei em {novoFoco}. Se preferir, eu comparo duas opções lado a lado.
+
+Pergunta leve (opcional, 1 por vez):
+
+iPhone/Apple → Prefere linha 13 ou 15? Posso ajustar os resultados.
+
+Drone → Prefere compacto ou câmera mais parruda? Posso ajustar os resultados.
+
+Perfume → Quer que eu foque em marcas favoritas (Dior, Calvin Klein...)?
+
+Você pode editar todas no src/ai/messages.js sem tocar no resto do código.
+
+Como rodar
+
+No Replit: adicione os arquivos, crie Secret OPENAI_API_KEY.
+
+Run.
+
+Frontend chama POST /ai/chat com { message } e renderiza:
+
+text no balão do chat,
+
+ofertas[] no painel de produtos.
