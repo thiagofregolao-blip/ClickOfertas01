@@ -1,0 +1,273 @@
+Perfeito — vou matar os 30 erros do server/routes.ts com um patch focado em:
+
+Normalizar null | undefined → tipos seguros
+
+Garantir propriedades (maxRedemptions, model, isActive)
+
+Parar de tratar {} como array
+
+Tipar sessão (req.session.user?.id)
+
+Integrar com o builder de consulta (se você já aplicou o patch anterior)
+
+Aplique os diffs abaixo a partir da raiz do projeto.
+
+1) Tipos da sessão (corrige req.session.user)
+*** /dev/null
+--- a/src/types/express-session.d.ts
+@@
++import "express-session";
++
++declare module "express-session" {
++  interface SessionData {
++    user?: {
++      id: string;
++      email?: string | null;
++      roles?: string[];
++    } | null;
++  }
++}
+
+2) Helpers de validação/conversão (corrige string|null|undefined, boolean, int, arrays)
+*** /dev/null
+--- a/src/utils/guards.ts
+@@
++// Helpers simples, sem dependências, para padronizar tipos de entrada.
++export type Nullable<T> = T | null | undefined;
++
++export function isNonEmptyString(v: unknown): v is string {
++  return typeof v === "string" && v.trim() !== "";
++}
++
++export function requireString(v: Nullable<string>, msg = "campo obrigatório"): string {
++  if (!isNonEmptyString(v)) throw new Error(msg);
++  return v.trim();
++}
++
++export function optionalString(v: Nullable<string>): string | undefined {
++  return isNonEmptyString(v) ? v.trim() : undefined;
++}
++
++export function toBool(v: unknown, def = false): boolean {
++  if (typeof v === "boolean") return v;
++  if (typeof v === "string") return ["1", "true", "on", "yes"].includes(v.toLowerCase());
++  if (typeof v === "number") return v !== 0;
++  return def;
++}
++
++export function toInt(v: unknown, def?: number): number | undefined {
++  if (v === null || v === undefined || v === "") return def;
++  const n = typeof v === "number" ? v : parseInt(String(v), 10);
++  return Number.isFinite(n) ? n : def;
++}
++
++export function ensureArray<T = unknown>(v: unknown): T[] {
++  return Array.isArray(v) ? (v as T[]) : [];
++}
+
+3) Tipos de domínio usados nas rotas (inclui model, isActive, maxRedemptions)
+*** /dev/null
+--- a/src/types/domain.ts
+@@
++export interface CouponCreateDTO {
++  code: string;
++  maxRedemptions?: number;   // opcional → evita “propriedade inexistente”
++  isActive?: boolean;        // opcional → default false/true conforme regra
++}
++
++export interface ProductCreateDTO {
++  name: string;
++  brand?: string;
++  model?: string;            // opcional, presente no payload
++  price?: number;
++  isActive?: boolean;
++}
++
++export interface ToggleActiveDTO {
++  id: string;
++  isActive: boolean;
++}
+
+4) PATCH do server/routes.ts
+
+Entra no topo: imports + utils; e ajustes de rotas comuns que costumam quebrar o tipo.
+
+Se seus nomes de funções diferirem (ex.: repo.*), ajuste nos pontos marcados.
+
+*** a/server/routes.ts
+--- b/server/routes.ts
+@@
+-import { Router } from "express";
++import { Router } from "express";
++import { requireString, optionalString, toBool, toInt, ensureArray } from "../src/utils/guards";
++import type { CouponCreateDTO, ProductCreateDTO, ToggleActiveDTO } from "../src/types/domain";
++// Se aplicou o patch de contexto/NLP:
++// import { montarConsulta, detectarFoco } from "../src/nlp/query-builder";
++// import { getSession, updateSession } from "../src/services/sessionStore";
+ 
+ const router = Router();
+ 
+@@
+-// EXEMPLO: criar cupom (erros: maxRedemptions, isActive)
+-router.post("/coupons", async (req, res, next) => {
+-  try {
+-    const { code, maxRedemptions, isActive } = req.body;
+-    const created = await repo.coupons.create({ code, maxRedemptions, isActive });
+-    res.json(created);
+-  } catch (e) { next(e); }
+-});
++// EXEMPLO: criar cupom (corrige null/undefined e propriedades faltantes)
++router.post("/coupons", async (req, res, next) => {
++  try {
++    const body = req.body as Partial<CouponCreateDTO>;
++    const payload: CouponCreateDTO = {
++      code: requireString(body.code, "code é obrigatório"),
++      maxRedemptions: toInt(body.maxRedemptions, undefined),
++      isActive: body.isActive === undefined ? true : toBool(body.isActive),
++    };
++    const created = await repo.coupons.create(payload); // <- ajuste para seu repositório
++    res.json(created);
++  } catch (e) { next(e); }
++});
+ 
+@@
+-// EXEMPLO: criar produto (erros: model inexistente, isActive opcional)
+-router.post("/products", async (req, res, next) => {
+-  try {
+-    const { name, brand, model, price, isActive } = req.body;
+-    const created = await repo.products.create({ name, brand, model, price, isActive });
+-    res.json(created);
+-  } catch (e) { next(e); }
+-});
++// EXEMPLO: criar produto (garante opcionalidade de model/isActive)
++router.post("/products", async (req, res, next) => {
++  try {
++    const body = req.body as Partial<ProductCreateDTO>;
++    const payload: ProductCreateDTO = {
++      name: requireString(body.name, "name é obrigatório"),
++      brand: optionalString(body.brand),
++      model: optionalString(body.model),
++      price: body.price === undefined ? undefined : Number(body.price),
++      isActive: body.isActive === undefined ? true : toBool(body.isActive),
++    };
++    const created = await repo.products.create(payload);
++    res.json(created);
++  } catch (e) { next(e); }
++});
+ 
+@@
+-// EXEMPLO: ativar/desativar (erros: boolean/string)
+-router.patch("/products/:id/active", async (req, res, next) => {
+-  try {
+-    const id = req.params.id;
+-    const isActive = req.body.isActive;
+-    const updated = await repo.products.toggleActive({ id, isActive });
+-    res.json(updated);
+-  } catch (e) { next(e); }
+-});
++// EXEMPLO: ativar/desativar (normaliza boolean)
++router.patch("/products/:id/active", async (req, res, next) => {
++  try {
++    const id = requireString(req.params.id, "id inválido");
++    const isActive = toBool(req.body?.isActive, true);
++    const payload: ToggleActiveDTO = { id, isActive };
++    const updated = await repo.products.toggleActive(payload);
++    res.json(updated);
++  } catch (e) { next(e); }
++});
+ 
+@@
+-// EXEMPLO: listar com paginação (erros: tratar {} como array)
+-router.get("/products", async (req, res, next) => {
+-  try {
+-    const resp = await repo.products.search(req.query);
+-    // antes: resp.slice(0, 10) -> quebrava se resp fosse objeto
+-    res.json({ items: resp.items, total: resp.total });
+-  } catch (e) { next(e); }
+-});
++// EXEMPLO: listar com paginação (nunca trate objeto como array)
++router.get("/products", async (req, res, next) => {
++  try {
++    const resp = await repo.products.search(req.query);
++    const items = ensureArray(resp?.items);
++    const total = Number(resp?.total ?? items.length);
++    res.json({ items, total });
++  } catch (e) { next(e); }
++});
+ 
+@@
+-// EXEMPLO: endpoint do assistente (conserta sessão e compõe query)
+-router.post("/assistant/query", async (req, res, next) => {
+-  try {
+-    const { message } = req.body as { message: string };
+-    const results = await searchProducts(message);
+-    res.json({ ok: true, query: message, results });
+-  } catch (e) { next(e); }
+-});
++// EXEMPLO: endpoint do assistente (sessão tipada + slot filling)
++router.post("/assistant/query", async (req, res, next) => {
++  try {
++    const { message } = req.body as { message?: string };
++    const msg = requireString(message, "message é obrigatório");
++
++    // Se estiver usando o patch de contexto/NLP, descomente:
++    // const sid = String(req.sessionID ?? req.headers["x-session-id"] ?? "anon");
++    // const sess = (await getSession(sid)) ?? {};
++    // const novoFoco = detectarFoco(msg);
++    // if (novoFoco) await updateSession(sid, { focoAtual: novoFoco });
++    // const foco = novoFoco ?? (sess.focoAtual ?? null);
++    // const queryFinal = montarConsulta(msg, foco ?? undefined);
++    // const results = await searchProducts(queryFinal);
++
++    const results = await searchProducts(msg); // fallback se não usa contexto
++    res.json({ ok: true, query: msg, results });
++  } catch (e) { next(e); }
++});
+ 
+ export default router;
+
+
+Pontos-chave desse patch no routes.ts:
+
+Nunca passa string | null | undefined onde a API espera string: requireString/optionalString.
+
+isActive sempre boolean (via toBool).
+
+maxRedemptions sempre number | undefined (via toInt).
+
+Nunca usa slice/length em objeto: ensureArray(resp.items).
+
+5) (Opcional) tsconfig.json — ajuda com Map/Set e alvo moderno
+*** a/tsconfig.json
+--- b/tsconfig.json
+@@
+   "compilerOptions": {
+-    "target": "ES2017",
++    "target": "ES2018",
+     "module": "commonjs",
+     "strict": true,
++    "downlevelIteration": true,
+     "esModuleInterop": true,
+     "skipLibCheck": true
+   }
+ }
+
+Checklist pós-patch
+
+Reinicie o TS server/Dev (Ctrl+Shift+P → “TypeScript: Restart TS Server”).
+
+npm run build ou tsc -p . — os 30 erros de routes.ts devem sumir.
+
+Teste manual:
+
+POST /coupons com { "code":"ABC", "maxRedemptions":"10", "isActive":"true" } → cria OK (sem erro de tipo).
+
+POST /products com { "name":"iPhone", "model":"12", "isActive":1 } → cria OK.
+
+GET /products → nunca quebra se o repo devolver { items: T[], total }.
+
+POST /assistant/query:
+
+“iphone”
+
+“quero da linha 12” → (se contexto ligado) vira “iphone 12” antes da busca

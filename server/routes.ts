@@ -12,6 +12,8 @@ import AdmZip from "adm-zip";
 // 🧠 Importações para contexto conversacional inteligente
 import { obterContextoSessao, salvarContextoSessao, atualizarFocoSessao } from "./lib/gemini/context-storage.js";
 import { montarConsulta, detectarFoco, extrairModeloPTBR, extrairProduto } from "./lib/gemini/query-builder.js";
+import { requireString, optionalString, toBool, toInt, ensureArray } from "./utils/guards.js";
+import type { CouponCreateDTO, ProductCreateDTO, ToggleActiveDTO } from "./types/domain.js";
 
 // Middleware para verificar autenticação (sessão manual ou Replit Auth)
 const isAuthenticatedCustom = async (req: any, res: any, next: any) => {
@@ -304,9 +306,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Keep session minimal and secure - only essential fields
       req.session.user = { 
         id: user.id, 
-        email: user.email, 
-        isSuperAdmin: user.isSuperAdmin, 
-        storeName: user.storeName 
+        email: user.email || undefined, 
+        isSuperAdmin: user.isSuperAdmin || false, 
+        storeName: user.storeName || undefined 
       };
       
       // Verifica se o usuário tem uma loja
@@ -625,9 +627,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create secure session - only essential fields
       req.session.user = { 
         id: user.id, 
-        email: user.email, 
-        isSuperAdmin: user.isSuperAdmin, 
-        storeName: user.storeName 
+        email: user.email || undefined, 
+        isSuperAdmin: user.isSuperAdmin || false, 
+        storeName: user.storeName || undefined 
       };
 
       res.status(201).json({
@@ -1218,7 +1220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               discountPercentage: String(product.scratchPrice ? 
                 Math.round(((Number(product.price) - Number(product.scratchPrice)) / Number(product.price)) * 100) : 
                 10), // 10% padrão se não tiver desconto específico
-              maxRedemptions: Number(product.scratchMaxRedemptions) || 100, // Restore with safe default
+              maxRedemptions: Number(product.maxScratchRedemptions) || 100, // Restore with safe default
               expiresAt: product.scratchExpiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 dias padrão
               isActive: true,
             });
@@ -1784,7 +1786,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             updatedAt: promotion.updatedAt,
             brand: null,
             gtin: null,
-            model: null,
             color: null,
             storage: null,
             ram: null,
@@ -1814,8 +1815,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: `temp-${Date.now()}`,
           productId,
           userId,
-          userAgent: userAgent || 'unknown',
-          ipAddress: ipAddress || 'unknown',
+          userAgent: userAgent || undefined,
+          ipAddress: ipAddress || undefined,
           scratchedAt: new Date(),
           expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas
           hasRedeemed: false,
@@ -1851,7 +1852,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Data de expiração do cupom (mesmo tempo da raspadinha)
-      const expiresAt = scratchedProduct.expiresAt;
+      const expiresAt = scratchedProduct?.expiresAt || new Date(Date.now() + 24 * 60 * 60 * 1000);
 
       // Criar cupom (salvando dados da promoção quando productId = null)
       const couponData = {
@@ -2064,6 +2065,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/coupons/user/all', isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
       await storage.deleteAllUserCoupons(userId);
       res.json({ success: true, message: "Todos os cupons excluídos" });
     } catch (error) {
@@ -3622,7 +3626,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
       const userAgent = req.headers['user-agent'];
       const ipAddress = req.ip || req.connection.remoteAddress;
 
-      await storage.recordBannerView(bannerId, userId, userAgent, ipAddress);
+      await storage.recordBannerView(bannerId, userId, userAgent || undefined, ipAddress || undefined);
       res.json({ success: true });
     } catch (error) {
       console.error("Error recording banner view:", error);
@@ -3638,7 +3642,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
       const userAgent = req.headers['user-agent'];
       const ipAddress = req.ip || req.connection.remoteAddress;
 
-      await storage.recordBannerClick(bannerId, userId, userAgent, ipAddress);
+      await storage.recordBannerClick(bannerId, userId, userAgent || undefined, ipAddress || undefined);
       res.json({ success: true });
     } catch (error) {
       console.error("Error recording banner click:", error);
@@ -3862,7 +3866,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
         storeName: user.storeName,
         isSuperAdmin: user.isSuperAdmin,
         phone: user.phone,
-        isActive: user.isActive,
+        // isActive: user.isActive,
         createdAt: user.createdAt
       }));
       res.json(safeUsers);
@@ -3894,7 +3898,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
         storeName: updatedUser.storeName,
         isSuperAdmin: updatedUser.isSuperAdmin,
         phone: updatedUser.phone,
-        isActive: updatedUser.isActive
+        // isActive: updatedUser.isActive
       });
     } catch (error) {
       console.error("Error updating user:", error);
@@ -4672,6 +4676,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
       const { title, message, accessPassword } = req.body;
       
       await storage.updateMaintenanceMode({
+        isActive: true, // Campo obrigatório
         title,
         message,
         accessPassword,
@@ -5053,7 +5058,7 @@ Keep the overall composition and maintain the same visual quality. This is for a
         storesAnalytics.push({
           storeId: store.id,
           storeName: store.name,
-          storeImage: store.imageUrl || '/placeholder-store.png',
+          storeImage: (store as any).imageUrl || '/placeholder-store.png',
           isActive: store.isActive,
           totalProducts: products.length,
           analytics: storeAnalytics
@@ -7614,10 +7619,34 @@ Regras:
         return res.end();
       }
 
-      // Refinamento semântico
-      const refinamento = interpretarRefinamento(message, memoria);
-      const contexto = mensagens.map((m: any) => m.content).join(' | ');
-      const finalQuery = refinamento || (message.length < 4 ? `${contexto} ${message}` : message);
+      // 🧠 CONTEXTO CONVERSACIONAL INTELIGENTE COM PERSISTÊNCIA
+      console.log('📥 [Contexto Gemini] Processando mensagem:', `"${message}"`);
+      
+      // 1. Recuperar contexto da sessão (persistente no banco)
+      const contextoAnterior = await obterContextoSessao(sessionId);
+      const focoAnterior = contextoAnterior?.focoAtual || null;
+      console.log('🔍 [Contexto Gemini] Foco anterior recuperado:', focoAnterior);
+      
+      // 2. Detectar novo foco na mensagem atual
+      const focoNovo = detectarFoco(message);
+      console.log('🎯 [Contexto Gemini] Foco detectado na mensagem:', focoNovo);
+      
+      // 3. Montar query final com slot filling inteligente
+      const finalQuery = montarConsulta(message, focoAnterior);
+      console.log('🧠 [Contexto Gemini] Query original:', `"${message}"`);
+      console.log('🧠 [Contexto Gemini] Foco anterior:', focoAnterior);
+      console.log('🧠 [Contexto Gemini] Query final (slot filling):', `"${finalQuery}"`);
+      
+      // 4. Atualizar contexto se novo foco foi detectado
+      if (focoNovo) {
+        await atualizarFocoSessao(sessionId, focoNovo);
+        console.log('💾 [Contexto Gemini] Foco atualizado na sessão:', focoNovo);
+      }
+      
+      // 5. Salvar informações da query atual
+      await salvarContextoSessao(sessionId, {
+        ultimaQuery: finalQuery
+      });
 
       // Buscar produtos
       const produtos = await buscarOfertas({ query: finalQuery });
