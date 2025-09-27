@@ -242,6 +242,25 @@ export const PRODUCT_CANON: Record<string, string> = {
   "vestimenta": "roupa",
   "ropa": "roupa",
   "ropas": "roupa",
+  // --- MODA / VESTUÁRIO
+  "blusa": "blusa",
+  "blusas": "blusa",
+  "camisa": "blusa",
+  "camisas": "blusa",
+  "camiseta": "camiseta",
+  "camisetas": "camiseta",
+  "vestido": "vestido",
+  "vestidos": "vestido",
+  "saia": "saia",
+  "saias": "saia",
+  "calca": "calca",
+  "calcas": "calca",
+  "calça": "calca",
+  "calças": "calca",
+  "jaqueta": "jaqueta",
+  "jaquetas": "jaqueta",
+  "casaco": "jaqueta",
+  "casacos": "jaqueta",
 
   // games / consoles
   "console": "console",
@@ -377,6 +396,17 @@ export const CATEGORY_CANON: Record<string, string> = {
   "roupa": "roupa",
   "moda": "roupa",
   "ropa": "roupa",
+  "vestuario": "roupa",
+  "vestuário": "roupa",
+  "blusa": "roupa",
+  "camisa": "roupa",
+  "camiseta": "roupa",
+  "vestido": "roupa",
+  "saia": "roupa",
+  "calca": "roupa",
+  "calça": "roupa",
+  "jaqueta": "roupa",
+  "casaco": "roupa",
 };
 
 export function toSingularPTBR(word: string): string {

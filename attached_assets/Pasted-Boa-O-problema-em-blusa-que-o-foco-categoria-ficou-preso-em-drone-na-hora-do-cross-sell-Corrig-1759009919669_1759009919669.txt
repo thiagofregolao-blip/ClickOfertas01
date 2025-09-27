@@ -1,0 +1,112 @@
+Boa! O problema em “blusa” é que o foco/categoria ficou preso em drone na hora do cross-sell. Corrigimos em 3 pontos:
+
+1) Dicionário PT/ES: incluir moda/vestuário
+*** a/src/utils/lang-ptbr.ts
+--- b/src/utils/lang-ptbr.ts
+@@
+ export const PRODUCT_CANON: Record<string,string> = {
+@@
+-  calcado:"calcado", calcados:"calcado", calzado:"calcado", calzados:"calcado",
++  calcado:"calcado", calcados:"calcado", calzado:"calcado", calzados:"calcado",
++  // --- MODA / VESTUÁRIO
++  blusa:"blusa", blusas:"blusa", camisa:"blusa", camisas:"blusa",
++  camiseta:"camiseta", camisetas:"camiseta",
++  vestido:"vestido", vestidos:"vestido",
++  saia:"saia", saias:"saia",
++  calca:"calca", calcas:"calca", calça:"calca", calças:"calca",
++  jaqueta:"jaqueta", jaquetas:"jaqueta", casaco:"jaqueta", casacos:"jaqueta",
+ };
+@@
+ export const CATEGORY_CANON: Record<string,string> = {
+@@
+-  roupa:"roupa", moda:"roupa", ropa:"roupa"
++  roupa:"roupa", moda:"roupa", ropa:"roupa", vestuario:"roupa", vestuário:"roupa",
++  blusa:"roupa", camisa:"roupa", camiseta:"roupa", vestido:"roupa", saia:"roupa",
++  calca:"roupa", calça:"roupa", jaqueta:"roupa", casaco:"roupa"
+ };
+
+2) Interpretador: mapear produto → categoria padrão e resetar corretamente
+*** a/src/modules/buscaProduto.ts
+--- b/src/modules/buscaProduto.ts
+@@
++const PROD_TO_CAT: Record<string,string> = {
++  iphone:"celular", galaxy:"celular", pixel:"celular", motorola:"celular", xiaomi:"celular",
++  drone:"drone",
++  blusa:"roupa", camiseta:"roupa", vestido:"roupa", saia:"roupa", calca:"roupa", jaqueta:"roupa"
++};
+@@
+ export function interpretarBusca(msg: string, memoria: ConversationMemory): ProdutoQuery {
+   const produto = canonicalProductFromText(msg) ?? memoria?.focoAtual ?? memoria?.lastQuery ?? undefined;
+@@
+-  // se a sessão já tem categoria, usa; se não, tenta inferir por produto
+-  let categoria = memoria?.categoriaAtual ?? undefined;
+-  if (!categoria && produto) {
+-    if (produto === "iphone" || produto === "galaxy" || produto === "pixel" || produto === "motorola" || produto === "xiaomi") {
+-      categoria = "celular";
+-    } else if (produto === "drone") {
+-      categoria = "drone";
+-    }
+-  }
++  // categoria: usa sessão se houver; senão mapeia pelo produto atual
++  let categoria = memoria?.categoriaAtual ?? (produto ? PROD_TO_CAT[produto] : undefined);
+@@
+   return { produto, modelo, marca, armazenamento, atributos, categoria, queryFinal };
+ }
+
+
+E no pipeline, quando mudar o produto, já define a categoria padrão (e limpa a antiga):
+
+*** a/src/assistant/pipeline.ts
+--- b/src/assistant/pipeline.ts
+@@
++import { /*...*/ } from "../modules/buscaProduto";
+@@
+   if (intent.entities?.product) {
+     const mudou = intent.entities.product !== (sess as any).focoAtual;
+     await updateSession(sessionId, {
+       focoAtual: intent.entities.product,
+-      categoriaAtual: mudou ? (intent.entities.category ?? null) : ((sess as any).categoriaAtual ?? intent.entities.category ?? null),
++      // ao trocar produto, seta categoria padrão dele (ex.: blusa -> roupa)
++      categoriaAtual: mudou
++        ? (intent.entities.category ?? (PROD_TO_CAT as any)?.[intent.entities.product] ?? null)
++        : ((sess as any).categoriaAtual ?? intent.entities.category ?? null),
+       lastQuery: mudou ? null : ((sess as any).lastQuery ?? null),
+     });
+
+
+Se PROD_TO_CAT está no mesmo arquivo do interpretador, exporte-o para importar no pipeline, ou replique o mesmo map ali.
+
+3) Cross-sell para roupa e usar a categoria resolvida do turno
+*** a/src/logic/crossSell.ts
+--- b/src/logic/crossSell.ts
+@@
+ export const ACCESSORIES_BY_CATEGORY: Record<string,string[]> = {
+   celular:["capinha","película","carregador turbo","fones bluetooth","power bank","cabo usb-c"],
+   drone:["bateria extra","hélices","case rígido","cartão sd","hub de carga","protetor de hélices"],
+   perfume:["kit presente","necessaire","miniatura"],
+-  tv:["soundbar","suporte parede","cabo hdmi","controle universal"]
++  tv:["soundbar","suporte parede","cabo hdmi","controle universal"],
++  // novo: vestuário
++  roupa:["cinto","bolsa","meia-calça","lenço","organizador de armário"]
+ };
+
+
+E no NLG, garanta que o cross-sell usa a categoria do próprio query, não a antiga:
+
+*** a/src/nlg/say.ts
+--- b/src/nlg/say.ts
+@@
+-    const cat = query.categoria ?? query.produto; const novos = nextAccessorySuggestion(cat, memory.acessorios ?? []);
++    const cat = (query.categoria ?? query.produto) as string | undefined;
++    const novos = nextAccessorySuggestion(cat, memory.acessorios ?? []);
+
+
+Com isso, ao dizer “blusa” a categoria vira roupa e o cross-sell sugere cinto/bolsa/lenço (e não “bateria/hélices”).
+
+Teste rápido
+
+“iphone” → cross-sell de capinha/película (ok).
+
+“drone” → cross-sell de bateria/hélices (ok).
+
+“blusa” → sem falar “drone” em lugar nenhum; cross-sell de cinto/bolsa/lenço.
