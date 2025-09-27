@@ -16,19 +16,19 @@ export interface MsgCtx {
   acessorios?: string[];
 }
 
-const greet: string[] = [
+export const greet: string[] = [
   "Oi! {emoji} Bora achar a melhor oferta pra você?",
   "E aí! {emoji} Me diz o que procura que eu garimpo aqui.",
   "Bem-vindo(a)! {emoji} Posso buscar por iPhone, drone, perfume e muito mais."
 ];
 
-const found: string[] = [
+export const found: string[] = [
   "Ótimo! Encontrei {count} {cat} para \"{query}\". Dá uma olhada 👇",
   "Boa escolha! Separei {count} opções de {cat} pra \"{query}\". {emoji}",
   "{emoji} Achei {count} resultado(s) que combinam com \"{query}\"."
 ];
 
-const noResults: string[] = [
+export const noResults: string[] = [
   "Hmm, não achei nada pra \"{query}\". {emoji} Quer tentar outra marca ou modelo?",
   "Por aqui não rolou com \"{query}\". Tenta especificar {hint} que eu encontro rapidinho!",
   "Zerado pra \"{query}\". {emoji} Se quiser, me diz {hint}."
