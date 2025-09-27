@@ -305,7 +305,11 @@ export default function GeminiAssistantBar() {
       const response = await fetch('/api/assistant/gemini/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, sessionId })
+        body: JSON.stringify({ 
+          message, 
+          sessionId,
+          horaLocal: new Date().getHours()
+        })
       });
       
       if (!response.ok) {

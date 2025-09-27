@@ -1,0 +1,170 @@
+Melhorias implementadas
+Categoria	Funcionalidade
+Conversação fluida	Respostas naturais, bem-humoradas, estilo vendedor
+Saudação personalizada	Cumprimenta o usuário pelo nome e com base no horário local
+Detecção de intenção	Reconhece follow-ups como “gostei”, “quero outro”, “mais barato”
+Geração dinâmica de resposta	Frases livres e variadas, sem templates fixos
+Memória por usuário	Armazena preferências, produtos vistos, estilo de conversa
+Evita citar lojas	Usa linguagem neutra como “várias opções disponíveis”
+Correção de horário	Usa hora local enviada pelo frontend para saudação correta
+Modularização	Código organizado em módulos para manutenção e escalabilidade
+🧠 Estrutura de Arquivos
+Código
+/gemini-assistant
+├── routes/
+│   └── gemini.ts
+├── lib/
+│   ├── respostas.ts
+│   ├── followup.ts
+│   ├── memoria.ts
+│   └── utils.ts
+📦 Código principal — routes/gemini.ts
+ts
+import { buscarOfertas } from '@/lib/gemini/busca';
+import { persistSessionAndMessage, getSessionMessages, salvarResposta } from '@/lib/gemini/session';
+import { gerarSaudacao, saudacaoInicial } from '@/lib/gemini/utils';
+import { detectarIntencaoFollowUp, responderFollowUp } from '@/lib/gemini/followup';
+import { gerarRespostaConversacional, gerarPerguntaLeve } from '@/lib/gemini/respostas';
+import { getUserMemory, updateUserMemory } from '@/lib/gemini/memoria';
+
+export default async function handler(req, res) {
+  const { message, sessionId, horaLocal } = req.body;
+  const user = req.user || req.session?.user;
+  const userName = user?.name || 'cliente';
+  const userId = user?.id;
+
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders?.();
+
+  const send = (event, payload) => {
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(payload)}\n\n`);
+  };
+
+  await persistSessionAndMessage(sessionId, userId, message);
+  const mensagens = await getSessionMessages(sessionId);
+  const memoria = await getUserMemory(userId);
+
+  // Saudações simples
+  if (/^(bom dia|boa tarde|boa noite|oi|olá)$/i.test(message.trim())) {
+    const saudacao = gerarSaudacao(userName, horaLocal);
+    send('delta', { text: `${saudacao} Como posso te ajudar hoje? 😊` });
+    send('complete', { provider: 'gemini' });
+    return res.end();
+  }
+
+  // Follow-up inteligente
+  const intencao = detectarIntencaoFollowUp(message);
+  if (intencao) {
+    const resposta = responderFollowUp(intencao);
+    send('delta', { text: resposta });
+    send('complete', { provider: 'gemini' });
+    return res.end();
+  }
+
+  // Enriquecer contexto
+  const contexto = mensagens.map(m => m.text).join(' | ');
+  const finalQuery = message.length < 4 ? `${contexto} ${message}` : message;
+
+  // Buscar produtos
+  const produtos = await buscarOfertas({ query: finalQuery });
+  send('products', { products: produtos, query: finalQuery, provider: 'gemini' });
+
+  // Atualizar memória
+  await updateUserMemory(userId, {
+    ultimaBusca: finalQuery,
+    produtosVistos: produtos.map(p => p.id),
+  });
+
+  // Gerar resposta
+  const saudacao = saudacaoInicial(mensagens) ? gerarSaudacao(userName, horaLocal) : '';
+  const resposta = gerarRespostaConversacional(finalQuery, produtos, memoria);
+  const pergunta = gerarPerguntaLeve(finalQuery);
+
+  const textoFinal = [saudacao, resposta, pergunta].filter(Boolean).join(' ');
+  send('delta', { text: textoFinal });
+
+  await salvarResposta(sessionId, textoFinal);
+  send('complete', { provider: 'gemini' });
+  res.end();
+}
+🧩 Módulos auxiliares
+lib/utils.ts
+ts
+export function gerarSaudacao(nome: string, horaLocal?: number) {
+  const hora = horaLocal ?? new Date().getHours();
+  const base = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+  return `${base}, ${nome}! 👋`;
+}
+
+export function saudacaoInicial(mensagens: any[]) {
+  return mensagens.length <= 1;
+}
+lib/followup.ts
+ts
+export function detectarIntencaoFollowUp(msg: string) {
+  const m = msg.toLowerCase();
+  if (m.includes('gostei') || m.includes('quero esse')) return 'confirmar';
+  if (m.includes('não gostei') || m.includes('mostra outros')) return 'rejeitar';
+  if (m.includes('128gb') || m.includes('mais barato')) return 'refinar';
+  return null;
+}
+
+export function responderFollowUp(tipo: string) {
+  switch (tipo) {
+    case 'confirmar': return 'Ótima escolha! Posso te ajudar a finalizar ou mostrar acessórios 🛍️';
+    case 'rejeitar': return 'Sem problemas! Vou buscar outras opções que talvez te agradem mais 🔄';
+    case 'refinar': return 'Entendi! Vou ajustar a busca com base no que você quer 🔍';
+    default: return 'Se quiser refinar ou ver mais, é só me dizer 😉';
+  }
+}
+lib/respostas.ts
+ts
+export function gerarRespostaConversacional(query: string, produtos: any[], memoria: any) {
+  if (produtos.length === 0) return 'Não achei nada com esse termo. Me dá mais detalhes que eu busco certinho 🙂';
+  const segmento = detectarSegmento(query, produtos);
+  const marcaFavorita = memoria?.marca_preferida;
+
+  const frases = [
+    `Olha só, ${segmento} é comigo mesmo! Separei umas opções que estão com preço ótimo 💸`,
+    `Você vai curtir essas sugestões de ${segmento}. Se quiser algo mais específico, me dá um toque 😉`,
+    `Tem bastante coisa boa rolando em ${segmento}. Dá uma olhada e me diz o que achou 👀`,
+    `Separei umas opções de ${segmento} que estão fazendo sucesso. Se tiver uma marca em mente, me fala que eu afino a busca 🔍`
+  ];
+
+  if (marcaFavorita) {
+    frases.push(`Como você curte ${marcaFavorita}, achei umas opções que podem te agradar 😎`);
+  }
+
+  return frases[Math.floor(Math.random() * frases.length)];
+}
+
+export function gerarPerguntaLeve(query: string) {
+  if (/iphone/i.test(query)) return 'Prefere linha 13 ou 15?';
+  if (/drone/i.test(query)) return 'Quer um modelo compacto ou com câmera parruda?';
+  if (/perfume/i.test(query)) return 'Tem alguma marca favorita (Dior, Calvin Klein...)?';
+  return '';
+}
+
+function detectarSegmento(query: string, produtos: any[]) {
+  if (/perfume/i.test(query)) return 'perfumes';
+  if (/iphone|celular|smartphone/i.test(query)) return 'celulares';
+  if (/drone/i.test(query)) return 'drones';
+  return 'produtos';
+}
+lib/memoria.ts
+ts
+const memoriaUsuarios = {};
+
+export async function getUserMemory(userId: string) {
+  return memoriaUsuarios[userId] || {};
+}
+
+export async function updateUserMemory(userId: string, dados: any) {
+  memoriaUsuarios[userId] = {
+    ...memoriaUsuarios[userId],
+    ...dados
+  };
+}

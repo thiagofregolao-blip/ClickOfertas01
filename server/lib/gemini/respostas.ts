@@ -1,5 +1,5 @@
-export function gerarSaudacao(nome: string) {
-  const hora = new Date().getHours();
+export function gerarSaudacao(nome: string, horaLocal?: number) {
+  const hora = horaLocal ?? new Date().getHours();
   const base = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
   return `${base}, ${nome}! 👋`;
 }

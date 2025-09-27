@@ -7460,7 +7460,7 @@ Regras:
 
   // POST /api/assistant/gemini/stream - Gemini Assistant with "ask-then-show" behavior  
   app.post('/api/assistant/gemini/stream', async (req: any, res) => {
-    const { message, sessionId } = req.body;
+    const { message, sessionId, horaLocal } = req.body;
     const user = req.user || req.session?.user;
     const userName = user?.name || 'cliente';
     const userId = user?.id;
@@ -7488,7 +7488,7 @@ Regras:
 
       // Saudações simples
       if (/^(bom dia|boa tarde|boa noite|oi|olá)$/i.test(message.trim())) {
-        const saudacao = gerarSaudacao(userName);
+        const saudacao = gerarSaudacao(userName, horaLocal);
         send('delta', { text: `${saudacao} Como posso te ajudar hoje? 😊` });
         send('complete', { provider: 'gemini' });
         return res.end();
@@ -7504,23 +7504,33 @@ Regras:
       }
 
       // Enriquecer contexto
-      const contexto = mensagens.map((m: any) => m.text).join(' | ');
+      const contexto = mensagens.map((m: any) => m.content).join(' | ');
       const finalQuery = message.length < 4 ? `${contexto} ${message}` : message;
 
       // Buscar produtos
       const produtos = await buscarOfertas({ query: finalQuery });
-      send('products', { products: produtos, query: finalQuery, provider: 'gemini' });
-
+      
       // Atualizar memória
-      await updateUserMemory(userId, { ultimaBusca: finalQuery, produtosVistos: produtos.map((p: any) => p.id) });
+      await updateUserMemory(userId, { 
+        ultimaBusca: finalQuery, 
+        produtosVistos: produtos.map((p: any) => p.id) 
+      });
 
       // Gerar resposta
-      const saudacao = saudacaoInicial(mensagens) ? gerarSaudacao(userName) : '';
+      const saudacao = saudacaoInicial(mensagens) ? gerarSaudacao(userName, horaLocal) : '';
       const resposta = gerarRespostaConversacional(finalQuery, produtos, memoria);
       const pergunta = gerarPerguntaLeve(finalQuery);
 
       const textoFinal = [saudacao, resposta, pergunta].filter(Boolean).join(' ');
       send('delta', { text: textoFinal });
+
+      // Aguardar um pouco para a conversa aparecer primeiro
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Depois enviar produtos se houver (Ask-Then-Show)
+      if (produtos.length > 0) {
+        send('products', { products: produtos, query: finalQuery, provider: 'gemini' });
+      }
 
       await salvarResposta(sessionId, textoFinal);
       send('complete', { provider: 'gemini' });
