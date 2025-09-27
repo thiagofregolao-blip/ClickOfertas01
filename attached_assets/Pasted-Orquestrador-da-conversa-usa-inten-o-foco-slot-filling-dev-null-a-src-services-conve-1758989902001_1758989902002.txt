@@ -1,0 +1,144 @@
+Orquestrador da conversa (usa intenção + foco + slot filling)
+*** /dev/null
+--- a/src/services/conversation.ts
+@@
++// src/services/conversation.ts
++import { classifyIntent } from "../nlp/intent";
++import { montarConsulta, detectarFoco, extrairModeloPTBR } from "../nlp/query-builder";
++import { getSession, updateSession } from "./sessionStore";
++import { replyHelp, replyOutOfDomain, replySmallTalk, replyTime } from "./smalltalk";
++
++export interface AssistantResult {
++  kind: "SMALL_TALK" | "HELP" | "TIME" | "PRODUCT" | "OUT_OF_DOMAIN";
++  text?: string;
++  queryFinal?: string;
++  items?: unknown[];
++}
++
++// Sua função de busca real. Troque o import/assinatura conforme seu projeto.
++async function searchProducts(query: string): Promise<{ items: unknown[] }> {
++  // IMPORTANTE: troque isso pelo seu repositório/SDK de busca
++  // ex.: return repo.products.search({ q: query })
++  const anyGlobal: any = globalThis as any;
++  if (typeof anyGlobal.searchProducts === "function") {
++    return anyGlobal.searchProducts(query);
++  }
++  return { items: [] };
++}
++
++export async function runAssistant(sessionId: string, userMsg: string): Promise<AssistantResult> {
++  const intent = classifyIntent(userMsg);
++
++  // 1) Small talk / help / time
++  if (intent.intent === "SMALL_TALK") {
++    return { kind: "SMALL_TALK", text: replySmallTalk() };
++  }
++  if (intent.intent === "HELP") {
++    return { kind: "HELP", text: replyHelp() };
++  }
++  if (intent.intent === "TIME_QUERY") {
++    return { kind: "TIME", text: replyTime() };
++  }
++
++  // 2) Produto (ou UNKNOWN que podemos resolver por contexto)
++  const sess = (await getSession(sessionId)) ?? {};
++  const novoFoco = detectarFoco(userMsg);
++  if (novoFoco) await updateSession(sessionId, { focoAtual: novoFoco });
++  const foco = novoFoco ?? (sess as any).focoAtual ?? null;
++
++  // Se usuário só disse "linha 12", tenta compor com foco
++  const temModelo = !!extrairModeloPTBR(userMsg);
++  const queryFinal = montarConsulta(userMsg, foco ?? undefined);
++
++  // Se não temos foco e nem produto explícito, e também não há modelo → fora de domínio
++  const pareceProduto = /\b(iphone|galaxy|samsung|apple|xiaomi|motorola|pixel|celular|telefone|smartphone|drone|perfume|notebook|laptop|tv|televis[aã]o)\b/i.test(
++    userMsg
++  );
++  if (!pareceProduto && !foco && !temModelo && intent.intent !== "PRODUCT_SEARCH") {
++    return {
++      kind: "OUT_OF_DOMAIN",
++      text: replyOutOfDomain("Posso buscar por iPhone 12, Galaxy 15, drone com câmera, perfumes…"),
++    };
++  }
++
++  // 3) Busca de produto
++  const { items } = await searchProducts(queryFinal);
++  return { kind: "PRODUCT", queryFinal, items };
++}
+
+5) Atualizar a rota do assistente para usar o orquestrador
+*** a/server/routes.ts
+--- b/server/routes.ts
+@@
+-import type { Request, Response } from "express";
++import type { Request, Response } from "express";
++import { runAssistant } from "../src/services/conversation";
+@@
+-router.post("/assistant/query", async (req, res, next) => {
+-  try {
+-    const { message } = req.body as { message?: string };
+-    const msg = requireString(message, "message é obrigatório");
+-
+-    // Se estiver usando o patch de contexto/NLP, descomente:
+-    // const sid = String(req.sessionID ?? req.headers["x-session-id"] ?? "anon");
+-    // const sess = (await getSession(sid)) ?? {};
+-    // const novoFoco = detectarFoco(msg);
+-    // if (novoFoco) await updateSession(sid, { focoAtual: novoFoco });
+-    // const foco = novoFoco ?? (sess.focoAtual ?? null);
+-    // const queryFinal = montarConsulta(msg, foco ?? undefined);
+-    // const results = await searchProducts(queryFinal);
+-
+-    const results = await searchProducts(msg); // fallback se não usa contexto
+-    res.json({ ok: true, query: msg, results });
+-  } catch (e) { next(e); }
+-});
++router.post("/assistant/query", async (req, res, next) => {
++  try {
++    const { message } = req.body as { message?: string };
++    const msg = requireString(message, "message é obrigatório");
++    const sid = String(req.sessionID ?? req.headers["x-session-id"] ?? "anon");
++
++    const result = await runAssistant(sid, msg);
++    // Resposta unificada para o front
++    return res.json({
++      ok: true,
++      kind: result.kind,
++      text: result.text,
++      queryFinal: result.queryFinal,
++      items: result.items,
++    });
++  } catch (e) { next(e); }
++});
+
+6) (Opcional) Ajuste mínimo no front para mensagens não-produto
+
+Se o front assume sempre lista de produtos, trate kind:
+
+// pseudo-código no front:
+if (resp.kind === "PRODUCT") {
+  renderCards(resp.items)
+} else {
+  renderBotBubble(resp.text) // SMALL_TALK, TIME, HELP, OUT_OF_DOMAIN
+}
+
+Como testar (casos chave)
+
+“oi” → kind=SMALL_TALK, text com saudação.
+
+“que horas são?” → kind=TIME, text com hora atual.
+
+“iphone” → foco = iphone; kind=PRODUCT (queryFinal = "iphone").
+
+“linha 12” (logo depois) → kind=PRODUCT, queryFinal = "iphone 12".
+
+“você tem drones?” → kind=PRODUCT (categoria drone) ou OUT_OF_DOMAIN se não vende drones; mensagem educada.
+
+“que horas são?” no meio da conversa de produto → responde hora sem perder o foco (depois “linha 13” deve virar “iphone 13”).
+
+Por que isso resolve o “engessado”
+
+Agora existe um roteador de intenções: cada frase vai para o fluxo correto (produto, small talk, tempo, ajuda, fora de domínio).
+
+O foco continua funcionando: “linha 12/13/15” é mapeado com montarConsulta.
+
+O assistente nunca dá “não achei nada” para frases comuns; ele responde algo útil e guia o usuário de volta ao catálogo.
