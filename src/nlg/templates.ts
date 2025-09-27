@@ -1,6 +1,7 @@
 // src/nlg/templates.ts
 import { PersonaConfig } from "../persona/salesPersona";
 import { RNG, pickWithRng as pick } from "../utils/rng";
+import { resolveAccessoryCategory } from "../logic/crossSell";
 
 type Dict<T> = Record<string, T>;
 
@@ -123,10 +124,9 @@ export function tClarify(ctx: MsgCtx) {
 }
 
 export function tCrossSell(ctx: MsgCtx) {
-  // 🛡️ DEFESA: Priorizar produto sobre categoria quando conflitam
-  const key = (ctx.produto && ctx.categoria && ctx.produto !== ctx.categoria)
-    ? ctx.produto
-    : (ctx.categoria ?? ctx.produto) ?? "";
+  // 🛡️ DEFESA: Usar resolver de categoria para cross-sell
+  const accessoryCat = resolveAccessoryCategory({ produto: ctx.produto, categoria: ctx.categoria });
+  const key = accessoryCat ?? "";
   const bank = crossSell[key];
   if (!bank) return null;
   

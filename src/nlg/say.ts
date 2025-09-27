@@ -1,7 +1,7 @@
 // src/nlg/say.ts
 import { SalesPersona } from "../persona/salesPersona";
 import { tGreet, tFound, tNoResults, tClarify, tCrossSell, greet, found, noResults } from "./templates";
-import { nextAccessorySuggestion } from "../logic/crossSell";
+import { nextAccessorySuggestion, resolveAccessoryCategory } from "../logic/crossSell";
 import type { ConversationMemory } from "../types/memory";
 import { nextVariant } from "../../server/lib/gemini/context-storage.js";
 
@@ -66,11 +66,9 @@ export async function composeAnswer(args: ComposeArgs & { sessionId: string }): 
     }
 
     // Cross-sell (sem repetir)
-    // 🛡️ DEFESA: Priorizar produto sobre categoria quando conflitam
-    const cat = (query.produto && query.categoria && query.produto !== query.categoria)
-      ? query.produto
-      : (query.categoria ?? query.produto);
-    const novos = nextAccessorySuggestion(cat, memory.acessoriosSugeridos ?? []);
+    // 🛡️ DEFESA: Usar resolver de categoria para evitar cross-contamination
+    const accessoryCat = resolveAccessoryCategory(query);
+    const novos = nextAccessorySuggestion(accessoryCat ?? undefined, memory.acessoriosSugeridos ?? []);
     if (novos.length) {
       const crossSellTemplates = [
         `Ah, e que tal uns {acessorios} para complementar? 😉`,
