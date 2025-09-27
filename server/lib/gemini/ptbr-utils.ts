@@ -51,7 +51,7 @@ export const PADROES_MODELO = [
 /**
  * Padrões para detectar produtos/marcas
  */
-export const PRODUTOS_REGEX = /\b(iphone|apple|galaxy|samsung|xiaomi|motorola|pixel|redmi|poco|oneplus|huawei|lg)\b/i;
+export const PRODUTOS_REGEX = /\b(iphone|apple|galaxy|samsung|xiaomi|motorola|pixel|redmi|poco|oneplus|huawei|lg|drone|perfume)\b/i;
 
 /**
  * Detecta intenções de escolha/seleção

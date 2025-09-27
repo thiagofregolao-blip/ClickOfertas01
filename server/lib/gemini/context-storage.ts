@@ -126,6 +126,7 @@ export async function limparContextoSessao(sessionId: string): Promise<void> {
     focoAtual: null,
     ultimaQuery: null,
     ultimosModelos: [],
+    categoriaAtual: null,
     turn: 0
   });
 }
