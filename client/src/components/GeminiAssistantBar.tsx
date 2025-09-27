@@ -296,6 +296,9 @@ export default function GeminiAssistantBar() {
     latestRequestIdRef.current = requestId;
     haveProductsInThisRequestRef.current = false;
     
+    // Variável para capturar mensagem final antes do finally
+    let accumulatedMessage = '';
+    
     try {
       console.log('🤖 [GeminiAssistantBar] Iniciando Gemini stream:', { message, sessionId, requestId });
       
@@ -353,6 +356,7 @@ export default function GeminiAssistantBar() {
               }
               
               if (data.text) {
+                accumulatedMessage += data.text;
                 setStreaming(prev => prev + data.text);
               }
               
@@ -389,10 +393,13 @@ export default function GeminiAssistantBar() {
       if (latestRequestIdRef.current === requestId) {
         setIsTyping(false);
         
-        const finalMessage = streaming.trim();
+        // Usar mensagem acumulada para garantir que não se perca
+        const finalMessage = accumulatedMessage.trim();
         if (finalMessage) {
           setChatMessages(prev => [...prev, { type: 'assistant', text: finalMessage }]);
         }
+        
+        // Limpar streaming apenas após adicionar ao chat
         setStreaming('');
         
         readerRef.current = null;
@@ -444,6 +451,29 @@ export default function GeminiAssistantBar() {
     setShowResults(true);
     setShowSuggestions(false);
     
+    startGeminiStream(t);
+  };
+
+  // Função específica para o overlay form
+  const onOverlaySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const t = overlayInput.trim();
+    if (!t || !sessionId) return;
+    
+    console.log('🔄 [GeminiAssistantBar] Overlay submit - nova consulta Gemini:', t);
+    
+    // Resetar estado para nova busca
+    setTopBox([]);
+    setFeed([]);
+    setCombina([]);
+    
+    // Adicionar mensagem do usuário ao chat
+    setChatMessages(prev => [...prev, { type: 'user', text: t }]);
+    
+    // Limpar input do overlay
+    setOverlayInput('');
+    
+    // Iniciar stream
     startGeminiStream(t);
   };
 
@@ -569,7 +599,7 @@ export default function GeminiAssistantBar() {
                 </button>
               </div>
               
-              <form onSubmit={onSubmit} ref={chatRef} className="flex gap-3">
+              <form onSubmit={onOverlaySubmit} ref={chatRef} className="flex gap-3">
                 <input
                   type="text"
                   value={overlayInput}
