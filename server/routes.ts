@@ -7619,10 +7619,15 @@ Regras:
         
         // 🎯 USAR COMPOSE ANSWER: Sistema unificado de templates com rotação
         const { composeAnswer } = await import('../src/nlg/say.js');
+        const { obterContextoSessao } = await import('./lib/gemini/context-storage.js');
+        
+        // Buscar contexto da sessão para obter categoria atual
+        const contexto = await obterContextoSessao(sessionId) || {};
+        const categoriaAtual = (contexto as any).categoriaAtual;
         
         const query = {
           produto: pipelineResult.query,
-          categoria: 'celular', // Forçar categoria pra funcionar
+          categoria: categoriaAtual, // Usar categoria do contexto da sessão
           queryFinal: pipelineResult.query,
           count: produtos.length
         };

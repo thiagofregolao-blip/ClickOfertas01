@@ -29,9 +29,15 @@ export async function composeAnswer(args: ComposeArgs & { sessionId: string }): 
   if (items.length > 0) {
     // Rotação determinística por sessão para resultados encontrados
     const idx = await nextVariant(sessionId, "found", found.length);
+    
+    // 🛡️ DEFESA: Priorizar produto sobre categoria quando conflitam
+    const catDisplay = (query.produto && query.categoria && query.produto !== query.categoria)
+      ? (query.produto as string)
+      : ((query.categoria ?? query.produto ?? "itens") as string);
+    
     const base = found[idx]
-      .replace("{count}", String(query ? (query as any).count ?? items.length : items.length))
-      .replace("{cat}", (query.categoria ?? query.produto ?? "itens") as string)
+      .replace("{count}", String(items.length))
+      .replace("{cat}", catDisplay)
       .replace("{query}", query.queryFinal ?? query.produto ?? query.categoria ?? "")
       .replace("{emoji}", "😄");
     blocks.push({ type: "text", text: base });
