@@ -164,6 +164,11 @@ export default function StandardHeader() {
     {/* Componente completo do assistente OpenAI */}
     <AssistantBar />
     
+    {/* DEBUG: Teste de renderização Gemini */}
+    <div style={{background: 'red', padding: '10px', margin: '10px'}}>
+      TESTE GEMINI - SE VOCÊ VER ISTO, O ESPAÇO ESTÁ FUNCIONANDO
+    </div>
+    
     {/* Componente Gemini Assistant - Show-then-Ask */}
     <GeminiAssistantBar />
     

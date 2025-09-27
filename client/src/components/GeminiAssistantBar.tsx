@@ -10,6 +10,7 @@ const ONE_HOUR = 60 * 60 * 1000;
 
 export default function GeminiAssistantBar() {
   console.log('🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado');
+  console.log('🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!');
   
   const [, setLocation] = useLocation();
   const uid = useMemo(() => localStorage.getItem('uid') || (localStorage.setItem('uid','u-'+Math.random().toString(36).slice(2,8)), localStorage.getItem('uid')!), []);
