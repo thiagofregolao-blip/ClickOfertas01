@@ -7337,10 +7337,10 @@ Regras:
       // 3) Usar Gemini para lapidar o tom (sem permitir tool/refinamentos automáticos)
       try {
         // Importar Gemini
-        const { GoogleGenAI } = await import('@google/genai');
-        const geminiAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+        const { GoogleGenerativeAI } = await import('@google/generative-ai');
+        const geminiAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
         
-        const model = geminiAI.getGenerativeModel({ model: 'gemini-2.0-flash-preview' });
+        const model = geminiAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
         
         const polishPrompt = `Você é o Assistente de Compras do Click Ofertas.
 Tom: natural, bem-humorado (1 emoji no máx quando couber), direto ao ponto.
