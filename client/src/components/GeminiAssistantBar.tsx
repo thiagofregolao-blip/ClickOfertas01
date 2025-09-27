@@ -578,16 +578,16 @@ export default function GeminiAssistantBar() {
       {/* Overlay de Resultados Gemini */}
       {showResults && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-4 px-4 overflow-y-auto">
-          <div className="bg-white dark:bg-gray-900 w-full max-w-6xl min-h-[90vh] rounded-2xl shadow-2xl flex flex-col">
+          <div className="bg-white dark:bg-gray-900 w-full max-w-6xl h-[90vh] rounded-2xl shadow-2xl flex flex-col">
             
-            {/* Header com busca integrada */}
-            <div className="p-6 border-b border-emerald-200 dark:border-emerald-700">
-              <div className="flex items-center justify-between mb-4">
+            {/* Header simples sem busca */}
+            <div className="p-6 border-b border-emerald-200 dark:border-emerald-700 flex-shrink-0">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <Sparkles className="h-6 w-6 text-emerald-600 dark:text-emerald-400 mr-2" />
                   <h2 className="text-xl font-bold text-emerald-600 dark:text-emerald-400">Gemini Assistant</h2>
                   <span className="ml-2 px-2 py-1 bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 text-xs rounded-full">
-                    Show-Then-Ask
+                    Ask-Then-Show
                   </span>
                 </div>
                 <button
@@ -598,30 +598,10 @@ export default function GeminiAssistantBar() {
                   ✕
                 </button>
               </div>
-              
-              <form onSubmit={onOverlaySubmit} ref={chatRef} className="flex gap-3">
-                <input
-                  type="text"
-                  value={overlayInput}
-                  onChange={(e) => setOverlayInput(e.target.value)}
-                  placeholder="🤖 Digite seu produto (ex.: iPhone, drone, perfume)..."
-                  className="flex-1 px-4 py-3 border border-emerald-300 dark:border-emerald-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-800 dark:text-white"
-                  data-testid="input-gemini-overlay"
-                  autoFocus
-                />
-                <button
-                  type="submit"
-                  disabled={!overlayInput.trim() || !sessionId}
-                  className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50"
-                  data-testid="button-submit-gemini"
-                >
-                  <Search className="h-5 w-5" />
-                </button>
-              </form>
             </div>
-
-            {/* Conteúdo */}
-            <div className="flex-1 flex">
+            
+            {/* Conteúdo Principal com Scroll */}
+            <div className="flex-1 flex overflow-hidden">
               
               {/* Chat Gemini */}
               <div className="w-1/3 border-r border-emerald-200 dark:border-emerald-700 flex flex-col">
@@ -761,6 +741,29 @@ export default function GeminiAssistantBar() {
                   </div>
                 )}
               </div>
+            </div>
+            
+            {/* Input no Rodapé */}
+            <div className="p-6 border-t border-emerald-200 dark:border-emerald-700 flex-shrink-0">
+              <form onSubmit={onOverlaySubmit} className="flex gap-3">
+                <input
+                  type="text"
+                  value={overlayInput}
+                  onChange={(e) => setOverlayInput(e.target.value)}
+                  placeholder="🤖 Digite seu produto (ex.: iPhone, drone, perfume)..."
+                  className="flex-1 px-4 py-3 border border-emerald-300 dark:border-emerald-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-800 dark:text-white"
+                  data-testid="input-gemini-overlay"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  disabled={!overlayInput.trim() || !sessionId}
+                  className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50"
+                  data-testid="button-submit-gemini"
+                >
+                  <Search className="h-5 w-5" />
+                </button>
+              </form>
             </div>
           </div>
         </div>

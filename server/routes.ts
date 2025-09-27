@@ -7319,14 +7319,7 @@ Regras:
         products.sort((a: any, b: any) => (a.price?.USD || 0) - (b.price?.USD || 0));
         const sorted = products.slice(0, Math.max(1, Math.min(50, maxResultados)));
         
-        if (sorted.length > 0) {
-          send('products', {
-            products: sorted.map((p: any) => ({ ...p, name: p.title })),
-            query,
-            hardGrounding: true,
-            provider: 'gemini'
-          });
-        }
+        // Não enviar produtos automaticamente - será controlado pela lógica Ask-Then-Show
         
         return sorted;
       } catch (error) {
@@ -7500,15 +7493,28 @@ Regras:
       }
       const finalText = sanitizeChatGemini([finalMessage, pergunta].filter(Boolean).join(" "));
 
-      // 5) Entrega: chat curto + ofertas para o painel
+      // 5) Entrega: CONVERSA PRIMEIRO, depois produtos (Ask-Then-Show)
       send('delta', { text: finalText });
+      
+      // Aguardar um pouco para a conversa aparecer primeiro
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Depois enviar produtos se houver
+      if (ofertas.length > 0) {
+        send('products', {
+          products: ofertas.map((p: any) => ({ ...p, name: p.title })),
+          query: finalQuery,
+          hardGrounding: true,
+          provider: 'gemini'
+        });
+      }
       
       try {
         await storage.createAssistantMessage({
           sessionId,
           role: 'assistant',
           content: finalText,
-          metadata: { streamed: true, timestamp: new Date().toISOString(), provider: 'gemini', showThenAsk: true }
+          metadata: { streamed: true, timestamp: new Date().toISOString(), provider: 'gemini', askThenShow: true }
         });
       } catch (error) {
         console.warn('Erro ao salvar resposta Gemini:', error);
