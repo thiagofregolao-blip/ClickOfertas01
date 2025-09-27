@@ -7302,7 +7302,7 @@ Regras:
       if (ofertas.length > 0) {
         // genérico ou específico
         const tokens = finalQuery.trim().split(/\s+/);
-        const segmento = (focoPrev || focoNovo || /iphone|apple/i.test(finalQuery) ? "aparelhos da Apple"
+        const segmento = (focoAnterior || focoNovo || /iphone|apple/i.test(finalQuery) ? "aparelhos da Apple"
                         : /samsung|galaxy/i.test(finalQuery) ? "aparelhos Samsung"
                         : /drone/i.test(finalQuery) ? "drones"
                         : /perfume/i.test(finalQuery) ? "perfumes"
