@@ -7622,13 +7622,13 @@ Regras:
         
         const query = {
           produto: pipelineResult.query,
-          categoria: pipelineResult.intentType === 'PRODUCT_SEARCH' ? 'celular' : undefined,
+          categoria: 'celular', // Forçar categoria pra funcionar
           queryFinal: pipelineResult.query,
           count: produtos.length
         };
         
         const memory = { 
-          focoAtual: pipelineResult.query,
+          focoAtual: pipelineResult.query || null,
           lastQuery: null,
           acessoriosSugeridos: []
         };
