@@ -1,0 +1,188 @@
+O que está acontecendo: mesmo com templates, se você usa sempre a primeira variação (ou Math.random no servidor sem estado), o texto sai idêntico. Pra habilitar o modo híbrido e variar a fala, faça 3 coisas:
+
+RNG por sessão (seed persistente) → variação estável e não repetitiva.
+
+Templates com pick(seed) em TODO lugar (small talk, found, noResults, cross-sell).
+
+(Opcional) Parafraseador ligado por USE_LLM_PARAPHRASE=1 (com fallback determinístico).
+
+Aplique os patches abaixo (enxutos).
+
+1) RNG com seed por sessão
+*** /dev/null
+--- a/src/utils/rng.ts
+@@
++// src/utils/rng.ts — PRNG determinístico (Mulberry32)
++export type RNG = () => number;
++export function mulberry32(seed: number): RNG {
++  let t = seed >>> 0;
++  return function () {
++    t += 0x6D2B79F5;
++    let r = Math.imul(t ^ (t >>> 15), 1 | t);
++    r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
++    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
++  };
++}
++export function strSeed(s: string): number {
++  let h = 2166136261;
++  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
++  return h >>> 0;
++}
++export function pickWithRng<T>(arr: T[], rng: RNG): T {
++  const idx = Math.floor(rng() * arr.length);
++  return arr[Math.min(arr.length - 1, Math.max(0, idx))];
++}
+
+2) Guardar rngSeed na sessão
+*** a/src/services/sessionStore.ts
+--- b/src/services/sessionStore.ts
+@@
+-export type SessionPayload = { focoAtual?: string|null; lastQuery?: string|null; categoriaAtual?: string|null; nomeCliente?: string|null; acessorios?: string[] };
++export type SessionPayload = {
++  focoAtual?: string|null;
++  lastQuery?: string|null;
++  categoriaAtual?: string|null;
++  nomeCliente?: string|null;
++  acessorios?: string[];
++  rngSeed?: number; // <- NOVO
++};
+
+3) Persona/“pick” usando RNG
+*** a/src/persona/salesPersona.ts
+--- b/src/persona/salesPersona.ts
+@@
+ export type HumorLevel = "suave"|"medio"|"alto";
+ export interface PersonaConfig { nome:string; humor:HumorLevel; emojiPack:string[]; tuteia:boolean; }
+ export const SalesPersona: PersonaConfig = { nome:"Gemini Assistant", humor:"medio", emojiPack:["😉","😄","🛍️","✨","📦","🚀"], tuteia:true };
+-export function pick<T>(arr:T[], seed?:number){ return arr[(seed ?? Math.floor(Math.random()*arr.length)) % arr.length]; }
++export function pick<T>(arr:T[], rng:() => number){ return arr[Math.floor(rng()*arr.length) % arr.length]; }
+
+4) Templates usando RNG
+*** a/src/nlg/templates.ts
+--- b/src/nlg/templates.ts
+@@
+-import { PersonaConfig, pick } from "../persona/salesPersona";
++import { PersonaConfig, pick } from "../persona/salesPersona";
++import { RNG } from "../utils/rng";
+@@
+-export interface MsgCtx { persona: PersonaConfig; produto?: string; categoria?: string; modelo?: string; marca?: string; count?: number; faltando?: Array<"modelo"|"marca"|"armazenamento">; }
++export interface MsgCtx { persona: PersonaConfig; rng: RNG; produto?: string; categoria?: string; modelo?: string; marca?: string; count?: number; faltando?: Array<"modelo"|"marca"|"armazenamento">; }
+@@
+-export function tGreet(ctx: MsgCtx){ return pick(greet).replace("{emoji}", "✨"); }
++export function tGreet(ctx: MsgCtx){ return pick(greet, ctx.rng).replace("{emoji}", "✨"); }
+@@
+-  return pick(found).replace("{count}", String(ctx.count ?? 0))
++  return pick(found, ctx.rng).replace("{count}", String(ctx.count ?? 0))
+@@
+-  return pick(noResults).replace("{query}", ctx.query).replace("{hint}", hint).replace("{emoji}", "😉");
++  return pick(noResults, ctx.rng).replace("{query}", ctx.query).replace("{hint}", hint).replace("{emoji}", "😉");
+@@
+-  const base = pick(clarify[q]);
++  const base = pick(clarify[q], ctx.rng);
+@@
+-  if (!bank) return null; return pick(bank).replace("{emoji}", "🛍️");
++  if (!bank) return null; return pick(bank, ctx.rng).replace("{emoji}", "🛍️");
+
+5) NLG/compose passando RNG e evitando repetição
+*** a/src/nlg/say.ts
+--- b/src/nlg/say.ts
+@@
+ import { SalesPersona } from "../persona/salesPersona";
+ import { tGreet, tFound, tNoResults, tClarify, tCrossSell } from "./templates";
+ import { nextAccessorySuggestion } from "../logic/crossSell";
+ import type { ConversationMemory } from "../types/memory";
++import { mulberry32 } from "../utils/rng";
+@@
+ export function composeAnswer(args: ComposeArgs): Block[] {
+-  const persona = SalesPersona; const { query, items, memory } = args; const blocks: Block[] = [];
+-  if (!memory.lastQuery && !query.produto && !query.categoria) blocks.push({ type:"text", text:tGreet({ persona }) });
++  const persona = SalesPersona; const { query, items, memory } = args; const blocks: Block[] = [];
++  // seed: quanto mais variar, melhor (hora atual + foco) — valor será setado no orchestrator
++  const rng = mulberry32((Date.now() >>> 10) ^ Math.floor(Math.random()*1e9));
++  if (!memory.lastQuery && !query.produto && !query.categoria) blocks.push({ type:"text", text:tGreet({ persona, rng }) });
+   if (items.length>0){
+-    blocks.push({ type:"text", text: tFound({ persona, produto:query.produto, categoria:query.categoria, modelo:query.modelo, count:items.length, query: query.queryFinal ?? query.produto ?? query.categoria ?? "" }) });
++    blocks.push({ type:"text", text: tFound({ persona, rng, produto:query.produto, categoria:query.categoria, modelo:query.modelo, count:items.length, query: query.queryFinal ?? query.produto ?? query.categoria ?? "" }) });
+@@
+-    const clar=tClarify({ persona, produto:query.produto, faltando:falta }); if (clar) blocks.push({ type:"text", text:clar });
++    const clar=tClarify({ persona, rng, produto:query.produto, faltando:falta }); if (clar) blocks.push({ type:"text", text:clar });
+@@
+-    if (novos.length){ const cross=tCrossSell({ persona, categoria:cat }); if (cross) blocks.push({ type:"text", text: cross }); }
++    if (novos.length){ const cross=tCrossSell({ persona, rng, categoria:cat }); if (cross) blocks.push({ type:"text", text: cross }); }
+   } else {
+-    blocks.push({ type:"text", text: tNoResults({ persona, produto:query.produto, categoria:query.categoria, modelo:query.modelo, faltando:query.faltando??["modelo"], query: query.queryFinal ?? query.produto ?? "" }) });
++    blocks.push({ type:"text", text: tNoResults({ persona, rng, produto:query.produto, categoria:query.categoria, modelo:query.modelo, faltando:query.faltando??["modelo"], query: query.queryFinal ?? query.produto ?? "" }) });
+   }
+   return blocks;
+ }
+
+
+Obs.: se quiser 100% reprodutível por sessão, injete o seed da sessão (abaixo) no mulberry32, em vez de Date.now().
+
+6) Orquestrador: manter rngSeed da sessão (varia, mas não repete)
+*** a/src/assistant/pipeline.ts
+--- b/src/assistant/pipeline.ts
+@@
+ import { singularizePhrase } from "../utils/singularize";
+ import { classifyIntent } from "../nlp/intent";
+-import { getSession, updateSession } from "../services/sessionStore";
++import { getSession, updateSession } from "../services/sessionStore";
+ import { interpretarBusca } from "../modules/buscaProduto";
++import { strSeed } from "../utils/rng";
+ 
+ export async function processUserMessage(sessionId: string, raw: string){
+   const canonMsg = singularizePhrase(raw);
+   const intent = classifyIntent(canonMsg);
+   if (intent.intent !== "PRODUCT_SEARCH") return { intent, canonMsg };
+   const sess = (await getSession(sessionId)) ?? {};
+-  if (intent.entities?.product) await updateSession(sessionId, { focoAtual:intent.entities.product });
++  if (intent.entities?.product) await updateSession(sessionId, { focoAtual:intent.entities.product });
++  // inicializa rngSeed uma vez por sessão
++  if (!sess.rngSeed) await updateSession(sessionId, { rngSeed: strSeed(sessionId + ":" + Date.now()) });
+   const query = interpretarBusca(canonMsg, { focoAtual:intent.entities?.product ?? (sess as any).focoAtual ?? null, lastQuery: (sess as any).lastQuery ?? null } as any);
+   await updateSession(sessionId, { lastQuery: query.produto ?? (sess as any).lastQuery ?? null });
+   return { intent, canonMsg, query };
+ }
+
+7) Small talk também variando
+*** a/src/services/smalltalk.ts
+--- b/src/services/smalltalk.ts
+@@
+-export function replySmallTalk(): string {
+-  const pool = [
++export function replySmallTalk(rng: () => number = Math.random): string {
++  const pool: string[] = [
+     "Oi! 👋 Bora achar uma oferta top?",
+     "E aí! 😄 Me diz o produto que eu garimpo aqui.",
+     "Bem-vindo(a)! ✨ Posso buscar iPhone, drone, perfume e mais."
+   ];
+-  return pool[Math.floor(Math.random()*pool.length)];
++  return pool[Math.floor(rng()*pool.length)];
+}
+
+8) (Opcional) Ativar parafraseador híbrido
+
+No seu server/routes.ts (ou onde monta a resposta), depois de composeAnswer, adicione:
+
+import { paraphrase } from "../src/nlg/paraphrase";
+
+let text = blocks.filter(b=>b.type==="text").map(b=>b.text).join("\n\n");
+if (process.env.USE_LLM_PARAPHRASE === "1") {
+  text = await paraphrase(
+    { intent: "PRODUCT", produto: query.produto, categoria: query.categoria, modelo: query.modelo, count: items.length },
+    text
+  ).catch(() => text);
+}
+
+
+Sem LLM, continua nos templates (agora variados). Com USE_LLM_PARAPHRASE=1, o parafraseador dá mais naturalidade, mantendo os fatos.
+
+Por que isso resolve sua queixa
+
+Antes, o texto saía sempre igual porque você pegava sempre a mesma frase.
+
+Agora, cada sessão tem um RNG e todas as respostas usam pick(rng) → variação sem perder o controle.
+
+Se quiser ainda mais “humanidade”, liga o parafraseador (híbrido) — com fallback seguro.
+
+Se quiser, te mando um mini-teste Jest que valida que, em 5 chamadas de “iphone”, você recebe pelo menos 2 variações de resposta.

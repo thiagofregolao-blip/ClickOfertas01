@@ -1,11 +1,11 @@
 // src/services/smalltalk.ts
-export function replySmallTalk(): string {
-  const pool = [
+export function replySmallTalk(rng: () => number = Math.random): string {
+  const pool: string[] = [
     "Oi! 👋 Como posso te ajudar hoje?",
     "Opa! Se quiser, me diz o produto que você procura (ex.: iPhone, drone, perfume).",
     "Olá! Posso buscar ofertas de celulares, perfumes, eletrônicos e mais. O que você quer ver?",
   ];
-  return pool[Math.floor(Math.random() * pool.length)];
+  return pool[Math.floor(rng() * pool.length)];
 }
 
 export function replyHelp(): string {

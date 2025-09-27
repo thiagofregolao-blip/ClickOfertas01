@@ -5,6 +5,7 @@ import { replyHelp, replyOutOfDomain, replySmallTalk, replyTime, replyWhoAmI } f
 import { montarConsulta, detectarFoco } from "../../server/lib/gemini/query-builder.js";
 import { obterContextoSessao, salvarContextoSessao } from "../../server/lib/gemini/context-storage.js";
 import { canonicalProductFromText, normPTBR } from "../utils/lang-ptbr.js";
+import { strSeed, mulberry32 } from "../utils/rng.js";
 
 export interface PipelineResult {
   intent: string;
@@ -37,10 +38,21 @@ export async function processUserMessage(sessionId: string, raw: string): Promis
   
   // 3. Tratamento de intenções não-busca
   if (intent.intent === "SMALL_TALK") {
+    // Buscar seed da sessão para smalltalk consistente
+    const sess = (await obterContextoSessao(sessionId)) ?? {};
+    let seed = (sess as any).rngSeed ?? strSeed(sessionId + ":" + Date.now());
+    if (!(sess as any).rngSeed) {
+      await salvarContextoSessao(sessionId, { rngSeed: seed });
+    }
+    const rng = mulberry32(seed);
+    const nextSeed = (seed + 0x9E3779B9) >>> 0;
+    await salvarContextoSessao(sessionId, { rngSeed: nextSeed });
+    console.log(`🎲 [RNG] Pipeline small talk seed: ${seed} → next: ${nextSeed}`);
+    
     return {
       intent: intent.intent,
       canonMsg,
-      text: replySmallTalk(),
+      text: replySmallTalk(rng),
       shouldSearch: false,
       debug: { original: raw, canonMsg, intentType: intent.intent }
     };
@@ -79,6 +91,11 @@ export async function processUserMessage(sessionId: string, raw: string): Promis
   // 4. Slot filling + gestão de foco para buscas de produto
   const sess = (await obterContextoSessao(sessionId)) ?? {};
   
+  // inicializa rngSeed uma vez por sessão
+  if (!(sess as any).rngSeed) {
+    await salvarContextoSessao(sessionId, { rngSeed: strSeed(sessionId + ":" + Date.now()) });
+  }
+  
   // Regra de continuação: "e perfumes", "mais drone", etc.
   const firstToken = normPTBR(raw).split(/\s+/)[0];
   const startsWithAnd = ["e", "tambem", "também", "mais"].includes(firstToken);
@@ -90,7 +107,7 @@ export async function processUserMessage(sessionId: string, raw: string): Promis
     console.log(`🎯 [Pipeline] Novo foco detectado: "${novoFoco}"`);
     await salvarContextoSessao(sessionId, { 
       focoAtual: novoFoco, 
-      lastQuery: null,
+      ultimaQuery: null,
       lastUpdated: new Date().toISOString()
     });
   }

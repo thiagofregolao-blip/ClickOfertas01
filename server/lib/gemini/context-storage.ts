@@ -9,6 +9,7 @@ export interface ConversationContext {
   ultimaQuery?: string | null;        // Última query executada
   ultimosModelos?: string[];          // Modelos mencionados recentemente
   acessoriosSugeridos?: string[];     // Acessórios sugeridos para evitar repetição
+  rngSeed?: number;                   // Seed para RNG determinístico por sessão
   lastUpdated?: string;               // Timestamp da última atualização
 }
 

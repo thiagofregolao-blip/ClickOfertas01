@@ -1,10 +1,12 @@
 // src/nlg/templates.ts
 import { PersonaConfig, pick } from "../persona/salesPersona";
+import { RNG } from "../utils/rng";
 
 type Dict<T> = Record<string, T>;
 
 export interface MsgCtx {
   persona: PersonaConfig;
+  rng: RNG;
   produto?: string;
   categoria?: string;
   modelo?: string;
@@ -75,16 +77,16 @@ const crossSell: Dict<string[]> = {
 
 export function tGreet(ctx: MsgCtx) {
   const emojiCount = ctx.persona.humor === "alto" ? 2 : 1;
-  const emoji = Array(emojiCount).fill(0).map(() => pick(ctx.persona.emojiPack)).join(" ");
-  return pick(greet)
+  const emoji = Array(emojiCount).fill(0).map(() => pick(ctx.persona.emojiPack, ctx.rng)).join(" ");
+  return pick(greet, ctx.rng)
     .replace("{emoji}", emoji);
 }
 
 export function tFound(ctx: MsgCtx & { query: string }) {
   const cat = ctx.categoria ?? ctx.produto ?? "itens";
   const emojiCount = ctx.persona.humor === "alto" ? 2 : 1;
-  const emoji = Array(emojiCount).fill(0).map(() => pick(ctx.persona.emojiPack)).join(" ");
-  return pick(found)
+  const emoji = Array(emojiCount).fill(0).map(() => pick(ctx.persona.emojiPack, ctx.rng)).join(" ");
+  return pick(found, ctx.rng)
     .replace("{count}", String(ctx.count ?? 0))
     .replace("{cat}", cat)
     .replace("{query}", ctx.modelo ? `${ctx.produto} ${ctx.modelo}` : ctx.produto ?? ctx.categoria ?? ctx.marca ?? "produto")
@@ -96,16 +98,16 @@ export function tNoResults(ctx: MsgCtx & { query: string }) {
   const hint = need === "modelo" ? "o **modelo** (ex.: 12, 13 Pro)" :
               need === "marca" ? "a **marca** (ex.: Apple, Samsung)" :
               "a **capacidade** (ex.: 128GB)";
-  return pick(noResults)
+  return pick(noResults, ctx.rng)
     .replace("{query}", ctx.produto ?? ctx.categoria ?? ctx.marca ?? "termo")
     .replace("{hint}", hint)
-    .replace("{emoji}", pick(ctx.persona.emojiPack));
+    .replace("{emoji}", pick(ctx.persona.emojiPack, ctx.rng));
 }
 
 export function tClarify(ctx: MsgCtx) {
   if (!ctx.faltando?.length) return null;
   const q = ctx.faltando[0];
-  const base = pick(clarify[q]);
+  const base = pick(clarify[q], ctx.rng);
   const lista =
     q === "modelo" ? "12, 13, 15…" :
     q === "marca" ? "Apple, Samsung, Xiaomi…" :
@@ -121,9 +123,9 @@ export function tCrossSell(ctx: MsgCtx) {
   if (!bank) return null;
   
   const emojiCount = ctx.persona.humor === "alto" ? 2 : 1;
-  const emoji = Array(emojiCount).fill(0).map(() => pick(ctx.persona.emojiPack)).join(" ");
+  const emoji = Array(emojiCount).fill(0).map(() => pick(ctx.persona.emojiPack, ctx.rng)).join(" ");
   
-  let text = pick(bank).replace("{emoji}", emoji);
+  let text = pick(bank, ctx.rng).replace("{emoji}", emoji);
   
   // Se temos acessórios específicos, personalizar a mensagem
   if (ctx.acessorios && ctx.acessorios.length > 0) {

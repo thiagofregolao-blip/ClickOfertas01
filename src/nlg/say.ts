@@ -3,6 +3,7 @@ import { SalesPersona } from "../persona/salesPersona";
 import { tGreet, tFound, tNoResults, tClarify, tCrossSell } from "./templates";
 import { nextAccessorySuggestion } from "../logic/crossSell";
 import type { ConversationMemory } from "../types/memory";
+import { mulberry32 } from "../utils/rng";
 
 type Block = { type: "text"; text: string } | { type: "products"; items: any[] };
 
@@ -12,13 +13,15 @@ export interface ComposeArgs {
   memory: ConversationMemory;
 }
 
-export function composeAnswer(args: ComposeArgs): Block[] {
+export function composeAnswer(args: ComposeArgs, rngSeed?: number): Block[] {
   const persona = SalesPersona;
   const { query, items, memory } = args;
   const blocks: Block[] = [];
+  // usar seed da sessão se fornecido, caso contrário fallback para aleatório
+  const rng = mulberry32(rngSeed ?? ((Date.now() >>> 10) ^ Math.floor(Math.random()*1e9)));
 
   if (!memory.lastQuery && !query.produto && !query.categoria) {
-    blocks.push({ type: "text", text: tGreet({ persona }) });
+    blocks.push({ type: "text", text: tGreet({ persona, rng }) });
   }
 
   if (items.length > 0) {
@@ -26,6 +29,7 @@ export function composeAnswer(args: ComposeArgs): Block[] {
       type: "text",
       text: tFound({
         persona,
+        rng,
         produto: query.produto,
         categoria: query.categoria,
         modelo: query.modelo,
@@ -40,14 +44,14 @@ export function composeAnswer(args: ComposeArgs): Block[] {
     if (!query.modelo && (query.produto === "iphone" || query.categoria === "celular")) falta.push("modelo");
     if (!query.marca && ["celular","tv","notebook"].includes(query.categoria ?? "")) falta.push("marca");
     if (!query.armazenamento && query.produto === "iphone") falta.push("armazenamento");
-    const clar = tClarify({ persona, produto: query.produto, faltando: falta });
+    const clar = tClarify({ persona, rng, produto: query.produto, faltando: falta });
     if (clar) blocks.push({ type: "text", text: clar });
 
     // Cross-sell (sem repetir)
     const cat = query.categoria ?? query.produto;
     const novos = nextAccessorySuggestion(cat, memory.acessoriosSugeridos ?? []);
     if (novos.length) {
-      blocks.push({ type: "text", text: tCrossSell({ persona, categoria: cat, acessorios: novos })! });
+      blocks.push({ type: "text", text: tCrossSell({ persona, rng, categoria: cat, acessorios: novos })! });
       
       // Adicionar novos acessórios sugeridos na memória para evitar repetição
       if (!memory.acessoriosSugeridos) memory.acessoriosSugeridos = [];
@@ -58,6 +62,7 @@ export function composeAnswer(args: ComposeArgs): Block[] {
       type: "text",
       text: tNoResults({
         persona,
+        rng,
         produto: query.produto,
         categoria: query.categoria,
         modelo: query.modelo,

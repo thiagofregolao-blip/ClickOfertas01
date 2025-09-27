@@ -1,10 +1,11 @@
 // src/services/conversation.ts
-import { classifyIntent } from "../nlp/intent";
+import { classifyIntent } from "../nlp/intent.js";
 import { montarConsulta, detectarFoco, extrairModeloPTBR } from "../../server/lib/gemini/query-builder.js";
 import { obterContextoSessao, salvarContextoSessao } from "../../server/lib/gemini/context-storage.js";
-import { replyHelp, replyOutOfDomain, replySmallTalk, replyTime, replyWhoAmI } from "./smalltalk";
+import { replyHelp, replyOutOfDomain, replySmallTalk, replyTime, replyWhoAmI } from "./smalltalk.js";
 import { canonicalProductFromText, tokenizePTBR, normPTBR } from "../utils/lang-ptbr.js";
-import { composeAnswer } from "../nlg/say";
+import { composeAnswer } from "../nlg/say.js";
+import { strSeed, mulberry32 } from "../utils/rng.js";
 import type { ConversationMemory } from "../types/memory";
 
 export interface AssistantResult {
@@ -51,9 +52,19 @@ export async function runAssistant(sessionId: string, userMsg: string): Promise<
   
   const intent = classifyIntent(userMsg);
 
-  // 1) Small talk / help / time
+  // 1) Inicializar seed RNG se necessário (para garantir consistência)
+  const sess = (await obterContextoSessao(sessionId)) ?? {};
+  let seed = (sess as any).rngSeed ?? strSeed(sessionId + ":" + Date.now());
+  if (!(sess as any).rngSeed) {
+    await salvarContextoSessao(sessionId, { rngSeed: seed });
+  }
+
+  // 2) Small talk / help / time
   if (intent.intent === "SMALL_TALK") {
-    return { kind: "SMALL_TALK", text: replySmallTalk() };
+    const nextSeed = (seed + 0x9E3779B9) >>> 0;
+    await salvarContextoSessao(sessionId, { rngSeed: nextSeed });
+    console.log(`🎲 [RNG] Small talk seed: ${seed} → next: ${nextSeed}`);
+    return { kind: "SMALL_TALK", text: replySmallTalk(mulberry32(seed)) };
   }
   if (intent.intent === "HELP") {
     return { kind: "HELP", text: replyHelp() };
@@ -65,8 +76,7 @@ export async function runAssistant(sessionId: string, userMsg: string): Promise<
     return { kind: "SMALL_TALK", text: replyWhoAmI() };
   }
 
-  // 2) Produto (ou UNKNOWN que podemos resolver por contexto)
-  const sess = (await obterContextoSessao(sessionId)) ?? {};
+  // 3) Produto (ou UNKNOWN que podemos resolver por contexto)
   
   // Regra de continuação: se começa com "e" / "também" / "mais" e tiver novo produto, troca foco
   const firstToken = normPTBR(userMsg).split(/\s+/)[0];
@@ -151,13 +161,16 @@ export async function runAssistant(sessionId: string, userMsg: string): Promise<
       queryFinal
     }, 
     memory 
-  });
+  }, seed);
 
-  // 6) Persistir memória atualizada (incluindo acessórios sugeridos)
+  // 6) Avançar seed para próxima resposta e persistir memória atualizada
+  const nextSeed = (seed + 0x9E3779B9) >>> 0;
+  console.log(`🎲 [RNG] Product seed: ${seed} → next: ${nextSeed}`);
   await salvarContextoSessao(sessionId, { 
     focoAtual: foco,
     ultimaQuery: queryFinal,
     acessoriosSugeridos: memory.acessoriosSugeridos ?? [],
+    rngSeed: nextSeed,
     lastUpdated: new Date().toISOString()
   });
   
