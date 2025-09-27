@@ -7334,80 +7334,58 @@ Regras:
         }
       }
 
-      // 3) Usar Gemini para lapidar o tom (sem permitir tool/refinamentos automáticos)
+      // 3) Resposta específica baseada nos produtos encontrados
+      let finalMessage;
+      if (ofertas.length > 0) {
+        // Se há produtos, forçar resposta específica baseada nos dados reais
+        const topProducts = ofertas.slice(0, 3);
+        const productList = topProducts.map(p => 
+          `${p.title} por $${p.price?.USD || 'consultar'} na ${p.storeName}`
+        ).join(', ');
+        
+        try {
+          // Importar Gemini
+          const { GoogleGenerativeAI } = await import('@google/generative-ai');
+          const geminiAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+          
+          const model = geminiAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+          
+          const simplePrompt = `Responda como vendedor amigável. Mencione EXATAMENTE estes produtos: ${productList}. Use 1 emoji. Máximo 2 frases.`;
+
+          const result = await model.generateContent(simplePrompt);
+          finalMessage = sanitizeChatGemini(result.response.text() || `Encontrei: ${productList} 📱`);
+        } catch (geminiError) {
+          console.error('Erro no Gemini:', geminiError);
+          // Fallback com dados específicos dos produtos
+          finalMessage = `Encontrei: ${productList} 📱`;
+        }
+      } else {
+        // Se não há produtos, usar template direto
+        finalMessage = msgNoResultsGemini();
+      }
+
+      // 4) (Opcional) 1 pergunta leve após mostrar
+      let pergunta = "";
+      if (ofertas.length > 0) {
+        // Exemplos de temas específicos
+        if (/iphone|apple/i.test(userQuery)) pergunta = msgSoftQuestionGemini("linha 13 ou 15");
+        else if (/drone/i.test(userQuery)) pergunta = msgSoftQuestionGemini("compacto ou câmera mais parruda");
+        else if (/perfume/i.test(userQuery)) pergunta = msgSoftQuestionGemini("marcas favoritas (Dior, Calvin Klein...)");
+      }
+      const finalText = sanitizeChatGemini([finalMessage, pergunta].filter(Boolean).join(" "));
+
+      // 5) Entrega: chat curto + ofertas para o painel
+      send('delta', { text: finalText });
+      
       try {
-        // Importar Gemini
-        const { GoogleGenerativeAI } = await import('@google/generative-ai');
-        const geminiAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-        
-        const model = geminiAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-        
-        // Criar contexto dos produtos para o Gemini
-        let productContext = "";
-        if (ofertas.length > 0) {
-          const topProducts = ofertas.slice(0, 5).map(p => ({
-            title: p.title,
-            price: p.price?.USD ? `$${p.price.USD}` : 'Preço consultar',
-            store: p.storeName,
-            category: p.category
-          }));
-          productContext = `\n\nPRODUTOS ENCONTRADOS (mencione dados específicos):\n${JSON.stringify(topProducts, null, 2)}`;
-        }
-
-        const polishPrompt = `Você é o Assistente de Compras do Click Ofertas.
-Tom: natural, bem-humorado (1 emoji no máx quando couber), direto ao ponto.
-Regras:
-- Mostre primeiro: nunca bloqueie a conversa pedindo cidade/preço. Pergunte só se agregar valor e no máx 1 pergunta.
-- No chat: não cole links/URLs/imagens; não liste catálogos. A lista completa aparece no painel de resultados.
-- Seja útil como um vendedor amigo: sugira comparações, opções próximas e dicas curtas.
-- IMPORTANTE: Use dados específicos dos produtos encontrados (preços, lojas, modelos) em vez de respostas genéricas.
-
-${productContext}
-
-Reescreva de forma natural e simpática, 1–2 frases no máximo, mencionando dados específicos dos produtos: "${text}"`;
-
-        const result = await model.generateContent(polishPrompt);
-        const polished = sanitizeChatGemini(result.response.text() || text);
-
-        // 4) (Opcional) 1 pergunta leve após mostrar
-        let pergunta = "";
-        if (ofertas.length > 0) {
-          // Exemplos de temas específicos
-          if (/iphone|apple/i.test(userQuery)) pergunta = msgSoftQuestionGemini("linha 13 ou 15");
-          else if (/drone/i.test(userQuery)) pergunta = msgSoftQuestionGemini("compacto ou câmera mais parruda");
-          else if (/perfume/i.test(userQuery)) pergunta = msgSoftQuestionGemini("marcas favoritas (Dior, Calvin Klein...)");
-        }
-        const finalText = sanitizeChatGemini([polished, pergunta].filter(Boolean).join(" "));
-
-        // 5) Entrega: chat curto + ofertas para o painel
-        send('delta', { text: finalText });
-        
-        try {
-          await storage.createAssistantMessage({
-            sessionId,
-            role: 'assistant',
-            content: finalText,
-            metadata: { streamed: true, timestamp: new Date().toISOString(), provider: 'gemini', showThenAsk: true }
-          });
-        } catch (error) {
-          console.warn('Erro ao salvar resposta Gemini:', error);
-        }
-        
-      } catch (geminiError) {
-        console.error('Erro no Gemini:', geminiError);
-        // Fallback com mensagem template direta
-        send('delta', { text });
-        
-        try {
-          await storage.createAssistantMessage({
-            sessionId,
-            role: 'assistant',
-            content: text,
-            metadata: { streamed: true, timestamp: new Date().toISOString(), provider: 'gemini', fallback: true }
-          });
-        } catch (error) {
-          console.warn('Erro ao salvar resposta Gemini fallback:', error);
-        }
+        await storage.createAssistantMessage({
+          sessionId,
+          role: 'assistant',
+          content: finalText,
+          metadata: { streamed: true, timestamp: new Date().toISOString(), provider: 'gemini', showThenAsk: true }
+        });
+      } catch (error) {
+        console.warn('Erro ao salvar resposta Gemini:', error);
       }
 
     } catch (error) {
