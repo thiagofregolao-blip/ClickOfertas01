@@ -7321,23 +7321,40 @@ Regras:
       let userQuery = String(message || "").trim();
 
       // 1) CONTEXTO INTELIGENTE: Enriquecer query vaga com histórico
-      if (/\b(modelo|versão|linha|pro|max|mini)\s*\d+\b/i.test(userQuery) && !/\b(iphone|samsung|xiaomi|apple|perfume|drone)\b/i.test(userQuery)) {
+      const needsContext = (
+        // Deteta padrões como "modelo 12", "o 13", "versão pro", "quero o 15"
+        /\b(modelo|versão|linha|o|quero|esse|este|aquele)\s*(o\s*)?\d+\b/i.test(userQuery) ||
+        // Ou apenas números isolados "12", "13 pro", "15 max"
+        /^\d+\s*(pro|max|mini|plus)?$/i.test(userQuery.trim()) ||
+        // Ou frases vagas como "o 12", "esse modelo", "quero esse"
+        /^(o|esse|este|aquele)\s+\d+/i.test(userQuery.trim())
+      ) && !/\b(iphone|samsung|xiaomi|apple|perfume|drone|celular|smartphone)\b/i.test(userQuery);
+      
+      if (needsContext) {
         try {
           const messages = await storage.getAssistantMessages(sessionId);
-          const lastSearch = messages
+          // Buscar nas últimas 10 mensagens do usuário por contexto de produto/marca
+          const recentUserMessages = messages
             .filter(m => m.role === 'user')
-            .reverse()
-            .find(m => /\b(iphone|samsung|xiaomi|apple|perfume|drone)\b/i.test(m.content));
+            .slice(-10)
+            .reverse();
           
-          if (lastSearch) {
-            const contextWord = lastSearch.content.match(/\b(iphone|samsung|xiaomi|apple|perfume|drone)\b/i)?.[0];
+          const contextMatch = recentUserMessages.find(m => 
+            /\b(iphone|apple|samsung|galaxy|xiaomi|perfume|drone|celular|smartphone)\b/i.test(m.content)
+          );
+          
+          if (contextMatch) {
+            const contextWord = contextMatch.content.match(/\b(iphone|apple|samsung|galaxy|xiaomi|perfume|drone|celular|smartphone)\b/i)?.[0];
             if (contextWord) {
-              userQuery = `${contextWord} ${userQuery}`;
-              console.log('🧠 [Context] Enriquecendo query:', `"${message}" → "${userQuery}"`);
+              const originalQuery = userQuery;
+              userQuery = `${contextWord} ${userQuery}`.replace(/\s+/g, ' ').trim();
+              console.log('🧠 [Context] Enriquecendo query:', `"${originalQuery}" → "${userQuery}"`);
             }
+          } else {
+            console.log('🧠 [Context] Nenhum contexto encontrado nas últimas mensagens');
           }
         } catch (error) {
-          console.warn('Erro ao buscar contexto:', error);
+          console.warn('❌ Erro ao buscar contexto:', error);
         }
       }
 
