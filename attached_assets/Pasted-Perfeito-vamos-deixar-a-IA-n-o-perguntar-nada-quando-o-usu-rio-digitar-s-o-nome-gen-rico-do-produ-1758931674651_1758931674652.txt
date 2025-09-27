@@ -1,0 +1,165 @@
+Perfeito — vamos deixar a IA não perguntar nada quando o usuário digitar só o nome genérico do produto (ex.: “iphone”). Ela vai responder algo como:
+
+“Vejo que você está buscando aparelhos da Apple. Listei alguns modelos abaixo. Me fale qual modelo você gostaria de comprar!”
+
+Sem links/imagens no chat, e os produtos aparecem só no bloco de resultados.
+
+Aplique este patch do chat.js (substitui o arquivo atual):
+
+// src/ai/chat.js — IA: genérico => sem perguntas, mensagem curta, sem links
+import OpenAI from "openai";
+import { buscarOfertas } from "../services/catalog.js";
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Frases por termo genérico (ajuste/adicione conforme seu catálogo)
+const GENERICOS = [
+  { rx: /\biphone?\b/i,   frase: "aparelhos da Apple" },
+  { rx: /\b(apple)\b/i,   frase: "aparelhos da Apple" },
+  { rx: /\bgalaxy|s2[3-5]\b/i, frase: "aparelhos Samsung" },
+  { rx: /\bsamsung\b/i,   frase: "aparelhos Samsung" },
+  { rx: /\bdrone[s]?\b/i, frase: "drones" },
+  { rx: /\bperfume[s]?\b/i, frase: "perfumes" }
+];
+
+// Regra geral (continua valendo) — sem link/imagem no chat
+const SYSTEM_STYLE = `
+Você é o Assistente do Click Ofertas.
+- No chat: nunca escreva links/URLs, nem markdown de imagem (![]()) ou de link ([]()).
+- Não invente produtos; use somente os retornados pela ferramenta.
+`.trim();
+
+const TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "buscarOfertas",
+      description: "Busca ofertas por termo (query). Retorna array de produtos do catálogo.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "termo de busca, ex.: 'iphone', 'drone', 'perfume'" },
+          maxResultados: { type: "integer", default: 12, minimum: 1, maximum: 50 }
+        },
+        required: ["query"]
+      }
+    }
+  }
+];
+
+function sanitizeChat(text = "") {
+  return String(text)
+    .replace(/!\[[^\]]*]\([^)]+\)/g, "")       // imagens markdown
+    .replace(/\[([^\]]+)]\(([^)]+)\)/g, "$1")  // links markdown → só texto
+    .replace(/https?:\/\/\S+/g, "")            // URLs cruas
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+// Detecta se é termo genérico (marca/categoria) → devolve frase amigável
+function detectarGenerico(msg) {
+  const t = String(msg || "").trim();
+  if (t.split(/\s+/).length > 4) return null; // frase grande: não tratamos como genérico
+  for (const g of GENERICOS) {
+    if (g.rx.test(t)) return g.frase;
+  }
+  return null;
+}
+
+export async function chatOnce({ message }) {
+  const userQuery = String(message || "").trim();
+  const msgs = [
+    { role: "system", content: SYSTEM_STYLE },
+    { role: "user", content: userQuery }
+  ];
+
+  // 1) Se for termo genérico → NÃO fazer perguntas, buscar direto e mandar mensagem padrão
+  const fraseGenerica = detectarGenerico(userQuery);
+  if (fraseGenerica) {
+    const ofertas = await buscarOfertas({ query: userQuery, maxResultados: 12 });
+
+    // Injeta como tool_result para o modelo “entender” os itens (sem listar/links)
+    msgs.push({
+      role: "tool",
+      name: "buscarOfertas",
+      tool_call_id: "prefetch",
+      content: JSON.stringify({ data: ofertas })
+    });
+
+    // Chat curto e sem links
+    const text =
+      ofertas.length > 0
+        ? `Vejo que você está buscando ${fraseGenerica}. Listei alguns modelos abaixo. Me fale qual o modelo você gostaria de comprar!`
+        : `Não encontrei ${fraseGenerica} com esse termo. Pode me dizer o modelo exato que você quer ver?`;
+
+    return { text, ofertas };
+  }
+
+  // 2) Caso NÃO seja genérico: padrão conversacional (modelo decide tool)
+  const resp = await openai.chat.completions.create({
+    model: process.env.CHAT_MODEL || "gpt-4o-mini",
+    temperature: 0.5,
+    messages: msgs,
+    tools: TOOLS,
+    tool_choice: "auto"
+  });
+
+  const m = resp.choices?.[0]?.message;
+  const toolCalls = m?.tool_calls || [];
+
+  if (toolCalls.length > 0) {
+    for (const call of toolCalls) {
+      if (call.type === "function" && call.function?.name === "buscarOfertas") {
+        let args = {};
+        try { args = JSON.parse(call.function.arguments || "{}"); } catch {}
+        const produtos = await buscarOfertas(args);
+        msgs.push({
+          role: "tool",
+          tool_call_id: call.id,
+          name: "buscarOfertas",
+          content: JSON.stringify({ data: produtos })
+        });
+    }
+    // segunda passada para o modelo redigir
+    const resp2 = await openai.chat.completions.create({
+      model: process.env.CHAT_MODEL || "gpt-4o-mini",
+      temperature: 0.5,
+      messages: msgs,
+      tools: TOOLS,
+      tool_choice: "none"
+    });
+    const finalText = sanitizeChat(resp2.choices?.[0]?.message?.content || "");
+    const lastTool = [...msgs].reverse().find(x => x.role === "tool" && x.name === "buscarOfertas");
+    const ofertas = lastTool ? JSON.parse(lastTool.content).data : [];
+    // Mantemos o chat curto se houver itens
+    const text =
+      ofertas.length > 0
+        ? "Encontrei algumas opções e deixei nos resultados abaixo. Se quiser, diga o modelo exato para eu afinar 😉"
+        : (finalText || "Não encontrei itens. Diga o nome exato do modelo que você quer ver 🙂");
+    return { text, ofertas };
+  }
+
+  // Sem tool-calls → só responde (sanitizado). UI pode não ter produtos.
+  const fallbackText = sanitizeChat(m?.content?.trim() || "");
+  return { text: fallbackText || "Me diga o nome do produto (ex.: 'iphone') que eu listo pra você!", ofertas: [] };
+}
+
+O que muda
+
+Se o usuário digita apenas “iphone”, “drone”, “perfumes”…:
+
+Sem perguntas; busca direta;
+
+Chat responde: “Vejo que você está buscando … Listei alguns modelos abaixo. Me fale qual o modelo você gostaria de comprar!”
+
+Sem links/imagens no chat (sanitização).
+
+Produtos aparecem apenas nos “Resultados da Pesquisa”.
+
+Para consultas mais específicas (ex.: “iphone 13”) o modelo ainda pode chamar a tool; mesmo assim, nós forçamos resposta curta e sanitizada.
+
+Ajustes que você pode fazer
+
+Edite o array GENERICOS para cobrir mais termos/brands/categorias do seu catálogo.
+
+Ajuste a frase do chat se quiser outro tom.

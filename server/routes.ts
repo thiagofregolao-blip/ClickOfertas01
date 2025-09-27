@@ -7036,13 +7036,41 @@ IMPORTANTE: Seja autêntico, não robótico. Fale como um vendedor expert que re
       }
     }
 
-    // Sistema conversacional puro
+    // Frases por termo genérico
+    const GENERICOS = [
+      { rx: /\biphone?\b/i, frase: "aparelhos da Apple" },
+      { rx: /\b(apple)\b/i, frase: "aparelhos da Apple" },
+      { rx: /\bgalaxy|s2[3-5]\b/i, frase: "aparelhos Samsung" },
+      { rx: /\bsamsung\b/i, frase: "aparelhos Samsung" },
+      { rx: /\bdrone[s]?\b/i, frase: "drones" },
+      { rx: /\bperfume[s]?\b/i, frase: "perfumes" }
+    ];
+
+    // Função para detectar termos genéricos
+    function detectarGenerico(msg: string) {
+      const t = String(msg || "").trim();
+      if (t.split(/\s+/).length > 4) return null; // frase grande: não tratamos como genérico
+      for (const g of GENERICOS) {
+        if (g.rx.test(t)) return g.frase;
+      }
+      return null;
+    }
+
+    // Função para sanitizar texto (remover links/imagens)
+    function sanitizeChat(text = "") {
+      return String(text)
+        .replace(/!\[[^\]]*\]\([^)]+\)/g, "")       // imagens markdown
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")  // links markdown → só texto
+        .replace(/https?:\/\/\S+/g, "")            // URLs cruas
+        .replace(/\s{2,}/g, " ")
+        .trim();
+    }
+
+    // Sistema conversacional
     const SYSTEM_STYLE = `
 Você é o Assistente do Click Ofertas.
-Fale em PT-BR, tom humano e leve (humor sutil, no máx 1 emoji).
-Quando detectar intenção de compra (ex.: "iphone", "perfume"), chame a ferramenta buscarOfertas passando {query}.
-Liste produtos em bullets: Título — US$preço. Se não houver itens, explique curto e convide a especificar o modelo.
-Não invente produtos. Use somente os retornados pela ferramenta.
+- No chat: nunca escreva links/URLs, nem markdown de imagem (![]()) ou de link ([]()).
+- Não invente produtos; use somente os retornados pela ferramenta.
 `.trim();
 
     const TOOLS = [
@@ -7070,8 +7098,35 @@ Não invente produtos. Use somente os retornados pela ferramenta.
 
     send('meta', { ok: true });
 
+    // 1) Verificar se é termo genérico
+    const fraseGenerica = detectarGenerico(message);
+    if (fraseGenerica) {
+      const produtos = await buscarOfertas({ query: message, maxResultados: 12 });
+      
+      const text = produtos.length > 0
+        ? `Vejo que você está buscando ${fraseGenerica}. Listei alguns modelos abaixo. Me fale qual o modelo você gostaria de comprar!`
+        : `Não encontrei ${fraseGenerica} com esse termo. Pode me dizer o modelo exato que você quer ver?`;
+
+      send('delta', { text });
+      
+      try {
+        await storage.createAssistantMessage({
+          sessionId,
+          role: 'assistant',
+          content: text,
+          metadata: { streamed: true, timestamp: new Date().toISOString(), genericTerm: true }
+        });
+      } catch (error) {
+        console.warn('Erro ao salvar resposta:', error);
+      }
+
+      send('complete', {});
+      res.end();
+      return;
+    }
+
     try {
-      // Laço para tool calling
+      // 2) Caso NÃO seja genérico: padrão conversacional
       for (let turn = 0; turn < 3; turn++) {
         const resp = await clickClient.chat.completions.create({
           model: process.env.CHAT_MODEL || "gpt-4o-mini",
@@ -7153,8 +7208,18 @@ Não invente produtos. Use somente os retornados pela ferramenta.
           continue; // volta pro modelo integrar os dados
         }
 
-        // Resposta final
-        const text = fullText.trim() || "Hum… me dá só o nome do produto (ex.: 'iphone') que eu busco 😉";
+        // Resposta final (sanitizada)
+        let text = sanitizeChat(fullText.trim());
+        
+        // Se há produtos, forçar resposta curta
+        const lastTool = [...msgs].reverse().find(x => x.role === "tool" && x.name === "buscarOfertas");
+        const hasProdutos = lastTool && JSON.parse(lastTool.content || '{}').data?.length > 0;
+        
+        if (hasProdutos) {
+          text = "Encontrei algumas opções e deixei nos resultados abaixo. Se quiser, diga o modelo exato para eu afinar 😉";
+        } else if (!text) {
+          text = "Não encontrei itens. Diga o nome exato do modelo que você quer ver 🙂";
+        }
         
         try {
           await storage.createAssistantMessage({
@@ -7171,7 +7236,7 @@ Não invente produtos. Use somente os retornados pela ferramenta.
       }
     } catch (error) {
       console.error('Erro no chat:', error);
-      send('delta', { text: "Ops! Dei uma tropeçada aqui 🤹 Tenta de novo?" });
+      send('delta', { text: "Me diga o nome do produto (ex.: 'iphone') que eu listo pra você!" });
     }
 
     send('complete', {});
