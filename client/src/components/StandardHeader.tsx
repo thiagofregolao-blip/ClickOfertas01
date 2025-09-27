@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocation, Link } from "wouter";
-import { Search, X, BarChart3, Sparkles } from "lucide-react";
+import { Search, X, BarChart3 } from "lucide-react";
 import AssistantBar from "@/components/AssistantBar";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -156,56 +156,38 @@ export default function StandardHeader() {
         {/* Segunda linha: Barra de Busca (Mobile abaixo, Desktop na linha anterior) */}
         {isMobile && (
           <div className="mb-2">
-            {/* Barra Premium Gemini - Design modernizado */}
-            <div className="w-full relative">
-              <form 
-                className="w-full relative" 
-                onSubmit={(e) => { 
-                  e.preventDefault();
-                  const query = searchInput.trim();
-                  window.dispatchEvent(new CustomEvent('assistant:submit', { 
-                    detail: { source: 'header', query } 
-                  }));
-                }}
-                data-anchor="search-form"
-              >
-                <div className="relative flex items-center bg-gradient-to-r from-primary/5 to-orange-50 dark:from-primary/10 dark:to-orange-950/30 border-2 border-primary/20 dark:border-primary/30 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
-                  
-                  {/* Ícone Gemini */}
-                  <div className="absolute left-4 flex items-center">
-                    <Sparkles className="h-5 w-5 text-primary dark:text-primary/80" />
-                  </div>
-                  
-                  {/* Input */}
-                  <input
-                    type="text"
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    onFocus={handleFocus}
-                    onBlur={handleBlur}
-                    onKeyDown={handleKeyDown}
-                    placeholder={isSearchFocused || searchInput ? "🤖 Gemini: Ask-then-show - busca inteligente..." : (displayText || "🤖 Gemini: Ask-then-show - busca inteligente...")}
-                    className="w-full pl-12 pr-20 py-4 text-lg bg-transparent border-0 outline-none placeholder-primary/60 dark:placeholder-primary/70 text-gray-900 dark:text-gray-100"
-                    data-testid="search-input"
-                    autoComplete="off"
-                  />
-                  
-                  {/* Botão de busca modernizado */}
-                  <button
-                    type="submit"
-                    disabled={!searchInput.trim()}
-                    className="absolute right-4 flex items-center justify-center w-10 h-10 bg-primary hover:bg-primary/90 disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    data-testid="button-search-submit"
+            <div className="flex items-center space-x-2">
+              <div className="flex-1 relative">
+                <Input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onFocus={handleFocus}
+                  onBlur={handleBlur}
+                  onKeyDown={handleKeyDown}
+                  placeholder={isSearchFocused || searchInput ? "Digite sua busca..." : (displayText || "Digite sua busca...")}
+                  className="bg-white/90 border border-white/50 text-gray-800 placeholder-gray-600"
+                  data-testid="search-input"
+                />
+                {searchInput && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-gray-500 hover:text-gray-700"
+                    onClick={() => setSearchInput('')}
+                    data-testid="button-clear-search"
                   >
-                    <Search className="h-5 w-5" />
-                  </button>
-                </div>
-                
-                {/* Badge Gemini - Visível e bem posicionado */}
-                <div className="absolute -top-2 left-6 px-3 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full shadow-md">
-                  GEMINI AI
-                </div>
-              </form>
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              <Button
+                onClick={handleSearch}
+                className="bg-white/90 hover:bg-white text-primary border border-white/50"
+                data-testid="button-search"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         )}
