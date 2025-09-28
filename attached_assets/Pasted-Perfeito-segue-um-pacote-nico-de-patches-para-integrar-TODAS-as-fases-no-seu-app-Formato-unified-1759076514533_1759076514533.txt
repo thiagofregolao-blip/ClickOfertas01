@@ -1,0 +1,427 @@
+Perfeito — segue um pacote único de patches para integrar TODAS as fases no seu app. Formato unified diff para usar com git apply. Se algum caminho divergir, ajuste o prefixo (ex.: src/ → server/).
+
+Como aplicar
+
+Salve cada bloco abaixo em arquivos .patch separados (ou um só, em ordem).
+
+Rode: git apply <arquivo.patch>
+
+Configure .env (base no .env.example).
+
+npm run dev (ou seu comando atual).
+
+PATCH 1 — Dependências, scripts e env
+*** a/package.json
+--- b/package.json
+@@
+ {
+-  "scripts": {
+-    "start": "node index.js"
+-  }
++  "type": "module",
++  "scripts": {
++    "dev": "tsx watch src/server/index.ts",
++    "build": "tsc -p .",
++    "start": "node dist/server/index.js",
++    "test": "node --test --test-reporter=spec",
++    "build:canon": "tsx scripts/build-canon.ts"
++  },
++  "devDependencies": {
++    "tsx": "^4.19.1",
++    "typescript": "^5.6.2",
++    "@types/express": "^4.17.21"
++  },
++  "dependencies": {
++    "express": "^4.19.2"
++  }
+ }
+
+*** /dev/null
+--- b/.env.example
+@@
++PORT=5000
++USE_LLM_PARAPHRASE=0
++REPLY_TONE=vendedor_descontraido
++OPENAI_API_KEY=YOUR_API_KEY
++LLM_MODEL=gpt-4o-mini
++ADMIN_TOKEN=troque-este-token
++CANON_PATH=./data/canon.json
+
+*** /dev/null
+--- b/tsconfig.json
+@@
++{
++  "compilerOptions": {
++    "target": "ES2021",
++    "module": "ES2020",
++    "moduleResolution": "Bundler",
++    "outDir": "dist",
++    "rootDir": "src",
++    "strict": true,
++    "esModuleInterop": true,
++    "resolveJsonModule": true
++  },
++  "include": ["src", "__tests__", "scripts"]
++}
+
+PATCH 2 — Dados e script do canônico (Fase 1 & 3)
+*** /dev/null
+--- b/data/catalogo.sample.json
+@@
++[{"id":"IPH-12-64","title":"iPhone 12 64GB","category":"celular","brand":"apple","price":2999,"currency":"BRL","in_stock":true,"attrs":["iphone","64gb"]},
++ {"id":"IPH-13-128","title":"iPhone 13 128GB","category":"celular","brand":"apple","price":3499,"currency":"BRL","in_stock":true,"attrs":["iphone","128gb"]},
++ {"id":"GAL-15-128","title":"Galaxy 15 128GB","category":"celular","brand":"samsung","price":2599,"currency":"BRL","in_stock":false,"attrs":["galaxy","128gb"]},
++ {"id":"DRN-4K-A","title":"Drone 4K A","category":"drone","brand":"dji","price":2199,"currency":"BRL","in_stock":true,"attrs":["drone","4k"]},
++ {"id":"DRN-4K-B","title":"Drone 4K B","category":"drone","brand":"dji","price":1899,"currency":"BRL","in_stock":true,"attrs":["drone","4k"]},
++ {"id":"TV-55-4K","title":"TV 55\" 4K Smart","category":"tv","brand":"lg","price":1999,"currency":"BRL","in_stock":true,"attrs":["tv","4k","55"]},
++ {"id":"PERF-M-EDT","title":"Perfume Masculino EDT 100ml","category":"perfumaria","brand":"dior","price":499,"currency":"BRL","in_stock":true,"attrs":["perfume","masculino"]},
++ {"id":"BLUSA-PRETA-M","title":"Blusa Preta Tamanho M","category":"roupa","brand":"fashion","price":99,"currency":"BRL","in_stock":true,"attrs":["blusa","preto","m"]}]
+
+*** /dev/null
+--- b/data/persona_examples.json
+@@
++[
++  {
++    "facts": {"intent":"PRODUCT","category":"celular","product":"iphone","count":12,"cross":["capinha","película"],"ask":"Prefere 12/13/15? Posso filtrar 64/128/256GB."},
++    "draft": "Encontrei 12 celular para 'iphone'. Sugestão: capinha e película.",
++    "final": "Boa! Encontrei 12 iPhones. Quer 12, 13 ou 15? Posso filtrar 64/128/256GB. 😉"
++  },
++  {
++    "facts": {"intent":"PRODUCT","category":"drone","count":2,"cross":["bateria extra","hélices"],"ask":"Mais bateria ou câmera 4K?"},
++    "draft": "Encontrei 2 drone. Sugestão: bateria extra e hélices.",
++    "final": "Achei 2 drones. Prefere mais autonomia de bateria ou câmera 4K? Posso incluir bateria extra e hélices. 😄"
++  }
++]
+
+*** /dev/null
+--- b/scripts/build-canon.ts
+@@
++import fs from "fs";
++type Item = { id:string; nome?:string; title?:string; categoria?:string; category?:string; marca?:string; brand?:string };
++const SRC = process.env.CATALOG_PATH ?? "data/catalogo.sample.json";
++const OUT = "data/canon.json";
++const norm=(s:string)=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}\s]/gu," ").replace(/\s+/g," ").trim();
++const singular=(w:string)=>{const x=w;if(x.endsWith("oes")||x.endsWith("aes"))return x.slice(0,-3)+"ao";if(x.endsWith("is"))return x.slice(0,-1)+"l";if(x.endsWith("ns"))return x.slice(0,-2)+"m";if(x.endsWith("es")&&x.length>4)return x.slice(0,-2);if(x.endsWith("s")&&x.length>3)return x.slice(0,-1);return x;};
++const toks=(s:string)=>norm(s).split(" ").filter(Boolean).map(singular);
++function main(){
++  if(!fs.existsSync(SRC)){console.error("Catálogo não encontrado:", SRC); process.exit(1);}
++  const raw = JSON.parse(fs.readFileSync(SRC,"utf8")) as Item[];
++  const productCanon:Record<string,string>={}, categoryCanon:Record<string,string>={}, productToCategory:Record<string,string>={}, votes:Record<string,Record<string,number>>={};
++  for(const it of raw){
++    const name = it.nome ?? it.title ?? ""; const cat = singular(it.categoria ?? it.category ?? ""); if(!cat) continue;
++    categoryCanon[cat]=cat; const tk=toks(name); if(!tk.length) continue; const head=tk[0]; for(const t of tk){productCanon[t]=head;}
++    votes[head] ??= {}; votes[head][cat]=(votes[head][cat]??0)+1;
++  }
++  for(const p of Object.keys(votes)){const top=Object.entries(votes[p]).sort((a,b)=>b[1]-a[1])[0]?.[0]; if(top) productToCategory[p]=top;}
++  fs.writeFileSync(OUT, JSON.stringify({productCanon,categoryCanon,productToCategory},null,2));
++  console.log("✔ canon.json gerado:", OUT, "| termos:", Object.keys(productCanon).length);
++}
++main();
+
+PATCH 3 — Núcleo NLP/Query/Policy/NLG (Fase 1)
+*** /dev/null
+--- b/src/types.ts
+@@
++export type SortKey = "relevance" | "price.asc" | "price.desc";
++export type QuerySignal = {
++  produto?: string; categoria?: string; marca?: string; modelo?: string;
++  atributos?: string[]; price_min?: number; price_max?: number;
++  sort?: SortKey; offset?: number; in_stock?: boolean; on_sale?: boolean;
++};
++export type CatalogItem = {
++  id:string; title:string; category:string; brand?:string;
++  price?:number; currency?:string; in_stock?:boolean; attrs?:string[];
++};
++export type Intent = "PRODUCT_SEARCH"|"SMALL_TALK"|"HELP"|"TIME_QUERY"|"WHOAMI"|"UNKNOWN";
+
+*** /dev/null
+--- b/src/core/session.ts
+@@
++type Prefs = { idioma?: "pt"|"es"; marcaFavorita?: string };
++type SessionState = { focoAtual?: string|null; categoriaAtual?: string|null; lastQuery?: string|null; prefs?: Prefs; rngSeed?: number; _v?: Record<string, number>; };
++const mem = new Map<string, SessionState>();
++export function getSession(id:string):SessionState{ if(!mem.has(id)) mem.set(id,{rngSeed:Math.floor(Math.random()*1e9),_v:{},prefs:{}}); return mem.get(id)!; }
++export function updateSession(id:string, patch:Partial<SessionState>){ const cur=getSession(id); mem.set(id,{...cur,...patch}); }
++export function nextVariant(id:string,key:string,len:number){ const s=getSession(id); const cur=s._v?.[key]??-1; const nxt=(cur+1)%Math.max(1,len); s._v={...(s._v??{}),[key]:nxt}; return nxt; }
+
+*** /dev/null
+--- b/src/nlp/normalize.ts
+@@
++export function norm(s:string){return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}\s]/gu," ").replace(/\s+/g," ").trim();}
++export function singularPTES(w:string){const x=w;if(x.endsWith("oes")||x.endsWith("aes"))return x.slice(0,-3)+"ao";if(x.endsWith("is"))return x.slice(0,-1)+"l";if(x.endsWith("ns"))return x.slice(0,-2)+"m";if(x.endsWith("es")&&x.length>4)return x.slice(0,-2);if(x.endsWith("s")&&x.length>3)return x.slice(0,-1);return x;}
++export function tokensPTES(s:string){return norm(s).split(" ").filter(Boolean).map(singularPTES);}
+
+*** /dev/null
+--- b/src/nlp/canon.store.ts
+@@
++import fs from "fs"; import path from "path";
++type CanonData = { productCanon:Record<string,string>; categoryCanon:Record<string,string>; productToCategory:Record<string,string> };
++let CACHE:CanonData|null=null;
++const DEFAULT_CANON:CanonData = {
++  productCanon:{ iphone:"iphone", iphones:"iphone", apple:"iphone", galaxy:"galaxy", samsung:"galaxy", drone:"drone", drones:"drone", dji:"drone", mavic:"drone", perfume:"perfume", perfumes:"perfume", tv:"tv", televisor:"tv", blusa:"blusa" },
++  categoryCanon:{ celular:"celular", drone:"drone", tv:"tv", perfumaria:"perfumaria", roupa:"roupa" },
++  productToCategory:{ iphone:"celular", galaxy:"celular", drone:"drone", perfume:"perfumaria", tv:"tv", blusa:"roupa" }
++};
++export function loadCanon():CanonData{
++  if(CACHE) return CACHE;
++  try{
++    const p = process.env.CANON_PATH ? path.resolve(process.env.CANON_PATH) : path.resolve("data/canon.json");
++    if(fs.existsSync(p)){
++      const raw = JSON.parse(fs.readFileSync(p,"utf8")) as CanonData;
++      const pc = Object.keys(raw.productCanon??{}).length, cc = Object.keys(raw.categoryCanon??{}).length;
++      if(pc>0 && cc>0){ CACHE=raw; console.log(`[canon] ok: produtos=${pc} categorias=${cc}`); return CACHE; }
++      console.warn("[canon] arquivo vazio — usando fallback embutido");
++    } else console.warn("[canon] não encontrado — usando fallback embutido");
++  }catch(e){ console.error("[canon] erro ao carregar — usando fallback", e); }
++  CACHE=DEFAULT_CANON; return CACHE;
++}
++export const canonProduct = (t:string)=> loadCanon().productCanon[t] ?? null;
++export const canonCategory = (t:string)=> loadCanon().categoryCanon[t] ?? null;
++export const productDefaultCategory = (p:string)=> loadCanon().productToCategory[p] ?? null;
+
+*** /dev/null
+--- b/src/nlp/fuzzy.ts
+@@
++export function damerauLevenshtein(a:string,b:string):number{
++  const al=a.length, bl=b.length, da:Record<string,number>={}, max=al+bl;
++  const d=Array.from({length:al+2},()=>Array(bl+2).fill(0)); d[0][0]=max;
++  for(let i=0;i<=al;i++){d[i+1][0]=max; d[i+1][1]=i;}
++  for(let j=0;j<=bl;j++){d[0][j+1]=max; d[1][j+1]=j;}
++  for(let i=1;i<=al;i++){ let db=0;
++    for(let j=1;j<=bl;j++){
++      const i1=da[b[j-1]]??0, j1=db, cost=a[i-1]===b[j-1]?0:1; if(cost===0) db=j;
++      d[i+1][j+1]=Math.min(d[i][j]+cost,d[i+1][j]+1,d[i][j+1]+1,d[i1][j1]+(i-i1-1)+1+(j-j1-1));
++    } da[a[i-1]]=i;
++  } return d[al+1][bl+1];
++}
+
+*** /dev/null
+--- b/src/nlp/intent.ts
+@@
++import { Intent, QuerySignal } from "../types";
++import { tokensPTES } from "./normalize";
++import { canonProduct, canonCategory } from "./canon.store";
++import { damerauLevenshtein } from "./fuzzy";
++const RX = {
++  small:/\b(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|tudo bem|como vai|hola|buen[oa]s)\b/i,
++  help:/\b(ajuda|como funciona|o que voce faz|dica|sugest[aã]o|ayuda|como usar)\b/i,
++  time:/\b(que horas sao|que horas são|hora agora|que hora es|hora es)\b/i,
++  who:/\b(seu nome|quem e voce|quem é voce|quien eres)\b/i
++};
++const VOCAB = ["iphone","galaxy","drone","perfume","tv","blusa","notebook","camiseta","camisa"];
++export function classify(message: string): { intent: Intent; base: QuerySignal } {
++  const msg = message.toLowerCase();
++  if (RX.time.test(msg)) return { intent: "TIME_QUERY", base: {} };
++  if (RX.small.test(msg)) return { intent: "SMALL_TALK", base: {} };
++  if (RX.help.test(msg)) return { intent: "HELP", base: {} };
++  if (RX.who.test(msg)) return { intent: "WHOAMI", base: {} };
++  const toks = tokensPTES(message);
++  for (const t of toks) { const p = canonProduct(t); const c = canonCategory(t); if (p || c) return { intent: "PRODUCT_SEARCH", base: { produto: p ?? undefined, categoria: c ?? undefined } }; }
++  for (const t of toks) for (const v of VOCAB) if (damerauLevenshtein(t, v) <= 2) return { intent: "PRODUCT_SEARCH", base: { produto: v } };
++  if (toks.length === 1 && /^[a-z0-9\-]+$/i.test(toks[0])) return { intent: "PRODUCT_SEARCH", base: { produto: toks[0] } };
++  return { intent: "UNKNOWN", base: {} };
++}
+
+*** /dev/null
+--- b/src/nlp/priceSignals.ts
+@@
++import { QuerySignal } from "../types";
++import { norm } from "./normalize";
++export function extractPriceSignals(msgRaw: string): Pick<QuerySignal, "price_min"|"price_max"|"sort"|"offset"> {
++  const msg = norm(msgRaw);
++  if (/\bsegundo\s+(mais|mas)\s+barat\w+\b/.test(msg)) return { sort: "price.asc", offset: 1 };
++  if (/\b(mais|mas)\s+(barat\w+|economic\w+)\b/.test(msg) || /\b(em\s+conta)\b/.test(msg)) return { sort: "price.asc" };
++  if (/\b(mais|mas)\s+car\w+\b/.test(msg) || /\bpremium\b/.test(msg) || /\btop\s+de\s+linha\b/.test(msg)) return { sort: "price.desc" };
++  const mMax = msg.match(/\b(ate|hasta|maxim\w+|por\s+menos\s+de)\s+([\p{Sc}]?\s?[\d\.\,]+)/u);
++  if (mMax) { const val = parseMoney(mMax[2]); if (!Number.isNaN(val)) return { price_max: val }; }
++  const mMin = msg.match(/\b(desde|a\s+partir\s+de|minim\w+)\s+([\p{Sc}]?\s?[\d\.\,]+)/u);
++  if (mMin) { const val = parseMoney(mMin[2]); if (!Number.isNaN(val)) return { price_min: val }; }
++  const mRange = msg.match(/\b(entre|de)\s+([\p{Sc}]?\s?[\d\.\,]+)\s+(e|a)\s+([\p{Sc}]?\s?[\d\.\,]+)/u);
++  if (mRange) { const a = parseMoney(mRange[2]); const b = parseMoney(mRange[4]); if (!Number.isNaN(a) && !Number.isNaN(b)) return { price_min: Math.min(a,b), price_max: Math.max(a,b) }; }
++  return {};
++}
++export function parseMoney(s: string): number {
++  let x = s.trim().replace(/^r\$\s*/i, "").replace(/^gs\s*/i, "").replace(/^usd\s*/i, "").replace(/\./g, "").replace(/,/g, ".");
++  const n = Number(x); return Number.isFinite(n) ? n : NaN;
++}
+
+*** /dev/null
+--- b/src/nlp/slots.ts
+@@
++import { tokensPTES } from "./normalize";
++export function extractModeloGBCor(msg: string) {
++  const toks = tokensPTES(msg);
++  const modelo = toks.find(t => /^\d{2}$/.test(t)) || undefined;
++  const capacidade = toks.find(t => /^\d{2,3}gb$/.test(t)) || undefined;
++  const cor = ["preto","preta","negro","negra","branco","branca","blanco","blanca","azul","roxo","verde"].find(c => msg.toLowerCase().includes(c)) as string | undefined;
++  const attrs: string[] = [];
++  if (capacidade) attrs.push(capacidade);
++  if (modelo && Number(modelo) === 55) attrs.push("55");
++  if (/4k\b/i.test(msg)) attrs.push("4k");
++  if (/masculin/i.test(msg)) attrs.push("masculino");
++  if (/feminin/i.test(msg)) attrs.push("feminino");
++  if (cor) attrs.push(cor.includes("preto") || cor.includes("negro") ? "preto" : cor.includes("branc") ? "branco" : cor);
++  return { modelo, capacidade, cor, attrs };
++}
+
+*** /dev/null
+--- b/src/query/builder.ts
+@@
++import { QuerySignal, CatalogItem, SortKey } from "../types";
++import { extractPriceSignals } from "../nlp/priceSignals";
++export type BuildOpts = { base: QuerySignal; text: string; preferInStockCheapest?: boolean; slots?: { attrs?: string[]; modelo?: string } };
++export function buildQuery(opts: BuildOpts): QuerySignal {
++  const price = extractPriceSignals(opts.text);
++  const sort: SortKey | undefined = price.sort ?? opts.base.sort ?? "relevance";
++  const in_stock = (price.sort === "price.asc" && (opts.preferInStockCheapest ?? true)) ? true : opts.base.in_stock;
++  const atributos = uniq([...(opts.base.atributos ?? []), ...(opts.slots?.attrs ?? [])]);
++  return { ...opts.base, ...price, modelo: opts.slots?.modelo ?? opts.base.modelo, atributos, sort, in_stock };
++}
++export function runQueryLocal(catalog: CatalogItem[], q: QuerySignal): CatalogItem[] {
++  const filtered = catalog.filter(it => {
++    if (q.categoria && it.category !== q.categoria) return false;
++    if (q.produto) {
++      const t = it.title.toLowerCase();
++      if (!t.includes(q.produto)) {
++        if (!(q.categoria === "celular" && (t.includes("iphone") || t.includes("galaxy")))) return false;
++      }
++    }
++    if (q.price_min != null && (it.price ?? Infinity) < q.price_min) return false;
++    if (q.price_max != null && (it.price ?? 0) > q.price_max) return false;
++    if (q.in_stock && !it.in_stock) return false;
++    if (q.atributos?.length) {
++      const attrs = new Set((it.attrs ?? []).map(a => a.toLowerCase()));
++      for (const a of q.atributos) if (!attrs.has(a.toLowerCase())) return false;
++    }
++    if (q.modelo && !it.title.toLowerCase().includes(q.modelo)) return false;
++    return true;
++  });
++  const sortKey = q.sort ?? "relevance";
++  filtered.sort((a, b) => {
++    if (sortKey === "price.asc") return (a.price ?? Infinity) - (b.price ?? Infinity);
++    if (sortKey === "price.desc") return (b.price ?? 0) - (a.price ?? 0);
++    const sa = a.in_stock ? 0 : 1, sb = b.in_stock ? 0 : 1;
++    if (sa !== sb) return sa - sb;
++    return (a.price ?? Infinity) - (b.price ?? Infinity);
++  });
++  const off = q.offset ?? 0;
++  return filtered.slice(off, off + 10);
++}
++function uniq<T>(arr: T[]) { return Array.from(new Set(arr)); }
+
+*** /dev/null
+--- b/src/policy/decide.ts
+@@
++import { QuerySignal } from "../types";
++export function askByCategory(cat: string, produto?: string, lang: "pt"|"es" = "pt"): string | undefined {
++  const c = cat || produto || "itens";
++  if (c === "celular" || produto === "iphone" || produto === "galaxy")
++    return lang === "es" ? "¿Prefieres modelo 12, 13 o 15? También 64/128/256GB." : "Prefere modelo 12, 13 ou 15? Também 64/128/256GB.";
++  if (c === "drone") return lang === "es" ? "¿Priorizamos batería o cámara 4K?" : "Prefere mais bateria ou câmera 4K?";
++  if (c === "perfumaria") return lang === "es" ? "¿Masculino/femenino o familia olfativa?" : "Quer masculino/feminino ou família olfativa?";
++  if (c === "tv") return lang === "es" ? "¿Necesitas 120Hz para juegos?" : "Precisa de 120Hz para jogos?";
++  if (c === "roupa") return lang === "es" ? "¿Tallas y colores?" : "Quer ver tamanhos e cores?";
++  if (c === "notebook") return lang === "es" ? "¿16GB/512GB o más básico?" : "Prefere 16GB/512GB ou algo mais básico?";
++  return undefined;
++}
++export function crossByCategory(cat?: string, lang: "pt"|"es"="pt"): string[] {
++  const map: Record<string,string[]> = {
++    celular: ["capinha","película","carregador"],
++    drone: ["bateria extra","hélices","case"],
++    perfumaria: ["kit presente","necessaire"],
++    tv: ["soundbar","suporte de parede","cabo HDMI"],
++    roupa: ["cinto","lenço","bolsa"],
++    notebook: ["mochila","mouse","hub USB-C"]
++  };
++  return map[cat ?? ""] ?? [];
++}
++export function policyAnswer(N: number, q: QuerySignal, lang: "pt"|"es") {
++  const catOrProd = q.categoria ?? q.produto ?? "itens";
++  const ask = askByCategory(q.categoria ?? "", q.produto, lang);
++  const cross = crossByCategory(q.categoria ?? "", lang);
++  return { catOrProd, ask, cross, N };
++}
+
+*** /dev/null
+--- b/src/nlg/templates.ts
+@@
++import { nextVariant } from "../core/session";
++const greetPT = ["Oi! ✨ O que você procura hoje?","E aí! 😄 Me diz o produto que eu caço as melhores ofertas.","Olá! 👋 Posso buscar iPhone, drone, perfumes, TVs e mais."];
++const foundPT = ["Encontrei {N} {cat}.","Boa! Separei {N} {cat}.","Achei {N} {cat} por aqui."];
++const noResPT = ["Não encontrei resultados.","Aqui não apareceu nada.","Zerado por aqui."];
++const greetES = ["¡Hola! ✨ ¿Qué buscas hoy?","¡Hey! 😄 Dime el producto y traigo las mejores ofertas.","¡Hola! 👋 Puedo buscar iPhone, drones, perfumes, TVs y más."];
++const foundES = ["Encontré {N} {cat}.","¡Bien! Separé {N} {cat}.","Hallé {N} {cat} aquí."];
++const noResES = ["No encontré resultados.","No apareció nada.","Cero resultados por aquí."];
++export function sayGreeting(sessionId: string, lang: "pt"|"es") { const arr = lang === "es" ? greetES : greetPT; const i = nextVariant(sessionId, "greet", arr.length); return arr[i]; }
++export function sayFound(sessionId: string, lang: "pt"|"es", N: number, cat: string, ask?: string, cross?: string[]) {
++  const arr = lang === "es" ? foundES : foundPT; const i = nextVariant(sessionId, "found", arr.length);
++  const base = arr[i].replace("{N}", String(N)).replace("{cat}", cat);
++  const a = ask ? ` ${ask}` : "";
++  const c = cross?.length ? (lang === "es" ? ` Puedo sugerir ${cross.slice(0,2).join(" y ")}.` : ` Posso sugerir ${cross.slice(0,2).join(" e ")}.`) : "";
++  return `${base}${a}${c}`.trim();
++}
++export function sayNoResults(sessionId: string, lang: "pt"|"es", hint?: string) {
++  const arr = lang === "es" ? noResES : noResPT; const i = nextVariant(sessionId, "nores", arr.length);
++  const h = hint ? (lang === "es" ? ` ¿Intentamos ${hint}?` : ` Quer tentar ${hint}?`) : "";
++  return `${arr[i]}${h}`.trim();
++}
+
+PATCH 4 — LLM opcional + Telemetria/Admin (Fases 3,4,6)
+*** /dev/null
+--- b/src/llm/provider.ts
+@@
++export type LLMOpts = { system: string; user: string; temperature?: number; maxTokens?: number };
++export interface LLMProvider { generate(opts: LLMOpts): Promise<string>; }
++export class NoopLLM implements LLMProvider { async generate(){ return ""; } }
++export class OpenAILLM implements LLMProvider {
++  constructor(private apiKey: string, private model: string) {}
++  async generate({ system, user, temperature = 0.5, maxTokens = 180 }: LLMOpts) {
++    const r = await fetch("https://api.openai.com/v1/chat/completions", {
++      method:"POST",
++      headers:{ "Authorization":`Bearer ${this.apiKey}`, "Content-Type":"application/json" },
++      body: JSON.stringify({ model: this.model, temperature, max_tokens: maxTokens, messages: [{ role:"system", content: system }, { role:"user", content: user }] })
++    });
++    const j = await r.json(); return j?.choices?.[0]?.message?.content?.trim?.() ?? "";
++  }
++}
++export function makeLLM(){ if(process.env.USE_LLM_PARAPHRASE!=="1") return new NoopLLM(); const key=process.env.OPENAI_API_KEY; const model=process.env.LLM_MODEL ?? "gpt-4o-mini"; if(!key) return new NoopLLM(); return new OpenAILLM(key, model); }
+
+*** /dev/null
+--- b/src/nlg/naturalizer.ts
+@@
++import { makeLLM } from "../llm/provider";
++import fs from "fs";
++export type Tone = "vendedor_descontraido" | "amigavel_neutro" | "objetivo_rapido";
++export type Facts = { intent: "PRODUCT"|"SMALL_TALK"|"HELP"|"TIME"; draft: string; product?: string; category?: string; model?: string; count?: number; cross?: string[]; ask?: string|null; };
++const STYLE: Record<Tone,string[]> = {
++  vendedor_descontraido:["Seja vendedor simpático e direto.","Nunca invente preço, estoque, prazos.","Faça 1 pergunta por vez. Emojis moderados (0–2)."],
++  amigavel_neutro:["Tom amigável e claro. Máx. 3 frases.","Sem jargão."],
++  objetivo_rapido:["Responda em 1–2 frases, diretas.","Sem floreio."]
++};
++const GUARD = ["Não crie preços/links não fornecidos.","0–2 emojis, máx. 3 frases.","Se houver 'ask', termine com ela."].join("\n");
++let FEWS:any[]=[]; try{ FEWS = JSON.parse(fs.readFileSync("data/persona_examples.json","utf8")); }catch{}
++export async function naturalize(facts: Facts, tone: Tone = "vendedor_descontraido") {
++  const llm = makeLLM(); // fallback OFF por padrão
++  // @ts-ignore
++  if (!llm.generate || process.env.USE_LLM_PARAPHRASE !== "1") return facts.draft;
++  const system = [...STYLE[tone], GUARD].join("\n");
++  const user = JSON.stringify({ demos: FEWS.slice(0,8), facts, draft: facts.draft });
++  const raw = await llm.generate({ system, user, temperature: 0.5, maxTokens: 160 });
++  const safe = (raw||facts.draft).replace(/https?:\/\/\S+/gi,"").trim();
++  return safe.length>500 ? safe.slice(0,500)+"…" : safe;
++}
+
+*** /dev/null
+--- b/src/telemetry/conversations.ts
+@@
++type Turn = { ts: number; user: string; intent: string; slots?: Record<string, any>; draft: string; final: string; itemsShown: string[]; feedback?: "up"|"down"|null; };
++const mem = new Map<string, Turn[]>();
++export function logTurn(sessionId: string, t: Turn){ const arr = mem.get(sessionId) ?? []; arr.push(t); mem.set(sessionId, arr); }
++export function exportDataset(){ const out:any[]=[]; for (const arr of mem.values()) for (const t of arr) out.push({ input:{ draft:t.draft, facts:t.slots, items:t.itemsShown }, output:t.final, label:t.feedback ?? null }); return out; }
+
+*** /dev/null
+--- b/src/telemetry/unknown-terms.ts
+@@
++const tally = new Map<string, number>();
++export function reportUnknownTerm(term: string){ tally.set(term, (tally.get(term) ?? 0) + 1); }
++export function getUnknownTerms(limit=50){ return Array.from(tally.entries()).sort((a,b)=>b[1]-a[1]).slice(0, limit); }

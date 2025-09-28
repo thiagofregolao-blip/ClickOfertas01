@@ -1,0 +1,1248 @@
+// src/server/index.ts
+// PATCH 5 — Servidor/Rotas (Fases 1→6)
+// Substitua seu arquivo atual por este (ou adapte apenas as rotas).
+// Mantém: núcleo de busca (F1), UX/feedback (F2), admin/treino (F3),
+// naturalização opcional LLM (F4), prefs de sessão (F5) e telemetria básica (F6).
+
+import express from "express";
+import fs from "fs";
+import path from "path";
+import { CatalogItem, Intent } from "../types";
+import { classify } from "../nlp/intent";
+import { extractModeloGBCor } from "../nlp/slots";
+import { buildQuery, runQueryLocal } from "../query/builder";
+import { policyAnswer } from "../policy/decide";
+import { sayFound, sayGreeting, sayNoResults } from "../nlg/templates";
+import { getSession, updateSession } from "../core/session";
+import { naturalize } from "../nlg/naturalizer";
+import { exportDataset, logTurn } from "../telemetry/conversations";
+import { getUnknownTerms } from "../telemetry/unknown-terms";
+
+const app = express();
+
+// ❗ Se já possui middlewares (CORS, cookies, auth), mantenha-os.
+// Aqui só garantimos JSON body parser.
+app.use(express.json());
+
+// (Demo) Carrega catálogo local. Em produção, troque por DB/API.
+const CATALOG_PATH = process.env.CATALOG_PATH ?? "data/catalogo.sample.json";
+const CATALOG: CatalogItem[] = JSON.parse(
+  fs.readFileSync(path.resolve(CATALOG_PATH), "utf8")
+);
+
+// -----------------------------------------------------
+// (Fase 2) FEEDBACK & ANALYTICS — mínimos para o front
+// -----------------------------------------------------
+app.post("/assistant/feedback", (req, res) => {
+  // Exemplo de payload: { sessionId, messageIndex, value: "up"|"down" }
+  // Integre com sua persistência/BI se necessário.
+  res.json({ ok: true });
+});
+
+app.post("/analytics/click", (req, res) => {
+  // Exemplo de payload: { sessionId, sku, position }
+  // Integre com seu pipeline de analytics (DB/BI).
+  res.json({ ok: true });
+});
+
+// -------------------------------------------------------
+// (Fases 1/4/5) ROTA PRINCIPAL — entendimento + resposta
+// -------------------------------------------------------
+app.post("/assistant/query", async (req, res) => {
+  const {
+    sessionId = "anon",
+    message,
+    lang = "pt",
+  } = (req.body ?? {}) as {
+    sessionId?: string;
+    message?: string;
+    lang?: "pt" | "es";
+  };
+
+  if (!message || !message.trim()) {
+    return res.status(400).json({ ok: false, error: "Mensagem vazia" });
+  }
+
+  const sess = getSession(sessionId);
+  const { intent, base } = classify(message);
+
+  // Fluxos não-produto (small talk / utilitários / ajuda / whoami)
+  if (intent !== "PRODUCT_SEARCH") {
+    let draft = "";
+    if (intent === "SMALL_TALK") {
+      draft = sayGreeting(sessionId, lang);
+    } else if (intent === "TIME_QUERY") {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      draft =
+        lang === "es" ? `Ahora son las ${hh}:${mm}.` : `Agora são ${hh}:${mm}.`;
+      if (sess.focoAtual) {
+        draft +=
+          lang === "es"
+            ? ` ¿Seguimos con ${sess.focoAtual}?`
+            : ` Quer continuar no ${sess.focoAtual}?`;
+      }
+    } else if (intent === "HELP") {
+      draft =
+        lang === "es"
+          ? "Dime el producto (ej.: iPhone, drone, perfume) y te muestro ofertas."
+          : "Diga o produto (ex.: iPhone, drone, perfume) que eu mostro as ofertas.";
+    } else if (intent === "WHOAMI") {
+      draft =
+        lang === "es"
+          ? "Soy tu asistente de compras."
+          : "Sou seu assistente de compras.";
+    } else {
+      draft = sayGreeting(sessionId, lang);
+    }
+
+    const text = await naturalize(
+      { intent: "SMALL_TALK", draft },
+      (process.env.REPLY_TONE as any) || "vendedor_descontraido"
+    );
+
+    return res.json({
+      ok: true,
+      text,
+      items: [],
+      blocks: [{ type: "text", text }],
+      debug: { intent },
+    });
+  }
+
+  // Atualiza foco/categoria ao detectar produto novo (memória curta)
+  const produtoNovo = base.produto && base.produto !== sess.focoAtual;
+  updateSession(sessionId, {
+    focoAtual: base.produto ?? sess.focoAtual ?? null,
+    categoriaAtual: produtoNovo
+      ? base.categoria ?? null
+      : sess.categoriaAtual ?? base.categoria ?? null,
+    lastQuery: base.produto ?? sess.lastQuery ?? null,
+  });
+
+  // Slots adicionais (modelo/GB/cor/atributos)
+  const slots = extractModeloGBCor(message);
+
+  // Monta query com sinais de preço/ordem (inclui “mais barato” → in_stock=true)
+  const q = buildQuery({
+    base: { ...base },
+    text: message,
+    preferInStockCheapest: true,
+    slots: { attrs: slots.attrs, modelo: slots.modelo },
+  });
+
+  // Busca (mock local). Troque por sua função real.
+  const items = runQueryLocal(CATALOG, q);
+
+  // Política de diálogo (1 pergunta por vez + cross-sell por categoria)
+  const pa = policyAnswer(items.length, q, lang);
+
+  // Rascunho seguro (determinístico). Opcionalmente naturalizar (LLM) depois.
+  let draft = "";
+  if (!sess.lastQuery && !q.produto && !q.categoria) {
+    draft = sayGreeting(sessionId, lang);
+  }
+  if (items.length > 0) {
+    draft = sayFound(
+      sessionId,
+      lang,
+      items.length,
+      pa.catOrProd,
+      pa.ask,
+      pa.cross
+    );
+  } else {
+    draft = sayNoResults(
+      sessionId,
+      lang,
+      lang === "es" ? "con otra marca o modelo" : "com outra marca ou modelo"
+    );
+  }
+
+  const text = await naturalize(
+    {
+      intent: "PRODUCT",
+      draft,
+      product: q.produto,
+      category: q.categoria,
+      model: q.modelo,
+      count: items.length,
+      cross: pa.cross,
+      ask: pa.ask ?? null,
+    },
+    (process.env.REPLY_TONE as any) || "vendedor_descontraido"
+  );
+
+  // Telemetria p/ treino (em memória; troque por sua persistência)
+  logTurn(sessionId, {
+    ts: Date.now(),
+    user: message,
+    intent: "PRODUCT_SEARCH",
+    slots: { ...q },
+    draft,
+    final: text,
+    itemsShown: items.map((i) => i.id),
+  });
+
+  return res.json({
+    ok: true,
+    text,
+    items,
+    blocks: [
+      { type: "text", text },
+      { type: "products", items: items.map((i) => i.id) },
+    ],
+    debug: {
+      intent: "PRODUCT_SEARCH" as Intent,
+      query: q,
+      slots,
+      session: getSession(sessionId),
+    },
+  });
+});
+
+// -----------------------------------
+// (Fases 3/6) Rotas Admin de Treinamento
+// -----------------------------------
+const adminAuth = (req: any, res: any, next: any) => {
+  const ok =
+    String(req.headers["x-admin-token"] ?? "") ===
+    (process.env.ADMIN_TOKEN ?? "devtoken");
+  return ok ? next() : res.status(401).json({ ok: false, error: "unauthorized" });
+};
+
+app.get("/admin/train/status", adminAuth, (_req, res) => {
+  const canonPath = process.env.CANON_PATH ?? "data/canon.json";
+  let pc = 0,
+    cc = 0;
+  try {
+    if (fs.existsSync(canonPath)) {
+      const c = JSON.parse(fs.readFileSync(canonPath, "utf8"));
+      pc = Object.keys(c.productCanon ?? {}).length;
+      cc = Object.keys(c.categoryCanon ?? {}).length;
+    }
+  } catch {}
+  res.json({
+    ok: true,
+    llm: process.env.USE_LLM_PARAPHRASE === "1" ? "on" : "off",
+    tone: process.env.REPLY_TONE ?? "vendedor_descontraido",
+    canon: { products: pc, categories: cc },
+    unknown: getUnknownTerms(),
+  });
+});
+
+app.get("/admin/train/export-dataset", adminAuth, (_req, res) =>
+  res.json({ ok: true, dataset: exportDataset() })
+);
+
+app.post("/admin/train/toggle-llm", adminAuth, (req, res) => {
+  const { on, tone } = (req.body ?? {}) as { on?: boolean; tone?: string };
+  process.env.USE_LLM_PARAPHRASE = on ? "1" : "0";
+  if (tone) process.env.REPLY_TONE = tone;
+  res.json({
+    ok: true,
+    llm: process.env.USE_LLM_PARAPHRASE,
+    tone: process.env.REPLY_TONE,
+  });
+});
+
+// -----------------------------------
+// (Opcional) Healthcheck simples
+// -----------------------------------
+app.get("/health", (_req, res) => res.json({ ok: true }));
+
+// -----------------------------------
+// Boot — mantenha sua porta/middlewares originais
+// -----------------------------------
+const PORT = Number(process.env.PORT ?? 5000);
+app.listen(PORT, () =>
+  console.log(`IA Vendedor (F1→F6) ON http://localhost:${PORT}`)
+);
+
+export default app;
+
+
+
+
+
+Fontes
+Você disse:
+voce disse Se quiser, adapto os paths para o seu repo atual e integro direto com seu catálogo real na próxima resposta. eu respondo ok pode adaptar entao e criar todos os patchs para integrar no meu app
+
+
+Programador Senior - Dev GPT — Replit Ready disse:
+
+Pensou por 28s
+Perfeito — vou adaptar para integração direta no seu app, sem mudar sua estrutura. Vou entregar patches modulares para você “plug&play” no que já tem (seu server/routes.ts ou app.ts). Cada arquivo vem completo.
+
+Como integrar (visão rápida)
+Crie os novos arquivos conforme abaixo (não precisa trocar sua index.ts se não quiser).
+
+No seu arquivo de rotas atual (server/routes.ts ou similar), registre as rotas:
+
+ts
+Copiar código
+import { registerAssistantRoutes, registerAdminRoutes } from "../assistant/assistantRoutes";
+import { makeCatalogProvider } from "../catalog/provider";
+
+// se você usa `app` direto:
+const catalog = makeCatalogProvider(); // usa DB/API/JSON baseado no .env
+registerAssistantRoutes(app, catalog);
+registerAdminRoutes(app);
+Ajuste .env (placeholders seguros).
+
+(Opcional) Rode npm run build:canon para gerar data/canon.json.
+
+PATCH 1 — Tipos & Sessão (compatível com seu TS)
+ts
+Copiar código
+// src/assistant/types.ts
+export type SortKey = "relevance" | "price.asc" | "price.desc";
+
+export type QuerySignal = {
+  produto?: string;
+  categoria?: string;
+  marca?: string;
+  modelo?: string;
+  atributos?: string[];
+  price_min?: number;
+  price_max?: number;
+  sort?: SortKey;
+  offset?: number;
+  in_stock?: boolean;
+  on_sale?: boolean;
+};
+
+export type CatalogItem = {
+  id: string;
+  title: string;
+  category: string;
+  brand?: string;
+  price?: number;
+  currency?: string;
+  in_stock?: boolean;
+  attrs?: string[];
+};
+
+export type Intent =
+  | "PRODUCT_SEARCH"
+  | "SMALL_TALK"
+  | "HELP"
+  | "TIME_QUERY"
+  | "WHOAMI"
+  | "UNKNOWN";
+
+// Memória leve por sessão (troque por Redis/DB em produção)
+type Prefs = { idioma?: "pt" | "es"; marcaFavorita?: string };
+
+export type SessionState = {
+  focoAtual?: string | null;
+  categoriaAtual?: string | null;
+  lastQuery?: string | null;
+  prefs?: Prefs;
+  rngSeed?: number;
+  _v?: Record<string, number>;
+};
+
+// In-memory (substituível por Redis)
+const SESS = new Map<string, SessionState>();
+
+export function getSession(id: string): SessionState {
+  if (!SESS.has(id))
+    SESS.set(id, {
+      rngSeed: Math.floor(Math.random() * 1e9),
+      _v: {},
+      prefs: {},
+    });
+  return SESS.get(id)!;
+}
+
+export function updateSession(id: string, patch: Partial<SessionState>) {
+  const cur = getSession(id);
+  SESS.set(id, { ...cur, ...patch });
+}
+
+export function nextVariant(id: string, key: string, len: number) {
+  const s = getSession(id);
+  const cur = s._v?.[key] ?? -1;
+  const nxt = (cur + 1) % Math.max(1, len);
+  s._v = { ...(s._v ?? {}), [key]: nxt };
+  return nxt;
+}
+PATCH 2 — Normalização, Canônico, Fuzzy, Intent, Slots, Preço
+ts
+Copiar código
+// src/assistant/nlp/normalize.ts
+export function norm(s: string) {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+export function singularPTES(w: string) {
+  const x = w;
+  if (x.endsWith("oes") || x.endsWith("aes")) return x.slice(0, -3) + "ao";
+  if (x.endsWith("is")) return x.slice(0, -1) + "l";
+  if (x.endsWith("ns")) return x.slice(0, -2) + "m";
+  if (x.endsWith("es") && x.length > 4) return x.slice(0, -2);
+  if (x.endsWith("s") && x.length > 3) return x.slice(0, -1);
+  return x;
+}
+export function tokensPTES(s: string) {
+  return norm(s).split(" ").filter(Boolean).map(singularPTES);
+}
+ts
+Copiar código
+// src/assistant/nlp/canon.store.ts
+import fs from "fs";
+import path from "path";
+
+type CanonData = {
+  productCanon: Record<string, string>;
+  categoryCanon: Record<string, string>;
+  productToCategory: Record<string, string>;
+};
+
+let CACHE: CanonData | null = null;
+
+const DEFAULT_CANON: CanonData = {
+  productCanon: {
+    iphone: "iphone",
+    iphones: "iphone",
+    apple: "iphone",
+    galaxy: "galaxy",
+    samsung: "galaxy",
+    drone: "drone",
+    drones: "drone",
+    dji: "drone",
+    mavic: "drone",
+    perfume: "perfume",
+    perfumes: "perfume",
+    tv: "tv",
+    televisor: "tv",
+    blusa: "blusa",
+    camiseta: "camiseta",
+    camisetas: "camiseta",
+  },
+  categoryCanon: {
+    celular: "celular",
+    drone: "drone",
+    tv: "tv",
+    perfumaria: "perfumaria",
+    roupa: "roupa",
+    notebook: "notebook",
+  },
+  productToCategory: {
+    iphone: "celular",
+    galaxy: "celular",
+    drone: "drone",
+    perfume: "perfumaria",
+    tv: "tv",
+    blusa: "roupa",
+    camiseta: "roupa",
+  },
+};
+
+export function loadCanon(): CanonData {
+  if (CACHE) return CACHE;
+  try {
+    const p = process.env.CANON_PATH
+      ? path.resolve(process.env.CANON_PATH)
+      : path.resolve("data/canon.json");
+    if (fs.existsSync(p)) {
+      const raw = JSON.parse(fs.readFileSync(p, "utf8")) as CanonData;
+      const pc = Object.keys(raw.productCanon ?? {}).length;
+      const cc = Object.keys(raw.categoryCanon ?? {}).length;
+      if (pc > 0 && cc > 0) {
+        CACHE = raw;
+        console.log(`[canon] ok: produtos=${pc} categorias=${cc}`);
+        return CACHE;
+      }
+      console.warn("[canon] arquivo vazio — usando fallback embutido");
+    } else console.warn("[canon] não encontrado — usando fallback embutido");
+  } catch (e) {
+    console.error("[canon] erro ao carregar — usando fallback", e);
+  }
+  CACHE = DEFAULT_CANON;
+  return CACHE;
+}
+
+export const canonProduct = (t: string) => loadCanon().productCanon[t] ?? null;
+export const canonCategory = (t: string) => loadCanon().categoryCanon[t] ?? null;
+export const productDefaultCategory = (p: string) =>
+  loadCanon().productToCategory[p] ?? null;
+ts
+Copiar código
+// src/assistant/nlp/fuzzy.ts
+export function damerauLevenshtein(a: string, b: string): number {
+  const al = a.length,
+    bl = b.length,
+    da: Record<string, number> = {},
+    max = al + bl;
+  const d = Array.from({ length: al + 2 }, () => Array(bl + 2).fill(0));
+  d[0][0] = max;
+  for (let i = 0; i <= al; i++) {
+    d[i + 1][0] = max;
+    d[i + 1][1] = i;
+  }
+  for (let j = 0; j <= bl; j++) {
+    d[0][j + 1] = max;
+    d[1][j + 1] = j;
+  }
+  for (let i = 1; i <= al; i++) {
+    let db = 0;
+    for (let j = 1; j <= bl; j++) {
+      const i1 = da[b[j - 1]] ?? 0,
+        j1 = db,
+        cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      if (cost === 0) db = j;
+      d[i + 1][j + 1] = Math.min(
+        d[i][j] + cost,
+        d[i + 1][j] + 1,
+        d[i][j + 1] + 1,
+        d[i1][j1] + (i - i1 - 1) + 1 + (j - j1 - 1)
+      );
+    }
+    da[a[i - 1]] = i;
+  }
+  return d[al + 1][bl + 1];
+}
+ts
+Copiar código
+// src/assistant/nlp/intent.ts
+import { Intent, QuerySignal } from "../types";
+import { tokensPTES } from "./normalize";
+import { canonProduct, canonCategory } from "./canon.store";
+import { damerauLevenshtein } from "./fuzzy";
+
+const RX = {
+  small:
+    /\b(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|tudo bem|como vai|hola|buen[oa]s)\b/i,
+  help:
+    /\b(ajuda|como funciona|o que voce faz|dica|sugest[aã]o|ayuda|como usar)\b/i,
+  time: /\b(que horas sao|que horas são|hora agora|que hora es|hora es)\b/i,
+  who: /\b(seu nome|quem e voce|quem é voce|quien eres)\b/i,
+};
+
+const VOCAB = [
+  "iphone",
+  "galaxy",
+  "drone",
+  "perfume",
+  "tv",
+  "blusa",
+  "notebook",
+  "camiseta",
+  "camisa",
+];
+
+export function classify(message: string): { intent: Intent; base: QuerySignal } {
+  const msg = message.toLowerCase();
+  if (RX.time.test(msg)) return { intent: "TIME_QUERY", base: {} };
+  if (RX.small.test(msg)) return { intent: "SMALL_TALK", base: {} };
+  if (RX.help.test(msg)) return { intent: "HELP", base: {} };
+  if (RX.who.test(msg)) return { intent: "WHOAMI", base: {} };
+
+  const toks = tokensPTES(message);
+  for (const t of toks) {
+    const p = canonProduct(t);
+    const c = canonCategory(t);
+    if (p || c) return { intent: "PRODUCT_SEARCH", base: { produto: p ?? undefined, categoria: c ?? undefined } };
+  }
+  for (const t of toks) {
+    for (const v of VOCAB) {
+      if (damerauLevenshtein(t, v) <= 2)
+        return { intent: "PRODUCT_SEARCH", base: { produto: v } };
+    }
+  }
+  if (toks.length === 1 && /^[a-z0-9\-]+$/i.test(toks[0])) {
+    return { intent: "PRODUCT_SEARCH", base: { produto: toks[0] } };
+  }
+  return { intent: "UNKNOWN", base: {} };
+}
+ts
+Copiar código
+// src/assistant/nlp/slots.ts
+import { tokensPTES } from "./normalize";
+
+export function extractModeloGBCor(msg: string) {
+  const toks = tokensPTES(msg);
+  const modelo = toks.find((t) => /^\d{2}$/.test(t)) || undefined; // 12, 13, 15, 55
+  const capacidade = toks.find((t) => /^\d{2,3}gb$/.test(t)) || undefined; // 64gb/128gb/256gb
+  const cor = ["preto","preta","negro","negra","branco","branca","blanco","blanca","azul","roxo","verde"]
+    .find((c) => msg.toLowerCase().includes(c)) as string | undefined;
+
+  const attrs: string[] = [];
+  if (capacidade) attrs.push(capacidade);
+  if (modelo && Number(modelo) === 55) attrs.push("55");
+  if (/4k\b/i.test(msg)) attrs.push("4k");
+  if (/masculin/i.test(msg)) attrs.push("masculino");
+  if (/feminin/i.test(msg)) attrs.push("feminino");
+  if (cor) attrs.push(cor.includes("preto") || cor.includes("negro") ? "preto" : cor.includes("branc") ? "branco" : cor);
+  return { modelo, capacidade, cor, attrs };
+}
+ts
+Copiar código
+// src/assistant/nlp/priceSignals.ts
+import { QuerySignal } from "../types";
+import { norm } from "./normalize";
+
+export function extractPriceSignals(
+  msgRaw: string
+): Pick<QuerySignal, "price_min" | "price_max" | "sort" | "offset"> {
+  const msg = norm(msgRaw);
+
+  if (/\bsegundo\s+(mais|mas)\s+barat\w+\b/.test(msg))
+    return { sort: "price.asc", offset: 1 };
+
+  if (/\b(mais|mas)\s+(barat\w+|economic\w+)\b/.test(msg) || /\b(em\s+conta)\b/.test(msg))
+    return { sort: "price.asc" };
+
+  if (/\b(mais|mas)\s+car\w+\b/.test(msg) || /\bpremium\b/.test(msg) || /\btop\s+de\s+linha\b/.test(msg))
+    return { sort: "price.desc" };
+
+  const mMax = msg.match(
+    /\b(ate|hasta|maxim\w+|por\s+menos\s+de)\s+([\p{Sc}]?\s?[\d\.\,]+)/u
+  );
+  if (mMax) {
+    const val = parseMoney(mMax[2]);
+    if (!Number.isNaN(val)) return { price_max: val };
+  }
+
+  const mMin = msg.match(
+    /\b(desde|a\s+partir\s+de|minim\w+)\s+([\p{Sc}]?\s?[\d\.\,]+)/u
+  );
+  if (mMin) {
+    const val = parseMoney(mMin[2]);
+    if (!Number.isNaN(val)) return { price_min: val };
+  }
+
+  const mRange = msg.match(
+    /\b(entre|de)\s+([\p{Sc}]?\s?[\d\.\,]+)\s+(e|a)\s+([\p{Sc}]?\s?[\d\.\,]+)/u
+  );
+  if (mRange) {
+    const a = parseMoney(mRange[2]);
+    const b = parseMoney(mRange[4]);
+    if (!Number.isNaN(a) && !Number.isNaN(b)) {
+      const [min, max] = a < b ? [a, b] : [b, a];
+      return { price_min: min, price_max: max };
+    }
+  }
+  return {};
+}
+
+export function parseMoney(s: string): number {
+  let x = s
+    .trim()
+    .replace(/^r\$\s*/i, "")
+    .replace(/^gs\s*/i, "")
+    .replace(/^usd\s*/i, "")
+    .replace(/\./g, "")
+    .replace(/,/g, ".");
+  const n = Number(x);
+  return Number.isFinite(n) ? n : NaN;
+}
+PATCH 3 — Query Builder (aplica “mais barato” → in_stock)
+ts
+Copiar código
+// src/assistant/query/builder.ts
+import { QuerySignal, CatalogItem, SortKey } from "../types";
+import { extractPriceSignals } from "../nlp/priceSignals";
+
+export type BuildOpts = {
+  base: QuerySignal;
+  text: string;
+  preferInStockCheapest?: boolean;
+  slots?: { attrs?: string[]; modelo?: string };
+};
+
+export function buildQuery(opts: BuildOpts): QuerySignal {
+  const price = extractPriceSignals(opts.text);
+  const sort: SortKey | undefined =
+    price.sort ?? opts.base.sort ?? "relevance";
+  const in_stock =
+    price.sort === "price.asc" && (opts.preferInStockCheapest ?? true)
+      ? true
+      : opts.base.in_stock;
+  const atributos = uniq([
+    ...(opts.base.atributos ?? []),
+    ...(opts.slots?.attrs ?? []),
+  ]);
+
+  return {
+    ...opts.base,
+    ...price,
+    modelo: opts.slots?.modelo ?? opts.base.modelo,
+    atributos,
+    sort,
+    in_stock,
+  };
+}
+
+export function runQueryLocal(catalog: CatalogItem[], q: QuerySignal) {
+  const filtered = catalog.filter((it) => {
+    if (q.categoria && it.category !== q.categoria) return false;
+    if (q.produto) {
+      const t = it.title.toLowerCase();
+      if (!t.includes(q.produto)) {
+        if (
+          !(
+            q.categoria === "celular" &&
+            (t.includes("iphone") || t.includes("galaxy"))
+          )
+        )
+          return false;
+      }
+    }
+    if (q.price_min != null && (it.price ?? Infinity) < q.price_min) return false;
+    if (q.price_max != null && (it.price ?? 0) > q.price_max) return false;
+    if (q.in_stock && !it.in_stock) return false;
+    if (q.atributos?.length) {
+      const attrs = new Set((it.attrs ?? []).map((a) => a.toLowerCase()));
+      for (const a of q.atributos) if (!attrs.has(a.toLowerCase())) return false;
+    }
+    if (q.modelo && !it.title.toLowerCase().includes(q.modelo)) return false;
+    return true;
+  });
+
+  const sortKey = q.sort ?? "relevance";
+  filtered.sort((a, b) => {
+    if (sortKey === "price.asc")
+      return (a.price ?? Infinity) - (b.price ?? Infinity);
+    if (sortKey === "price.desc") return (b.price ?? 0) - (a.price ?? 0);
+    const sa = a.in_stock ? 0 : 1,
+      sb = b.in_stock ? 0 : 1;
+    if (sa !== sb) return sa - sb;
+    return (a.price ?? Infinity) - (b.price ?? Infinity);
+  });
+
+  const off = q.offset ?? 0;
+  return filtered.slice(off, off + 10);
+}
+
+function uniq<T>(arr: T[]) {
+  return Array.from(new Set(arr));
+}
+PATCH 4 — Política & Geração de Texto
+ts
+Copiar código
+// src/assistant/policy/decide.ts
+import { QuerySignal } from "../types";
+
+export function askByCategory(
+  cat: string,
+  produto?: string,
+  lang: "pt" | "es" = "pt"
+): string | undefined {
+  const c = cat || produto || "itens";
+  if (c === "celular" || produto === "iphone" || produto === "galaxy")
+    return lang === "es"
+      ? "¿Prefieres modelo 12, 13 o 15? También 64/128/256GB."
+      : "Prefere modelo 12, 13 ou 15? Também 64/128/256GB.";
+  if (c === "drone")
+    return lang === "es"
+      ? "¿Priorizamos batería o cámara 4K?"
+      : "Prefere mais bateria ou câmera 4K?";
+  if (c === "perfumaria")
+    return lang === "es"
+      ? "¿Masculino/femenino o familia olfativa?"
+      : "Quer masculino/feminino ou família olfativa?";
+  if (c === "tv")
+    return lang === "es"
+      ? "¿Necesitas 120Hz para juegos?"
+      : "Precisa de 120Hz para jogos?";
+  if (c === "roupa")
+    return lang === "es" ? "¿Tallas y colores?" : "Quer ver tamanhos e cores?";
+  if (c === "notebook")
+    return lang === "es"
+      ? "¿16GB/512GB o más básico?"
+      : "Prefere 16GB/512GB ou algo mais básico?";
+  return undefined;
+}
+
+export function crossByCategory(cat?: string, lang: "pt" | "es" = "pt") {
+  const map: Record<string, string[]> = {
+    celular: ["capinha", "película", "carregador"],
+    drone: ["bateria extra", "hélices", "case"],
+    perfumaria: ["kit presente", "necessaire"],
+    tv: ["soundbar", "suporte de parede", "cabo HDMI"],
+    roupa: ["cinto", "lenço", "bolsa"],
+    notebook: ["mochila", "mouse", "hub USB-C"],
+  };
+  return map[cat ?? ""] ?? [];
+}
+
+export function policyAnswer(N: number, q: QuerySignal, lang: "pt" | "es") {
+  const catOrProd = q.categoria ?? q.produto ?? "itens";
+  const ask = askByCategory(q.categoria ?? "", q.produto, lang);
+  const cross = crossByCategory(q.categoria ?? "", lang);
+  return { catOrProd, ask, cross, N };
+}
+ts
+Copiar código
+// src/assistant/nlg/templates.ts
+import { nextVariant } from "../types";
+
+const greetPT = [
+  "Oi! ✨ O que você procura hoje?",
+  "E aí! 😄 Me diz o produto que eu caço as melhores ofertas.",
+  "Olá! 👋 Posso buscar iPhone, drone, perfumes, TVs e mais.",
+];
+const foundPT = [
+  "Encontrei {N} {cat}.",
+  "Boa! Separei {N} {cat}.",
+  "Achei {N} {cat} por aqui.",
+];
+const noResPT = [
+  "Não encontrei resultados.",
+  "Aqui não apareceu nada.",
+  "Zerado por aqui.",
+];
+
+const greetES = [
+  "¡Hola! ✨ ¿Qué buscas hoy?",
+  "¡Hey! 😄 Dime el producto y traigo las mejores ofertas.",
+  "¡Hola! 👋 Puedo buscar iPhone, drones, perfumes, TVs y más.",
+];
+const foundES = [
+  "Encontré {N} {cat}.",
+  "¡Bien! Separé {N} {cat}.",
+  "Hallé {N} {cat} aquí.",
+];
+const noResES = ["No encontré resultados.", "No apareció nada.", "Cero resultados por aquí."];
+
+export function sayGreeting(sessionId: string, lang: "pt" | "es") {
+  const arr = lang === "es" ? greetES : greetPT;
+  const i = nextVariant(sessionId, "greet", arr.length);
+  return arr[i];
+}
+export function sayFound(
+  sessionId: string,
+  lang: "pt" | "es",
+  N: number,
+  cat: string,
+  ask?: string,
+  cross?: string[]
+) {
+  const arr = lang === "es" ? foundES : foundPT;
+  const i = nextVariant(sessionId, "found", arr.length);
+  const base = arr[i].replace("{N}", String(N)).replace("{cat}", cat);
+  const a = ask ? ` ${ask}` : "";
+  const c = cross?.length
+    ? lang === "es"
+      ? ` Puedo sugerir ${cross.slice(0, 2).join(" y ")}.`
+      : ` Posso sugerir ${cross.slice(0, 2).join(" e ")}.`
+    : "";
+  return `${base}${a}${c}`.trim();
+}
+export function sayNoResults(sessionId: string, lang: "pt" | "es", hint?: string) {
+  const arr = lang === "es" ? noResES : noResPT;
+  const i = nextVariant(sessionId, "nores", arr.length);
+  const h = hint ? (lang === "es" ? ` ¿Intentamos ${hint}?` : ` Quer tentar ${hint}?`) : "";
+  return `${arr[i]}${h}`.trim();
+}
+ts
+Copiar código
+// src/assistant/nlg/naturalizer.ts
+// Camada opcional (LLM). Se USE_LLM_PARAPHRASE !== "1", devolve o draft.
+type Tone = "vendedor_descontraido" | "amigavel_neutro" | "objetivo_rapido";
+type Facts = {
+  intent: "PRODUCT" | "SMALL_TALK" | "HELP" | "TIME";
+  draft: string;
+  product?: string;
+  category?: string;
+  model?: string;
+  count?: number;
+  cross?: string[];
+  ask?: string | null;
+};
+
+export async function naturalize(
+  facts: Facts,
+  _tone: Tone = "vendedor_descontraido"
+): Promise<string> {
+  // Desligado por padrão — sem dependência externa.
+  return facts.draft;
+}
+Obs.: deixei o naturalizer “no-op” para não depender de API externa. Se quiser ligar depois, eu acrescento o provedor.
+
+PATCH 5 — Catálogo (adapters) + Rotas (drop-in)
+ts
+Copiar código
+// src/catalog/provider.ts
+import fs from "fs";
+import path from "path";
+import type { CatalogItem } from "../assistant/types";
+
+export interface CatalogProvider {
+  load(): Promise<CatalogItem[]>;
+}
+
+// 1) Adapter usando JSON local (rápido para dev)
+export class JsonCatalog implements CatalogProvider {
+  constructor(private jsonPath: string) {}
+  async load(): Promise<CatalogItem[]> {
+    const p = path.resolve(this.jsonPath);
+    return JSON.parse(fs.readFileSync(p, "utf8")) as CatalogItem[];
+  }
+}
+
+// 2) Adapter HTTP (ex.: sua API REST)
+export class HttpCatalog implements CatalogProvider {
+  constructor(private url: string) {}
+  async load(): Promise<CatalogItem[]> {
+    const r = await fetch(this.url);
+    return (await r.json()) as CatalogItem[];
+  }
+}
+
+// 3) Factory simples por .env
+export function makeCatalogProvider(): CatalogProvider {
+  const src = process.env.CATALOG_SOURCE ?? "json";
+  if (src === "http" && process.env.CATALOG_URL)
+    return new HttpCatalog(process.env.CATALOG_URL);
+  const p = process.env.CATALOG_PATH ?? "data/catalogo.sample.json";
+  return new JsonCatalog(p);
+}
+ts
+Copiar código
+// src/assistant/assistantRoutes.ts
+import type { Express, Router } from "express";
+import { classify } from "./nlp/intent";
+import { extractModeloGBCor } from "./nlp/slots";
+import { buildQuery, runQueryLocal } from "./query/builder";
+import { policyAnswer } from "./policy/decide";
+import { sayFound, sayGreeting, sayNoResults } from "./nlg/templates";
+import { getSession, updateSession } from "./types";
+import type { Intent } from "./types";
+import type { CatalogItem } from "./types";
+import { naturalize } from "./nlg/naturalizer";
+import type { CatalogProvider } from "../catalog/provider";
+
+function asApp(x: Express | Router): x is Express {
+  // ambos têm .post; isso é apenas para tipar de forma simples
+  return true;
+}
+
+// Registra as rotas no seu app/roteador existente
+export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: CatalogProvider) {
+  const post = (appOrRouter as any).post.bind(appOrRouter);
+
+  // Feedback básico (Fase 2)
+  post("/assistant/feedback", async (_req: any, res: any) => res.json({ ok: true }));
+  post("/analytics/click", async (_req: any, res: any) => res.json({ ok: true }));
+
+  // Rota principal (F1/F4/F5)
+  post("/assistant/query", async (req: any, res: any) => {
+    const { sessionId = "anon", message, lang = "pt" } = (req.body ?? {}) as {
+      sessionId?: string; message?: string; lang?: "pt" | "es";
+    };
+    if (!message || !message.trim()) return res.status(400).json({ ok: false, error: "Mensagem vazia" });
+
+    const sess = getSession(sessionId);
+    const { intent, base } = classify(message);
+
+    if (intent !== "PRODUCT_SEARCH") {
+      let draft = "";
+      if (intent === "SMALL_TALK") draft = sayGreeting(sessionId, lang);
+      else if (intent === "TIME_QUERY") {
+        const now = new Date(), hh = String(now.getHours()).padStart(2,"0"), mm = String(now.getMinutes()).padStart(2,"0");
+        draft = lang === "es" ? `Ahora son las ${hh}:${mm}.` : `Agora são ${hh}:${mm}.`;
+        if (sess.focoAtual) draft += lang === "es" ? ` ¿Seguimos con ${sess.focoAtual}?` : ` Quer continuar no ${sess.focoAtual}?`;
+      } else if (intent === "HELP") {
+        draft = lang === "es" ? "Dime el producto (ej.: iPhone, drone, perfume) y te muestro ofertas."
+                              : "Diga o produto (ex.: iPhone, drone, perfume) que eu mostro as ofertas.";
+      } else if (intent === "WHOAMI") {
+        draft = lang === "es" ? "Soy tu asistente de compras." : "Sou seu assistente de compras.";
+      } else draft = sayGreeting(sessionId, lang);
+
+      const text = await naturalize({ intent: "SMALL_TALK", draft }, (process.env.REPLY_TONE as any) || "vendedor_descontraido");
+      return res.json({ ok:true, text, items:[], blocks:[{type:"text",text}], debug:{ intent } });
+    }
+
+    const produtoNovo = base.produto && base.produto !== sess.focoAtual;
+    updateSession(sessionId, {
+      focoAtual: base.produto ?? sess.focoAtual ?? null,
+      categoriaAtual: produtoNovo ? base.categoria ?? null : sess.categoriaAtual ?? base.categoria ?? null,
+      lastQuery: base.produto ?? sess.lastQuery ?? null,
+    });
+
+    const slots = extractModeloGBCor(message);
+    const q = buildQuery({ base: { ...base }, text: message, preferInStockCheapest: true, slots: { attrs: slots.attrs, modelo: slots.modelo } });
+
+    const itemsFull: CatalogItem[] = await catalog.load();
+    const items = runQueryLocal(itemsFull, q);
+    const pa = policyAnswer(items.length, q, lang);
+
+    let draft = "";
+    if (!sess.lastQuery && !q.produto && !q.categoria) draft = sayGreeting(sessionId, lang);
+    if (items.length > 0) draft = sayFound(sessionId, lang, items.length, pa.catOrProd, pa.ask, pa.cross);
+    else draft = sayNoResults(sessionId, lang, lang === "es" ? "con otra marca o modelo" : "com outra marca ou modelo");
+
+    const text = await naturalize({ intent:"PRODUCT", draft, product:q.produto, category:q.categoria, model:q.modelo, count: items.length, cross: pa.cross, ask: pa.ask ?? null },
+                                  (process.env.REPLY_TONE as any) || "vendedor_descontraido");
+
+    return res.json({
+      ok: true,
+      text,
+      items,
+      blocks: [{ type: "text", text }, { type: "products", items: items.map(i => i.id) }],
+      debug: { intent: "PRODUCT_SEARCH" as Intent, query: q, slots, session: { ...sess } }
+    });
+  });
+}
+PATCH 6 — Admin/Train (rotas plugáveis)
+ts
+Copiar código
+// src/assistant/adminRoutes.ts
+import type { Express, Router } from "express";
+import fs from "fs";
+import { getUnknownTerms } from "./telemetry/unknown-terms";
+import { exportDataset } from "./telemetry/conversations";
+
+export function registerAdminRoutes(appOrRouter: Express | Router) {
+  const get = (appOrRouter as any).get.bind(appOrRouter);
+  const post = (appOrRouter as any).post.bind(appOrRouter);
+
+  const adminAuth = (req: any, res: any, next: any) => {
+    const ok =
+      String(req.headers["x-admin-token"] ?? "") ===
+      (process.env.ADMIN_TOKEN ?? "devtoken");
+    return ok ? next() : res.status(401).json({ ok: false, error: "unauthorized" });
+  };
+
+  get("/admin/train/status", adminAuth, (_req: any, res: any) => {
+    const canonPath = process.env.CANON_PATH ?? "data/canon.json";
+    let pc = 0, cc = 0;
+    try {
+      if (fs.existsSync(canonPath)) {
+        const c = JSON.parse(fs.readFileSync(canonPath, "utf8"));
+        pc = Object.keys(c.productCanon ?? {}).length;
+        cc = Object.keys(c.categoryCanon ?? {}).length;
+      }
+    } catch {}
+    res.json({
+      ok: true,
+      llm: process.env.USE_LLM_PARAPHRASE === "1" ? "on" : "off",
+      tone: process.env.REPLY_TONE ?? "vendedor_descontraido",
+      canon: { products: pc, categories: cc },
+      unknown: getUnknownTerms(),
+    });
+  });
+
+  get("/admin/train/export-dataset", adminAuth, (_req: any, res: any) =>
+    res.json({ ok: true, dataset: exportDataset() })
+  );
+
+  post("/admin/train/toggle-llm", adminAuth, (req: any, res: any) => {
+    const { on, tone } = (req.body ?? {}) as { on?: boolean; tone?: string };
+    process.env.USE_LLM_PARAPHRASE = on ? "1" : "0";
+    if (tone) process.env.REPLY_TONE = tone;
+    res.json({
+      ok: true,
+      llm: process.env.USE_LLM_PARAPHRASE,
+      tone: process.env.REPLY_TONE,
+    });
+  });
+}
+ts
+Copiar código
+// src/assistant/telemetry/conversations.ts
+type Turn = {
+  ts: number;
+  user: string;
+  intent: string;
+  slots?: Record<string, any>;
+  draft: string;
+  final: string;
+  itemsShown: string[];
+  feedback?: "up" | "down" | null;
+};
+const mem = new Map<string, Turn[]>();
+
+export function logTurn(sessionId: string, t: Turn) {
+  const arr = mem.get(sessionId) ?? [];
+  arr.push(t);
+  mem.set(sessionId, arr);
+}
+
+export function exportDataset() {
+  const out: any[] = [];
+  for (const arr of mem.values())
+    for (const t of arr)
+      out.push({
+        input: { draft: t.draft, facts: t.slots, items: t.itemsShown },
+        output: t.final,
+        label: t.feedback ?? null,
+      });
+  return out;
+}
+ts
+Copiar código
+// src/assistant/telemetry/unknown-terms.ts
+const tally = new Map<string, number>();
+export function reportUnknownTerm(term: string) {
+  tally.set(term, (tally.get(term) ?? 0) + 1);
+}
+export function getUnknownTerms(limit = 50) {
+  return Array.from(tally.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit);
+}
+PATCH 7 — Gerador do Canônico (script)
+ts
+Copiar código
+// scripts/build-canon.ts
+import fs from "fs";
+import path from "path";
+
+type Item = {
+  id: string;
+  nome?: string;
+  title?: string;
+  categoria?: string;
+  category?: string;
+  marca?: string;
+  brand?: string;
+};
+
+const SRC = process.env.CATALOG_PATH ?? "data/catalogo.sample.json";
+const OUT = "data/canon.json";
+
+function norm(s: string) {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+function singular(w: string) {
+  const x = w;
+  if (x.endsWith("oes") || x.endsWith("aes")) return x.slice(0, -3) + "ao";
+  if (x.endsWith("is")) return x.slice(0, -1) + "l";
+  if (x.endsWith("ns")) return x.slice(0, -2) + "m";
+  if (x.endsWith("es") && x.length > 4) return x.slice(0, -2);
+  if (x.endsWith("s") && x.length > 3) return x.slice(0, -1);
+  return x;
+}
+function toks(s: string) {
+  return norm(s).split(" ").filter(Boolean).map(singular);
+}
+
+function main() {
+  if (!fs.existsSync(SRC)) {
+    console.error("Catálogo não encontrado:", SRC);
+    process.exit(1);
+  }
+  const raw = JSON.parse(fs.readFileSync(SRC, "utf8")) as Item[];
+  const productCanon: Record<string, string> = {};
+  const categoryCanon: Record<string, string> = {};
+  const productToCategory: Record<string, string> = {};
+  const votes: Record<string, Record<string, number>> = {};
+
+  for (const it of raw) {
+    const name = it.nome ?? it.title ?? "";
+    const cat = singular(it.categoria ?? it.category ?? "");
+    if (!cat) continue;
+    categoryCanon[cat] = cat;
+    const tk = toks(name);
+    if (!tk.length) continue;
+    const head = tk[0];
+    for (const t of tk) productCanon[t] = head;
+    votes[head] ??= {};
+    votes[head][cat] = (votes[head][cat] ?? 0) + 1;
+  }
+  for (const p of Object.keys(votes)) {
+    const top = Object.entries(votes[p]).sort((a, b) => b[1] - a[1])[0]?.[0];
+    if (top) productToCategory[p] = top;
+  }
+  fs.writeFileSync(
+    OUT,
+    JSON.stringify({ productCanon, categoryCanon, productToCategory }, null, 2)
+  );
+  console.log("✔ canon.json gerado:", OUT, "| termos:", Object.keys(productCanon).length);
+}
+main();
+PATCH 8 — .env e Scripts (seu projeto)
+ini
+Copiar código
+# .env (exemplo)
+PORT=5000
+USE_LLM_PARAPHRASE=0
+REPLY_TONE=vendedor_descontraido
+ADMIN_TOKEN=troque-este-token
+CANON_PATH=./data/canon.json
+
+# Fonte do catálogo
+CATALOG_SOURCE=json       # "json" ou "http"
+CATALOG_PATH=./data/catalogo.sample.json
+# CATALOG_URL=https://sua-api/catalog
+No seu package.json, inclua:
+
+json
+Copiar código
+{
+  "scripts": {
+    "build:canon": "tsx scripts/build-canon.ts"
+  }
+}
+Como plugar nas suas rotas existentes
+Se você tem server/routes.ts (ou src/server.ts) com app Express:
+ts
+Copiar código
+// server/routes.ts (ou semelhante)
+import express from "express";
+import { registerAssistantRoutes } from "../assistant/assistantRoutes";
+import { registerAdminRoutes } from "../assistant/adminRoutes";
+import { makeCatalogProvider } from "../catalog/provider";
+
+const app = express();
+app.use(express.json());
+
+// ... suas rotas existentes ...
+
+const catalog = makeCatalogProvider();
+registerAssistantRoutes(app, catalog);
+registerAdminRoutes(app);
+
+export default app;
+Se você usa um Router() separado:
+ts
+Copiar código
+import { Router } from "express";
+import { registerAssistantRoutes } from "../assistant/assistantRoutes";
+import { registerAdminRoutes } from "../assistant/adminRoutes";
+import { makeCatalogProvider } from "../catalog/provider";
+
+const router = Router();
+const catalog = makeCatalogProvider();
+
+registerAssistantRoutes(router as any, catalog);
+registerAdminRoutes(router as any);
+
+export default router;
+Teste rápido (sem front)
+POST /assistant/query
+Body:
+
+json
+Copiar código
+{ "sessionId":"S1", "message":"qual seu iPhone mais barato?", "lang":"pt" }
+Esperado: sort=price.asc, in_stock=true, texto variado, items (cards).
+
+GET /admin/train/status com header x-admin-token: troque-este-token.
+
+Notas finais
+Sem quebrar seu app: estes patches não assumem controle do seu servidor; só registram rotas no app/roteador que você já tem.
+
+Catálogo real: ajuste CATALOG_SOURCE=http + CATALOG_URL para apontar para sua API/DB, mantendo a mesma interface de CatalogItem.
+
+LLM opcional: o naturalizer está desligado (no-op). Quando quiser, eu adiciono o provedor com guardrails.
+
+Escalável: a memória de sessão está em memória para facilitar; em produção, recomendo Redis (mesma interface, outra implementação).

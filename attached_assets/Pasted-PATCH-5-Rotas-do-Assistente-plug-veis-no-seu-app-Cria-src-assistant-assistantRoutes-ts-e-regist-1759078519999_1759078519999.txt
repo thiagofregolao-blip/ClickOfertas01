@@ -1,0 +1,250 @@
+PATCH 5 — Rotas do Assistente (plugáveis no seu app)
+
+Cria src/assistant/assistantRoutes.ts e registra /assistant/query, /assistant/feedback, /analytics/click.
+
+*** /dev/null
+--- b/src/assistant/assistantRoutes.ts
+@@
++import type { Express, Router } from "express";
++import { classify } from "../nlp/intent";
++import { extractModeloGBCor } from "../nlp/slots";
++import { buildQuery, runQueryLocal } from "../query/builder";
++import { policyAnswer } from "../policy/decide";
++import { sayFound, sayGreeting, sayNoResults } from "../nlg/templates";
++import { getSession, updateSession } from "../core/session";
++import type { Intent, CatalogItem } from "../types";
++import { naturalize } from "../nlg/naturalizer";
++import type { CatalogProvider } from "../catalog/provider";
++
++export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: CatalogProvider) {
++  const post = (appOrRouter as any).post.bind(appOrRouter);
++
++  // (Fase 2) Feedback/analytics mínimos
++  post("/assistant/feedback", async (_req: any, res: any) => res.json({ ok: true }));
++  post("/analytics/click", async (_req: any, res: any) => res.json({ ok: true }));
++
++  // (Fases 1/4/5) Rota principal
++  post("/assistant/query", async (req: any, res: any) => {
++    const { sessionId = "anon", message, lang = "pt" } = (req.body ?? {}) as { sessionId?: string; message?: string; lang?: "pt"|"es" };
++    if (!message || !message.trim()) return res.status(400).json({ ok:false, error:"Mensagem vazia" });
++
++    const sess = getSession(sessionId);
++    const { intent, base } = classify(message);
++
++    // Small talk/utilitários
++    if (intent !== "PRODUCT_SEARCH") {
++      let draft = "";
++      if (intent === "SMALL_TALK") draft = sayGreeting(sessionId, lang);
++      else if (intent === "TIME_QUERY") {
++        const now = new Date(), hh = String(now.getHours()).padStart(2,"0"), mm = String(now.getMinutes()).padStart(2,"0");
++        draft = lang === "es" ? `Ahora son las ${hh}:${mm}.` : `Agora são ${hh}:${mm}.`;
++        if (sess.focoAtual) draft += lang === "es" ? ` ¿Seguimos con ${sess.focoAtual}?` : ` Quer continuar no ${sess.focoAtual}?`;
++      } else if (intent === "HELP") {
++        draft = lang === "es" ? "Dime el producto (ej.: iPhone, drone, perfume) y te muestro ofertas."
++                              : "Diga o produto (ex.: iPhone, drone, perfume) que eu mostro as ofertas.";
++      } else if (intent === "WHOAMI") {
++        draft = lang === "es" ? "Soy tu asistente de compras." : "Sou seu assistente de compras.";
++      } else {
++        draft = sayGreeting(sessionId, lang);
++      }
++      const text = await naturalize({ intent:"SMALL_TALK", draft }, (process.env.REPLY_TONE as any) || "vendedor_descontraido");
++      return res.json({ ok:true, text, items:[], blocks:[{type:"text",text}], debug:{ intent } });
++    }
++
++    // Atualiza foco/categoria na sessão
++    const produtoNovo = base.produto && base.produto !== sess.focoAtual;
++    updateSession(sessionId, {
++      focoAtual: base.produto ?? sess.focoAtual ?? null,
++      categoriaAtual: produtoNovo ? base.categoria ?? null : sess.categoriaAtual ?? base.categoria ?? null,
++      lastQuery: base.produto ?? sess.lastQuery ?? null,
++    });
++
++    // Slots adicionais e sinais de preço
++    const slots = extractModeloGBCor(message);
++    const q = buildQuery({ base: { ...base }, text: message, preferInStockCheapest: true, slots: { attrs: slots.attrs, modelo: slots.modelo } });
++
++    // Carrega catálogo pela provider (JSON/HTTP/DB adaptado)
++    const all: CatalogItem[] = await catalog.load();
++    const items = runQueryLocal(all, q);
++    const pa = policyAnswer(items.length, q, lang);
++
++    // Draft determinístico e naturalização opcional
++    let draft = "";
++    if (!sess.lastQuery && !q.produto && !q.categoria) draft = sayGreeting(sessionId, lang);
++    if (items.length > 0) draft = sayFound(sessionId, lang, items.length, pa.catOrProd, pa.ask, pa.cross);
++    else draft = sayNoResults(sessionId, lang, lang === "es" ? "con otra marca o modelo" : "com outra marca ou modelo");
++
++    const text = await naturalize({ intent:"PRODUCT", draft, product:q.produto, category:q.categoria, model:q.modelo, count: items.length, cross: pa.cross, ask: pa.ask ?? null },
++                                  (process.env.REPLY_TONE as any) || "vendedor_descontraido");
++
++    return res.json({
++      ok: true,
++      text,
++      items,
++      blocks: [{ type:"text", text }, { type:"products", items: items.map(i=>i.id) }],
++      debug: { intent: "PRODUCT_SEARCH" as Intent, query: q, slots, session: { ...sess } }
++    });
++  });
++}
+
+PATCH 6 — Rotas Admin (status, dataset, toggle LLM)
+*** /dev/null
+--- b/src/assistant/adminRoutes.ts
+@@
++import type { Express, Router } from "express";
++import fs from "fs";
++import path from "path";
++import { getUnknownTerms } from "../telemetry/unknown-terms";
++import { exportDataset } from "../telemetry/conversations";
++
++export function registerAdminRoutes(appOrRouter: Express | Router) {
++  const get = (appOrRouter as any).get.bind(appOrRouter);
++  const post = (appOrRouter as any).post.bind(appOrRouter);
++
++  const adminAuth = (req: any, res: any, next: any) => {
++    const ok = String(req.headers["x-admin-token"] ?? "") === (process.env.ADMIN_TOKEN ?? "devtoken");
++    return ok ? next() : res.status(401).json({ ok:false, error:"unauthorized" });
++  };
++
++  get("/admin/train/status", adminAuth, (_req:any, res:any) => {
++    const canonPath = process.env.CANON_PATH ?? "data/canon.json";
++    let pc=0, cc=0;
++    try{
++      if (fs.existsSync(path.resolve(canonPath))) {
++        const c = JSON.parse(fs.readFileSync(path.resolve(canonPath),"utf8"));
++        pc = Object.keys(c.productCanon ?? {}).length;
++        cc = Object.keys(c.categoryCanon ?? {}).length;
++      }
++    }catch{/* noop */}
++    res.json({ ok:true, llm: process.env.USE_LLM_PARAPHRASE==="1" ? "on":"off", tone: process.env.REPLY_TONE ?? "vendedor_descontraido",
++      canon:{ products:pc, categories:cc }, unknown: getUnknownTerms() });
++  });
++
++  get("/admin/train/export-dataset", adminAuth, (_req:any, res:any) =>
++    res.json({ ok:true, dataset: exportDataset() })
++  );
++
++  post("/admin/train/toggle-llm", adminAuth, (req:any, res:any) => {
++    const { on, tone } = (req.body ?? {}) as { on?: boolean; tone?: string };
++    process.env.USE_LLM_PARAPHRASE = on ? "1" : "0";
++    if (tone) process.env.REPLY_TONE = tone;
++    res.json({ ok:true, llm: process.env.USE_LLM_PARAPHRASE, tone: process.env.REPLY_TONE });
++  });
++}
+
+PATCH 7 — Provider do Catálogo (JSON/HTTP pronto)
+*** /dev/null
+--- b/src/catalog/provider.ts
+@@
++import fs from "fs";
++import path from "path";
++import type { CatalogItem } from "../types";
++
++export interface CatalogProvider { load(): Promise<CatalogItem[]>; }
++
++export class JsonCatalog implements CatalogProvider {
++  constructor(private jsonPath: string) {}
++  async load(): Promise<CatalogItem[]> {
++    const p = path.resolve(this.jsonPath);
++    return JSON.parse(fs.readFileSync(p, "utf8")) as CatalogItem[];
++  }
++}
++
++export class HttpCatalog implements CatalogProvider {
++  constructor(private url: string) {}
++  async load(): Promise<CatalogItem[]> {
++    const r = await fetch(this.url);
++    return (await r.json()) as CatalogItem[];
++  }
++}
++
++export function makeCatalogProvider(): CatalogProvider {
++  const src = process.env.CATALOG_SOURCE ?? "json";
++  if (src === "http" && process.env.CATALOG_URL) return new HttpCatalog(process.env.CATALOG_URL);
++  const p = process.env.CATALOG_PATH ?? "data/catalogo.sample.json";
++  return new JsonCatalog(p);
++}
+
+PATCH 8 — Wire-up no seu servidor existente
+
+Adiciona o registro das rotas sem substituir seu server. Se você tem server/routes.ts (ou arquivo equivalente), aplique:
+
+*** a/src/server/index.ts
+--- b/src/server/index.ts
+@@
+ import express from "express";
++import { registerAssistantRoutes } from "../assistant/assistantRoutes";
++import { registerAdminRoutes } from "../assistant/adminRoutes";
++import { makeCatalogProvider } from "../catalog/provider";
+ 
+ const app = express();
+ app.use(express.json());
+ 
+ // ... suas rotas existentes ...
+ 
++// IA Vendedor (F1→F6): registra sem quebrar nada
++const catalog = makeCatalogProvider();
++registerAssistantRoutes(app, catalog);
++registerAdminRoutes(app);
+ 
+ const PORT = Number(process.env.PORT ?? 5000);
+ app.listen(PORT, () => console.log(`Server ON :${PORT}`));
+ export default app;
+
+
+Se seu servidor principal não é src/server/index.ts, aplique o mesmo bloco no arquivo que cria o app (ex.: server/routes.ts ou app.ts).
+
+PATCH 9 — Healthcheck simples (opcional)
+*** a/src/server/index.ts
+--- b/src/server/index.ts
+@@
+ app.use(express.json());
+ 
++app.get("/health", (_req,res)=>res.json({ok:true}));
++
+ // ... suas rotas existentes ...
+
+PATCH 10 — Scripts & .env (com provider)
+
+Se ainda não aplicou, garanta:
+
+*** a/package.json
+--- b/package.json
+@@
+ {
+   "type": "module",
+   "scripts": {
+     "dev": "tsx watch src/server/index.ts",
+     "build": "tsc -p .",
+     "start": "node dist/server/index.js",
+     "test": "node --test --test-reporter=spec",
+     "build:canon": "tsx scripts/build-canon.ts"
+   }
+ }
+
+*** a/.env.example
+--- b/.env.example
+@@
+ PORT=5000
+ USE_LLM_PARAPHRASE=0
+ REPLY_TONE=vendedor_descontraido
+ ADMIN_TOKEN=troque-este-token
+ CANON_PATH=./data/canon.json
++CATALOG_SOURCE=json          # ou "http"
++CATALOG_PATH=./data/catalogo.sample.json
++# CATALOG_URL=https://sua-api/catalog
+
+Como validar (rápido)
+
+npm run build:canon (gera data/canon.json).
+
+npm run dev.
+
+POST /assistant/query
+
+{ "sessionId":"S1", "message":"qual seu iPhone mais barato?", "lang":"pt" }
+
+
+Esperado: sort=price.asc, in_stock=true, texto variado + blocks.products.
+
+GET /admin/train/status com x-admin-token: troque-este-token.
