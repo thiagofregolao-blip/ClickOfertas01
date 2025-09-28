@@ -1,0 +1,90 @@
+patch-frontend-use-server-text.diff
+*** a/client/src/components/GeminiAssistantBar.tsx
+--- b/client/src/components/GeminiAssistantBar.tsx
+@@
+ // ...imports atuais...
++// Dica: mantenha só 1 fonte de verdade para o texto do assistente: backend
+ 
+ // ...estado, hooks etc...
+ 
++/**
++ * Usa SEMPRE o text que vem do backend.
++ * Se por algum motivo vier vazio, cai para um texto curto padrão.
++ */
++function pickAssistantText(resp: any) {
++  const serverText = resp?.text && String(resp.text).trim();
++  if (serverText) return serverText;
++  // fallback ultra minimalista, só se o servidor não mandar text
++  if (Array.isArray(resp?.items) && resp.items.length > 0) {
++    return "Separei algumas opções pra você 😉";
++  }
++  return "Não encontrei resultados agora, mas posso tentar com outra marca, modelo ou faixa de preço.";
++}
++
+ async function startGeminiStream(/* args atuais */) {
+   // ...código atual que prepara a requisição...
+ 
+-  const res = await fetch("/api/assistant/query", {
++  const res = await fetch("/api/assistant/query", {
+     method: "POST",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify({ sessionId, message: userMessage, lang }),
+   });
+ 
+-  const data = await res.json();
+-  const items = data?.items ?? [];
+-  let finalMessage = "";
+-
+-  // ❌ Fallback antigo baseado em items.length === 0
+-  // if (!items.length) {
+-  //   finalMessage = `Hmm, não achei nada pra "${userMessage}". 😅 Quer tentar outra marca ou modelo?`;
+-  // } else {
+-  //   finalMessage = data.text ?? "Encontrei algumas opções!";
+-  // }
++  const data = await res.json();
++  const items = data?.items ?? [];
++  // ✅ SEMPRE priorize o texto do servidor
++  const finalMessage = pickAssistantText(data);
+ 
+   // opcional: debug útil p/ verificar foco e “mais barato”
+-  // console.debug("assistant debug:", data?.debug);
++  if (data?.debug) {
++    // Isso ajuda a diagnosticar se o backend está herdando o foco
++    // priceOnlyFollowUp deve ser true no “quero um mais barato”
++    console.debug("assistant debug:", {
++      priceOnlyFollowUp: data.debug.priceOnlyFollowUp,
++      sort: data.debug?.query?.sort,
++      focoAtual: data.debug?.session?.focoAtual,
++      lastQuery: data.debug?.session?.lastQuery,
++      categoriaAtual: data.debug?.session?.categoriaAtual,
++    });
++  }
+ 
+   // renderiza a mensagem do assistente
+   setChatMessages(prev => [
+     ...prev,
+     { type: "assistant", text: finalMessage }
+   ]);
+ 
+   // renderiza cards de produto numa área de resultados (se houver)
+   if (items.length) {
+     setGeminiResults(items);
+   } else {
+     setGeminiResults([]); // não force mensagem de chat aqui!
+   }
+ }
+ 
+ // ...renderização...
+@@
+-{chatMessages.map((msg, i) => (
++{chatMessages.map((msg, i) => (
+   <div key={i} className={`${msg.type === 'user' ? 'text-right' : 'text-left'}`}>
+     <div className={`inline-block max-w-[80%] p-3 rounded-2xl ${
+       msg.type === 'user'
+         ? 'bg-primary text-primary-foreground'
+         : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+     }`}>
+       <p className="text-sm">{msg.text}</p>
+     </div>
+   </div>
+ ))}
