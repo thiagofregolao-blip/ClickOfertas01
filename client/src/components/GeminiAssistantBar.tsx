@@ -4,6 +4,20 @@ import { LazyImage } from './lazy-image';
 import { useSuggestions } from '@/hooks/use-suggestions';
 import { Search, Sparkles } from 'lucide-react';
 
+/**
+ * Usa SEMPRE o text que vem do backend.
+ * Se por algum motivo vier vazio, cai para um texto curto padrão.
+ */
+function pickAssistantText(resp: any) {
+  const serverText = resp?.text && String(resp.text).trim();
+  if (serverText) return serverText;
+  // fallback ultra minimalista, só se o servidor não mandar text
+  if (Array.isArray(resp?.items) && resp.items.length > 0) {
+    return "Separei algumas opções pra você 😉";
+  }
+  return "Não encontrei resultados agora, mas posso tentar com outra marca, modelo ou faixa de preço.";
+}
+
 // Sessão simples por usuário (cache 1h) - separada para Gemini
 const geminiSessionCache = new Map();
 const ONE_HOUR = 60 * 60 * 1000;
@@ -274,6 +288,59 @@ export default function GeminiAssistantBar() {
     };
   }, [isSearchFocused, query]);
 
+  // Função para buscar resposta final quando não houver streaming
+  const fetchFinalResponse = async (message: string, sessionId: string, requestId: string) => {
+    try {
+      const response = await fetch('/api/assistant/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message, 
+          sessionId,
+          lang: 'pt'
+        })
+      });
+      
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
+      const data = await response.json();
+      
+      // ✅ Debug útil para verificar se o backend está herdando o foco
+      if (data?.debug) {
+        console.debug("assistant debug:", {
+          priceOnlyFollowUp: data.debug.priceOnlyFollowUp,
+          sort: data.debug?.query?.sort,
+          focoAtual: data.debug?.session?.focoAtual,
+          lastQuery: data.debug?.session?.lastQuery,
+          categoriaAtual: data.debug?.session?.categoriaAtual,
+        });
+      }
+      
+      // ✅ SEMPRE priorizar o texto do servidor
+      const finalMessage = pickAssistantText(data);
+      setChatMessages(prev => [...prev, { type: 'assistant', text: finalMessage }]);
+      
+      // Processar produtos se houver
+      if (data?.items?.length > 0) {
+        const products = data.items;
+        if (products.length <= 6) {
+          setTopBox([]);
+          setFeed(products);
+        } else {
+          setTopBox(products.slice(0, 3));
+          setFeed(products.slice(3));
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ [GeminiAssistantBar] Erro na consulta final:', error);
+      setChatMessages(prev => [...prev, { 
+        type: 'assistant', 
+        text: 'Desculpe, houve um problema. Pode tentar novamente?' 
+      }]);
+    }
+  };
+
   // Função para iniciar stream Gemini
   const startGeminiStream = async (message: string) => {
     if (!sessionId || !message.trim()) return;
@@ -397,10 +464,14 @@ export default function GeminiAssistantBar() {
       if (latestRequestIdRef.current === requestId) {
         setIsTyping(false);
         
-        // Usar mensagem acumulada para garantir que não se perca
+        // ✅ SEMPRE usar texto do backend - não gerar fallback local
         const finalMessage = accumulatedMessage.trim();
         if (finalMessage) {
           setChatMessages(prev => [...prev, { type: 'assistant', text: finalMessage }]);
+        } else {
+          // Se não houver texto acumulado, fazer requisição para pegar resposta final
+          console.log('🔄 [GeminiAssistantBar] Sem texto acumulado, fazendo consulta final');
+          fetchFinalResponse(message, sessionId, requestId);
         }
         
         // Limpar streaming apenas após adicionar ao chat
