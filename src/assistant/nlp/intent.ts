@@ -83,7 +83,9 @@ export function classify(message: string): ClassificationResult {
   }
   
   // NEW: frases apenas de preço → deixa base vazia (rota herdará da sessão)
-  const priceOnly = /\b(mais|mas)\s+(barat\w+|car\w+)\b|\b(em\s+conta)\b|\b(ate|hasta|por\s+menos\s+de|a\s+partir\s+de)\b/i.test(msg);
+  const priceOnly = /\b(mais|mas)\s+(barat\w+|car\w+)\b|\b(em\s+conta)\b|\b(ate|hasta|por\s+menos\s+de|a\s+partir\s+de)\b/i.test(msg)
+                  || /\bquero\s+um\s+mais\s+barat\w+\b/i.test(msg)   // "quero um mais barato"
+                  || /\bqual\s+o\s+mais\s+barat\w+\b/i.test(msg);    // "qual o mais barato"
   if (priceOnly) return { intent: "PRODUCT_SEARCH", base: {} };
   
   return { intent: "UNKNOWN", base: {} };

@@ -82,13 +82,14 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
         priceSig.hasPriceIntent &&
         !base.produto &&
         !base.categoria &&
-        (sess.focoAtual || sess.categoriaAtual);
+        (sess.focoAtual || sess.categoriaAtual || sess.lastQuery);
 
       const effectiveIntent = (priceOnlyFollowUp ? "PRODUCT_SEARCH" : intent) as Intent;
       const effectiveBase = priceOnlyFollowUp
         ? {
             ...base,
-            produto: sess.focoAtual ?? undefined,
+            // herda na ordem: focoAtual → categoriaAtual → lastQuery (produto "solto")
+            produto: (sess.focoAtual ?? sess.lastQuery) ?? undefined,
             categoria: sess.categoriaAtual ?? undefined,
           }
         : base;
@@ -152,16 +153,31 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
       const slots = extractModeloGBCor(message);
 
       // Monta query com sinais de preço/ordem ("mais barato" → in_stock=true)
-      const query = buildQuery({
+      let query = buildQuery({
         base: { ...effectiveBase },
         text: message,
         preferInStockCheapest: true,
         slots: { attrs: slots.attrs, modelo: slots.modelo }
       });
 
-      // Carrega catálogo via provider (PostgreSQL/JSON/HTTP adaptável)
+      // Carrega catálogo (JSON/HTTP/DB)
       const catalogItems: CatalogItem[] = await catalog.load();
-      const items = runQueryLocal(catalogItems, query);
+      let items = runQueryLocal(catalogItems, query);
+
+      // NEW: fallback — se for follow-up de preço e zerou, tenta reconsultar herdando foco salvo
+      if (items.length === 0 && priceOnlyFollowUp) {
+        const fallbackProduto = sess.focoAtual ?? sess.lastQuery ?? undefined;
+        const fallbackCategoria = sess.categoriaAtual ?? undefined;
+        if (fallbackProduto || fallbackCategoria) {
+          query = buildQuery({
+            base: { ...effectiveBase, produto: fallbackProduto ?? effectiveBase.produto, categoria: fallbackCategoria ?? effectiveBase.categoria },
+            text: message,
+            preferInStockCheapest: true,
+            slots: { attrs: slots.attrs, modelo: slots.modelo }
+          });
+          items = runQueryLocal(catalogItems, query);
+        }
+      }
 
       // Política de diálogo (1 pergunta por vez + cross-sell por categoria)
       const policyResult = policyAnswer(items.length, query, lang);
@@ -185,6 +201,7 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
           draft += "\n\n" + items.slice(0, 5).map(formatProduct).join("\n");
         }
       } else {
+        // mensagem neutra (evita "não rolou com barato" de handlers antigos)
         draft = sayNoResults(
           sessionId, 
           lang, 
@@ -227,6 +244,7 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
           intent: "PRODUCT_SEARCH" as Intent,
           query,
           slots,
+          priceOnlyFollowUp,
           session: { ...sess },
           catalogSize: catalogItems.length
         }

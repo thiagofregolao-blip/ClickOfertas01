@@ -1,0 +1,176 @@
+bora forçar o follow-up de preço a funcionar mesmo quando o front não passar sessionId certinho ou quando o classificador não mandar o produto na base.
+
+Abaixo estão 2 patches git apply que deixam o fluxo à prova de bala:
+
+reforçam a herança de foco (produto/categoria) a partir de focoAtual ou lastQuery,
+
+e, se ainda assim vier 0 itens, fazem um fallback automático reexecutando a consulta com esse foco.
+
+Aplique os dois na ordem. Não precisa reiniciar sua arquitetura; é só git apply + npm run dev.
+
+1) patch-assistant-robust-followup.diff
+
+Amarra melhor a herança do foco e adiciona fallback de consulta quando o follow-up é só de preço.
+
+*** a/src/assistant/assistantRoutes.ts
+--- b/src/assistant/assistantRoutes.ts
+@@
+ import type { Intent, CatalogItem } from "../types";
+ import { naturalize } from "../nlg/naturalizer";
+ import type { CatalogProvider } from "../catalog/provider";
+ import { extractPriceSignals } from "../nlp/priceSignals";
+ 
+@@
+   post("/assistant/query", async (req: any, res: any) => {
+     const body = (req.body ?? {}) as { sessionId?: string; message?: string; lang?: "pt"|"es" };
+     const sessionId = getStableSessionId(req, body.sessionId);
+     const message = body.message;
+     const lang = (body.lang ?? "pt") as "pt"|"es";
+     if (!message || !message.trim()) return res.status(400).json({ ok:false, error:"Mensagem vazia" });
+ 
+     const sess = getSession(sessionId);
+     const { intent, base } = classify(message);
+ 
+     // NEW: follow-up de preço → herda foco/categoria da sessão
+     const priceSig = extractPriceSignals(message);
+     const priceOnlyFollowUp =
+       priceSig.hasPriceIntent &&
+       !base.produto &&
+       !base.categoria &&
+-      (sess.focoAtual || sess.categoriaAtual);
++      (sess.focoAtual || sess.categoriaAtual || sess.lastQuery);
+ 
+     const effectiveIntent = (priceOnlyFollowUp ? "PRODUCT_SEARCH" : intent) as Intent;
+     const effectiveBase = priceOnlyFollowUp
+       ? {
+-          ...base,
+-          produto: sess.focoAtual ?? undefined,
+-          categoria: sess.categoriaAtual ?? undefined,
++          ...base,
++          // herda na ordem: focoAtual → categoriaAtual → lastQuery (produto “solto”)
++          produto: (sess.focoAtual ?? sess.lastQuery) ?? undefined,
++          categoria: sess.categoriaAtual ?? undefined,
+         }
+       : base;
+@@
+-    const produtoNovo = effectiveBase.produto && effectiveBase.produto !== sess.focoAtual;
++    const produtoNovo = effectiveBase.produto && effectiveBase.produto !== sess.focoAtual;
+     updateSession(sessionId, {
+       focoAtual: effectiveBase.produto ?? sess.focoAtual ?? null,
+       categoriaAtual: produtoNovo ? effectiveBase.categoria ?? null : sess.categoriaAtual ?? effectiveBase.categoria ?? null,
+       lastQuery: effectiveBase.produto ?? sess.lastQuery ?? null,
+     });
+@@
+-    const slots = extractModeloGBCor(message);
+-    const q = buildQuery({
+-      base: { ...effectiveBase },
+-      text: message,
+-      preferInStockCheapest: true,
+-      slots: { attrs: slots.attrs, modelo: slots.modelo }
+-    });
+-    // Carrega catálogo pela provider (JSON/HTTP/DB adaptado)
+-    const all: CatalogItem[] = await catalog.load();
+-    const items = runQueryLocal(all, q);
++    const slots = extractModeloGBCor(message);
++    let q = buildQuery({
++      base: { ...effectiveBase },
++      text: message,
++      preferInStockCheapest: true,
++      slots: { attrs: slots.attrs, modelo: slots.modelo }
++    });
++    // Carrega catálogo (JSON/HTTP/DB)
++    const all: CatalogItem[] = await catalog.load();
++    let items = runQueryLocal(all, q);
++
++    // NEW: fallback — se for follow-up de preço e zerou, tenta reconsultar herdando foco salvo
++    if (items.length === 0 && priceOnlyFollowUp) {
++      const fallbackProduto = sess.focoAtual ?? sess.lastQuery ?? undefined;
++      const fallbackCategoria = sess.categoriaAtual ?? undefined;
++      if (fallbackProduto || fallbackCategoria) {
++        q = buildQuery({
++          base: { ...effectiveBase, produto: fallbackProduto ?? effectiveBase.produto, categoria: fallbackCategoria ?? effectiveBase.categoria },
++          text: message,
++          preferInStockCheapest: true,
++          slots: { attrs: slots.attrs, modelo: slots.modelo }
++        });
++        items = runQueryLocal(all, q);
++      }
++    }
+@@
+-    const pa = policyAnswer(items.length, q, lang);
++    const pa = policyAnswer(items.length, q, lang);
+ 
+     // Draft determinístico e naturalização opcional
+     let draft = "";
+     if (!sess.lastQuery && !q.produto && !q.categoria) draft = sayGreeting(sessionId, lang);
+-    if (items.length > 0) draft = sayFound(sessionId, lang, items.length, pa.catOrProd, pa.ask, pa.cross);
+-    else draft = sayNoResults(sessionId, lang, lang === "es" ? "con otra marca o modelo" : "com outra marca ou modelo");
++    if (items.length > 0) {
++      draft = sayFound(sessionId, lang, items.length, pa.catOrProd, pa.ask, pa.cross);
++    } else {
++      // mensagem neutra (evita “não rolou com barato” de handlers antigos)
++      draft = sayNoResults(sessionId, lang, lang === "es" ? "con otra marca o modelo" : "com outra marca ou modelo");
++    }
+ 
+     const text = await naturalize(
+       { intent:"PRODUCT", draft, product:q.produto, category:q.categoria, model:q.modelo, count: items.length, cross: pa.cross, ask: pa.ask ?? null },
+       (process.env.REPLY_TONE as any) || "vendedor_descontraido"
+     );
+@@
+-      debug: { intent: "PRODUCT_SEARCH" as Intent, query: q, slots, session: getSession(sessionId) }
++      debug: {
++        intent: "PRODUCT_SEARCH" as Intent,
++        query: q,
++        slots,
++        priceOnlyFollowUp,
++        session: getSession(sessionId)
++      }
+     });
+   });
+ }
+
+2) patch-intent-price-only-boost.diff
+
+Garante que frases como “quero um mais barato” sejam tratadas como PRODUCT_SEARCH (base vazia → herdada pela rota).
+
+*** a/src/nlp/intent.ts
+--- b/src/nlp/intent.ts
+@@
+   for (const t of toks) for (const v of VOCAB) if (damerauLevenshtein(t, v) <= 2) return { intent: "PRODUCT_SEARCH", base: { produto: v } };
+   if (toks.length === 1 && /^[a-z0-9\-]+$/i.test(toks[0])) return { intent: "PRODUCT_SEARCH", base: { produto: toks[0] } };
+-  // NEW: frases apenas de preço → deixa base vazia (rota herdará da sessão)
+-  const priceOnly = /\b(mais|mas)\s+(barat\w+|car\w+)\b|\b(em\s+conta)\b|\b(ate|hasta|por\s+menos\s+de|a\s+partir\s+de)\b/i.test(msg);
++  // NEW: frases apenas de preço → deixa base vazia (rota herdará da sessão)
++  const priceOnly = /\b(mais|mas)\s+(barat\w+|car\w+)\b|\b(em\s+conta)\b|\b(ate|hasta|por\s+menos\s+de|a\s+partir\s+de)\b/i.test(msg)
++                  || /\bquero\s+um\s+mais\s+barat\w+\b/i.test(msg)   // “quero um mais barato”
++                  || /\bqual\s+o\s+mais\s+barat\w+\b/i.test(msg);    // “qual o mais barato”
+   if (priceOnly) return { intent: "PRODUCT_SEARCH", base: {} };
+   return { intent: "UNKNOWN", base: {} };
+ }
+
+Como aplicar
+git apply patch-assistant-robust-followup.diff
+git apply patch-intent-price-only-boost.diff
+npm run dev
+
+Teste rápido
+
+“iphone”
+
+“quero um mais barato”
+
+“qual o mais barato?”
+
+“tem mais barato que isso?” (deve ordenar por price.asc. Se escrever “segundo mais barato”, usa offset:1.)
+
+Dica de verificação
+
+Olhe o debug que volta do /assistant/query (o front não mostra, mas você consegue ver no Network):
+
+priceOnlyFollowUp: true
+
+session.focoAtual: "iphone" (ou lastQuery)
+
+query.sort: "price.asc"
+
+Se ainda aparecer a copy “não rolou com ‘barato’…”, é quase certo que algum handler anterior do front está interceptando quando items.length === 0. Com os patches acima, dificilmente ficará 0 — mas, se seu catálogo real não tem iPhone com preço, vai cair no sayNoResults padrão (sem essa frase). Nesse caso, procure no front por essa string e remova o fallback local.
