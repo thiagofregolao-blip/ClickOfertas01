@@ -8363,15 +8363,26 @@ Regras:
     }
   });
 
-  // IA Vendedor (Fases 1→6): Integração completa (antes do Vite catch-all)
+  // IA Vendedor (Fases 1→6): Integração completa com rotas dedicadas
   try {
     const { registerAssistantRoutes } = await import("../src/assistant/assistantRoutes.js");
     const { registerAdminRoutes } = await import("../src/assistant/adminRoutes.js");
     const { makeCatalogProvider } = await import("../src/catalog/provider.js");
     
     const catalog = makeCatalogProvider();
-    registerAssistantRoutes(app, catalog);
-    registerAdminRoutes(app);
+    const express = await import("express");
+    
+    // Create dedicated routers to avoid path conflicts
+    const assistantRouter = express.default.Router();
+    const adminRouter = express.default.Router();
+    
+    registerAssistantRoutes(assistantRouter, catalog);
+    registerAdminRoutes(adminRouter);
+    
+    // Mount with clean paths - no aliases to avoid conflicts
+    app.use("/api/assistant", assistantRouter);
+    app.use("/api/ia-vendedor", assistantRouter);  // alias for compatibility
+    app.use("/api/admin", adminRouter);
     
     console.log("✅ IA Vendedor integrado com sucesso (Fases 1-6)");
   } catch (error) {

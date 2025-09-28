@@ -42,20 +42,39 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
   const get = (appOrRouter as any).get.bind(appOrRouter);
 
   // (Fase 2) Endpoints de feedback e analytics básicos
-  post("/api/assistant/feedback", async (_req: any, res: any) => {
+  post("/feedback", async (_req: any, res: any) => {
     // Placeholder para feedback do usuário sobre respostas
     // Integrar com sistema de analytics quando necessário
     res.json({ ok: true });
   });
 
-  post("/api/analytics/click", async (_req: any, res: any) => {
+  post("/analytics/click", async (_req: any, res: any) => {
     // Placeholder para tracking de cliques em produtos
     // Integrar com sistema de analytics quando necessário  
     res.json({ ok: true });
   });
 
+  // (Compat) gerenciamento simples de sessão/memória para o front
+  get("/sessions", (req:any, res:any) => {
+    // gera um id estável igual ao usado internamente
+    const sid = getStableSessionId(req, req.query.sessionId as string | undefined);
+    res.json({ ok:true, sessionId: sid });
+  });
+  
+  post("/sessions", (req:any, res:any) => {
+    // gera um id estável igual ao usado internamente (compat POST)
+    const sid = getStableSessionId(req, req.body.sessionId as string | undefined);
+    res.json({ ok:true, sessionId: sid });
+  });
+  
+  get("/memory/:sessionId", (req:any, res:any) => {
+    const sid = String(req.params.sessionId ?? "");
+    const s = getSession(sid);
+    res.json({ ok:true, memory: s });
+  });
+
   // (Fases 1/4/5) Rota principal do assistente
-  post("/api/assistant/query", async (req: any, res: any) => {
+  post("/query", async (req: any, res: any) => {
     try {
       const body = (req.body ?? {}) as { 
         sessionId?: string; 

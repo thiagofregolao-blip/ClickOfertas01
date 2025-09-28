@@ -1,0 +1,279 @@
+O seu front chama /api/assistant/*. Vamos alinhar o backend pra esses paths (e também manter os novos /api/ia-vendedor/* caso você já tenha testado). Abaixo seguem patches git apply prontos que:
+
+Garantem sessionId estável (auto_*).
+
+Herdam foco no follow-up de preço (“quero um mais barato”, “qual o mais barato?”).
+
+Montam as rotas com prefixo /api e aliases para /api/assistant/* e /api/ia-vendedor/*.
+
+Exponibilizam endpoints de sessão/memória que seu front lista:
+/api/assistant/sessions, /api/assistant/memory/:sessionId.
+
+Aplique na ordem e rode npm run dev.
+
+1) patch-adapter-api-prefix.diff
+
+Adapta o servidor para registrar as rotas sob /api/assistant/* e /api/ia-vendedor/* (aliases).
+
+*** a/src/server/index.ts
+--- b/src/server/index.ts
+@@
+ import express from "express";
+ import { registerAssistantRoutes } from "../assistant/assistantRoutes";
+ import { registerAdminRoutes } from "../assistant/adminRoutes";
+ import { makeCatalogProvider } from "../catalog/provider";
+ 
+ const app = express();
+ app.use(express.json());
+ 
+ // ... suas rotas existentes ...
+ 
+-// IA Vendedor (F1→F6): registra sem quebrar nada
+-const catalog = makeCatalogProvider();
+-registerAssistantRoutes(app, catalog);
+-registerAdminRoutes(app);
++// IA Vendedor (F1→F6): registra com prefixo /api e aliases compatíveis
++const catalog = makeCatalogProvider();
++const api = express.Router();
++registerAssistantRoutes(api, catalog);
++registerAdminRoutes(api);
++app.use("/api", api);                        // => /api/assistant/query etc.
++app.use("/api/ia-vendedor", api);            // alias opcional
++app.use("/api/assistant", api);              // alias compatível com o front
+ 
+ const PORT = Number(process.env.PORT ?? 5000);
+ app.listen(PORT, () => console.log(`Server ON :${PORT}`));
+ export default app;
+
+2) patch-assistant-endpoints-alias.diff
+
+Garante endpoints esperados pelo front: /api/assistant/query, /api/assistant/sessions, /api/assistant/memory/:sessionId, além dos de feedback/analytics.
+
+*** a/src/assistant/assistantRoutes.ts
+--- b/src/assistant/assistantRoutes.ts
+@@
+ import type { Express, Router } from "express";
+ import { classify } from "../nlp/intent";
+ import { extractModeloGBCor } from "../nlp/slots";
+ import { buildQuery, runQueryLocal } from "../query/builder";
+ import { policyAnswer } from "../policy/decide";
+ import { sayFound, sayGreeting, sayNoResults } from "../nlg/templates";
+-import { getSession, updateSession } from "../core/session";
++import { getSession, updateSession } from "../core/session";
+ import type { Intent, CatalogItem } from "../types";
+ import { naturalize } from "../nlg/naturalizer";
+ import type { CatalogProvider } from "../catalog/provider";
+ import { extractPriceSignals } from "../nlp/priceSignals";
+ 
+@@
+ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: CatalogProvider) {
+   const post = (appOrRouter as any).post.bind(appOrRouter);
++  const get  = (appOrRouter as any).get.bind(appOrRouter);
+ 
+   // (Fase 2) Feedback/analytics mínimos
+   post("/assistant/feedback", async (_req: any, res: any) => res.json({ ok: true }));
+   post("/analytics/click", async (_req: any, res: any) => res.json({ ok: true }));
+ 
++  // (Compat) gerenciamento simples de sessão/memória para o front
++  get("/assistant/sessions", (req:any, res:any) => {
++    // gera um id estável igual ao usado internamente
++    const sid = getStableSessionId(req, req.query.sessionId as string | undefined);
++    res.json({ ok:true, sessionId: sid });
++  });
++  get("/assistant/memory/:sessionId", (req:any, res:any) => {
++    const sid = String(req.params.sessionId ?? "");
++    const s = getSession(sid);
++    res.json({ ok:true, memory: s });
++  });
++
+   // (Fases 1/4/5) Rota principal
+   post("/assistant/query", async (req: any, res: any) => {
+     const body = (req.body ?? {}) as { sessionId?: string; message?: string; lang?: "pt"|"es" };
+     const sessionId = getStableSessionId(req, body.sessionId);
+     const message = body.message;
+
+
+Como montamos o router sob /api, esses caminhos se tornam:
+/api/assistant/query, /api/assistant/sessions, /api/assistant/memory/:sessionId, etc.
+E os aliases /api/ia-vendedor/* e /api/assistant/* também respondem.
+
+3) patch-followup-preco-heranca-e-fallback.diff
+
+Consolida a herança de foco a partir de focoAtual ou lastQuery e adiciona fallback caso a primeira busca retorne 0 itens (reexecuta com o foco salvo).
+
+*** a/src/assistant/assistantRoutes.ts
+--- b/src/assistant/assistantRoutes.ts
+@@
+   const post = (appOrRouter as any).post.bind(appOrRouter);
+@@
+   post("/assistant/query", async (req: any, res: any) => {
+@@
+     const sess = getSession(sessionId);
+     const { intent, base } = classify(message);
+ 
+     // NEW: follow-up de preço → herda foco/categoria da sessão
+     const priceSig = extractPriceSignals(message);
+     const priceOnlyFollowUp =
+       priceSig.hasPriceIntent &&
+       !base.produto &&
+       !base.categoria &&
+-      (sess.focoAtual || sess.categoriaAtual);
++      (sess.focoAtual || sess.categoriaAtual || sess.lastQuery);
+ 
+     const effectiveIntent = (priceOnlyFollowUp ? "PRODUCT_SEARCH" : intent) as Intent;
+     const effectiveBase = priceOnlyFollowUp
+       ? {
+-          ...base,
+-          produto: sess.focoAtual ?? undefined,
+-          categoria: sess.categoriaAtual ?? undefined,
++          ...base,
++          produto: (sess.focoAtual ?? sess.lastQuery) ?? undefined,
++          categoria: sess.categoriaAtual ?? undefined,
+         }
+       : base;
+@@
+     const slots = extractModeloGBCor(message);
+-    const q = buildQuery({
++    let q = buildQuery({
+       base: { ...effectiveBase },
+       text: message,
+       preferInStockCheapest: true,
+       slots: { attrs: slots.attrs, modelo: slots.modelo }
+     });
+     // Carrega catálogo pela provider (JSON/HTTP/DB adaptado)
+     const all: CatalogItem[] = await catalog.load();
+-    const items = runQueryLocal(all, q);
++    let items = runQueryLocal(all, q);
++
++    // Fallback: se for follow-up de preço e zerou, reconsulta usando foco/lastQuery salvos
++    if (items.length === 0 && priceOnlyFollowUp) {
++      const fallbackProduto = sess.focoAtual ?? sess.lastQuery ?? undefined;
++      const fallbackCategoria = sess.categoriaAtual ?? undefined;
++      if (fallbackProduto || fallbackCategoria) {
++        q = buildQuery({
++          base: { ...effectiveBase, produto: fallbackProduto ?? effectiveBase.produto, categoria: fallbackCategoria ?? effectiveBase.categoria },
++          text: message,
++          preferInStockCheapest: true,
++          slots: { attrs: slots.attrs, modelo: slots.modelo }
++        });
++        items = runQueryLocal(all, q);
++      }
++    }
+@@
+     let draft = "";
+     if (!sess.lastQuery && !q.produto && !q.categoria) draft = sayGreeting(sessionId, lang);
+-    if (items.length > 0) draft = sayFound(sessionId, lang, items.length, pa.catOrProd, pa.ask, pa.cross);
+-    else draft = sayNoResults(sessionId, lang, lang === "es" ? "con otra marca o modelo" : "com outra marca ou modelo");
++    if (items.length > 0) draft = sayFound(sessionId, lang, items.length, pa.catOrProd, pa.ask, pa.cross);
++    else draft = sayNoResults(sessionId, lang, lang === "es" ? "con otra marca o modelo" : "com outra marca ou modelo");
+
+4) (Se ainda não aplicou) patch-intent-priceonly-boost.diff
+
+Melhora o classificador para tratar frases só de preço como PRODUCT_SEARCH (base vazia → a rota herda o foco).
+
+*** a/src/nlp/intent.ts
+--- b/src/nlp/intent.ts
+@@
+   for (const t of toks) for (const v of VOCAB) if (damerauLevenshtein(t, v) <= 2) return { intent: "PRODUCT_SEARCH", base: { produto: v } };
+   if (toks.length === 1 && /^[a-z0-9\-]+$/i.test(toks[0])) return { intent: "PRODUCT_SEARCH", base: { produto: toks[0] } };
+-  const priceOnly = /\b(mais|mas)\s+(barat\w+|car\w+)\b|\b(em\s+conta)\b|\b(ate|hasta|por\s+menos\s+de|a\s+partir\s+de)\b/i.test(msg);
++  const priceOnly = /\b(mais|mas)\s+(barat\w+|car\w+)\b|\b(em\s+conta)\b|\b(ate|hasta|por\s+menos\s+de|a\s+partir\s+de)\b/i.test(msg)
++                  || /\bquero\s+um\s+mais\s+barat\w+\b/i.test(msg)
++                  || /\bqual\s+o\s+mais\s+barat\w+\b/i.test(msg);
+   if (priceOnly) return { intent: "PRODUCT_SEARCH", base: {} };
+   return { intent: "UNKNOWN", base: {} };
+
+Como aplicar
+git apply patch-adapter-api-prefix.diff
+git apply patch-assistant-endpoints-alias.diff
+git apply patch-followup-preco-heranca-e-fallback.diff
+git apply patch-intent-priceonly-boost.diff   # se ainda não aplicou
+npm run dev
+
+Testes práticos no seu front
+
+Digite: “iphone”
+– Deve listar e salvar foco/categoria na sessão.
+
+Digite: “quero um mais barato”
+– Deve ordenar por preço ascendente e mostrar o mais barato.
+
+Digite: “qual o mais barato?”
+– Mesmo comportamento do #2 (herdando foco).
+
+(Opcional) “segundo mais barato”
+– Usa offset: 1 (caso você tenha aplicado a regra no priceSignals).
+
+Dica de verificação
+
+No Network do navegador, veja a resposta de /api/assistant/query:
+
+debug.query.sort === "price.asc"
+
+debug.session.focoAtual === "iphone" (ou lastQuery)
+
+debug.priceOnlyFollowUp === true (quando aplicável)
+
+Se ainda assim aparecer uma mensagem do tipo “não rolou com barato”, é quase certo que o front está usando um fallback antigo quando items.length === 0. Os patches acima evitam 0 itens na maioria dos casos, mas, se seu catálogo não tiver “iphone” com preço, a mensagem padrão será sayNoResults(...). Nesse caso, remova a copy hardcoded no front e exiba sempre o text retornado pelo backend quando ok:true.
+
+Se preferir, me diga o arquivo do seu server real (path exato) e eu te mando os mesmos patches com os caminhos ajustados 1:1.
+
+Você disse:
+esse patch agora subistitui o anterior que voce havia feito?
+Programador Senior - Dev GPT — Replit Ready disse:
+
+Sim — este conjunto novo de patches substitui e consolida os anteriores para o fluxo “mais barato”.
+
+O que muda
+
+Mantém tudo que já criamos (classificador, builder, templates etc.).
+
+Troca/fortalece 3 pontos:
+
+Sessão estável (gera sessionId se o front não mandar).
+
+Follow-up de preço herda foco de focoAtual ou lastQuery.
+
+Fallback: se a 1ª busca vier vazia, reconsulta com foco salvo.
+
+Posso aplicar por cima?
+
+Sim. Os patches foram feitos para serem cumulativos e “por cima”:
+
+Se você já aplicou os anteriores, basta rodar estes; o git ajusta.
+
+Se der conflito, é porque algum arquivo foi editado manualmente; me diga o path que eu mando o diff ajustado.
+
+Ordem recomendada (somente os novos)
+
+patch-adapter-api-prefix.diff
+
+patch-assistant-endpoints-alias.diff
+
+patch-followup-preco-heranca-e-fallback.diff
+
+patch-intent-priceonly-boost.diff (se ainda não tinha aplicado)
+(o patch-price-followup.diff já está incluído nessa lógica; não precisa reaplicar)
+
+Arquivos afetados por este pacote
+
+src/server/index.ts (prefixo /api + aliases)
+
+src/assistant/assistantRoutes.ts (sessão estável, herança, fallback, endpoints compatíveis)
+
+src/nlp/intent.ts (detecção de frases só de preço)
+
+Após aplicar
+
+npm run dev
+
+Testar: “iphone” → “quero um mais barato” → “qual o mais barato?”
+Checar no Network:
+
+debug.priceOnlyFollowUp === true
+
+debug.session.focoAtual === "iphone"
+
+debug.query.sort === "price.asc"
+
+Se o front ainda mostrar a copy “não rolou com ‘barato’…”, é fallback antigo do front quando items.length===0. Agora o backend já manda text consistente — exiba sempre o text retornado com ok:true.
