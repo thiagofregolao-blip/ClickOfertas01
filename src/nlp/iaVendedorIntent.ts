@@ -59,18 +59,17 @@ export function classify(message: string): ClassificationResult {
  * @param message - Mensagem do usuário
  * @returns Classificação + slots extraídos
  */
-export function classifyWithSlots(message: string): ClassificationResult & { slots?: any } {
+export async function classifyWithSlots(message: string): Promise<ClassificationResult & { slots?: any }> {
   const baseResult = classify(message);
   
   if (baseResult.intent === "PRODUCT_SEARCH") {
     // Importa dinamicamente para evitar circular dependencies
-    return import("./slots.js").then(({ extractModeloGBCor }) => {
-      const slots = extractModeloGBCor(message);
-      return {
-        ...baseResult,
-        slots
-      };
-    }) as any;
+    const { extractModeloGBCor } = await import("./slots.js");
+    const slots = extractModeloGBCor(message);
+    return {
+      ...baseResult,
+      slots
+    };
   }
   
   return baseResult;

@@ -5,7 +5,8 @@
 import { classify } from "../nlp/iaVendedorIntent.js";
 import { extractPriceSignals } from "../nlp/priceSignals.js";
 import { extractModeloGBCor } from "../nlp/slots.js";
-import { buildQuery, runQueryLocal, CatalogItem } from "../query/builder.js";
+import { buildQuery, runQueryLocal } from "../query/builder.js";
+import { CatalogItem } from "../../shared/schema.js";
 import { decide } from "../policy/decide.js";
 import { generateResponse } from "../nlg/iaVendedorTemplates.js";
 import { getSession, updateSession } from "../core/session.js";

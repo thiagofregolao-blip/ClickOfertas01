@@ -3,32 +3,7 @@
  */
 
 import { extractPriceSignals, PriceSignals } from "../nlp/priceSignals.js";
-
-export type SortKey = "relevance" | "price.asc" | "price.desc";
-
-export type QuerySignal = {
-  produto?: string;
-  categoria?: string;
-  modelo?: string;
-  atributos?: string[];
-  price_min?: number;
-  price_max?: number;
-  sort?: SortKey;
-  offset?: number;
-  in_stock?: boolean;
-  on_sale?: boolean;
-};
-
-export type CatalogItem = {
-  id: string;
-  title: string;
-  category: string;
-  brand?: string;
-  price?: number;
-  currency?: string;
-  in_stock?: boolean;
-  attrs?: string[];
-};
+import { SortKey, QuerySignal, CatalogItem } from "../../shared/schema.js";
 
 export type BuildOpts = {
   base: QuerySignal;

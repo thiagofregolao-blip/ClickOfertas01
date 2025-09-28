@@ -8382,7 +8382,10 @@ Regras:
       res.json(result);
     } catch (error) {
       console.error("Erro no IA Vendedor:", error);
-      res.status(500).json({ error: "Erro interno", details: error.message });
+      res.status(500).json({ 
+        error: "Erro interno", 
+        details: error instanceof Error ? error.message : "Erro desconhecido" 
+      });
     }
   });
 

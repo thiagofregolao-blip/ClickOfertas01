@@ -2,7 +2,7 @@
  * Política de decisão para conversação: 1 pergunta por vez + cross-sell
  */
 
-import { QuerySignal, CatalogItem } from "../query/builder.js";
+import { QuerySignal, CatalogItem } from "../../shared/schema.js";
 import { getSession, updateSession } from "../core/session.js";
 
 export type DecisionContext = {
