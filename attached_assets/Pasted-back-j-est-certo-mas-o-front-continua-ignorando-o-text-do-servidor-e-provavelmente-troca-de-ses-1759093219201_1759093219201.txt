@@ -1,0 +1,97 @@
+back já está certo, mas o front continua ignorando o text do servidor e (provavelmente) troca de sessão entre uma mensagem e outra. Vou te passar 3 ajustes diretos no front que resolvem isso de forma definitiva:
+
+1) Fixar a sessão no front (localStorage)
+
+Garante que “iphone” e “quero um mais barato” usem a mesma sessionId.
+
+No GeminiAssistantBar.tsx (ou onde fica o estado do chat):
+
+// estado
+const [sessionId, setSessionId] = useState<string | null>(null);
+
+// ao montar, pega/gera sessionId e salva
+useEffect(() => {
+  const key = "gemini.sessionId";
+  let sid = localStorage.getItem(key);
+  const go = async () => {
+    if (!sid) {
+      // tenta pedir ao backend um id estável
+      try {
+        const r = await fetch("/api/assistant/sessions");
+        const j = await r.json();
+        sid = j?.sessionId || `web_${Math.random().toString(36).slice(2)}`;
+      } catch {
+        sid = `web_${Math.random().toString(36).slice(2)}`;
+      }
+      localStorage.setItem(key, sid);
+    }
+    setSessionId(sid);
+  };
+  go();
+}, []);
+
+
+E na função que chama o backend, sempre envie o sessionId:
+
+if (!sessionId) return; // ainda iniciando sessão
+
+const res = await fetch("/api/assistant/query", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ sessionId, message: userMessage, lang }),
+});
+
+
+Dica: abra o DevTools (Network) e verifique que a mesma sessionId vai no 1º e no 2º POST.
+
+2) Parar o fallback local e sempre usar response.text
+
+Essa é a causa da bolha “Hmm, não achei nada pra ‘barato’…”.
+
+No mesmo arquivo (onde processa a resposta):
+
+function pickAssistantText(resp: any) {
+  const t = (resp?.text || "").trim();
+  if (t) return t;
+  if (Array.isArray(resp?.items) && resp.items.length > 0) {
+    return "Separei algumas opções pra você 😉"; // fallback mínimo
+  }
+  return "Não encontrei resultados agora, mas posso tentar com outra marca, modelo ou faixa de preço.";
+}
+
+const data = await res.json();
+
+// ❌ remova qualquer coisa do tipo:
+// if (!data.items.length) setChatMessages(prev => [...prev, { type:'assistant', text: 'Hmm, não achei nada...' }]);
+
+// ✅ use SEMPRE o text do backend:
+const finalMessage = pickAssistantText(data);
+
+setChatMessages(prev => [...prev, { type: "assistant", text: finalMessage }]);
+
+// cards
+setGeminiResults(Array.isArray(data.items) ? data.items : []);
+
+
+Procure e elimine qualquer lógica que gere mensagens locais quando items.length === 0.
+Use isso para encontrar onde está a copy antiga:
+
+rg -n "barato|não achei|Não encontrei resultados" client/
+
+3) Log rápido para conferir foco e “mais barato”
+
+Logo depois de const data = await res.json():
+
+if (data?.debug) {
+  console.debug("assistant debug >", {
+    priceOnlyFollowUp: data.debug.priceOnlyFollowUp,
+    sort: data.debug?.query?.sort,
+    focoAtual: data.debug?.session?.focoAtual,
+    lastQuery: data.debug?.session?.lastQuery,
+    categoriaAtual: data.debug?.session?.categoriaAtual,
+    itens: (data.items || []).length
+  });
+}
+
+
+No “quero um mais barato”, você deve ver priceOnlyFollowUp: true, sort: "price.asc", e focoAtual: "iphone".

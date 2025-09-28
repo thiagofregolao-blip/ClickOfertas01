@@ -1,0 +1,113 @@
+PATCH 1 — sessão persistente (novo helper)
+
+client/src/lib/session.ts (arquivo novo)
+
+// client/src/lib/session.ts
+export async function getPersistedSessionId(): Promise<string> {
+  const KEY = "gemini.sessionId";
+  let sid = localStorage.getItem(KEY);
+  if (sid && sid.trim()) return sid;
+
+  try {
+    const r = await fetch("/api/assistant/sessions");
+    const j = await r.json();
+    sid = j?.sessionId || `web_${Math.random().toString(36).slice(2)}`;
+  } catch {
+    sid = `web_${Math.random().toString(36).slice(2)}`;
+  }
+  localStorage.setItem(KEY, sid);
+  return sid;
+}
+
+PATCH 2 — usar text do backend + fix de sessão
+
+client/src/components/GeminiAssistantBar.tsx (trechos a alterar)
+
+@@
++import { getPersistedSessionId } from "@/lib/session";
+@@
+-// (havia um cache em memória tipo geminiSessionCache...)
+-// const cached = geminiSessionCache.get(key);
+-// ...isso quebra quando a página recarrega e pode trocar a sessão
++// Mantém a mesma sessão entre turnos e recargas
++const [sessionId, setSessionId] = useState<string | null>(null);
++useEffect(() => {
++  let alive = true;
++  (async () => {
++    const sid = await getPersistedSessionId();
++    if (alive) setSessionId(sid);
++  })();
++  return () => { alive = false; };
++}, []);
+@@
+-function pickAssistantText(resp: any) {
+-  const serverText = resp?.text && String(resp.text).trim();
+-  if (serverText) return serverText;
+-  // fallback local (causava o "não achei...")
+-  if (Array.isArray(resp?.items) && resp.items.length > 0) {
+-    return "Separei algumas opções pra você 😉";
+-  }
+-  return "Não encontrei resultados agora, mas posso tentar com outra marca, modelo ou faixa de preço.";
+-}
++function pickAssistantText(resp: any) {
++  // SEMPRE prioriza o texto do servidor
++  const t = (resp?.text || "").trim();
++  if (t) return t;
++  // fallback mínimo só se o servidor realmente não mandou text
++  if (Array.isArray(resp?.items) && resp.items.length > 0) return "Separei algumas opções pra você 😉";
++  return "Posso tentar com outra marca, modelo ou faixa de preço. 🙂";
++}
+@@
+-async function startGeminiStream(/* args atuais */) {
++async function startGeminiStream(/* args atuais */) {
+   // ... validações
++  if (!sessionId) return; // aguarda inicializar a sessão
+@@
+-  const res = await fetch("/api/assistant/query", {
++  const res = await fetch("/api/assistant/query", {
+     method: "POST",
+     headers: { "Content-Type": "application/json" },
+-    body: JSON.stringify({ sessionId, message: userMessage, lang }),
++    body: JSON.stringify({ sessionId, message: userMessage, lang }),
+   });
+   const data = await res.json();
+-  const items = data?.items ?? [];
+-  let finalMessage = "";
+-
+-  // ❌ Fallback antigo baseado em items.length === 0
+-  // if (!items.length) {
+-  //   finalMessage = `Hmm, não achei nada pra "${userMessage}". 😅 Quer tentar outra marca ou modelo?`;
+-  // } else {
+-  //   finalMessage = data.text ?? "Encontrei algumas opções!";
+-  // }
+-  finalMessage = pickAssistantText(data);
++  const items = Array.isArray(data?.items) ? data.items : [];
++  const finalMessage = pickAssistantText(data);
+@@
+-  // opcional: debug
+-  // console.debug("assistant debug:", data?.debug);
++  // Debug útil para checar herança de foco e “mais barato”
++  if (data?.debug) {
++    console.debug("assistant debug >", {
++      priceOnlyFollowUp: data.debug?.priceOnlyFollowUp,
++      sort: data.debug?.query?.sort,
++      focoAtual: data.debug?.session?.focoAtual,
++      lastQuery: data.debug?.session?.lastQuery,
++      categoriaAtual: data.debug?.session?.categoriaAtual,
++      itens: items.length
++    });
++  }
+@@
+-  // render dos cards
+-  if (items.length) setGeminiResults(items);
+-  else setGeminiResults([]);
++  // Cards de produto (ou limpa)
++  setGeminiResults(items);
+ }
+
+
+Além disso, remova qualquer mensagem local parecida com:
+Hmm, não achei nada pra "${userMessage}"...
+Use este grep pra localizar e apagar:
+
+rg -n "barato|não achei|Não encontrei resultados" client/
