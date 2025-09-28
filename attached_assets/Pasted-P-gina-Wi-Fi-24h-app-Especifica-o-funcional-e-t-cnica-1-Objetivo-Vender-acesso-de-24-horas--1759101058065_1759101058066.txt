@@ -1,0 +1,190 @@
+Página “Wi-Fi 24h” (app) — Especificação funcional e técnica
+1) Objetivo
+
+Vender acesso de 24 horas (R$ 5) à rede Wi-Fi pública operada por você, com pagamento via Pix/Cartão, integração ao MikroTik (Hotspot) e atribuição de comissão para lojas parceiras via loja_id.
+
+2) Público-alvo e contexto
+
+90% celular (Android/iOS), muitas vezes sem dados móveis → estará conectado ao SSID e com walled garden liberando somente portal/pagamento.
+
+Idiomas: PT/ES (turistas).
+
+3) Fluxo resumido (happy path)
+
+Usuário abre no app a tela Wi-Fi 24h.
+
+App checa estado de rede: se conectado ao SSID da sua rede, continuar; senão, instruir “Conectar ao Wi-Fi X”.
+
+App cria intenção de pagamento (POST /api/pagamentos) com loja_id (se veio de QR parceiro).
+
+Usuário escolhe Pix (gera QR/Copia e Cola) ou Cartão.
+
+Ao confirmar pagamento (webhook do gateway → seu backend → Mikrotik), backend retorna voucher (username/senha) e QR de login.
+
+App exibe credenciais/QR + botão “Conectar agora” (abre http://login.hotspot/).
+
+Sessão liberada por 24h.
+
+4) Conteúdo e UI (seções obrigatórias)
+
+Header: “Internet 24h — R$ 5,00”.
+
+Status de conexão:
+
+Badge: “Conectado ao SSID CDE-WiFi24h” ou instrução para conectar (com link para configurações Wi-Fi do SO).
+
+Escolha de pagamento: botões Pix / Cartão.
+
+Pix: mostrar QR e Copia e Cola; contador regressivo (ex.: 15 min).
+
+Cartão: formulário do provedor (SDK WebView) ou link seguro.
+
+Progresso de pagamento: spinner + textos “Aguardando confirmação…”.
+
+Acesso liberado: bloco com Usuário / Senha, QR login (dataURL), botão “Conectar agora”.
+
+Parceiro (opcional): “Você está comprando na loja {nome}. Comissão: R$ 2 para a loja.”
+
+Ajuda: “Se o portal não abrir, acesse http://login.hotspot/
+ e digite as credenciais.”
+
+Termos/Privacidade: checkbox “Li e concordo…” (link).
+
+Footer: suporte, e-mail/WhatsApp.
+
+Layout (wireframe rápido)
+[Internet 24h — R$ 5,00]
+[ Status: ✓ Conectado ao SSID CDE-WiFi24h | Trocar ]
+[ Loja parceira: Loja X (opcional) ]
+
+[ Pagar com:  ( Pix )  ( Cartão ) ]
+
+-- Pix selecionado --
+[ QR PIX ]
+[Copia e Cola] [Copiar]
+[ ⏳ aguardando confirmação - 14:59 ]
+
+( quando pago )
+[ ✅ Pagamento confirmado ]
+[ Usuário: u123456 ]  [ Senha: ab12cd ]
+[ QR Login ]
+[ Conectar agora ]
+
+[ Ajuda | Termos | Suporte ]
+
+5) Estados e mensagens
+
+Sem Wi-Fi da rede: “Conecte-se ao SSID CDE-WiFi24h para concluir o pagamento.”
+
+Pix pendente: contador + botão “Trocar forma de pagamento”.
+
+Pix expirado: “Expirou. Gerar novo QR?”.
+
+Erro gateway/timeout: “Falha na confirmação. Tentamos novamente.”
+
+Pago, mas sem liberação: botão “Reenviar liberação” (refaz chamada ao backend).
+
+Sessão ativa: mostrar tempo restante (“expira em 23:12:…”) — opcional via accounting.
+
+6) Integrações (backend/API)
+
+Os endpoints assumem o backend que já te passei; ajuste paths se necessário.
+
+6.1 App → Backend
+
+POST /api/pagamentos
+Body: { amount: 5, loja_id?: number }
+Resp: { payment_id, status: "pending" }
+
+Pix: use SDK do gateway (link/QR) dentro do walled garden.
+
+Cartão: abrir WebView/SDK do gateway.
+
+6.2 Gateway → Backend (Webhook)
+
+POST /webhook/pagamento
+Body (ex.): { payment_id, status: "paid", amount: 5, loja_id }
+Ação backend: cria voucher no MikroTik → retorna
+Resp (para app via polling/sse ou callback):
+{ ok: true, voucher: {username, password}, loginUrl, qrDataUrl }
+
+6.3 App ← Backend (obter resultado)
+
+Escolha 1:
+
+Polling: GET /api/pagamentos/:payment_id/status → paid|pending|failed + voucher se paid.
+Escolha 2 (melhor):
+
+SSE/WebSocket: canal “pagamento:{payment_id}” envia paid + voucher em tempo real.
+
+6.4 Backend → MikroTik (RouterOS REST v7)
+
+PUT /ip/hotspot/user com { name, password, server, profile } (profile 24h).
+
+(Opcional) desconectar sessão: DELETE /ip/hotspot/active/<.id>.
+
+6.5 Parceiros/lojas
+
+POST /api/lojas → cria loja; backend gera URL com ?loja_id (para QR nos cartazes).
+
+GET /api/relatorios/loja/:id → vendas, comissão (R$ 2), total.
+
+7) Segurança e conformidade
+
+Walled garden no MikroTik para: backend, gateway(s) de pagamento e domínios auxiliares (CDNs).
+
+TLS fim-a-fim (HTTPS no app/backend).
+
+Validação do webhook (HMAC/assinatura do gateway).
+
+Rate limit e CSRF nas rotas sensíveis.
+
+Armazenar logs (accounting) por período mínimo (conformidade local).
+
+Dados pessoais mínimos (pseudonimização por voucher).
+
+Isolamento de clientes nos APs (client isolation).
+
+8) Analytics & métricas
+
+Eventos app: view_wifi_page, start_payment, payment_method_selected, payment_success, payment_timeout, voucher_received, connect_clicked.
+
+Negócio: conversão (%), tempo médio de pagamento, ARPU/dia, vendas por loja_id.
+
+Rede: sucesso de login, quedas, p95 throughput (via Mikrotik/cnMaestro).
+
+9) Acessibilidade & internacionalização
+
+Texto claro, contraste alto, botões grandes.
+
+PT/ES: chaves i18n para títulos, mensagens de erro, instruções.
+
+QR Pix com Copia e Cola (ajuda usuários sem câmera).
+
+10) Checklist de QA (antes de publicar)
+
+ Fluxo completo sem 4G, apenas no walled garden.
+
+ Pix: pagar do app do banco → webhook → voucher em ≤10 s.
+
+ Cartão: retorno de sucesso/falha e mensagens claras.
+
+ “Conectar agora” abre http://login.hotspot/ e sessão inicia.
+
+ Erros tratados (timeout, expirado, duplicado, cancelado).
+
+ Comissão loja_id logada corretamente.
+
+ Teste roaming (andar entre 2 APs durante/apos login).
+
+11) Aceite (critérios)
+
+C1: Usuário compra e recebe acesso de 24h sem dados móveis.
+
+C2: Pix e Cartão funcionando no walled garden.
+
+C3: Voucher entregue + botão “Conectar agora” funcionando.
+
+C4: Venda registrada com loja_id e comissão calculada.
+
+C5: Logs/Accounting disponíveis para auditoria.
