@@ -54,6 +54,32 @@ export default function GeminiAssistantBar() {
   const safetyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestRequestIdRef = useRef<string | null>(null);
 
+  // Context tracking para herança de produto/categoria
+  const lastProductRef = useRef<string | null>(null);
+  const lastCategoryRef = useRef<string | null>(null);
+
+  // Função para detectar produto/categoria no texto do usuário
+  function sniffProdCat(text: string) {
+    const s = text.toLowerCase();
+    const prod = (s.match(/\b(iphone|galaxy|drone|perfume|tv|blusa|notebook|camiseta|camisa)\b/) || [])[1];
+    if (prod) lastProductRef.current = prod;
+    
+    // Detectar categoria baseada no produto ou palavras-chave
+    if (prod === 'iphone' || prod === 'galaxy' || s.includes('celular') || s.includes('smartphone')) {
+      lastCategoryRef.current = 'celular';
+    } else if (prod === 'drone') {
+      lastCategoryRef.current = 'drone';
+    } else if (prod === 'perfume' || s.includes('perfumaria')) {
+      lastCategoryRef.current = 'perfume';
+    } else if (prod === 'tv' || s.includes('televisão') || s.includes('televisao')) {
+      lastCategoryRef.current = 'tv';
+    } else if (prod === 'blusa' || prod === 'camiseta' || prod === 'camisa' || s.includes('roupa')) {
+      lastCategoryRef.current = 'roupa';
+    } else if (prod === 'notebook' || s.includes('computador') || s.includes('laptop')) {
+      lastCategoryRef.current = 'eletronicos';
+    }
+  }
+
   // Estados para animações da barra de busca
   const [displayText, setDisplayText] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -174,13 +200,20 @@ export default function GeminiAssistantBar() {
   // Função para buscar resposta final quando não houver streaming
   const fetchFinalResponse = async (message: string, sessionId: string, requestId: string) => {
     try {
+      // Detectar produto/categoria no texto do usuário
+      sniffProdCat(message);
+      
       const response = await fetch('/api/assistant/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message, 
           sessionId,
-          lang: 'pt'
+          lang: 'pt',
+          context: {
+            lastProduct: lastProductRef.current,
+            lastCategory: lastCategoryRef.current
+          }
         })
       });
       
@@ -253,6 +286,9 @@ export default function GeminiAssistantBar() {
     let accumulatedMessage = '';
     
     try {
+      // Detectar produto/categoria no texto do usuário
+      sniffProdCat(message);
+      
       console.log('🚀 start stream', { message, sessionId: sid, requestId });
       
       const response = await fetch('/api/assistant/gemini/stream', {
@@ -261,7 +297,11 @@ export default function GeminiAssistantBar() {
         body: JSON.stringify({ 
           message, 
           sessionId: sid,
-          horaLocal: new Date().getHours()
+          horaLocal: new Date().getHours(),
+          context: {
+            lastProduct: lastProductRef.current,
+            lastCategory: lastCategoryRef.current
+          }
         })
       });
       

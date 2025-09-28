@@ -29,6 +29,24 @@ export function parseMoney(s: string): number {
 
 // NOVO: helper para saber se há "intenção de preço" na frase
 export function hasPriceIntent(msgRaw: string): boolean {
-  const sig = extractPriceSignals(msgRaw);
-  return !!(sig.sort || sig.price_max != null || sig.price_min != null || sig.offset != null);
+  const s = msgRaw.toLowerCase();
+  return (
+    /\b(mais|mas)\s+barat\w+/.test(s) ||
+    /\b(mais|mas)\s+car\w+/.test(s) ||
+    /\b(ate|hasta|maxim\w+|por\s+menos\s+de)\s+\d/.test(s) ||
+    /\b(desde|a\s+partir\s+de|minim\w+)\s+\d/.test(s) ||
+    /\b(entre|de)\s+\d+(\.|,)?\d*\s+(e|a)\s+\d+/.test(s) ||
+    /\bsegundo\s+(mais|mas)\s+barat\w+/.test(s)
+  );
+}
+
+// Compatibilidade com o sistema existente
+export function detectSortSignal(message: string): "price.asc" | "price.desc" | "relevance" {
+  const signals = extractPriceSignals(message);
+  return signals.sort || "relevance";
+}
+
+export function shouldFilterInStock(message: string): boolean {
+  const signals = extractPriceSignals(message);
+  return hasPriceIntent(message);
 }

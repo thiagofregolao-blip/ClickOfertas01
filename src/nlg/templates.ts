@@ -30,9 +30,9 @@ export const found: string[] = [
 ];
 
 export const noResults: string[] = [
-  "Hmm, não achei nada pra \"{query}\". {emoji} Quer tentar outra marca ou modelo?",
-  "Por aqui não rolou com \"{query}\". Tenta especificar {hint} que eu encontro rapidinho!",
-  "Zerado pra \"{query}\". {emoji} Se quiser, me diz {hint}."
+  "Não encontrei resultados. {emoji} Quer tentar {hint}?",
+  "Vou precisar de mais detalhes. Tenta especificar {hint} que eu encontro rapidinho!",
+  "Sem resultados por enquanto. {emoji} Se quiser, me diz {hint}."
 ];
 
 const clarify: Dict<string[]> = {

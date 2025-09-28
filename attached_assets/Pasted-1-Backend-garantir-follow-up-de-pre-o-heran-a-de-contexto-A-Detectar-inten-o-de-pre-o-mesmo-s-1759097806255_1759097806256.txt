@@ -1,0 +1,120 @@
+1) Backend — garantir follow-up de preço + herança de contexto
+A. Detectar intenção de preço mesmo sem produto
+
+No seu src/nlp/priceSignals.ts, inclua/garanta:
+
+export function hasPriceIntent(msgRaw: string): boolean {
+  const s = msgRaw.toLowerCase();
+  return (
+    /\b(mais|mas)\s+barat\w+/.test(s) ||
+    /\b(mais|mas)\s+car\w+/.test(s) ||
+    /\b(ate|hasta|maxim\w+|por\s+menos\s+de)\s+\d/.test(s) ||
+    /\b(desde|a\s+partir\s+de|minim\w+)\s+\d/.test(s) ||
+    /\b(entre|de)\s+\d+(\.|,)?\d*\s+(e|a)\s+\d+/.test(s) ||
+    /\bsegundo\s+(mais|mas)\s+barat\w+/.test(s)
+  );
+}
+
+
+No seu src/nlp/intent.ts, se não achar produto/categoria mas houver intenção de preço, force PRODUCT_SEARCH:
+
+import { hasPriceIntent } from "./priceSignals";
+
+// ...
+if (hasPriceIntent(message)) {
+  return { intent: "PRODUCT_SEARCH", base: {}, flags: { priceOnlyFollowUp: true } };
+}
+
+B. Herdar produto/categoria de sessão ou do payload
+
+No handler da rota (a que atende o chat por SSE/stream), logo depois de classify(message):
+
+const { message, sessionId, lang = "pt", context } = req.body ?? {};
+const sid = String(sessionId || "web_" + Math.random().toString(36).slice(2));
+const session = getSession(sid);
+
+const cls = classify(message);
+let base = { ...cls.base };
+
+// 👉 se for follow-up de preço e não veio produto/categoria, herda
+if (cls.flags?.priceOnlyFollowUp) {
+  if (!base.produto && session.focoAtual) base.produto = session.focoAtual;
+  if (!base.categoria && session.categoriaAtual) base.categoria = session.categoriaAtual;
+
+  // fallback extra: usa contexto trazido pelo frontend
+  if (!base.produto && context?.lastProduct) base.produto = String(context.lastProduct).toLowerCase();
+  if (!base.categoria && context?.lastCategory) base.categoria = String(context.lastCategory).toLowerCase();
+}
+
+
+Depois de montar sua QuerySignal (com o builder), force asc quando for follow-up de preço:
+
+if (cls.flags?.priceOnlyFollowUp && !q.sort) q.sort = "price.asc";
+
+C. Remover/neutralizar o fallback duro
+
+Substitua onde hoje você gera “Hmm, não achei nada pra ‘barato’…” por:
+
+if (items.length > 0) {
+  const pol = policyAnswer(items.length, q, lang);
+  const text = sayFound(sid, lang, pol.N, pol.catOrProd, pol.ask, pol.cross);
+  send({ text, items, debug: { priceOnlyFollowUp: !!cls.flags?.priceOnlyFollowUp, query: q } });
+} else {
+  const hint = q.categoria ? "filtrar por modelo/capacidade" : "dizer o produto (ex.: iPhone) e a capacidade";
+  const text = sayNoResults(sid, lang, hint);
+  send({ text, items: [], debug: { priceOnlyFollowUp: !!cls.flags?.priceOnlyFollowUp, query: q } });
+}
+
+
+Importante: mantenha send({ provider: "gemini" }) no fim e não escreva mais nenhum fallback fixo.
+
+2) Frontend — enviar “dica” de contexto pro back
+
+Mesmo com sessão no back, mandar o último produto detectado pelo front torna o sistema à prova de falhas.
+
+No GeminiAssistantBar.tsx (ou onde você faz o fetch/SSE):
+
+Guarde o último produto/categoria detectado no front:
+
+const lastProductRef = useRef<string | null>(null);
+const lastCategoryRef = useRef<string | null>(null);
+
+function sniffProdCat(text: string) {
+  const s = text.toLowerCase();
+  const prod = (s.match(/\b(iphone|galaxy|drone|perfume|tv|blusa|notebook|camiseta|camisa)\b/) || [])[1];
+  if (prod) lastProductRef.current = prod;
+  // se você tiver query atual com categoria, preencha lastCategoryRef.current
+}
+
+
+Ao enviar qualquer mensagem do usuário, chame sniffProdCat(userText).
+
+Na requisição ao backend, inclua context:
+
+body: JSON.stringify({
+  message: userText,
+  sessionId: sessionIdStable,
+  context: {
+    lastProduct: lastProductRef.current,
+    lastCategory: lastCategoryRef.current
+  }
+})
+
+
+Isso permite que o back herde o foco mesmo que a store de sessão reinicie.
+
+3) Checklist de verificação
+
+Digite “iphone” → receba produtos (ok).
+
+Digite “quero um mais barato” → no Network → SSE deve vir:
+
+debug.priceOnlyFollowUp: true
+
+debug.query.sort: "price.asc"
+
+text não é a frase fixa; é a resposta de sayFound/sayNoResults.
+
+Se ainda vier a frase fixa, ela está em algum bloco legacy do seu server. Busque por esse literal e remova/substitua:
+
+rg -n "não achei nada pra \"barato\"" server src

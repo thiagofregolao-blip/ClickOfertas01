@@ -113,11 +113,16 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
       const body = (req.body ?? {}) as { 
         sessionId?: string; 
         message?: string; 
-        lang?: "pt" | "es" 
+        lang?: "pt" | "es";
+        context?: {
+          lastProduct?: string;
+          lastCategory?: string;
+        }
       };
       const sessionId = getStableSessionId(req, body.sessionId);
       const message = body.message;
       const lang = (body.lang ?? "pt") as "pt" | "es";
+      const context = body.context;
 
       if (!message || !message.trim()) {
         return res.status(400).json({ 
@@ -131,23 +136,16 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
 
       const sess = getSession(sessionId);
       const cls = classify(message);
-      const priceSig = extractPriceSignals(message);
-
       let base = { ...cls.base };
 
-      // 🔑 NOVO: se é follow-up de preço, herda o foco anterior
+      // 👉 se for follow-up de preço e não veio produto/categoria, herda
       if (cls.flags?.priceOnlyFollowUp) {
-        // tenta herdar do último foco
-        const foco = sess.focoAtual ?? null;         // "iphone", "drone", etc.
-        const cat  = sess.categoriaAtual ?? null;    // "celular", "drone", etc.
+        if (!base.produto && sess.focoAtual) base.produto = sess.focoAtual;
+        if (!base.categoria && sess.categoriaAtual) base.categoria = sess.categoriaAtual;
 
-        if (!base.produto && foco) base.produto = foco;
-        if (!base.categoria && cat) base.categoria = cat;
-      }
-
-      // Se ainda não temos nada, e já tivemos consulta anterior, use lastQuery armazenada
-      if ((!base.produto && !base.categoria) && sess.lastQuery) {
-        base.produto = sess.lastQuery as any;
+        // fallback extra: usa contexto trazido pelo frontend
+        if (!base.produto && context?.lastProduct) base.produto = String(context.lastProduct).toLowerCase();
+        if (!base.categoria && context?.lastCategory) base.categoria = String(context.lastCategory).toLowerCase();
       }
 
       const effectiveIntent = cls.intent as Intent;
