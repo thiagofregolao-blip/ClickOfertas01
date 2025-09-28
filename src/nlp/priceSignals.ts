@@ -35,21 +35,21 @@ export function extractPriceSignals(msgRaw: string): PriceSignals {
   }
 
   // Preço máximo: "até R$ 1000", "hasta 1000", "por menos de 500"
-  const mMax = msg.match(/\b(ate|hasta|maxim\w+|por\s+menos\s+de)\s+([\p{Sc}]?\s?[\d\.\,]+)/u);
+  const mMax = msg.match(/\b(ate|hasta|maxim\w+|por\s+menos\s+de)\s+([R$€\$]?\s?[\d\.\,]+)/);
   if (mMax) {
     const val = parseMoney(mMax[2]);
     if (!Number.isNaN(val)) return { price_max: val };
   }
 
   // Preço mínimo: "desde R$ 500", "a partir de 1000", "mínimo 300"
-  const mMin = msg.match(/\b(desde|a\s+partir\s+de|minim\w+)\s+([\p{Sc}]?\s?[\d\.\,]+)/u);
+  const mMin = msg.match(/\b(desde|a\s+partir\s+de|minim\w+)\s+([R$€\$]?\s?[\d\.\,]+)/);
   if (mMin) {
     const val = parseMoney(mMin[2]);
     if (!Number.isNaN(val)) return { price_min: val };
   }
 
   // Faixa de preço: "entre R$ 1000 e R$ 2000", "de 500 a 1500"
-  const mRange = msg.match(/\b(entre|de)\s+([\p{Sc}]?\s?[\d\.\,]+)\s+(e|a)\s+([\p{Sc}]?\s?[\d\.\,]+)/u);
+  const mRange = msg.match(/\b(entre|de)\s+([R$€\$]?\s?[\d\.\,]+)\s+(e|a)\s+([R$€\$]?\s?[\d\.\,]+)/);
   if (mRange) {
     const a = parseMoney(mRange[2]);
     const b = parseMoney(mRange[4]);

@@ -1,0 +1,82 @@
+[
+  {
+    "id": "IPH-12-64",
+    "title": "iPhone 12 64GB",
+    "category": "celular",
+    "brand": "apple",
+    "price": 2999,
+    "currency": "BRL",
+    "in_stock": true,
+    "attrs": ["iphone", "64gb"]
+  },
+  {
+    "id": "IPH-13-128",
+    "title": "iPhone 13 128GB",
+    "category": "celular",
+    "brand": "apple",
+    "price": 3499,
+    "currency": "BRL",
+    "in_stock": true,
+    "attrs": ["iphone", "128gb"]
+  },
+  {
+    "id": "GAL-15-128",
+    "title": "Galaxy 15 128GB",
+    "category": "celular",
+    "brand": "samsung",
+    "price": 2599,
+    "currency": "BRL",
+    "in_stock": false,
+    "attrs": ["galaxy", "128gb"]
+  },
+  {
+    "id": "DRN-4K-A",
+    "title": "Drone 4K A",
+    "category": "drone",
+    "brand": "dji",
+    "price": 2199,
+    "currency": "BRL",
+    "in_stock": true,
+    "attrs": ["drone", "4k"]
+  },
+  {
+    "id": "DRN-4K-B",
+    "title": "Drone 4K B",
+    "category": "drone",
+    "brand": "dji",
+    "price": 1899,
+    "currency": "BRL",
+    "in_stock": true,
+    "attrs": ["drone", "4k"]
+  },
+  {
+    "id": "TV-55-4K",
+    "title": "TV 55\" 4K Smart",
+    "category": "tv",
+    "brand": "lg",
+    "price": 1999,
+    "currency": "BRL",
+    "in_stock": true,
+    "attrs": ["tv", "4k", "55"]
+  },
+  {
+    "id": "PERF-M-EDT",
+    "title": "Perfume Masculino EDT 100ml",
+    "category": "perfumaria",
+    "brand": "dior",
+    "price": 499,
+    "currency": "BRL",
+    "in_stock": true,
+    "attrs": ["perfume", "masculino"]
+  },
+  {
+    "id": "BLUSA-PRETA-M",
+    "title": "Blusa Preta Tamanho M",
+    "category": "roupa",
+    "brand": "fashion",
+    "price": 99,
+    "currency": "BRL",
+    "in_stock": true,
+    "attrs": ["blusa", "preto", "m"]
+  }
+]

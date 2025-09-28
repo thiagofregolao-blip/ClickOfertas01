@@ -15,6 +15,44 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// ============= IA VENDEDOR TYPES =============
+
+export type SortKey = "relevance" | "price.asc" | "price.desc";
+
+export type QuerySignal = {
+  produto?: string;
+  categoria?: string;
+  modelo?: string;
+  atributos?: string[];
+  price_min?: number;
+  price_max?: number;
+  sort?: SortKey;
+  offset?: number;
+  in_stock?: boolean;
+  on_sale?: boolean;
+};
+
+export type CatalogItem = {
+  id: string;
+  title: string;
+  category: string;
+  brand?: string;
+  price?: number;
+  currency?: string;
+  in_stock?: boolean;
+  attrs?: string[];
+};
+
+export type Intent =
+  | "PRODUCT_SEARCH"
+  | "SMALL_TALK"
+  | "HELP"
+  | "TIME_QUERY"
+  | "WHOAMI"
+  | "UNKNOWN";
+
+// ============= END IA VENDEDOR TYPES =============
+
 // Session storage table for Replit Auth
 export const sessions = pgTable(
   "sessions",
