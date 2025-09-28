@@ -7587,6 +7587,16 @@ Regras:
       const { persistSessionAndMessage, salvarResposta } = await import('./lib/gemini/session.js');
       const { obterContextoSessao, salvarContextoSessao } = await import('./lib/gemini/context-storage.js');
       const { strSeed, mulberry32 } = await import('../src/utils/rng.js');
+      const { hasPriceIntent } = await import('../src/assistant/nlp/priceSignals.js');
+      
+      // Helper para ordenar produtos por preço
+      const sortProductsByPrice = (products: any[]) => {
+        return [...products].sort((a, b) => {
+          const priceA = parseFloat(a.price?.USD || a.price || '0') || 0;
+          const priceB = parseFloat(b.price?.USD || b.price || '0') || 0;
+          return priceA - priceB;
+        });
+      };
 
       await persistSessionAndMessage(sessionId, userId, message);
       
@@ -7611,7 +7621,43 @@ Regras:
         let produtos = await buscarOfertas({ query: pipelineResult.query! });
         console.log(`📦 [Pipeline] Busca inicial: ${produtos.length} produtos para "${pipelineResult.query}"`);
         
-        // Fallback progressivo se veio vazio
+        // Buscar contexto da sessão uma única vez e cachear para reutilização
+        const contextoSessao = await obterContextoSessao(sessionId) || {};
+        const categoriaAtual = (contextoSessao as any).categoriaAtual;
+        
+        // PATCH B: Fallback automático: se pediu "mais barato" e zerou, tenta com contexto herdado
+        const isPriceFollowUp = hasPriceIntent(message);
+        let usedFallback = false;
+        let effectiveQuery = pipelineResult.query!;
+        
+        // Se é follow-up de preço e tem produtos, ordena por preço crescente
+        if (isPriceFollowUp && produtos.length > 0) {
+          produtos = sortProductsByPrice(produtos);
+          console.log(`📦 [Pipeline] Follow-up de preço: ${produtos.length} produtos ordenados por preço crescente`);
+        }
+        
+        if (produtos.length === 0 && isPriceFollowUp) {
+          console.log(`🔄 [Pipeline] PATCH B: Follow-up de preço zerou, tentando herdar contexto`);
+          const focoAnterior = (contextoSessao as any).focoAtual;
+          
+          if (focoAnterior) {
+            console.log(`🔄 [Pipeline] PATCH B: Herdando contexto "${focoAnterior}" com ordenação por preço`);
+            let produtosFallback = await buscarOfertas({ 
+              query: focoAnterior
+              // TODO: Implementar sort parameter quando buscarOfertas suportar
+            });
+            
+            if (produtosFallback.length > 0) {
+              // Ordenar por preço crescente quando é follow-up de preço
+              produtos = sortProductsByPrice(produtosFallback);
+              usedFallback = true;
+              effectiveQuery = focoAnterior;
+              console.log(`📦 [Pipeline] PATCH B: Fallback encontrou ${produtos.length} produtos para "${focoAnterior}", ordenados por preço`);
+            }
+          }
+        }
+        
+        // Fallback progressivo se veio vazio (lógica original)
         if (produtos.length === 0 && pipelineResult.canonMsg !== pipelineResult.debug.original.toLowerCase().trim()) {
           console.log(`🔄 [Pipeline] Fallback com mensagem original`);
           produtos = await buscarOfertas({ query: pipelineResult.debug.original });
@@ -7620,16 +7666,11 @@ Regras:
         
         // 🎯 USAR COMPOSE ANSWER: Sistema unificado de templates com rotação
         const { composeAnswer } = await import('../src/nlg/say.js');
-        const { obterContextoSessao } = await import('./lib/gemini/context-storage.js');
-        
-        // Buscar contexto da sessão para obter categoria atual
-        const contexto = await obterContextoSessao(sessionId) || {};
-        const categoriaAtual = (contexto as any).categoriaAtual;
         
         const query = {
-          produto: pipelineResult.query,
-          categoria: categoriaAtual, // Usar categoria do contexto da sessão
-          queryFinal: pipelineResult.query,
+          produto: effectiveQuery, // Usar query efetiva (pode ser fallback)
+          categoria: categoriaAtual,
+          queryFinal: effectiveQuery,
           count: produtos.length
         };
         
@@ -7659,7 +7700,21 @@ Regras:
           console.log(`❌ [Pipeline DEBUG] BUSCA VAZIA:`, pipelineResult.debug);
         }
         
-        send('delta', { text: textoResposta });
+        // PATCH C: Debug logs para confirmar funcionamento (usando contexto cacheado)
+        const debugInfo = {
+          priceOnlyFollowUp: isPriceFollowUp,
+          query: effectiveQuery,
+          usedFallback: usedFallback,
+          session: { 
+            focoAtual: (contextoSessao as any)?.focoAtual,
+            categoriaAtual: categoriaAtual || null 
+          },
+          originalMessage: message,
+          canonicalMessage: pipelineResult.canonMsg,
+          productsFound: produtos.length
+        };
+        
+        send('delta', { text: textoResposta, debug: debugInfo });
         
         // Aguardar um pouco para a conversa aparecer primeiro
         await new Promise(resolve => setTimeout(resolve, 500));

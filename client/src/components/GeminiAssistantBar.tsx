@@ -346,6 +346,11 @@ export default function GeminiAssistantBar() {
               const data = JSON.parse(eventData);
               console.log('📨 SSE evento >', data);
               
+              // PATCH C: Log específico para debug de follow-up de preço
+              if (data.debug) {
+                console.log('[assistant debug]', data.debug);
+              }
+              
               // Verificar novamente se ainda é a requisição ativa
               if (latestRequestIdRef.current !== requestId) {
                 console.log('🚫 [GeminiAssistantBar] Evento SSE ignorado - requisição obsoleta');

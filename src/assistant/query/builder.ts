@@ -31,9 +31,11 @@ export function buildQuery(opts: BuildOpts): QuerySignal {
   // Detecta ordenação
   query.sort = priceSignals.sort || detectSortSignal(text);
   
-  // Aplica filtro de estoque se necessário
-  if (preferInStockCheapest && (priceSignals.mais_barato || shouldFilterInStock(text))) {
-    query.in_stock = true;
+  // Não force in_stock no follow-up de preço.
+  // Se quiser priorizar estoque, faça no servidor com fallback (Patch B).
+  // Aplicar apenas se vier explicitamente na base query
+  if (opts.base.in_stock !== undefined) {
+    query.in_stock = opts.base.in_stock;
   }
   
   // Adiciona atributos dos slots

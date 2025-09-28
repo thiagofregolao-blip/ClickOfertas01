@@ -1,0 +1,85 @@
+Boa! Agora o back está mandando texto e o front está exibindo — só que, no follow-up “quero um mais barato”, ele está voltando “Não encontrei resultados”. Isso indica que o back construiu a query, mas zerou a lista após aplicar algum filtro extra.
+
+O que está acontecendo
+
+No nosso builder eu coloquei a heurística:
+
+// builder.ts (versão anterior)
+const in_stock = (price.sort === "price.asc" && (opts.preferInStockCheapest ?? true))
+  ? true : opts.base.in_stock;
+
+
+Em muitos catálogos, a busca inicial traz 12 iPhones (mistura de em estoque e fora de estoque).
+Quando você pede “mais barato”, a query passa a forçar in_stock=true. Se nenhum dos iPhones estiver marcado “em estoque”, o resultado vai para 0 — exatamente o que você viu.
+
+Vamos corrigir com 2 ajustes simples e seguros:
+
+PATCH A — Não forçar in_stock no “mais barato”
+
+Substitua o cálculo de in_stock na montagem da query:
+
+// src/query/builder.ts
+-  const in_stock = (price.sort === "price.asc" && (opts.preferInStockCheapest ?? true)) ? true : opts.base.in_stock;
++  // Não force in_stock no follow-up de preço.
++  // Se quiser priorizar estoque, faça no servidor com fallback (Patch B).
++  const in_stock = opts.base.in_stock;
+
+
+Isso sozinho já evita “zerar” a lista.
+
+PATCH B — Fallback automático: se zerar, reexecuta sem in_stock
+
+No handler da rota (onde você envia SSE), logo depois de obter os itens:
+
+// pseudo trechinho do handler (depois de montar 'q' e rodar a busca):
+let items = await runQuery(q);
+
+// Fallback: se pediu “mais barato” (price.asc) e veio 0,
+// tenta de novo SEM in_stock para pelo menos sugerir o mais barato geral
+if ((q.sort === "price.asc") && (!items || items.length === 0)) {
+  const q2 = { ...q };
+  // remove apenas a restrição de estoque
+  // (mantém produto/categoria/atributos, etc.)
+  // @ts-ignore
+  delete q2.in_stock;
+  const alt = await runQuery(q2);
+  if (alt && alt.length) {
+    items = alt; // usa essa lista para mostrar algo
+    // e ajuste o texto:
+    const cheapest = alt[0];
+    text = `${sayNoResults(sessionId, lang, "ajustar modelo/capacidade")} ` +
+           `Mas encontrei o mais barato geral: ${cheapest.title} por ` +
+           `${formatPrice(cheapest.price, cheapest.currency)}.`;
+  }
+}
+
+
+Se você preferir só priorizar estoque (ordenar em estoque primeiro) ao invés de filtrar, dá pra fazer no sort e não usar in_stock como filtro. O runQueryLocal do exemplo já ordena “em estoque primeiro” quando sort: "relevance".
+
+(Opcional) PATCH C — Log de debug para confirmar
+
+No SSE, junto com text e items, envie um objeto debug (se já não está):
+
+send({
+  text,
+  items,
+  debug: {
+    priceOnlyFollowUp: !!cls.flags?.priceOnlyFollowUp,
+    query: q,
+    session: { focoAtual: session.focoAtual, categoriaAtual: session.categoriaAtual }
+  }
+});
+
+
+E no front, ao receber cada evento:
+
+if (ev.debug) console.log("[assistant debug]", ev.debug);
+
+
+Você deve ver, no follow-up:
+
+priceOnlyFollowUp: true
+
+query.sort: "price.asc"
+
+query.produto: "iphone" (ou herdado de sessão/context)
