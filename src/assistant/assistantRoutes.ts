@@ -15,6 +15,23 @@ import type { Intent, CatalogItem } from "./types.js";
 import type { CatalogProvider } from "../catalog/provider.js";
 import { extractPriceSignals } from "./nlp/priceSignals.js";
 
+function hash32(s: string) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) { h = (h << 5) - h + s.charCodeAt(i); h |= 0; }
+  return (h >>> 0).toString(36);
+}
+
+function getStableSessionId(req: any, provided?: string) {
+  if (provided && String(provided).trim()) return String(provided);
+  const ua = String(req.headers["user-agent"] ?? "");
+  const ip = String(
+    (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ??
+    req.ip ?? req.connection?.remoteAddress ?? "0.0.0.0"
+  );
+  const key = `${ip}|${ua}`;
+  return `auto_${hash32(key)}`;
+}
+
 /**
  * Registra rotas do assistente no app/router existente
  * @param appOrRouter - Instância do Express app ou router
@@ -40,15 +57,14 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
   // (Fases 1/4/5) Rota principal do assistente
   post("/api/assistant/query", async (req: any, res: any) => {
     try {
-      const { 
-        sessionId = "anon", 
-        message, 
-        lang = "pt" 
-      } = (req.body ?? {}) as { 
+      const body = (req.body ?? {}) as { 
         sessionId?: string; 
         message?: string; 
         lang?: "pt" | "es" 
       };
+      const sessionId = getStableSessionId(req, body.sessionId);
+      const message = body.message;
+      const lang = (body.lang ?? "pt") as "pt" | "es";
 
       if (!message || !message.trim()) {
         return res.status(400).json({ 
@@ -57,7 +73,7 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
         });
       }
 
-      const session = getSession(sessionId);
+      const sess = getSession(sessionId);
       const { intent, base } = classify(message);
 
       // NEW: follow-up de preço → herda foco/categoria da sessão
@@ -66,14 +82,14 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
         priceSig.hasPriceIntent &&
         !base.produto &&
         !base.categoria &&
-        (session.focoAtual || session.categoriaAtual);
+        (sess.focoAtual || sess.categoriaAtual);
 
       const effectiveIntent = (priceOnlyFollowUp ? "PRODUCT_SEARCH" : intent) as Intent;
       const effectiveBase = priceOnlyFollowUp
         ? {
             ...base,
-            produto: session.focoAtual ?? undefined,
-            categoria: session.categoriaAtual ?? undefined,
+            produto: sess.focoAtual ?? undefined,
+            categoria: sess.categoriaAtual ?? undefined,
           }
         : base;
 
@@ -91,10 +107,10 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
             ? `Ahora son las ${hh}:${mm}.` 
             : `Agora são ${hh}:${mm}.`;
           
-          if (session.focoAtual) {
+          if (sess.focoAtual) {
             draft += lang === "es" 
-              ? ` ¿Seguimos con ${session.focoAtual}?` 
-              : ` Quer continuar no ${session.focoAtual}?`;
+              ? ` ¿Seguimos con ${sess.focoAtual}?` 
+              : ` Quer continuar no ${sess.focoAtual}?`;
           }
         } else if (intent === "HELP") {
           draft = lang === "es" 
@@ -123,13 +139,13 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
       }
 
       // Atualiza foco/categoria na sessão ao detectar produto novo
-      const produtoNovo = effectiveBase.produto && effectiveBase.produto !== session.focoAtual;
+      const produtoNovo = effectiveBase.produto && effectiveBase.produto !== sess.focoAtual;
       updateSession(sessionId, {
-        focoAtual: effectiveBase.produto ?? session.focoAtual ?? null,
+        focoAtual: effectiveBase.produto ?? sess.focoAtual ?? null,
         categoriaAtual: produtoNovo 
           ? effectiveBase.categoria ?? null 
-          : session.categoriaAtual ?? effectiveBase.categoria ?? null,
-        lastQuery: effectiveBase.produto ?? session.lastQuery ?? null,
+          : sess.categoriaAtual ?? effectiveBase.categoria ?? null,
+        lastQuery: effectiveBase.produto ?? sess.lastQuery ?? null,
       });
 
       // Extrai slots adicionais (modelo/GB/cor/atributos)
@@ -152,7 +168,7 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
 
       // Draft determinístico (seguro). Naturalização LLM opcional depois.
       let draft = "";
-      if (!session.lastQuery && !query.produto && !query.categoria) {
+      if (!sess.lastQuery && !query.produto && !query.categoria) {
         draft = sayGreeting(sessionId, lang);
       } else if (items.length > 0) {
         draft = sayFound(
@@ -211,7 +227,7 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
           intent: "PRODUCT_SEARCH" as Intent,
           query,
           slots,
-          session: { ...session },
+          session: { ...sess },
           catalogSize: catalogItems.length
         }
       });

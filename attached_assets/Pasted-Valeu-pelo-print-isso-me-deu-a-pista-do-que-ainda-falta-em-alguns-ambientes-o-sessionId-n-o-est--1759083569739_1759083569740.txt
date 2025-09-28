@@ -1,0 +1,171 @@
+Valeu pelo print — isso me deu a pista do que ainda falta: em alguns ambientes o sessionId não está consistente entre as mensagens (ou nem é enviado), então o foco “iphone” não é herdado no follow-up “qual o mais barato?”. E em outros casos o classificador ainda classifica a frase só de preço como “SMALL_TALK/UNKNOWN”.
+
+Resolvi isso em 3 frentes com patches git prontos:
+
+Sessão estável automática (mesmo se o front não mandar sessionId): derivei um id estável do ip + user-agent.
+
+Follow-up de preço: já tínhamos o patch, mantive.
+
+Classificador com “barato/caro/até X”: quando só há intenção de preço, ele marca como PRODUCT_SEARCH (base vazia) → a rota herda o foco da sessão.
+
+Aplique os 3 patches abaixo na ordem.
+
+1) patch-session-stable-id.diff
+
+Garante um sessionId consistente se o front não enviar; usa cabeçalhos e IP.
+
+*** a/src/assistant/assistantRoutes.ts
+--- b/src/assistant/assistantRoutes.ts
+@@
+ import type { Intent, CatalogItem } from "../types";
+ import { naturalize } from "../nlg/naturalizer";
+ import type { CatalogProvider } from "../catalog/provider";
+ import { extractPriceSignals } from "../nlp/priceSignals";
+ 
++function hash32(s: string) {
++  let h = 0;
++  for (let i = 0; i < s.length; i++) { h = (h << 5) - h + s.charCodeAt(i); h |= 0; }
++  return (h >>> 0).toString(36);
++}
++function getStableSessionId(req: any, provided?: string) {
++  if (provided && String(provided).trim()) return String(provided);
++  const ua = String(req.headers["user-agent"] ?? "");
++  const ip = String(
++    (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ??
++    req.ip ?? req.connection?.remoteAddress ?? "0.0.0.0"
++  );
++  const key = `${ip}|${ua}`;
++  return `auto_${hash32(key)}`;
++}
+@@
+-  post("/assistant/query", async (req: any, res: any) => {
+-    const { sessionId = "anon", message, lang = "pt" } = (req.body ?? {}) as { sessionId?: string; message?: string; lang?: "pt"|"es" };
++  post("/assistant/query", async (req: any, res: any) => {
++    const body = (req.body ?? {}) as { sessionId?: string; message?: string; lang?: "pt"|"es" };
++    const sessionId = getStableSessionId(req, body.sessionId);
++    const message = body.message;
++    const lang = (body.lang ?? "pt") as "pt"|"es";
+     if (!message || !message.trim()) return res.status(400).json({ ok:false, error:"Mensagem vazia" });
+ 
+     const sess = getSession(sessionId);
+     const { intent, base } = classify(message);
+@@
+-    return res.json({
++    return res.json({
+       ok: true,
+       text,
+       items,
+       blocks: [{ type:"text", text }, { type:"products", items: items.map(i=>i.id) }],
+-      debug: { intent: "PRODUCT_SEARCH" as Intent, query: q, slots, session: { ...sess } }
++      debug: { intent: "PRODUCT_SEARCH" as Intent, query: q, slots, session: getSession(sessionId) }
+     });
+   });
+ }
+
+2) patch-followup-preco.diff
+
+(Reenvio consolidado) — herda foco/categoria quando a frase tem apenas intenção de preço.
+
+*** a/src/assistant/assistantRoutes.ts
+--- b/src/assistant/assistantRoutes.ts
+@@
+   const post = (appOrRouter as any).post.bind(appOrRouter);
+@@
+-    const { intent, base } = classify(message);
++    const { intent, base } = classify(message);
+     // Small talk/utilitários
+-    if (intent !== "PRODUCT_SEARCH") {
++    const priceSig = extractPriceSignals(message);
++    const priceOnlyFollowUp =
++      priceSig.hasPriceIntent &&
++      !base.produto &&
++      !base.categoria &&
++      (sess.focoAtual || sess.categoriaAtual);
++    const effectiveIntent = (priceOnlyFollowUp ? "PRODUCT_SEARCH" : intent) as Intent;
++    const effectiveBase = priceOnlyFollowUp
++      ? { ...base, produto: sess.focoAtual ?? undefined, categoria: sess.categoriaAtual ?? undefined }
++      : base;
++
++    if (effectiveIntent !== "PRODUCT_SEARCH") {
+@@
+-    const produtoNovo = base.produto && base.produto !== sess.focoAtual;
++    const produtoNovo = effectiveBase.produto && effectiveBase.produto !== sess.focoAtual;
+     updateSession(sessionId, {
+-      focoAtual: base.produto ?? sess.focoAtual ?? null,
+-      categoriaAtual: produtoNovo ? base.categoria ?? null : sess.categoriaAtual ?? base.categoria ?? null,
+-      lastQuery: base.produto ?? sess.lastQuery ?? null,
++      focoAtual: effectiveBase.produto ?? sess.focoAtual ?? null,
++      categoriaAtual: produtoNovo ? effectiveBase.categoria ?? null : sess.categoriaAtual ?? effectiveBase.categoria ?? null,
++      lastQuery: effectiveBase.produto ?? sess.lastQuery ?? null,
+     });
+@@
+-    const slots = extractModeloGBCor(message);
+-    const q = buildQuery({ base: { ...base }, text: message, preferInStockCheapest: true, slots: { attrs: slots.attrs, modelo: slots.modelo } });
++    const slots = extractModeloGBCor(message);
++    const q = buildQuery({
++      base: { ...effectiveBase },
++      text: message,
++      preferInStockCheapest: true,
++      slots: { attrs: slots.attrs, modelo: slots.modelo }
++    });
+
+
+Se você já aplicou um patch parecido antes, esse é compatível (não conflita).
+
+3) patch-intent-priceonly.diff
+
+Faz o classificador marcar como PRODUCT_SEARCH quando detectar apenas termos de preço, deixando base vazio (a rota herda o foco).
+
+*** a/src/nlp/intent.ts
+--- b/src/nlp/intent.ts
+@@
+ import { Intent, QuerySignal } from "../types";
+ import { tokensPTES } from "./normalize";
+ import { canonProduct, canonCategory } from "./canon.store";
+ import { damerauLevenshtein } from "./fuzzy";
+@@
+   if (RX.who.test(msg)) return { intent: "WHOAMI", base: {} };
+   const toks = tokensPTES(message);
+   for (const t of toks) { const p = canonProduct(t); const c = canonCategory(t); if (p || c) return { intent: "PRODUCT_SEARCH", base: { produto: p ?? undefined, categoria: c ?? undefined } }; }
+   for (const t of toks) for (const v of VOCAB) if (damerauLevenshtein(t, v) <= 2) return { intent: "PRODUCT_SEARCH", base: { produto: v } };
+   if (toks.length === 1 && /^[a-z0-9\-]+$/i.test(toks[0])) return { intent: "PRODUCT_SEARCH", base: { produto: toks[0] } };
+-  return { intent: "UNKNOWN", base: {} };
++  // NEW: frases apenas de preço → deixa base vazia (rota herdará da sessão)
++  const priceOnly = /\b(mais|mas)\s+(barat\w+|car\w+)\b|\b(em\s+conta)\b|\b(ate|hasta|por\s+menos\s+de|a\s+partir\s+de)\b/i.test(msg);
++  if (priceOnly) return { intent: "PRODUCT_SEARCH", base: {} };
++  return { intent: "UNKNOWN", base: {} };
+ }
+
+Passos de verificação
+
+Aplicar patches:
+
+git apply patch-session-stable-id.diff
+git apply patch-followup-preco.diff
+git apply patch-intent-priceonly.diff
+
+
+npm run dev
+
+Testes no chat:
+
+“iphone”
+
+“quero um iphone barato”
+
+“qual o mais barato?”
+
+“tem mais barato que isso?”
+
+Se o front não enviar sessionId, agora a sessão será estável via auto_<hash> (IP+UA).
+Se você já envia sessionId, nada muda — continua usando o seu.
+
+Se ainda assim responder “não achei nada pra ‘qual o barato’”, me diga:
+
+Qual endpoint o front está chamando (confirme /assistant/query)
+
+Se há outra rota antiga respondendo a follow-ups
+
+O payload enviado na segunda mensagem (para ver se sessionId chegou)
+
+Com esses 3 pontos, ajusto os patches 100% ao seu fluxo.
