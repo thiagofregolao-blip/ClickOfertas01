@@ -3,24 +3,20 @@ import { useLocation } from 'wouter';
 import { LazyImage } from './lazy-image';
 import { useSuggestions } from '@/hooks/use-suggestions';
 import { Search, Sparkles } from 'lucide-react';
+import { getPersistedSessionId } from '@/lib/session';
 
 /**
  * Usa SEMPRE o text que vem do backend.
  * Se por algum motivo vier vazio, cai para um texto curto padrão.
  */
 function pickAssistantText(resp: any) {
-  const serverText = resp?.text && String(resp.text).trim();
-  if (serverText) return serverText;
-  // fallback ultra minimalista, só se o servidor não mandar text
-  if (Array.isArray(resp?.items) && resp.items.length > 0) {
-    return "Separei algumas opções pra você 😉";
-  }
-  return "Não encontrei resultados agora, mas posso tentar com outra marca, modelo ou faixa de preço.";
+  // SEMPRE prioriza o texto do servidor
+  const t = (resp?.text || "").trim();
+  if (t) return t;
+  // fallback mínimo só se o servidor realmente não mandou text
+  if (Array.isArray(resp?.items) && resp.items.length > 0) return "Separei algumas opções pra você 😉";
+  return "Posso tentar com outra marca, modelo ou faixa de preço. 🙂";
 }
-
-// Sessão simples por usuário (cache 1h) - separada para Gemini
-const geminiSessionCache = new Map();
-const ONE_HOUR = 60 * 60 * 1000;
 
 export default function GeminiAssistantBar() {
   console.log('🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado');
@@ -32,7 +28,8 @@ export default function GeminiAssistantBar() {
   
   console.log('🤖 [GeminiAssistantBar] UID:', uid, 'UserName:', userName);
   
-  const [sessionId, setSessionId] = useState('');
+  // Mantém a mesma sessão entre turnos e recargas
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [streaming, setStreaming] = useState('');
@@ -77,7 +74,7 @@ export default function GeminiAssistantBar() {
   
   // Manter sessionId atualizado no ref
   useEffect(() => {
-    sessionIdRef.current = sessionId;
+    sessionIdRef.current = sessionId || '';
   }, [sessionId]);
 
   // Frases específicas para Gemini - "ask-then-show" theme  
@@ -162,56 +159,15 @@ export default function GeminiAssistantBar() {
     };
   }, []);
 
-  // Criar/recuperar sessão Gemini
+  // Inicializar sessão persistente
   useEffect(() => {
-    if (bootRef.current) return;
-    bootRef.current = true;
-    
+    let alive = true;
     (async () => {
-      const key = `${uid}_gemini`;
-      const cached = geminiSessionCache.get(key);
-      const now = Date.now();
-      
-      if (cached && now - cached.ts < ONE_HOUR) {
-        setSessionId(cached.id);
-        return;
-      }
-      
-      try {
-        const res = await fetch('/api/assistant/sessions', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'x-user-id': uid, 
-            'x-user-name': userName,
-            'x-provider': 'gemini'
-          }
-        });
-        
-        if (res.ok) {
-          const data = await res.json();
-          const id = data.session?.id;
-          if (id) {
-            console.log('🎉 [GeminiAssistantBar] Gemini session created successfully:', id);
-            setSessionId(id);
-            geminiSessionCache.set(key, { id, ts: now });
-            if (data.greeting) setGreeting(data.greeting);
-            if (data.suggest?.products) {
-              const products = data.suggest.products;
-              setTopBox(products.slice(0, 3));
-              setFeed(products.slice(3));
-            }
-          } else {
-            console.warn('⚠️ [GeminiAssistantBar] No session ID in response:', data);
-          }
-        } else {
-          console.error('❌ [GeminiAssistantBar] Gemini session creation failed:', res.status, res.statusText);
-        }
-      } catch (e) {
-        console.error('Gemini session error:', e);
-      }
+      const sid = await getPersistedSessionId();
+      if (alive) setSessionId(sid);
     })();
-  }, [uid, userName]);
+    return () => { alive = false; };
+  }, []);
 
   // Auto-flush pendente quando sessão fica disponível (versão Gemini)
   useEffect(() => {
@@ -305,14 +261,15 @@ export default function GeminiAssistantBar() {
       
       const data = await response.json();
       
-      // ✅ Debug útil para verificar se o backend está herdando o foco
+      // Debug útil para checar herança de foco e "mais barato"
       if (data?.debug) {
-        console.debug("assistant debug:", {
-          priceOnlyFollowUp: data.debug.priceOnlyFollowUp,
+        console.debug("assistant debug >", {
+          priceOnlyFollowUp: data.debug?.priceOnlyFollowUp,
           sort: data.debug?.query?.sort,
           focoAtual: data.debug?.session?.focoAtual,
           lastQuery: data.debug?.session?.lastQuery,
           categoriaAtual: data.debug?.session?.categoriaAtual,
+          itens: (data?.items || []).length
         });
       }
       
@@ -343,7 +300,7 @@ export default function GeminiAssistantBar() {
 
   // Função para iniciar stream Gemini
   const startGeminiStream = async (message: string) => {
-    if (!sessionId || !message.trim()) return;
+    if (!sessionId || !message.trim()) return; // aguarda inicializar a sessão
     
     setIsTyping(true);
     setStreaming('');

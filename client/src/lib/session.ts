@@ -11,6 +11,6 @@ export async function getPersistedSessionId(): Promise<string> {
   } catch {
     sid = `web_${Math.random().toString(36).slice(2)}`;
   }
-  localStorage.setItem(KEY, sid);
-  return sid;
+  localStorage.setItem(KEY, sid!);
+  return sid!;
 }
