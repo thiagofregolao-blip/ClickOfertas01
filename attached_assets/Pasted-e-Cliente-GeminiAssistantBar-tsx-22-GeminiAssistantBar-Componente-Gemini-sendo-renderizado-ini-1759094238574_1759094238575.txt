@@ -1,0 +1,579 @@
+e: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:495 🔄 [GeminiAssistantBar] Overlay submit - nova consulta Gemini: quero um mais barato
+GeminiAssistantBar.tsx:327 🤖 [GeminiAssistantBar] Iniciando Gemini stream: {message: 'quero um mais barato', sessionId: 'web_mi3wb45naw', requestId: '1759094195405'}
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:378 🤖 [GeminiAssistantBar] Evento SSE recebido: {text: 'Hmm, não achei nada pra "barato". 😉 Quer tentar outra marca ou modelo?'}
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:411 🏁 [GeminiAssistantBar] Gemini stream marcado como completo
+GeminiAssistantBar.tsx:378 🤖 [GeminiAssistantBar] Evento SSE recebido: {provider: 'gemini'}
+GeminiAssistantBar.tsx:363 ✅ [GeminiAssistantBar] Gemini stream concluído
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!
+GeminiAssistantBar.tsx:29 🤖 [GeminiAssistantBar] UID: u-f8j78y UserName: Cliente
+GeminiAssistantBar.tsx:22 🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado
+GeminiAssistantBar.tsx:23 🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!

@@ -1,0 +1,129 @@
+Boa! Com esse log dá pra atacar os dois lados: frontend (loop/render + uso do text) e backend (follow-up “mais barato”).
+Abaixo vão patches cirúrgicos pro frontend que resolvem:
+
+Loop infinito de render no GeminiAssistantBar.tsx (useEffect reinicializando sem necessidade).
+
+Logs não aparecendo (usa console.log e não debug).
+
+Mensagem do servidor ignorada (garante que SEMPRE usa data.text do backend, sem fallback local).
+
+Use como “cola e substitui” dentro do client/src/components/GeminiAssistantBar.tsx (ou o arquivo onde está o componente/barra). Se seu arquivo tem nomes ligeiramente diferentes, adapte os trechos pelo comentário/âncora.
+
+PATCH A — Evitar re-render infinito (StrictMode & init uma vez)
+
+Adicione no topo do componente (logo após os imports) um flag de inicialização:
+
+// ANTES de qualquer hook de estado
+const didInitRef = React.useRef(false);
+
+
+E no useEffect de setup da sessão/stream troque para:
+
+React.useEffect(() => {
+  // evita rodar 2x no StrictMode e evita loop por setState
+  if (didInitRef.current) return;
+  didInitRef.current = true;
+
+  const sidKey = "gemini.sessionId";
+  let sid = localStorage.getItem(sidKey);
+  if (!sid) {
+    sid = `web_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+    localStorage.setItem(sidKey, sid);
+  }
+  setSessionId(sid); // se você mantém no estado
+
+  console.log("🟢 [GeminiAssistantBar] Sessão ativa:", { sid });
+
+  // … qualquer outro setup de listeners que você faça …
+}, []); // <<< DEPENDÊNCIAS VAZIAS (importante)
+
+
+Se você já tinha um useEffect similar, garanta:
+
+usa [] como deps;
+
+tem o guard didInitRef.current para não rodar duas vezes no StrictMode;
+
+não faz setState com valores que mudam toda renderização.
+
+PATCH B — Logs confiáveis (trocar console.debug)
+
+Onde você loga a resposta do servidor / SSE, troque:
+
+console.debug("assistant debug >", payload);
+
+
+por
+
+console.log("🧠 assistant debug >", payload);
+
+
+E logo que receber cada evento do stream, logue o texto:
+
+console.log("📨 SSE evento >", evtData); // { text, items, debug, provider, ... }
+
+PATCH C — Usar SEMPRE o text do backend (sem fallback local)
+
+Procure onde você finaliza o stream e insere a mensagem do assistente (algo como setChatMessages(prev => [...prev, { type: 'assistant', text: finalMessage }])). Garanta que a fonte é o text vindo do backend:
+
+// Dentro do onmessage/onend do SSE (ou após o fetch da resposta final):
+const serverText =
+  evtData?.text ??
+  data?.text ??
+  ""; // nunca aplique um fallback local genérico aqui
+
+// Se vier vazio por algum bug de rede, mande algo neutro:
+const finalMessage = serverText.trim() || "OK, posso refinar sua busca por preço/capacidade/modelo. 🙂";
+
+setChatMessages(prev => [...prev, { type: "assistant", text: finalMessage }]);
+
+
+Importante: NÃO troque por checagens tipo if (items.length === 0) ....
+O texto já vem pronto do backend (com dicas), então renderize o que o servidor mandar.
+
+PATCH D — Short-circuit do frontend (se ainda existir)
+
+Se houver uma função de fallback local (ex.: pickAssistantText() ou fallbackNoResults()), remova a decisão local baseada em items.length e deixe só:
+
+// Em qualquer lugar que hoje use um "fallback" local:
+return data?.text || "";
+
+PATCH E — Start do stream com sessão estável
+
+Na função que dispara a busca (ex.: startGeminiStream), garanta que usa sempre o mesmo sessionId do localStorage (não gere um novo a cada submit):
+
+const sid = localStorage.getItem("gemini.sessionId")!;
+const body = JSON.stringify({ message: inputText, sessionId: sid, lang: "pt" });
+
+console.log("🚀 start stream", { message: inputText, sessionId: sid });
+
+const resp = await fetch("/api/assistant/query/stream", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body
+});
+
+
+Isso resolve inconsistência entre turnos “iphone” → “quero um mais barato”.
+
+Checklist rápido de verificação
+
+Abra o console da página (F12) e filtre por “assistant debug”.
+Você deve ver algo assim quando digitar “quero um mais barato” após “iphone”:
+
+🧠 assistant debug > {
+  priceOnlyFollowUp: true,
+  query: { produto: "iphone", categoria: "celular", sort: "price.asc", in_stock: true, ... },
+  session: { focoAtual: "iphone", categoriaAtual: "celular" }
+}
+
+
+O chat deve exibir o texto do backend, e não a frase fixa “Hmm, não achei nada pra ‘barato’…”.
+
+Se nada aparecer, verifique:
+
+O SSE está chamando setChatMessages com data.text?
+
+A sessão está estável (um único sessionId)?
+
+O log “📨 SSE evento > …” aparece com { text: "…", debug: {...} }?

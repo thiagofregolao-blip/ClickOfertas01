@@ -7,18 +7,17 @@ import { getPersistedSessionId } from '@/lib/session';
 
 /**
  * Usa SEMPRE o text que vem do backend.
- * Se por algum motivo vier vazio, cai para um texto curto padrão.
+ * Sem fallback local baseado em items.length.
  */
 function pickAssistantText(resp: any) {
-  // SEMPRE prioriza o texto do servidor
-  const t = (resp?.text || "").trim();
-  if (t) return t;
-  // fallback mínimo só se o servidor realmente não mandou text
-  if (Array.isArray(resp?.items) && resp.items.length > 0) return "Separei algumas opções pra você 😉";
-  return "Posso tentar com outra marca, modelo ou faixa de preço. 🙂";
+  // SEMPRE prioriza o texto do servidor - sem checagem de items.length
+  return resp?.text || "";
 }
 
 export default function GeminiAssistantBar() {
+  // ANTES de qualquer hook de estado - evita re-render infinito
+  const didInitRef = useRef(false);
+  
   console.log('🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado');
   console.log('🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!');
   
@@ -159,15 +158,21 @@ export default function GeminiAssistantBar() {
     };
   }, []);
 
-  // Inicializar sessão persistente
+  // Inicializar sessão persistente - evita rodar 2x no StrictMode e evita loop
   useEffect(() => {
-    let alive = true;
-    (async () => {
-      const sid = await getPersistedSessionId();
-      if (alive) setSessionId(sid);
-    })();
-    return () => { alive = false; };
-  }, []);
+    if (didInitRef.current) return;
+    didInitRef.current = true;
+
+    const sidKey = "gemini.sessionId";
+    let sid = localStorage.getItem(sidKey);
+    if (!sid) {
+      sid = `web_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+      localStorage.setItem(sidKey, sid);
+    }
+    setSessionId(sid);
+
+    console.log("🟢 [GeminiAssistantBar] Sessão ativa:", { sid });
+  }, []); // DEPENDÊNCIAS VAZIAS (importante)
 
   // Auto-flush pendente quando sessão fica disponível (versão Gemini)
   useEffect(() => {
@@ -263,7 +268,7 @@ export default function GeminiAssistantBar() {
       
       // Debug útil para checar herança de foco e "mais barato"
       if (data?.debug) {
-        console.debug("assistant debug >", {
+        console.log("🧠 assistant debug >", {
           priceOnlyFollowUp: data.debug?.priceOnlyFollowUp,
           sort: data.debug?.query?.sort,
           focoAtual: data.debug?.session?.focoAtual,
@@ -300,7 +305,9 @@ export default function GeminiAssistantBar() {
 
   // Função para iniciar stream Gemini
   const startGeminiStream = async (message: string) => {
-    if (!sessionId || !message.trim()) return; // aguarda inicializar a sessão
+    // Garantir sessionId estável do localStorage (não dependente do estado)
+    const sid = localStorage.getItem("gemini.sessionId")!;
+    if (!sid || !message.trim()) return;
     
     setIsTyping(true);
     setStreaming('');
@@ -324,14 +331,14 @@ export default function GeminiAssistantBar() {
     let accumulatedMessage = '';
     
     try {
-      console.log('🤖 [GeminiAssistantBar] Iniciando Gemini stream:', { message, sessionId, requestId });
+      console.log('🚀 start stream', { message, sessionId: sid, requestId });
       
       const response = await fetch('/api/assistant/gemini/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message, 
-          sessionId,
+          sessionId: sid,
           horaLocal: new Date().getHours()
         })
       });
@@ -375,7 +382,7 @@ export default function GeminiAssistantBar() {
             
             try {
               const data = JSON.parse(eventData);
-              console.log('🤖 [GeminiAssistantBar] Evento SSE recebido:', data);
+              console.log('📨 SSE evento >', data);
               
               // Verificar novamente se ainda é a requisição ativa
               if (latestRequestIdRef.current !== requestId) {
@@ -421,15 +428,12 @@ export default function GeminiAssistantBar() {
       if (latestRequestIdRef.current === requestId) {
         setIsTyping(false);
         
-        // ✅ SEMPRE usar texto do backend - não gerar fallback local
-        const finalMessage = accumulatedMessage.trim();
-        if (finalMessage) {
-          setChatMessages(prev => [...prev, { type: 'assistant', text: finalMessage }]);
-        } else {
-          // Se não houver texto acumulado, fazer requisição para pegar resposta final
-          console.log('🔄 [GeminiAssistantBar] Sem texto acumulado, fazendo consulta final');
-          fetchFinalResponse(message, sessionId, requestId);
-        }
+        // ✅ SEMPRE usar texto do backend sem fallback local
+        const serverText = accumulatedMessage.trim();
+        // Se vier vazio por algum bug de rede, mande algo neutro (não fallback genérico):
+        const finalMessage = serverText || "OK, posso refinar sua busca por preço/capacidade/modelo. 🙂";
+        
+        setChatMessages(prev => [...prev, { type: 'assistant', text: finalMessage }]);
         
         // Limpar streaming apenas após adicionar ao chat
         setStreaming('');
