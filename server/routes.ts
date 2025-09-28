@@ -8363,6 +8363,29 @@ Regras:
     }
   });
 
+  // Endpoint de teste para IA Vendedor
+  app.post("/api/ia-vendedor/query", async (req, res) => {
+    try {
+      const { sessionId, userMessage } = req.body;
+      
+      if (!sessionId || !userMessage) {
+        return res.status(400).json({ error: "sessionId e userMessage são obrigatórios" });
+      }
+
+      const { runIAVendedorPipeline } = await import("../src/iaVendedor/pipeline.js");
+      const result = await runIAVendedorPipeline({
+        sessionId,
+        userMessage,
+        preferInStockCheapest: true
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("Erro no IA Vendedor:", error);
+      res.status(500).json({ error: "Erro interno", details: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
