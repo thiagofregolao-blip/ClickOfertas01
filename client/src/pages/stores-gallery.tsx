@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share, BarChart3, Plus, Smartphone, Droplets, Laptop, Monitor, Brain } from "lucide-react";
+import { Search, MapPin, Star, Grid, List, User, Settings, LogOut, ShoppingCart, X, Camera, Heart, Share, BarChart3, Plus, Smartphone, Droplets, Laptop, Monitor, Brain, Wifi } from "lucide-react";
 import ProductCard from "@/components/product-card";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import LoginPage from "@/components/login-page";
@@ -838,6 +838,15 @@ export default function StoresGallery() {
                     </button>
                     
                     <button
+                      onClick={() => setLocation('/wifi-24h')}
+                      className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
+                      data-testid="button-wifi-24h"
+                    >
+                      <Wifi className="w-4 h-4" />
+                      Wi-Fi 24h
+                    </button>
+                    
+                    <button
                       onClick={() => setLocation('/my-coupons')}
                       className="text-white hover:text-gray-200 font-medium flex items-center gap-1 text-sm"
                       data-testid="button-my-coupons"
@@ -1250,6 +1259,16 @@ export default function StoresGallery() {
             >
               <ShoppingCart className="w-5 h-5" />
               <span className="text-xs">Lista</span>
+            </button>
+            
+            {/* Wi-Fi 24h */}
+            <button
+              onClick={() => setLocation('/wifi-24h')}
+              className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-primary"
+              data-testid="button-mobile-wifi"
+            >
+              <Wifi className="w-5 h-5" />
+              <span className="text-xs">Wi-Fi</span>
             </button>
             
             {/* Comparar Preços */}
