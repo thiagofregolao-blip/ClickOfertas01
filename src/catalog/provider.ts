@@ -66,10 +66,10 @@ export class PostgreSQLCatalogProvider implements CatalogProvider {
           id: product.id,
           title: product.name,
           category: product.category || "geral",
-          brand: product.brand,
+          brand: product.brand || undefined,
           price: product.price ? parseFloat(product.price) : undefined,
           currency: "Gs.", // Moeda padrão Paraguay
-          in_stock: product.isActive, // Assume que ativo = em estoque
+          in_stock: product.isActive || undefined, // Assume que ativo = em estoque
           attrs: this.extractAttributes(product)
         }));
         
@@ -98,19 +98,19 @@ export class PostgreSQLCatalogProvider implements CatalogProvider {
       // Capacidade de armazenamento
       const storageMatch = desc.match(/\b(\d+)\s*(gb|mb|tb)\b/gi);
       if (storageMatch) {
-        attrs.push(...storageMatch.map(m => m.toLowerCase()));
+        attrs.push(...storageMatch.map((m: string) => m.toLowerCase()));
       }
       
       // Cores
       const colorMatch = desc.match(/\b(preto|branco|azul|vermelho|verde|amarelo|rosa|roxo|dourado|prata|cinza)\b/gi);
       if (colorMatch) {
-        attrs.push(...colorMatch.map(m => m.toLowerCase()));
+        attrs.push(...colorMatch.map((m: string) => m.toLowerCase()));
       }
       
       // Tamanhos
       const sizeMatch = desc.match(/\b(pp|p|m|g|gg|xgg|xs|s|l|xl|xxl)\b/gi);
       if (sizeMatch) {
-        attrs.push(...sizeMatch.map(m => m.toLowerCase()));
+        attrs.push(...sizeMatch.map((m: string) => m.toLowerCase()));
       }
     }
     
@@ -261,7 +261,7 @@ export async function getCatalogStats(provider: CatalogProvider): Promise<{
     const items = await provider.load();
     
     const categories = Array.from(new Set(items.map(i => i.category))).sort();
-    const brands = Array.from(new Set(items.map(i => i.brand).filter(Boolean))).sort();
+    const brands = Array.from(new Set(items.map(i => i.brand).filter(Boolean) as string[])).sort();
     const inStockItems = items.filter(i => i.in_stock).length;
     
     const pricesWithValues = items.map(i => i.price).filter(p => typeof p === "number") as number[];
