@@ -13,6 +13,7 @@ import { naturalize } from "./nlg/naturalizer.js";
 import { logTurn } from "./telemetry/conversations.js";
 import type { Intent, CatalogItem } from "./types.js";
 import type { CatalogProvider } from "../catalog/provider.js";
+import { extractPriceSignals } from "./nlp/priceSignals.js";
 
 /**
  * Registra rotas do assistente no app/router existente
@@ -24,20 +25,20 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
   const get = (appOrRouter as any).get.bind(appOrRouter);
 
   // (Fase 2) Endpoints de feedback e analytics básicos
-  post("/assistant/feedback", async (_req: any, res: any) => {
+  post("/api/assistant/feedback", async (_req: any, res: any) => {
     // Placeholder para feedback do usuário sobre respostas
     // Integrar com sistema de analytics quando necessário
     res.json({ ok: true });
   });
 
-  post("/analytics/click", async (_req: any, res: any) => {
+  post("/api/analytics/click", async (_req: any, res: any) => {
     // Placeholder para tracking de cliques em produtos
     // Integrar com sistema de analytics quando necessário  
     res.json({ ok: true });
   });
 
   // (Fases 1/4/5) Rota principal do assistente
-  post("/assistant/query", async (req: any, res: any) => {
+  post("/api/assistant/query", async (req: any, res: any) => {
     try {
       const { 
         sessionId = "anon", 
@@ -59,8 +60,25 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
       const session = getSession(sessionId);
       const { intent, base } = classify(message);
 
+      // NEW: follow-up de preço → herda foco/categoria da sessão
+      const priceSig = extractPriceSignals(message);
+      const priceOnlyFollowUp =
+        priceSig.hasPriceIntent &&
+        !base.produto &&
+        !base.categoria &&
+        (session.focoAtual || session.categoriaAtual);
+
+      const effectiveIntent = (priceOnlyFollowUp ? "PRODUCT_SEARCH" : intent) as Intent;
+      const effectiveBase = priceOnlyFollowUp
+        ? {
+            ...base,
+            produto: session.focoAtual ?? undefined,
+            categoria: session.categoriaAtual ?? undefined,
+          }
+        : base;
+
       // Fluxos não-produto (small talk, utilitários, ajuda, whoami)
-      if (intent !== "PRODUCT_SEARCH") {
+      if (effectiveIntent !== "PRODUCT_SEARCH") {
         let draft = "";
         
         if (intent === "SMALL_TALK") {
@@ -105,13 +123,13 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
       }
 
       // Atualiza foco/categoria na sessão ao detectar produto novo
-      const produtoNovo = base.produto && base.produto !== session.focoAtual;
+      const produtoNovo = effectiveBase.produto && effectiveBase.produto !== session.focoAtual;
       updateSession(sessionId, {
-        focoAtual: base.produto ?? session.focoAtual ?? null,
+        focoAtual: effectiveBase.produto ?? session.focoAtual ?? null,
         categoriaAtual: produtoNovo 
-          ? base.categoria ?? null 
-          : session.categoriaAtual ?? base.categoria ?? null,
-        lastQuery: base.produto ?? session.lastQuery ?? null,
+          ? effectiveBase.categoria ?? null 
+          : session.categoriaAtual ?? effectiveBase.categoria ?? null,
+        lastQuery: effectiveBase.produto ?? session.lastQuery ?? null,
       });
 
       // Extrai slots adicionais (modelo/GB/cor/atributos)
@@ -119,7 +137,7 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
 
       // Monta query com sinais de preço/ordem ("mais barato" → in_stock=true)
       const query = buildQuery({
-        base: { ...base },
+        base: { ...effectiveBase },
         text: message,
         preferInStockCheapest: true,
         slots: { attrs: slots.attrs, modelo: slots.modelo }
@@ -209,7 +227,7 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
   });
 
   // Endpoint de status/health do assistente  
-  get("/assistant/status", async (_req: any, res: any) => {
+  get("/api/assistant/status", async (_req: any, res: any) => {
     try {
       const catalog = await getCatalogProvider();
       const catalogStats = await getCatalogStats(catalog);

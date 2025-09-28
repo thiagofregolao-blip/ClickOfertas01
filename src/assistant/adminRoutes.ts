@@ -46,7 +46,7 @@ export function registerAdminRoutes(appOrRouter: Express | Router): void {
   };
 
   // Status geral do sistema de treinamento
-  get("/admin/train/status", adminAuth, async (_req: any, res: any) => {
+  get("/api/admin/train/status", adminAuth, async (_req: any, res: any) => {
     try {
       // Estatísticas do dicionário canônico
       const canon = loadCanon();
@@ -97,7 +97,7 @@ export function registerAdminRoutes(appOrRouter: Express | Router): void {
   });
 
   // Export de dataset para treinamento
-  get("/admin/train/export-dataset", adminAuth, (_req: any, res: any) => {
+  get("/api/admin/train/export-dataset", adminAuth, (_req: any, res: any) => {
     try {
       const dataset = exportDataset();
       res.json({
@@ -117,7 +117,7 @@ export function registerAdminRoutes(appOrRouter: Express | Router): void {
   });
 
   // Toggle LLM e configuração de tom
-  post("/admin/train/toggle-llm", adminAuth, (req: any, res: any) => {
+  post("/api/admin/train/toggle-llm", adminAuth, (req: any, res: any) => {
     try {
       const { on, tone } = (req.body ?? {}) as { 
         on?: boolean; 
@@ -151,7 +151,7 @@ export function registerAdminRoutes(appOrRouter: Express | Router): void {
   });
 
   // Gerenciamento do dicionário canônico
-  get("/admin/train/canon", adminAuth, (_req: any, res: any) => {
+  get("/api/admin/train/canon", adminAuth, (_req: any, res: any) => {
     try {
       const canon = loadCanon();
       res.json({
@@ -172,7 +172,7 @@ export function registerAdminRoutes(appOrRouter: Express | Router): void {
     }
   });
 
-  post("/admin/train/canon", adminAuth, (req: any, res: any) => {
+  post("/api/admin/train/canon", adminAuth, (req: any, res: any) => {
     try {
       const { canon } = req.body;
       
@@ -204,7 +204,7 @@ export function registerAdminRoutes(appOrRouter: Express | Router): void {
   });
 
   // Análise de termos desconhecidos
-  get("/admin/train/unknown-terms", adminAuth, (_req: any, res: any) => {
+  get("/api/admin/train/unknown-terms", adminAuth, (_req: any, res: any) => {
     try {
       const terms = getUnknownTerms(50);
       const suggestions = suggestCanonicalMappings();
@@ -225,7 +225,7 @@ export function registerAdminRoutes(appOrRouter: Express | Router): void {
   });
 
   // Limpeza de dados de desenvolvimento
-  post("/admin/train/clear-sessions", adminAuth, (_req: any, res: any) => {
+  post("/api/admin/train/clear-sessions", adminAuth, (_req: any, res: any) => {
     try {
       clearAllSessions();
       res.json({
@@ -242,7 +242,7 @@ export function registerAdminRoutes(appOrRouter: Express | Router): void {
   });
 
   // Teste de conectividade com catálogo
-  get("/admin/train/test-catalog", adminAuth, async (_req: any, res: any) => {
+  get("/api/admin/train/test-catalog", adminAuth, async (_req: any, res: any) => {
     try {
       const { makeCatalogProvider, testProvider, getCatalogStats } = await import("../catalog/provider.js");
       
@@ -274,7 +274,7 @@ export function registerAdminRoutes(appOrRouter: Express | Router): void {
   });
 
   // Configurações avançadas
-  get("/admin/train/config", adminAuth, (_req: any, res: any) => {
+  get("/api/admin/train/config", adminAuth, (_req: any, res: any) => {
     res.json({
       ok: true,
       config: {
