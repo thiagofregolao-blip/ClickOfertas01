@@ -18,14 +18,12 @@ export default function GeminiAssistantBar() {
   // ANTES de qualquer hook de estado - evita re-render infinito
   const didInitRef = useRef(false);
   
-  console.log('🤖 [GeminiAssistantBar] Componente Gemini sendo renderizado/inicializado');
-  console.log('🤖 [GeminiAssistantBar] GEMINI COMPONENT MOUNTED AND RENDERING!');
+  console.log('🤖 [GeminiAssistantBar] Componente inicializado');
   
   const [, setLocation] = useLocation();
   const uid = useMemo(() => localStorage.getItem('uid') || (localStorage.setItem('uid','u-'+Math.random().toString(36).slice(2,8)), localStorage.getItem('uid')!), []);
   const userName = useMemo(() => localStorage.getItem('userName') || 'Cliente', []);
   
-  console.log('🤖 [GeminiAssistantBar] UID:', uid, 'UserName:', userName);
   
   // Mantém a mesma sessão entre turnos e recargas
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -158,20 +156,36 @@ export default function GeminiAssistantBar() {
     };
   }, []);
 
-  // Inicializar sessão persistente - evita rodar 2x no StrictMode e evita loop
+  // Inicializar sessão persistente - cria no servidor e localStorage
   useEffect(() => {
     if (didInitRef.current) return;
     didInitRef.current = true;
 
-    const sidKey = "gemini.sessionId";
-    let sid = localStorage.getItem(sidKey);
-    if (!sid) {
-      sid = `web_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
-      localStorage.setItem(sidKey, sid);
-    }
-    setSessionId(sid);
-
-    console.log("🟢 [GeminiAssistantBar] Sessão ativa:", { sid });
+    const initSession = async () => {
+      try {
+        // Criar sessão no servidor primeiro (garantir que existe no banco)
+        const serverSessionId = await getPersistedSessionId();
+        
+        // Sincronizar localStorage com sessão do servidor
+        localStorage.setItem("gemini.sessionId", serverSessionId);
+        setSessionId(serverSessionId);
+        
+        console.log("✅ [GeminiAssistantBar] Sessão criada/sincronizada:", { serverSessionId });
+      } catch (error) {
+        console.error("❌ [GeminiAssistantBar] Erro ao inicializar sessão:", error);
+        
+        // Fallback local se server falhar
+        const sidKey = "gemini.sessionId";
+        let sid = localStorage.getItem(sidKey);
+        if (!sid) {
+          sid = `web_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+          localStorage.setItem(sidKey, sid);
+        }
+        setSessionId(sid);
+      }
+    };
+    
+    initSession();
   }, []); // DEPENDÊNCIAS VAZIAS (importante)
 
   // Auto-flush pendente quando sessão fica disponível (versão Gemini)
@@ -469,7 +483,18 @@ export default function GeminiAssistantBar() {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const t = query.trim();
-    if (!t || !sessionId) return;
+    if (!t) return;
+    
+    const sid = localStorage.getItem("gemini.sessionId");
+    if (!sid) {
+      // Enfileirar busca pendente se sessão não estiver pronta
+      console.log('🔄 [GeminiAssistantBar] Sessão não pronta, enfileirando busca:', t);
+      pendingSearchRef.current = t;
+      pendingMessageRef.current = t;
+      setOpen(true);
+      setShowResults(true);
+      return;
+    }
     
     console.log('🔄 [GeminiAssistantBar] Resetando estado para nova consulta Gemini:', t);
     
@@ -494,7 +519,18 @@ export default function GeminiAssistantBar() {
   const onOverlaySubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const t = overlayInput.trim();
-    if (!t || !sessionId) return;
+    if (!t) return;
+    
+    const sid = localStorage.getItem("gemini.sessionId");
+    if (!sid) {
+      // Enfileirar busca pendente se sessão não estiver pronta
+      console.log('🔄 [GeminiAssistantBar] Overlay - Sessão não pronta, enfileirando:', t);
+      pendingSearchRef.current = t;
+      pendingMessageRef.current = t;
+      setQuery(t);
+      setOverlayInput('');
+      return;
+    }
     
     console.log('🔄 [GeminiAssistantBar] Overlay submit - nova consulta Gemini:', t);
     
@@ -577,7 +613,7 @@ export default function GeminiAssistantBar() {
             <button
               type="submit"
               onClick={onSubmit}
-              disabled={!query.trim() || !sessionId}
+              disabled={!query.trim()}
               className="absolute right-4 flex items-center justify-center w-10 h-10 bg-primary hover:bg-primary/90 disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="button-gemini-search"
             >
@@ -793,7 +829,7 @@ export default function GeminiAssistantBar() {
                 />
                 <button
                   type="submit"
-                  disabled={!overlayInput.trim() || !sessionId}
+                  disabled={!overlayInput.trim()}
                   className="px-6 py-3 bg-primary hover:bg-primary/90 disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50"
                   data-testid="button-submit-gemini"
                 >
