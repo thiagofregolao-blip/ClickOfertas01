@@ -1,0 +1,114 @@
+# Rotas da API que o Frontend Chama
+# Click Ofertas Paraguai - Mapeamento completo de endpoints
+
+## AUTENTICAÇÃO
+/api/auth/login
+/api/auth/logout
+/api/auth/user
+/api/logout
+
+## ASSISTENTE IA VENDEDOR
+/api/assistant/sessions
+/api/assistant/stream
+/api/assistant/recommend
+/api/assistant/query
+/api/assistant/gemini/stream
+
+## ANALYTICS & TRACKING
+/api/analytics/session
+/api/analytics/session/update
+/api/analytics/search
+/api/analytics/view
+/api/analytics/search/click
+/api/analytics/save
+/api/analytics/compare
+/api/analytics/event
+/api/analytics/overview/:period
+/api/analytics/products/:period
+/api/analytics/global-trending/:period
+/api/analytics/generated-arts
+
+## LOJAS & PRODUTOS
+/api/stores/me
+/api/stores/:id/products
+/api/products/:id/save
+/api/products/:id/like
+/api/products/:id/generate-coupon
+/api/saved-products
+/api/public/stores
+/api/categories
+
+## PRODUCT BANK
+/api/product-banks/import
+/api/product-banks/items
+
+## BUSCA & SUGESTÕES
+/api/suggest
+/api/click-suggestions
+
+## TOTEM DISPLAY
+/api/totem/:storeId/content
+/api/totem/:storeId/settings
+/api/totem/:storeId/sync
+/api/totem/upload
+/api/totem/my-content
+/api/totem/settings
+/api/totem/generate-banner
+/api/totem/generated-arts/:id/toggle
+
+## DAILY SCRATCH & GAMES
+/api/daily-scratch/cards
+/api/daily-scratch/attempt
+/api/daily-scratch/stats
+
+## BANNERS & PROMOÇÕES
+/api/banners/active
+/api/banners/view
+/api/banners/click
+
+## INSTAGRAM STORIES
+/api/instagram-stories
+/api/stories/view
+
+## COMPARAÇÃO DE PREÇOS
+/api/exchange-rate/usd-brl
+/api/price-comparison/compare
+
+## SUPER ADMIN
+/api/super-admin/all-products
+/api/super-admin/ai-test/generate-banner
+/api/super-admin/analytics/global-overview
+/api/super-admin/analytics/stores-detail
+/api/super-admin/generated-arts/manage
+/api/super-admin/generated-arts/force-generate
+/api/super-admin/generated-arts/:id
+
+## UPLOADS & OBJETOS
+/api/objects/upload
+/api/photos/upload-url
+/api/profile-images
+
+## MANUTENÇÃO
+/api/maintenance/status
+/api/maintenance/toggle
+/api/maintenance/config
+
+## FLYERS
+/api/flyers/view
+
+## ADMIN
+/api/admin/all-stores
+
+## CURRENCY
+/api/currency/usd-brl
+
+## OUTROS
+/api/funny-messages/random
+/api/placeholder/:width/:height
+/api/test-image
+
+## NOVOS ENDPOINTS (IA VENDEDOR)
+/api/ia-vendedor/query
+/api/ia-vendedor/sessions
+/api/ia-vendedor/memory/:sessionId
+/api/ia-vendedor/training/:sessionId/log
