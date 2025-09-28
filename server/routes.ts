@@ -8363,7 +8363,22 @@ Regras:
     }
   });
 
-  // Endpoint de teste para IA Vendedor
+  // IA Vendedor (Fases 1→6): Integração completa
+  try {
+    const { registerAssistantRoutes } = await import("../src/assistant/assistantRoutes.js");
+    const { registerAdminRoutes } = await import("../src/assistant/adminRoutes.js");
+    const { makeCatalogProvider } = await import("../src/catalog/provider.js");
+    
+    const catalog = makeCatalogProvider();
+    registerAssistantRoutes(app, catalog);
+    registerAdminRoutes(app);
+    
+    console.log("✅ IA Vendedor integrado com sucesso (Fases 1-6)");
+  } catch (error) {
+    console.error("❌ Erro integrando IA Vendedor:", error);
+  }
+
+  // Endpoint de teste para IA Vendedor (mantido para compatibilidade)
   app.post("/api/ia-vendedor/query", async (req, res) => {
     try {
       const { sessionId, userMessage } = req.body;
