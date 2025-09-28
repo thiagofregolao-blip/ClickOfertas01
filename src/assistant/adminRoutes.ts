@@ -19,10 +19,20 @@ export function registerAdminRoutes(appOrRouter: Express | Router): void {
   const get = (appOrRouter as any).get.bind(appOrRouter);
   const post = (appOrRouter as any).post.bind(appOrRouter);
 
-  // Middleware de autenticação admin
+  // Middleware de autenticação admin com segurança melhorada
   const adminAuth = (req: any, res: any, next: any) => {
     const token = String(req.headers["x-admin-token"] ?? "");
-    const validToken = process.env.ADMIN_TOKEN ?? "devtoken";
+    const validToken = process.env.ADMIN_TOKEN;
+    
+    // Fail fast se token não configurado em produção
+    if (!validToken) {
+      console.error("❌ ADMIN_TOKEN não configurado! Bloqueando acesso admin.");
+      return res.status(503).json({ 
+        ok: false, 
+        error: "service_unavailable",
+        message: "Serviço admin não configurado" 
+      });
+    }
     
     if (token !== validToken) {
       return res.status(401).json({ 

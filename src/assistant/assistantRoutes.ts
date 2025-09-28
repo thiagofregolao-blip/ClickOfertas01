@@ -208,7 +208,7 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
     }
   });
 
-  // Endpoint de status/health do assistente
+  // Endpoint de status/health do assistente  
   get("/assistant/status", async (_req: any, res: any) => {
     try {
       const catalog = await getCatalogProvider();

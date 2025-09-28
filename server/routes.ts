@@ -8363,7 +8363,7 @@ Regras:
     }
   });
 
-  // IA Vendedor (Fases 1→6): Integração completa
+  // IA Vendedor (Fases 1→6): Integração completa (antes do Vite catch-all)
   try {
     const { registerAssistantRoutes } = await import("../src/assistant/assistantRoutes.js");
     const { registerAdminRoutes } = await import("../src/assistant/adminRoutes.js");
