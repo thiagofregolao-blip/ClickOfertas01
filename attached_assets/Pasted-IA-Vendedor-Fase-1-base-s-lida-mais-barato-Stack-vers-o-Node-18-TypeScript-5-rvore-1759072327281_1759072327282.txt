@@ -1,0 +1,609 @@
+IA Vendedor — Fase 1 (base sólida + “mais barato”)
+
+Stack & versão: Node 18+ / TypeScript 5+
+
+Árvore de diretórios
+.
+├─ data/
+│  └─ catalogo.sample.json        # Catálogo mock p/ testes locais
+├─ src/
+│  ├─ server/index.ts             # Endpoint /assistant/query
+│  ├─ core/session.ts             # Memória de sessão (in-memory)
+│  ├─ nlp/normalize.ts            # Normalização PT/ES + singular
+│  ├─ nlp/intent.ts               # Intent + fallback 1 palavra
+│  ├─ nlp/slots.ts                # Extração de modelo/GB/cor/atributos
+│  ├─ nlp/productCanon.ts         # Dicionário canônico (fallback)
+│  ├─ nlp/priceSignals.ts         # Extração PT/ES de preço/ordem
+│  ├─ query/builder.ts            # Query builder + execução mock local
+│  ├─ policy/decide.ts            # 1 pergunta por vez + cross-sell
+│  ├─ nlg/templates.ts            # Templates com rotação por sessão
+│  └─ types.ts                    # Tipagens comuns
+├─ __tests__/
+│  ├─ priceSignals.test.ts
+│  └─ builder.test.ts
+├─ package.json
+├─ tsconfig.json
+├─ .replit
+└─ replit.nix
+
+// package.json
+{
+  "name": "ia-vendedor-fase1",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server/index.ts",
+    "start": "node dist/server/index.js",
+    "build": "tsc -p .",
+    "test": "node --test --test-reporter=spec"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2"
+  }
+}
+
+# .replit
+run = "npm install && npm run dev"
+
+# replit.nix
+{ pkgs }: {
+  deps = [
+    pkgs.nodejs-18_x
+    pkgs.nodePackages.npm
+  ];
+}
+
+// tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "module": "ES2020",
+    "moduleResolution": "Bundler",
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    "esModuleInterop": true
+  },
+  "include": ["src", "__tests__"]
+}
+
+// data/catalogo.sample.json
+[
+  { "id":"IPH-12-64", "title":"iPhone 12 64GB", "category":"celular", "brand":"apple", "price":2999, "currency":"BRL", "in_stock":true, "attrs":["iphone","64gb"] },
+  { "id":"IPH-13-128", "title":"iPhone 13 128GB", "category":"celular", "brand":"apple", "price":3499, "currency":"BRL", "in_stock":true, "attrs":["iphone","128gb"] },
+  { "id":"GAL-15-128", "title":"Galaxy 15 128GB", "category":"celular", "brand":"samsung", "price":2599, "currency":"BRL", "in_stock":false, "attrs":["galaxy","128gb"] },
+  { "id":"DRN-4K-A", "title":"Drone 4K A", "category":"drone", "brand":"dji", "price":2199, "currency":"BRL", "in_stock":true, "attrs":["drone","4k"] },
+  { "id":"DRN-4K-B", "title":"Drone 4K B", "category":"drone", "brand":"dji", "price":1899, "currency":"BRL", "in_stock":true, "attrs":["drone","4k"] },
+  { "id":"TV-55-4K", "title":"TV 55\" 4K Smart", "category":"tv", "brand":"lg", "price":1999, "currency":"BRL", "in_stock":true, "attrs":["tv","4k","55"] },
+  { "id":"PERF-M-EDT", "title":"Perfume Masculino EDT 100ml", "category":"perfumaria", "brand":"dior", "price":499, "currency":"BRL", "in_stock":true, "attrs":["perfume","masculino"] },
+  { "id":"BLUSA-PRETA-M", "title":"Blusa Preta Tamanho M", "category":"roupa", "brand":"fashion", "price":99, "currency":"BRL", "in_stock":true, "attrs":["blusa","preto","m"] }
+]
+
+// src/types.ts
+export type SortKey = "relevance" | "price.asc" | "price.desc";
+export type QuerySignal = {
+  produto?: string;
+  categoria?: string;
+  modelo?: string;
+  atributos?: string[];
+  price_min?: number;
+  price_max?: number;
+  sort?: SortKey;
+  offset?: number;
+  in_stock?: boolean;
+  on_sale?: boolean;
+};
+export type CatalogItem = {
+  id: string; title: string; category: string; brand?: string;
+  price?: number; currency?: string; in_stock?: boolean; attrs?: string[];
+};
+export type Intent =
+  | "PRODUCT_SEARCH"
+  | "SMALL_TALK"
+  | "HELP"
+  | "TIME_QUERY"
+  | "WHOAMI"
+  | "UNKNOWN";
+
+// src/core/session.ts
+type SessionState = {
+  focoAtual?: string | null;
+  categoriaAtual?: string | null;
+  lastQuery?: string | null;
+  rngSeed?: number;
+  _v?: Record<string, number>; // variacao por chave
+};
+const mem = new Map<string, SessionState>();
+
+export function getSession(id: string): SessionState {
+  if (!mem.has(id)) mem.set(id, { rngSeed: Math.floor(Math.random() * 1e9), _v: {} });
+  return mem.get(id)!;
+}
+export function updateSession(id: string, patch: Partial<SessionState>) {
+  const cur = getSession(id);
+  mem.set(id, { ...cur, ...patch });
+}
+export function nextVariant(id: string, key: string, len: number): number {
+  const s = getSession(id);
+  const cur = s._v?.[key] ?? -1;
+  const nxt = (cur + 1) % Math.max(1, len);
+  s._v = s._v ?? {};
+  s._v[key] = nxt;
+  return nxt;
+}
+
+// src/nlp/normalize.ts
+export function norm(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+export function singularPTES(w: string): string {
+  const x = w;
+  if (x.endsWith("oes") || x.endsWith("aes")) return x.slice(0, -3) + "ao";
+  if (x.endsWith("is")) return x.slice(0, -1) + "l";
+  if (x.endsWith("ns")) return x.slice(0, -2) + "m";
+  if (x.endsWith("es") && x.length > 4) return x.slice(0, -2);
+  if (x.endsWith("s") && x.length > 3) return x.slice(0, -1);
+  return x;
+}
+export function tokensPTES(s: string): string[] {
+  return norm(s).split(" ").filter(Boolean).map(singularPTES);
+}
+
+// src/nlp/productCanon.ts
+const PRODUCT_CANON: Record<string, string> = {
+  iphone: "iphone", iphones: "iphone", apple: "iphone",
+  galaxy: "galaxy", samsung: "galaxy",
+  drone: "drone", dji: "drone", mavic: "drone", drones: "drone",
+  perfume: "perfume", perfumes: "perfume",
+  tv: "tv", televisor: "tv", televisores: "tv",
+  blusa: "blusa", camisa: "blusa", camisetas: "camiseta", camiseta: "camiseta",
+  notebook: "notebook", laptop: "notebook"
+};
+const CATEGORY_MAP: Record<string, string> = {
+  iphone: "celular", galaxy: "celular", tv: "tv", drone: "drone",
+  perfume: "perfumaria", blusa: "roupa", camiseta: "roupa", notebook: "notebook"
+};
+export function fromTokensToProductCategory(toks: string[]): { produto?: string; categoria?: string } {
+  for (const t of toks) {
+    const p = PRODUCT_CANON[t];
+    if (p) return { produto: p, categoria: CATEGORY_MAP[p] };
+  }
+  return {};
+}
+
+// src/nlp/priceSignals.ts
+import { QuerySignal } from "../types";
+import { norm } from "./normalize";
+
+export function extractPriceSignals(msgRaw: string): Pick<QuerySignal, "price_min"|"price_max"|"sort"|"offset"> {
+  const msg = norm(msgRaw);
+
+  if (/\bsegundo\s+(mais|mas)\s+barat\w+\b/.test(msg))
+    return { sort: "price.asc", offset: 1 };
+
+  if (/\b(mais|mas)\s+(barat\w+|economic\w+)\b/.test(msg) || /\b(em\s+conta)\b/.test(msg))
+    return { sort: "price.asc" };
+
+  if (/\b(mais|mas)\s+car\w+\b/.test(msg) || /\bpremium\b/.test(msg) || /\btop\s+de\s+linha\b/.test(msg))
+    return { sort: "price.desc" };
+
+  const mMax = msg.match(/\b(ate|hasta|maxim\w+|por\s+menos\s+de)\s+([\p{Sc}]?\s?[\d\.\,]+)/u);
+  if (mMax) {
+    const val = parseMoney(mMax[2]);
+    if (!Number.isNaN(val)) return { price_max: val };
+  }
+
+  const mMin = msg.match(/\b(desde|a\s+partir\s+de|minim\w+)\s+([\p{Sc}]?\s?[\d\.\,]+)/u);
+  if (mMin) {
+    const val = parseMoney(mMin[2]);
+    if (!Number.isNaN(val)) return { price_min: val };
+  }
+
+  const mRange = msg.match(/\b(entre|de)\s+([\p{Sc}]?\s?[\d\.\,]+)\s+(e|a)\s+([\p{Sc}]?\s?[\d\.\,]+)/u);
+  if (mRange) {
+    const a = parseMoney(mRange[2]);
+    const b = parseMoney(mRange[4]);
+    if (!Number.isNaN(a) && !Number.isNaN(b)) {
+      const [min, max] = a < b ? [a, b] : [b, a];
+      return { price_min: min, price_max: max };
+    }
+  }
+
+  return {};
+}
+
+export function parseMoney(s: string): number {
+  let x = s.trim()
+    .replace(/^r\$\s*/i, "")
+    .replace(/^gs\s*/i, "")
+    .replace(/^usd\s*/i, "")
+    .replace(/\./g, "")
+    .replace(/,/g, ".");
+  const n = Number(x);
+  return Number.isFinite(n) ? n : NaN;
+}
+
+// src/nlp/slots.ts
+import { tokensPTES } from "./normalize";
+
+export function extractModeloGBCor(msg: string) {
+  const toks = tokensPTES(msg);
+  const modelo = toks.find(t => /^\d{2}$/.test(t)) || undefined; // 12, 13, 15, 55 (polegadas)
+  const capacidade = toks.find(t => /^\d{2,3}gb$/.test(t)) || undefined; // 64gb/128gb/256gb
+  const cor = ["preto","preta","negro","negra","branco","branca","blanco","blanca","azul","azul marinho","roxo","verde"]
+    .find(c => msg.toLowerCase().includes(c)) as string | undefined;
+  const attrs: string[] = [];
+  if (capacidade) attrs.push(capacidade);
+  if (modelo && Number(modelo) === 55) attrs.push("55");
+  if (/4k\b/i.test(msg)) attrs.push("4k");
+  if (/masculin/i.test(msg)) attrs.push("masculino");
+  if (/feminin/i.test(msg)) attrs.push("feminino");
+  if (cor) attrs.push(cor.includes("preto") || cor.includes("negro") ? "preto" : cor.includes("branc") ? "branco" : cor);
+  return { modelo, capacidade, cor, attrs };
+}
+
+// src/nlp/intent.ts
+import { Intent, QuerySignal } from "../types";
+import { tokensPTES } from "./normalize";
+import { fromTokensToProductCategory } from "./productCanon";
+
+const RX = {
+  small: /\b(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|tudo bem|como vai)\b/i,
+  help: /\b(ajuda|como funciona|o que voce faz|dica|sugestao|sugestão)\b/i,
+  time: /\b(que horas sao|que horas são|hora agora|que hora)\b/i,
+  who: /\b(seu nome|quem é voce|quem e voce)\b/i
+};
+
+export function classify(message: string): { intent: Intent; base: QuerySignal } {
+  const msg = message.toLowerCase();
+  if (RX.time.test(msg)) return { intent: "TIME_QUERY", base: {} };
+  if (RX.small.test(msg)) return { intent: "SMALL_TALK", base: {} };
+  if (RX.help.test(msg)) return { intent: "HELP", base: {} };
+  if (RX.who.test(msg)) return { intent: "WHOAMI", base: {} };
+
+  const toks = tokensPTES(message);
+  const pc = fromTokensToProductCategory(toks); // tenta canônico
+  if (pc.produto || pc.categoria) return { intent: "PRODUCT_SEARCH", base: pc };
+
+  // Fallback: 1 palavra válida -> busca de produto
+  if (toks.length === 1 && /^[a-z0-9\-]+$/i.test(toks[0])) {
+    return { intent: "PRODUCT_SEARCH", base: { produto: toks[0] } };
+  }
+  return { intent: "UNKNOWN", base: {} };
+}
+
+// src/query/builder.ts
+import { QuerySignal, CatalogItem, SortKey } from "../types";
+import { extractPriceSignals } from "../nlp/priceSignals";
+
+export type BuildOpts = { base: QuerySignal; text: string; preferInStockCheapest?: boolean; slots?: { attrs?: string[]; modelo?: string } };
+
+export function buildQuery(opts: BuildOpts): QuerySignal {
+  const price = extractPriceSignals(opts.text);
+  const sort: SortKey | undefined = price.sort ?? opts.base.sort ?? "relevance";
+  const in_stock = (price.sort === "price.asc" && (opts.preferInStockCheapest ?? true)) ? true : opts.base.in_stock;
+  const atributos = uniq([...(opts.base.atributos ?? []), ...(opts.slots?.attrs ?? [])]);
+
+  return {
+    ...opts.base,
+    ...price,
+    modelo: opts.slots?.modelo ?? opts.base.modelo,
+    atributos,
+    sort,
+    in_stock
+  };
+}
+
+export function runQueryLocal(catalog: CatalogItem[], q: QuerySignal): CatalogItem[] {
+  const filtered = catalog.filter(it => {
+    if (q.categoria && it.category !== q.categoria) return false;
+    if (q.produto) {
+      const t = it.title.toLowerCase();
+      if (!t.includes(q.produto)) {
+        // exceção celulares
+        if (!(q.categoria === "celular" && (t.includes("iphone") || t.includes("galaxy")))) return false;
+      }
+    }
+    if (q.price_min != null && (it.price ?? Infinity) < q.price_min) return false;
+    if (q.price_max != null && (it.price ?? 0) > q.price_max) return false;
+    if (q.in_stock && !it.in_stock) return false;
+    if (q.atributos?.length) {
+      const attrs = new Set((it.attrs ?? []).map(a => a.toLowerCase()));
+      for (const a of q.atributos) if (!attrs.has(a.toLowerCase())) return false;
+    }
+    if (q.modelo && !it.title.toLowerCase().includes(q.modelo)) return false;
+    return true;
+  });
+
+  const sortKey = q.sort ?? "relevance";
+  filtered.sort((a, b) => {
+    if (sortKey === "price.asc") return (a.price ?? Infinity) - (b.price ?? Infinity);
+    if (sortKey === "price.desc") return (b.price ?? 0) - (a.price ?? 0);
+    const sa = a.in_stock ? 0 : 1, sb = b.in_stock ? 0 : 1;
+    if (sa !== sb) return sa - sb;
+    return (a.price ?? Infinity) - (b.price ?? Infinity);
+  });
+
+  const off = q.offset ?? 0;
+  return filtered.slice(off, off + 10);
+}
+
+function uniq<T>(arr: T[]) { return Array.from(new Set(arr)); }
+
+// src/policy/decide.ts
+import { QuerySignal } from "../types";
+
+export function askByCategory(cat: string, produto?: string, lang: "pt"|"es" = "pt"): string | undefined {
+  const c = cat || produto || "itens";
+  if (c === "celular" || produto === "iphone" || produto === "galaxy")
+    return lang === "es" ? "¿Prefieres modelo 12, 13 o 15? También 64/128/256GB."
+                         : "Prefere modelo 12, 13 ou 15? Também 64/128/256GB.";
+  if (c === "drone")
+    return lang === "es" ? "¿Priorizamos batería o cámara 4K?"
+                         : "Prefere mais bateria ou câmera 4K?";
+  if (c === "perfumaria")
+    return lang === "es" ? "¿Masculino/femenino o familia olfativa?"
+                         : "Quer masculino/feminino ou família olfativa?";
+  if (c === "tv")
+    return lang === "es" ? "¿Necesitas 120Hz para juegos?"
+                         : "Precisa de 120Hz para jogos?";
+  if (c === "roupa")
+    return lang === "es" ? "¿Tallas y colores?"
+                         : "Quer ver tamanhos e cores?";
+  if (c === "notebook")
+    return lang === "es" ? "¿16GB/512GB o más básico?"
+                         : "Prefere 16GB/512GB ou algo mais básico?";
+  return undefined;
+}
+
+export function crossByCategory(cat?: string, lang: "pt"|"es"="pt"): string[] {
+  const map: Record<string,string[]> = {
+    celular: ["capinha","película","carregador"],
+    drone: ["bateria extra","hélices","case"],
+    perfumaria: ["kit presente","necessaire"],
+    tv: ["soundbar","suporte de parede","cabo HDMI"],
+    roupa: ["cinto","lenço","bolsa"],
+    notebook: ["mochila","mouse","hub USB-C"]
+  };
+  return map[cat ?? ""] ?? [];
+}
+
+export function policyAnswer(N: number, q: QuerySignal, lang: "pt"|"es") {
+  const catOrProd = q.categoria ?? q.produto ?? "itens";
+  const ask = askByCategory(q.categoria ?? "", q.produto, lang);
+  const cross = crossByCategory(q.categoria ?? "", lang);
+  return { catOrProd, ask, cross, N };
+}
+
+// src/nlg/templates.ts
+import { nextVariant } from "../core/session";
+
+const greetPT = [
+  "Oi! ✨ O que você procura hoje?",
+  "E aí! 😄 Me diz o produto que eu caço as melhores ofertas.",
+  "Olá! 👋 Posso buscar iPhone, drone, perfumes, TVs e mais."
+];
+const foundPT = [
+  "Encontrei {N} {cat}.",
+  "Boa! Separei {N} {cat}.",
+  "Achei {N} {cat} por aqui."
+];
+const noResPT = [
+  "Não encontrei resultados.",
+  "Aqui não apareceu nada.",
+  "Zerado por aqui."
+];
+
+const greetES = [
+  "¡Hola! ✨ ¿Qué buscas hoy?",
+  "¡Hey! 😄 Dime el producto y traigo las mejores ofertas.",
+  "¡Hola! 👋 Puedo buscar iPhone, drones, perfumes, TVs y más."
+];
+const foundES = [
+  "Encontré {N} {cat}.",
+  "¡Bien! Separé {N} {cat}.",
+  "Hallé {N} {cat} aquí."
+];
+const noResES = [
+  "No encontré resultados.",
+  "No apareció nada.",
+  "Cero resultados por aquí."
+];
+
+export function sayGreeting(sessionId: string, lang: "pt"|"es") {
+  const arr = lang === "es" ? greetES : greetPT;
+  const i = nextVariant(sessionId, "greet", arr.length);
+  return arr[i];
+}
+export function sayFound(sessionId: string, lang: "pt"|"es", N: number, cat: string, ask?: string, cross?: string[]) {
+  const arr = lang === "es" ? foundES : foundPT;
+  const i = nextVariant(sessionId, "found", arr.length);
+  const base = arr[i].replace("{N}", String(N)).replace("{cat}", cat);
+  const a = ask ? ` ${ask}` : "";
+  const c = cross?.length ? (lang === "es"
+    ? ` Puedo sugerir ${cross.slice(0,2).join(" y ")}.`
+    : ` Posso sugerir ${cross.slice(0,2).join(" e ")}.`) : "";
+  return `${base}${a}${c}`.trim();
+}
+export function sayNoResults(sessionId: string, lang: "pt"|"es", hint?: string) {
+  const arr = lang === "es" ? noResES : noResPT;
+  const i = nextVariant(sessionId, "nores", arr.length);
+  const h = hint ? (lang === "es" ? ` ¿Intentamos ${hint}?` : ` Quer tentar ${hint}?`) : "";
+  return `${arr[i]}${h}`.trim();
+}
+
+// src/server/index.ts
+import express from "express";
+import fs from "fs";
+import path from "path";
+import { CatalogItem, Intent } from "../types";
+import { tokensPTES } from "../nlp/normalize";
+import { classify } from "../nlp/intent";
+import { extractModeloGBCor } from "../nlp/slots";
+import { buildQuery, runQueryLocal } from "../query/builder";
+import { policyAnswer } from "../policy/decide";
+import { sayFound, sayGreeting, sayNoResults } from "../nlg/templates";
+import { getSession, updateSession } from "../core/session";
+
+const app = express();
+app.use(express.json());
+
+const CATALOG: CatalogItem[] = JSON.parse(fs.readFileSync(path.resolve("data/catalogo.sample.json"), "utf8"));
+
+app.post("/assistant/query", (req, res) => {
+  const { sessionId = "anon", message, lang = "pt" } = (req.body ?? {}) as { sessionId?: string; message?: string; lang?: "pt"|"es" };
+  if (!message || !message.trim()) return res.status(400).json({ ok:false, error:"Mensagem vazia" });
+
+  const sess = getSession(sessionId);
+  const { intent, base } = classify(message);
+
+  // Intent fora de produto (Fase 1: respostas simples)
+  if (intent !== "PRODUCT_SEARCH") {
+    let text = "";
+    if (intent === "SMALL_TALK") text = sayGreeting(sessionId, lang);
+    else if (intent === "TIME_QUERY") {
+      const now = new Date(); const hh = String(now.getHours()).padStart(2,"0"); const mm = String(now.getMinutes()).padStart(2,"0");
+      text = lang === "es" ? `Ahora son las ${hh}:${mm}.` : `Agora são ${hh}:${mm}.`;
+      if (sess.focoAtual) text += lang === "es" ? ` ¿Seguimos con ${sess.focoAtual}?` : ` Quer continuar no ${sess.focoAtual}?`;
+    } else if (intent === "HELP") text = lang === "es" ? "Dime el producto (ej.: iPhone, drone, perfume) y te muestro ofertas." : "Diga o produto (ex.: iPhone, drone, perfume) que eu mostro as ofertas.";
+    else if (intent === "WHOAMI") text = lang === "es" ? "Soy tu asistente de compras." : "Sou seu assistente de compras.";
+    else text = sayGreeting(sessionId, lang);
+    return res.json({ ok:true, text, items:[], debug:{ intent } });
+  }
+
+  // Atualiza foco/categoria ao detectar produto novo
+  const produtoNovo = base.produto && base.produto !== sess.focoAtual;
+  updateSession(sessionId, {
+    focoAtual: base.produto ?? sess.focoAtual ?? null,
+    categoriaAtual: produtoNovo ? (base.categoria ?? null) : (sess.categoriaAtual ?? base.categoria ?? null),
+    lastQuery: base.produto ?? sess.lastQuery ?? null
+  });
+
+  // Slots adicionais (modelo/GB/cor/atributos)
+  const slots = extractModeloGBCor(message);
+
+  // Monta query com sinais de preço/ordem
+  const q = buildQuery({ base: { ...base }, text: message, preferInStockCheapest: true, slots: { attrs: slots.attrs, modelo: slots.modelo } });
+
+  // Busca mock local (trocar pela sua fonte real)
+  const items = runQueryLocal(CATALOG, q);
+  const pa = policyAnswer(items.length, q, lang);
+
+  // Resposta
+  let text = "";
+  if (!sess.lastQuery && !q.produto && !q.categoria) {
+    text = sayGreeting(sessionId, lang);
+  }
+  if (items.length > 0) text = sayFound(sessionId, lang, items.length, pa.catOrProd, pa.ask, pa.cross);
+  else text = sayNoResults(sessionId, lang, lang === "es" ? "con otra marca o modelo" : "com outra marca ou modelo");
+
+  return res.json({
+    ok: true,
+    text,
+    items,
+    debug: { intent: "PRODUCT_SEARCH" as Intent, query: q, slots, session: getSession(sessionId) }
+  });
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Fase 1 ON http://localhost:${PORT}`));
+
+// __tests__/priceSignals.test.ts
+import test from "node:test";
+import assert from "node:assert/strict";
+import { extractPriceSignals, parseMoney } from "../src/nlp/priceSignals";
+
+test("PT: mais barato -> price.asc", () => {
+  const s = extractPriceSignals("qual seu iPhone mais barato?");
+  assert.equal(s.sort, "price.asc");
+});
+test("ES: más barato -> price.asc", () => {
+  const s = extractPriceSignals("¿Cuál es tu iPhone más barato?");
+  assert.equal(s.sort, "price.asc");
+});
+test("até X -> price_max", () => {
+  const s = extractPriceSignals("iphone até R$ 3.000");
+  assert.equal(s.price_max, 3000);
+});
+test("entre X e Y -> faixa", () => {
+  const s = extractPriceSignals("perfumes entre 50 e 80");
+  assert.equal(s.price_min, 50);
+  assert.equal(s.price_max, 80);
+});
+test("segundo mais barato -> offset=1", () => {
+  const s = extractPriceSignals("segundo mais barato galaxy");
+  assert.equal(s.sort, "price.asc");
+  assert.equal(s.offset, 1);
+});
+test("parseMoney", () => {
+  assert.equal(parseMoney("R$ 2.999,00"), 2999);
+  assert.equal(parseMoney("Gs 3.000.000"), 3000000);
+  assert.equal(parseMoney("USD 199.90"), 199.90);
+});
+
+// __tests__/builder.test.ts
+import test from "node:test";
+import assert from "node:assert/strict";
+import { buildQuery, runQueryLocal } from "../src/query/builder";
+import { CatalogItem } from "../src/types";
+
+const CATALOG: CatalogItem[] = [
+  { id:"A", title:"iPhone 12 64GB", category:"celular", brand:"apple", price:3000, in_stock:true, attrs:["iphone","64gb"] },
+  { id:"B", title:"iPhone 13 128GB", category:"celular", brand:"apple", price:3500, in_stock:true, attrs:["iphone","128gb"] },
+  { id:"C", title:"iPhone 11 64GB", category:"celular", brand:"apple", price:2500, in_stock:false, attrs:["iphone","64gb"] }
+];
+
+test("mais barato força in_stock=true e ordena asc", () => {
+  const q = buildQuery({ base: { produto:"iphone", categoria:"celular" }, text:"qual seu iphone mais barato?" });
+  const items = runQueryLocal(CATALOG, q);
+  assert.equal(q.sort, "price.asc");
+  assert.equal(q.in_stock, true);
+  assert.equal(items[0].id, "A"); // 3000 (C = 2500 mas fora de estoque)
+});
+
+test("price_max filtra teto", () => {
+  const q = buildQuery({ base: { produto:"iphone", categoria:"celular" }, text:"iphone até 3200" });
+  const items = runQueryLocal(CATALOG, q);
+  assert.equal(items.length, 1);
+  assert.equal(items[0].id, "A");
+});
+
+Como rodar
+
+Replit → Run (dev).
+
+Testar via HTTP:
+
+POST http://localhost:5000/assistant/query
+
+Body:
+
+{ "sessionId": "S1", "message": "qual seu iPhone mais barato?" }
+
+
+Esperado: sort=price.asc, in_stock=true, texto com pergunta (modelo/capacidade) e itens.
+
+Testes: no Console → npm test
+
+Testes (mínimos)
+
+Cobrem “mais barato/até X/entre X–Y/segundo mais barato” e builder com in_stock para “mais barato”.
+
+Notas/Recomendações
+
+Este é o esqueleto Fase 1 pronto pra acoplar ao seu app: substitua runQueryLocal pela sua busca real e alimente o canônico dinâmico depois.
+
+Mantivemos 1 pergunta por vez, cross-sell por categoria, fallback 1 palavra e variação textual por rotação de sessão.
+
+Flags futuramente (quando ligar naturalização): USE_LLM_PARAPHRASE, REPLY_TONE.
