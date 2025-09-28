@@ -1,78 +1,34 @@
+// src/nlp/priceSignals.ts
 import { QuerySignal } from "../types";
 import { normalize } from "./normalize";
 
-export function extractPriceSignals(
-  msgRaw: string
-): Pick<QuerySignal, "price_min" | "price_max" | "sort" | "offset"> & { hasPriceIntent?: boolean } {
+export function extractPriceSignals(msgRaw: string): Pick<QuerySignal, "price_min"|"price_max"|"sort"|"offset"> {
   const msg = normalize(msgRaw);
+  if (/\bsegundo\s+(mais|mas)\s+barat[ao]s?\b/.test(msg)) return { sort: "price.asc", offset: 1 };
+  if (/\b(mais|mas)\s+(barat[ao]s?|economic[ao]s?)\b/.test(msg) || /\b(em\s+conta)\b/.test(msg)) return { sort: "price.asc" };
+  if (/\b(mais|mas)\s+car[ao]s?\b/.test(msg) || /\bpremium\b/.test(msg) || /\btop\s+de\s+linha\b/.test(msg)) return { sort: "price.desc" };
 
-  // palavras que sinalizam intenção de preço (sem precisar de produto)
-  const priceWords = [
-    "barato", "barata", "economico", "econômico", "economica", "econômica",
-    "mais barato", "mas barato", "baratinho",
-    "caro", "cara", "mais caro", "top de linha", "premium",
-    "ate", "hasta", "por menos de", "a partir de", "entre", "de"
-  ];
-  const hasPriceIntent = priceWords.some(w => msg.includes(normalize(w)));
+  const mMax = msg.match(/\b(ate|hasta|maxim[ao]s?|por\s+menos\s+de)\s+([\p{Sc}]?\s?[\d.,]+)/u);
+  if (mMax) { const val = parseMoney(mMax[2]); if (!Number.isNaN(val)) return { price_max: val }; }
 
-  // 2º mais barato
-  if (/\b(segundo|2o|2º)\s+(mais|mas)\s+barat[ao]s?\b/.test(msg))
-    return { sort: "price.asc", offset: 1, hasPriceIntent: true };
+  const mMin = msg.match(/\b(desde|a\s+partir\s+de|minim[ao]s?)\s+([\p{Sc}]?\s?[\d.,]+)/u);
+  if (mMin) { const val = parseMoney(mMin[2]); if (!Number.isNaN(val)) return { price_min: val }; }
 
-  // Mais barato
-  if (/\b(qual\s+o\s+)?(mais|mas)\s+barat[ao]s?\b/.test(msg) || /\b(em\s+conta)\b/.test(msg))
-    return { sort: "price.asc", hasPriceIntent: true };
-
-  // Mais caro / premium
-  if (/\b(mais|mas)\s+car[ao]s?\b/.test(msg) || /\bpremium\b/.test(msg) || /\btop\s+de\s+linha\b/.test(msg))
-    return { sort: "price.desc", hasPriceIntent: true };
-
-  // Até X
-  const mMax = msg.match(/\b(ate|hasta|maximo?|por\s+menos\s+de)\s+([\p{Sc}]?\s?[\d\.,]+)/u);
-  if (mMax) {
-    const val = parseMoney(mMax[2]);
-    if (!Number.isNaN(val)) return { price_max: val, hasPriceIntent: true };
-  }
-
-  // A partir de X
-  const mMin = msg.match(/\b(desde|a\s+partir\s+de|minimo?)\s+([\p{Sc}]?\s?[\d\.,]+)/u);
-  if (mMin) {
-    const val = parseMoney(mMin[2]);
-    if (!Number.isNaN(val)) return { price_min: val, hasPriceIntent: true };
-  }
-
-  // Entre X e Y
-  const mRange = msg.match(/\b(entre|de)\s+([\p{Sc}]?\s?[\d\.,]+)\s+(e|a)\s+([\p{Sc}]?\s?[\d\.,]+)/u);
+  const mRange = msg.match(/\b(entre|de)\s+([\p{Sc}]?\s?[\d.,]+)\s+(e|a)\s+([\p{Sc}]?\s?[\d.,]+)/u);
   if (mRange) {
-    const a = parseMoney(mRange[2]);
-    const b = parseMoney(mRange[4]);
-    if (!Number.isNaN(a) && !Number.isNaN(b)) {
-      const [min, max] = a < b ? [a, b] : [b, a];
-      return { price_min: min, price_max: max, hasPriceIntent: true };
-    }
+    const a = parseMoney(mRange[2]); const b = parseMoney(mRange[4]);
+    if (!Number.isNaN(a) && !Number.isNaN(b)) return { price_min: Math.min(a,b), price_max: Math.max(a,b) };
   }
-  return { hasPriceIntent };
+  return {};
 }
 
 export function parseMoney(s: string): number {
-  let x = s
-    .trim()
-    .replace(/^r\$\s*/i, "")
-    .replace(/^gs\s*/i, "")
-    .replace(/^usd\s*/i, "")
-    .replace(/\./g, "")
-    .replace(/,/g, ".");
-  const n = Number(x);
-  return Number.isFinite(n) ? n : NaN;
+  let x = s.trim().replace(/^r\$\s*/i, "").replace(/^gs\s*/i, "").replace(/^usd\s*/i, "").replace(/\./g, "").replace(/,/g, ".");
+  const n = Number(x); return Number.isFinite(n) ? n : NaN;
 }
 
-// Compatibilidade com o sistema existente
-export function detectSortSignal(message: string): "price.asc" | "price.desc" | "relevance" {
-  const signals = extractPriceSignals(message);
-  return signals.sort || "relevance";
-}
-
-export function shouldFilterInStock(message: string): boolean {
-  const signals = extractPriceSignals(message);
-  return signals.hasPriceIntent || false;
+// NOVO: helper para saber se há "intenção de preço" na frase
+export function hasPriceIntent(msgRaw: string): boolean {
+  const sig = extractPriceSignals(msgRaw);
+  return !!(sig.sort || sig.price_max != null || sig.price_min != null || sig.offset != null);
 }

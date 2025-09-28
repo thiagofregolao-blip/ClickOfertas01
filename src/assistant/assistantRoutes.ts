@@ -130,33 +130,37 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
       setCookie(res, "sid", sessionId);
 
       const sess = getSession(sessionId);
-      const { intent, base } = classify(message);
-
-      // NEW: follow-up de preço → herda foco/categoria da sessão
+      const cls = classify(message);
       const priceSig = extractPriceSignals(message);
-      const priceOnlyFollowUp =
-        priceSig.hasPriceIntent &&
-        !base.produto &&
-        !base.categoria &&
-        (sess.focoAtual || sess.categoriaAtual || sess.lastQuery);
 
-      const effectiveIntent = (priceOnlyFollowUp ? "PRODUCT_SEARCH" : intent) as Intent;
-      const effectiveBase = priceOnlyFollowUp
-        ? {
-            ...base,
-            // herda na ordem: focoAtual → categoriaAtual → lastQuery (produto "solto")
-            produto: (sess.focoAtual ?? sess.lastQuery) ?? undefined,
-            categoria: sess.categoriaAtual ?? undefined,
-          }
-        : base;
+      let base = { ...cls.base };
+
+      // 🔑 NOVO: se é follow-up de preço, herda o foco anterior
+      if (cls.flags?.priceOnlyFollowUp) {
+        // tenta herdar do último foco
+        const foco = sess.focoAtual ?? null;         // "iphone", "drone", etc.
+        const cat  = sess.categoriaAtual ?? null;    // "celular", "drone", etc.
+
+        if (!base.produto && foco) base.produto = foco;
+        if (!base.categoria && cat) base.categoria = cat;
+      }
+
+      // Se ainda não temos nada, e já tivemos consulta anterior, use lastQuery armazenada
+      if ((!base.produto && !base.categoria) && sess.lastQuery) {
+        base.produto = sess.lastQuery as any;
+      }
+
+      const effectiveIntent = cls.intent as Intent;
+      const effectiveBase = base;
+      const priceOnlyFollowUp = !!cls.flags?.priceOnlyFollowUp;
 
       // Fluxos não-produto (small talk, utilitários, ajuda, whoami)
       if (effectiveIntent !== "PRODUCT_SEARCH") {
         let draft = "";
         
-        if (intent === "SMALL_TALK") {
+        if (effectiveIntent === "SMALL_TALK") {
           draft = sayGreeting(sessionId, lang);
-        } else if (intent === "TIME_QUERY") {
+        } else if (effectiveIntent === "TIME_QUERY") {
           const now = new Date();
           const hh = String(now.getHours()).padStart(2, "0");
           const mm = String(now.getMinutes()).padStart(2, "0");
@@ -169,11 +173,11 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
               ? ` ¿Seguimos con ${sess.focoAtual}?` 
               : ` Quer continuar no ${sess.focoAtual}?`;
           }
-        } else if (intent === "HELP") {
+        } else if (effectiveIntent === "HELP") {
           draft = lang === "es" 
             ? "Dime el producto (ej.: iPhone, drone, perfume) y te muestro ofertas."
             : "Diga o produto (ex.: iPhone, drone, perfume) que eu mostro as ofertas.";
-        } else if (intent === "WHOAMI") {
+        } else if (effectiveIntent === "WHOAMI") {
           draft = lang === "es" 
             ? "Soy tu asistente de compras especializado en encontrar las mejores ofertas."
             : "Sou seu assistente de compras especializado em encontrar as melhores ofertas.";
@@ -191,7 +195,7 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
           text,
           items: [],
           blocks: [{ type: "text", text }],
-          debug: { intent }
+          debug: { intent: effectiveIntent }
         });
       }
 
@@ -215,6 +219,11 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
         preferInStockCheapest: true,
         slots: { attrs: slots.attrs, modelo: slots.modelo }
       });
+
+      // 🔧 Se foi follow-up de preço e sort não veio, força ASC
+      if (priceOnlyFollowUp && !query.sort) {
+        query.sort = "price.asc";
+      }
 
       // Carrega catálogo (JSON/HTTP/DB)
       const catalogItems: CatalogItem[] = await catalog.load();
