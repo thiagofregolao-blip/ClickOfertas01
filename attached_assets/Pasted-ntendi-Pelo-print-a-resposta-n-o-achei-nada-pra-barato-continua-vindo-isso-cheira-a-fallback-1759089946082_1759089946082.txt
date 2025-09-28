@@ -1,0 +1,86 @@
+ntendi. Pelo print, a resposta “não achei nada pra ‘barato’” continua vindo — isso cheira a fallback do seu front quando a busca retorna 0 itens ou quando algum endpoint antigo ainda está respondendo. Pra não ficar preso nisso, te passo 3 passos rápidos + um HOTFIX server-side que contorna o front e prova o fluxo “mais barato” funcionando independentemente.
+
+1) Verificação rápida (sem o front)
+
+Teste o backend direto para ver se o servidor está devolvendo o “mais barato”:
+
+# 1) primeiro turn: seta foco iphone
+curl -s http://localhost:5000/api/assistant/query \
+ -H "Content-Type: application/json" \
+ -d '{"message":"iphone","sessionId":"t1"}' | jq '.debug.session.focoAtual,.debug.query,.text'
+
+# 2) follow-up só de preço (mesma sessionId)
+curl -s http://localhost:5000/api/assistant/query \
+ -H "Content-Type: application/json" \
+ -d '{"message":"quero um mais barato","sessionId":"t1"}' | jq '.debug.priceOnlyFollowUp,.debug.query.sort,.items | length,.text'
+
+
+Se aqui vier priceOnlyFollowUp: true, sort: "price.asc" e itens > 0, o backend está correto. Aí o problema é o front exibindo a cópia fixa de “não rolou…” quando items.length===0 ou usando rota antiga.
+
+2) Checagens rápidas no front
+
+Confirme que a chamada é para /api/assistant/query (vide patches que te enviei).
+
+Exiba sempre o text do backend quando ok:true — evite mensagens “hardcoded” de erro quando items.length===0.
+
+Garanta que a mesma sessionId vai nas duas mensagens (ou deixe o backend gerar auto_*, como já patchiei).
+
+3) HOTFIX (failsafe): atalho “mais barato” dentro da rota
+
+Aplique o patch abaixo. Ele cria um atalho explícito: se detectarmos follow-up de preço e existir foco/categoria salvos, o servidor curta o caminho e responde com o item mais barato sem depender do builder. Isso elimina qualquer ruído de classificador, herdando do focoAtual/lastQuery e devolvendo já o texto certo.
+
+Salve como patch-hotfix-cheapest-shortcircuit.diff e aplique com git apply patch-hotfix-cheapest-shortcircuit.diff.
+
+*** a/src/assistant/assistantRoutes.ts
+--- b/src/assistant/assistantRoutes.ts
+@@
+     let q = buildQuery({
+       base: { ...effectiveBase },
+       text: message,
+       preferInStockCheapest: true,
+       slots: { attrs: slots.attrs, modelo: slots.modelo }
+     });
+     // Carrega catálogo (JSON/HTTP/DB)
+     const all: CatalogItem[] = await catalog.load();
+-    let items = runQueryLocal(all, q);
++    let items = runQueryLocal(all, q);
+ 
+-    // NEW: fallback — se for follow-up de preço e zerou, tenta reconsultar herdando foco salvo
++    // NEW: shortcircuit/hotfix — se for follow-up de preço e temos foco salvo, entregamos o mais barato direto
++    if (items.length === 0 && priceOnlyFollowUp) {
++      const foco = (sess.focoAtual ?? sess.lastQuery ?? effectiveBase.produto)?.toLowerCase();
++      const cat  = (sess.categoriaAtual ?? effectiveBase.categoria) ?? undefined;
++      if (foco || cat) {
++        const pool = all.filter(it => {
++          const t = it.title?.toLowerCase() ?? "";
++          const okProd = foco ? (t.includes(foco) || (cat === "celular" && (t.includes("iphone") || t.includes("galaxy")))) : true;
++          const okCat  = cat  ? it.category === cat : true;
++          return okProd && okCat && (it.price != null);
++        });
++        pool.sort((a,b) => (a.in_stock ? 0:1) - (b.in_stock ? 0:1) || (a.price ?? Infinity) - (b.price ?? Infinity));
++        items = pool.slice(0, 10);
++        // Ajusta a query de debug para refletir o atalho
++        q = { ...q, produto: foco ?? q.produto, categoria: cat ?? q.categoria, sort: "price.asc", in_stock: true };
++      }
++    }
+ 
+     // (…resto inalterado…)
+
+
+Esse atalho é “a prova de front” — mesmo que o classificador/builder falhe, o usuário vai ver o mais barato com base no foco salvo.
+
+4) Se continuar aparecendo “não rolou com barato…”
+
+Isso não vem do backend (minhas mensagens evitam essa frase). Procure no seu front por essa string e remova o fallback local — apenas mostre o text que vem do servidor quando ok:true. Se quiser, me manda o arquivo do front que renderiza a bolha do assistente que eu marco a linha exata.
+
+5) Checklist de instalação
+
+git apply patch-hotfix-cheapest-shortcircuit.diff
+
+npm run dev
+
+Teste via curl com mesma sessionId como acima.
+
+Se o curl mostrar “mais barato”, o backend está ok → ajuste o front pra não sobrescrever a resposta.
+
+Se preferir, te mando um patch que também loga no console sessionId, focoAtual, priceOnlyFollowUp e o primeiro item retornado — fica trivial ver o que está acontecendo ao vivo.

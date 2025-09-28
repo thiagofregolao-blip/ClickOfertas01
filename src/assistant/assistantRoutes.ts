@@ -183,18 +183,60 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
       const catalogItems: CatalogItem[] = await catalog.load();
       let items = runQueryLocal(catalogItems, query);
 
-      // NEW: fallback — se for follow-up de preço e zerou, tenta reconsultar herdando foco salvo
+      // NEW: shortcircuit/hotfix — se for follow-up de preço e temos foco salvo, entregamos o mais barato direto
       if (items.length === 0 && priceOnlyFollowUp) {
-        const fallbackProduto = sess.focoAtual ?? sess.lastQuery ?? undefined;
-        const fallbackCategoria = sess.categoriaAtual ?? undefined;
-        if (fallbackProduto || fallbackCategoria) {
-          query = buildQuery({
-            base: { ...effectiveBase, produto: fallbackProduto ?? effectiveBase.produto, categoria: fallbackCategoria ?? effectiveBase.categoria },
-            text: message,
-            preferInStockCheapest: true,
-            slots: { attrs: slots.attrs, modelo: slots.modelo }
+        const foco = (sess.focoAtual ?? sess.lastQuery ?? effectiveBase.produto)?.toLowerCase();
+        const cat = (sess.categoriaAtual ?? effectiveBase.categoria)?.toLowerCase();
+        
+        if (foco || cat) {
+          // Helper para normalização de categoria
+          const normCategory = (c: string) => {
+            const lower = c.toLowerCase();
+            if (lower.includes('celular') || lower.includes('smartphone') || lower.includes('telefon')) return 'celular';
+            if (lower.includes('perfum') || lower.includes('fragranc')) return 'perfume';
+            if (lower.includes('elet') || lower.includes('gadget')) return 'eletronicos';
+            return lower;
+          };
+          
+          // Primeira tentativa: foco + categoria
+          let pool = catalogItems.filter(it => {
+            const t = it.title?.toLowerCase() ?? "";
+            const itCat = normCategory(it.category || "");
+            const sessCat = cat ? normCategory(cat) : undefined;
+            
+            const okProd = foco ? (t.includes(foco) || (sessCat === "celular" && (t.includes("iphone") || t.includes("galaxy")))) : true;
+            const okCat = sessCat ? itCat === sessCat : true;
+            const hasPrice = it.price != null && (typeof it.price === 'number') && it.price > 0;
+            
+            return okProd && okCat && hasPrice;
           });
-          items = runQueryLocal(catalogItems, query);
+          
+          // Fallback: se vazio e temos foco, tenta só foco (ignora categoria)
+          if (pool.length === 0 && foco) {
+            pool = catalogItems.filter(it => {
+              const t = it.title?.toLowerCase() ?? "";
+              const hasPrice = it.price != null && (typeof it.price === 'number') && it.price > 0;
+              return t.includes(foco) && hasPrice;
+            });
+          }
+          
+          if (pool.length > 0) {
+            // Filtrar apenas em estoque e ordenar por preço
+            const inStockPool = pool.filter(it => it.in_stock === true);
+            const finalPool = inStockPool.length > 0 ? inStockPool : pool; // fallback para todos se não houver em estoque
+            
+            finalPool.sort((a,b) => (a.price ?? Infinity) - (b.price ?? Infinity));
+            items = finalPool.slice(0, 10);
+            
+            // Ajusta a query de debug para refletir o atalho
+            query = { 
+              ...query, 
+              produto: foco ?? query.produto, 
+              categoria: cat ?? query.categoria, 
+              sort: "price.asc",
+              in_stock: inStockPool.length > 0 // só marca como true se realmente filtrou
+            };
+          }
         }
       }
 
@@ -221,11 +263,17 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
         }
       } else {
         // mensagem neutra (evita "não rolou com barato" de handlers antigos)
-        draft = sayNoResults(
-          sessionId, 
-          lang, 
-          lang === "es" ? "con otra marca o modelo" : "com outra marca ou modelo"
-        );
+        if (priceOnlyFollowUp) {
+          draft = lang === "es" 
+            ? "No encontré productos más baratos para esa búsqueda. ¿Intentamos con otra marca o categoría?" 
+            : "Não encontrei produtos mais baratos para essa busca. Vamos tentar com outra marca ou categoria?";
+        } else {
+          draft = sayNoResults(
+            sessionId, 
+            lang, 
+            lang === "es" ? "con otra marca o modelo" : "com outra marca ou modelo"
+          );
+        }
       }
 
       // Naturalização opcional via LLM (OpenAI/Gemini)
