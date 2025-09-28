@@ -1,0 +1,168 @@
+Beleza — vamos “matar” o problema por três frentes ao mesmo tempo:
+
+Sessão realmente estável no navegador (via cookie sid, além do hash de IP/UA).
+
+Atalho de “mais barato” no servidor (mesmo que o classificador/builder falhem).
+
+Boost das frases de preço (“quero um mais barato”, “qual o mais barato?”).
+
+Abaixo estão os patches git apply prontos. Aplique todos, reinicie (npm run dev) e rode os testes de verificação no final.
+
+1) patch-session-cookie.diff
+
+Lê/grava um cookie sid para manter a mesma sessão entre mensagens, mesmo atrás de proxy.
+
+*** a/src/assistant/assistantRoutes.ts
+--- b/src/assistant/assistantRoutes.ts
+@@
+ import type { Intent, CatalogItem } from "../types";
+ import { naturalize } from "../nlg/naturalizer";
+ import type { CatalogProvider } from "../catalog/provider";
+ import { extractPriceSignals } from "../nlp/priceSignals";
+ 
++// --- Cookie helpers (sem dependências) ---
++function readCookie(req: any, key: string): string | undefined {
++  const raw = String(req.headers?.cookie ?? "");
++  if (!raw) return undefined;
++  const parts = raw.split(";").map((s: string) => s.trim());
++  for (const p of parts) {
++    const i = p.indexOf("=");
++    if (i > 0) {
++      const k = p.slice(0, i);
++      const v = p.slice(i + 1);
++      if (k === key) return decodeURIComponent(v);
++    }
++  }
++  return undefined;
++}
++function setCookie(res: any, key: string, val: string) {
++  const v = encodeURIComponent(val);
++  res.setHeader("Set-Cookie", `${key}=${v}; Path=/; SameSite=Lax`);
++}
+@@
+ function hash32(s: string) {
+   let h = 0;
+   for (let i = 0; i < s.length; i++) { h = (h << 5) - h + s.charCodeAt(i); h |= 0; }
+   return (h >>> 0).toString(36);
+ }
+-function getStableSessionId(req: any, provided?: string) {
+-  if (provided && String(provided).trim()) return String(provided);
++function getStableSessionId(req: any, provided?: string) {
++  // 1) se vier do body, usa
++  if (provided && String(provided).trim()) return String(provided);
++  // 2) se já existir cookie, usa
++  const fromCookie = readCookie(req, "sid");
++  if (fromCookie) return fromCookie;
++  // 3) deriva de IP/UA
+   const ua = String(req.headers["user-agent"] ?? "");
+   const ip = String(
+     (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ??
+     req.ip ?? req.connection?.remoteAddress ?? "0.0.0.0"
+   );
+   const key = `${ip}|${ua}`;
+   return `auto_${hash32(key)}`;
+ }
+@@
+   post("/assistant/query", async (req: any, res: any) => {
+     const body = (req.body ?? {}) as { sessionId?: string; message?: string; lang?: "pt"|"es" };
+-    const sessionId = getStableSessionId(req, body.sessionId);
++    const sessionId = getStableSessionId(req, body.sessionId);
+     const message = body.message;
+     const lang = (body.lang ?? "pt") as "pt"|"es";
+     if (!message || !message.trim()) return res.status(400).json({ ok:false, error:"Mensagem vazia" });
++    // garante cookie pro próximo turno
++    if (!readCookie(req, "sid")) setCookie(res, "sid", sessionId);
+
+2) patch-hotfix-cheapest-shortcircuit.diff
+
+Atalho server-side: se a frase for só de preço e houver foco/categoria na sessão, entrega o mais barato direto (mesmo que a busca normal volte vazia).
+
+*** a/src/assistant/assistantRoutes.ts
+--- b/src/assistant/assistantRoutes.ts
+@@
+     let q = buildQuery({
+       base: { ...effectiveBase },
+       text: message,
+       preferInStockCheapest: true,
+       slots: { attrs: slots.attrs, modelo: slots.modelo }
+     });
+     const all: CatalogItem[] = await catalog.load();
+-    let items = runQueryLocal(all, q);
++    let items = runQueryLocal(all, q);
+ 
+-    // NEW: fallback — se for follow-up de preço e zerou, tenta reconsultar herdando foco salvo
++    // NEW: shortcircuit — se for follow-up de preço, força "mais barato" do foco salvo
++    if (items.length === 0 && priceOnlyFollowUp) {
++      const foco = (sess.focoAtual ?? sess.lastQuery ?? effectiveBase.produto)?.toLowerCase();
++      const cat  = (sess.categoriaAtual ?? effectiveBase.categoria) ?? undefined;
++      if (foco || cat) {
++        const pool = all.filter(it => {
++          const t = it.title?.toLowerCase() ?? "";
++          const okProd = foco ? (t.includes(foco) || (cat === "celular" && (t.includes("iphone") || t.includes("galaxy")))) : true;
++          const okCat  = cat  ? it.category === cat : true;
++          return okProd && okCat && (it.price != null);
++        });
++        pool.sort((a,b) => (a.in_stock ? 0:1) - (b.in_stock ? 0:1) || (a.price ?? Infinity) - (b.price ?? Infinity));
++        items = pool.slice(0, 10);
++        q = { ...q, produto: foco ?? q.produto, categoria: cat ?? q.categoria, sort: "price.asc", in_stock: true };
++      }
++    }
+ 
+     // (resto permanece)
+
+3) patch-intent-price-boost.diff
+
+Garante que “quero um mais barato”, “qual o mais barato?” e afins sejam tratadas como busca de produto (rota herda o foco).
+
+*** a/src/nlp/intent.ts
+--- b/src/nlp/intent.ts
+@@
+   for (const t of toks) for (const v of VOCAB) if (damerauLevenshtein(t, v) <= 2) return { intent: "PRODUCT_SEARCH", base: { produto: v } };
+   if (toks.length === 1 && /^[a-z0-9\-]+$/i.test(toks[0])) return { intent: "PRODUCT_SEARCH", base: { produto: toks[0] } };
+-  const priceOnly = /\b(mais|mas)\s+(barat\w+|car\w+)\b|\b(em\s+conta)\b|\b(ate|hasta|por\s+menos\s+de|a\s+partir\s+de)\b/i.test(msg)
+-                  || /\bquero\s+um\s+mais\s+barat\w+\b/i.test(msg)
+-                  || /\bqual\s+o\s+mais\s+barat\w+\b/i.test(msg);
++  const priceOnly =
++      /\b(mais|mas)\s+(barat\w+|car\w+)\b|\b(em\s+conta)\b|\b(ate|hasta|por\s+menos\s+de|a\s+partir\s+de)\b/i.test(msg)
++   || /\bquero\s+um\s+mais\s+barat\w+\b/i.test(msg)
++   || /\bqual\s+o\s+mais\s+barat\w+\b/i.test(msg)
++   || /\btem\s+mais\s+barat\w+\b/i.test(msg)
++   || /\bmais\s+em\s+conta\b/i.test(msg);
+   if (priceOnly) return { intent: "PRODUCT_SEARCH", base: {} };
+   return { intent: "UNKNOWN", base: {} };
+
+Como aplicar
+git apply patch-session-cookie.diff
+git apply patch-hotfix-cheapest-shortcircuit.diff
+git apply patch-intent-price-boost.diff
+npm run dev
+
+Testes (prova real sem o front)
+
+Use sempre a mesma sessão (agora o cookie já garante, mas no curl passamos sessionId por clareza):
+
+# 1) setar foco
+curl -s http://localhost:5000/api/assistant/query \
+ -H "Content-Type: application/json" \
+ -d '{"message":"iphone","sessionId":"t1"}' | jq '.debug.session.focoAtual,.text'
+
+# 2) pedir mais barato (mesma sessão)
+curl -s http://localhost:5000/api/assistant/query \
+ -H "Content-Type: application/json" \
+ -d '{"message":"quero um mais barato","sessionId":"t1"}' | jq '.debug.priceOnlyFollowUp,.debug.query.sort, .items | length, .text'
+
+# 3) “qual o mais barato?”
+curl -s http://localhost:5000/api/assistant/query \
+ -H "Content-Type: application/json" \
+ -d '{"message":"qual o mais barato?","sessionId":"t1"}' | jq '.debug.query.sort, .items[0].price, .text'
+
+
+Esperado:
+
+debug.priceOnlyFollowUp: true
+
+debug.query.sort: "price.asc"
+
+items.length > 0 (chega o mais barato do foco)
+
+text com frase “Encontrei …” em vez do “não rolou com barato”.

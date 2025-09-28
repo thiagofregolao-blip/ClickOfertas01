@@ -15,6 +15,35 @@ import type { Intent, CatalogItem } from "./types.js";
 import type { CatalogProvider } from "../catalog/provider.js";
 import { extractPriceSignals } from "./nlp/priceSignals.js";
 
+// --- Cookie helpers (sem dependências) ---
+function readCookie(req: any, key: string): string | undefined {
+  const raw = String(req.headers?.cookie ?? "");
+  if (!raw) return undefined;
+  const parts = raw.split(";").map((s: string) => s.trim());
+  for (const p of parts) {
+    const i = p.indexOf("=");
+    if (i > 0) {
+      const k = p.slice(0, i);
+      const v = p.slice(i + 1);
+      if (k === key) return decodeURIComponent(v);
+    }
+  }
+  return undefined;
+}
+function setCookie(res: any, key: string, val: string) {
+  const v = encodeURIComponent(val);
+  const isProduction = process.env.NODE_ENV === "production";
+  const flags = [
+    `${key}=${v}`,
+    "Path=/",
+    "SameSite=Lax",
+    "HttpOnly",
+    isProduction ? "Secure" : "",
+    "Max-Age=31536000" // 1 ano
+  ].filter(Boolean).join("; ");
+  res.setHeader("Set-Cookie", flags);
+}
+
 function hash32(s: string) {
   let h = 0;
   for (let i = 0; i < s.length; i++) { h = (h << 5) - h + s.charCodeAt(i); h |= 0; }
@@ -22,7 +51,12 @@ function hash32(s: string) {
 }
 
 function getStableSessionId(req: any, provided?: string) {
+  // 1) se já existir cookie, usa (prefere sobre body para evitar session drift)
+  const fromCookie = readCookie(req, "sid");
+  if (fromCookie) return fromCookie;
+  // 2) se vier do body, usa
   if (provided && String(provided).trim()) return String(provided);
+  // 3) deriva de IP/UA
   const ua = String(req.headers["user-agent"] ?? "");
   const ip = String(
     (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ??
@@ -91,6 +125,9 @@ export function registerAssistantRoutes(appOrRouter: Express | Router, catalog: 
           error: "Mensagem vazia" 
         });
       }
+      
+      // sempre seta o cookie com o sessionId resolvido para manter sincronia
+      setCookie(res, "sid", sessionId);
 
       const sess = getSession(sessionId);
       const { intent, base } = classify(message);
