@@ -1,0 +1,191 @@
+Obrigado pelo print + console: agora ficou claro que o frontend está OK (ele exibe exatamente o que chega no SSE).
+O texto “Hmm, não achei nada pra ‘barato’…” está vindo do backend. Ou seja: o back não está reconhecendo “quero um mais barato” como follow-up de preço do pedido anterior (“iphone”).
+
+Isso acontece porque a nossa classify() só marca PRODUCT_SEARCH quando há um termo de produto/categoria na frase atual. Em “quero um mais barato” não há “iphone”, então o roteador vai para fallback e manda esse texto neutro.
+
+A correção é simples e definitiva:
+
+Tratar mensagens só de preço como PRODUCT_SEARCH (mesmo sem produto explícito).
+
+No servidor, herdar o produto/categoria da sessão anterior quando base.produto/base.categoria estiverem vazios.
+
+Marcar priceOnlyFollowUp: true em debug e forçar sort: "price.asc".
+
+Abaixo seguem os 3 patches prontos (formato “cola e substitui” nos seus arquivos). Eles só mexem no backend e respeitam toda a estrutura que já enviamos.
+
+PATCH A — src/nlp/priceSignals.ts
+
+(semântica: expor um helper rápido para saber se a mensagem tem intenção de preço)
+
+// src/nlp/priceSignals.ts
+import { QuerySignal } from "../types";
+import { norm } from "./normalize";
+
+export function extractPriceSignals(msgRaw: string): Pick<QuerySignal, "price_min"|"price_max"|"sort"|"offset"> {
+  const msg = norm(msgRaw);
+  if (/\bsegundo\s+(mais|mas)\s+barat\w+\b/.test(msg)) return { sort: "price.asc", offset: 1 };
+  if (/\b(mais|mas)\s+(barat\w+|economic\w+)\b/.test(msg) || /\b(em\s+conta)\b/.test(msg)) return { sort: "price.asc" };
+  if (/\b(mais|mas)\s+car\w+\b/.test(msg) || /\bpremium\b/.test(msg) || /\btop\s+de\s+linha\b/.test(msg)) return { sort: "price.desc" };
+
+  const mMax = msg.match(/\b(ate|hasta|maxim\w+|por\s+menos\s+de)\s+([\p{Sc}]?\s?[\d\.\,]+)/u);
+  if (mMax) { const val = parseMoney(mMax[2]); if (!Number.isNaN(val)) return { price_max: val }; }
+
+  const mMin = msg.match(/\b(desde|a\s+partir\s+de|minim\w+)\s+([\p{Sc}]?\s?[\d\.\,]+)/u);
+  if (mMin) { const val = parseMoney(mMin[2]); if (!Number.isNaN(val)) return { price_min: val }; }
+
+  const mRange = msg.match(/\b(entre|de)\s+([\p{Sc}]?\s?[\d\.\,]+)\s+(e|a)\s+([\p{Sc}]?\s?[\d\.\,]+)/u);
+  if (mRange) {
+    const a = parseMoney(mRange[2]); const b = parseMoney(mRange[4]);
+    if (!Number.isNaN(a) && !Number.isNaN(b)) return { price_min: Math.min(a,b), price_max: Math.max(a,b) };
+  }
+  return {};
+}
+
+export function parseMoney(s: string): number {
+  let x = s.trim().replace(/^r\$\s*/i, "").replace(/^gs\s*/i, "").replace(/^usd\s*/i, "").replace(/\./g, "").replace(/,/g, ".");
+  const n = Number(x); return Number.isFinite(n) ? n : NaN;
+}
+
+// NOVO: helper para saber se há “intenção de preço” na frase
+export function hasPriceIntent(msgRaw: string): boolean {
+  const sig = extractPriceSignals(msgRaw);
+  return !!(sig.sort || sig.price_max != null || sig.price_min != null || sig.offset != null);
+}
+
+PATCH B — src/nlp/intent.ts
+
+(semântica: se a frase tem apenas intenção de preço, ainda assim devolvemos PRODUCT_SEARCH)
+
+// src/nlp/intent.ts
+import { Intent, QuerySignal } from "../types";
+import { tokensPTES } from "./normalize";
+import { canonProduct, canonCategory } from "./canon.store";
+import { damerauLevenshtein } from "./fuzzy";
+import { hasPriceIntent } from "./priceSignals";
+
+const RX = {
+  small:/\b(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|tudo bem|como vai|hola|buen[oa]s)\b/i,
+  help:/\b(ajuda|como funciona|o que voce faz|dica|sugest[aã]o|ayuda|como usar)\b/i,
+  time:/\b(que horas sao|que horas são|hora agora|que hora es|hora es)\b/i,
+  who:/\b(seu nome|quem e voce|quem é voce|quien eres)\b/i
+};
+
+const VOCAB = ["iphone","galaxy","drone","perfume","tv","blusa","notebook","camiseta","camisa"];
+
+export function classify(message: string): { intent: Intent; base: QuerySignal; flags?: { priceOnlyFollowUp?: boolean } } {
+  const msg = message.toLowerCase();
+  if (RX.time.test(msg)) return { intent: "TIME_QUERY", base: {} };
+  if (RX.small.test(msg)) return { intent: "SMALL_TALK", base: {} };
+  if (RX.help.test(msg)) return { intent: "HELP", base: {} };
+  if (RX.who.test(msg)) return { intent: "WHOAMI", base: {} };
+
+  // 1) Tenta produto/categoria normalmente
+  const toks = tokensPTES(message);
+  for (const t of toks) {
+    const p = canonProduct(t); const c = canonCategory(t);
+    if (p || c) return { intent: "PRODUCT_SEARCH", base: { produto: p ?? undefined, categoria: c ?? undefined } };
+  }
+  for (const t of toks) {
+    for (const v of VOCAB) {
+      if (damerauLevenshtein(t, v) <= 2) return { intent: "PRODUCT_SEARCH", base: { produto: v } };
+    }
+  }
+
+  // 2) Sem produto explícito? Se tem intenção de preço, trate como busca.
+  if (hasPriceIntent(message)) {
+    return { intent: "PRODUCT_SEARCH", base: {}, flags: { priceOnlyFollowUp: true } };
+  }
+
+  // 3) Fallback
+  return { intent: "UNKNOWN", base: {} };
+}
+
+PATCH C — src/server/index.ts (ou a rota que atende /api/assistant/query/stream)
+
+(semântica: herdar produto/categoria da sessão quando vier só “mais barato”, e forçar sort asc)
+
+Abaixo está o trecho central da rota. Adapte nomes se seu arquivo/rota for diferente — mantenha a lógica.
+
+// src/server/index.ts (trecho dentro do handler da rota stream)
+import express from "express";
+import { classify } from "../nlp/intent";
+import { extractPriceSignals } from "../nlp/priceSignals";
+import { buildQuery, runQueryLocal } from "../query/builder";
+import { getSession, updateSession } from "../core/session";
+import catalog from "../../data/catalogo.sample.json";
+import { sayFound, sayNoResults } from "../nlg/templates";
+import { policyAnswer } from "../policy/decide";
+
+const router = express.Router();
+
+router.post("/api/assistant/query/stream", async (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  const { message, sessionId, lang = "pt" } = req.body ?? {};
+  const sid = String(sessionId || "web_" + Math.random().toString(36).slice(2));
+
+  const session = getSession(sid);
+  const cls = classify(message);
+  const priceSig = extractPriceSignals(message);
+
+  let base = { ...cls.base };
+
+  // 🔑 NOVO: se é follow-up de preço, herda o foco anterior
+  if (cls.flags?.priceOnlyFollowUp) {
+    // tenta herdar do último foco
+    const foco = session.focoAtual ?? null;         // “iphone”, “drone”, etc.
+    const cat  = session.categoriaAtual ?? null;    // “celular”, “drone”, etc.
+
+    if (!base.produto && foco) base.produto = foco;
+    if (!base.categoria && cat) base.categoria = cat;
+  }
+
+  // Se ainda não temos nada, e já tivemos consulta anterior, use lastQuery armazenada
+  if ((!base.produto && !base.categoria) && session.lastQuery) {
+    base.produto = session.lastQuery as any;
+  }
+
+  // Monta query consolidada (builder já mescla priceSig)
+  const q = buildQuery({
+    base,
+    text: message,
+    preferInStockCheapest: true,
+    slots: undefined
+  });
+
+  // 🔧 Se foi follow-up de preço e sort não veio, força ASC
+  if (cls.flags?.priceOnlyFollowUp && !q.sort) q.sort = "price.asc";
+
+  // Executa (mock local)
+  const items = runQueryLocal(catalog as any, q);
+
+  // Atualiza sessão com “foco”
+  if (base.produto) updateSession(sid, { focoAtual: base.produto });
+  if (base.categoria) updateSession(sid, { categoriaAtual: base.categoria });
+  if (base.produto) updateSession(sid, { lastQuery: base.produto });
+
+  // --- streaming de eventos ---
+  function send(evt: any) {
+    res.write(`${JSON.stringify(evt)}\n`);
+  }
+
+  // Envia texto e itens
+  if (items.length > 0) {
+    const pol = policyAnswer(items.length, q, lang);
+    const text = sayFound(sid, lang, pol.N, pol.catOrProd, pol.ask, pol.cross);
+    send({ text, items, debug: { priceOnlyFollowUp: !!cls.flags?.priceOnlyFollowUp, query: q, session: { focoAtual: session.focoAtual, categoriaAtual: session.categoriaAtual } } });
+  } else {
+    // Mesmo sem item, mantemos um texto inteligente – NADA de mensagem fixa “não achei barato”.
+    const hint = q.categoria ? "filtrar por modelo/capacidade" : "dizer o produto (ex.: iPhone) e a capacidade";
+    const text = sayNoResults(sid, lang, hint);
+    send({ text, items: [], debug: { priceOnlyFollowUp: !!cls.flags?.priceOnlyFollowUp, query: q, session: { focoAtual: session.focoAtual, categoriaAtual: session.categoriaAtual } } });
+  }
+
+  // fim
+  send({ provider: "gemini" });
+  res.end();
+});
+
+export default router;
