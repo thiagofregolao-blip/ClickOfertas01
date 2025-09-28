@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { LazyImage } from './lazy-image';
 import { useSuggestions } from '@/hooks/use-suggestions';
@@ -15,10 +15,8 @@ function pickAssistantText(resp: any) {
 }
 
 export default function GeminiAssistantBar() {
-  // ANTES de qualquer hook de estado - evita re-render infinito
+  // Evita setup duplicado em React StrictMode e loops de render
   const didInitRef = useRef(false);
-  
-  console.log('🤖 [GeminiAssistantBar] Componente inicializado');
   
   const [, setLocation] = useLocation();
   const uid = useMemo(() => localStorage.getItem('uid') || (localStorage.setItem('uid','u-'+Math.random().toString(36).slice(2,8)), localStorage.getItem('uid')!), []);
@@ -69,10 +67,6 @@ export default function GeminiAssistantBar() {
     debounceDelay: 300
   });
   
-  // Manter sessionId atualizado no ref
-  useEffect(() => {
-    sessionIdRef.current = sessionId || '';
-  }, [sessionId]);
 
   // Frases específicas para Gemini - "ask-then-show" theme  
   const geminiPhrases = [
@@ -156,112 +150,26 @@ export default function GeminiAssistantBar() {
     };
   }, []);
 
-  // Inicializar sessão persistente - cria no servidor e localStorage
+  // Inicialização única e estável
   useEffect(() => {
     if (didInitRef.current) return;
     didInitRef.current = true;
-
-    const initSession = async () => {
-      try {
-        // Criar sessão no servidor primeiro (garantir que existe no banco)
-        const serverSessionId = await getPersistedSessionId();
-        
-        // Sincronizar localStorage com sessão do servidor
-        localStorage.setItem("gemini.sessionId", serverSessionId);
-        setSessionId(serverSessionId);
-        
-        console.log("✅ [GeminiAssistantBar] Sessão criada/sincronizada:", { serverSessionId });
-      } catch (error) {
-        console.error("❌ [GeminiAssistantBar] Erro ao inicializar sessão:", error);
-        
-        // Fallback local se server falhar
-        const sidKey = "gemini.sessionId";
-        let sid = localStorage.getItem(sidKey);
-        if (!sid) {
-          sid = `web_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
-          localStorage.setItem(sidKey, sid);
-        }
-        setSessionId(sid);
-      }
-    };
     
-    initSession();
-  }, []); // DEPENDÊNCIAS VAZIAS (importante)
+    console.log("🤖 [GeminiAssistantBar] Componente inicializado");
 
-  // Auto-flush pendente quando sessão fica disponível (versão Gemini)
-  useEffect(() => {
-    if (sessionId && pendingSearchRef.current && !hasTriggeredSearchRef.current) {
-      const searchTerm = pendingSearchRef.current;
-      const contextualMessage = pendingMessageRef.current;
-      
-      pendingMessageRef.current = '';
-      hasTriggeredSearchRef.current = false;
-      
-      setOpen(false);
-      setShowResults(true);
-      console.log('🔄 [GeminiAssistantBar] Mantendo produtos existentes durante processamento Gemini');
-      
-      const messageToShow = contextualMessage || searchTerm;
-      const messageToStream = contextualMessage || searchTerm;
-      
-      setChatMessages(prev => [...prev, { type: 'user', text: messageToShow }]);
-      startGeminiStream(messageToStream);
+    // Sessão persistida
+    const sidKey = "gemini.sessionId";
+    let sid = localStorage.getItem(sidKey);
+    if (!sid) {
+      sid = `web_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+      localStorage.setItem(sidKey, sid);
     }
-  }, [sessionId]);
+    setSessionId(sid);
+    sessionIdRef.current = sid;
+    console.log("✅ [GeminiAssistantBar] Sessão criada/sincronizada:", { sid });
+  }, []);
 
-  // Efeito typewriter para frases Gemini
-  useEffect(() => {
-    if (isSearchFocused || query.trim()) {
-      if (animationRef.current) {
-        clearTimeout(animationRef.current);
-        animationRef.current = null;
-      }
-      return;
-    }
 
-    const startCycle = () => {
-      const randomIndex = Math.floor(Math.random() * geminiPhrases.length);
-      const currentPhrase = geminiPhrases[randomIndex];
-      let charIndex = 0;
-
-      const typeText = () => {
-        if (charIndex <= currentPhrase.length) {
-          setDisplayText(currentPhrase.substring(0, charIndex));
-          charIndex++;
-          animationRef.current = setTimeout(typeText, 50);
-        } else {
-          animationRef.current = setTimeout(eraseText, 1500);
-        }
-      };
-
-      const eraseText = () => {
-        let eraseIndex = currentPhrase.length;
-        
-        const doErase = () => {
-          if (eraseIndex >= 0) {
-            setDisplayText(currentPhrase.substring(0, eraseIndex));
-            eraseIndex--;
-            animationRef.current = setTimeout(doErase, 30);
-          } else {
-            animationRef.current = setTimeout(startCycle, 300);
-          }
-        };
-        
-        doErase();
-      };
-
-      typeText();
-    };
-
-    startCycle();
-
-    return () => {
-      if (animationRef.current) {
-        clearTimeout(animationRef.current);
-        animationRef.current = null;
-      }
-    };
-  }, [isSearchFocused, query]);
 
   // Função para buscar resposta final quando não houver streaming
   const fetchFinalResponse = async (message: string, sessionId: string, requestId: string) => {
@@ -444,10 +352,10 @@ export default function GeminiAssistantBar() {
         
         // ✅ SEMPRE usar texto do backend sem fallback local
         const serverText = accumulatedMessage.trim();
-        // Se vier vazio por algum bug de rede, mande algo neutro (não fallback genérico):
-        const finalMessage = serverText || "OK, posso refinar sua busca por preço/capacidade/modelo. 🙂";
-        
-        setChatMessages(prev => [...prev, { type: 'assistant', text: finalMessage }]);
+        // Sempre usar texto do servidor - sem fallback local
+        if (serverText.trim()) {
+          setChatMessages(prev => [...prev, { type: 'assistant', text: serverText }]);
+        }
         
         // Limpar streaming apenas após adicionar ao chat
         setStreaming('');

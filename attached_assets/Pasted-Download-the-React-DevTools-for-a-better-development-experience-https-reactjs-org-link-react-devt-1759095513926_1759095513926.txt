@@ -1,0 +1,33 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+GeminiAssistantBar.tsx:21 🤖 [GeminiAssistantBar] Componente inicializado
+GeminiAssistantBar.tsx:93 🎧 [GeminiAssistantBar] Registrando event listeners Gemini
+GeminiAssistantBar.tsx:21 🤖 [GeminiAssistantBar] Componente inicializado
+GeminiAssistantBar.tsx:173 ✅ [GeminiAssistantBar] Sessão criada/sincronizada: Object
+4GeminiAssistantBar.tsx:21 🤖 [GeminiAssistantBar] Componente inicializado
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+5GeminiAssistantBar.tsx:21 🤖 [GeminiAssistantBar] Componente inicializado
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/4a2b2ffd-f0cb-42cf-a4e9-a4e05843c244:1 Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/4a2b2ffd-f0cb-42cf-a4e9-a4e05843c244:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+18GeminiAssistantBar.tsx:21 🤖 [GeminiAssistantBar] Componente inicializado
+GeminiAssistantBar.tsx:499 🔄 [GeminiAssistantBar] Resetando estado para nova consulta Gemini: iphone
+GeminiAssistantBar.tsx:348 🚀 start stream Object
+32GeminiAssistantBar.tsx:21 🤖 [GeminiAssistantBar] Componente inicializado
+GeminiAssistantBar.tsx:399 📨 SSE evento > Object
+15GeminiAssistantBar.tsx:21 🤖 [GeminiAssistantBar] Componente inicializado
+GeminiAssistantBar.tsx:399 📨 SSE evento > Object
+GeminiAssistantBar.tsx:413 📦 [GeminiAssistantBar] Produtos Gemini recebidos: 12
+GeminiAssistantBar.tsx:432 🏁 [GeminiAssistantBar] Gemini stream marcado como completo
+GeminiAssistantBar.tsx:399 📨 SSE evento > Object
+GeminiAssistantBar.tsx:384 ✅ [GeminiAssistantBar] Gemini stream concluído
+102GeminiAssistantBar.tsx:21 🤖 [GeminiAssistantBar] Componente inicializado
+GeminiAssistantBar.tsx:535 🔄 [GeminiAssistantBar] Overlay submit - nova consulta Gemini: quero um mais barato
+GeminiAssistantBar.tsx:348 🚀 start stream Object
+2GeminiAssistantBar.tsx:21 🤖 [GeminiAssistantBar] Componente inicializado
+GeminiAssistantBar.tsx:399 📨 SSE evento > Object
+22GeminiAssistantBar.tsx:21 🤖 [GeminiAssistantBar] Componente inicializado
+GeminiAssistantBar.tsx:432 🏁 [GeminiAssistantBar] Gemini stream marcado como completo
+GeminiAssistantBar.tsx:399 📨 SSE evento > Object
+GeminiAssistantBar.tsx:384 ✅ [GeminiAssistantBar] Gemini stream concluído
+630GeminiAssistantBar.tsx:21 🤖 [GeminiAssistantBar] Componente inicializado
+670GeminiAssistantBar.tsx:21 🤖 [GeminiAssistantBar] Componente inicializado

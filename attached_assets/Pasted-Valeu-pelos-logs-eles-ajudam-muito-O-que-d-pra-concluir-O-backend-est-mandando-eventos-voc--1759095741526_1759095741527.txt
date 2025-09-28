@@ -1,0 +1,129 @@
+Valeu pelos logs — eles ajudam muito. O que dá pra concluir:
+
+O backend está mandando eventos (você recebeu produtos para “iphone” e “stream concluído” pros dois turnos).
+
+O front está montando/re-montando o componente muitas vezes (“Componente inicializado” dezenas/centenas de vezes). Isso costuma acontecer por:
+
+useEffect sem guarda (StrictMode chama 2x) + setState no efeito → loop.
+
+“registrar listeners” a cada render.
+
+Na consulta “quero um mais barato”, o stream terminou mas nenhum texto do servidor foi mostrado (apenas o fallback). Precisamos garantir que o text do backend seja usado e que os listeners do SSE sejam registrados apenas 1x.
+
+Abaixo vão dois patches de frontend (só JS/TSX) que resolvem o que os logs mostram. Eles são “cola e substitui” dentro do seu GeminiAssistantBar.tsx (ajuste nomes se diferirem). Não mexem em layout, só em ciclo de vida, stream e texto.
+
+PATCH Front-01 — Sessão + efeito inicial estável (elimina re-render/loop)
+
+Coloque no topo do componente (logo após os imports):
+
+// Evita setup duplicado em React StrictMode e loops de render
+const didInitRef = React.useRef(false);
+
+// Estado que você já deve ter:
+const [sessionId, setSessionId] = React.useState<string | null>(null);
+
+
+Substitua o seu useEffect de setup de sessão/listeners por este (uma única execução):
+
+React.useEffect(() => {
+  // StrictMode chamará 2x em dev; evitamos repetir
+  if (didInitRef.current) return;
+  didInitRef.current = true;
+
+  console.log("🤖 [GeminiAssistantBar] Componente inicializado");
+
+  // Sessão persistida
+  const sidKey = "gemini.sessionId";
+  let sid = localStorage.getItem(sidKey);
+  if (!sid) {
+    sid = `web_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+    localStorage.setItem(sidKey, sid);
+  }
+  setSessionId(sid);
+  console.log("✅ [GeminiAssistantBar] Sessão criada/sincronizada:", { sid });
+
+  // Se você registra listeners globais, faça aqui e lembre o cleanup:
+  // window.addEventListener("visibilitychange", ...);
+
+  return () => {
+    // window.removeEventListener("visibilitychange", ...);
+  };
+}, []); // <<< deps vazias
+
+
+Isso remove o loop (seu log mostrava dezenas/centenas de montagens).
+Observação: o 401 /api/auth/user não é o causador do loop; é só uma chamada do seu app sem auth. Pode ignorar por ora.
+
+PATCH Front-02 — Stream/SSE: sempre usar text do backend e registrar 1x
+
+No método que dispara a busca (ex.: startGeminiStream), garanta que usa sempre a mesma sessão:
+
+async function startGeminiStream(message: string) {
+  if (!sessionId) {
+    console.warn("⏳ Sem sessionId ainda — adiando envio");
+    return;
+  }
+  console.log("🚀 start stream", { message, sessionId });
+
+  // Mostra a mensagem do usuário no chat
+  setChatMessages(prev => [...prev, { type: "user", text: message }]);
+
+  const resp = await fetch("/api/assistant/query/stream", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, sessionId, lang: "pt" })
+  });
+
+  const reader = resp.body?.getReader();
+  const decoder = new TextDecoder();
+
+  let assistantBuffer = ""; // acumula o texto vindo do backend
+
+  while (reader) {
+    const { value, done } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value, { stream: true });
+    // cada linha JSON por evento
+    for (const line of chunk.split("\n")) {
+      const s = line.trim();
+      if (!s) continue;
+      try {
+        const evt = JSON.parse(s);
+        console.log("📨 SSE evento >", evt);
+
+        // Se o backend mandar text, acumulamos
+        if (evt.text) assistantBuffer += (assistantBuffer ? " " : "") + String(evt.text).trim();
+
+        // Opcional: guardar produtos quando vierem
+        if (Array.isArray(evt.items)) {
+          console.log("📦 [GeminiAssistantBar] Produtos Gemini recebidos:", evt.items.length);
+          // setProducts(evt.items)  // se você mantém lista à direita
+        }
+
+        if (evt.done || evt.provider) {
+          console.log("🏁 [GeminiAssistantBar] Gemini stream marcado como completo");
+        }
+
+      } catch (e) {
+        console.warn("⚠️ SSE parse falhou:", e, s);
+      }
+    }
+  }
+
+  // Final do stream — se o backend não mandou text por qualquer motivo, manda algo neutro
+  const finalText =
+    assistantBuffer.trim() ||
+    "Beleza! Posso filtrar por preço (mais barato), capacidade (64/128/256GB) ou modelo. O que prefere? 🙂";
+
+  setChatMessages(prev => [...prev, { type: "assistant", text: finalText }]);
+  console.log("✅ [GeminiAssistantBar] Gemini stream concluído");
+}
+
+Por que isso resolve?
+
+O texto do servidor (ex.: “Achei X iPhones… quer o mais barato?”) não é substituído por nenhum fallback local baseado em items.length.
+
+Qualquer verificação tipo “se items.length===0 então escreve mensagem fixa” deve ser removida. Confie no evt.text do backend.
+
+Listener e sessão ficam estáveis (sem múltiplas execuções).
