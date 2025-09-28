@@ -36,6 +36,7 @@ import NotFound from "@/pages/not-found";
 import { MapModalTestPage } from "@/pages/map-modal-test";
 import TestInlineAssistant from "@/pages/test-inline-assistant";
 import ClickEnvironment from "@/pages/ClickEnvironment";
+import WiFi24h from "@/pages/WiFi24h";
 
 function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
   const [bypassMaintenance, setBypassMaintenance] = useState(() => {
@@ -135,6 +136,7 @@ function Router() {
           <Route path="/click-environment" component={ClickEnvironment} />
           <Route path="/click-environment/:productId" component={ClickEnvironment} />
           <Route path="/click-environment/category/:category" component={ClickEnvironment} />
+          <Route path="/wifi-24h" component={WiFi24h} />
 
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
@@ -189,6 +191,7 @@ function Router() {
           <Route path="/click-environment" component={ClickEnvironment} />
           <Route path="/click-environment/:productId" component={ClickEnvironment} />
           <Route path="/click-environment/category/:category" component={ClickEnvironment} />
+          <Route path="/wifi-24h" component={WiFi24h} />
 
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
@@ -212,6 +215,7 @@ function Router() {
           <Route path="/click-environment" component={ClickEnvironment} />
           <Route path="/click-environment/:productId" component={ClickEnvironment} />
           <Route path="/click-environment/category/:category" component={ClickEnvironment} />
+          <Route path="/wifi-24h" component={WiFi24h} />
 
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
