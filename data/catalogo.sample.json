@@ -1,82 +1,152 @@
 [
   {
-    "id": "IPH-12-64",
-    "title": "iPhone 12 64GB",
+    "id": "IPH-15-128",
+    "title": "iPhone 15 128GB",
     "category": "celular",
     "brand": "apple",
-    "price": 2999,
-    "currency": "BRL",
+    "price": 4299.00,
+    "currency": "R$",
     "in_stock": true,
-    "attrs": ["iphone", "64gb"]
+    "attrs": ["iphone", "128gb", "preto", "azul", "rosa"]
   },
   {
-    "id": "IPH-13-128",
-    "title": "iPhone 13 128GB",
-    "category": "celular",
+    "id": "IPH-14-64",
+    "title": "iPhone 14 64GB",
+    "category": "celular", 
     "brand": "apple",
-    "price": 3499,
-    "currency": "BRL",
+    "price": 3499.00,
+    "currency": "R$",
     "in_stock": true,
-    "attrs": ["iphone", "128gb"]
+    "attrs": ["iphone", "64gb", "preto", "branco"]
   },
   {
-    "id": "GAL-15-128",
-    "title": "Galaxy 15 128GB",
+    "id": "GAL-S24-256",
+    "title": "Galaxy S24 256GB",
     "category": "celular",
     "brand": "samsung",
-    "price": 2599,
-    "currency": "BRL",
+    "price": 3999.00,
+    "currency": "R$",
+    "in_stock": true,
+    "attrs": ["galaxy", "256gb", "preto", "violet"]
+  },
+  {
+    "id": "XIAOMI-13-128",
+    "title": "Xiaomi 13 128GB",
+    "category": "celular",
+    "brand": "xiaomi",
+    "price": 2299.00,
+    "currency": "R$",
+    "in_stock": true,
+    "attrs": ["xiaomi", "128gb", "preto", "azul"]
+  },
+  {
+    "id": "DRONE-4K-PRO",
+    "title": "Drone 4K Pro",
+    "category": "drone",
+    "brand": "dji",
+    "price": 2499.00,
+    "currency": "R$",
+    "in_stock": true,
+    "attrs": ["drone", "4k", "pro", "3-axis"]
+  },
+  {
+    "id": "DRONE-MINI-SE",
+    "title": "DJI Mini SE",
+    "category": "drone",
+    "brand": "dji",
+    "price": 1899.00,
+    "currency": "R$",
     "in_stock": false,
-    "attrs": ["galaxy", "128gb"]
-  },
-  {
-    "id": "DRN-4K-A",
-    "title": "Drone 4K A",
-    "category": "drone",
-    "brand": "dji",
-    "price": 2199,
-    "currency": "BRL",
-    "in_stock": true,
-    "attrs": ["drone", "4k"]
-  },
-  {
-    "id": "DRN-4K-B",
-    "title": "Drone 4K B",
-    "category": "drone",
-    "brand": "dji",
-    "price": 1899,
-    "currency": "BRL",
-    "in_stock": true,
-    "attrs": ["drone", "4k"]
+    "attrs": ["drone", "mini", "hd", "compacto"]
   },
   {
     "id": "TV-55-4K",
-    "title": "TV 55\" 4K Smart",
+    "title": "Smart TV 55\" 4K",
     "category": "tv",
-    "brand": "lg",
-    "price": 1999,
-    "currency": "BRL",
+    "brand": "samsung",
+    "price": 2199.00,
+    "currency": "R$",
     "in_stock": true,
-    "attrs": ["tv", "4k", "55"]
+    "attrs": ["tv", "55", "4k", "smart", "hdr"]
   },
   {
-    "id": "PERF-M-EDT",
-    "title": "Perfume Masculino EDT 100ml",
+    "id": "TV-43-FHD",
+    "title": "Smart TV 43\" Full HD",
+    "category": "tv",
+    "brand": "lg",
+    "price": 1599.00,
+    "currency": "R$",
+    "in_stock": true,
+    "attrs": ["tv", "43", "fullhd", "smart"]
+  },
+  {
+    "id": "PERF-SAUVAGE",
+    "title": "Perfume Sauvage 100ml",
     "category": "perfumaria",
     "brand": "dior",
-    "price": 499,
-    "currency": "BRL",
+    "price": 689.00,
+    "currency": "R$",
     "in_stock": true,
-    "attrs": ["perfume", "masculino"]
+    "attrs": ["perfume", "masculino", "100ml", "amadeirado"]
+  },
+  {
+    "id": "PERF-CHANEL",
+    "title": "Chanel N°5 50ml",
+    "category": "perfumaria",
+    "brand": "chanel",
+    "price": 799.00,
+    "currency": "R$",
+    "in_stock": false,
+    "attrs": ["perfume", "feminino", "50ml", "floral"]
   },
   {
     "id": "BLUSA-PRETA-M",
     "title": "Blusa Preta Tamanho M",
     "category": "roupa",
     "brand": "fashion",
-    "price": 99,
-    "currency": "BRL",
+    "price": 99.00,
+    "currency": "R$",
     "in_stock": true,
-    "attrs": ["blusa", "preto", "m"]
+    "attrs": ["blusa", "preto", "m", "algodao"]
+  },
+  {
+    "id": "JEANS-AZUL-42",
+    "title": "Calça Jeans Azul 42",
+    "category": "roupa",
+    "brand": "denim",
+    "price": 159.00,
+    "currency": "R$",
+    "in_stock": true,
+    "attrs": ["jeans", "azul", "42", "skinny"]
+  },
+  {
+    "id": "TENIS-NIKE-42",
+    "title": "Tênis Nike Air Max 42",
+    "category": "calcado",
+    "brand": "nike",
+    "price": 399.00,
+    "currency": "R$",
+    "in_stock": true,
+    "attrs": ["tenis", "nike", "42", "air", "max"]
+  },
+  {
+    "id": "NOTEBOOK-I5-8GB",
+    "title": "Notebook i5 8GB RAM",
+    "category": "informatica",
+    "brand": "dell",
+    "price": 2499.00,
+    "currency": "R$",
+    "in_stock": true,
+    "attrs": ["notebook", "i5", "8gb", "ssd", "256gb"]
+  },
+  {
+    "id": "GELADEIRA-FROST",
+    "title": "Geladeira Frost Free 450L",
+    "category": "eletrodomestico",
+    "brand": "brastemp",
+    "price": 2899.00,
+    "currency": "R$",
+    "in_stock": true,
+    "attrs": ["geladeira", "450l", "frost", "free", "inox"]
   }
 ]
