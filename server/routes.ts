@@ -8486,6 +8486,76 @@ Regras:
   const preference = new Preference(mercadopagoClient);
   const payment = new Payment(mercadopagoClient);
 
+  // MikroTik REST API Integration
+  async function createMikroTikUser(voucherCode: string, paymentData: any) {
+    const settings = await storage.getWifiSettings();
+    
+    if (!settings) {
+      throw new Error("Configurações MikroTik não encontradas");
+    }
+
+    const { mikrotikHost, mikrotikUsername, mikrotikPassword, hotspotProfile, sessionTimeout } = settings;
+    
+    if (!mikrotikHost || !mikrotikUsername || !mikrotikPassword) {
+      throw new Error("Configurações MikroTik incompletas");
+    }
+
+    const userData = {
+      name: voucherCode,
+      password: voucherCode.slice(-8), // Últimos 8 caracteres como senha
+      profile: hotspotProfile || "default",
+      "limit-uptime": sessionTimeout || "24:00:00",
+      comment: `Wi-Fi 24h - ${paymentData.customerEmail || 'Cliente'} - ${new Date().toLocaleDateString()}`
+    };
+
+    try {
+      // Detect protocol (prefer HTTPS)
+      const protocol = mikrotikHost.includes('://') ? '' : 'https://';
+      const baseUrl = `${protocol}${mikrotikHost}/rest`;
+      
+      console.log(`🔗 Conectando MikroTik: ${baseUrl}`);
+
+      const response = await fetch(`${baseUrl}/ip/hotspot/user/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${Buffer.from(`${mikrotikUsername}:${mikrotikPassword}`).toString('base64')}`
+        },
+        body: JSON.stringify(userData),
+        // Allow self-signed certificates
+        ...(process.env.NODE_ENV !== 'production' && { 
+          agent: new (await import('https')).Agent({ rejectUnauthorized: false })
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      const result = await response.json();
+      
+      return {
+        success: true,
+        userData,
+        mikrotikResponse: result,
+        createdAt: new Date().toISOString()
+      };
+
+    } catch (error) {
+      console.error("❌ Erro MikroTik API:", error);
+      
+      // Fallback: Save attempt for manual processing
+      return {
+        success: false,
+        error: error.message,
+        userData,
+        fallback: true,
+        createdAt: new Date().toISOString()
+      };
+    }
+  }
+
   // Wi-Fi 24h Payment APIs
   app.post("/api/wifi-payments/create", async (req, res) => {
     try {
@@ -8624,6 +8694,16 @@ Regras:
           updateData.isActive = true;
           updateData.activatedAt = new Date();
           updateData.voucherExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+          
+          // Create MikroTik hotspot user
+          try {
+            const mikrotikResponse = await createMikroTikUser(wifiPayment.voucherCode, wifiPayment);
+            updateData.mikrotikResponse = mikrotikResponse;
+            console.log(`✅ MikroTik user criado: ${wifiPayment.voucherCode}`);
+          } catch (mikrotikError) {
+            console.error("❌ Erro ao criar usuário MikroTik:", mikrotikError);
+            updateData.mikrotikResponse = { error: mikrotikError.message };
+          }
         }
 
         await storage.updateWifiPayment(wifiPayment.id, updateData);
