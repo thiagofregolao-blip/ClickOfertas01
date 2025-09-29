@@ -164,13 +164,14 @@ export default function AdminWiFi() {
   };
 
   // Calculate totals for analytics
-  const totalRevenue = analytics?.reduce((sum, a) => {
+  const analyticsArray = Array.isArray(analytics) ? analytics : [];
+  const totalRevenue = analyticsArray.reduce((sum, a) => {
     const revenue = a.totalRevenue ? parseFloat(a.totalRevenue.toString()) : 0;
     return sum + revenue;
-  }, 0) || 0;
-  const totalPayments = analytics?.reduce((sum, a) => sum + (a.totalPayments || 0), 0) || 0;
+  }, 0);
+  const totalPayments = analyticsArray.reduce((sum, a) => sum + (a.totalPayments || 0), 0);
   const successRate = totalPayments > 0 ? 
-    ((analytics?.reduce((sum, a) => sum + (a.successfulPayments || 0), 0) || 0) / totalPayments * 100) : 0;
+    ((analyticsArray.reduce((sum, a) => sum + (a.successfulPayments || 0), 0)) / totalPayments * 100) : 0;
 
   return (
     <AdminLayout>
@@ -494,7 +495,7 @@ export default function AdminWiFi() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {analytics?.reduce((sum, a) => sum + a.activeVouchers, 0) || 0}
+                    {analyticsArray.reduce((sum, a) => sum + (a.activeVouchers || 0), 0)}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Conectados agora
@@ -531,7 +532,7 @@ export default function AdminWiFi() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {analytics?.slice().reverse().map((day) => (
+                        {analyticsArray.slice().reverse().map((day) => (
                           <TableRow key={day.date}>
                             <TableCell className="font-medium">{day.date}</TableCell>
                             <TableCell>{day.totalPayments}</TableCell>
