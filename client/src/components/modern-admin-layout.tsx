@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { 
   Store, Package, Gift, Camera, Monitor, Image, BarChart3, TrendingUp, 
-  Users, Wifi, Tag, Database, Brain, Globe, Settings, Eye, LogOut, ChevronDown
+  Users, Wifi, Tag, Database, Brain, Globe, Settings, Eye, LogOut, ChevronDown,
+  Palette, CreditCard, DollarSign, Percent, Activity, Server, AlertTriangle
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { Store as StoreType } from "@shared/schema";
@@ -39,6 +40,10 @@ export default function ModernAdminLayout({ children, activeSection, onSectionCh
         { id: "promotions", label: "Promoções", icon: Gift },
         { id: "stories", label: "Stories", icon: Camera },
         { id: "totem", label: "Totem", icon: Monitor },
+        { id: "stores-manager", label: "Gerenciamento de Lojas", icon: Store },
+        { id: "premium-stores-manager", label: "Lojas Premium", icon: TrendingUp },
+        { id: "totem-manager", label: "Gerenciar Totem", icon: Monitor },
+        { id: "stories-manager", label: "Gerenciar Stories", icon: Camera },
       ]
     },
     {
@@ -48,6 +53,11 @@ export default function ModernAdminLayout({ children, activeSection, onSectionCh
         { id: "banners", label: "Banners", icon: Image },
         { id: "analytics", label: "Analytics", icon: BarChart3 },
         { id: "stats", label: "Estatísticas", icon: TrendingUp },
+        { id: "promotions-manager", label: "Sistema de Promoções", icon: Gift },
+        { id: "analytics-manager", label: "Analytics Avançado", icon: BarChart3 },
+        { id: "statistics-manager", label: "Estatísticas Legadas", icon: Activity },
+        { id: "ai-arts-manager", label: "Gestão de Artes IA", icon: Palette },
+        { id: "product-bank-manager", label: "Banco de Produtos", icon: Database },
       ]
     },
     {
@@ -60,6 +70,11 @@ export default function ModernAdminLayout({ children, activeSection, onSectionCh
         { id: "categories", label: "Categorias", icon: Tag },
         { id: "product-banks", label: "Banco de Produtos", icon: Database },
         { id: "system", label: "Sistema", icon: Settings },
+        { id: "system-manager", label: "Sistema", icon: AlertTriangle },
+        { id: "wifi-settings-manager", label: "Configurações WiFi", icon: Wifi },
+        { id: "wifi-transactions-manager", label: "Transações WiFi", icon: CreditCard },
+        { id: "wifi-analytics-manager", label: "Analytics WiFi", icon: BarChart3 },
+        { id: "wifi-commissions-manager", label: "Comissões WiFi", icon: Percent },
       ]
     },
     {
@@ -67,7 +82,7 @@ export default function ModernAdminLayout({ children, activeSection, onSectionCh
       icon: Brain,
       items: [
         { id: "ai-test", label: "Teste IA", icon: Brain },
-        { id: "ai-arts", label: "Arte IA", icon: Globe },
+        { id: "ai-arts-manager", label: "Gestão de Artes IA", icon: Palette },
       ]
     }
   ];

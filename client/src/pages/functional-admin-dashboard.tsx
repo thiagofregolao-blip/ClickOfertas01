@@ -14,11 +14,32 @@ import AdminAnalytics from "@/pages/admin-analytics";
 import AdminWiFi from "@/pages/admin-wifi";
 import AdminPremiumStores from "@/pages/admin-premium-stores";
 
-// Importar componentes específicos do admin
+// Importar componentes específicos do admin existentes
 import BannersManager from "@/components/admin-sections/banners-manager";
 import CategoriesManager from "@/components/admin-sections/categories-manager";
 import UsersManager from "@/components/admin-sections/users-manager";
 import AITestManager from "@/components/admin-sections/ai-test-manager";
+
+// Importar TODOS os novos componentes criados
+// LOJA
+import StoresManager from "@/components/admin-sections/stores-manager";
+import PremiumStoresManager from "@/components/admin-sections/premium-stores-manager";
+import TotemManager from "@/components/admin-sections/totem-manager";
+import StoriesManager from "@/components/admin-sections/stories-manager";
+
+// MARKETING
+import PromotionsManager from "@/components/admin-sections/promotions-manager";
+import AnalyticsManager from "@/components/admin-sections/analytics-manager";
+import StatisticsManager from "@/components/admin-sections/statistics-manager";
+import AIArtsManager from "@/components/admin-sections/ai-arts-manager";
+import ProductBankManager from "@/components/admin-sections/product-bank-manager";
+
+// SISTEMA
+import SystemManager from "@/components/admin-sections/system-manager";
+import WiFiSettingsManager from "@/components/admin-sections/wifi-settings-manager";
+import WiFiTransactionsManager from "@/components/admin-sections/wifi-transactions-manager";
+import WiFiAnalyticsManager from "@/components/admin-sections/wifi-analytics-manager";
+import WiFiCommissionsManager from "@/components/admin-sections/wifi-commissions-manager";
 
 // Dashboard components
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -350,6 +371,16 @@ export default function FunctionalAdminDashboard() {
       case "totem":
         return <AdminTotem />;
         
+      // === LOJA - NOVOS COMPONENTES ===
+      case "stores-manager":
+        return <StoresManager />;
+      case "premium-stores-manager":
+        return <PremiumStoresManager />;
+      case "totem-manager":
+        return <TotemManager />;
+      case "stories-manager":
+        return <StoriesManager />;
+        
       // === MARKETING ===
       case "banners":
         return <BannersManager />;
@@ -357,6 +388,18 @@ export default function FunctionalAdminDashboard() {
         return <AdminAnalytics />;
       case "stats":
         return <AdminAnalytics />;
+        
+      // === MARKETING - NOVOS COMPONENTES ===
+      case "promotions-manager":
+        return <PromotionsManager />;
+      case "analytics-manager":
+        return <AnalyticsManager />;
+      case "statistics-manager":
+        return <StatisticsManager />;
+      case "ai-arts-manager":
+        return <AIArtsManager />;
+      case "product-bank-manager":
+        return <ProductBankManager />;
         
       // === SISTEMA ===
       case "users":
@@ -368,51 +411,27 @@ export default function FunctionalAdminDashboard() {
       case "categories":
         return <CategoriesManager />;
       case "product-banks":
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Database className="w-7 h-7 text-green-600" />
-                Banco de Produtos
-              </h2>
-              <p className="text-gray-500 mt-1">
-                Funcionalidade em desenvolvimento - gerencie o banco de produtos global
-              </p>
-            </div>
-          </div>
-        );
+        return <ProductBankManager />;
       case "system":
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Settings className="w-7 h-7 text-gray-600" />
-                Configurações do Sistema
-              </h2>
-              <p className="text-gray-500 mt-1">
-                Funcionalidade em desenvolvimento - configurações avançadas do sistema
-              </p>
-            </div>
-          </div>
-        );
+        return <SystemManager />;
+        
+      // === SISTEMA - NOVOS COMPONENTES ===
+      case "system-manager":
+        return <SystemManager />;
+      case "wifi-settings-manager":
+        return <WiFiSettingsManager />;
+      case "wifi-transactions-manager":
+        return <WiFiTransactionsManager />;
+      case "wifi-analytics-manager":
+        return <WiFiAnalyticsManager />;
+      case "wifi-commissions-manager":
+        return <WiFiCommissionsManager />;
         
       // === IA ===
       case "ai-test":
         return <AITestManager />;
       case "ai-arts":
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Brain className="w-7 h-7 text-purple-600" />
-                Gestão de Artes IA
-              </h2>
-              <p className="text-gray-500 mt-1">
-                Funcionalidade em desenvolvimento - gerencie todas as artes geradas pela IA
-              </p>
-            </div>
-          </div>
-        );
+        return <AIArtsManager />;
         
       default:
         return renderDashboard();
