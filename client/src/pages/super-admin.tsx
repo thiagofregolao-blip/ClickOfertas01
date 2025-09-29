@@ -54,6 +54,15 @@ const prizeSchema = z.object({
 
 type PrizeFormData = z.infer<typeof prizeSchema>;
 
+const wifiPlanSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  durationHours: z.coerce.number().min(1, "Duração deve ser maior que 0"),
+  price: z.coerce.number().min(0.01, "Preço deve ser maior que 0"),
+  description: z.string().optional(),
+});
+
+type WifiPlanFormData = z.infer<typeof wifiPlanSchema>;
+
 // Category schema
 const categorySchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -5532,6 +5541,8 @@ function WiFiManagementPanel() {
   const queryClient = useQueryClient();
   const [activeWifiTab, setActiveWifiTab] = useState<'settings' | 'payments' | 'analytics' | 'commissions'>('settings');
   const [showPassword, setShowPassword] = useState(false);
+  const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<WifiPlan | null>(null);
 
   // Buscar configurações
   const { data: settings, isLoading: settingsLoading } = useQuery({
@@ -5572,6 +5583,84 @@ function WiFiManagementPanel() {
       return await response.json();
     }
   });
+
+  // Form para planos Wi-Fi
+  const planForm = useForm<WifiPlanFormData>({
+    resolver: zodResolver(wifiPlanSchema),
+    defaultValues: {
+      name: '',
+      durationHours: 24,
+      price: 0,
+      description: '',
+    },
+  });
+
+  // Mutation para criar/editar planos
+  const savePlanMutation = useMutation({
+    mutationFn: async (data: WifiPlanFormData) => {
+      const payload = {
+        name: data.name,
+        durationHours: data.durationHours,
+        price: data.price.toString(),
+        description: data.description || '',
+        sessionTimeout: `${data.durationHours}:00:00`,
+        isActive: true,
+        displayOrder: 0,
+      };
+      
+      if (editingPlan) {
+        return await apiRequest(`/api/wifi-plans/${editingPlan.id}`, 'PATCH', payload);
+      } else {
+        return await apiRequest('/api/wifi-plans', 'POST', payload);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/wifi-plans'] });
+      toast({
+        title: editingPlan ? "Plano atualizado" : "Plano criado",
+        description: editingPlan ? "Plano Wi-Fi atualizado com sucesso." : "Plano Wi-Fi criado com sucesso.",
+      });
+      setIsPlanDialogOpen(false);
+      setEditingPlan(null);
+      planForm.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao salvar plano.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handler para abrir dialog de novo plano
+  const handleNewPlan = () => {
+    setEditingPlan(null);
+    planForm.reset({
+      name: '',
+      durationHours: 24,
+      price: 0,
+      description: '',
+    });
+    setIsPlanDialogOpen(true);
+  };
+
+  // Handler para abrir dialog de edição
+  const handleEditPlan = (plan: WifiPlan) => {
+    setEditingPlan(plan);
+    planForm.reset({
+      name: plan.name,
+      durationHours: plan.durationHours,
+      price: parseFloat(plan.price.toString()),
+      description: plan.description || '',
+    });
+    setIsPlanDialogOpen(true);
+  };
+
+  // Handler para submit do form
+  const handlePlanSubmit = (data: WifiPlanFormData) => {
+    savePlanMutation.mutate(data);
+  };
 
   // Mutation para salvar configurações
   const updateSettingsMutation = useMutation({
@@ -5713,27 +5802,7 @@ function WiFiManagementPanel() {
                       Crie e gerencie planos personalizados com preços e durações flexíveis
                     </CardDescription>
                   </div>
-                  <Button size="sm" onClick={() => {
-                    const name = prompt("Nome do plano (ex: '24 horas', '48 horas'):");
-                    if (!name) return;
-                    const durationHours = Number(prompt("Duração em horas (ex: 24, 48, 168):"));
-                    if (!durationHours || durationHours <= 0) return;
-                    const price = Number(prompt("Preço em R$ (ex: 5.00, 10.00):"));
-                    if (!price || price <= 0) return;
-                    const description = prompt("Descrição (opcional):") || "";
-                    
-                    const sessionTimeout = `${durationHours}:00:00`;
-                    
-                    apiRequest('/api/wifi-plans', {
-                      method: 'POST',
-                      body: { name, durationHours, price: price.toString(), description, sessionTimeout, isActive: true, displayOrder: 0 }
-                    }).then(() => {
-                      queryClient.invalidateQueries({ queryKey: ['/api/wifi-plans'] });
-                      toast({ title: "Plano criado com sucesso!" });
-                    }).catch(err => {
-                      toast({ title: "Erro ao criar plano", description: err.message, variant: "destructive" });
-                    });
-                  }}>
+                  <Button size="sm" onClick={handleNewPlan} data-testid="button-new-plan">
                     <Plus className="w-4 h-4 mr-1" /> Novo Plano
                   </Button>
                 </div>
@@ -5762,24 +5831,42 @@ function WiFiManagementPanel() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Button size="sm" variant="ghost" onClick={() => {
-                              apiRequest(`/api/wifi-plans/${plan.id}/toggle`, { method: 'PATCH' })
-                                .then(() => {
-                                  queryClient.invalidateQueries({ queryKey: ['/api/wifi-plans'] });
-                                  toast({ title: plan.isActive ? "Plano desativado" : "Plano ativado" });
-                                });
-                            }}>
-                              {plan.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              onClick={() => handleEditPlan(plan)}
+                              data-testid={`button-edit-plan-${plan.id}`}
+                            >
+                              <Edit2 className="w-4 h-4" />
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={() => {
-                              if (confirm(`Deseja deletar o plano "${plan.name}"?`)) {
-                                apiRequest(`/api/wifi-plans/${plan.id}`, { method: 'DELETE' })
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              onClick={() => {
+                                apiRequest(`/api/wifi-plans/${plan.id}/toggle`, 'PATCH')
                                   .then(() => {
                                     queryClient.invalidateQueries({ queryKey: ['/api/wifi-plans'] });
-                                    toast({ title: "Plano deletado" });
+                                    toast({ title: plan.isActive ? "Plano desativado" : "Plano ativado" });
                                   });
-                              }
-                            }}>
+                              }}
+                              data-testid={`button-toggle-plan-${plan.id}`}
+                            >
+                              {plan.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              onClick={() => {
+                                if (confirm(`Deseja deletar o plano "${plan.name}"?`)) {
+                                  apiRequest(`/api/wifi-plans/${plan.id}`, 'DELETE')
+                                    .then(() => {
+                                      queryClient.invalidateQueries({ queryKey: ['/api/wifi-plans'] });
+                                      toast({ title: "Plano deletado" });
+                                    });
+                                }
+                              }}
+                              data-testid={`button-delete-plan-${plan.id}`}
+                            >
                               <Trash2 className="w-4 h-4 text-red-600" />
                             </Button>
                           </div>
@@ -5796,6 +5883,138 @@ function WiFiManagementPanel() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Dialog para Criar/Editar Plano Wi-Fi */}
+            <Dialog open={isPlanDialogOpen} onOpenChange={setIsPlanDialogOpen}>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Wifi className="w-5 h-5" />
+                    {editingPlan ? 'Editar Plano Wi-Fi' : 'Novo Plano Wi-Fi'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingPlan 
+                      ? 'Edite as informações do plano Wi-Fi' 
+                      : 'Preencha os dados para criar um novo plano Wi-Fi'}
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <Form {...planForm}>
+                  <form onSubmit={planForm.handleSubmit(handlePlanSubmit)} className="space-y-4">
+                    <FormField
+                      control={planForm.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nome do Plano</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Ex: 24 horas, 48 horas, 1 semana" 
+                              {...field}
+                              data-testid="input-plan-name"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={planForm.control}
+                      name="durationHours"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Duração (em horas)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="Ex: 24, 48, 168" 
+                              {...field}
+                              onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                              data-testid="input-plan-duration"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={planForm.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Preço (R$)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              step="0.01"
+                              placeholder="Ex: 5.00, 10.00" 
+                              {...field}
+                              onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                              data-testid="input-plan-price"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={planForm.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Descrição (opcional)</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Descrição do plano..."
+                              rows={3}
+                              {...field}
+                              data-testid="textarea-plan-description"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <DialogFooter>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsPlanDialogOpen(false);
+                          setEditingPlan(null);
+                          planForm.reset();
+                        }}
+                        data-testid="button-cancel-plan"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={savePlanMutation.isPending}
+                        className="bg-blue-600 hover:bg-blue-700"
+                        data-testid="button-save-plan"
+                      >
+                        {savePlanMutation.isPending ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                            Salvando...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4 mr-2" />
+                            {editingPlan ? 'Atualizar' : 'Criar Plano'}
+                          </>
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
 
             {/* Configurações Gerais */}
             <Card>
