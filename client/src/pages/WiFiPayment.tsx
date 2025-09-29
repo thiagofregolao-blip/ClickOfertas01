@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Wifi, CreditCard, QrCode, ArrowLeft, Shield, Clock } from "lucide-react";
+import { Wifi, CreditCard, QrCode, ArrowLeft, Shield, Clock, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 
@@ -17,17 +17,40 @@ export default function WiFiPayment() {
     customerName: '',
     customerEmail: '',
     customerPhone: '',
-    country: 'brazil' // Default
+    country: 'brazil', // Default
+    plan: 'daily' as 'daily' | 'monthly' // Default
   });
 
-  // Get country from URL parameters
+  // Get country and plan from URL parameters
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const country = urlParams.get('country');
-    if (country) {
-      setFormData(prev => ({ ...prev, country }));
-    }
+    const plan = urlParams.get('plan') as 'daily' | 'monthly';
+    
+    setFormData(prev => ({
+      ...prev,
+      ...(country && { country }),
+      ...(plan && { plan })
+    }));
   }, []);
+
+  // Plan configurations
+  const planConfig = {
+    daily: {
+      price: 5.00,
+      name: 'Wi-Fi 24 horas',
+      description: 'Acesso Wi-Fi por 24 horas',
+      duration: '24 horas'
+    },
+    monthly: {
+      price: 9.90,
+      name: 'Wi-Fi 30 dias',
+      description: 'Acesso Wi-Fi por 30 dias',
+      duration: '30 dias'
+    }
+  };
+
+  const currentPlan = planConfig[formData.plan];
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -65,7 +88,7 @@ export default function WiFiPayment() {
           customerName: formData.customerName || null,
           customerEmail: formData.customerEmail,
           customerPhone: formData.customerPhone || null,
-          amount: 5.00
+          amount: currentPlan.price
         })
       });
 
@@ -137,10 +160,14 @@ export default function WiFiPayment() {
             <div className="border border-white/20 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-yellow-300" />
-                  <span className="text-white font-medium">Wi-Fi 24 horas</span>
+                  {formData.plan === 'daily' ? (
+                    <Clock className="h-5 w-5 text-yellow-300" />
+                  ) : (
+                    <Calendar className="h-5 w-5 text-yellow-300" />
+                  )}
+                  <span className="text-white font-medium">{currentPlan.name}</span>
                 </div>
-                <span className="text-2xl font-bold text-white">R$ 5,00</span>
+                <span className="text-2xl font-bold text-white">R$ {currentPlan.price.toFixed(2).replace('.', ',')}</span>
               </div>
               
               <div className="text-sm text-white/70 space-y-1">
@@ -259,7 +286,9 @@ export default function WiFiPayment() {
           >
             {isProcessing 
               ? (formData.country === 'brazil' ? "Processando..." : "Procesando...")
-              : (formData.country === 'brazil' ? "Pagar R$ 5,00" : "Pagar R$ 5,00")
+              : (formData.country === 'brazil' 
+                  ? `Pagar R$ ${currentPlan.price.toFixed(2).replace('.', ',')}` 
+                  : `Pagar R$ ${currentPlan.price.toFixed(2).replace('.', ',')}`)
             }
           </Button>
 

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Wifi, ShoppingBag, Clock, Shield } from "lucide-react";
+import { Wifi, ShoppingBag, Clock, Shield, Calendar } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -7,9 +7,12 @@ import { useToast } from "@/hooks/use-toast";
  * Landing Page Wi-Fi 24h - Click Ofertas Paraguai
  * Venda de acesso Wi-Fi por 24h para turistas
  */
+type PlanType = 'daily' | 'monthly';
+
 export default function WiFi24h() {
   const { toast } = useToast();
   const [selectedCountry, setSelectedCountry] = useState<'brazil' | 'paraguay' | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>('daily');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleCountrySelect = (country: 'brazil' | 'paraguay') => {
@@ -19,6 +22,16 @@ export default function WiFi24h() {
       description: country === 'brazil' 
         ? "Bem-vindo! Vamos te ajudar a ficar conectado no Paraguai." 
         : "¡Bienvenido! Te ayudaremos a mantenerte conectado.",
+    });
+  };
+
+  const handlePlanSelect = (plan: PlanType) => {
+    setSelectedPlan(plan);
+    const planText = plan === 'daily' ? '24 horas' : 'mensal';
+    const price = plan === 'daily' ? 'R$ 5,00' : 'R$ 9,90';
+    toast({
+      title: `Plano ${planText} selecionado`,
+      description: `Você escolheu o acesso Wi-Fi por ${price}`,
     });
   };
 
@@ -35,8 +48,8 @@ export default function WiFi24h() {
     setIsLoading(true);
     
     try {
-      // Redirect to payment flow with country parameter
-      const paymentUrl = `/wifi-24h/payment?country=${selectedCountry}`;
+      // Redirect to payment flow with country and plan parameters
+      const paymentUrl = `/wifi-24h/payment?country=${selectedCountry}&plan=${selectedPlan}`;
       window.location.href = paymentUrl;
     } catch (error) {
       toast({
@@ -108,13 +121,47 @@ export default function WiFi24h() {
               <span className="block text-yellow-300">compras no Paraguai</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-white/90 mb-4 font-medium">
-              Wi-Fi ilimitado por apenas
+            <p className="text-xl md:text-2xl text-white/90 mb-6 font-medium">
+              Escolha seu plano de Wi-Fi ilimitado
             </p>
             
-            <div className="bg-white/20 backdrop-blur-md rounded-2xl p-6 inline-block mb-8">
-              <span className="text-5xl font-bold text-white">R$ 5</span>
-              <span className="text-xl text-white/80 ml-2">/ 24 horas</span>
+            {/* Plans Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 max-w-2xl">
+              {/* Daily Plan */}
+              <button
+                onClick={() => handlePlanSelect('daily')}
+                className={`bg-white/20 backdrop-blur-md rounded-2xl p-6 border-2 transition-all duration-300 ${
+                  selectedPlan === 'daily'
+                    ? 'border-yellow-300 bg-white/30 scale-105' 
+                    : 'border-white/30 hover:bg-white/25 hover:scale-102'
+                }`}
+                data-testid="button-plan-daily"
+              >
+                <div className="text-center">
+                  <Clock className="h-8 w-8 text-yellow-300 mx-auto mb-3" />
+                  <div className="text-3xl font-bold text-white mb-1">R$ 5</div>
+                  <div className="text-white/80 text-sm mb-2">24 horas</div>
+                  <div className="text-white/70 text-xs">Ideal para viagens</div>
+                </div>
+              </button>
+
+              {/* Monthly Plan */}
+              <button
+                onClick={() => handlePlanSelect('monthly')}
+                className={`bg-white/20 backdrop-blur-md rounded-2xl p-6 border-2 transition-all duration-300 ${
+                  selectedPlan === 'monthly'
+                    ? 'border-yellow-300 bg-white/30 scale-105' 
+                    : 'border-white/30 hover:bg-white/25 hover:scale-102'
+                }`}
+                data-testid="button-plan-monthly"
+              >
+                <div className="text-center">
+                  <Calendar className="h-8 w-8 text-yellow-300 mx-auto mb-3" />
+                  <div className="text-3xl font-bold text-white mb-1">R$ 9,90</div>
+                  <div className="text-white/80 text-sm mb-2">30 dias</div>
+                  <div className="text-white/70 text-xs">Melhor custo-benefício</div>
+                </div>
+              </button>
             </div>
           </div>
 
