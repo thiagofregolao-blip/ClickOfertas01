@@ -4,38 +4,32 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import type { WifiSettings } from "@shared/schema";
+import type { WifiSettings, WifiPlan } from "@shared/schema";
 
 /**
  * Landing Page Wi-Fi 24h - Click Ofertas Paraguai
  * Venda de acesso Wi-Fi por 24h para turistas
  */
-type PlanType = 'daily' | 'monthly';
-
 export default function WiFi24h() {
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
   const [selectedCountry, setSelectedCountry] = useState<'brazil' | 'paraguay' | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>('daily');
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Buscar configurações de preços do Wi-Fi
-  const { data: wifiSettings, isLoading: settingsLoading } = useQuery<WifiSettings>({
-    queryKey: ['/api/wifi-settings'],
+  // Buscar planos ativos
+  const { data: wifiPlans, isLoading: plansLoading } = useQuery<WifiPlan[]>({
+    queryKey: ['/api/wifi-plans/active'],
     queryFn: async () => {
-      const response = await fetch('/api/wifi-settings');
-      if (!response.ok) throw new Error('Failed to fetch settings');
+      const response = await fetch('/api/wifi-plans/active');
+      if (!response.ok) throw new Error('Failed to fetch plans');
       return await response.json();
     }
   });
 
-  // Calcular preços dinamicamente baseados nas configurações
-  const basePrice = parseFloat(wifiSettings?.price?.toString() || '5.00');
-  const dailyPrice = basePrice;
-  const monthlyPrice = basePrice * 1.98; // Multiplicador mensal conforme admin
-
-  const formatPrice = (price: number) => {
-    return `R$ ${price.toFixed(2).replace('.', ',')}`;
+  const formatPrice = (price: number | string) => {
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    return `R$ ${numPrice.toFixed(2).replace('.', ',')}`;
   };
 
   const handleCountrySelect = (country: 'brazil' | 'paraguay') => {
@@ -48,13 +42,14 @@ export default function WiFi24h() {
     });
   };
 
-  const handlePlanSelect = (plan: PlanType) => {
-    setSelectedPlan(plan);
-    const planText = plan === 'daily' ? '24 horas' : 'mensal';
-    const price = plan === 'daily' ? formatPrice(dailyPrice) : formatPrice(monthlyPrice);
+  const handlePlanSelect = (planId: string) => {
+    const plan = wifiPlans?.find(p => p.id === planId);
+    if (!plan) return;
+    
+    setSelectedPlan(planId);
     toast({
-      title: `Plano ${planText} selecionado`,
-      description: `Você escolheu o acesso Wi-Fi por ${price}`,
+      title: `${plan.name} selecionado`,
+      description: `Você escolheu o acesso Wi-Fi por ${formatPrice(plan.price)}`,
     });
   };
 
@@ -68,11 +63,30 @@ export default function WiFi24h() {
       return;
     }
 
+    if (!selectedPlan) {
+      toast({
+        title: "Selecione um plano",
+        description: "Por favor, escolha um plano de Wi-Fi para continuar.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const plan = wifiPlans?.find(p => p.id === selectedPlan);
+    if (!plan) {
+      toast({
+        title: "Plano não encontrado",
+        description: "O plano selecionado não está mais disponível.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
     
     try {
       // Navigate to payment flow with country and plan parameters
-      const paymentUrl = `/wifi-24h/payment?country=${selectedCountry}&plan=${selectedPlan}`;
+      const paymentUrl = `/wifi-24h/payment?country=${selectedCountry}&planId=${selectedPlan}`;
       setLocation(paymentUrl);
     } catch (error) {
       toast({
@@ -148,48 +162,45 @@ export default function WiFi24h() {
               Escolha seu plano de Wi-Fi ilimitado
             </p>
             
-            {/* Plans Selection */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 max-w-2xl mx-auto">
-              {/* Daily Plan */}
-              <button
-                onClick={() => handlePlanSelect('daily')}
-                className={`bg-black/20 backdrop-blur-md rounded-2xl p-6 border-2 transition-all duration-300 ${
-                  selectedPlan === 'daily'
-                    ? 'border-yellow-300 bg-black/30 scale-105' 
-                    : 'border-white/30 hover:bg-black/25 hover:scale-102'
-                }`}
-                data-testid="button-plan-daily"
-              >
-                <div className="text-center">
-                  <Clock className="h-8 w-8 text-yellow-300 mx-auto mb-3" />
-                  <div className="text-3xl font-bold text-white mb-1">
-                    {settingsLoading ? 'R$ 5,00' : formatPrice(dailyPrice)}
-                  </div>
-                  <div className="text-white/80 text-sm mb-2">24 horas</div>
-                  <div className="text-white/70 text-xs">Ideal para viagens</div>
-                </div>
-              </button>
-
-              {/* Monthly Plan */}
-              <button
-                onClick={() => handlePlanSelect('monthly')}
-                className={`bg-black/20 backdrop-blur-md rounded-2xl p-6 border-2 transition-all duration-300 ${
-                  selectedPlan === 'monthly'
-                    ? 'border-yellow-300 bg-black/30 scale-105' 
-                    : 'border-white/30 hover:bg-black/25 hover:scale-102'
-                }`}
-                data-testid="button-plan-monthly"
-              >
-                <div className="text-center">
-                  <Calendar className="h-8 w-8 text-yellow-300 mx-auto mb-3" />
-                  <div className="text-3xl font-bold text-white mb-1">
-                    {settingsLoading ? 'R$ 9,90' : formatPrice(monthlyPrice)}
-                  </div>
-                  <div className="text-white/80 text-sm mb-2">30 dias</div>
-                  <div className="text-white/70 text-xs">Melhor custo-benefício</div>
-                </div>
-              </button>
-            </div>
+            {/* Plans Selection - Dynamic */}
+            {plansLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+              </div>
+            ) : wifiPlans && wifiPlans.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 max-w-2xl mx-auto">
+                {wifiPlans.map((plan, index) => {
+                  const Icon = plan.durationHours <= 24 ? Clock : Calendar;
+                  return (
+                    <button
+                      key={plan.id}
+                      onClick={() => handlePlanSelect(plan.id)}
+                      className={`bg-black/20 backdrop-blur-md rounded-2xl p-6 border-2 transition-all duration-300 ${
+                        selectedPlan === plan.id
+                          ? 'border-yellow-300 bg-black/30 scale-105' 
+                          : 'border-white/30 hover:bg-black/25 hover:scale-102'
+                      }`}
+                      data-testid={`button-plan-${index}`}
+                    >
+                      <div className="text-center">
+                        <Icon className="h-8 w-8 text-yellow-300 mx-auto mb-3" />
+                        <div className="text-3xl font-bold text-white mb-1">
+                          {formatPrice(plan.price)}
+                        </div>
+                        <div className="text-white/80 text-sm mb-2">{plan.name}</div>
+                        {plan.description && (
+                          <div className="text-white/70 text-xs">{plan.description}</div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-white/80 text-center py-8">
+                Nenhum plano disponível no momento
+              </div>
+            )}
           </div>
 
           {/* Country Selection */}

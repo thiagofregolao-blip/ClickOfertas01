@@ -6,6 +6,7 @@ import { Wifi, CreditCard, QrCode, ArrowLeft, Shield, Clock, Calendar } from "lu
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import type { WifiPlan } from "@shared/schema";
 
 /**
  * Página de Pagamento Wi-Fi 24h
@@ -20,39 +21,41 @@ export default function WiFiPayment() {
     customerEmail: '',
     customerPhone: '',
     country: 'brazil', // Default
-    plan: 'daily' as 'daily' | 'monthly' // Default
+    planId: '' // Will be set from URL
   });
 
-  // Get country and plan from URL parameters
+  // Get country and planId from URL parameters
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const country = urlParams.get('country');
-    const plan = urlParams.get('plan') as 'daily' | 'monthly';
+    const planId = urlParams.get('planId');
     
     setFormData(prev => ({
       ...prev,
       ...(country && { country }),
-      ...(plan && { plan })
+      ...(planId && { planId })
     }));
   }, []);
 
-  // Plan configurations
-  const planConfig = {
-    daily: {
-      price: 5.00,
-      name: 'Wi-Fi 24 horas',
-      description: 'Acesso Wi-Fi por 24 horas',
-      duration: '24 horas'
+  // Buscar plano pelo ID
+  const { data: currentPlan, isLoading: planLoading } = useQuery<WifiPlan>({
+    queryKey: ['/api/wifi-plans', formData.planId],
+    queryFn: async () => {
+      if (!formData.planId) throw new Error('No plan ID');
+      const response = await fetch(`/api/wifi-plans/active`);
+      if (!response.ok) throw new Error('Failed to fetch plans');
+      const plans = await response.json();
+      const plan = plans.find((p: WifiPlan) => p.id === formData.planId);
+      if (!plan) throw new Error('Plan not found');
+      return plan;
     },
-    monthly: {
-      price: 9.90,
-      name: 'Wi-Fi 30 dias',
-      description: 'Acesso Wi-Fi por 30 dias',
-      duration: '30 dias'
-    }
-  };
+    enabled: !!formData.planId
+  });
 
-  const currentPlan = planConfig[formData.plan];
+  const formatPrice = (price: number | string) => {
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    return `R$ ${numPrice.toFixed(2).replace('.', ',')}`;
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -90,7 +93,7 @@ export default function WiFiPayment() {
           customerName: formData.customerName || null,
           customerEmail: formData.customerEmail,
           customerPhone: formData.customerPhone || null,
-          plan: formData.plan,
+          planId: formData.planId,
           country: formData.country
         })
       });
@@ -121,7 +124,19 @@ export default function WiFiPayment() {
   };
 
   const isEmailValid = formData.customerEmail.includes('@') && formData.customerEmail.length > 5;
-  const canProceed = isEmailValid && !isProcessing;
+  const canProceed = isEmailValid && !isProcessing && !!currentPlan;
+
+  // Loading state
+  if (planLoading || !currentPlan) {
+    return (
+      <div className="min-h-[100dvh] flex items-center justify-center bg-gradient-to-br from-[#F04940] to-[#FA7D22]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="text-white">Carregando plano...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[100dvh] flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-gradient-to-br from-[#F04940] to-[#FA7D22]">
@@ -140,7 +155,7 @@ export default function WiFiPayment() {
           
           <div className="flex items-center gap-2">
             <Wifi className="h-6 w-6 text-white" />
-            <span className="text-white font-bold text-lg">Wi-Fi {formData.plan === 'monthly' ? '30 dias' : '24h'}</span>
+            <span className="text-white font-bold text-lg">Wi-Fi {currentPlan.name}</span>
           </div>
         </div>
       </header>
@@ -163,14 +178,14 @@ export default function WiFiPayment() {
             <div className="border border-white/20 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  {formData.plan === 'daily' ? (
+                  {currentPlan.durationHours <= 24 ? (
                     <Clock className="h-5 w-5 text-yellow-300" />
                   ) : (
                     <Calendar className="h-5 w-5 text-yellow-300" />
                   )}
                   <span className="text-white font-medium">{currentPlan.name}</span>
                 </div>
-                <span className="text-2xl font-bold text-white">R$ {currentPlan.price.toFixed(2).replace('.', ',')}</span>
+                <span className="text-2xl font-bold text-white">{formatPrice(currentPlan.price)}</span>
               </div>
               
               <div className="text-sm text-white/70 space-y-1">
@@ -290,8 +305,8 @@ export default function WiFiPayment() {
             {isProcessing 
               ? (formData.country === 'brazil' ? "Processando..." : "Procesando...")
               : (formData.country === 'brazil' 
-                  ? `Pagar R$ ${currentPlan.price.toFixed(2).replace('.', ',')}` 
-                  : `Pagar R$ ${currentPlan.price.toFixed(2).replace('.', ',')}`)
+                  ? `Pagar ${formatPrice(currentPlan.price)}` 
+                  : `Pagar ${formatPrice(currentPlan.price)}`)
             }
           </Button>
 

@@ -54,6 +54,7 @@ import {
   wifiSettings,
   wifiCommissions,
   wifiAnalytics,
+  wifiPlans,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -182,6 +183,9 @@ import {
   type InsertWifiCommission,
   type WifiAnalytics,
   type InsertWifiAnalytics,
+  type WifiPlan,
+  type InsertWifiPlan,
+  type UpdateWifiPlan,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, gte, lte, lt, sql, inArray, or, isNull, isNotNull } from "drizzle-orm";
@@ -4776,6 +4780,72 @@ export class DatabaseStorage implements IStorage {
       expiredVouchers: analytics.reduce((sum, a) => sum + (a.expiredVouchers || 0), 0),
       dailyData: analytics,
     };
+  }
+
+  // Wi-Fi Plans CRUD
+  async getAllWifiPlans(): Promise<WifiPlan[]> {
+    return db
+      .select()
+      .from(wifiPlans)
+      .orderBy(asc(wifiPlans.displayOrder), asc(wifiPlans.createdAt));
+  }
+
+  async getActiveWifiPlans(): Promise<WifiPlan[]> {
+    return db
+      .select()
+      .from(wifiPlans)
+      .where(eq(wifiPlans.isActive, true))
+      .orderBy(asc(wifiPlans.displayOrder), asc(wifiPlans.createdAt));
+  }
+
+  async getWifiPlanById(id: string): Promise<WifiPlan | undefined> {
+    const [plan] = await db
+      .select()
+      .from(wifiPlans)
+      .where(eq(wifiPlans.id, id))
+      .limit(1);
+    return plan;
+  }
+
+  async createWifiPlan(planData: InsertWifiPlan): Promise<WifiPlan> {
+    const [plan] = await db
+      .insert(wifiPlans)
+      .values(planData)
+      .returning();
+    return plan;
+  }
+
+  async updateWifiPlan(id: string, planData: UpdateWifiPlan): Promise<WifiPlan> {
+    const [plan] = await db
+      .update(wifiPlans)
+      .set({
+        ...planData,
+        updatedAt: new Date(),
+      })
+      .where(eq(wifiPlans.id, id))
+      .returning();
+    return plan;
+  }
+
+  async deleteWifiPlan(id: string): Promise<void> {
+    await db
+      .delete(wifiPlans)
+      .where(eq(wifiPlans.id, id));
+  }
+
+  async toggleWifiPlanStatus(id: string): Promise<WifiPlan> {
+    const plan = await this.getWifiPlanById(id);
+    if (!plan) throw new Error('Plano não encontrado');
+    
+    const [updated] = await db
+      .update(wifiPlans)
+      .set({
+        isActive: !plan.isActive,
+        updatedAt: new Date(),
+      })
+      .where(eq(wifiPlans.id, id))
+      .returning();
+    return updated;
   }
 
   // 🎯 Search Learning System - Tracks user search patterns for AI improvement

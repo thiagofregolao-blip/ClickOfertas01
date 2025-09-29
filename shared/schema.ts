@@ -574,6 +574,20 @@ export const wifiAnalytics = pgTable("wifi_analytics", {
   unique().on(table.date), // Uma entrada por dia
 ]);
 
+// Planos Wi-Fi personalizáveis
+export const wifiPlans = pgTable("wifi_plans", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(), // Ex: "24 horas", "48 horas", "7 dias"
+  durationHours: integer("duration_hours").notNull(), // Duração em horas: 24, 48, 168, etc
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(), // Preço em reais
+  description: text("description"), // Descrição opcional: "Ideal para viagens"
+  sessionTimeout: varchar("session_timeout").notNull(), // Formato MikroTik: "24:00:00"
+  isActive: boolean("is_active").default(true),
+  displayOrder: integer("display_order").default(0), // Ordem de exibição
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   stores: many(stores),
   savedProducts: many(savedProducts),
@@ -2224,9 +2238,7 @@ export const createWifiPaymentRequestSchema = z.object({
   customerEmail: z.string().email("Email inválido"),
   customerPhone: z.string().optional().nullable(),
   storeId: z.string().optional().nullable(),
-  plan: z.enum(WIFI_PLAN_IDS, { 
-    errorMap: () => ({ message: "Plano inválido" })
-  }).default('daily'),
+  planId: z.string({ required_error: "Plano obrigatório" }),
   country: z.enum(WIFI_COUNTRY_IDS, {
     errorMap: () => ({ message: "País inválido" })
   }).default('brazil')
@@ -2251,6 +2263,14 @@ export const insertWifiAnalyticsSchema = createInsertSchema(wifiAnalytics).omit(
   updatedAt: true,
 });
 
+export const insertWifiPlanSchema = createInsertSchema(wifiPlans).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateWifiPlanSchema = insertWifiPlanSchema.partial();
+
 // Wi-Fi Types
 export type WifiPayment = typeof wifiPayments.$inferSelect;
 export type InsertWifiPayment = z.infer<typeof insertWifiPaymentSchema>;
@@ -2265,6 +2285,10 @@ export type InsertWifiCommission = z.infer<typeof insertWifiCommissionSchema>;
 
 export type WifiAnalytics = typeof wifiAnalytics.$inferSelect;
 export type InsertWifiAnalytics = z.infer<typeof insertWifiAnalyticsSchema>;
+
+export type WifiPlan = typeof wifiPlans.$inferSelect;
+export type InsertWifiPlan = z.infer<typeof insertWifiPlanSchema>;
+export type UpdateWifiPlan = z.infer<typeof updateWifiPlanSchema>;
 
 // Recommendation Types for AI Responses
 export type ProductRecommendation = {

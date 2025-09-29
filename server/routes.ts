@@ -8574,21 +8574,21 @@ Regras:
         });
       }
 
-      const { customerName, customerEmail, customerPhone, storeId, plan, country } = validationResult.data;
+      const { customerName, customerEmail, customerPhone, storeId, planId, country } = validationResult.data;
       
-      // Calculate amount based on plan (server-side security)
-      const planConfig = WIFI_PLANS[plan];
-      if (!planConfig) {
-        return res.status(400).json({ error: "Plano não encontrado" });
+      // Buscar plano do banco de dados
+      const plan = await storage.getWifiPlanById(planId);
+      if (!plan || !plan.isActive) {
+        return res.status(400).json({ error: "Plano não encontrado ou inativo" });
       }
       
-      const amount = planConfig.price;
+      const amount = parseFloat(plan.price.toString());
 
       // Generate unique voucher code
       const voucherCode = `WIFI${Date.now()}${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 
       // Create MercadoPago preference
-      const productTitle = `${planConfig.name} - Internet Paraguai`;
+      const productTitle = `${plan.name} - Internet Paraguai`;
       
       const preferenceData = {
         items: [
@@ -8630,7 +8630,7 @@ Regras:
         preferenceId: preferenceResponse.id,
         amount: amount.toString(),
         currency: "BRL",
-        plan,
+        plan: planId, // Agora armazena o planId ao invés de 'daily'|'monthly'
         country,
         customerEmail,
         customerPhone: customerPhone || null,
@@ -8812,6 +8812,74 @@ Regras:
       res.json(analytics);
     } catch (error) {
       console.error("Erro ao buscar analytics Wi-Fi:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Wi-Fi Plans Management APIs (Super Admin only)
+  
+  // Get all Wi-Fi plans (admin)
+  app.get("/api/wifi-plans", isSuperAdmin, async (req, res) => {
+    try {
+      const plans = await storage.getAllWifiPlans();
+      res.json(plans);
+    } catch (error) {
+      console.error("Erro ao buscar planos Wi-Fi:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Get active Wi-Fi plans (public - for WiFi24h page)
+  app.get("/api/wifi-plans/active", async (req, res) => {
+    try {
+      const plans = await storage.getActiveWifiPlans();
+      res.json(plans);
+    } catch (error) {
+      console.error("Erro ao buscar planos ativos:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Create Wi-Fi plan
+  app.post("/api/wifi-plans", isSuperAdmin, async (req, res) => {
+    try {
+      const plan = await storage.createWifiPlan(req.body);
+      res.status(201).json(plan);
+    } catch (error) {
+      console.error("Erro ao criar plano Wi-Fi:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Update Wi-Fi plan
+  app.put("/api/wifi-plans/:id", isSuperAdmin, async (req, res) => {
+    try {
+      const plan = await storage.updateWifiPlan(req.params.id, req.body);
+      res.json(plan);
+    } catch (error) {
+      console.error("Erro ao atualizar plano Wi-Fi:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Delete Wi-Fi plan
+  app.delete("/api/wifi-plans/:id", isSuperAdmin, async (req, res) => {
+    try {
+      await storage.deleteWifiPlan(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Erro ao deletar plano Wi-Fi:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Toggle Wi-Fi plan status
+  app.patch("/api/wifi-plans/:id/toggle", isSuperAdmin, async (req, res) => {
+    try {
+      const plan = await storage.toggleWifiPlanStatus(req.params.id);
+      res.json(plan);
+    } catch (error) {
+      console.error("Erro ao alternar status do plano:", error);
       res.status(500).json({ error: "Erro interno do servidor" });
     }
   });
