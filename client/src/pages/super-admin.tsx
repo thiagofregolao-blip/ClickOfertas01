@@ -4742,8 +4742,123 @@ function ProductBankItemsList({ bankId }: { bankId: string }) {
   );
 }
 
-// Componente Wi-Fi Management Panel
+// Componente Wi-Fi Management Panel - Integrado do admin-wifi.tsx
 function WiFiManagementPanel() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [activeWifiTab, setActiveWifiTab] = useState<'settings' | 'payments' | 'analytics' | 'commissions'>('settings');
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Buscar configurações
+  const { data: settings, isLoading: settingsLoading } = useQuery({
+    queryKey: ['/api/wifi-settings'],
+    queryFn: async () => {
+      const response = await fetch('/api/wifi-settings');
+      if (!response.ok) throw new Error('Failed to fetch settings');
+      return await response.json();
+    }
+  });
+
+  // Buscar pagamentos
+  const { data: payments, isLoading: paymentsLoading } = useQuery({
+    queryKey: ['/api/wifi-payments'],
+    queryFn: async () => {
+      const response = await fetch('/api/wifi-payments');
+      if (!response.ok) throw new Error('Failed to fetch payments');
+      return await response.json();
+    }
+  });
+
+  // Buscar analytics
+  const { data: analytics, isLoading: analyticsLoading } = useQuery({
+    queryKey: ['/api/wifi-analytics'],
+    queryFn: async () => {
+      const response = await fetch('/api/wifi-analytics');
+      if (!response.ok) throw new Error('Failed to fetch analytics');
+      return await response.json();
+    }
+  });
+
+  // Mutation para salvar configurações
+  const updateSettingsMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest('/api/wifi-settings', 'PUT', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/wifi-settings'] });
+      toast({
+        title: "Configurações salvas",
+        description: "As configurações do Wi-Fi foram atualizadas com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao salvar",
+        description: error.message || "Erro ao salvar configurações.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleSaveSettings = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      mikrotikHost: formData.get('mikrotikHost') as string,
+      mikrotikUsername: formData.get('mikrotikUsername') as string,
+      mikrotikPassword: formData.get('mikrotikPassword') as string,
+      hotspotProfile: formData.get('hotspotProfile') as string,
+      sessionTimeout: formData.get('sessionTimeout') as string,
+      dataLimit: formData.get('dataLimit') as string,
+      speedLimit: formData.get('speedLimit') as string,
+      price: parseFloat(formData.get('price') as string).toString(),
+      commissionPercentage: parseFloat(formData.get('commissionPercentage') as string).toString(),
+      isActive: formData.get('isActive') === 'on'
+    };
+
+    updateSettingsMutation.mutate(data);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Aprovado</Badge>;
+      case 'pending':
+        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Pendente</Badge>;
+      case 'rejected':
+        return <Badge className="bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" />Rejeitado</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  const getPlanBadge = (plan: string) => {
+    return plan === 'daily' 
+      ? <Badge className="bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" />24h</Badge>
+      : <Badge className="bg-purple-100 text-purple-800"><Calendar className="w-3 h-3 mr-1" />30 dias</Badge>;
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString('pt-BR');
+  };
+
+  // Calculate totals for analytics
+  const analyticsArray = Array.isArray(analytics) ? analytics : [];
+  const totalRevenue = analyticsArray.reduce((sum, a) => {
+    const revenue = a.totalRevenue ? parseFloat(a.totalRevenue.toString()) : 0;
+    return sum + revenue;
+  }, 0);
+  const totalPayments = analyticsArray.reduce((sum, a) => sum + (a.totalPayments || 0), 0);
+  const successRate = totalPayments > 0 ? 
+    ((analyticsArray.reduce((sum, a) => sum + (a.successfulPayments || 0), 0)) / totalPayments * 100) : 0;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -4752,51 +4867,672 @@ function WiFiManagementPanel() {
             <Wifi className="h-8 w-8 text-blue-600" />
             Wi-Fi 24h - Gerenciamento
           </h1>
-          <p className="text-gray-600 mt-2">
-            Configure e monitore o sistema de pagamento Wi-Fi 24 horas
+          <p className="text-gray-600 mt-1">
+            Configure planos, monitore transações e analise o desempenho do sistema Wi-Fi
           </p>
         </div>
-      </div>
-      
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center py-8 text-gray-500">
-            <Wifi className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-lg font-medium mb-2">Sistema Wi-Fi 24h</h3>
-            <p className="text-sm">Interface de gerenciamento em desenvolvimento</p>
+        <div className="flex items-center gap-2">
+          <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+            settings?.isActive 
+              ? 'bg-green-100 text-green-800' 
+              : 'bg-red-100 text-red-800'
+          }`}>
+            {settings?.isActive ? '✅ Ativo' : '❌ Inativo'}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      <Tabs value={activeWifiTab} onValueChange={(value) => setActiveWifiTab(value as any)} className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            Configurações
+          </TabsTrigger>
+          <TabsTrigger value="payments" className="flex items-center gap-2">
+            <CreditCard className="w-4 h-4" />
+            Transações
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger value="commissions" className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4" />
+            Comissões
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Configurações Tab */}
+        <TabsContent value="settings" className="space-y-6">
+          <div className="flex flex-col items-center gap-6 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+            
+            {/* Configurações de Planos */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  Configuração de Planos
+                </CardTitle>
+                <CardDescription>
+                  Configure os preços e descrições dos planos Wi-Fi
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSaveSettings} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="price">Preço Base (R$)</Label>
+                      <Input
+                        id="price"
+                        name="price"
+                        type="number"
+                        step="0.01"
+                        defaultValue={parseFloat(settings?.price?.toString() || '5.00')}
+                        placeholder="5.00"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="monthlyMultiplier">Multiplicador Mensal</Label>
+                      <Input
+                        id="monthlyMultiplier"
+                        name="monthlyMultiplier"
+                        type="number"
+                        step="0.1"
+                        defaultValue={1.98}
+                        placeholder="1.98"
+                        disabled
+                        className="bg-gray-100"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Preço mensal = Preço base × 1.98</p>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="commissionPercentage">Comissão para Lojas (%)</Label>
+                    <Input
+                      id="commissionPercentage"
+                      name="commissionPercentage"
+                      type="number"
+                      step="0.01"
+                      defaultValue={settings?.commissionPercentage || 10.00}
+                      placeholder="10.00"
+                    />
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Switch 
+                      id="isActive" 
+                      name="isActive"
+                      defaultChecked={settings?.isActive || true}
+                    />
+                    <Label htmlFor="isActive">Sistema Ativo</Label>
+                  </div>
+
+                  <Button type="submit" disabled={updateSettingsMutation.isPending} className="w-full">
+                    <Save className="w-4 h-4 mr-2" />
+                    {updateSettingsMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Configurações MikroTik */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Router className="h-5 w-5" />
+                  Configurações MikroTik
+                </CardTitle>
+                <CardDescription>
+                  Configure a conexão com o servidor MikroTik
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSaveSettings} className="space-y-4">
+                  <div>
+                    <Label htmlFor="mikrotikHost">Host MikroTik</Label>
+                    <Input
+                      id="mikrotikHost"
+                      name="mikrotikHost"
+                      defaultValue={settings?.mikrotikHost || ''}
+                      placeholder="192.168.1.1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="mikrotikUsername">Usuário</Label>
+                    <Input
+                      id="mikrotikUsername"
+                      name="mikrotikUsername"
+                      defaultValue={settings?.mikrotikUsername || ''}
+                      placeholder="admin"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="mikrotikPassword">Senha</Label>
+                    <div className="relative">
+                      <Input
+                        id="mikrotikPassword"
+                        name="mikrotikPassword"
+                        type={showPassword ? "text" : "password"}
+                        defaultValue={settings?.mikrotikPassword || ''}
+                        placeholder="••••••••"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="hotspotProfile">Perfil Hotspot</Label>
+                      <Input
+                        id="hotspotProfile"
+                        name="hotspotProfile"
+                        defaultValue={settings?.hotspotProfile || 'default'}
+                        placeholder="default"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="sessionTimeout">Timeout Sessão</Label>
+                      <Input
+                        id="sessionTimeout"
+                        name="sessionTimeout"
+                        defaultValue={settings?.sessionTimeout || '24:00:00'}
+                        placeholder="24:00:00"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="dataLimit">Limite de Dados</Label>
+                      <Input
+                        id="dataLimit"
+                        name="dataLimit"
+                        defaultValue={settings?.dataLimit || 'unlimited'}
+                        placeholder="unlimited"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="speedLimit">Limite de Velocidade</Label>
+                      <Input
+                        id="speedLimit"
+                        name="speedLimit"
+                        defaultValue={settings?.speedLimit || '10M/10M'}
+                        placeholder="10M/10M"
+                      />
+                    </div>
+                  </div>
+
+                  <Button type="submit" disabled={updateSettingsMutation.isPending} className="w-full">
+                    <Save className="w-4 h-4 mr-2" />
+                    Salvar Configurações MikroTik
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+          </div>
+        </TabsContent>
+
+        {/* Transações Tab */}
+        <TabsContent value="payments" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Transações Wi-Fi</CardTitle>
+              <CardDescription>
+                Visualize e gerencie todas as transações do sistema Wi-Fi
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {paymentsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-2">Cliente</th>
+                        <th className="text-left p-2">Plano</th>
+                        <th className="text-left p-2">Valor</th>
+                        <th className="text-left p-2">Status</th>
+                        <th className="text-left p-2">Voucher</th>
+                        <th className="text-left p-2">Data</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payments?.map((payment: any) => (
+                        <tr key={payment.id} className="border-b">
+                          <td className="p-2">
+                            <div>
+                              <div className="font-medium">{payment.customerName || 'N/A'}</div>
+                              <div className="text-sm text-gray-500">{payment.customerEmail}</div>
+                            </div>
+                          </td>
+                          <td className="p-2">{getPlanBadge(payment.plan)}</td>
+                          <td className="p-2 font-medium">{formatCurrency(payment.amount)}</td>
+                          <td className="p-2">{getStatusBadge(payment.status)}</td>
+                          <td className="p-2">
+                            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                              {payment.voucherCode || 'N/A'}
+                            </code>
+                          </td>
+                          <td className="p-2">{formatDate(payment.createdAt)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
+                <p className="text-xs text-muted-foreground">
+                  +{analytics?.length || 0} dias de dados
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total de Pagamentos</CardTitle>
+                <CreditCard className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalPayments}</div>
+                <p className="text-xs text-muted-foreground">
+                  {successRate.toFixed(1)}% taxa de sucesso
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Vouchers Ativos</CardTitle>
+                <Shield className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {analyticsArray.reduce((sum, a) => sum + (a.activeVouchers || 0), 0)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Conectados agora
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Comissões Tab */}
+        <TabsContent value="commissions" className="space-y-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center py-8 text-gray-500">
+                <DollarSign className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium mb-2">Comissões Wi-Fi</h3>
+                <p className="text-sm">Interface de comissões em desenvolvimento</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
 
-// Componente Premium Stores Panel  
+// Componente Premium Stores Panel - Integrado do admin-premium-stores.tsx
 function PremiumStoresPanel() {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Crown className="h-8 w-8 text-yellow-600" />
-            Gerenciar Lojas Premium
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Gerencie o status premium das lojas cadastradas no sistema
-          </p>
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Buscar todas as lojas
+  const { data: stores = [], isLoading, error } = useQuery({
+    queryKey: ['/api/admin/all-stores'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/all-stores');
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('Acesso negado - apenas super admins podem acessar esta página');
+        }
+        if (response.status === 401) {
+          throw new Error('Você precisa estar logado para acessar esta página');
+        }
+        throw new Error('Erro ao buscar lojas');
+      }
+      return response.json();
+    },
+    retry: (failureCount, error) => {
+      if (error.message.includes('Acesso negado') || error.message.includes('precisa estar logado')) {
+        return false;
+      }
+      return failureCount < 3;
+    }
+  });
+
+  // Show error state for API errors
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-red-200">
+          <CardContent className="p-8 text-center">
+            <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-red-700 mb-2">Erro ao Carregar</h2>
+            <p className="text-red-600 mb-6">
+              {error.message || 'Ocorreu um erro ao carregar as informações das lojas.'}
+            </p>
+            <Button 
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/admin/all-stores'] })}
+              data-testid="button-retry"
+            >
+              Tentar Novamente
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Mutation para alterar status premium
+  const togglePremiumMutation = useMutation({
+    mutationFn: async ({ storeId, isPremium }: { storeId: string; isPremium: boolean }) => {
+      const response = await fetch(`/api/admin/stores/${storeId}/premium`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isPremium })
+      });
+      if (!response.ok) throw new Error('Erro ao alterar status premium');
+      return response.json();
+    },
+    onSuccess: (_, { storeId, isPremium }) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/all-stores'] });
+      toast({
+        title: isPremium ? "Loja promovida!" : "Premium removido",
+        description: isPremium 
+          ? "A loja agora tem status premium e aparecerá primeiro nas comparações" 
+          : "A loja não é mais premium e seguirá a ordenação padrão",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Erro ao alterar status premium da loja",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Filtrar lojas por busca
+  const filteredStores = stores.filter((store: any) => 
+    store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    store.slug?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Separar lojas premium das regulares
+  const premiumStores = filteredStores.filter((store: any) => store.isPremium);
+  const regularStores = filteredStores.filter((store: any) => !store.isPremium);
+
+  const handleTogglePremium = (storeId: string, currentStatus: boolean) => {
+    togglePremiumMutation.mutate({ 
+      storeId, 
+      isPremium: !currentStatus 
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4 animate-pulse">
+          <div className="h-8 w-8 bg-gray-200 rounded"></div>
+          <div className="h-6 w-48 bg-gray-200 rounded"></div>
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          ))}
         </div>
       </div>
-      
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center py-8 text-gray-500">
-            <Crown className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-lg font-medium mb-2">Sistema de Lojas Premium</h3>
-            <p className="text-sm">Interface de gerenciamento em desenvolvimento</p>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="mb-6">
+        <div className="flex items-center space-x-3 mb-2">
+          <Crown className="w-8 h-8 text-yellow-600" />
+          <h1 className="text-3xl font-bold text-gray-900">Lojas Premium</h1>
+        </div>
+        <p className="text-gray-600">
+          Gerencie quais lojas têm status premium e aparecerão primeiro nas comparações de produtos
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <Store className="w-8 h-8 text-blue-600" />
+              <div>
+                <p className="text-sm text-gray-600">Total de Lojas</p>
+                <p className="text-2xl font-bold">{stores.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <Crown className="w-8 h-8 text-yellow-600" />
+              <div>
+                <p className="text-sm text-gray-600">Lojas Premium</p>
+                <p className="text-2xl font-bold text-yellow-600">{premiumStores.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <Users className="w-8 h-8 text-green-600" />
+              <div>
+                <p className="text-sm text-gray-600">Lojas Regulares</p>
+                <p className="text-2xl font-bold">{regularStores.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <Award className="w-8 h-8 text-purple-600" />
+              <div>
+                <p className="text-sm text-gray-600">Taxa Premium</p>
+                <p className="text-2xl font-bold">
+                  {stores.length > 0 ? Math.round((premiumStores.length / stores.length) * 100) : 0}%
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search */}
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            data-testid="input-search-stores"
+            placeholder="Buscar por nome ou slug da loja..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </div>
+
+      {/* Premium Stores Section */}
+      {premiumStores.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center space-x-2 mb-4">
+            <Crown className="w-5 h-5 text-yellow-600" />
+            <h2 className="text-xl font-semibold text-gray-900">Lojas Premium ({premiumStores.length})</h2>
           </div>
-        </CardContent>
-      </Card>
+          <div className="space-y-3">
+            {premiumStores.map((store: any) => (
+              <StoreCard
+                key={store.id}
+                store={store}
+                onTogglePremium={handleTogglePremium}
+                isLoading={togglePremiumMutation.isPending}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Regular Stores Section */}
+      <div>
+        <div className="flex items-center space-x-2 mb-4">
+          <Store className="w-5 h-5 text-gray-600" />
+          <h2 className="text-xl font-semibold text-gray-900">Lojas Regulares ({regularStores.length})</h2>
+        </div>
+        {regularStores.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">
+                {searchTerm ? "Nenhuma loja regular encontrada com esses critérios" : "Todas as lojas são premium!"}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {regularStores.map((store: any) => (
+              <StoreCard
+                key={store.id}
+                store={store}
+                onTogglePremium={handleTogglePremium}
+                isLoading={togglePremiumMutation.isPending}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* No results */}
+      {filteredStores.length === 0 && searchTerm && (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">Nenhuma loja encontrada com "{searchTerm}"</p>
+            <Button
+              data-testid="button-clear-search"
+              variant="outline"
+              onClick={() => setSearchTerm("")}
+              className="mt-3"
+            >
+              Limpar busca
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
+  );
+}
+
+// Componente StoreCard para exibir dados das lojas
+function StoreCard({ store, onTogglePremium, isLoading }: { store: any; onTogglePremium: (storeId: string, currentStatus: boolean) => void; isLoading: boolean }) {
+  return (
+    <Card className={`transition-all duration-200 ${store.isPremium ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200' : 'hover:shadow-md'}`}>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            {/* Logo da loja */}
+            <div className="relative">
+              {store.logoUrl ? (
+                <img
+                  src={store.logoUrl}
+                  alt={store.name}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                />
+              ) : (
+                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                  <Store className="w-6 h-6 text-gray-500" />
+                </div>
+              )}
+              {store.isPremium && (
+                <Crown className="absolute -top-1 -right-1 w-5 h-5 text-yellow-600" />
+              )}
+            </div>
+
+            {/* Informações da loja */}
+            <div className="flex-1">
+              <div className="flex items-center space-x-2">
+                <h3 className="font-semibold text-gray-900">{store.name}</h3>
+                {store.isPremium && (
+                  <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                    Premium
+                  </Badge>
+                )}
+              </div>
+              <div className="text-sm text-gray-600">
+                <p>Slug: /{store.slug}</p>
+                {store.productCount !== undefined && (
+                  <p>{store.productCount} produtos</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Toggle Premium */}
+          <div className="flex items-center space-x-3">
+            <div className="text-right">
+              <p className="text-sm text-gray-600">Status Premium</p>
+              <p className="text-xs text-gray-500">
+                {store.isPremium ? "Aparece primeiro" : "Ordenação padrão"}
+              </p>
+            </div>
+            <Switch
+              data-testid={`switch-premium-${store.id}`}
+              checked={store.isPremium || false}
+              onCheckedChange={() => onTogglePremium(store.id, store.isPremium || false)}
+              disabled={isLoading}
+              className="data-[state=checked]:bg-yellow-600"
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
