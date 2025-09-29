@@ -32,7 +32,7 @@ import {
   TrendingUp,
   TrendingDown
 } from "lucide-react";
-import AdminLayout from "@/components/admin-layout";
+import AdminConsolidatedLayout from "@/components/admin-consolidated-layout";
 import type { WifiSettings, WifiPayment, WifiAnalytics, InsertWifiSettings } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -48,7 +48,7 @@ export default function AdminWiFi() {
   // Verificar se é super admin
   if (!user?.isSuperAdmin) {
     return (
-      <AdminLayout>
+      <AdminConsolidatedLayout>
         <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
           <div className="text-center">
             <div className="text-red-500 text-6xl mb-4">🚫</div>
@@ -56,7 +56,7 @@ export default function AdminWiFi() {
             <p className="text-gray-600">Você precisa ser um Super Admin para acessar esta seção.</p>
           </div>
         </div>
-      </AdminLayout>
+      </AdminConsolidatedLayout>
     );
   }
 
@@ -174,7 +174,7 @@ export default function AdminWiFi() {
     ((analyticsArray.reduce((sum, a) => sum + (a.successfulPayments || 0), 0)) / totalPayments * 100) : 0;
 
   return (
-    <AdminLayout>
+    <AdminConsolidatedLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -584,6 +584,6 @@ export default function AdminWiFi() {
 
         </Tabs>
       </div>
-    </AdminLayout>
+    </AdminConsolidatedLayout>
   );
 }

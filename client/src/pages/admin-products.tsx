@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertProductSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import AdminLayout from "@/components/admin-layout";
+import AdminConsolidatedLayout from "@/components/admin-consolidated-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -522,27 +522,27 @@ export default function AdminProducts() {
 
   if (isLoading) {
     return (
-      <AdminLayout>
+      <AdminConsolidatedLayout>
         <div className="animate-pulse space-y-6">
           <div className="h-10 bg-gray-200 rounded w-1/4"></div>
           <div className="h-32 bg-gray-200 rounded"></div>
         </div>
-      </AdminLayout>
+      </AdminConsolidatedLayout>
     );
   }
 
   if (!store) {
     return (
-      <AdminLayout>
+      <AdminConsolidatedLayout>
         <div className="text-center py-12">
           <p className="text-gray-600">Configure sua loja primeiro para gerenciar produtos.</p>
         </div>
-      </AdminLayout>
+      </AdminConsolidatedLayout>
     );
   }
 
   return (
-    <AdminLayout>
+    <AdminConsolidatedLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="text-center">
@@ -1395,6 +1395,6 @@ export default function AdminProducts() {
           </div>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </AdminConsolidatedLayout>
   );
 }

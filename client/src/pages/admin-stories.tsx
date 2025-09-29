@@ -1,4 +1,4 @@
-import AdminLayout from "@/components/admin-layout";
+import AdminConsolidatedLayout from "@/components/admin-consolidated-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,11 +50,11 @@ export default function AdminStories() {
 
   if (isLoading) {
     return (
-      <AdminLayout>
+      <AdminConsolidatedLayout>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
-      </AdminLayout>
+      </AdminConsolidatedLayout>
     );
   }
 
@@ -62,7 +62,7 @@ export default function AdminStories() {
   const expiredStories = stories?.filter(story => !story.isActive) || [];
 
   return (
-    <AdminLayout>
+    <AdminConsolidatedLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-start">
@@ -353,6 +353,6 @@ export default function AdminStories() {
           )}
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </AdminConsolidatedLayout>
   );
 }
