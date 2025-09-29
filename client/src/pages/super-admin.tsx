@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,7 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Edit2, Trash2, Eye, LogOut, Gift, Dice6, Target, Award, Save, Package, Percent, DollarSign, Trophy, RotateCcw, Download, HelpCircle, Calculator, AlertTriangle, AlertCircle, TrendingUp, Search, Brain, Globe, Activity, Zap, RefreshCw, Tag } from 'lucide-react';
+import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Edit2, Trash2, Eye, LogOut, Gift, Dice6, Target, Award, Save, Package, Percent, DollarSign, Trophy, RotateCcw, Download, HelpCircle, Calculator, AlertTriangle, AlertCircle, TrendingUp, Search, Brain, Globe, Activity, Zap, RefreshCw, Tag, ChevronDown } from 'lucide-react';
 import { isUnauthorizedError } from '@/lib/authUtils';
 
 const bannerSchema = z.object({
@@ -1315,6 +1316,7 @@ export default function SuperAdmin() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("banners");
   
   // ========== MUTATIONS PARA ARTES IA ==========
   const { data: allGeneratedArts, isLoading: artsLoading } = useQuery({
@@ -2033,53 +2035,175 @@ export default function SuperAdmin() {
           </Button>
         </div>
 
-        <Tabs defaultValue="banners" className="w-full">
-          <TabsList className="grid w-full grid-cols-11">
-            <TabsTrigger value="banners" className="flex items-center gap-2">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          {/* Navigation com Dropdowns Organizados */}
+          <div className="flex flex-wrap gap-2 mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border">
+            
+            {/* 🏪 LOJA */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className={`flex items-center gap-2 ${
+                    ['stores', 'product-banks', 'promotions', 'categories'].includes(activeTab) 
+                      ? 'bg-red-50 text-red-600 border border-red-200' 
+                      : 'text-gray-600 hover:text-red-600'
+                  }`}
+                >
+                  <Store className="w-4 h-4" />
+                  Loja
+                  <ChevronDown className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuItem 
+                  onClick={() => setActiveTab('stores')}
+                  className={activeTab === 'stores' ? 'bg-red-50 text-red-600' : ''}
+                >
+                  <Store className="w-4 h-4 mr-2" />
+                  Lojas
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setActiveTab('product-banks')}
+                  className={activeTab === 'product-banks' ? 'bg-red-50 text-red-600' : ''}
+                >
+                  <Package className="w-4 h-4 mr-2" />
+                  Banco de Produtos
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setActiveTab('promotions')}
+                  className={activeTab === 'promotions' ? 'bg-red-50 text-red-600' : ''}
+                >
+                  <Trophy className="w-4 h-4 mr-2" />
+                  Promoções
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setActiveTab('categories')}
+                  className={activeTab === 'categories' ? 'bg-red-50 text-red-600' : ''}
+                >
+                  <Tag className="w-4 h-4 mr-2" />
+                  Categorias
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* 📊 ANALYTICS */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className={`flex items-center gap-2 ${
+                    ['stats', 'analytics'].includes(activeTab) 
+                      ? 'bg-blue-50 text-blue-600 border border-blue-200' 
+                      : 'text-gray-600 hover:text-blue-600'
+                  }`}
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  Analytics
+                  <ChevronDown className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuItem 
+                  onClick={() => setActiveTab('stats')}
+                  className={activeTab === 'stats' ? 'bg-blue-50 text-blue-600' : ''}
+                >
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Estatísticas
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setActiveTab('analytics')}
+                  className={activeTab === 'analytics' ? 'bg-blue-50 text-blue-600' : ''}
+                >
+                  <Activity className="w-4 h-4 mr-2" />
+                  Analytics
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* 🎨 MARKETING */}
+            <Button 
+              variant="ghost" 
+              onClick={() => setActiveTab('banners')}
+              className={`flex items-center gap-2 ${
+                activeTab === 'banners' 
+                  ? 'bg-green-50 text-green-600 border border-green-200' 
+                  : 'text-gray-600 hover:text-green-600'
+              }`}
+            >
               <Image className="w-4 h-4" />
-              Banners
-            </TabsTrigger>
-            <TabsTrigger value="stores" className="flex items-center gap-2">
-              <Store className="w-4 h-4" />
-              Lojas
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Usuários
-            </TabsTrigger>
-            <TabsTrigger value="promotions" className="flex items-center gap-2">
-              <Trophy className="w-4 h-4" />
-              Promoções
-            </TabsTrigger>
-            <TabsTrigger value="stats" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Estatísticas
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <Activity className="w-4 h-4" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="ai-test" className="flex items-center gap-2">
-              <Brain className="w-4 h-4" />
-              Teste IA
-            </TabsTrigger>
-            <TabsTrigger value="ai-arts-main" className="flex items-center gap-2">
-              <Brain className="w-4 h-4" />
-              Artes IA
-            </TabsTrigger>
-            <TabsTrigger value="categories" className="flex items-center gap-2">
-              <Tag className="w-4 h-4" />
-              Categorias
-            </TabsTrigger>
-            <TabsTrigger value="product-banks" className="flex items-center gap-2">
-              <Package className="w-4 h-4" />
-              Banco de Produtos
-            </TabsTrigger>
-            <TabsTrigger value="system" className="flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              Sistema
-            </TabsTrigger>
-          </TabsList>
+              Marketing
+            </Button>
+
+            {/* 👥 GESTÃO */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className={`flex items-center gap-2 ${
+                    ['users', 'system'].includes(activeTab) 
+                      ? 'bg-purple-50 text-purple-600 border border-purple-200' 
+                      : 'text-gray-600 hover:text-purple-600'
+                  }`}
+                >
+                  <Users className="w-4 h-4" />
+                  Gestão
+                  <ChevronDown className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuItem 
+                  onClick={() => setActiveTab('users')}
+                  className={activeTab === 'users' ? 'bg-purple-50 text-purple-600' : ''}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Usuários
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setActiveTab('system')}
+                  className={activeTab === 'system' ? 'bg-purple-50 text-purple-600' : ''}
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Sistema
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* 🤖 IA */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className={`flex items-center gap-2 ${
+                    ['ai-test', 'ai-arts-main'].includes(activeTab) 
+                      ? 'bg-orange-50 text-orange-600 border border-orange-200' 
+                      : 'text-gray-600 hover:text-orange-600'
+                  }`}
+                >
+                  <Brain className="w-4 h-4" />
+                  IA
+                  <ChevronDown className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuItem 
+                  onClick={() => setActiveTab('ai-test')}
+                  className={activeTab === 'ai-test' ? 'bg-orange-50 text-orange-600' : ''}
+                >
+                  <Brain className="w-4 h-4 mr-2" />
+                  Teste IA
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setActiveTab('ai-arts-main')}
+                  className={activeTab === 'ai-arts-main' ? 'bg-orange-50 text-orange-600' : ''}
+                >
+                  <Globe className="w-4 h-4 mr-2" />
+                  Artes IA
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+          </div>
 
           {/* ABA DE BANNERS */}
           <TabsContent value="banners" className="space-y-6">
