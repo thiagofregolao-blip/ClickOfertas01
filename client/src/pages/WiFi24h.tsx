@@ -3,6 +3,8 @@ import { Wifi, ShoppingBag, Clock, Shield, Calendar } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import type { WifiSettings } from "@shared/schema";
 
 /**
  * Landing Page Wi-Fi 24h - Click Ofertas Paraguai
@@ -17,6 +19,25 @@ export default function WiFi24h() {
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('daily');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Buscar configurações de preços do Wi-Fi
+  const { data: wifiSettings, isLoading: settingsLoading } = useQuery<WifiSettings>({
+    queryKey: ['/api/wifi-settings'],
+    queryFn: async () => {
+      const response = await fetch('/api/wifi-settings');
+      if (!response.ok) throw new Error('Failed to fetch settings');
+      return await response.json();
+    }
+  });
+
+  // Calcular preços dinamicamente baseados nas configurações
+  const basePrice = parseFloat(wifiSettings?.price?.toString() || '5.00');
+  const dailyPrice = basePrice;
+  const monthlyPrice = basePrice * 1.98; // Multiplicador mensal conforme admin
+
+  const formatPrice = (price: number) => {
+    return `R$ ${price.toFixed(2).replace('.', ',')}`;
+  };
+
   const handleCountrySelect = (country: 'brazil' | 'paraguay') => {
     setSelectedCountry(country);
     toast({
@@ -30,7 +51,7 @@ export default function WiFi24h() {
   const handlePlanSelect = (plan: PlanType) => {
     setSelectedPlan(plan);
     const planText = plan === 'daily' ? '24 horas' : 'mensal';
-    const price = plan === 'daily' ? 'R$ 5,00' : 'R$ 9,90';
+    const price = plan === 'daily' ? formatPrice(dailyPrice) : formatPrice(monthlyPrice);
     toast({
       title: `Plano ${planText} selecionado`,
       description: `Você escolheu o acesso Wi-Fi por ${price}`,
@@ -141,7 +162,9 @@ export default function WiFi24h() {
               >
                 <div className="text-center">
                   <Clock className="h-8 w-8 text-yellow-300 mx-auto mb-3" />
-                  <div className="text-3xl font-bold text-white mb-1">R$ 5</div>
+                  <div className="text-3xl font-bold text-white mb-1">
+                    {settingsLoading ? 'R$ 5,00' : formatPrice(dailyPrice)}
+                  </div>
                   <div className="text-white/80 text-sm mb-2">24 horas</div>
                   <div className="text-white/70 text-xs">Ideal para viagens</div>
                 </div>
@@ -159,7 +182,9 @@ export default function WiFi24h() {
               >
                 <div className="text-center">
                   <Calendar className="h-8 w-8 text-yellow-300 mx-auto mb-3" />
-                  <div className="text-3xl font-bold text-white mb-1">R$ 9,90</div>
+                  <div className="text-3xl font-bold text-white mb-1">
+                    {settingsLoading ? 'R$ 9,90' : formatPrice(monthlyPrice)}
+                  </div>
                   <div className="text-white/80 text-sm mb-2">30 dias</div>
                   <div className="text-white/70 text-xs">Melhor custo-benefício</div>
                 </div>
