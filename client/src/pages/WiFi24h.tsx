@@ -22,7 +22,7 @@ export default function WiFi24h() {
     });
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!selectedCountry) {
       toast({
         title: "Selecione seu país",
@@ -34,14 +34,18 @@ export default function WiFi24h() {
 
     setIsLoading(true);
     
-    // TODO: Implementar navegação para o fluxo de pagamento
-    setTimeout(() => {
+    try {
+      // Redirect to payment flow with country parameter
+      const paymentUrl = `/wifi-24h/payment?country=${selectedCountry}`;
+      window.location.href = paymentUrl;
+    } catch (error) {
       toast({
-        title: "Em breve...",
-        description: "Sistema de pagamento será implementado em breve!",
+        title: "Erro",
+        description: "Erro ao redirecionar para pagamento. Tente novamente.",
+        variant: "destructive"
       });
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

@@ -37,6 +37,9 @@ import { MapModalTestPage } from "@/pages/map-modal-test";
 import TestInlineAssistant from "@/pages/test-inline-assistant";
 import ClickEnvironment from "@/pages/ClickEnvironment";
 import WiFi24h from "@/pages/WiFi24h";
+import WiFiPayment from "@/pages/WiFiPayment";
+import WiFiSuccess from "@/pages/WiFiSuccess";
+import WiFiFailure from "@/pages/WiFiFailure";
 
 function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
   const [bypassMaintenance, setBypassMaintenance] = useState(() => {
@@ -192,6 +195,9 @@ function Router() {
           <Route path="/click-environment/:productId" component={ClickEnvironment} />
           <Route path="/click-environment/category/:category" component={ClickEnvironment} />
           <Route path="/wifi-24h" component={WiFi24h} />
+          <Route path="/wifi-24h/payment" component={WiFiPayment} />
+          <Route path="/wifi-24h/success" component={WiFiSuccess} />
+          <Route path="/wifi-24h/failure" component={WiFiFailure} />
 
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
@@ -216,6 +222,9 @@ function Router() {
           <Route path="/click-environment/:productId" component={ClickEnvironment} />
           <Route path="/click-environment/category/:category" component={ClickEnvironment} />
           <Route path="/wifi-24h" component={WiFi24h} />
+          <Route path="/wifi-24h/payment" component={WiFiPayment} />
+          <Route path="/wifi-24h/success" component={WiFiSuccess} />
+          <Route path="/wifi-24h/failure" component={WiFiFailure} />
 
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
