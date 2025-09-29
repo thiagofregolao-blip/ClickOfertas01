@@ -466,6 +466,78 @@ export const promotionScratches = pgTable("promotion_scratches", {
 });
 
 // Relations
+// Wi-Fi 24h Payment system tables
+export const wifiPayments = pgTable("wifi_payments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").references(() => stores.id), // Loja parceira (optional - pode ser direto)
+  mercadoPagoId: varchar("mercado_pago_id"), // ID do pagamento no Mercado Pago
+  preferenceId: varchar("preference_id"), // ID da preferência no Mercado Pago
+  amount: decimal("amount", { precision: 10, scale: 2 }).default("5.00"), // R$ 5,00
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  paymentMethod: varchar("payment_method"), // "pix", "credit_card", "debit_card"
+  status: varchar("status").default("pending"), // "pending", "approved", "rejected", "cancelled"
+  customerEmail: varchar("customer_email"),
+  customerPhone: varchar("customer_phone"),
+  customerName: varchar("customer_name"),
+  deviceInfo: jsonb("device_info"), // Info do dispositivo do cliente
+  voucherCode: varchar("voucher_code").unique(), // Código do voucher MikroTik
+  voucherExpiresAt: timestamp("voucher_expires_at"), // 24h após ativação
+  isActive: boolean("is_active").default(false), // Se o voucher está ativo
+  activatedAt: timestamp("activated_at"), // Quando foi ativado no MikroTik
+  mikrotikResponse: jsonb("mikrotik_response"), // Resposta da API MikroTik
+  webhookData: jsonb("webhook_data"), // Dados recebidos do webhook
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Configurações do sistema Wi-Fi
+export const wifiSettings = pgTable("wifi_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  mikrotikHost: varchar("mikrotik_host").notNull(),
+  mikrotikUsername: varchar("mikrotik_username").notNull(),
+  mikrotikPassword: varchar("mikrotik_password").notNull(),
+  hotspotProfile: varchar("hotspot_profile").default("default"), // Perfil hotspot do MikroTik
+  sessionTimeout: varchar("session_timeout").default("24:00:00"), // 24 horas
+  dataLimit: varchar("data_limit").default("unlimited"), // Limite de dados
+  speedLimit: varchar("speed_limit").default("10M/10M"), // Limite de velocidade
+  price: decimal("price", { precision: 10, scale: 2 }).default("5.00"), // Preço em reais
+  commissionPercentage: decimal("commission_percentage", { precision: 5, scale: 2 }).default("10.00"), // 10% para lojas
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Comissões para lojas parceiras
+export const wifiCommissions = pgTable("wifi_commissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  storeId: varchar("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  paymentId: varchar("payment_id").notNull().references(() => wifiPayments.id, { onDelete: "cascade" }),
+  commissionAmount: decimal("commission_amount", { precision: 10, scale: 2 }).notNull(),
+  commissionPercentage: decimal("commission_percentage", { precision: 5, scale: 2 }).notNull(),
+  status: varchar("status").default("pending"), // "pending", "paid", "cancelled"
+  paidAt: timestamp("paid_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Analytics do sistema Wi-Fi
+export const wifiAnalytics = pgTable("wifi_analytics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  date: varchar("date").notNull(), // YYYY-MM-DD
+  totalPayments: integer("total_payments").default(0),
+  totalRevenue: decimal("total_revenue", { precision: 12, scale: 2 }).default("0.00"),
+  totalCommissions: decimal("total_commissions", { precision: 12, scale: 2 }).default("0.00"),
+  successfulPayments: integer("successful_payments").default(0),
+  failedPayments: integer("failed_payments").default(0),
+  pixPayments: integer("pix_payments").default(0),
+  cardPayments: integer("card_payments").default(0),
+  activeVouchers: integer("active_vouchers").default(0),
+  expiredVouchers: integer("expired_vouchers").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique().on(table.date), // Uma entrada por dia
+]);
+
 export const usersRelations = relations(users, ({ many }) => ({
   stores: many(stores),
   savedProducts: many(savedProducts),
@@ -485,6 +557,8 @@ export const storesRelations = relations(stores, ({ one, many }) => ({
   promotions: many(promotions),
   totemContent: many(totemContent),
   totemSettings: many(totemSettings),
+  wifiPayments: many(wifiPayments),
+  wifiCommissions: many(wifiCommissions),
 }));
 
 export const productsRelations = relations(products, ({ one, many }) => ({
@@ -2079,6 +2153,68 @@ export type AssistantSessionMemory = {
   };
   timestamp?: string;
 };
+
+// Wi-Fi Payment Relations
+export const wifiPaymentsRelations = relations(wifiPayments, ({ one }) => ({
+  store: one(stores, {
+    fields: [wifiPayments.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export const wifiCommissionsRelations = relations(wifiCommissions, ({ one }) => ({
+  store: one(stores, {
+    fields: [wifiCommissions.storeId],
+    references: [stores.id],
+  }),
+  payment: one(wifiPayments, {
+    fields: [wifiCommissions.paymentId],
+    references: [wifiPayments.id],
+  }),
+}));
+
+// Wi-Fi Schemas
+export const insertWifiPaymentSchema = createInsertSchema(wifiPayments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateWifiPaymentSchema = insertWifiPaymentSchema.partial();
+
+export const insertWifiSettingsSchema = createInsertSchema(wifiSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateWifiSettingsSchema = insertWifiSettingsSchema.partial();
+
+export const insertWifiCommissionSchema = createInsertSchema(wifiCommissions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWifiAnalyticsSchema = createInsertSchema(wifiAnalytics).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Wi-Fi Types
+export type WifiPayment = typeof wifiPayments.$inferSelect;
+export type InsertWifiPayment = z.infer<typeof insertWifiPaymentSchema>;
+export type UpdateWifiPayment = z.infer<typeof updateWifiPaymentSchema>;
+
+export type WifiSettings = typeof wifiSettings.$inferSelect;
+export type InsertWifiSettings = z.infer<typeof insertWifiSettingsSchema>;
+export type UpdateWifiSettings = z.infer<typeof updateWifiSettingsSchema>;
+
+export type WifiCommission = typeof wifiCommissions.$inferSelect;
+export type InsertWifiCommission = z.infer<typeof insertWifiCommissionSchema>;
+
+export type WifiAnalytics = typeof wifiAnalytics.$inferSelect;
+export type InsertWifiAnalytics = z.infer<typeof insertWifiAnalyticsSchema>;
 
 // Recommendation Types for AI Responses
 export type ProductRecommendation = {
