@@ -2330,6 +2330,17 @@ export default function SuperAdmin() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Menu Dropdown Agrupado */}
           <div className="mb-6 flex flex-wrap gap-2">
+            {/* Dashboard */}
+            <Button 
+              variant={activeTab === 'dashboard' ? 'default' : 'outline'} 
+              className="flex items-center gap-2" 
+              onClick={() => setActiveTab("dashboard")}
+              data-testid="button-dashboard"
+            >
+              <BarChart3 className="w-4 h-4" />
+              Dashboard
+            </Button>
+
             {/* Conteúdo & Marketing */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
