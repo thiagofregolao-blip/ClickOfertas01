@@ -88,7 +88,6 @@ export default function WiFiPayment() {
           customerName: formData.customerName || null,
           customerEmail: formData.customerEmail,
           customerPhone: formData.customerPhone || null,
-          amount: currentPlan.price,
           plan: formData.plan,
           country: formData.country
         })
