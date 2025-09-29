@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,7 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Edit2, Trash2, Eye, LogOut, Gift, Dice6, Target, Award, Save, Package, Percent, DollarSign, Trophy, RotateCcw, Download, HelpCircle, Calculator, AlertTriangle, AlertCircle, TrendingUp, Search, Brain, Globe, Activity, Zap, RefreshCw, Tag, Wifi, Crown, Router, CreditCard, Shield, EyeOff, CheckCircle, XCircle, Clock, Calendar, TrendingDown } from 'lucide-react';
+import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Edit2, Trash2, Eye, LogOut, Gift, Dice6, Target, Award, Save, Package, Percent, DollarSign, Trophy, RotateCcw, Download, HelpCircle, Calculator, AlertTriangle, AlertCircle, TrendingUp, Search, Brain, Globe, Activity, Zap, RefreshCw, Tag, Wifi, Crown, Router, CreditCard, Shield, EyeOff, CheckCircle, XCircle, Clock, Calendar, TrendingDown, ChevronDown, Palette, Building2, Gamepad2, Server } from 'lucide-react';
 import { isUnauthorizedError } from '@/lib/authUtils';
 import type { WifiSettings, WifiPayment, WifiAnalytics, InsertWifiSettings } from "@shared/schema";
 import { useLocation } from 'wouter';
@@ -1999,6 +2000,25 @@ export default function SuperAdmin() {
     return types[type as keyof typeof types] || type;
   };
 
+  const getActiveTabName = (tab: string) => {
+    const tabNames = {
+      "banners": "Banners",
+      "stores": "Lojas", 
+      "users": "Usuários",
+      "promotions": "Prêmios",
+      "stats": "Estatísticas",
+      "analytics": "Analytics",
+      "ai-test": "Orçamento IA",
+      "ai-arts-main": "Artes IA",
+      "categories": "Categorias",
+      "product-banks": "Banco de Produtos",
+      "system": "Sistema",
+      "wifi": "Wi-Fi 24h",
+      "premium-stores": "Lojas Premium"
+    };
+    return tabNames[tab as keyof typeof tabNames] || tab;
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-25 to-yellow-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
@@ -2042,60 +2062,134 @@ export default function SuperAdmin() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-13">
-            <TabsTrigger value="banners" className="flex items-center gap-2">
-              <Image className="w-4 h-4" />
-              Banners
-            </TabsTrigger>
-            <TabsTrigger value="stores" className="flex items-center gap-2">
-              <Store className="w-4 h-4" />
-              Lojas
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Usuários
-            </TabsTrigger>
-            <TabsTrigger value="promotions" className="flex items-center gap-2">
-              <Trophy className="w-4 h-4" />
-              Promoções
-            </TabsTrigger>
-            <TabsTrigger value="stats" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Estatísticas
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <Activity className="w-4 h-4" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="ai-test" className="flex items-center gap-2">
-              <Brain className="w-4 h-4" />
-              Teste IA
-            </TabsTrigger>
-            <TabsTrigger value="ai-arts-main" className="flex items-center gap-2">
-              <Brain className="w-4 h-4" />
-              Artes IA
-            </TabsTrigger>
-            <TabsTrigger value="categories" className="flex items-center gap-2">
-              <Tag className="w-4 h-4" />
-              Categorias
-            </TabsTrigger>
-            <TabsTrigger value="product-banks" className="flex items-center gap-2">
-              <Package className="w-4 h-4" />
-              Banco de Produtos
-            </TabsTrigger>
-            <TabsTrigger value="system" className="flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              Sistema
-            </TabsTrigger>
-            <TabsTrigger value="wifi" className="flex items-center gap-2">
-              <Wifi className="w-4 h-4" />
-              Wi-Fi 24h
-            </TabsTrigger>
-            <TabsTrigger value="premium-stores" className="flex items-center gap-2">
-              <Crown className="w-4 h-4" />
-              Lojas Premium
-            </TabsTrigger>
-          </TabsList>
+          {/* Menu Dropdown Agrupado */}
+          <div className="mb-6 flex flex-wrap gap-2">
+            {/* Conteúdo & Marketing */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Palette className="w-4 h-4" />
+                  Conteúdo & Marketing
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setActiveTab("banners")} className="cursor-pointer">
+                  <Image className="w-4 h-4 mr-2" />
+                  Banners
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("categories")} className="cursor-pointer">
+                  <Tag className="w-4 h-4 mr-2" />
+                  Categorias
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("ai-arts-main")} className="cursor-pointer">
+                  <Brain className="w-4 h-4 mr-2" />
+                  Artes IA
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("product-banks")} className="cursor-pointer">
+                  <Package className="w-4 h-4 mr-2" />
+                  Banco de Produtos
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Gestão de Lojas */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4" />
+                  Gestão de Lojas
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setActiveTab("stores")} className="cursor-pointer">
+                  <Store className="w-4 h-4 mr-2" />
+                  Lojas
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("premium-stores")} className="cursor-pointer">
+                  <Crown className="w-4 h-4 mr-2" />
+                  Lojas Premium
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("users")} className="cursor-pointer">
+                  <Users className="w-4 h-4 mr-2" />
+                  Usuários
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Gamificação & Analytics */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Gamepad2 className="w-4 h-4" />
+                  Gamificação & Analytics
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setActiveTab("promotions")} className="cursor-pointer">
+                  <Trophy className="w-4 h-4 mr-2" />
+                  Prêmios
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("stats")} className="cursor-pointer">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Estatísticas
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("analytics")} className="cursor-pointer">
+                  <Activity className="w-4 h-4 mr-2" />
+                  Analytics
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Serviços & Sistema */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Server className="w-4 h-4" />
+                  Serviços & Sistema
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setActiveTab("wifi")} className="cursor-pointer">
+                  <Wifi className="w-4 h-4 mr-2" />
+                  Wi-Fi 24h
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("ai-test")} className="cursor-pointer">
+                  <Brain className="w-4 h-4 mr-2" />
+                  Orçamento IA
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("system")} className="cursor-pointer">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Sistema
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Indicador da aba ativa */}
+          <div className="mb-4 text-sm text-gray-600 bg-gray-50 p-2 rounded">
+            <span className="font-medium">Seção ativa:</span> {(() => {
+              const tabNames = {
+                "banners": "Banners",
+                "stores": "Lojas", 
+                "users": "Usuários",
+                "promotions": "Prêmios",
+                "stats": "Estatísticas",
+                "analytics": "Analytics",
+                "ai-test": "Orçamento IA",
+                "ai-arts-main": "Artes IA",
+                "categories": "Categorias",
+                "product-banks": "Banco de Produtos",
+                "system": "Sistema",
+                "wifi": "Wi-Fi 24h",
+                "premium-stores": "Lojas Premium"
+              };
+              return tabNames[activeTab as keyof typeof tabNames] || activeTab;
+            })()}
+          </div>
 
           {/* ABA DE BANNERS */}
           <TabsContent value="banners" className="space-y-6">
