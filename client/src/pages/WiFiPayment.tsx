@@ -138,7 +138,7 @@ export default function WiFiPayment() {
           
           <div className="flex items-center gap-2">
             <Wifi className="h-6 w-6 text-white" />
-            <span className="text-white font-bold text-lg">Wi-Fi 24h</span>
+            <span className="text-white font-bold text-lg">Wi-Fi {formData.plan === 'monthly' ? '30 dias' : '24h'}</span>
           </div>
         </div>
       </header>
