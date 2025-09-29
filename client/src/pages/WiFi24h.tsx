@@ -128,7 +128,7 @@ export default function WiFi24h() {
             </p>
             
             {/* Plans Selection */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 max-w-2xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 max-w-2xl mx-auto">
               {/* Daily Plan */}
               <button
                 onClick={() => handlePlanSelect('daily')}
