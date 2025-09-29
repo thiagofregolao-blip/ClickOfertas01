@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Wifi, ShoppingBag, Clock, Shield, Calendar } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 /**
  * Landing Page Wi-Fi 24h - Click Ofertas Paraguai
@@ -11,6 +12,7 @@ type PlanType = 'daily' | 'monthly';
 
 export default function WiFi24h() {
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
   const [selectedCountry, setSelectedCountry] = useState<'brazil' | 'paraguay' | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('daily');
   const [isLoading, setIsLoading] = useState(false);
@@ -48,9 +50,9 @@ export default function WiFi24h() {
     setIsLoading(true);
     
     try {
-      // Redirect to payment flow with country and plan parameters
+      // Navigate to payment flow with country and plan parameters
       const paymentUrl = `/wifi-24h/payment?country=${selectedCountry}&plan=${selectedPlan}`;
-      window.location.href = paymentUrl;
+      setLocation(paymentUrl);
     } catch (error) {
       toast({
         title: "Erro",
