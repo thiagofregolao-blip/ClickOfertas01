@@ -49,6 +49,11 @@ import {
   assistantSessions,
   assistantMessages,
   userAssistantPreferences,
+  // Wi-Fi 24h tables
+  wifiPayments,
+  wifiSettings,
+  wifiCommissions,
+  wifiAnalytics,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -166,6 +171,17 @@ import {
   type InsertUserAssistantPreferences,
   type UpdateUserAssistantPreferences,
   type AssistantSessionWithMessages,
+  // Wi-Fi types
+  type WifiPayment,
+  type InsertWifiPayment,
+  type UpdateWifiPayment,
+  type WifiSettings,
+  type InsertWifiSettings,
+  type UpdateWifiSettings,
+  type WifiCommission,
+  type InsertWifiCommission,
+  type WifiAnalytics,
+  type InsertWifiAnalytics,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, gte, lte, lt, sql, inArray, or, isNull, isNotNull } from "drizzle-orm";
@@ -406,6 +422,26 @@ export interface IStorage {
   
   getUserAssistantPreferences(userId: string): Promise<UserAssistantPreferences | undefined>;
   upsertUserAssistantPreferences(userId: string, preferences: InsertUserAssistantPreferences): Promise<UserAssistantPreferences>;
+
+  // Wi-Fi 24h Payment operations
+  createWifiPayment(payment: InsertWifiPayment): Promise<WifiPayment>;
+  getWifiPayment(id: string): Promise<WifiPayment | undefined>;
+  getWifiPaymentByVoucherCode(voucherCode: string): Promise<WifiPayment | undefined>;
+  getWifiPaymentByMercadoPagoId(mercadoPagoId: string): Promise<WifiPayment | undefined>;
+  updateWifiPayment(id: string, updates: UpdateWifiPayment): Promise<WifiPayment>;
+  getWifiPaymentsByStore(storeId: string, limit?: number): Promise<WifiPayment[]>;
+  getActiveWifiVouchers(): Promise<WifiPayment[]>;
+  
+  getWifiSettings(): Promise<WifiSettings | undefined>;
+  upsertWifiSettings(settings: InsertWifiSettings | UpdateWifiSettings): Promise<WifiSettings>;
+  
+  createWifiCommission(commission: InsertWifiCommission): Promise<WifiCommission>;
+  getWifiCommissionsByStore(storeId: string): Promise<WifiCommission[]>;
+  getWifiCommissionsByPayment(paymentId: string): Promise<WifiCommission[]>;
+  
+  upsertWifiAnalytics(date: string, analytics: InsertWifiAnalytics): Promise<WifiAnalytics>;
+  getWifiAnalytics(startDate: string, endDate: string): Promise<WifiAnalytics[]>;
+  getWifiAnalyticsOverview(): Promise<any>;
   
   // Search Learning System
   createSearchLog(log: {
@@ -4566,6 +4602,182 @@ export class DatabaseStorage implements IStorage {
     return preferences;
   }
 
+  // Wi-Fi 24h Payment operations
+  async createWifiPayment(paymentData: InsertWifiPayment): Promise<WifiPayment> {
+    const [payment] = await db
+      .insert(wifiPayments)
+      .values(paymentData)
+      .returning();
+    return payment;
+  }
+
+  async getWifiPayment(id: string): Promise<WifiPayment | undefined> {
+    const [payment] = await db
+      .select()
+      .from(wifiPayments)
+      .where(eq(wifiPayments.id, id));
+    return payment;
+  }
+
+  async getWifiPaymentByVoucherCode(voucherCode: string): Promise<WifiPayment | undefined> {
+    const [payment] = await db
+      .select()
+      .from(wifiPayments)
+      .where(eq(wifiPayments.voucherCode, voucherCode));
+    return payment;
+  }
+
+  async getWifiPaymentByMercadoPagoId(mercadoPagoId: string): Promise<WifiPayment | undefined> {
+    const [payment] = await db
+      .select()
+      .from(wifiPayments)
+      .where(eq(wifiPayments.mercadoPagoId, mercadoPagoId));
+    return payment;
+  }
+
+  async updateWifiPayment(id: string, updates: UpdateWifiPayment): Promise<WifiPayment> {
+    const [payment] = await db
+      .update(wifiPayments)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(wifiPayments.id, id))
+      .returning();
+    return payment;
+  }
+
+  async getWifiPaymentsByStore(storeId: string, limit: number = 50): Promise<WifiPayment[]> {
+    return db
+      .select()
+      .from(wifiPayments)
+      .where(eq(wifiPayments.storeId, storeId))
+      .orderBy(desc(wifiPayments.createdAt))
+      .limit(limit);
+  }
+
+  async getActiveWifiVouchers(): Promise<WifiPayment[]> {
+    return db
+      .select()
+      .from(wifiPayments)
+      .where(
+        and(
+          eq(wifiPayments.isActive, true),
+          eq(wifiPayments.status, "approved"),
+          gte(wifiPayments.voucherExpiresAt, new Date())
+        )
+      )
+      .orderBy(desc(wifiPayments.createdAt));
+  }
+
+  async getWifiSettings(): Promise<WifiSettings | undefined> {
+    const [settings] = await db
+      .select()
+      .from(wifiSettings)
+      .where(eq(wifiSettings.isActive, true))
+      .limit(1);
+    return settings;
+  }
+
+  async upsertWifiSettings(settingsData: InsertWifiSettings | UpdateWifiSettings): Promise<WifiSettings> {
+    // Check if settings exist
+    const existing = await this.getWifiSettings();
+    
+    if (existing) {
+      const [settings] = await db
+        .update(wifiSettings)
+        .set({
+          ...settingsData,
+          updatedAt: new Date(),
+        })
+        .where(eq(wifiSettings.id, existing.id))
+        .returning();
+      return settings;
+    } else {
+      const [settings] = await db
+        .insert(wifiSettings)
+        .values(settingsData as InsertWifiSettings)
+        .returning();
+      return settings;
+    }
+  }
+
+  async createWifiCommission(commissionData: InsertWifiCommission): Promise<WifiCommission> {
+    const [commission] = await db
+      .insert(wifiCommissions)
+      .values(commissionData)
+      .returning();
+    return commission;
+  }
+
+  async getWifiCommissionsByStore(storeId: string): Promise<WifiCommission[]> {
+    return db
+      .select()
+      .from(wifiCommissions)
+      .where(eq(wifiCommissions.storeId, storeId))
+      .orderBy(desc(wifiCommissions.createdAt));
+  }
+
+  async getWifiCommissionsByPayment(paymentId: string): Promise<WifiCommission[]> {
+    return db
+      .select()
+      .from(wifiCommissions)
+      .where(eq(wifiCommissions.paymentId, paymentId))
+      .orderBy(desc(wifiCommissions.createdAt));
+  }
+
+  async upsertWifiAnalytics(date: string, analyticsData: InsertWifiAnalytics): Promise<WifiAnalytics> {
+    const [analytics] = await db
+      .insert(wifiAnalytics)
+      .values({
+        ...analyticsData,
+        date,
+      })
+      .onConflictDoUpdate({
+        target: wifiAnalytics.date,
+        set: {
+          ...analyticsData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return analytics;
+  }
+
+  async getWifiAnalytics(startDate: string, endDate: string): Promise<WifiAnalytics[]> {
+    return db
+      .select()
+      .from(wifiAnalytics)
+      .where(
+        and(
+          gte(wifiAnalytics.date, startDate),
+          lte(wifiAnalytics.date, endDate)
+        )
+      )
+      .orderBy(asc(wifiAnalytics.date));
+  }
+
+  async getWifiAnalyticsOverview(): Promise<any> {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const startDate = thirtyDaysAgo.toISOString().split('T')[0];
+    
+    const analytics = await this.getWifiAnalytics(startDate, new Date().toISOString().split('T')[0]);
+    
+    return {
+      totalPayments: analytics.reduce((sum, a) => sum + (a.totalPayments || 0), 0),
+      totalRevenue: analytics.reduce((sum, a) => sum + parseFloat(a.totalRevenue || '0'), 0),
+      totalCommissions: analytics.reduce((sum, a) => sum + parseFloat(a.totalCommissions || '0'), 0),
+      successfulPayments: analytics.reduce((sum, a) => sum + (a.successfulPayments || 0), 0),
+      failedPayments: analytics.reduce((sum, a) => sum + (a.failedPayments || 0), 0),
+      pixPayments: analytics.reduce((sum, a) => sum + (a.pixPayments || 0), 0),
+      cardPayments: analytics.reduce((sum, a) => sum + (a.cardPayments || 0), 0),
+      activeVouchers: analytics.reduce((sum, a) => sum + (a.activeVouchers || 0), 0),
+      expiredVouchers: analytics.reduce((sum, a) => sum + (a.expiredVouchers || 0), 0),
+      dailyData: analytics,
+    };
+  }
+
   // 🎯 Search Learning System - Tracks user search patterns for AI improvement
   async createSearchLog(log: {
     sessionId: string;
@@ -4580,9 +4792,7 @@ export class DatabaseStorage implements IStorage {
       await db
         .insert(productSearches)
         .values({
-          id: `search-${Date.now()}-${Math.random().toString(36).slice(2)}`,
           sessionToken: log.sessionId,
-          userId: log.userId,
           searchTerm: log.query,
           category: log.metadata?.categories?.[0] || null,
           resultsCount: log.foundProducts,

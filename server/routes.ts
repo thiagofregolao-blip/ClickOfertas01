@@ -8,6 +8,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import AdmZip from "adm-zip";
+import { MercadoPagoConfig, Preference, Payment } from "mercadopago";
 
 // 🧠 Importações para contexto conversacional inteligente
 import { obterContextoSessao, salvarContextoSessao, atualizarFocoSessao } from "./lib/gemini/context-storage.js";
@@ -8467,6 +8468,248 @@ Regras:
         error: "Erro interno", 
         details: error instanceof Error ? error.message : "Erro desconhecido" 
       });
+    }
+  });
+
+  // Initialize MercadoPago client
+  if (!process.env.MERCADO_PAGO_ACCESS_TOKEN) {
+    console.warn('⚠️ MERCADO_PAGO_ACCESS_TOKEN não configurado - APIs Wi-Fi 24h indisponíveis');
+  }
+
+  const mercadopagoClient = new MercadoPagoConfig({
+    accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN || '',
+    options: {
+      timeout: 5000,
+    }
+  });
+
+  const preference = new Preference(mercadopagoClient);
+  const payment = new Payment(mercadopagoClient);
+
+  // Wi-Fi 24h Payment APIs
+  app.post("/api/wifi-payments/create", async (req, res) => {
+    try {
+      const { customerName, customerEmail, customerPhone, storeId, amount = 5.00 } = req.body;
+      
+      if (!customerEmail) {
+        return res.status(400).json({ error: "Email é obrigatório" });
+      }
+
+      // Generate unique voucher code
+      const voucherCode = `WIFI${Date.now()}${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+
+      // Create MercadoPago preference
+      const preferenceData = {
+        items: [
+          {
+            title: "Wi-Fi 24h - Internet Paraguai",
+            quantity: 1,
+            unit_price: amount,
+            currency_id: "BRL"
+          }
+        ],
+        payer: {
+          email: customerEmail,
+          name: customerName || undefined,
+          phone: customerPhone ? {
+            area_code: "",
+            number: customerPhone
+          } : undefined
+        },
+        payment_methods: {
+          excluded_payment_types: [],
+          excluded_payment_methods: [],
+          installments: 1
+        },
+        back_urls: {
+          success: `${req.protocol}://${req.get('host')}/wifi-24h/success`,
+          failure: `${req.protocol}://${req.get('host')}/wifi-24h/failure`,
+          pending: `${req.protocol}://${req.get('host')}/wifi-24h/pending`
+        },
+        auto_return: "approved",
+        external_reference: voucherCode,
+        notification_url: `${req.protocol}://${req.get('host')}/webhook/mercadopago`
+      };
+
+      const preferenceResponse = await preference.create({ body: preferenceData });
+
+      // Create payment record
+      const wifiPayment = await storage.createWifiPayment({
+        storeId: storeId || null,
+        preferenceId: preferenceResponse.id,
+        amount: amount.toString(),
+        currency: "BRL",
+        customerEmail,
+        customerPhone: customerPhone || null,
+        customerName: customerName || null,
+        voucherCode,
+        deviceInfo: {
+          userAgent: req.get('User-Agent'),
+          ip: req.ip || req.connection.remoteAddress
+        }
+      });
+
+      // Create commission for partner store if applicable
+      if (storeId) {
+        const wifiSettings = await storage.getWifiSettings();
+        const commissionPercentage = wifiSettings?.commissionPercentage || 10;
+        const commissionAmount = (amount * parseFloat(commissionPercentage.toString())) / 100;
+
+        await storage.createWifiCommission({
+          storeId,
+          paymentId: wifiPayment.id,
+          commissionAmount: commissionAmount.toString(),
+          commissionPercentage: commissionPercentage.toString()
+        });
+      }
+
+      res.json({
+        paymentId: wifiPayment.id,
+        preferenceId: preferenceResponse.id,
+        voucherCode,
+        initPoint: preferenceResponse.init_point,
+        sandboxInitPoint: preferenceResponse.sandbox_init_point
+      });
+
+    } catch (error) {
+      console.error("Erro ao criar pagamento Wi-Fi:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // MercadoPago Webhook
+  app.post("/webhook/mercadopago", async (req, res) => {
+    try {
+      const { action, data, type } = req.body;
+      
+      console.log("📧 MercadoPago Webhook recebido:", { action, type, data });
+
+      if (type === "payment") {
+        const paymentId = data.id;
+        
+        // Get payment details from MercadoPago
+        const paymentResponse = await payment.get({ id: paymentId });
+        
+        console.log("💳 Detalhes do pagamento:", {
+          id: paymentResponse.id,
+          status: paymentResponse.status,
+          external_reference: paymentResponse.external_reference
+        });
+
+        // Find our payment record by voucher code (external_reference)
+        const voucherCode = paymentResponse.external_reference;
+        if (!voucherCode) {
+          console.warn("⚠️ Payment sem external_reference:", paymentId);
+          return res.status(200).send("OK");
+        }
+
+        const wifiPayment = await storage.getWifiPaymentByVoucherCode(voucherCode);
+        if (!wifiPayment) {
+          console.warn("⚠️ Payment Wi-Fi não encontrado para voucher:", voucherCode);
+          return res.status(200).send("OK");
+        }
+
+        // Update payment record
+        const updateData: any = {
+          mercadoPagoId: paymentResponse.id.toString(),
+          status: paymentResponse.status,
+          paymentMethod: paymentResponse.payment_method_id,
+          webhookData: {
+            webhook: req.body,
+            payment: paymentResponse
+          }
+        };
+
+        if (paymentResponse.status === "approved") {
+          updateData.isActive = true;
+          updateData.activatedAt = new Date();
+          updateData.voucherExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+        }
+
+        await storage.updateWifiPayment(wifiPayment.id, updateData);
+
+        // Update analytics
+        const today = new Date().toISOString().split('T')[0];
+        const isSuccessful = paymentResponse.status === "approved";
+        const isFailed = paymentResponse.status === "rejected";
+        const isPix = paymentResponse.payment_method_id?.includes("pix") || false;
+        const isCard = !isPix;
+
+        await storage.upsertWifiAnalytics(today, {
+          totalPayments: 1,
+          totalRevenue: isSuccessful ? paymentResponse.transaction_amount.toString() : "0",
+          successfulPayments: isSuccessful ? 1 : 0,
+          failedPayments: isFailed ? 1 : 0,
+          pixPayments: isPix ? 1 : 0,
+          cardPayments: isCard ? 1 : 0,
+          activeVouchers: isSuccessful ? 1 : 0
+        });
+
+        console.log(`✅ Payment Wi-Fi atualizado: ${wifiPayment.id} -> ${paymentResponse.status}`);
+      }
+
+      res.status(200).send("OK");
+    } catch (error) {
+      console.error("❌ Erro no webhook MercadoPago:", error);
+      res.status(500).send("ERROR");
+    }
+  });
+
+  // Get Wi-Fi payment status
+  app.get("/api/wifi-payments/:id", async (req, res) => {
+    try {
+      const payment = await storage.getWifiPayment(req.params.id);
+      if (!payment) {
+        return res.status(404).json({ error: "Pagamento não encontrado" });
+      }
+
+      res.json(payment);
+    } catch (error) {
+      console.error("Erro ao buscar pagamento Wi-Fi:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Get Wi-Fi settings (admin only)
+  app.get("/api/wifi-settings", isSuperAdmin, async (req, res) => {
+    try {
+      const settings = await storage.getWifiSettings();
+      res.json(settings || {});
+    } catch (error) {
+      console.error("Erro ao buscar configurações Wi-Fi:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Update Wi-Fi settings (admin only)
+  app.put("/api/wifi-settings", isSuperAdmin, async (req, res) => {
+    try {
+      const settings = await storage.upsertWifiSettings(req.body);
+      res.json(settings);
+    } catch (error) {
+      console.error("Erro ao atualizar configurações Wi-Fi:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Get Wi-Fi analytics (admin only)
+  app.get("/api/wifi-analytics", isSuperAdmin, async (req, res) => {
+    try {
+      const { startDate, endDate } = req.query;
+      
+      if (!startDate || !endDate) {
+        const overview = await storage.getWifiAnalyticsOverview();
+        return res.json(overview);
+      }
+
+      const analytics = await storage.getWifiAnalytics(
+        startDate as string,
+        endDate as string
+      );
+      res.json(analytics);
+    } catch (error) {
+      console.error("Erro ao buscar analytics Wi-Fi:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
     }
   });
 
