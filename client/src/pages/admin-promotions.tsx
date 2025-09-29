@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
-import AdminConsolidatedLayout from "@/components/admin-consolidated-layout";
+import AdminLayout from "@/components/admin-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -114,7 +114,7 @@ export default function AdminPromotions() {
 
   if (isLoading) {
     return (
-      <AdminConsolidatedLayout>
+      <AdminLayout>
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold tracking-tight">Promoções</h1>
@@ -137,12 +137,12 @@ export default function AdminPromotions() {
             ))}
           </div>
         </div>
-      </AdminConsolidatedLayout>
+      </AdminLayout>
     );
   }
 
   return (
-    <AdminConsolidatedLayout>
+    <AdminLayout>
       <div className="space-y-6">
         {/* Cabeçalho */}
         <div className="flex justify-between items-center">
@@ -354,6 +354,6 @@ export default function AdminPromotions() {
           }}
         />
       )}
-    </AdminConsolidatedLayout>
+    </AdminLayout>
   );
 }

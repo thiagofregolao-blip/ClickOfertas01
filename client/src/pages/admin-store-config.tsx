@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertStoreSchema, updateStoreSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import AdminConsolidatedLayout from "@/components/admin-consolidated-layout";
+import AdminLayout from "@/components/admin-layout";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -184,9 +184,9 @@ export default function AdminStoreConfig() {
     }
 
     return (
-      <AdminConsolidatedLayout>
+      <AdminLayout>
         {LoadingContent}
-      </AdminConsolidatedLayout>
+      </AdminLayout>
     );
   }
 
@@ -614,8 +614,8 @@ export default function AdminStoreConfig() {
   }
 
   return (
-    <AdminConsolidatedLayout>
+    <AdminLayout>
       {FormContent}
-    </AdminConsolidatedLayout>
+    </AdminLayout>
   );
 }

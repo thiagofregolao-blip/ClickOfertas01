@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Trash2, Plus, Monitor, Settings, Upload, Play, Pause, Eye, Clock } from "lucide-react";
-import AdminConsolidatedLayout from "@/components/admin-consolidated-layout";
+import AdminLayout from "@/components/admin-layout";
 import type { TotemContent, TotemSettings } from "@shared/schema";
 
 export default function AdminTotem() {
@@ -385,16 +385,16 @@ export default function AdminTotem() {
 
   if (isLoading) {
     return (
-      <AdminConsolidatedLayout>
+      <AdminLayout>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
-      </AdminConsolidatedLayout>
+      </AdminLayout>
     );
   }
 
   return (
-    <AdminConsolidatedLayout>
+    <AdminLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -942,7 +942,7 @@ export default function AdminTotem() {
           </Card>
         )}
       </div>
-    </AdminConsolidatedLayout>
+    </AdminLayout>
   );
 }
 

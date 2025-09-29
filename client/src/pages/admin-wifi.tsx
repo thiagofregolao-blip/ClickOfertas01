@@ -32,7 +32,7 @@ import {
   TrendingUp,
   TrendingDown
 } from "lucide-react";
-import AdminConsolidatedLayout from "@/components/admin-consolidated-layout";
+import AdminLayout from "@/components/admin-layout";
 import type { WifiSettings, WifiPayment, WifiAnalytics, InsertWifiSettings } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -48,7 +48,7 @@ export default function AdminWiFi() {
   // Verificar se é super admin
   if (!user?.isSuperAdmin) {
     return (
-      <AdminConsolidatedLayout>
+      <AdminLayout>
         <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
           <div className="text-center">
             <div className="text-red-500 text-6xl mb-4">🚫</div>
@@ -56,7 +56,7 @@ export default function AdminWiFi() {
             <p className="text-gray-600">Você precisa ser um Super Admin para acessar esta seção.</p>
           </div>
         </div>
-      </AdminConsolidatedLayout>
+      </AdminLayout>
     );
   }
 
@@ -67,9 +67,7 @@ export default function AdminWiFi() {
       const response = await fetch('/api/wifi-settings');
       if (!response.ok) throw new Error('Failed to fetch settings');
       return await response.json();
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    refetchInterval: false, // Não fazer polling automatico
+    }
   });
 
   // Buscar pagamentos
@@ -79,10 +77,7 @@ export default function AdminWiFi() {
       const response = await fetch('/api/wifi-payments');
       if (!response.ok) throw new Error('Failed to fetch payments');
       return await response.json();
-    },
-    staleTime: 2 * 60 * 1000, // 2 minutos
-    refetchInterval: false, // Não fazer polling automatico
-    enabled: activeTab === 'payments', // Só carregar quando na aba de pagamentos
+    }
   });
 
   // Buscar analytics
@@ -92,10 +87,7 @@ export default function AdminWiFi() {
       const response = await fetch('/api/wifi-analytics');
       if (!response.ok) throw new Error('Failed to fetch analytics');
       return await response.json();
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    refetchInterval: false, // Não fazer polling automatico  
-    enabled: activeTab === 'analytics', // Só carregar quando na aba de analytics
+    }
   });
 
   // Mutation para salvar configurações
@@ -182,7 +174,7 @@ export default function AdminWiFi() {
     ((analyticsArray.reduce((sum, a) => sum + (a.successfulPayments || 0), 0)) / totalPayments * 100) : 0;
 
   return (
-    <AdminConsolidatedLayout>
+    <AdminLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -592,6 +584,6 @@ export default function AdminWiFi() {
 
         </Tabs>
       </div>
-    </AdminConsolidatedLayout>
+    </AdminLayout>
   );
 }

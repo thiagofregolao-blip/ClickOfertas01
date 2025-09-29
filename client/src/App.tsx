@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import Landing from "@/pages/landing";
+import AdminDashboard from "@/pages/admin-dashboard";
 import AdminStoreConfig from "@/pages/admin-store-config";
 import AdminProducts from "@/pages/admin-products";
 import AdminPromotions from "@/pages/admin-promotions";
@@ -29,9 +30,6 @@ import ProductCompare from "@/pages/product-compare";
 import SignupPage from "@/pages/signup";
 import SuperAdmin from "@/pages/super-admin";
 import SuperAdminLogin from "@/pages/super-admin-login";
-import AdminConsolidatedDashboard from "@/pages/admin-consolidated-dashboard";
-import ModernAdminDashboard from "@/pages/modern-admin-dashboard";
-import FunctionalAdminDashboard from "@/pages/functional-admin-dashboard";
 import DailyScratchPage from "@/pages/daily-scratch";
 import ApifyDemo from "@/pages/apify-demo";
 import MaintenancePage from "@/pages/maintenance";
@@ -182,35 +180,17 @@ function Router() {
         // Lojista logado ou Super Admin - painel admin completo
         <>
           <Route path="/" component={Landing} />
-          <Route path="/admin" component={() => { window.location.href = '/super-admin'; return null; }} />
-          <Route path="/admin/config" component={() => { window.location.href = '/super-admin/config'; return null; }} />
-          <Route path="/admin/products" component={() => { window.location.href = '/super-admin/products'; return null; }} />
-          <Route path="/admin/promotions" component={() => { window.location.href = '/super-admin/promotions'; return null; }} />
-          <Route path="/admin/premium-stores" component={() => { window.location.href = '/super-admin/premium-stores'; return null; }} />
-          <Route path="/admin/totem" component={() => { window.location.href = '/super-admin/totem'; return null; }} />
-          <Route path="/admin/stories" component={() => { window.location.href = '/super-admin/stories'; return null; }} />
-          <Route path="/admin/analytics" component={() => { window.location.href = '/super-admin/analytics'; return null; }} />
-          <Route path="/admin/wifi" component={() => { window.location.href = '/super-admin/wifi'; return null; }} />
-          <Route path="/admin/:rest*" component={() => { window.location.href = '/super-admin'; return null; }} />
-          <Route path="/super-admin" component={FunctionalAdminDashboard} />
-          <Route path="/super-admin/config" component={AdminStoreConfig} />
-          <Route path="/super-admin/products" component={AdminProducts} />
-          <Route path="/super-admin/premium-stores" component={AdminPremiumStores} />
-          <Route path="/super-admin/promotions" component={AdminPromotions} />
-          <Route path="/super-admin/totem" component={AdminTotem} />
-          <Route path="/super-admin/stories" component={AdminStories} />
-          <Route path="/super-admin/analytics" component={AdminAnalytics} />
-          <Route path="/super-admin/wifi" component={AdminWiFi} />
-          <Route path="/super-admin/banners" component={SuperAdmin} />
-          <Route path="/super-admin/stores" component={SuperAdmin} />
-          <Route path="/super-admin/users" component={SuperAdmin} />
-          <Route path="/super-admin/stats" component={SuperAdmin} />
-          <Route path="/super-admin/ai-test" component={SuperAdmin} />
-          <Route path="/super-admin/ai-arts" component={SuperAdmin} />
-          <Route path="/super-admin/categories" component={SuperAdmin} />
-          <Route path="/super-admin/product-banks" component={SuperAdmin} />
-          <Route path="/super-admin/system" component={SuperAdmin} />
+          <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin/config" component={AdminStoreConfig} />
+          <Route path="/admin/products" component={AdminProducts} />
+          <Route path="/admin/premium-stores" component={AdminPremiumStores} />
+          <Route path="/admin/promotions" component={AdminPromotions} />
+          <Route path="/admin/totem" component={AdminTotem} />
+          <Route path="/admin/stories" component={AdminStories} />
+          <Route path="/admin/analytics" component={AdminAnalytics} />
+          <Route path="/admin/wifi" component={AdminWiFi} />
           <Route path="/test-inline-assistant" component={TestInlineAssistant} />
+          <Route path="/super-admin" component={SuperAdminLogin} />
           <Route path="/super-admin-login" component={SuperAdminLogin} />
           <Route path="/admin-panel" component={SuperAdmin} />
           <Route path="/totem/:storeId" component={TotemDisplay} />

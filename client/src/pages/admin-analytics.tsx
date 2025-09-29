@@ -24,7 +24,7 @@ import {
   Zap,
   Globe
 } from 'lucide-react';
-import AdminConsolidatedLayout from '@/components/admin-consolidated-layout';
+import AdminLayout from '@/components/admin-layout';
 
 // Tipos de dados para analytics
 interface AnalyticsOverview {
@@ -111,11 +111,11 @@ export default function AdminAnalytics() {
 
   if (isLoading) {
     return (
-      <AdminConsolidatedLayout>
+      <AdminLayout>
         <div className="flex items-center justify-center min-h-screen">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
         </div>
-      </AdminConsolidatedLayout>
+      </AdminLayout>
     );
   }
 
@@ -124,7 +124,7 @@ export default function AdminAnalytics() {
   }
 
   return (
-    <AdminConsolidatedLayout>
+    <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -555,6 +555,6 @@ export default function AdminAnalytics() {
           </Tabs>
         )}
       </div>
-    </AdminConsolidatedLayout>
+    </AdminLayout>
   );
 }

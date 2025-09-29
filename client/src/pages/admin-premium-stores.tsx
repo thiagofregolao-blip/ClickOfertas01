@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Crown, Search, Store as StoreIcon, Users, DollarSign, Star, AlertTriangle, ShieldAlert } from "lucide-react";
-import AdminConsolidatedLayout from "@/components/admin-consolidated-layout";
+import AdminLayout from "@/components/admin-layout";
 import { useAuth } from "@/hooks/useAuth";
 import type { Store } from "@shared/schema";
 
@@ -25,7 +25,7 @@ export default function AdminPremiumStores() {
   // Check if user is super admin - show error if not
   if (!isLoadingAuth && !user?.isSuperAdmin) {
     return (
-      <AdminConsolidatedLayout>
+      <AdminLayout>
         <div className="p-6 max-w-4xl mx-auto">
           <Card className="border-red-200">
             <CardContent className="p-8 text-center">
@@ -55,7 +55,7 @@ export default function AdminPremiumStores() {
             </CardContent>
           </Card>
         </div>
-      </AdminConsolidatedLayout>
+      </AdminLayout>
     );
   }
 
@@ -88,7 +88,7 @@ export default function AdminPremiumStores() {
   // Show error state for API errors
   if (error && user?.isSuperAdmin) {
     return (
-      <AdminConsolidatedLayout>
+      <AdminLayout>
         <div className="p-6 max-w-4xl mx-auto">
           <Card className="border-red-200">
             <CardContent className="p-8 text-center">
@@ -106,7 +106,7 @@ export default function AdminPremiumStores() {
             </CardContent>
           </Card>
         </div>
-      </AdminConsolidatedLayout>
+      </AdminLayout>
     );
   }
 
@@ -160,7 +160,7 @@ export default function AdminPremiumStores() {
 
   if (isLoadingAuth || isLoading) {
     return (
-      <AdminConsolidatedLayout>
+      <AdminLayout>
         <div className="p-6">
           <div className="flex items-center space-x-4 animate-pulse">
             <div className="h-8 w-8 bg-gray-200 rounded"></div>
@@ -172,12 +172,12 @@ export default function AdminPremiumStores() {
             ))}
           </div>
         </div>
-      </AdminConsolidatedLayout>
+      </AdminLayout>
     );
   }
 
   return (
-    <AdminConsolidatedLayout>
+    <AdminLayout>
       <div className="p-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -324,7 +324,7 @@ export default function AdminPremiumStores() {
           </Card>
         )}
       </div>
-    </AdminConsolidatedLayout>
+    </AdminLayout>
   );
 }
 
