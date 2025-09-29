@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,7 @@ const isUnauthorizedError = (error: any) => {
 };
 
 export default function CategoriesManager() {
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
@@ -63,7 +65,9 @@ export default function CategoriesManager() {
   // Query para buscar categorias
   const { data: categories = [], isLoading: categoriesLoading } = useQuery<Category[]>({
     queryKey: ['/api/super-admin/categories'],
+    enabled: !!user?.isSuperAdmin,
     staleTime: 2 * 60 * 1000,
+    retry: (failureCount, error) => !isUnauthorizedError(error),
   });
 
   // Form para criar/editar categoria

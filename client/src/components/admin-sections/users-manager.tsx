@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,13 +25,16 @@ const isUnauthorizedError = (error: any) => {
 };
 
 export default function UsersManager() {
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Query para buscar usuários
   const { data: users = [], isLoading: usersLoading } = useQuery<UserData[]>({
     queryKey: ['/api/admin/users'],
+    enabled: !!user?.isSuperAdmin,
     staleTime: 2 * 60 * 1000,
+    retry: (failureCount, error) => !isUnauthorizedError(error),
   });
 
   // Mutation para alternar status de super admin

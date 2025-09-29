@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import { Brain, Package, Search, Zap } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
+const isUnauthorizedError = (error: any) => {
+  return error?.message?.includes('Unauthorized') || error?.status === 401;
+};
+
 export default function AITestManager() {
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
@@ -18,7 +24,9 @@ export default function AITestManager() {
   // ========== BUSCAR TODOS OS PRODUTOS ==========
   const { data: allProducts = [], isLoading: productsLoading } = useQuery<any[]>({
     queryKey: ['/api/super-admin/all-products'],
+    enabled: !!user?.isSuperAdmin,
     gcTime: 5 * 60 * 1000,
+    retry: (failureCount, error) => !isUnauthorizedError(error),
   });
 
   // ========== MUTATION PARA GERAR BANNER DE TESTE ==========

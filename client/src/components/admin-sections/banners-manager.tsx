@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,7 @@ const isUnauthorizedError = (error: any) => {
 };
 
 export default function BannersManager() {
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateBannerOpen, setIsCreateBannerOpen] = useState(false);
@@ -78,7 +80,9 @@ export default function BannersManager() {
   // Query para buscar banners
   const { data: banners = [], isLoading: bannersLoading } = useQuery<Banner[]>({
     queryKey: ['/api/admin/banners'],
+    enabled: !!user?.isSuperAdmin,
     staleTime: 2 * 60 * 1000,
+    retry: (failureCount, error) => !isUnauthorizedError(error),
   });
 
   // Form para criar/editar banner
