@@ -242,10 +242,10 @@ function Router() {
           <Route path="/totem/:storeId" component={TotemDisplay} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
-          <Route path="/:slug" component={PublicFlyer} />
           {/* Usuário normal não tem acesso ao admin - redireciona para /cards */}
           <Route path="/admin" component={() => { window.location.href = '/cards'; return null; }} />
           <Route path="/admin/:rest*" component={() => { window.location.href = '/cards'; return null; }} />
+          <Route path="/:slug" component={PublicFlyer} />
         </>
       )}
       <Route component={NotFound} />
