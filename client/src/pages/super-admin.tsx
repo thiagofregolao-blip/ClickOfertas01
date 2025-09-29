@@ -20,7 +20,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Settings, Users, Store, Image, BarChart3, Plus, Edit, Edit2, Trash2, Eye, LogOut, Gift, Dice6, Target, Award, Save, Package, Percent, DollarSign, Trophy, RotateCcw, Download, HelpCircle, Calculator, AlertTriangle, AlertCircle, TrendingUp, Search, Brain, Globe, Activity, Zap, RefreshCw, Tag, Wifi, Crown, Router, CreditCard, Shield, EyeOff, CheckCircle, XCircle, Clock, Calendar, TrendingDown, ChevronDown, Palette, Building2, Gamepad2, Server, Filter } from 'lucide-react';
 import { isUnauthorizedError } from '@/lib/authUtils';
-import type { WifiSettings, WifiPayment, WifiAnalytics, InsertWifiSettings } from "@shared/schema";
+import type { WifiSettings, WifiPayment, WifiAnalytics, InsertWifiSettings, WifiPlan } from "@shared/schema";
 import { useLocation } from 'wouter';
 
 const bannerSchema = z.object({
@@ -5563,6 +5563,16 @@ function WiFiManagementPanel() {
     }
   });
 
+  // Buscar planos Wi-Fi
+  const { data: wifiPlans, isLoading: plansLoading } = useQuery<WifiPlan[]>({
+    queryKey: ['/api/wifi-plans'],
+    queryFn: async () => {
+      const response = await fetch('/api/wifi-plans');
+      if (!response.ok) throw new Error('Failed to fetch wifi plans');
+      return await response.json();
+    }
+  });
+
   // Mutation para salvar configurações
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -5595,8 +5605,7 @@ function WiFiManagementPanel() {
       sessionTimeout: formData.get('sessionTimeout') as string,
       dataLimit: formData.get('dataLimit') as string,
       speedLimit: formData.get('speedLimit') as string,
-      price: parseFloat(formData.get('price') as string).toString(),
-      commissionPercentage: parseFloat(formData.get('commissionPercentage') as string).toString(),
+      commissionPercentage: formData.get('commissionPercentage') ? parseFloat(formData.get('commissionPercentage') as string).toString() : undefined,
       isActive: formData.get('isActive') === 'on'
     };
 
@@ -5691,47 +5700,116 @@ function WiFiManagementPanel() {
           <div className="flex flex-col items-center gap-6 max-w-4xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
             
-            {/* Configurações de Planos */}
+            {/* Gerenciamento de Planos Wi-Fi */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <DollarSign className="h-5 w-5" />
+                      Gerenciar Planos Wi-Fi
+                    </CardTitle>
+                    <CardDescription>
+                      Crie e gerencie planos personalizados com preços e durações flexíveis
+                    </CardDescription>
+                  </div>
+                  <Button size="sm" onClick={() => {
+                    const name = prompt("Nome do plano (ex: '24 horas', '48 horas'):");
+                    if (!name) return;
+                    const durationHours = Number(prompt("Duração em horas (ex: 24, 48, 168):"));
+                    if (!durationHours || durationHours <= 0) return;
+                    const price = Number(prompt("Preço em R$ (ex: 5.00, 10.00):"));
+                    if (!price || price <= 0) return;
+                    const description = prompt("Descrição (opcional):") || "";
+                    
+                    const sessionTimeout = `${durationHours}:00:00`;
+                    
+                    apiRequest('/api/wifi-plans', {
+                      method: 'POST',
+                      body: { name, durationHours, price: price.toString(), description, sessionTimeout, isActive: true, displayOrder: 0 }
+                    }).then(() => {
+                      queryClient.invalidateQueries({ queryKey: ['/api/wifi-plans'] });
+                      toast({ title: "Plano criado com sucesso!" });
+                    }).catch(err => {
+                      toast({ title: "Erro ao criar plano", description: err.message, variant: "destructive" });
+                    });
+                  }}>
+                    <Plus className="w-4 h-4 mr-1" /> Novo Plano
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {plansLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {wifiPlans && wifiPlans.length > 0 ? (
+                      wifiPlans.map((plan) => (
+                        <div key={plan.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3">
+                              <h4 className="font-semibold">{plan.name}</h4>
+                              <Badge variant={plan.isActive ? "default" : "secondary"}>
+                                {plan.isActive ? "Ativo" : "Inativo"}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
+                              <span><Clock className="w-3 h-3 inline mr-1" />{plan.durationHours}h</span>
+                              <span><DollarSign className="w-3 h-3 inline mr-1" />R$ {parseFloat(plan.price.toString()).toFixed(2)}</span>
+                              {plan.description && <span className="text-gray-500">{plan.description}</span>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button size="sm" variant="ghost" onClick={() => {
+                              apiRequest(`/api/wifi-plans/${plan.id}/toggle`, { method: 'PATCH' })
+                                .then(() => {
+                                  queryClient.invalidateQueries({ queryKey: ['/api/wifi-plans'] });
+                                  toast({ title: plan.isActive ? "Plano desativado" : "Plano ativado" });
+                                });
+                            }}>
+                              {plan.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => {
+                              if (confirm(`Deseja deletar o plano "${plan.name}"?`)) {
+                                apiRequest(`/api/wifi-plans/${plan.id}`, { method: 'DELETE' })
+                                  .then(() => {
+                                    queryClient.invalidateQueries({ queryKey: ['/api/wifi-plans'] });
+                                    toast({ title: "Plano deletado" });
+                                  });
+                              }
+                            }}>
+                              <Trash2 className="w-4 h-4 text-red-600" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <DollarSign className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                        <p>Nenhum plano criado ainda</p>
+                        <p className="text-sm">Clique em "Novo Plano" para começar</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Configurações Gerais */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Configuração de Planos
+                  <Settings className="h-5 w-5" />
+                  Configurações Gerais
                 </CardTitle>
                 <CardDescription>
-                  Configure os preços e descrições dos planos Wi-Fi
+                  Configure comissões e ative/desative o sistema
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSaveSettings} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="price">Preço Base (R$)</Label>
-                      <Input
-                        id="price"
-                        name="price"
-                        type="number"
-                        step="0.01"
-                        defaultValue={parseFloat(settings?.price?.toString() || '5.00')}
-                        placeholder="5.00"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="monthlyMultiplier">Multiplicador Mensal</Label>
-                      <Input
-                        id="monthlyMultiplier"
-                        name="monthlyMultiplier"
-                        type="number"
-                        step="0.1"
-                        defaultValue={1.98}
-                        placeholder="1.98"
-                        disabled
-                        className="bg-gray-100"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Preço mensal = Preço base × 1.98</p>
-                    </div>
-                  </div>
-                  
                   <div>
                     <Label htmlFor="commissionPercentage">Comissão para Lojas (%)</Label>
                     <Input
