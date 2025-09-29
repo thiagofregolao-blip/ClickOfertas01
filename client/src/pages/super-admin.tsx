@@ -1315,6 +1315,271 @@ function SuperAdminAnalytics() {
   );
 }
 
+// Componente Dashboard Panel
+function DashboardPanel() {
+  const { toast } = useToast();
+
+  // Buscar dados de todas as APIs necessárias
+  const { data: stores = [], isLoading: storesLoading } = useQuery({
+    queryKey: ['/api/admin/stores'],
+    retry: (failureCount, error) => !isUnauthorizedError(error),
+  });
+
+  const { data: users = [], isLoading: usersLoading } = useQuery({
+    queryKey: ['/api/admin/users'],
+    retry: (failureCount, error) => !isUnauthorizedError(error),
+  });
+
+  const { data: banners = [], isLoading: bannersLoading } = useQuery({
+    queryKey: ['/api/admin/banners'],
+    retry: (failureCount, error) => !isUnauthorizedError(error),
+  });
+
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+    queryKey: ['/api/super-admin/categories'],
+    retry: (failureCount, error) => !isUnauthorizedError(error),
+  });
+
+  const { data: wifiSettings, isLoading: wifiLoading } = useQuery({
+    queryKey: ['/api/wifi-settings'],
+    queryFn: async () => {
+      const response = await fetch('/api/wifi-settings');
+      if (!response.ok) throw new Error('Failed to fetch wifi settings');
+      return await response.json();
+    },
+    retry: false
+  });
+
+  const { data: dailyPrizes = [], isLoading: prizesLoading } = useQuery({
+    queryKey: ['/api/admin/daily-prizes'],
+    retry: (failureCount, error) => !isUnauthorizedError(error),
+  });
+
+  // Calcular métricas
+  const totalStores = stores.length;
+  const premiumStores = stores.filter((store: any) => store.isPremium).length;
+  const activeStores = stores.filter((store: any) => store.isActive).length;
+  const totalUsers = users.length;
+  const activeBanners = banners.filter((banner: any) => banner.isActive).length;
+  const totalBanners = banners.length;
+  const totalCategories = categories.length;
+  const activePrizes = dailyPrizes.filter((prize: any) => prize.isActive).length;
+
+  const isLoading = storesLoading || usersLoading || bannersLoading || categoriesLoading || prizesLoading;
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <BarChart3 className="h-8 w-8 text-blue-600" />
+            Dashboard Super Admin
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Visão geral do sistema Click Ofertas Paraguai
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge className="bg-green-100 text-green-800">
+            Sistema Ativo
+          </Badge>
+        </div>
+      </div>
+
+      {/* Métricas Principais */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Lojas */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Lojas Totais</CardTitle>
+            <Store className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{isLoading ? '...' : totalStores}</div>
+            <div className="flex items-center gap-2 mt-1">
+              <div className="text-xs text-muted-foreground">
+                {premiumStores} Premium • {activeStores} Ativas
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Usuários */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Usuários</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{isLoading ? '...' : totalUsers}</div>
+            <p className="text-xs text-muted-foreground">
+              Usuários cadastrados
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Banners */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Banners</CardTitle>
+            <Image className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{isLoading ? '...' : totalBanners}</div>
+            <p className="text-xs text-muted-foreground">
+              {activeBanners} Ativos
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Wi-Fi Status */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Sistema Wi-Fi</CardTitle>
+            <Wifi className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {wifiLoading ? '...' : (wifiSettings?.isActive ? 'Ativo' : 'Inativo')}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              R$ {wifiSettings?.price || '5,00'} - 24h
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Seção de Métricas Secundárias */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Tag className="h-5 w-5" />
+              Categorias
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold mb-2">{isLoading ? '...' : totalCategories}</div>
+            <p className="text-sm text-gray-600">Categorias de produtos</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Gift className="h-5 w-5" />
+              Prêmios
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold mb-2">{isLoading ? '...' : dailyPrizes.length}</div>
+            <p className="text-sm text-gray-600">{activePrizes} Ativos</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Crown className="h-5 w-5 text-yellow-600" />
+              Taxa Premium
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold mb-2">
+              {isLoading ? '...' : totalStores > 0 ? `${Math.round((premiumStores / totalStores) * 100)}%` : '0%'}
+            </div>
+            <p className="text-sm text-gray-600">Lojas com status premium</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Ações Rápidas */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Button 
+          variant="outline" 
+          className="h-16 flex flex-col items-center gap-2"
+          onClick={() => window.location.href = '/admin-panel?tab=stores'}
+        >
+          <Store className="h-6 w-6" />
+          <span>Gerenciar Lojas</span>
+        </Button>
+
+        <Button 
+          variant="outline" 
+          className="h-16 flex flex-col items-center gap-2"
+          onClick={() => window.location.href = '/admin-panel?tab=banners'}
+        >
+          <Image className="h-6 w-6" />
+          <span>Criar Banners</span>
+        </Button>
+
+        <Button 
+          variant="outline" 
+          className="h-16 flex flex-col items-center gap-2"
+          onClick={() => window.location.href = '/admin-panel?tab=wifi'}
+        >
+          <Wifi className="h-6 w-6" />
+          <span>Wi-Fi 24h</span>
+        </Button>
+
+        <Button 
+          variant="outline" 
+          className="h-16 flex flex-col items-center gap-2"
+          onClick={() => window.location.href = '/admin-panel?tab=system'}
+        >
+          <Settings className="h-6 w-6" />
+          <span>Sistema</span>
+        </Button>
+      </div>
+
+      {/* Status de Saúde do Sistema */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            Status do Sistema
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <div>
+                <p className="text-sm font-medium">API</p>
+                <p className="text-xs text-gray-500">Online</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <div>
+                <p className="text-sm font-medium">Banco de Dados</p>
+                <p className="text-xs text-gray-500">Conectado</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className={`w-3 h-3 ${wifiSettings?.isActive ? 'bg-green-500' : 'bg-red-500'} rounded-full`}></div>
+              <div>
+                <p className="text-sm font-medium">Wi-Fi</p>
+                <p className="text-xs text-gray-500">
+                  {wifiSettings?.isActive ? 'Ativo' : 'Inativo'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <div>
+                <p className="text-sm font-medium">Lojas</p>
+                <p className="text-xs text-gray-500">{activeStores} Ativas</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function SuperAdmin() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
@@ -1323,7 +1588,7 @@ export default function SuperAdmin() {
   
   // Detectar aba ativa da URL
   const urlParams = new URLSearchParams(window.location.search);
-  const initialTab = urlParams.get('tab') || 'banners';
+  const initialTab = urlParams.get('tab') || 'dashboard';
   const [activeTab, setActiveTab] = useState(initialTab);
   
   // ========== MUTATIONS PARA ARTES IA ==========
@@ -2037,7 +2302,7 @@ export default function SuperAdmin() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-25 to-yellow-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto p-6">
         {/* Header */}
         <div className="mb-8 flex justify-between items-start">
@@ -2174,6 +2439,7 @@ export default function SuperAdmin() {
           <div className="mb-4 text-sm text-gray-600 bg-gray-50 p-2 rounded">
             <span className="font-medium">Seção ativa:</span> {(() => {
               const tabNames = {
+                "dashboard": "Dashboard",
                 "banners": "Banners",
                 "stores": "Lojas", 
                 "users": "Usuários",
@@ -2191,6 +2457,11 @@ export default function SuperAdmin() {
               return tabNames[activeTab as keyof typeof tabNames] || activeTab;
             })()}
           </div>
+
+          {/* DASHBOARD */}
+          <TabsContent value="dashboard" className="space-y-6">
+            <DashboardPanel />
+          </TabsContent>
 
           {/* ABA DE BANNERS */}
           <TabsContent value="banners" className="space-y-6">
@@ -4742,6 +5013,7 @@ function ProductBankItemsList({ bankId }: { bankId: string }) {
     </div>
   );
 }
+
 
 // Componente Wi-Fi Management Panel - Integrado do admin-wifi.tsx
 function WiFiManagementPanel() {
