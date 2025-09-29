@@ -25,9 +25,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Box, Star, Eye, Clock, Plus, Link, ExternalLink, DollarSign, 
-  Camera, Settings, Users, Store, Image, BarChart3, Package,
-  Gift, Monitor, Wifi, Tag, Database, Brain, Globe
+  Box, Eye, DollarSign, Camera, Settings, Users, Store, Image, 
+  BarChart3, Package, Gift, Monitor, Database, Brain
 } from "lucide-react";
 import type { Store as StoreType, Product } from "@shared/schema";
 
