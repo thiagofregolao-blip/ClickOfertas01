@@ -140,6 +140,9 @@ function Router() {
           <Route path="/click-environment/:productId" component={ClickEnvironment} />
           <Route path="/click-environment/category/:category" component={ClickEnvironment} />
           <Route path="/wifi-24h" component={WiFi24h} />
+          <Route path="/wifi-24h/payment" component={WiFiPayment} />
+          <Route path="/wifi-24h/success" component={WiFiSuccess} />
+          <Route path="/wifi-24h/failure" component={WiFiFailure} />
 
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
@@ -171,7 +174,6 @@ function Router() {
           )} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
-          <Route path="/:slug" component={PublicFlyer} />
         </>
       ) : user?.hasStore || user?.isSuperAdmin ? (
         // Lojista logado ou Super Admin - painel admin completo
