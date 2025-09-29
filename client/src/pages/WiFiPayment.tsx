@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Wifi, CreditCard, QrCode, ArrowLeft, Shield, Clock, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 
 /**
  * Página de Pagamento Wi-Fi 24h
@@ -12,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
  */
 export default function WiFiPayment() {
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
   const [isProcessing, setIsProcessing] = useState(false);
   const [formData, setFormData] = useState({
     customerName: '',
@@ -115,7 +117,7 @@ export default function WiFiPayment() {
   };
 
   const handleBack = () => {
-    window.location.href = '/wifi-24h';
+    setLocation('/wifi-24h');
   };
 
   const isEmailValid = formData.customerEmail.includes('@') && formData.customerEmail.length > 5;
