@@ -218,7 +218,8 @@ export default function AdminWiFi() {
 
           {/* Configurações Tab */}
           <TabsContent value="settings" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="flex flex-col items-center gap-6 max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
               
               {/* Configurações de Planos */}
               <Card>
@@ -394,6 +395,7 @@ export default function AdminWiFi() {
                   </form>
                 </CardContent>
               </Card>
+            </div>
             </div>
           </TabsContent>
 
