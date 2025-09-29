@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import Landing from "@/pages/landing";
-import AdminDashboard from "@/pages/admin-dashboard";
 import AdminStoreConfig from "@/pages/admin-store-config";
 import AdminProducts from "@/pages/admin-products";
 import AdminPromotions from "@/pages/admin-promotions";
@@ -182,6 +181,14 @@ function Router() {
         <>
           <Route path="/" component={Landing} />
           <Route path="/admin" component={() => { window.location.href = '/super-admin'; return null; }} />
+          <Route path="/admin/config" component={() => { window.location.href = '/super-admin/config'; return null; }} />
+          <Route path="/admin/products" component={() => { window.location.href = '/super-admin/products'; return null; }} />
+          <Route path="/admin/promotions" component={() => { window.location.href = '/super-admin/promotions'; return null; }} />
+          <Route path="/admin/premium-stores" component={() => { window.location.href = '/super-admin/premium-stores'; return null; }} />
+          <Route path="/admin/totem" component={() => { window.location.href = '/super-admin/totem'; return null; }} />
+          <Route path="/admin/stories" component={() => { window.location.href = '/super-admin/stories'; return null; }} />
+          <Route path="/admin/analytics" component={() => { window.location.href = '/super-admin/analytics'; return null; }} />
+          <Route path="/admin/wifi" component={() => { window.location.href = '/super-admin/wifi'; return null; }} />
           <Route path="/admin/:rest*" component={() => { window.location.href = '/super-admin'; return null; }} />
           <Route path="/super-admin" component={AdminConsolidatedDashboard} />
           <Route path="/super-admin/config" component={AdminStoreConfig} />
