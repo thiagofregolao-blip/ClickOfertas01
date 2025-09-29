@@ -4647,28 +4647,29 @@ function ProductBankItemsList({ bankId }: { bankId: string }) {
     </div>
   );
 }
-// COMPONENTES WIFI E PREMIUM STORES
+
+// Componente Wi-Fi Management Panel
 function WiFiManagementPanel() {
   return (
-    <div className='space-y-6'>
-      <div className='flex items-center justify-between'>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className='text-3xl font-bold text-gray-900 flex items-center gap-3'>
-            <Wifi className='h-8 w-8 text-blue-600' />
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <Wifi className="h-8 w-8 text-blue-600" />
             Wi-Fi 24h - Gerenciamento
           </h1>
-          <p className='text-gray-600 mt-2'>
+          <p className="text-gray-600 mt-2">
             Configure e monitore o sistema de pagamento Wi-Fi 24 horas
           </p>
         </div>
       </div>
       
       <Card>
-        <CardContent className='pt-6'>
-          <div className='text-center py-8 text-gray-500'>
-            <Wifi className='w-16 h-16 mx-auto mb-4 text-gray-300' />
-            <h3 className='text-lg font-medium mb-2'>Sistema Wi-Fi 24h</h3>
-            <p className='text-sm'>Interface de gerenciamento em desenvolvimento</p>
+        <CardContent className="pt-6">
+          <div className="text-center py-8 text-gray-500">
+            <Wifi className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <h3 className="text-lg font-medium mb-2">Sistema Wi-Fi 24h</h3>
+            <p className="text-sm">Interface de gerenciamento em desenvolvimento</p>
           </div>
         </CardContent>
       </Card>
@@ -4676,27 +4677,28 @@ function WiFiManagementPanel() {
   );
 }
 
+// Componente Premium Stores Panel  
 function PremiumStoresPanel() {
   return (
-    <div className='space-y-6'>
-      <div className='flex items-center justify-between'>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className='text-3xl font-bold text-gray-900 flex items-center gap-3'>
-            <Crown className='h-8 w-8 text-yellow-600' />
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <Crown className="h-8 w-8 text-yellow-600" />
             Gerenciar Lojas Premium
           </h1>
-          <p className='text-gray-600 mt-2'>
+          <p className="text-gray-600 mt-2">
             Gerencie o status premium das lojas cadastradas no sistema
           </p>
         </div>
       </div>
       
       <Card>
-        <CardContent className='pt-6'>
-          <div className='text-center py-8 text-gray-500'>
-            <Crown className='w-16 h-16 mx-auto mb-4 text-gray-300' />
-            <h3 className='text-lg font-medium mb-2'>Sistema de Lojas Premium</h3>
-            <p className='text-sm'>Interface de gerenciamento em desenvolvimento</p>
+        <CardContent className="pt-6">
+          <div className="text-center py-8 text-gray-500">
+            <Crown className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <h3 className="text-lg font-medium mb-2">Sistema de Lojas Premium</h3>
+            <p className="text-sm">Interface de gerenciamento em desenvolvimento</p>
           </div>
         </CardContent>
       </Card>
