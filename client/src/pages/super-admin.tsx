@@ -1319,7 +1319,7 @@ function SuperAdminAnalytics() {
   // ========== MUTATIONS ==========
   const toggleArtMutation = useMutation({
     mutationFn: async ({ artId, isActive }: { artId: string; isActive: boolean }) => 
-      apiRequest(`/api/totem/generated-arts/${artId}/toggle`, 'PATCH', { isActive }),
+      apiRequest('PATCH', `/api/totem/generated-arts/${artId}/toggle`, { isActive }),
     onSuccess: () => {
       toast({
         title: "Status atualizado!",
@@ -1338,7 +1338,7 @@ function SuperAdminAnalytics() {
 
   const deleteArtMutation = useMutation({
     mutationFn: async (artId: string) => 
-      apiRequest(`/api/super-admin/generated-arts/${artId}`, 'DELETE'),
+      apiRequest('DELETE', `/api/super-admin/generated-arts/${artId}`),
     onSuccess: () => {
       toast({
         title: "Arte excluída!",
@@ -1357,7 +1357,7 @@ function SuperAdminAnalytics() {
 
   const forceGenerateMutation = useMutation({
     mutationFn: async () => 
-      apiRequest('/api/super-admin/generated-arts/force-generate', 'POST'),
+      apiRequest('POST', '/api/super-admin/generated-arts/force-generate'),
     onSuccess: () => {
       toast({
         title: "Geração iniciada!",
@@ -2108,7 +2108,7 @@ export default function SuperAdmin() {
 
   const toggleArtMutation = useMutation({
     mutationFn: async ({ artId, isActive }: { artId: string; isActive: boolean }) => 
-      apiRequest(`/api/totem/generated-arts/${artId}/toggle`, 'PATCH', { isActive }),
+      apiRequest('PATCH', `/api/totem/generated-arts/${artId}/toggle`, { isActive }),
     onSuccess: () => {
       toast({
         title: "Status atualizado!",
@@ -2127,7 +2127,7 @@ export default function SuperAdmin() {
 
   const deleteArtMutation = useMutation({
     mutationFn: async (artId: string) => 
-      apiRequest(`/api/super-admin/generated-arts/${artId}`, 'DELETE'),
+      apiRequest('DELETE', `/api/super-admin/generated-arts/${artId}`),
     onSuccess: () => {
       toast({
         title: "Arte excluída!",
@@ -2146,7 +2146,7 @@ export default function SuperAdmin() {
 
   const forceGenerateMutation = useMutation({
     mutationFn: async () => 
-      apiRequest('/api/super-admin/generated-arts/force-generate', 'POST'),
+      apiRequest('POST', '/api/super-admin/generated-arts/force-generate'),
     onSuccess: () => {
       toast({
         title: "Geração iniciada!",
@@ -5609,9 +5609,9 @@ function WiFiManagementPanel() {
       };
       
       if (editingPlan) {
-        return await apiRequest(`/api/wifi-plans/${editingPlan.id}`, 'PATCH', payload);
+        return await apiRequest('PATCH', `/api/wifi-plans/${editingPlan.id}`, payload);
       } else {
-        return await apiRequest('/api/wifi-plans', 'POST', payload);
+        return await apiRequest('POST', '/api/wifi-plans', payload);
       }
     },
     onSuccess: () => {
@@ -5665,7 +5665,7 @@ function WiFiManagementPanel() {
   // Mutation para salvar configurações
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest('/api/wifi-settings', 'PUT', data);
+      return await apiRequest('PUT', '/api/wifi-settings', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/wifi-settings'] });
@@ -5843,7 +5843,7 @@ function WiFiManagementPanel() {
                               size="sm" 
                               variant="ghost" 
                               onClick={() => {
-                                apiRequest(`/api/wifi-plans/${plan.id}/toggle`, 'PATCH')
+                                apiRequest('PATCH', `/api/wifi-plans/${plan.id}/toggle`)
                                   .then(() => {
                                     queryClient.invalidateQueries({ queryKey: ['/api/wifi-plans'] });
                                     toast({ title: plan.isActive ? "Plano desativado" : "Plano ativado" });
@@ -5858,7 +5858,7 @@ function WiFiManagementPanel() {
                               variant="ghost" 
                               onClick={() => {
                                 if (confirm(`Deseja deletar o plano "${plan.name}"?`)) {
-                                  apiRequest(`/api/wifi-plans/${plan.id}`, 'DELETE')
+                                  apiRequest('DELETE', `/api/wifi-plans/${plan.id}`)
                                     .then(() => {
                                       queryClient.invalidateQueries({ queryKey: ['/api/wifi-plans'] });
                                       toast({ title: "Plano deletado" });
