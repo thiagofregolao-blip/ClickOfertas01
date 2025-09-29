@@ -31,6 +31,7 @@ import SuperAdmin from "@/pages/super-admin";
 import SuperAdminLogin from "@/pages/super-admin-login";
 import AdminConsolidatedDashboard from "@/pages/admin-consolidated-dashboard";
 import ModernAdminDashboard from "@/pages/modern-admin-dashboard";
+import FunctionalAdminDashboard from "@/pages/functional-admin-dashboard";
 import DailyScratchPage from "@/pages/daily-scratch";
 import ApifyDemo from "@/pages/apify-demo";
 import MaintenancePage from "@/pages/maintenance";
@@ -191,7 +192,7 @@ function Router() {
           <Route path="/admin/analytics" component={() => { window.location.href = '/super-admin/analytics'; return null; }} />
           <Route path="/admin/wifi" component={() => { window.location.href = '/super-admin/wifi'; return null; }} />
           <Route path="/admin/:rest*" component={() => { window.location.href = '/super-admin'; return null; }} />
-          <Route path="/super-admin" component={ModernAdminDashboard} />
+          <Route path="/super-admin" component={FunctionalAdminDashboard} />
           <Route path="/super-admin/config" component={AdminStoreConfig} />
           <Route path="/super-admin/products" component={AdminProducts} />
           <Route path="/super-admin/premium-stores" component={AdminPremiumStores} />
