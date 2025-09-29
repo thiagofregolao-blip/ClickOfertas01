@@ -13,7 +13,12 @@ import AdminTotem from "@/pages/admin-totem";
 import AdminAnalytics from "@/pages/admin-analytics";
 import AdminWiFi from "@/pages/admin-wifi";
 import AdminPremiumStores from "@/pages/admin-premium-stores";
-import SuperAdmin from "@/pages/super-admin";
+
+// Importar componentes específicos do admin
+import BannersManager from "@/components/admin-sections/banners-manager";
+import CategoriesManager from "@/components/admin-sections/categories-manager";
+import UsersManager from "@/components/admin-sections/users-manager";
+import AITestManager from "@/components/admin-sections/ai-test-manager";
 
 // Dashboard components
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -341,63 +346,65 @@ export default function FunctionalAdminDashboard() {
         
       // === MARKETING ===
       case "banners":
-        // Usar o componente SuperAdmin configurado para mostrar apenas banners
-        return (
-          <div>
-            <SuperAdmin />
-          </div>
-        );
+        return <BannersManager />;
       case "analytics":
         return <AdminAnalytics />;
       case "stats":
-        // Usar SuperAdmin configurado para mostrar estatísticas
-        return (
-          <div>
-            <SuperAdmin />
-          </div>
-        );
+        return <AdminAnalytics />;
         
       // === SISTEMA ===
       case "users":
-        return (
-          <div>
-            <SuperAdmin />
-          </div>
-        );
+        return <UsersManager />;
       case "stores":
         return <AdminPremiumStores />;
       case "wifi":
         return <AdminWiFi />;
       case "categories":
-        return (
-          <div>
-            <SuperAdmin />
-          </div>
-        );
+        return <CategoriesManager />;
       case "product-banks":
         return (
-          <div>
-            <SuperAdmin />
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <Database className="w-7 h-7 text-green-600" />
+                Banco de Produtos
+              </h2>
+              <p className="text-gray-500 mt-1">
+                Funcionalidade em desenvolvimento - gerencie o banco de produtos global
+              </p>
+            </div>
           </div>
         );
       case "system":
         return (
-          <div>
-            <SuperAdmin />
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <Settings className="w-7 h-7 text-gray-600" />
+                Configurações do Sistema
+              </h2>
+              <p className="text-gray-500 mt-1">
+                Funcionalidade em desenvolvimento - configurações avançadas do sistema
+              </p>
+            </div>
           </div>
         );
         
       // === IA ===
       case "ai-test":
-        return (
-          <div>
-            <SuperAdmin />
-          </div>
-        );
+        return <AITestManager />;
       case "ai-arts":
         return (
-          <div>
-            <SuperAdmin />
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <Brain className="w-7 h-7 text-purple-600" />
+                Gestão de Artes IA
+              </h2>
+              <p className="text-gray-500 mt-1">
+                Funcionalidade em desenvolvimento - gerencie todas as artes geradas pela IA
+              </p>
+            </div>
           </div>
         );
         
