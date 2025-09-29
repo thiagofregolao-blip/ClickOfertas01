@@ -158,9 +158,15 @@ export default function WiFi24h() {
               <span className="block text-yellow-300">compras no Paraguai</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-white/90 mb-6 font-medium">
+            <p className="text-xl md:text-2xl text-white/90 mb-4 font-medium">
               Escolha seu plano de Wi-Fi ilimitado
             </p>
+            
+            {/* Mercado Pago Badge */}
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6" data-testid="badge-mercadopago">
+              <Shield className="h-4 w-4 text-green-300" />
+              <span className="text-white text-sm font-medium">Pagamento seguro via Mercado Pago</span>
+            </div>
             
             {/* Plans Selection - Dynamic */}
             {plansLoading ? (
@@ -249,6 +255,16 @@ export default function WiFi24h() {
               </button>
             </div>
 
+            {/* Payment Info */}
+            <div className="mb-4 text-center">
+              <p className="text-white/80 text-sm" data-testid="text-payment-methods">
+                💳 Aceitamos Pix, cartão e outras formas de pagamento
+              </p>
+              <p className="text-white/70 text-xs mt-1" data-testid="text-payment-processor">
+                Processamento seguro pelo Mercado Pago
+              </p>
+            </div>
+
             {/* Continue Button */}
             <Button
               onClick={handleContinue}
@@ -271,8 +287,8 @@ export default function WiFi24h() {
             
             <div className="text-center bg-black/10 backdrop-blur-sm rounded-2xl p-6">
               <Shield className="h-8 w-8 text-yellow-300 mx-auto mb-3" />
-              <h3 className="text-white font-semibold mb-2">Seguro</h3>
-              <p className="text-white/80 text-sm">Conexão protegida e confiável</p>
+              <h3 className="text-white font-semibold mb-2">Pagamento Seguro</h3>
+              <p className="text-white/80 text-sm">Mercado Pago - Pix, cartão e mais</p>
             </div>
             
             <div className="text-center bg-black/10 backdrop-blur-sm rounded-2xl p-6">
