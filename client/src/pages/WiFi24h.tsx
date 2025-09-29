@@ -132,10 +132,10 @@ export default function WiFi24h() {
               {/* Daily Plan */}
               <button
                 onClick={() => handlePlanSelect('daily')}
-                className={`bg-white/20 backdrop-blur-md rounded-2xl p-6 border-2 transition-all duration-300 ${
+                className={`bg-black/20 backdrop-blur-md rounded-2xl p-6 border-2 transition-all duration-300 ${
                   selectedPlan === 'daily'
-                    ? 'border-yellow-300 bg-white/30 scale-105' 
-                    : 'border-white/30 hover:bg-white/25 hover:scale-102'
+                    ? 'border-yellow-300 bg-black/30 scale-105' 
+                    : 'border-white/30 hover:bg-black/25 hover:scale-102'
                 }`}
                 data-testid="button-plan-daily"
               >
@@ -150,10 +150,10 @@ export default function WiFi24h() {
               {/* Monthly Plan */}
               <button
                 onClick={() => handlePlanSelect('monthly')}
-                className={`bg-white/20 backdrop-blur-md rounded-2xl p-6 border-2 transition-all duration-300 ${
+                className={`bg-black/20 backdrop-blur-md rounded-2xl p-6 border-2 transition-all duration-300 ${
                   selectedPlan === 'monthly'
-                    ? 'border-yellow-300 bg-white/30 scale-105' 
-                    : 'border-white/30 hover:bg-white/25 hover:scale-102'
+                    ? 'border-yellow-300 bg-black/30 scale-105' 
+                    : 'border-white/30 hover:bg-black/25 hover:scale-102'
                 }`}
                 data-testid="button-plan-monthly"
               >
@@ -168,7 +168,7 @@ export default function WiFi24h() {
           </div>
 
           {/* Country Selection */}
-          <div className="bg-white/15 backdrop-blur-md rounded-3xl p-8 max-w-lg w-full">
+          <div className="bg-black/15 backdrop-blur-md rounded-3xl p-8 max-w-lg w-full">
             <h2 className="text-2xl font-bold text-white mb-6">
               De onde você é?
             </h2>
@@ -179,8 +179,8 @@ export default function WiFi24h() {
                 onClick={() => handleCountrySelect('brazil')}
                 className={`p-6 rounded-2xl border-2 transition-all duration-300 ${
                   selectedCountry === 'brazil'
-                    ? 'border-yellow-300 bg-white/30' 
-                    : 'border-white/30 bg-white/10 hover:bg-white/20'
+                    ? 'border-yellow-300 bg-black/30' 
+                    : 'border-white/30 bg-black/10 hover:bg-black/20'
                 }`}
                 data-testid="button-country-brazil"
               >
@@ -198,8 +198,8 @@ export default function WiFi24h() {
                 onClick={() => handleCountrySelect('paraguay')}
                 className={`p-6 rounded-2xl border-2 transition-all duration-300 ${
                   selectedCountry === 'paraguay'
-                    ? 'border-yellow-300 bg-white/30' 
-                    : 'border-white/30 bg-white/10 hover:bg-white/20'
+                    ? 'border-yellow-300 bg-black/30' 
+                    : 'border-white/30 bg-black/10 hover:bg-black/20'
                 }`}
                 data-testid="button-country-paraguay"
               >
@@ -227,19 +227,19 @@ export default function WiFi24h() {
 
           {/* Features */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl w-full mt-12">
-            <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-6">
+            <div className="text-center bg-black/10 backdrop-blur-sm rounded-2xl p-6">
               <Clock className="h-8 w-8 text-yellow-300 mx-auto mb-3" />
               <h3 className="text-white font-semibold mb-2">24 Horas</h3>
               <p className="text-white/80 text-sm">Acesso completo por um dia inteiro</p>
             </div>
             
-            <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-6">
+            <div className="text-center bg-black/10 backdrop-blur-sm rounded-2xl p-6">
               <Shield className="h-8 w-8 text-yellow-300 mx-auto mb-3" />
               <h3 className="text-white font-semibold mb-2">Seguro</h3>
               <p className="text-white/80 text-sm">Conexão protegida e confiável</p>
             </div>
             
-            <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-6">
+            <div className="text-center bg-black/10 backdrop-blur-sm rounded-2xl p-6">
               <ShoppingBag className="h-8 w-8 text-yellow-300 mx-auto mb-3" />
               <h3 className="text-white font-semibold mb-2">Para Compras</h3>
               <p className="text-white/80 text-sm">Ideal para pesquisar preços e ofertas</p>
