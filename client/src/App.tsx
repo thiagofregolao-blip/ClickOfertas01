@@ -15,6 +15,7 @@ import AdminTotem from "@/pages/admin-totem";
 import AdminStories from "@/pages/admin-stories";
 import Analytics from "@/pages/analytics";
 import AdminAnalytics from "@/pages/admin-analytics";
+import AdminWiFi from "@/pages/admin-wifi";
 import TotemDisplay from "@/pages/totem-display";
 import PublicFlyer from "@/pages/public-flyer";
 import StoresGallery from "@/pages/stores-gallery";
@@ -187,6 +188,7 @@ function Router() {
           <Route path="/admin/totem" component={AdminTotem} />
           <Route path="/admin/stories" component={AdminStories} />
           <Route path="/admin/analytics" component={AdminAnalytics} />
+          <Route path="/admin/wifi" component={AdminWiFi} />
           <Route path="/test-inline-assistant" component={TestInlineAssistant} />
           <Route path="/super-admin" component={SuperAdminLogin} />
           <Route path="/super-admin-login" component={SuperAdminLogin} />

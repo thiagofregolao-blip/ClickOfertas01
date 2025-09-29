@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Settings, Package, Eye, BarChart3, LogOut, Menu, X, Gift, Monitor, Camera, Crown } from "lucide-react";
+import { FileText, Settings, Package, Eye, BarChart3, LogOut, Menu, X, Gift, Monitor, Camera, Crown, Wifi } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import type { Store } from "@shared/schema";
@@ -29,6 +29,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: "Promoções", href: "/admin/promotions", icon: Gift },
     // Only show "Lojas Premium" for super admins
     ...(user?.isSuperAdmin ? [{ name: "Lojas Premium", href: "/admin/premium-stores", icon: Crown }] : []),
+    // Only show "Wi-Fi 24h" for super admins
+    ...(user?.isSuperAdmin ? [{ name: "Wi-Fi 24h", href: "/admin/wifi", icon: Wifi }] : []),
     { name: "Totem", href: "/admin/totem", icon: Monitor },
     { name: "Gerenciar Stories", href: "/admin/stories", icon: Camera },
     { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
