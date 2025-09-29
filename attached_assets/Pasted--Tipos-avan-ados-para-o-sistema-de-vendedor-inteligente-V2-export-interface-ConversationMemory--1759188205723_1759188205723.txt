@@ -1,0 +1,1191 @@
+// Tipos avançados para o sistema de vendedor inteligente V2
+export interface ConversationMemory {
+  shortTerm: {
+    currentContext: string;
+    recentProducts: string[];
+    lastInteractions: InteractionRecord[];
+    sessionGoals: string[];
+  };
+  longTerm: {
+    userProfile: UserProfile;
+    preferences: UserPreferences;
+    behaviorPatterns: BehaviorPattern[];
+    purchaseHistory: PurchaseRecord[];
+  };
+}
+
+export interface UserProfile {
+  id: string;
+  demographics: {
+    ageRange?: string;
+    location?: string;
+    language: string;
+  };
+  psychographics: {
+    personality: PersonalityTraits;
+    communicationStyle: CommunicationStyle;
+    decisionMakingStyle: DecisionStyle;
+  };
+  engagement: {
+    totalSessions: number;
+    averageSessionDuration: number;
+    preferredChannels: string[];
+    responsePatterns: ResponsePattern[];
+  };
+}
+
+export interface PersonalityTraits {
+  openness: number; // 0-1
+  conscientiousness: number;
+  extraversion: number;
+  agreeableness: number;
+  neuroticism: number;
+}
+
+export interface CommunicationStyle {
+  formality: 'casual' | 'formal' | 'mixed';
+  verbosity: 'concise' | 'detailed' | 'adaptive';
+  emotionalExpression: 'high' | 'medium' | 'low';
+  questioningStyle: 'direct' | 'exploratory' | 'consultative';
+}
+
+export interface DecisionStyle {
+  speed: 'impulsive' | 'quick' | 'deliberate' | 'analytical';
+  riskTolerance: 'high' | 'medium' | 'low';
+  informationNeed: 'minimal' | 'moderate' | 'comprehensive';
+  socialInfluence: 'high' | 'medium' | 'low';
+}
+
+export interface UserPreferences {
+  categories: string[];
+  brands: string[];
+  priceRange: {
+    min: number;
+    max: number;
+    flexibility: number; // 0-1
+  };
+  features: {
+    [key: string]: number; // importance score 0-1
+  };
+  dealBreakers: string[];
+  mustHaves: string[];
+}
+
+export interface BehaviorPattern {
+  pattern: string;
+  frequency: number;
+  context: string[];
+  outcomes: string[];
+  confidence: number; // 0-1
+  lastObserved: Date;
+}
+
+export interface InteractionRecord {
+  timestamp: Date;
+  type: 'query' | 'click' | 'purchase' | 'abandon' | 'feedback';
+  content: string;
+  context: any;
+  outcome?: string;
+  sentiment?: EmotionalState;
+}
+
+export interface PurchaseRecord {
+  productId: string;
+  category: string;
+  price: number;
+  timestamp: Date;
+  satisfaction?: number; // 0-1
+  context: string;
+}
+
+export interface EmotionalState {
+  primary: EmotionType;
+  intensity: number; // 0-1
+  confidence: number; // 0-1
+  triggers: string[];
+  context: string;
+}
+
+export type EmotionType = 
+  | 'joy' | 'excitement' | 'satisfaction' | 'curiosity' | 'interest'
+  | 'frustration' | 'confusion' | 'disappointment' | 'anxiety' | 'impatience'
+  | 'neutral' | 'contemplative' | 'decisive' | 'hesitant' | 'overwhelmed';
+
+export interface ResponsePattern {
+  trigger: string;
+  response: string;
+  effectiveness: number; // 0-1
+  frequency: number;
+  lastUsed: Date;
+}
+
+export interface ProactiveInsight {
+  type: 'behavioral' | 'contextual' | 'temporal' | 'comparative';
+  insight: string;
+  confidence: number; // 0-1
+  actionable: boolean;
+  suggestedActions: string[];
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  expiresAt?: Date;
+}
+
+export interface FollowUpRule {
+  id: string;
+  name: string;
+  trigger: {
+    conditions: FollowUpCondition[];
+    operator: 'AND' | 'OR';
+  };
+  timing: {
+    delay: number; // minutes
+    window: number; // minutes
+    maxAttempts: number;
+  };
+  message: {
+    template: string;
+    personalization: string[];
+  };
+  priority: number; // 1-10
+  active: boolean;
+}
+
+export interface FollowUpCondition {
+  field: string;
+  operator: 'equals' | 'contains' | 'greater' | 'less' | 'exists' | 'not_exists';
+  value: any;
+  weight: number; // 0-1
+}
+
+export interface ConversationMetrics {
+  engagement: {
+    responseRate: number;
+    averageResponseTime: number;
+    conversationLength: number;
+    topicSwitches: number;
+  };
+  effectiveness: {
+    goalAchievement: number;
+    userSatisfaction: number;
+    conversionRate: number;
+    retentionRate: number;
+  };
+  quality: {
+    coherence: number;
+    relevance: number;
+    helpfulness: number;
+    naturalness: number;
+  };
+}
+
+export interface ContextStack {
+  contexts: ContextFrame[];
+  maxSize: number;
+  currentFocus: string;
+}
+
+export interface ContextFrame {
+  id: string;
+  type: 'product' | 'category' | 'comparison' | 'problem' | 'goal';
+  content: any;
+  relevance: number; // 0-1
+  timestamp: Date;
+  expiresAt?: Date;
+  relationships: string[]; // IDs of related contexts
+}
+
+export interface IntelligentResponse {
+  message: string;
+  confidence: number;
+  reasoning: string[];
+  suggestedActions: string[];
+  emotionalTone: EmotionType;
+  personalization: {
+    [key: string]: any;
+  };
+  followUpScheduled?: {
+    ruleId: string;
+    scheduledAt: Date;
+  };
+}
+📁 2. src/assistant/core/memory.ts
+typescript
+Copy
+import { ConversationMemory, UserProfile, BehaviorPattern, InteractionRecord, ContextStack, ContextFrame } from '../types-v2';
+
+export class ConversationMemoryManager {
+  private memory: Map<string, ConversationMemory> = new Map();
+  private contextStacks: Map<string, ContextStack> = new Map();
+  
+  constructor(private maxMemorySize: number = 1000) {}
+
+  // Inicializar memória para um usuário
+  initializeMemory(userId: string): ConversationMemory {
+    const memory: ConversationMemory = {
+      shortTerm: {
+        currentContext: '',
+        recentProducts: [],
+        lastInteractions: [],
+        sessionGoals: []
+      },
+      longTerm: {
+        userProfile: this.createDefaultProfile(userId),
+        preferences: {
+          categories: [],
+          brands: [],
+          priceRange: { min: 0, max: 10000, flexibility: 0.3 },
+          features: {},
+          dealBreakers: [],
+          mustHaves: []
+        },
+        behaviorPatterns: [],
+        purchaseHistory: []
+      }
+    };
+    
+    this.memory.set(userId, memory);
+    this.initializeContextStack(userId);
+    return memory;
+  }
+
+  // Obter memória do usuário
+  getMemory(userId: string): ConversationMemory {
+    return this.memory.get(userId) || this.initializeMemory(userId);
+  }
+
+  // Atualizar contexto atual
+  updateCurrentContext(userId: string, context: string, type: 'product' | 'category' | 'comparison' | 'problem' | 'goal' = 'product'): void {
+    const memory = this.getMemory(userId);
+    memory.shortTerm.currentContext = context;
+    
+    // Adicionar ao stack de contextos
+    this.pushContext(userId, {
+      id: `${type}_${Date.now()}`,
+      type,
+      content: context,
+      relevance: 1.0,
+      timestamp: new Date(),
+      relationships: []
+    });
+  }
+
+  // Adicionar interação
+  addInteraction(userId: string, interaction: InteractionRecord): void {
+    const memory = this.getMemory(userId);
+    memory.shortTerm.lastInteractions.unshift(interaction);
+    
+    // Manter apenas as últimas 50 interações na memória de curto prazo
+    if (memory.shortTerm.lastInteractions.length > 50) {
+      memory.shortTerm.lastInteractions = memory.shortTerm.lastInteractions.slice(0, 50);
+    }
+    
+    // Analisar padrões comportamentais
+    this.analyzeBehaviorPatterns(userId, interaction);
+  }
+
+  // Adicionar produto recente
+  addRecentProduct(userId: string, productId: string): void {
+    const memory = this.getMemory(userId);
+    
+    // Remove se já existe e adiciona no início
+    memory.shortTerm.recentProducts = memory.shortTerm.recentProducts.filter(id => id !== productId);
+    memory.shortTerm.recentProducts.unshift(productId);
+    
+    // Manter apenas os últimos 20 produtos
+    if (memory.shortTerm.recentProducts.length > 20) {
+      memory.shortTerm.recentProducts = memory.shortTerm.recentProducts.slice(0, 20);
+    }
+  }
+
+  // Gerenciar stack de contextos
+  private initializeContextStack(userId: string): void {
+    this.contextStacks.set(userId, {
+      contexts: [],
+      maxSize: 10,
+      currentFocus: ''
+    });
+  }
+
+  private pushContext(userId: string, context: ContextFrame): void {
+    const stack = this.contextStacks.get(userId);
+    if (!stack) return;
+    
+    // Adicionar novo contexto
+    stack.contexts.unshift(context);
+    stack.currentFocus = context.id;
+    
+    // Manter tamanho máximo
+    if (stack.contexts.length > stack.maxSize) {
+      stack.contexts = stack.contexts.slice(0, stack.maxSize);
+    }
+    
+    // Atualizar relevância dos contextos antigos
+    this.updateContextRelevance(userId);
+  }
+
+  private updateContextRelevance(userId: string): void {
+    const stack = this.contextStacks.get(userId);
+    if (!stack) return;
+    
+    const now = new Date();
+    stack.contexts.forEach((context, index) => {
+      // Decaimento temporal da relevância
+      const ageMinutes = (now.getTime() - context.timestamp.getTime()) / (1000 * 60);
+      const temporalDecay = Math.exp(-ageMinutes / 30); // Decai pela metade a cada 30 minutos
+      
+      // Decaimento posicional
+      const positionalDecay = Math.exp(-index * 0.2);
+      
+      context.relevance = Math.min(context.relevance, temporalDecay * positionalDecay);
+    });
+    
+    // Remover contextos com relevância muito baixa
+    stack.contexts = stack.contexts.filter(c => c.relevance > 0.1);
+  }
+
+  // Obter contextos relevantes
+  getRelevantContexts(userId: string, limit: number = 5): ContextFrame[] {
+    const stack = this.contextStacks.get(userId);
+    if (!stack) return [];
+    
+    this.updateContextRelevance(userId);
+    
+    return stack.contexts
+      .sort((a, b) => b.relevance - a.relevance)
+      .slice(0, limit);
+  }
+
+  // Analisar padrões comportamentais
+  private analyzeBehaviorPatterns(userId: string, interaction: InteractionRecord): void {
+    const memory = this.getMemory(userId);
+    
+    // Padrões simples baseados em sequências de interações
+    const recentInteractions = memory.shortTerm.lastInteractions.slice(0, 10);
+    
+    // Detectar padrão de busca repetitiva
+    if (this.detectRepeatedSearch(recentInteractions)) {
+      this.addBehaviorPattern(userId, {
+        pattern: 'repeated_search',
+        frequency: this.calculatePatternFrequency(userId, 'repeated_search'),
+        context: [interaction.content],
+        outcomes: ['indecision', 'need_guidance'],
+        confidence: 0.8,
+        lastObserved: new Date()
+      });
+    }
+    
+    // Detectar padrão de abandono por preço
+    if (this.detectPriceAbandonment(recentInteractions)) {
+      this.addBehaviorPattern(userId, {
+        pattern: 'price_sensitive_abandonment',
+        frequency: this.calculatePatternFrequency(userId, 'price_sensitive_abandonment'),
+        context: [interaction.content],
+        outcomes: ['price_comparison_needed', 'discount_opportunity'],
+        confidence: 0.7,
+        lastObserved: new Date()
+      });
+    }
+  }
+
+  private detectRepeatedSearch(interactions: InteractionRecord[]): boolean {
+    const searches = interactions.filter(i => i.type === 'query');
+    if (searches.length < 3) return false;
+    
+    const searchTerms = searches.slice(0, 3).map(s => s.content.toLowerCase());
+    const uniqueTerms = new Set(searchTerms);
+    
+    return uniqueTerms.size <= 2; // Poucas variações nas buscas
+  }
+
+  private detectPriceAbandonment(interactions: InteractionRecord[]): boolean {
+    const hasProductView = interactions.some(i => i.type === 'click');
+    const hasAbandonment = interactions.some(i => i.type === 'abandon');
+    const hasPriceContext = interactions.some(i => 
+      i.content.toLowerCase().includes('preço') || 
+      i.content.toLowerCase().includes('caro') ||
+      i.content.toLowerCase().includes('barato')
+    );
+    
+    return hasProductView && hasAbandonment && hasPriceContext;
+  }
+
+  private addBehaviorPattern(userId: string, pattern: BehaviorPattern): void {
+    const memory = this.getMemory(userId);
+    
+    // Verificar se padrão já existe
+    const existingIndex = memory.longTerm.behaviorPatterns.findIndex(p => p.pattern === pattern.pattern);
+    
+    if (existingIndex >= 0) {
+      // Atualizar padrão existente
+      memory.longTerm.behaviorPatterns[existingIndex] = {
+        ...memory.longTerm.behaviorPatterns[existingIndex],
+        frequency: pattern.frequency,
+        lastObserved: pattern.lastObserved,
+        confidence: Math.min(1.0, memory.longTerm.behaviorPatterns[existingIndex].confidence + 0.1)
+      };
+    } else {
+      // Adicionar novo padrão
+      memory.longTerm.behaviorPatterns.push(pattern);
+    }
+  }
+
+  private calculatePatternFrequency(userId: string, patternType: string): number {
+    const memory = this.getMemory(userId);
+    const existing = memory.longTerm.behaviorPatterns.find(p => p.pattern === patternType);
+    return existing ? existing.frequency + 1 : 1;
+  }
+
+  private createDefaultProfile(userId: string): UserProfile {
+    return {
+      id: userId,
+      demographics: {
+        language: 'pt-BR'
+      },
+      psychographics: {
+        personality: {
+          openness: 0.5,
+          conscientiousness: 0.5,
+          extraversion: 0.5,
+          agreeableness: 0.5,
+          neuroticism: 0.5
+        },
+        communicationStyle: {
+          formality: 'casual',
+          verbosity: 'adaptive',
+          emotionalExpression: 'medium',
+          questioningStyle: 'exploratory'
+        },
+        decisionMakingStyle: {
+          speed: 'deliberate',
+          riskTolerance: 'medium',
+          informationNeed: 'moderate',
+          socialInfluence: 'medium'
+        }
+      },
+      engagement: {
+        totalSessions: 1,
+        averageSessionDuration: 0,
+        preferredChannels: ['chat'],
+        responsePatterns: []
+      }
+    };
+  }
+
+  // Limpar memória antiga
+  cleanupMemory(): void {
+    const now = new Date();
+    const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 dias
+    
+    for (const [userId, memory] of this.memory.entries()) {
+      // Limpar interações antigas
+      memory.shortTerm.lastInteractions = memory.shortTerm.lastInteractions.filter(
+        interaction => (now.getTime() - interaction.timestamp.getTime()) < maxAge
+      );
+      
+      // Limpar padrões comportamentais antigos com baixa confiança
+      memory.longTerm.behaviorPatterns = memory.longTerm.behaviorPatterns.filter(
+        pattern => pattern.confidence > 0.3 && 
+                  (now.getTime() - pattern.lastObserved.getTime()) < maxAge
+      );
+    }
+  }
+}
+
+export const memoryManager = new ConversationMemoryManager();
+📁 3. src/assistant/intelligence/emotional.ts
+typescript
+Copy
+import { EmotionalState, EmotionType, InteractionRecord } from '../types-v2';
+
+export class EmotionalIntelligence {
+  private emotionKeywords: Record<EmotionType, string[]> = {
+    // Emoções positivas
+    joy: ['feliz', 'alegre', 'contente', 'satisfeito', 'ótimo', 'excelente', 'perfeito', 'maravilhoso'],
+    excitement: ['animado', 'empolgado', 'ansioso', 'curioso', 'interessante', 'legal', 'incrível'],
+    satisfaction: ['bom', 'satisfeito', 'aprovado', 'gostei', 'curtir', 'bacana', 'show'],
+    curiosity: ['como', 'por que', 'qual', 'onde', 'quando', 'interessante', 'quero saber'],
+    interest: ['interessante', 'legal', 'bacana', 'quero ver', 'mostre', 'conte mais'],
+    
+    // Emoções negativas
+    frustration: ['irritado', 'chateado', 'frustrado', 'difícil', 'complicado', 'não consigo'],
+    confusion: ['confuso', 'não entendi', 'como assim', 'não sei', 'perdido', 'complicado'],
+    disappointment: ['decepcionado', 'esperava mais', 'não é isso', 'ruim', 'péssimo'],
+    anxiety: ['preocupado', 'nervoso', 'ansioso', 'medo', 'receio', 'inseguro'],
+    impatience: ['rápido', 'urgente', 'pressa', 'demora', 'lento', 'agora', 'já'],
+    
+    // Emoções neutras/contemplativas
+    neutral: ['ok', 'certo', 'entendi', 'sim', 'não', 'talvez', 'pode ser'],
+    contemplative: ['pensando', 'analisando', 'considerando', 'avaliando', 'comparando'],
+    decisive: ['quero', 'vou', 'decidido', 'escolho', 'compro', 'fechado'],
+    hesitant: ['não sei', 'talvez', 'dúvida', 'incerto', 'indeciso', 'será'],
+    overwhelmed: ['muita coisa', 'confuso', 'muitas opções', 'não sei escolher', 'difícil decidir']
+  };
+
+  private intensityModifiers = {
+    high: ['muito', 'super', 'extremamente', 'totalmente', 'completamente', '!!!', 'demais'],
+    medium: ['bem', 'bastante', 'meio', 'um pouco', '!!'],
+    low: ['pouco', 'levemente', 'meio que', '!']
+  };
+
+  // Analisar estado emocional do texto
+  analyzeEmotion(text: string, context?: any): EmotionalState {
+    const normalizedText = text.toLowerCase();
+    const words = normalizedText.split(/\s+/);
+    
+    const emotionScores: Record<EmotionType, number> = {} as Record<EmotionType, number>;
+    
+    // Calcular scores para cada emoção
+    for (const [emotion, keywords] of Object.entries(this.emotionKeywords)) {
+      emotionScores[emotion as EmotionType] = this.calculateEmotionScore(
+        words, 
+        keywords, 
+        normalizedText
+      );
+    }
+    
+    // Encontrar emoção dominante
+    const primaryEmotion = Object.entries(emotionScores)
+      .reduce((max, [emotion, score]) => 
+        score > max.score ? { emotion: emotion as EmotionType, score } : max,
+        { emotion: 'neutral' as EmotionType, score: 0 }
+      );
+    
+    // Calcular intensidade
+    const intensity = this.calculateIntensity(normalizedText);
+    
+    // Calcular confiança
+    const confidence = this.calculateConfidence(primaryEmotion.score, words.length);
+    
+    // Identificar triggers
+    const triggers = this.identifyTriggers(normalizedText, primaryEmotion.emotion);
+    
+    return {
+      primary: primaryEmotion.emotion,
+      intensity,
+      confidence,
+      triggers,
+      context: context ? JSON.stringify(context) : text
+    };
+  }
+
+  private calculateEmotionScore(words: string[], keywords: string[], fullText: string): number {
+    let score = 0;
+    
+    // Score baseado em palavras-chave
+    for (const keyword of keywords) {
+      const keywordCount = words.filter(word => 
+        word.includes(keyword) || keyword.includes(word)
+      ).length;
+      score += keywordCount;
+      
+      // Bonus para correspondência exata
+      if (fullText.includes(keyword)) {
+        score += 0.5;
+      }
+    }
+    
+    // Normalizar pelo número de palavras
+    return Math.min(1.0, score / Math.max(1, words.length * 0.1));
+  }
+
+  private calculateIntensity(text: string): number {
+    let intensity = 0.5; // Base neutra
+    
+    // Modificadores de alta intensidade
+    for (const modifier of this.intensityModifiers.high) {
+      if (text.includes(modifier)) {
+        intensity += 0.3;
+      }
+    }
+    
+    // Modificadores de média intensidade
+    for (const modifier of this.intensityModifiers.medium) {
+      if (text.includes(modifier)) {
+        intensity += 0.2;
+      }
+    }
+    
+    // Modificadores de baixa intensidade
+    for (const modifier of this.intensityModifiers.low) {
+      if (text.includes(modifier)) {
+        intensity += 0.1;
+      }
+    }
+    
+    // Pontuação como indicador de intensidade
+    const exclamationCount = (text.match(/!/g) || []).length;
+    const questionCount = (text.match(/\?/g) || []).length;
+    const capsCount = (text.match(/[A-Z]/g) || []).length;
+    
+    intensity += Math.min(0.3, exclamationCount * 0.1);
+    intensity += Math.min(0.2, questionCount * 0.05);
+    intensity += Math.min(0.2, capsCount * 0.02);
+    
+    return Math.min(1.0, Math.max(0.0, intensity));
+  }
+
+  private calculateConfidence(emotionScore: number, textLength: number): number {
+    // Confiança baseada no score da emoção e comprimento do texto
+    const baseConfidence = emotionScore;
+    
+    // Textos muito curtos têm menor confiança
+    const lengthFactor = Math.min(1.0, textLength / 5);
+    
+    // Textos muito longos também podem ter menor confiança
+    const complexityPenalty = textLength > 50 ? 0.9 : 1.0;
+    
+    return Math.min(1.0, baseConfidence * lengthFactor * complexityPenalty);
+  }
+
+  private identifyTriggers(text: string, emotion: EmotionType): string[] {
+    const triggers: string[] = [];
+    
+    // Triggers específicos por emoção
+    const emotionTriggers: Record<EmotionType, string[]> = {
+      frustration: ['preço', 'caro', 'não funciona', 'erro', 'problema', 'demora'],
+      confusion: ['como', 'não entendo', 'explicar', 'ajuda', 'dúvida'],
+      disappointment: ['esperava', 'não é', 'diferente', 'ruim', 'péssimo'],
+      anxiety: ['seguro', 'confiável', 'garantia', 'risco', 'medo'],
+      excitement: ['novo', 'lançamento', 'oferta', 'desconto', 'promoção'],
+      satisfaction: ['bom', 'gostei', 'perfeito', 'recomendo'],
+      // ... outros triggers
+      joy: [], curiosity: [], interest: [], impatience: [],
+      neutral: [], contemplative: [], decisive: [], hesitant: [], overwhelmed: []
+    };
+    
+    const relevantTriggers = emotionTriggers[emotion] || [];
+    
+    for (const trigger of relevantTriggers) {
+      if (text.includes(trigger)) {
+        triggers.push(trigger);
+      }
+    }
+    
+    return triggers;
+  }
+
+  // Adaptar tom de resposta baseado na emoção
+  adaptResponseTone(emotion: EmotionalState): {
+    tone: string;
+    approach: string;
+    suggestions: string[];
+  } {
+    const adaptations: Record<EmotionType, any> = {
+      frustration: {
+        tone: 'empático e solucionador',
+        approach: 'acknowledge_and_solve',
+        suggestions: [
+          'Reconhecer a frustração',
+          'Oferecer solução imediata',
+          'Simplificar o processo',
+          'Dar alternativas'
+        ]
+      },
+      confusion: {
+        tone: 'paciente e educativo',
+        approach: 'clarify_and_guide',
+        suggestions: [
+          'Explicar de forma simples',
+          'Usar exemplos práticos',
+          'Fazer perguntas direcionadas',
+          'Oferecer ajuda passo-a-passo'
+        ]
+      },
+      excitement: {
+        tone: 'entusiasmado e engajado',
+        approach: 'match_energy_and_enhance',
+        suggestions: [
+          'Compartilhar o entusiasmo',
+          'Destacar benefícios únicos',
+          'Criar senso de urgência positiva',
+          'Oferecer experiências premium'
+        ]
+      },
+      disappointment: {
+        tone: 'compreensivo e recuperativo',
+        approach: 'recover_and_exceed',
+        suggestions: [
+          'Validar os sentimentos',
+          'Oferecer alternativas melhores',
+          'Dar garantias extras',
+          'Personalizar a experiência'
+        ]
+      },
+      anxiety: {
+        tone: 'tranquilizador e confiável',
+        approach: 'reassure_and_support',
+        suggestions: [
+          'Fornecer informações detalhadas',
+          'Destacar garantias e políticas',
+          'Usar prova social',
+          'Oferecer suporte contínuo'
+        ]
+      },
+      // Emoções neutras/positivas com abordagens padrão
+      neutral: {
+        tone: 'profissional e prestativo',
+        approach: 'inform_and_assist',
+        suggestions: ['Fornecer informações claras', 'Ser direto e útil']
+      },
+      joy: {
+        tone: 'alegre e celebrativo',
+        approach: 'celebrate_and_enhance',
+        suggestions: ['Compartilhar a alegria', 'Oferecer experiências especiais']
+      },
+      satisfaction: {
+        tone: 'confirmativo e continuativo',
+        approach: 'confirm_and_continue',
+        suggestions: ['Confirmar a boa escolha', 'Sugerir complementos']
+      },
+      curiosity: {
+        tone: 'informativo e exploratório',
+        approach: 'educate_and_explore',
+        suggestions: ['Fornecer detalhes interessantes', 'Estimular descoberta']
+      },
+      interest: {
+        tone: 'engajado e informativo',
+        approach: 'engage_and_inform',
+        suggestions: ['Manter o interesse', 'Aprofundar informações']
+      },
+      impatience: {
+        tone: 'eficiente e direto',
+        approach: 'quick_and_direct',
+        suggestions: ['Ser conciso', 'Oferecer soluções rápidas']
+      },
+      contemplative: {
+        tone: 'reflexivo e consultivo',
+        approach: 'guide_and_consult',
+        suggestions: ['Ajudar na análise', 'Fornecer comparações']
+      },
+      decisive: {
+        tone: 'confirmativo e facilitador',
+        approach: 'confirm_and_facilitate',
+        suggestions: ['Confirmar a decisão', 'Facilitar a ação']
+      },
+      hesitant: {
+        tone: 'encorajador e esclarecedor',
+        approach: 'encourage_and_clarify',
+        suggestions: ['Reduzir incertezas', 'Dar confiança']
+      },
+      overwhelmed: {
+        tone: 'simplificador e organizador',
+        approach: 'simplify_and_organize',
+        suggestions: ['Simplificar opções', 'Organizar informações']
+      }
+    };
+
+    return adaptations[emotion.primary] || adaptations.neutral;
+  }
+
+  // Histórico emocional para análise de padrões
+  analyzeEmotionalJourney(interactions: InteractionRecord[]): {
+    journey: EmotionalState[];
+    patterns: string[];
+    recommendations: string[];
+  } {
+    const journey = interactions
+      .filter(i => i.sentiment)
+      .map(i => i.sentiment!)
+      .slice(0, 10); // Últimas 10 interações com sentimento
+
+    const patterns = this.identifyEmotionalPatterns(journey);
+    const recommendations = this.generateEmotionalRecommendations(patterns, journey);
+
+    return { journey, patterns, recommendations };
+  }
+
+  private identifyEmotionalPatterns(journey: EmotionalState[]): string[] {
+    const patterns: string[] = [];
+    
+    if (journey.length < 3) return patterns;
+    
+    // Padrão de escalada negativa
+    const negativeEmotions = ['frustration', 'confusion', 'disappointment', 'anxiety'];
+    const recentNegative = journey.slice(0, 3).filter(e => 
+      negativeEmotions.includes(e.primary)
+    );
+    
+    if (recentNegative.length >= 2) {
+      patterns.push('negative_escalation');
+    }
+    
+    // Padrão de indecisão
+    const indecisionEmotions = ['hesitant', 'overwhelmed', 'confusion'];
+    const recentIndecision = journey.slice(0, 5).filter(e =>
+      indecisionEmotions.includes(e.primary)
+    );
+    
+    if (recentIndecision.length >= 3) {
+      patterns.push('decision_paralysis');
+    }
+    
+    // Padrão de engajamento positivo
+    const positiveEmotions = ['excitement', 'interest', 'curiosity', 'satisfaction'];
+    const recentPositive = journey.slice(0, 3).filter(e =>
+      positiveEmotions.includes(e.primary)
+    );
+    
+    if (recentPositive.length >= 2) {
+      patterns.push('positive_engagement');
+    }
+    
+    return patterns;
+  }
+
+  private generateEmotionalRecommendations(patterns: string[], journey: EmotionalState[]): string[] {
+    const recommendations: string[] = [];
+    
+    if (patterns.includes('negative_escalation')) {
+      recommendations.push('Intervenção imediata necessária - oferecer suporte humano');
+      recommendations.push('Simplificar processo e reduzir fricções');
+      recommendations.push('Oferecer compensação ou benefício extra');
+    }
+    
+    if (patterns.includes('decision_paralysis')) {
+      recommendations.push('Reduzir número de opções apresentadas');
+      recommendations.push('Usar comparação guiada');
+      recommendations.push('Oferecer recomendação personalizada');
+    }
+    
+    if (patterns.includes('positive_engagement')) {
+      recommendations.push('Aproveitar momento para cross-sell');
+      recommendations.push('Coletar feedback positivo');
+      recommendations.push('Incentivar compartilhamento social');
+    }
+    
+    return recommendations;
+  }
+}
+
+export const emotionalIntelligence = new EmotionalIntelligence();
+📁 4. src/assistant/intelligence/proactive.ts
+typescript
+Copy
+import { ProactiveInsight, BehaviorPattern, InteractionRecord, ConversationMemory } from '../types-v2';
+import { memoryManager } from '../core/memory';
+
+export class ProactiveIntelligence {
+  private insightRules: ProactiveInsightRule[] = [
+    {
+      id: 'repeated_search_guidance',
+      name: 'Orientação para Busca Repetitiva',
+      condition: (memory) => this.hasRepeatedSearchPattern(memory),
+      generateInsight: (memory) => ({
+        type: 'behavioral',
+        insight: 'Usuário está fazendo buscas repetitivas, pode precisar de orientação mais específica',
+        confidence: 0.8,
+        actionable: true,
+        suggestedActions: [
+          'Perguntar sobre critérios específicos',
+          'Oferecer filtros avançados',
+          'Sugerir categorias relacionadas',
+          'Criar comparação personalizada'
+        ],
+        priority: 'high'
+      })
+    },
+    {
+      id: 'price_sensitivity_detected',
+      name: 'Sensibilidade a Preço Detectada',
+      condition: (memory) => this.hasPriceSensitivityPattern(memory),
+      generateInsight: (memory) => ({
+        type: 'behavioral',
+        insight: 'Usuário demonstra alta sensibilidade a preço',
+        confidence: 0.7,
+        actionable: true,
+        suggestedActions: [
+          'Destacar produtos em promoção',
+          'Mostrar comparação de preços',
+          'Oferecer opções de parcelamento',
+          'Sugerir produtos similares mais baratos'
+        ],
+        priority: 'high'
+      })
+    },
+    {
+      id: 'category_exploration',
+      name: 'Exploração de Categoria',
+      condition: (memory) => this.hasCategoryExplorationPattern(memory),
+      generateInsight: (memory) => ({
+        type: 'contextual',
+        insight: 'Usuário está explorando uma categoria específica extensivamente',
+        confidence: 0.6,
+        actionable: true,
+        suggestedActions: [
+          'Oferecer guia da categoria',
+          'Mostrar produtos mais populares',
+          'Criar quiz de preferências',
+          'Sugerir especialista da categoria'
+        ],
+        priority: 'medium'
+      })
+    },
+    {
+      id: 'abandonment_risk',
+      name: 'Risco de Abandono',
+      condition: (memory) => this.hasAbandonmentRisk(memory),
+      generateInsight: (memory) => ({
+        type: 'temporal',
+        insight: 'Alto risco de abandono da sessão detectado',
+        confidence: 0.9,
+        actionable: true,
+        suggestedActions: [
+          'Oferecer desconto imediato',
+          'Criar senso de urgência',
+          'Simplificar processo de compra',
+          'Oferecer suporte personalizado'
+        ],
+        priority: 'urgent'
+      })
+    },
+    {
+      id: 'cross_sell_opportunity',
+      name: 'Oportunidade de Cross-sell',
+      condition: (memory) => this.hasCrossSellOpportunity(memory),
+      generateInsight: (memory) => ({
+        type: 'comparative',
+        insight: 'Oportunidade identificada para produtos complementares',
+        confidence: 0.7,
+        actionable: true,
+        suggestedActions: [
+          'Sugerir produtos complementares',
+          'Criar bundle personalizado',
+          'Mostrar "frequentemente comprados juntos"',
+          'Oferecer desconto em combo'
+        ],
+        priority: 'medium'
+      })
+    },
+    {
+      id: 'decision_ready',
+      name: 'Pronto para Decisão',
+      condition: (memory) => this.isDecisionReady(memory),
+      generateInsight: (memory) => ({
+        type: 'behavioral',
+        insight: 'Usuário demonstra sinais de estar pronto para comprar',
+        confidence: 0.8,
+        actionable: true,
+        suggestedActions: [
+          'Facilitar processo de compra',
+          'Oferecer garantias adicionais',
+          'Criar urgência positiva',
+          'Simplificar checkout'
+        ],
+        priority: 'high'
+      })
+    }
+  ];
+
+  // Gerar insights proativos para um usuário
+  generateInsights(userId: string): ProactiveInsight[] {
+    const memory = memoryManager.getMemory(userId);
+    const insights: ProactiveInsight[] = [];
+
+    for (const rule of this.insightRules) {
+      if (rule.condition(memory)) {
+        const insight = rule.generateInsight(memory);
+        
+        // Adicionar timestamp de expiração se não especificado
+        if (!insight.expiresAt) {
+          insight.expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutos
+        }
+        
+        insights.push(insight);
+      }
+    }
+
+    // Ordenar por prioridade
+    return this.prioritizeInsights(insights);
+  }
+
+  // Detectar padrões específicos
+  private hasRepeatedSearchPattern(memory: ConversationMemory): boolean {
+    const searches = memory.shortTerm.lastInteractions
+      .filter(i => i.type === 'query')
+      .slice(0, 5);
+    
+    if (searches.length < 3) return false;
+    
+    // Verificar se há termos similares nas últimas buscas
+    const searchTerms = searches.map(s => s.content.toLowerCase());
+    const uniqueWords = new Set();
+    
+    searchTerms.forEach(term => {
+      term.split(' ').forEach(word => uniqueWords.add(word));
+    });
+    
+    // Se há muita sobreposição de palavras, indica busca repetitiva
+    const totalWords = searchTerms.join(' ').split(' ').length;
+    const overlapRatio = totalWords / uniqueWords.size;
+    
+    return overlapRatio > 2.0;
+  }
+
+  private hasPriceSensitivityPattern(memory: ConversationMemory): boolean {
+    const priceRelatedPattern = memory.longTerm.behaviorPatterns
+      .find(p => p.pattern === 'price_sensitive_abandonment');
+    
+    if (priceRelatedPattern && priceRelatedPattern.frequency > 2) {
+      return true;
+    }
+    
+    // Verificar menções recentes de preço
+    const recentPriceMentions = memory.shortTerm.lastInteractions
+      .filter(i => 
+        i.content.toLowerCase().includes('preço') ||
+        i.content.toLowerCase().includes('caro') ||
+        i.content.toLowerCase().includes('barato') ||
+        i.content.toLowerCase().includes('desconto')
+      );
+    
+    return recentPriceMentions.length >= 2;
+  }
+
+  private hasCategoryExplorationPattern(memory: ConversationMemory): boolean {
+    const recentProducts = memory.shortTerm.recentProducts.slice(0, 10);
+    
+    if (recentProducts.length < 5) return false;
+    
+    // Simular verificação de categoria (em implementação real, consultaria base de produtos)
+    // Por agora, assumir que produtos similares indicam exploração de categoria
+    return recentProducts.length >= 5;
+  }
+
+  private hasAbandonmentRisk(memory: ConversationMemory): boolean {
+    const lastInteraction = memory.shortTerm.lastInteractions[0];
+    
+    if (!lastInteraction) return false;
+    
+    // Verificar tempo desde última interação
+    const timeSinceLastInteraction = Date.now() - lastInteraction.timestamp.getTime();
+    const minutesSinceLastInteraction = timeSinceLastInteraction / (1000 * 60);
+    
+    // Risco alto se:
+    // 1. Mais de 5 minutos sem interação
+    // 2. Última interação foi abandono
+    // 3. Padrão de abandono anterior
+    
+    const timeRisk = minutesSinceLastInteraction > 5;
+    const abandonmentInteraction = lastInteraction.type === 'abandon';
+    const abandonmentPattern = memory.longTerm.behaviorPatterns
+      .some(p => p.pattern.includes('abandon') && p.confidence > 0.5);
+    
+    return timeRisk || abandonmentInteraction || abandonmentPattern;
+  }
+
+  private hasCrossSellOpportunity(memory: ConversationMemory): boolean {
+    const recentProducts = memory.shortTerm.recentProducts.slice(0, 3);
+    
+    if (recentProducts.length === 0) return false;
+    
+    // Verificar se usuário visualizou produtos que frequentemente são comprados juntos
+    // Em implementação real, consultaria dados de "frequently bought together"
+    
+    // Por agora, simular baseado em número de produtos visualizados
+    return recentProducts.length >= 2;
+  }
+
+  private isDecisionReady(memory: ConversationMemory): boolean {
+    const recentInteractions = memory.shortTerm.lastInteractions.slice(0, 5);
+    
+    // Sinais de prontidão para decisão:
+    const hasDetailedProductView = recentInteractions.some(i => i.type === 'click');
+    const hasPositiveFeedback = recentInteractions.some(i => 
+      i.content.toLowerCase().includes('gostei') ||
+      i.content.toLowerCase().includes('bom') ||
+      i.content.toLowerCase().includes('perfeito')
+    );
+    const hasComparisonBehavior = recentInteractions.filter(i => i.type === 'click').length >= 2;
+    const hasPurchaseIntent = recentInteractions.some(i =>
+      i.content.toLowerCase().includes('comprar') ||
+      i.content.toLowerCase().includes('preço') ||
+      i.content.toLowerCase().includes('como pagar')
+    );
+    
+    // Pelo menos 2 sinais positivos
+    const positiveSignals = [hasDetailedProductView, hasPositiveFeedback, hasComparisonBehavior, hasPurchaseIntent]
+      .filter(Boolean).length;
+    
+    return positiveSignals >= 2;
+  }
+
+  // Priorizar insights por urgência e impacto
+  private prioritizeInsights(insights: ProactiveInsight[]): ProactiveInsight[] {
+    const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 };
+    
+    return insights.sort((a, b) => {
+      const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
+      if (priorityDiff !== 0) return priorityDiff;
+      
+      // Se mesma prioridade, ordenar por confiança
+      return b.confidence - a.confidence;
+    });
+  }
+
+  // Executar ação proativa baseada no insight
+  executeProactiveAction(insight: ProactiveInsight, userId: string): {
+    action: string;
+    message: string;
+    data?: any;
+  } {
+    const actionMap: Record<string, (insight: ProactiveInsight) => any> = {
+      'Perguntar sobre critérios específicos': (insight) => ({
+        action: 'ask_criteria',
+        message: 'Vejo que você está buscando bastante! Que tal me contar exatamente o que você precisa? Posso te ajudar de forma mais direcionada! 🎯',
+        data: { type: 'criteria_collection' }
+      }),
+      
+      'Destacar produtos em promoção': (insight) => ({
+        action: 'show_promotions',
+        message: 'Percebi que você está de olho no preço! Que tal dar uma olhada nessas ofertas especiais que separei para você? 💰',
+        data: { type: 'promotion_highlight' }
+      }),
+      
+      'Oferecer desconto imediato': (insight) => ({
+        action: 'offer_discount',
+        message: 'Ei, não vai embora não! Que tal um desconto especial de 10% para você fechar negócio agora? É só para você! 🎁',
+        data: { type: 'immediate_discount', value: 10 }
+      }),
+      
+      'Sugerir produtos complementares': (insight) => ({
+        action: 'cross_sell',
+        message: 'Vi que você curtiu esse produto! Esses aqui combinam perfeitamente e muita gente compra junto. Quer dar uma olhada? 👀',
+        data: { type: 'complementary_products' }
+      }),
+      
+      'Facilitar processo de compra': (insight) => ({
+        action: 'simplify_purchase',
+        message: 'Parece que você já decidiu! Quer que eu facilite tudo para você? Posso finalizar em poucos cliques! ⚡',
+        data: { type: 'quick_checkout' }
+      })
+    };
+
+    const firstAction = insight.suggestedActions[0];
+    const actionHandler = actionMap[firstAction];
+    
+    if (actionHandler) {
+      return actionHandler(insight);
+    }
+    
+    // Ação padrão
+    return {
+      action: 'generic_help',
+      message: 'Posso te ajudar com alguma coisa específica? Estou aqui para tornar sua experiência ainda melhor! 😊',
+      data: { type: 'generic_assistance' }
+    };
+  }
+
+  // Métricas de efetividade das ações proativas
+  trackProactiveEffectiveness(userId: string, action: string, outcome: 'positive' | 'negative' | 'neutral'): void {
+    // Em implementação real, salvaria métricas para otimização
+    console.log(`Proactive action '${action}' for user ${userId} resulted in: ${outcome}`);
+  }
+}
+
+interface ProactiveInsightRule {
+  id: string;
+  name: string;
+  condition: (memory: ConversationMemory) => boolean;
+  generateInsight: (memory: ConversationMemory) => ProactiveInsight;
+}
+
+export const proactiveIntelligence = new ProactiveIntelligence();

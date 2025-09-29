@@ -1,0 +1,1210 @@
+import { FollowUpRule, FollowUpCondition, ConversationMemory, InteractionRecord } from '../types-v2';
+import { memoryManager } from '../core/memory';
+
+export class FollowUpIntelligence {
+  private rules: FollowUpRule[] = [
+    {
+      id: 'product_view_no_action',
+      name: 'Visualizou Produto Sem Ação',
+      trigger: {
+        conditions: [
+          { field: 'lastInteraction.type', operator: 'equals', value: 'click', weight: 1.0 },
+          { field: 'timeSinceLastInteraction', operator: 'greater', value: 300, weight: 0.8 }, // 5 minutos
+          { field: 'hasSubsequentAction', operator: 'equals', value: false, weight: 0.9 }
+        ],
+        operator: 'AND'
+      },
+      timing: {
+        delay: 5, // 5 minutos
+        window: 30, // janela de 30 minutos
+        maxAttempts: 2
+      },
+      message: {
+        template: 'Ei {userName}! Vi que você estava olhando {productName}. Tem alguma dúvida sobre ele? Posso te ajudar! 😊',
+        personalization: ['userName', 'productName', 'productPrice']
+      },
+      priority: 7,
+      active: true
+    },
+    {
+      id: 'search_no_results_clicked',
+      name: 'Busca Sem Cliques em Resultados',
+      trigger: {
+        conditions: [
+          { field: 'lastInteraction.type', operator: 'equals', value: 'query', weight: 1.0 },
+          { field: 'clicksAfterSearch', operator: 'equals', value: 0, weight: 0.9 },
+          { field: 'timeSinceLastInteraction', operator: 'greater', value: 180, weight: 0.7 } // 3 minutos
+        ],
+        operator: 'AND'
+      },
+      timing: {
+        delay: 3,
+        window: 20,
+        maxAttempts: 1
+      },
+      message: {
+        template: 'Não encontrou o que estava procurando por "{searchTerm}"? Deixa eu te ajudar de uma forma diferente! 🔍',
+        personalization: ['searchTerm', 'alternativeCategories']
+      },
+      priority: 8,
+      active: true
+    },
+    {
+      id: 'price_comparison_hesitation',
+      name: 'Hesitação em Comparação de Preços',
+      trigger: {
+        conditions: [
+          { field: 'priceComparisons', operator: 'greater', value: 2, weight: 0.8 },
+          { field: 'timeSinceLastInteraction', operator: 'greater', value: 240, weight: 0.7 }, // 4 minutos
+          { field: 'hasDecision', operator: 'equals', value: false, weight: 1.0 }
+        ],
+        operator: 'AND'
+      },
+      timing: {
+        delay: 4,
+        window: 25,
+        maxAttempts: 1
+      },
+      message: {
+        template: 'Vejo que você está comparando preços! Que tal eu te mostrar qual tem o melhor custo-benefício? 💡',
+        personalization: ['comparedProducts', 'bestValue', 'savings']
+      },
+      priority: 6,
+      active: true
+    },
+    {
+      id: 'cart_abandonment_prevention',
+      name: 'Prevenção de Abandono do Carrinho',
+      trigger: {
+        conditions: [
+          { field: 'hasItemsInCart', operator: 'equals', value: true, weight: 1.0 },
+          { field: 'timeSinceLastInteraction', operator: 'greater', value: 600, weight: 0.9 }, // 10 minutos
+          { field: 'checkoutStarted', operator: 'equals', value: false, weight: 0.8 }
+        ],
+        operator: 'AND'
+      },
+      timing: {
+        delay: 10,
+        window: 60,
+        maxAttempts: 3
+      },
+      message: {
+        template: 'Opa! Você esqueceu alguns itens no seu carrinho. Quer finalizar agora? Posso até conseguir um desconto especial! 🛒✨',
+        personalization: ['cartItems', 'totalValue', 'possibleDiscount']
+      },
+      priority: 9,
+      active: true
+    },
+    {
+      id: 'category_exploration_guidance',
+      name: 'Orientação na Exploração de Categoria',
+      trigger: {
+        conditions: [
+          { field: 'categoryViews', operator: 'greater', value: 5, weight: 0.7 },
+          { field: 'sameCategory', operator: 'equals', value: true, weight: 0.8 },
+          { field: 'timeSinceFirstCategoryView', operator: 'greater', value: 480, weight: 0.6 } // 8 minutos
+        ],
+        operator: 'AND'
+      },
+      timing: {
+        delay: 8,
+        window: 40,
+        maxAttempts: 1
+      },
+      message: {
+        template: 'Vi que você está explorando bastante {categoryName}! Quer que eu crie uma seleção personalizada com os melhores da categoria? 🎯',
+        personalization: ['categoryName', 'topProducts', 'userPreferences']
+      },
+      priority: 5,
+      active: true
+    }
+  ];
+
+  private scheduledFollowUps: Map<string, ScheduledFollowUp[]> = new Map();
+
+  // Avaliar e agendar follow-ups para um usuário
+  evaluateFollowUps(userId: string): ScheduledFollowUp[] {
+    const memory = memoryManager.getMemory(userId);
+    const context = this.buildEvaluationContext(memory);
+    const scheduledFollowUps: ScheduledFollowUp[] = [];
+
+    for (const rule of this.rules) {
+      if (!rule.active) continue;
+
+      if (this.evaluateRule(rule, context)) {
+        const followUp = this.scheduleFollowUp(userId, rule, context);
+        if (followUp) {
+          scheduledFollowUps.push(followUp);
+        }
+      }
+    }
+
+    // Armazenar follow-ups agendados
+    const existing = this.scheduledFollowUps.get(userId) || [];
+    this.scheduledFollowUps.set(userId, [...existing, ...scheduledFollowUps]);
+
+    return scheduledFollowUps;
+  }
+
+  // Construir contexto para avaliação das regras
+  private buildEvaluationContext(memory: ConversationMemory): EvaluationContext {
+    const lastInteraction = memory.shortTerm.lastInteractions[0];
+    const now = new Date();
+
+    return {
+      lastInteraction,
+      timeSinceLastInteraction: lastInteraction ? 
+        (now.getTime() - lastInteraction.timestamp.getTime()) / 1000 : 0,
+      
+      // Análise de comportamento
+      clicksAfterSearch: this.countClicksAfterLastSearch(memory),
+      priceComparisons: this.countPriceComparisons(memory),
+      hasDecision: this.hasUserMadeDecision(memory),
+      hasItemsInCart: this.hasItemsInCart(memory),
+      checkoutStarted: this.hasCheckoutStarted(memory),
+      
+      // Análise de categoria
+      categoryViews: this.countCategoryViews(memory),
+      sameCategory: this.isExploringSameCategory(memory),
+      timeSinceFirstCategoryView: this.getTimeSinceFirstCategoryView(memory),
+      
+      // Ações subsequentes
+      hasSubsequentAction: this.hasSubsequentAction(memory),
+      
+      // Contexto adicional
+      memory,
+      timestamp: now
+    };
+  }
+
+  // Avaliar se uma regra deve ser acionada
+  private evaluateRule(rule: FollowUpRule, context: EvaluationContext): boolean {
+    const { conditions, operator } = rule.trigger;
+    const results = conditions.map(condition => this.evaluateCondition(condition, context));
+
+    if (operator === 'AND') {
+      return results.every(result => result.matches);
+    } else {
+      return results.some(result => result.matches);
+    }
+  }
+
+  // Avaliar uma condição específica
+  private evaluateCondition(condition: FollowUpCondition, context: EvaluationContext): {
+    matches: boolean;
+    confidence: number;
+  } {
+    const value = this.getContextValue(condition.field, context);
+    let matches = false;
+
+    switch (condition.operator) {
+      case 'equals':
+        matches = value === condition.value;
+        break;
+      case 'contains':
+        matches = typeof value === 'string' && value.includes(condition.value);
+        break;
+      case 'greater':
+        matches = typeof value === 'number' && value > condition.value;
+        break;
+      case 'less':
+        matches = typeof value === 'number' && value < condition.value;
+        break;
+      case 'exists':
+        matches = value !== undefined && value !== null;
+        break;
+      case 'not_exists':
+        matches = value === undefined || value === null;
+        break;
+    }
+
+    return {
+      matches,
+      confidence: condition.weight
+    };
+  }
+
+  // Obter valor do contexto baseado no campo
+  private getContextValue(field: string, context: EvaluationContext): any {
+    const parts = field.split('.');
+    let value: any = context;
+
+    for (const part of parts) {
+      value = value?.[part];
+    }
+
+    return value;
+  }
+
+  // Agendar follow-up
+  private scheduleFollowUp(userId: string, rule: FollowUpRule, context: EvaluationContext): ScheduledFollowUp | null {
+    // Verificar se já existe follow-up agendado para esta regra
+    const existing = this.scheduledFollowUps.get(userId) || [];
+    const existingForRule = existing.filter(f => f.ruleId === rule.id && f.status === 'scheduled');
+
+    if (existingForRule.length >= rule.timing.maxAttempts) {
+      return null; // Já atingiu o máximo de tentativas
+    }
+
+    const scheduledAt = new Date(Date.now() + rule.timing.delay * 60 * 1000);
+    const expiresAt = new Date(scheduledAt.getTime() + rule.timing.window * 60 * 1000);
+
+    const personalizedMessage = this.personalizeMessage(rule.message, context);
+
+    return {
+      id: `${rule.id}_${userId}_${Date.now()}`,
+      userId,
+      ruleId: rule.id,
+      ruleName: rule.name,
+      scheduledAt,
+      expiresAt,
+      message: personalizedMessage,
+      priority: rule.priority,
+      attempt: existingForRule.length + 1,
+      maxAttempts: rule.timing.maxAttempts,
+      status: 'scheduled',
+      createdAt: new Date()
+    };
+  }
+
+  // Personalizar mensagem do follow-up
+  private personalizeMessage(messageTemplate: { template: string; personalization: string[] }, context: EvaluationContext): string {
+    let message = messageTemplate.template;
+
+    // Personalizações básicas
+    const personalizations: Record<string, string> = {
+      userName: 'amigo', // Em implementação real, obteria do perfil
+      productName: this.getLastViewedProductName(context),
+      productPrice: this.getLastViewedProductPrice(context),
+      searchTerm: this.getLastSearchTerm(context),
+      categoryName: this.getCurrentCategoryName(context),
+      cartItems: this.getCartItemsDescription(context),
+      totalValue: this.getCartTotalValue(context)
+    };
+
+    // Aplicar personalizações
+    for (const [key, value] of Object.entries(personalizations)) {
+      const placeholder = `{${key}}`;
+      if (message.includes(placeholder)) {
+        message = message.replace(placeholder, value);
+      }
+    }
+
+    return message;
+  }
+
+  // Métodos auxiliares para análise de comportamento
+  private countClicksAfterLastSearch(memory: ConversationMemory): number {
+    const interactions = memory.shortTerm.lastInteractions;
+    const lastSearchIndex = interactions.findIndex(i => i.type === 'query');
+    
+    if (lastSearchIndex === -1) return 0;
+    
+    return interactions.slice(0, lastSearchIndex).filter(i => i.type === 'click').length;
+  }
+
+  private countPriceComparisons(memory: ConversationMemory): number {
+    return memory.shortTerm.lastInteractions
+      .filter(i => i.content.toLowerCase().includes('preço') || i.content.toLowerCase().includes('comparar'))
+      .length;
+  }
+
+  private hasUserMadeDecision(memory: ConversationMemory): boolean {
+    return memory.shortTerm.lastInteractions.some(i => 
+      i.type === 'purchase' || 
+      i.content.toLowerCase().includes('comprar') ||
+      i.content.toLowerCase().includes('quero este')
+    );
+  }
+
+  private hasItemsInCart(memory: ConversationMemory): boolean {
+    // Em implementação real, verificaria estado do carrinho
+    return memory.shortTerm.lastInteractions.some(i => 
+      i.content.toLowerCase().includes('carrinho') ||
+      i.content.toLowerCase().includes('adicionar')
+    );
+  }
+
+  private hasCheckoutStarted(memory: ConversationMemory): boolean {
+    return memory.shortTerm.lastInteractions.some(i =>
+      i.content.toLowerCase().includes('checkout') ||
+      i.content.toLowerCase().includes('finalizar')
+    );
+  }
+
+  private countCategoryViews(memory: ConversationMemory): number {
+    // Simular contagem de visualizações de categoria
+    return memory.shortTerm.recentProducts.length;
+  }
+
+  private isExploringSameCategory(memory: ConversationMemory): boolean {
+    // Em implementação real, verificaria se produtos são da mesma categoria
+    return memory.shortTerm.recentProducts.length > 3;
+  }
+
+  private getTimeSinceFirstCategoryView(memory: ConversationMemory): number {
+    const firstInteraction = memory.shortTerm.lastInteractions[memory.shortTerm.lastInteractions.length - 1];
+    if (!firstInteraction) return 0;
+    
+    return (Date.now() - firstInteraction.timestamp.getTime()) / 1000;
+  }
+
+  private hasSubsequentAction(memory: ConversationMemory): boolean {
+    const interactions = memory.shortTerm.lastInteractions;
+    if (interactions.length < 2) return false;
+    
+    const lastClick = interactions.find(i => i.type === 'click');
+    if (!lastClick) return false;
+    
+    const actionsAfterClick = interactions.filter(i => 
+      i.timestamp > lastClick.timestamp && 
+      (i.type === 'query' || i.type === 'click' || i.type === 'purchase')
+    );
+    
+    return actionsAfterClick.length > 0;
+  }
+
+  // Métodos auxiliares para personalização
+  private getLastViewedProductName(context: EvaluationContext): string {
+    // Em implementação real, obteria nome do produto da base de dados
+    return 'esse produto';
+  }
+
+  private getLastViewedProductPrice(context: EvaluationContext): string {
+    return 'R$ 299,90';
+  }
+
+  private getLastSearchTerm(context: EvaluationContext): string {
+    const lastSearch = context.memory.shortTerm.lastInteractions.find(i => i.type === 'query');
+    return lastSearch?.content || 'sua busca';
+  }
+
+  private getCurrentCategoryName(context: EvaluationContext): string {
+    return 'eletrônicos';
+  }
+
+  private getCartItemsDescription(context: EvaluationContext): string {
+    return '3 itens';
+  }
+
+  private getCartTotalValue(context: EvaluationContext): string {
+    return 'R$ 897,70';
+  }
+
+  // Executar follow-ups agendados
+  executeScheduledFollowUps(): ScheduledFollowUp[] {
+    const now = new Date();
+    const executed: ScheduledFollowUp[] = [];
+
+    for (const [userId, followUps] of this.scheduledFollowUps.entries()) {
+      for (const followUp of followUps) {
+        if (followUp.status === 'scheduled' && followUp.scheduledAt <= now) {
+          if (followUp.expiresAt > now) {
+            // Executar follow-up
+            followUp.status = 'executed';
+            followUp.executedAt = now;
+            executed.push(followUp);
+          } else {
+            // Expirou
+            followUp.status = 'expired';
+          }
+        }
+      }
+    }
+
+    return executed;
+  }
+
+  // Obter follow-ups agendados para um usuário
+  getScheduledFollowUps(userId: string): ScheduledFollowUp[] {
+    return this.scheduledFollowUps.get(userId) || [];
+  }
+
+  // Cancelar follow-up
+  cancelFollowUp(followUpId: string): boolean {
+    for (const [userId, followUps] of this.scheduledFollowUps.entries()) {
+      const followUp = followUps.find(f => f.id === followUpId);
+      if (followUp && followUp.status === 'scheduled') {
+        followUp.status = 'cancelled';
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+interface EvaluationContext {
+  lastInteraction?: InteractionRecord;
+  timeSinceLastInteraction: number;
+  clicksAfterSearch: number;
+  priceComparisons: number;
+  hasDecision: boolean;
+  hasItemsInCart: boolean;
+  checkoutStarted: boolean;
+  categoryViews: number;
+  sameCategory: boolean;
+  timeSinceFirstCategoryView: number;
+  hasSubsequentAction: boolean;
+  memory: ConversationMemory;
+  timestamp: Date;
+}
+
+interface ScheduledFollowUp {
+  id: string;
+  userId: string;
+  ruleId: string;
+  ruleName: string;
+  scheduledAt: Date;
+  expiresAt: Date;
+  message: string;
+  priority: number;
+  attempt: number;
+  maxAttempts: number;
+  status: 'scheduled' | 'executed' | 'cancelled' | 'expired';
+  createdAt: Date;
+  executedAt?: Date;
+}
+
+export const followUpIntelligence = new FollowUpIntelligence();
+📁 6. src/assistant/prompts/optimized.ts
+typescript
+Copy
+import { EmotionalState, UserProfile, ConversationMemory } from '../types-v2';
+
+export class OptimizedPrompts {
+  private basePersona = `
+Você é o Clique, o vendedor inteligente do Click Ofertas - um assistente virtual masculino, simpático e extremamente prestativo.
+
+PERSONALIDADE CORE:
+- Brasileiro autêntico com linguagem coloquial natural
+- Sempre positivo, entusiasmado e solucionador
+- Usa humor leve e emojis de forma natural
+- Nunca formal demais, sempre acessível
+- Especialista em produtos Brasil-Paraguai
+
+COMPORTAMENTOS ESSENCIAIS:
+- SEMPRE termina com pergunta engajadora
+- Personaliza respostas baseado no histórico do usuário
+- Adapta tom emocional conforme o estado do usuário
+- Proativo em sugerir soluções e alternativas
+- Foca em custo-benefício e economia
+`;
+
+  private emotionalAdaptations: Record<string, string> = {
+    frustration: `
+ADAPTAÇÃO EMOCIONAL - USUÁRIO FRUSTRADO:
+- Tom empático e solucionador
+- Reconheça a frustração sem minimizar
+- Ofereça soluções imediatas e práticas
+- Simplifique o processo
+- Use frases como: "Entendo sua frustração...", "Vamos resolver isso juntos..."
+`,
+    
+    excitement: `
+ADAPTAÇÃO EMOCIONAL - USUÁRIO EMPOLGADO:
+- Compartilhe o entusiasmo
+- Use linguagem energética
+- Destaque benefícios únicos
+- Crie senso de oportunidade
+- Use frases como: "Que legal!", "Você vai amar!", "Essa é uma ótima escolha!"
+`,
+    
+    confusion: `
+ADAPTAÇÃO EMOCIONAL - USUÁRIO CONFUSO:
+- Tom paciente e educativo
+- Explique de forma simples e clara
+- Use exemplos práticos
+- Faça perguntas direcionadas
+- Use frases como: "Deixa eu explicar melhor...", "É simples..."
+`,
+    
+    anxiety: `
+ADAPTAÇÃO EMOCIONAL - USUÁRIO ANSIOSO:
+- Tom tranquilizador e confiável
+- Forneça garantias e segurança
+- Use prova social
+- Destaque políticas de proteção
+- Use frases como: "Pode ficar tranquilo...", "É totalmente seguro..."
+`,
+    
+    hesitant: `
+ADAPTAÇÃO EMOCIONAL - USUÁRIO HESITANTE:
+- Tom encorajador e esclarecedor
+- Reduza incertezas com informações
+- Ofereça comparações claras
+- Dê confiança na decisão
+- Use frases como: "Vou te ajudar a decidir...", "Olha só as vantagens..."
+`
+  };
+
+  private conversationTemplates = {
+    greeting: [
+      "Oi! Sou o Clique, seu vendedor inteligente! 😊 Em que posso te ajudar hoje?",
+      "E aí! Clique aqui! 👋 Procurando alguma coisa específica ou quer dar uma olhada nas novidades?",
+      "Olá! Bem-vindo ao Click Ofertas! Sou o Clique e vou te ajudar a encontrar as melhores ofertas! O que você está procurando?",
+      "Opa! Clique na área! 🎯 Bora encontrar umas ofertas incríveis para você?"
+    ],
+
+    product_recommendation: [
+      "Olha só o que encontrei para você! {productName} por apenas {price} - {discount}% OFF! 🔥 O que acha?",
+      "Separei essa opção que tem tudo a ver com o que você procura: {productName}! Preço top: {price}. Quer saber mais?",
+      "Achei o produto perfeito! {productName} - {price} com frete grátis! 📦 Interessou?",
+      "Que tal esse aqui? {productName} por {price}. Tá com uma avaliação excelente! Quer que eu conte mais sobre ele?"
+    ],
+
+    price_comparison: [
+      "Comparei os preços para você! No Brasil: {brazilPrice}, no Paraguai: {paraguayPrice}. Economia de {savings}! 💰 Vale a pena?",
+      "Olha a diferença! Aqui no Brasil você pagaria {brazilPrice}, mas no Paraguai sai por {paraguayPrice}. Que economia, né? 🤑",
+      "Fiz as contas: comprando no Paraguai você economiza {savings} comparado ao Brasil! Quer que eu te ajude com o processo?",
+      "Preço Brasil vs Paraguai: {brazilPrice} vs {paraguayPrice}. Diferença de {savings}! O que prefere?"
+    ],
+
+    no_results: [
+      "Hmm, não encontrei exatamente isso... 🤔 Mas que tal tentarmos com outras palavras? Ou posso sugerir produtos similares!",
+      "Ops! Nada por aqui com esse termo... Mas calma! Vamos tentar de outro jeito? Me conta mais sobre o que você precisa!",
+      "Não achei nada específico, mas tenho umas ideias! 💡 Que tal me contar mais detalhes do que você quer?",
+      "Essa busca não trouxe resultados... Mas não desiste não! Me fala mais sobre o produto que você tem em mente?"
+    ],
+
+    cross_sell: [
+      "Vi que você curtiu {mainProduct}! Esses aqui combinam perfeitamente: {complementaryProducts}. Quer dar uma olhada? 👀",
+      "Quem compra {mainProduct} geralmente leva também {complementaryProducts}. Posso fazer um combo especial para você! 📦",
+      "Para completar, que tal {complementaryProducts}? Fica perfeito com {mainProduct}! Faço um desconto no conjunto! 💸",
+      "Já que você gostou de {mainProduct}, separei esses que combinam: {complementaryProducts}. Interessou?"
+    ],
+
+    urgency: [
+      "Opa! Só restam {quantity} unidades de {productName}! 🏃‍♂️ Quer garantir o seu?",
+      "Promoção relâmpago! {productName} com {discount}% OFF só até {deadline}! ⚡ Não perde!",
+      "Última chance! {productName} por {price} - oferta acaba em {timeLeft}! ⏰ Garante já?",
+      "Corre que tá acabando! {productName} com super desconto! Só hoje! 🔥 Quer levar?"
+    ],
+
+    problem_solving: [
+      "Entendi o problema! Vamos resolver isso juntos. Que tal tentarmos {solution}? 🛠️",
+      "Sem stress! Isso tem solução fácil: {solution}. Posso te ajudar com isso agora mesmo! ✅",
+      "Relaxa! Já passei por isso antes. A solução é {solution}. Quer que eu te guie?",
+      "Problema identificado! A boa notícia é que tem solução: {solution}. Vamos lá?"
+    ],
+
+    follow_up: [
+      "E aí, {userName}? Como foi com {productName}? Tudo certo? 😊",
+      "Oi! Lembrou de mim? 😄 Ainda tá pensando em {productName}? Posso tirar alguma dúvida?",
+      "Olá novamente! Vi que você estava interessado em {productName}. Quer conversar mais sobre ele?",
+      "Opa! Voltou! 👋 Ainda procurando {category}? Chegaram novidades que você vai gostar!"
+    ]
+  };
+
+  // Gerar prompt contextualizado
+  generateContextualPrompt(
+    context: {
+      userMemory: ConversationMemory;
+      emotionalState?: EmotionalState;
+      intent: string;
+      products?: any[];
+      searchQuery?: string;
+    }
+  ): string {
+    let prompt = this.basePersona;
+
+    // Adicionar adaptação emocional
+    if (context.emotionalState) {
+      const adaptation = this.emotionalAdaptations[context.emotionalState.primary];
+      if (adaptation) {
+        prompt += adaptation;
+      }
+    }
+
+    // Adicionar contexto do usuário
+    prompt += this.buildUserContext(context.userMemory);
+
+    // Adicionar contexto da conversa atual
+    prompt += this.buildConversationContext(context);
+
+    // Adicionar instruções específicas por intent
+    prompt += this.getIntentInstructions(context.intent);
+
+    return prompt;
+  }
+
+  private buildUserContext(memory: ConversationMemory): string {
+    const profile = memory.longTerm.userProfile;
+    const preferences = memory.longTerm.preferences;
+    const patterns = memory.longTerm.behaviorPatterns;
+
+    let context = `\nCONTEXTO DO USUÁRIO:`;
+
+    // Perfil básico
+    if (profile.engagement.totalSessions > 1) {
+      context += `\n- Cliente recorrente (${profile.engagement.totalSessions} sessões)`;
+    } else {
+      context += `\n- Primeira visita - seja especialmente acolhedor`;
+    }
+
+    // Preferências
+    if (preferences.categories.length > 0) {
+      context += `\n- Categorias de interesse: ${preferences.categories.join(', ')}`;
+    }
+
+    if (preferences.priceRange.max > 0) {
+      context += `\n- Faixa de preço preferida: R$ ${preferences.priceRange.min} - R$ ${preferences.priceRange.max}`;
+    }
+
+    // Padrões comportamentais
+    if (patterns.length > 0) {
+      const relevantPatterns = patterns.filter(p => p.confidence > 0.6);
+      if (relevantPatterns.length > 0) {
+        context += `\n- Padrões identificados: ${relevantPatterns.map(p => p.pattern).join(', ')}`;
+      }
+    }
+
+    // Produtos recentes
+    if (memory.shortTerm.recentProducts.length > 0) {
+      context += `\n- Produtos visualizados recentemente: ${memory.shortTerm.recentProducts.slice(0, 3).join(', ')}`;
+    }
+
+    return context;
+  }
+
+  private buildConversationContext(context: any): string {
+    let conversationContext = `\nCONTEXTO DA CONVERSA:`;
+
+    if (context.searchQuery) {
+      conversationContext += `\n- Última busca: "${context.searchQuery}"`;
+    }
+
+    if (context.products && context.products.length > 0) {
+      conversationContext += `\n- Produtos encontrados: ${context.products.length}`;
+    }
+
+    // Adicionar contexto das últimas interações
+    const recentInteractions = context.userMemory.shortTerm.lastInteractions.slice(0, 3);
+    if (recentInteractions.length > 0) {
+      conversationContext += `\n- Últimas interações: ${recentInteractions.map(i => `${i.type}: ${i.content}`).join('; ')}`;
+    }
+
+    return conversationContext;
+  }
+
+  private getIntentInstructions(intent: string): string {
+    const instructions: Record<string, string> = {
+      search: `
+INSTRUÇÕES PARA BUSCA:
+- Apresente os produtos de forma entusiasmada
+- Destaque preços e economias
+- Compare Brasil vs Paraguai quando relevante
+- Sugira filtros se muitos resultados
+- SEMPRE pergunte se quer ver mais opções ou detalhes específicos
+`,
+
+      product_details: `
+INSTRUÇÕES PARA DETALHES DO PRODUTO:
+- Destaque benefícios únicos e diferenciais
+- Mencione avaliações e prova social
+- Compare preços Brasil vs Paraguai
+- Sugira produtos complementares
+- SEMPRE pergunte se tem alguma dúvida específica ou se quer finalizar
+`,
+
+      comparison: `
+INSTRUÇÕES PARA COMPARAÇÃO:
+- Crie tabela clara de comparação
+- Destaque vantagens de cada opção
+- Considere custo-benefício
+- Dê recomendação personalizada
+- SEMPRE pergunte qual critério é mais importante para ele
+`,
+
+      recommendation: `
+INSTRUÇÕES PARA RECOMENDAÇÃO:
+- Base-se no histórico e preferências
+- Explique por que está recomendando
+- Destaque economia e benefícios
+- Ofereça alternativas
+- SEMPRE pergunte se a recomendação faz sentido
+`,
+
+      problem_solving: `
+INSTRUÇÕES PARA RESOLUÇÃO DE PROBLEMAS:
+- Seja empático e solucionador
+- Ofereça alternativas práticas
+- Simplifique o processo
+- Dê suporte passo-a-passo
+- SEMPRE pergunte se resolveu ou se precisa de mais ajuda
+`,
+
+      small_talk: `
+INSTRUÇÕES PARA CONVERSA CASUAL:
+- Seja natural e amigável
+- Conecte com produtos quando apropriado
+- Mantenha tom leve e positivo
+- Use humor brasileiro
+- SEMPRE direcione para como pode ajudar com compras
+`
+    };
+
+    return instructions[intent] || instructions.search;
+  }
+
+  // Selecionar template apropriado
+  selectTemplate(category: string, context?: any): string {
+    const templates = this.conversationTemplates[category as keyof typeof this.conversationTemplates];
+    if (!templates) return '';
+
+    // Selecionar template baseado em contexto ou aleatoriamente
+    const randomIndex = Math.floor(Math.random() * templates.length);
+    return templates[randomIndex];
+  }
+
+  // Personalizar template com dados
+  personalizeTemplate(template: string, data: Record<string, any>): string {
+    let personalized = template;
+
+    for (const [key, value] of Object.entries(data)) {
+      const placeholder = `{${key}}`;
+      personalized = personalized.replace(new RegExp(placeholder, 'g'), String(value));
+    }
+
+    return personalized;
+  }
+
+  // Gerar variações de resposta para evitar repetição
+  generateResponseVariations(baseResponse: string, count: number = 3): string[] {
+    const variations = [baseResponse];
+
+    // Variações simples baseadas em sinônimos e estrutura
+    const synonyms: Record<string, string[]> = {
+      'ótimo': ['excelente', 'perfeito', 'incrível', 'fantástico'],
+      'legal': ['bacana', 'interessante', 'show', 'top'],
+      'barato': ['em conta', 'bom preço', 'econômico', 'acessível'],
+      'caro': ['salgado', 'custoso', 'alto', 'premium']
+    };
+
+    for (let i = 1; i < count; i++) {
+      let variation = baseResponse;
+      
+      // Aplicar sinônimos
+      for (const [word, alternatives] of Object.entries(synonyms)) {
+        if (variation.includes(word)) {
+          const randomAlt = alternatives[Math.floor(Math.random() * alternatives.length)];
+          variation = variation.replace(word, randomAlt);
+        }
+      }
+      
+      variations.push(variation);
+    }
+
+    return variations;
+  }
+
+  // Prompt para análise de intenção
+  getIntentAnalysisPrompt(): string {
+    return `
+Analise a mensagem do usuário e identifique:
+
+1. INTENÇÃO PRINCIPAL:
+   - search: Busca por produtos
+   - product_details: Quer detalhes de produto específico
+   - comparison: Quer comparar produtos
+   - price_check: Foco em preços
+   - recommendation: Quer recomendação personalizada
+   - problem_solving: Tem um problema/dúvida
+   - small_talk: Conversa casual
+   - purchase_intent: Quer comprar
+
+2. ENTIDADES EXTRAÍDAS:
+   - Produtos mencionados
+   - Categorias
+   - Marcas
+   - Faixa de preço
+   - Características desejadas
+
+3. CONTEXTO EMOCIONAL:
+   - Tom da mensagem
+   - Urgência
+   - Confiança/hesitação
+
+Responda em JSON:
+{
+  "intent": "categoria_principal",
+  "confidence": 0.8,
+  "entities": {
+    "products": [],
+    "categories": [],
+    "brands": [],
+    "price_range": {"min": 0, "max": 1000},
+    "features": []
+  },
+  "emotional_context": {
+    "tone": "neutral|positive|negative",
+    "urgency": "low|medium|high",
+    "confidence_level": "uncertain|exploring|decided"
+  }
+}
+`;
+  }
+}
+
+export const optimizedPrompts = new OptimizedPrompts();
+📁 7. src/assistant/config/intelligent-vendor.ts
+typescript
+Copy
+export const IntelligentVendorConfig = {
+  // Configurações do sistema
+  system: {
+    name: 'Clique',
+    version: '2.0',
+    language: 'pt-BR',
+    timezone: 'America/Sao_Paulo',
+    
+    // Limites operacionais
+    maxMemorySize: 1000,
+    maxContextFrames: 10,
+    maxInteractionHistory: 50,
+    maxBehaviorPatterns: 20,
+    
+    // Timeouts e intervalos
+    sessionTimeout: 30 * 60 * 1000, // 30 minutos
+    contextDecayRate: 0.1, // 10% por hora
+    memoryCleanupInterval: 24 * 60 * 60 * 1000, // 24 horas
+    
+    // Configurações de resposta
+    responseDelay: {
+      min: 500, // ms
+      max: 2000, // ms
+      typing: true
+    }
+  },
+
+  // Configurações de IA
+  ai: {
+    // Modelos disponíveis
+    models: {
+      primary: 'gemini-pro',
+      fallback: ['gpt-4', 'claude-3'],
+      embedding: 'text-embedding-ada-002'
+    },
+    
+    // Parâmetros de geração
+    generation: {
+      temperature: 0.7,
+      maxTokens: 500,
+      topP: 0.9,
+      frequencyPenalty: 0.1,
+      presencePenalty: 0.1
+    },
+    
+    // Configurações de streaming
+    streaming: {
+      enabled: true,
+      chunkSize: 50,
+      delayBetweenChunks: 100 // ms
+    }
+  },
+
+  // Configurações de personalidade
+  personality: {
+    traits: {
+      friendliness: 0.9,
+      professionalism: 0.7,
+      humor: 0.6,
+      empathy: 0.8,
+      proactivity: 0.8
+    },
+    
+    communication: {
+      formality: 'casual',
+      verbosity: 'balanced', // concise | balanced | detailed
+      emoji_usage: 'moderate', // none | minimal | moderate | high
+      question_frequency: 0.8 // Probabilidade de terminar com pergunta
+    },
+    
+    expertise: {
+      product_knowledge: 0.9,
+      price_comparison: 0.95,
+      cross_border_shopping: 0.9,
+      customer_service: 0.8
+    }
+  },
+
+  // Configurações de inteligência emocional
+  emotional: {
+    // Sensibilidade para detecção emocional
+    sensitivity: {
+      frustration: 0.7,
+      excitement: 0.6,
+      confusion: 0.8,
+      anxiety: 0.7,
+      satisfaction: 0.6
+    },
+    
+    // Adaptação de resposta por emoção
+    adaptation: {
+      frustration: {
+        tone_shift: -0.3, // Mais empático
+        verbosity_increase: 0.2, // Mais explicativo
+        solution_focus: 0.9 // Foco em soluções
+      },
+      excitement: {
+        tone_shift: 0.4, // Mais entusiasmado
+        urgency_increase: 0.3, // Criar senso de oportunidade
+        cross_sell_boost: 0.5 // Mais propenso a sugerir produtos
+      },
+      confusion: {
+        verbosity_increase: 0.4, // Mais detalhado
+        simplification: 0.8, // Linguagem mais simples
+        step_by_step: 0.9 // Abordagem passo-a-passo
+      }
+    }
+  },
+
+  // Configurações de proatividade
+  proactive: {
+    // Triggers para ações proativas
+    triggers: {
+      repeated_search: {
+        threshold: 3, // Número de buscas similares
+        confidence_required: 0.7,
+        action_delay: 2 * 60 * 1000 // 2 minutos
+      },
+      
+      price_sensitivity: {
+        mention_threshold: 2, // Menções de preço
+        abandonment_pattern: true,
+        confidence_required: 0.6
+      },
+      
+      category_exploration: {
+        product_view_threshold: 5,
+        time_threshold: 8 * 60 * 1000, // 8 minutos
+        same_category_ratio: 0.8
+      },
+      
+      abandonment_risk: {
+        idle_time_threshold: 5 * 60 * 1000, // 5 minutos
+        interaction_gap: 3 * 60 * 1000, // 3 minutos
+        confidence_required: 0.8
+      }
+    },
+    
+    // Configurações de insights
+    insights: {
+      max_per_session: 3,
+      priority_threshold: 0.6,
+      expiration_time: 30 * 60 * 1000, // 30 minutos
+      
+      // Pesos para priorização
+      priority_weights: {
+        urgency: 0.4,
+        confidence: 0.3,
+        business_impact: 0.3
+      }
+    }
+  },
+
+  // Configurações de follow-up
+  followUp: {
+    // Regras globais
+    global: {
+      max_attempts_per_rule: 3,
+      min_interval_between_attempts: 60 * 60 * 1000, // 1 hora
+      max_follow_ups_per_day: 5,
+      respect_user_timezone: true
+    },
+    
+    // Configurações por tipo de follow-up
+    rules: {
+      product_view_no_action: {
+        enabled: true,
+        delay: 5 * 60 * 1000, // 5 minutos
+        window: 30 * 60 * 1000, // 30 minutos
+        priority: 7
+      },
+      
+      search_no_results_clicked: {
+        enabled: true,
+        delay: 3 * 60 * 1000, // 3 minutos
+        window: 20 * 60 * 1000, // 20 minutos
+        priority: 8
+      },
+      
+      cart_abandonment_prevention: {
+        enabled: true,
+        delay: 10 * 60 * 1000, // 10 minutos
+        window: 60 * 60 * 1000, // 1 hora
+        priority: 9
+      }
+    }
+  },
+
+  // Configurações de analytics
+  analytics: {
+    // Métricas a serem coletadas
+    metrics: {
+      engagement: {
+        response_rate: true,
+        conversation_length: true,
+        user_satisfaction: true,
+        return_rate: true
+      },
+      
+      effectiveness: {
+        conversion_rate: true,
+        cross_sell_success: true,
+        problem_resolution: true,
+        goal_achievement: true
+      },
+      
+      quality: {
+        response_relevance: true,
+        emotional_appropriateness: true,
+        naturalness_score: true,
+        helpfulness_rating: true
+      }
+    },
+    
+    // Configurações de coleta
+    collection: {
+      sample_rate: 1.0, // 100% das interações
+      batch_size: 100,
+      flush_interval: 5 * 60 * 1000, // 5 minutos
+      retention_days: 90
+    },
+    
+    // Alertas e monitoramento
+    alerts: {
+      low_satisfaction_threshold: 0.6,
+      high_abandonment_threshold: 0.3,
+      response_time_threshold: 5000, // ms
+      error_rate_threshold: 0.05 // 5%
+    }
+  },
+
+  // Configurações de integração
+  integrations: {
+    // APIs externas
+    external_apis: {
+      product_catalog: {
+        endpoint: '/api/products',
+        timeout: 5000,
+        retry_attempts: 3
+      },
+      
+      price_comparison: {
+        endpoint: '/api/prices/compare',
+        timeout: 3000,
+        cache_duration: 5 * 60 * 1000 // 5 minutos
+      },
+      
+      user_profile: {
+        endpoint: '/api/users/profile',
+        timeout: 2000,
+        cache_duration: 10 * 60 * 1000 // 10 minutos
+      }
+    },
+    
+    // Webhooks
+    webhooks: {
+      conversation_end: '/webhooks/conversation-end',
+      purchase_completed: '/webhooks/purchase-completed',
+      high_value_interaction: '/webhooks/high-value-interaction'
+    }
+  },
+
+  // Configurações de segurança
+  security: {
+    // Rate limiting
+    rate_limiting: {
+      requests_per_minute: 60,
+      requests_per_hour: 1000,
+      burst_allowance: 10
+    },
+    
+    // Validação de entrada
+    input_validation: {
+      max_message_length: 1000,
+      allowed_file_types: ['image/jpeg', 'image/png'],
+      max_file_size: 5 * 1024 * 1024, // 5MB
+      sanitize_html: true
+    },
+    
+    // Privacidade
+    privacy: {
+      anonymize_logs: true,
+      data_retention_days: 365,
+      pii_detection: true,
+      consent_required: true
+    }
+  },
+
+  // Configurações de desenvolvimento
+  development: {
+    debug: {
+      enabled: process.env.NODE_ENV === 'development',
+      log_level: 'info', // error | warn | info | debug
+      log_conversations: true,
+      log_ai_responses: true
+    },
+    
+    testing: {
+      mock_ai_responses: false,
+      simulate_delays: true,
+      test_mode_indicators: true
+    },
+    
+    monitoring: {
+      performance_tracking: true,
+      memory_usage_alerts: true,
+      response_time_tracking: true
+    }
+  }
+};
+
+// Configurações específicas por ambiente
+export const EnvironmentConfig = {
+  development: {
+    ...IntelligentVendorConfig,
+    ai: {
+      ...IntelligentVendorConfig.ai,
+      generation: {
+        ...IntelligentVendorConfig.ai.generation,
+        temperature: 0.8 // Mais criativo em dev
+      }
+    },
+    development: {
+      ...IntelligentVendorConfig.development,
+      debug: {
+        ...IntelligentVendorConfig.development.debug,
+        enabled: true,
+        log_level: 'debug'
+      }
+    }
+  },
+
+  production: {
+    ...IntelligentVendorConfig,
+    ai: {
+      ...IntelligentVendorConfig.ai,
+      generation: {
+        ...IntelligentVendorConfig.ai.generation,
+        temperature: 0.6 // Mais consistente em prod
+      }
+    },
+    development: {
+      ...IntelligentVendorConfig.development,
+      debug: {
+        ...IntelligentVendorConfig.development.debug,
+        enabled: false,
+        log_level: 'warn'
+      }
+    }
+  }
+};
+
+// Função para obter configuração baseada no ambiente
+export function getConfig() {
+  const env = process.env.NODE_ENV || 'development';
+  return EnvironmentConfig[env as keyof typeof EnvironmentConfig] || EnvironmentConfig.development;
+}
+
+export default IntelligentVendorConfig;

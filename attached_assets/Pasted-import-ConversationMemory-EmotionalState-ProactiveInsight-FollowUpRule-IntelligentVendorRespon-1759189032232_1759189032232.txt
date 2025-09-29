@@ -1,0 +1,1293 @@
+import { ConversationMemory, EmotionalState, ProactiveInsight, FollowUpRule, IntelligentVendorResponse } from '../types-v2';
+import { memoryManager } from './memory';
+import { emotionalIntelligence } from '../intelligence/emotional';
+import { proactiveIntelligence } from '../intelligence/proactive';
+import { followUpIntelligence } from '../intelligence/followup';
+import { optimizedPrompts } from '../prompts/optimized';
+import { getConfig } from '../config/intelligent-vendor';
+
+export class IntelligentVendorV2 {
+  private config = getConfig();
+  private isInitialized = false;
+
+  constructor() {
+    this.initialize();
+  }
+
+  private async initialize() {
+    console.log('🤖 Inicializando Vendedor Inteligente V2...');
+    
+    // Inicializar componentes
+    await this.initializeComponents();
+    
+    // Configurar monitoramento
+    this.setupMonitoring();
+    
+    // Iniciar processos em background
+    this.startBackgroundProcesses();
+    
+    this.isInitialized = true;
+    console.log('✅ Vendedor Inteligente V2 inicializado com sucesso!');
+  }
+
+  private async initializeComponents() {
+    // Inicializar gerenciador de memória
+    memoryManager.initialize(this.config.system.maxMemorySize);
+    
+    // Configurar inteligência emocional
+    emotionalIntelligence.configure(this.config.emotional);
+    
+    // Configurar inteligência proativa
+    proactiveIntelligence.configure(this.config.proactive);
+    
+    // Configurar follow-ups
+    followUpIntelligence.configure?.(this.config.followUp);
+  }
+
+  private setupMonitoring() {
+    if (this.config.development.monitoring.performance_tracking) {
+      // Configurar tracking de performance
+      this.setupPerformanceTracking();
+    }
+    
+    if (this.config.development.monitoring.memory_usage_alerts) {
+      // Configurar alertas de memória
+      this.setupMemoryAlerts();
+    }
+  }
+
+  private startBackgroundProcesses() {
+    // Processo de limpeza de memória
+    setInterval(() => {
+      memoryManager.cleanup();
+    }, this.config.system.memoryCleanupInterval);
+
+    // Processo de execução de follow-ups
+    setInterval(() => {
+      this.executeScheduledFollowUps();
+    }, 60 * 1000); // A cada minuto
+
+    // Processo de análise proativa
+    setInterval(() => {
+      this.runProactiveAnalysis();
+    }, 5 * 60 * 1000); // A cada 5 minutos
+  }
+
+  // Método principal para processar mensagens
+  async processMessage(
+    userId: string,
+    message: string,
+    context?: {
+      sessionId?: string;
+      metadata?: Record<string, any>;
+      products?: any[];
+    }
+  ): Promise<IntelligentVendorResponse> {
+    if (!this.isInitialized) {
+      throw new Error('Vendedor Inteligente não foi inicializado');
+    }
+
+    const startTime = Date.now();
+    
+    try {
+      // 1. Registrar interação
+      await this.recordInteraction(userId, message, context);
+
+      // 2. Obter memória do usuário
+      const userMemory = memoryManager.getMemory(userId);
+
+      // 3. Analisar estado emocional
+      const emotionalState = await emotionalIntelligence.analyzeEmotion(message, userMemory);
+
+      // 4. Analisar intenção
+      const intent = await this.analyzeIntent(message, userMemory);
+
+      // 5. Gerar insights proativos
+      const proactiveInsights = await proactiveIntelligence.generateInsights(userId, userMemory);
+
+      // 6. Avaliar follow-ups
+      const followUps = followUpIntelligence.evaluateFollowUps(userId);
+
+      // 7. Gerar resposta contextualizada
+      const response = await this.generateResponse({
+        userId,
+        message,
+        userMemory,
+        emotionalState,
+        intent,
+        proactiveInsights,
+        context
+      });
+
+      // 8. Atualizar memória com a resposta
+      await this.updateMemoryWithResponse(userId, response);
+
+      // 9. Registrar métricas
+      this.recordMetrics(userId, startTime, response);
+
+      return response;
+
+    } catch (error) {
+      console.error('Erro ao processar mensagem:', error);
+      return this.generateErrorResponse(error);
+    }
+  }
+
+  private async recordInteraction(
+    userId: string,
+    message: string,
+    context?: any
+  ) {
+    const interaction = {
+      id: `${userId}_${Date.now()}`,
+      userId,
+      type: this.detectInteractionType(message),
+      content: message,
+      timestamp: new Date(),
+      metadata: context?.metadata || {},
+      sessionId: context?.sessionId
+    };
+
+    memoryManager.addInteraction(userId, interaction);
+  }
+
+  private detectInteractionType(message: string): string {
+    const lowerMessage = message.toLowerCase();
+    
+    if (lowerMessage.includes('buscar') || lowerMessage.includes('procurar')) {
+      return 'query';
+    }
+    if (lowerMessage.includes('comprar') || lowerMessage.includes('quero')) {
+      return 'purchase_intent';
+    }
+    if (lowerMessage.includes('preço') || lowerMessage.includes('quanto')) {
+      return 'price_inquiry';
+    }
+    if (lowerMessage.includes('comparar')) {
+      return 'comparison';
+    }
+    
+    return 'message';
+  }
+
+  private async analyzeIntent(message: string, memory: ConversationMemory) {
+    // Implementação simplificada - em produção usaria IA
+    const lowerMessage = message.toLowerCase();
+    
+    if (lowerMessage.includes('buscar') || lowerMessage.includes('procurar')) {
+      return {
+        primary: 'search',
+        confidence: 0.9,
+        entities: this.extractEntities(message)
+      };
+    }
+    
+    if (lowerMessage.includes('comparar')) {
+      return {
+        primary: 'comparison',
+        confidence: 0.8,
+        entities: this.extractEntities(message)
+      };
+    }
+    
+    if (lowerMessage.includes('preço')) {
+      return {
+        primary: 'price_check',
+        confidence: 0.85,
+        entities: this.extractEntities(message)
+      };
+    }
+    
+    return {
+      primary: 'general',
+      confidence: 0.6,
+      entities: {}
+    };
+  }
+
+  private extractEntities(message: string) {
+    // Implementação simplificada de extração de entidades
+    const entities: any = {
+      products: [],
+      categories: [],
+      brands: [],
+      price_range: { min: 0, max: 0 }
+    };
+
+    // Detectar categorias comuns
+    const categories = ['eletrônicos', 'roupas', 'casa', 'esporte', 'beleza'];
+    for (const category of categories) {
+      if (message.toLowerCase().includes(category)) {
+        entities.categories.push(category);
+      }
+    }
+
+    // Detectar faixas de preço
+    const priceMatch = message.match(/(\d+)\s*(?:a|até)\s*(\d+)/);
+    if (priceMatch) {
+      entities.price_range = {
+        min: parseInt(priceMatch[1]),
+        max: parseInt(priceMatch[2])
+      };
+    }
+
+    return entities;
+  }
+
+  private async generateResponse(params: {
+    userId: string;
+    message: string;
+    userMemory: ConversationMemory;
+    emotionalState: EmotionalState;
+    intent: any;
+    proactiveInsights: ProactiveInsight[];
+    context?: any;
+  }): Promise<IntelligentVendorResponse> {
+    
+    // Gerar prompt contextualizado
+    const prompt = optimizedPrompts.generateContextualPrompt({
+      userMemory: params.userMemory,
+      emotionalState: params.emotionalState,
+      intent: params.intent.primary,
+      products: params.context?.products,
+      searchQuery: params.message
+    });
+
+    // Simular resposta da IA (em produção, chamaria API real)
+    const aiResponse = await this.simulateAIResponse(params.message, params.intent, params.emotionalState);
+
+    // Incorporar insights proativos se relevantes
+    const enhancedResponse = this.incorporateProactiveInsights(aiResponse, params.proactiveInsights);
+
+    return {
+      id: `response_${Date.now()}`,
+      userId: params.userId,
+      content: enhancedResponse,
+      timestamp: new Date(),
+      
+      // Metadados da resposta
+      metadata: {
+        intent: params.intent,
+        emotionalState: params.emotionalState,
+        proactiveInsights: params.proactiveInsights,
+        processingTime: 0, // Será calculado depois
+        confidence: 0.85
+      },
+      
+      // Sugestões de ação
+      suggestions: this.generateActionSuggestions(params.intent, params.userMemory),
+      
+      // Produtos recomendados (se aplicável)
+      recommendedProducts: this.generateProductRecommendations(params.userMemory, params.intent),
+      
+      // Follow-ups sugeridos
+      followUpSuggestions: this.generateFollowUpSuggestions(params.intent, params.emotionalState)
+    };
+  }
+
+  private async simulateAIResponse(message: string, intent: any, emotionalState: EmotionalState): string {
+    // Simulação de resposta baseada no intent e estado emocional
+    const responses: Record<string, string[]> = {
+      search: [
+        "Ótimo! Vou te ajudar a encontrar o que você precisa! 🔍 Me conta mais detalhes sobre o que você está procurando?",
+        "Perfeito! Adoro ajudar nas buscas! ✨ Que tipo de produto você tem em mente?",
+        "Show! Vamos encontrar as melhores ofertas para você! 🎯 Qual categoria te interessa mais?"
+      ],
+      comparison: [
+        "Excelente ideia comparar! 📊 Vou te mostrar as diferenças e te ajudar a escolher o melhor custo-benefício!",
+        "Comparação é sempre inteligente! 💡 Deixa eu analisar as opções e destacar os pontos importantes!",
+        "Boa! Comparar é a melhor forma de decidir! 🤔 Vou te dar todos os detalhes que precisa!"
+      ],
+      price_check: [
+        "Vamos falar de preços! 💰 Adoro encontrar as melhores ofertas! Que produto você quer saber o valor?",
+        "Preço é importante mesmo! 💸 Vou te mostrar as melhores opções no seu orçamento!",
+        "Ótima pergunta sobre preços! 🏷️ Deixa eu verificar as ofertas mais vantajosas!"
+      ]
+    };
+
+    const intentResponses = responses[intent.primary] || responses.search;
+    const baseResponse = intentResponses[Math.floor(Math.random() * intentResponses.length)];
+
+    // Adaptar baseado no estado emocional
+    if (emotionalState.primary === 'frustration') {
+      return `Entendo sua frustração! ${baseResponse.replace('!', '.')} Vamos resolver isso juntos! 🤝`;
+    }
+    
+    if (emotionalState.primary === 'excitement') {
+      return `${baseResponse} Estou animado para te ajudar! 🚀`;
+    }
+    
+    if (emotionalState.primary === 'confusion') {
+      return `Sem problemas! ${baseResponse.replace('!', '.')} Vou explicar tudo bem detalhado! 📝`;
+    }
+
+    return baseResponse;
+  }
+
+  private incorporateProactiveInsights(response: string, insights: ProactiveInsight[]): string {
+    if (insights.length === 0) return response;
+
+    // Selecionar insight mais relevante
+    const topInsight = insights.sort((a, b) => b.priority - a.priority)[0];
+    
+    if (topInsight.priority > 7) {
+      return `${response}\n\n💡 **Dica especial**: ${topInsight.message}`;
+    }
+
+    return response;
+  }
+
+  private generateActionSuggestions(intent: any, memory: ConversationMemory): string[] {
+    const suggestions: string[] = [];
+
+    switch (intent.primary) {
+      case 'search':
+        suggestions.push('Ver produtos em promoção');
+        suggestions.push('Comparar preços Brasil vs Paraguai');
+        suggestions.push('Filtrar por categoria');
+        break;
+        
+      case 'comparison':
+        suggestions.push('Ver especificações detalhadas');
+        suggestions.push('Calcular custo-benefício');
+        suggestions.push('Ver avaliações de outros clientes');
+        break;
+        
+      case 'price_check':
+        suggestions.push('Ver histórico de preços');
+        suggestions.push('Configurar alerta de preço');
+        suggestions.push('Ver produtos similares mais baratos');
+        break;
+    }
+
+    return suggestions;
+  }
+
+  private generateProductRecommendations(memory: ConversationMemory, intent: any): any[] {
+    // Implementação simplificada - em produção usaria algoritmo de recomendação
+    const recommendations = [];
+    
+    if (memory.longTerm.preferences.categories.length > 0) {
+      // Recomendar baseado em preferências
+      recommendations.push({
+        id: 'rec_1',
+        name: 'Produto Recomendado',
+        price: 299.90,
+        reason: 'Baseado no seu histórico de compras'
+      });
+    }
+
+    return recommendations;
+  }
+
+  private generateFollowUpSuggestions(intent: any, emotionalState: EmotionalState): string[] {
+    const suggestions: string[] = [];
+
+    if (emotionalState.primary === 'hesitant') {
+      suggestions.push('Quer que eu explique melhor algum ponto?');
+      suggestions.push('Tem alguma dúvida específica?');
+    }
+
+    if (intent.primary === 'search') {
+      suggestions.push('Encontrou o que procurava?');
+      suggestions.push('Quer ver mais opções?');
+    }
+
+    return suggestions;
+  }
+
+  private async updateMemoryWithResponse(userId: string, response: IntelligentVendorResponse) {
+    // Atualizar padrões comportamentais
+    memoryManager.updateBehaviorPatterns(userId, {
+      pattern: `responded_to_${response.metadata.intent.primary}`,
+      frequency: 1,
+      lastOccurrence: new Date(),
+      confidence: 0.8
+    });
+
+    // Atualizar preferências se aplicável
+    if (response.recommendedProducts.length > 0) {
+      // Lógica para atualizar preferências baseado em produtos recomendados
+    }
+  }
+
+  private recordMetrics(userId: string, startTime: number, response: IntelligentVendorResponse) {
+    const processingTime = Date.now() - startTime;
+    response.metadata.processingTime = processingTime;
+
+    if (this.config.analytics.metrics.effectiveness.response_rate) {
+      // Registrar métricas de resposta
+      console.log(`📊 Resposta gerada em ${processingTime}ms para usuário ${userId}`);
+    }
+  }
+
+  private generateErrorResponse(error: any): IntelligentVendorResponse {
+    return {
+      id: `error_${Date.now()}`,
+      userId: 'unknown',
+      content: 'Ops! Tive um probleminha técnico aqui. Pode tentar novamente? 😅',
+      timestamp: new Date(),
+      metadata: {
+        error: true,
+        errorMessage: error.message
+      },
+      suggestions: ['Tentar novamente', 'Falar com suporte'],
+      recommendedProducts: [],
+      followUpSuggestions: []
+    };
+  }
+
+  // Métodos para processos em background
+  private async executeScheduledFollowUps() {
+    const followUps = followUpIntelligence.executeScheduledFollowUps();
+    
+    for (const followUp of followUps) {
+      // Em produção, enviaria notificação real
+      console.log(`📬 Follow-up executado: ${followUp.message} para usuário ${followUp.userId}`);
+    }
+  }
+
+  private async runProactiveAnalysis() {
+    // Analisar todos os usuários ativos para insights proativos
+    const activeUsers = memoryManager.getActiveUsers();
+    
+    for (const userId of activeUsers) {
+      const memory = memoryManager.getMemory(userId);
+      const insights = await proactiveIntelligence.generateInsights(userId, memory);
+      
+      if (insights.length > 0) {
+        console.log(`🧠 ${insights.length} insights gerados para usuário ${userId}`);
+      }
+    }
+  }
+
+  // Métodos de monitoramento
+  private setupPerformanceTracking() {
+    // Implementar tracking de performance
+    console.log('📈 Performance tracking ativado');
+  }
+
+  private setupMemoryAlerts() {
+    // Implementar alertas de memória
+    console.log('🚨 Memory alerts ativados');
+  }
+
+  // Métodos públicos para integração
+  public async getUserMemory(userId: string): Promise<ConversationMemory> {
+    return memoryManager.getMemory(userId);
+  }
+
+  public async clearUserMemory(userId: string): Promise<void> {
+    memoryManager.clearMemory(userId);
+  }
+
+  public async getAnalytics(userId?: string): Promise<any> {
+    // Retornar analytics do usuário ou globais
+    return {
+      totalUsers: memoryManager.getActiveUsers().length,
+      totalInteractions: 0, // Implementar contagem
+      averageResponseTime: 0, // Implementar cálculo
+      userSatisfaction: 0.85 // Implementar cálculo
+    };
+  }
+
+  public async exportUserData(userId: string): Promise<any> {
+    const memory = memoryManager.getMemory(userId);
+    return {
+      userId,
+      profile: memory.longTerm.userProfile,
+      preferences: memory.longTerm.preferences,
+      interactions: memory.shortTerm.lastInteractions.slice(0, 10), // Últimas 10
+      exportedAt: new Date()
+    };
+  }
+}
+
+// Instância singleton
+export const intelligentVendorV2 = new IntelligentVendorV2();
+export default intelligentVendorV2;
+📁 9. src/assistant/utils/helpers.ts
+typescript
+Copy
+import { ConversationMemory, UserProfile, BehaviorPattern } from '../types-v2';
+
+export class AssistantHelpers {
+  // Formatação de texto
+  static formatCurrency(value: number, currency: string = 'BRL'): string {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: currency
+    }).format(value);
+  }
+
+  static formatPercentage(value: number): string {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'percent',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1
+    }).format(value);
+  }
+
+  static formatDate(date: Date): string {
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  }
+
+  static formatRelativeTime(date: Date): string {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) {
+      return 'agora mesmo';
+    }
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) {
+      return `há ${diffInMinutes} minuto${diffInMinutes > 1 ? 's' : ''}`;
+    }
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) {
+      return `há ${diffInHours} hora${diffInHours > 1 ? 's' : ''}`;
+    }
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) {
+      return `há ${diffInDays} dia${diffInDays > 1 ? 's' : ''}`;
+    }
+
+    return this.formatDate(date);
+  }
+
+  // Análise de texto
+  static extractKeywords(text: string): string[] {
+    const stopWords = new Set([
+      'a', 'o', 'e', 'de', 'do', 'da', 'em', 'um', 'uma', 'para', 'com', 'por',
+      'que', 'se', 'na', 'no', 'ao', 'os', 'as', 'dos', 'das', 'pelo', 'pela',
+      'este', 'esta', 'esse', 'essa', 'aquele', 'aquela', 'seu', 'sua', 'meu',
+      'minha', 'nosso', 'nossa', 'dele', 'dela', 'deles', 'delas', 'me', 'te',
+      'lhe', 'nos', 'vos', 'lhes', 'mim', 'ti', 'si', 'nós', 'vós', 'eles',
+      'elas', 'eu', 'tu', 'ele', 'ela', 'nós', 'vós', 'eles', 'elas'
+    ]);
+
+    return text
+      .toLowerCase()
+      .replace(/[^\w\s]/g, ' ')
+      .split(/\s+/)
+      .filter(word => word.length > 2 && !stopWords.has(word))
+      .filter((word, index, arr) => arr.indexOf(word) === index) // Remove duplicatas
+      .slice(0, 10); // Máximo 10 keywords
+  }
+
+  static calculateTextSimilarity(text1: string, text2: string): number {
+    const keywords1 = new Set(this.extractKeywords(text1));
+    const keywords2 = new Set(this.extractKeywords(text2));
+
+    const intersection = new Set([...keywords1].filter(x => keywords2.has(x)));
+    const union = new Set([...keywords1, ...keywords2]);
+
+    return union.size > 0 ? intersection.size / union.size : 0;
+  }
+
+  static detectSentiment(text: string): 'positive' | 'negative' | 'neutral' {
+    const positiveWords = [
+      'bom', 'ótimo', 'excelente', 'perfeito', 'legal', 'bacana', 'incrível',
+      'fantástico', 'maravilhoso', 'adorei', 'amei', 'gostei', 'feliz', 'alegre'
+    ];
+
+    const negativeWords = [
+      'ruim', 'péssimo', 'horrível', 'terrível', 'odiei', 'detestei', 'chato',
+      'irritante', 'frustrado', 'raiva', 'triste', 'decepcionado', 'problema'
+    ];
+
+    const words = text.toLowerCase().split(/\s+/);
+    let positiveCount = 0;
+    let negativeCount = 0;
+
+    for (const word of words) {
+      if (positiveWords.includes(word)) positiveCount++;
+      if (negativeWords.includes(word)) negativeCount++;
+    }
+
+    if (positiveCount > negativeCount) return 'positive';
+    if (negativeCount > positiveCount) return 'negative';
+    return 'neutral';
+  }
+
+  // Análise de comportamento
+  static analyzeUserEngagement(memory: ConversationMemory): {
+    level: 'low' | 'medium' | 'high';
+    score: number;
+    factors: string[];
+  } {
+    const profile = memory.longTerm.userProfile;
+    const interactions = memory.shortTerm.lastInteractions;
+    
+    let score = 0;
+    const factors: string[] = [];
+
+    // Frequência de sessões
+    if (profile.engagement.totalSessions > 10) {
+      score += 30;
+      factors.push('Usuário frequente');
+    } else if (profile.engagement.totalSessions > 3) {
+      score += 15;
+      factors.push('Usuário regular');
+    }
+
+    // Duração média das sessões
+    if (profile.engagement.averageSessionDuration > 10 * 60) { // 10 minutos
+      score += 25;
+      factors.push('Sessões longas');
+    } else if (profile.engagement.averageSessionDuration > 5 * 60) { // 5 minutos
+      score += 15;
+      factors.push('Sessões médias');
+    }
+
+    // Interações recentes
+    const recentInteractions = interactions.filter(
+      i => (Date.now() - i.timestamp.getTime()) < 24 * 60 * 60 * 1000 // 24 horas
+    );
+
+    if (recentInteractions.length > 10) {
+      score += 20;
+      factors.push('Muito ativo recentemente');
+    } else if (recentInteractions.length > 5) {
+      score += 10;
+      factors.push('Ativo recentemente');
+    }
+
+    // Diversidade de interações
+    const interactionTypes = new Set(interactions.map(i => i.type));
+    if (interactionTypes.size > 3) {
+      score += 15;
+      factors.push('Interações diversificadas');
+    }
+
+    // Conversões
+    if (profile.engagement.totalPurchases > 0) {
+      score += 20;
+      factors.push('Já realizou compras');
+    }
+
+    let level: 'low' | 'medium' | 'high' = 'low';
+    if (score >= 70) level = 'high';
+    else if (score >= 40) level = 'medium';
+
+    return { level, score, factors };
+  }
+
+  static identifyBehaviorPatterns(interactions: any[]): BehaviorPattern[] {
+    const patterns: BehaviorPattern[] = [];
+
+    // Padrão: Busca repetitiva
+    const searchInteractions = interactions.filter(i => i.type === 'query');
+    if (searchInteractions.length > 3) {
+      const keywords = searchInteractions.map(i => this.extractKeywords(i.content)).flat();
+      const keywordCounts = keywords.reduce((acc, keyword) => {
+        acc[keyword] = (acc[keyword] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const repeatedKeywords = Object.entries(keywordCounts)
+        .filter(([_, count]) => count > 2)
+        .map(([keyword]) => keyword);
+
+      if (repeatedKeywords.length > 0) {
+        patterns.push({
+          pattern: 'repeated_search',
+          frequency: repeatedKeywords.length,
+          lastOccurrence: new Date(Math.max(...searchInteractions.map(i => i.timestamp.getTime()))),
+          confidence: Math.min(repeatedKeywords.length / 5, 1),
+          metadata: { keywords: repeatedKeywords }
+        });
+      }
+    }
+
+    // Padrão: Sensibilidade a preço
+    const priceInteractions = interactions.filter(i => 
+      i.content.toLowerCase().includes('preço') ||
+      i.content.toLowerCase().includes('barato') ||
+      i.content.toLowerCase().includes('caro') ||
+      i.content.toLowerCase().includes('desconto')
+    );
+
+    if (priceInteractions.length > 2) {
+      patterns.push({
+        pattern: 'price_sensitive',
+        frequency: priceInteractions.length,
+        lastOccurrence: new Date(Math.max(...priceInteractions.map(i => i.timestamp.getTime()))),
+        confidence: Math.min(priceInteractions.length / 5, 1),
+        metadata: { priceInteractions: priceInteractions.length }
+      });
+    }
+
+    // Padrão: Comparação de produtos
+    const comparisonInteractions = interactions.filter(i =>
+      i.content.toLowerCase().includes('comparar') ||
+      i.content.toLowerCase().includes('diferença') ||
+      i.content.toLowerCase().includes('melhor')
+    );
+
+    if (comparisonInteractions.length > 1) {
+      patterns.push({
+        pattern: 'comparison_shopper',
+        frequency: comparisonInteractions.length,
+        lastOccurrence: new Date(Math.max(...comparisonInteractions.map(i => i.timestamp.getTime()))),
+        confidence: Math.min(comparisonInteractions.length / 3, 1),
+        metadata: { comparisons: comparisonInteractions.length }
+      });
+    }
+
+    return patterns;
+  }
+
+  // Utilidades de dados
+  static deepClone<T>(obj: T): T {
+    if (obj === null || typeof obj !== 'object') return obj;
+    if (obj instanceof Date) return new Date(obj.getTime()) as any;
+    if (obj instanceof Array) return obj.map(item => this.deepClone(item)) as any;
+    if (typeof obj === 'object') {
+      const clonedObj = {} as any;
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          clonedObj[key] = this.deepClone(obj[key]);
+        }
+      }
+      return clonedObj;
+    }
+    return obj;
+  }
+
+  static generateId(prefix: string = ''): string {
+    const timestamp = Date.now().toString(36);
+    const randomStr = Math.random().toString(36).substring(2, 8);
+    return `${prefix}${prefix ? '_' : ''}${timestamp}_${randomStr}`;
+  }
+
+  static sanitizeInput(input: string): string {
+    return input
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<[^>]*>/g, '')
+      .trim()
+      .substring(0, 1000); // Limitar tamanho
+  }
+
+  static validateEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  static validatePhone(phone: string): boolean {
+    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+    return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
+  }
+
+  // Utilidades de cache
+  static createCache<T>(maxSize: number = 100) {
+    const cache = new Map<string, { value: T; timestamp: number }>();
+
+    return {
+      get(key: string, maxAge: number = 5 * 60 * 1000): T | null {
+        const item = cache.get(key);
+        if (!item) return null;
+
+        if (Date.now() - item.timestamp > maxAge) {
+          cache.delete(key);
+          return null;
+        }
+
+        return item.value;
+      },
+
+      set(key: string, value: T): void {
+        if (cache.size >= maxSize) {
+          const firstKey = cache.keys().next().value;
+          cache.delete(firstKey);
+        }
+
+        cache.set(key, {
+          value,
+          timestamp: Date.now()
+        });
+      },
+
+      clear(): void {
+        cache.clear();
+      },
+
+      size(): number {
+        return cache.size;
+      }
+    };
+  }
+
+  // Utilidades de performance
+  static debounce<T extends (...args: any[]) => any>(
+    func: T,
+    wait: number
+  ): (...args: Parameters<T>) => void {
+    let timeout: NodeJS.Timeout;
+
+    return (...args: Parameters<T>) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  }
+
+  static throttle<T extends (...args: any[]) => any>(
+    func: T,
+    limit: number
+  ): (...args: Parameters<T>) => void {
+    let inThrottle: boolean;
+
+    return (...args: Parameters<T>) => {
+      if (!inThrottle) {
+        func.apply(this, args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    };
+  }
+
+  static async retry<T>(
+    fn: () => Promise<T>,
+    maxAttempts: number = 3,
+    delay: number = 1000
+  ): Promise<T> {
+    let lastError: Error;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await fn();
+      } catch (error) {
+        lastError = error as Error;
+        
+        if (attempt === maxAttempts) {
+          throw lastError;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, delay * attempt));
+      }
+    }
+
+    throw lastError!;
+  }
+
+  // Utilidades de logging
+  static createLogger(context: string) {
+    return {
+      info: (message: string, data?: any) => {
+        console.log(`[${context}] ℹ️  ${message}`, data || '');
+      },
+      
+      warn: (message: string, data?: any) => {
+        console.warn(`[${context}] ⚠️  ${message}`, data || '');
+      },
+      
+      error: (message: string, error?: any) => {
+        console.error(`[${context}] ❌ ${message}`, error || '');
+      },
+      
+      debug: (message: string, data?: any) => {
+        if (process.env.NODE_ENV === 'development') {
+          console.debug(`[${context}] 🐛 ${message}`, data || '');
+        }
+      }
+    };
+  }
+
+  // Utilidades de validação
+  static isValidJSON(str: string): boolean {
+    try {
+      JSON.parse(str);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  static isEmpty(value: any): boolean {
+    if (value === null || value === undefined) return true;
+    if (typeof value === 'string') return value.trim().length === 0;
+    if (Array.isArray(value)) return value.length === 0;
+    if (typeof value === 'object') return Object.keys(value).length === 0;
+    return false;
+  }
+
+  static isValidUrl(url: string): boolean {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // Utilidades matemáticas
+  static calculateConfidence(
+    positiveSignals: number,
+    totalSignals: number,
+    baseConfidence: number = 0.5
+  ): number {
+    if (totalSignals === 0) return baseConfidence;
+    
+    const ratio = positiveSignals / totalSignals;
+    const confidence = baseConfidence + (ratio - 0.5) * 0.8;
+    
+    return Math.max(0, Math.min(1, confidence));
+  }
+
+  static weightedAverage(values: number[], weights: number[]): number {
+    if (values.length !== weights.length || values.length === 0) {
+      throw new Error('Arrays devem ter o mesmo tamanho e não estar vazios');
+    }
+
+    const weightedSum = values.reduce((sum, value, index) => sum + value * weights[index], 0);
+    const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+
+    return totalWeight > 0 ? weightedSum / totalWeight : 0;
+  }
+
+  static normalizeScore(score: number, min: number, max: number): number {
+    if (max === min) return 0;
+    return Math.max(0, Math.min(1, (score - min) / (max - min)));
+  }
+}
+
+export default AssistantHelpers;
+📁 10. src/assistant/index.ts
+typescript
+Copy
+// Arquivo principal de exportação do Vendedor Inteligente V2
+export { intelligentVendorV2 as default, IntelligentVendorV2 } from './core/intelligent-vendor-v2';
+
+// Exportar tipos principais
+export type {
+  ConversationMemory,
+  UserProfile,
+  EmotionalState,
+  ProactiveInsight,
+  FollowUpRule,
+  IntelligentVendorResponse,
+  InteractionRecord,
+  BehaviorPattern,
+  UserPreferences
+} from './types-v2';
+
+// Exportar componentes individuais
+export { memoryManager } from './core/memory';
+export { emotionalIntelligence } from './intelligence/emotional';
+export { proactiveIntelligence } from './intelligence/proactive';
+export { followUpIntelligence } from './intelligence/followup';
+export { optimizedPrompts } from './prompts/optimized';
+
+// Exportar configurações
+export { IntelligentVendorConfig, getConfig } from './config/intelligent-vendor';
+
+// Exportar utilitários
+export { AssistantHelpers } from './utils/helpers';
+
+// Exportar hooks React (se aplicável)
+export { useIntelligentVendor } from './hooks/useIntelligentVendor';
+
+// Constantes úteis
+export const VENDOR_VERSION = '2.0.0';
+export const VENDOR_NAME = 'Clique - Vendedor Inteligente';
+
+// Função de inicialização rápida
+export async function initializeIntelligentVendor(config?: Partial<typeof IntelligentVendorConfig>) {
+  const { intelligentVendorV2 } = await import('./core/intelligent-vendor-v2');
+  
+  if (config) {
+    // Aplicar configurações customizadas se fornecidas
+    Object.assign(IntelligentVendorConfig, config);
+  }
+  
+  return intelligentVendorV2;
+}
+
+// Função utilitária para processar mensagem rapidamente
+export async function processMessage(userId: string, message: string, context?: any) {
+  const { intelligentVendorV2 } = await import('./core/intelligent-vendor-v2');
+  return intelligentVendorV2.processMessage(userId, message, context);
+}
+
+// Função para obter analytics
+export async function getVendorAnalytics(userId?: string) {
+  const { intelligentVendorV2 } = await import('./core/intelligent-vendor-v2');
+  return intelligentVendorV2.getAnalytics(userId);
+}
+📁 11. src/assistant/hooks/useIntelligentVendor.ts
+typescript
+Copy
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { intelligentVendorV2 } from '../core/intelligent-vendor-v2';
+import type { IntelligentVendorResponse, ConversationMemory } from '../types-v2';
+
+interface UseIntelligentVendorOptions {
+  userId: string;
+  sessionId?: string;
+  autoInitialize?: boolean;
+  onResponse?: (response: IntelligentVendorResponse) => void;
+  onError?: (error: Error) => void;
+}
+
+interface UseIntelligentVendorReturn {
+  // Estado
+  isLoading: boolean;
+  isInitialized: boolean;
+  error: Error | null;
+  lastResponse: IntelligentVendorResponse | null;
+  conversationHistory: IntelligentVendorResponse[];
+  userMemory: ConversationMemory | null;
+
+  // Ações
+  sendMessage: (message: string, context?: any) => Promise<IntelligentVendorResponse | null>;
+  clearConversation: () => void;
+  refreshMemory: () => Promise<void>;
+  exportConversation: () => any;
+
+  // Utilitários
+  getAnalytics: () => Promise<any>;
+  isTyping: boolean;
+}
+
+export function useIntelligentVendor(options: UseIntelligentVendorOptions): UseIntelligentVendorReturn {
+  const {
+    userId,
+    sessionId = `session_${Date.now()}`,
+    autoInitialize = true,
+    onResponse,
+    onError
+  } = options;
+
+  // Estados
+  const [isLoading, setIsLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [lastResponse, setLastResponse] = useState<IntelligentVendorResponse | null>(null);
+  const [conversationHistory, setConversationHistory] = useState<IntelligentVendorResponse[]>([]);
+  const [userMemory, setUserMemory] = useState<ConversationMemory | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
+
+  // Refs
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Inicialização
+  useEffect(() => {
+    if (autoInitialize && userId) {
+      initialize();
+    }
+  }, [userId, autoInitialize]);
+
+  // Limpeza
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const initialize = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Carregar memória do usuário
+      const memory = await intelligentVendorV2.getUserMemory(userId);
+      setUserMemory(memory);
+
+      setIsInitialized(true);
+    } catch (err) {
+      const error = err as Error;
+      setError(error);
+      onError?.(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sendMessage = useCallback(async (
+    message: string,
+    context?: any
+  ): Promise<IntelligentVendorResponse | null> => {
+    if (!isInitialized || !userId) {
+      const error = new Error('Vendedor Inteligente não foi inicializado');
+      setError(error);
+      onError?.(error);
+      return null;
+    }
+
+    // Cancelar requisição anterior se existir
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    abortControllerRef.current = new AbortController();
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      setIsTyping(true);
+
+      // Simular delay de digitação
+      await new Promise(resolve => {
+        typingTimeoutRef.current = setTimeout(resolve, 1000 + Math.random() * 1000);
+      });
+
+      const response = await intelligentVendorV2.processMessage(userId, message, {
+        sessionId,
+        ...context
+      });
+
+      setLastResponse(response);
+      setConversationHistory(prev => [...prev, response]);
+
+      // Atualizar memória
+      const updatedMemory = await intelligentVendorV2.getUserMemory(userId);
+      setUserMemory(updatedMemory);
+
+      onResponse?.(response);
+      return response;
+
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        return null; // Requisição cancelada
+      }
+
+      const error = err as Error;
+      setError(error);
+      onError?.(error);
+      return null;
+
+    } finally {
+      setIsLoading(false);
+      setIsTyping(false);
+      abortControllerRef.current = null;
+    }
+  }, [userId, sessionId, isInitialized, onResponse, onError]);
+
+  const clearConversation = useCallback(() => {
+    setConversationHistory([]);
+    setLastResponse(null);
+    setError(null);
+    
+    // Limpar memória do usuário
+    intelligentVendorV2.clearUserMemory(userId).then(() => {
+      refreshMemory();
+    });
+  }, [userId]);
+
+  const refreshMemory = useCallback(async () => {
+    try {
+      const memory = await intelligentVendorV2.getUserMemory(userId);
+      setUserMemory(memory);
+    } catch (err) {
+      console.error('Erro ao atualizar memória:', err);
+    }
+  }, [userId]);
+
+  const exportConversation = useCallback(() => {
+    return {
+      userId,
+      sessionId,
+      conversationHistory,
+      userMemory,
+      exportedAt: new Date().toISOString(),
+      totalMessages: conversationHistory.length
+    };
+  }, [userId, sessionId, conversationHistory, userMemory]);
+
+  const getAnalytics = useCallback(async () => {
+    try {
+      return await intelligentVendorV2.getAnalytics(userId);
+    } catch (err) {
+      console.error('Erro ao obter analytics:', err);
+      return null;
+    }
+  }, [userId]);
+
+  return {
+    // Estado
+    isLoading,
+    isInitialized,
+    error,
+    lastResponse,
+    conversationHistory,
+    userMemory,
+    isTyping,
+
+    // Ações
+    sendMessage,
+    clearConversation,
+    refreshMemory,
+    exportConversation,
+    getAnalytics
+  };
+}
+
+// Hook para múltiplos usuários (admin/dashboard)
+export function useIntelligentVendorAdmin() {
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadGlobalAnalytics = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await intelligentVendorV2.getAnalytics();
+      setAnalytics(data);
+    } catch (err) {
+      console.error('Erro ao carregar analytics globais:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const exportUserData = useCallback(async (userId: string) => {
+    try {
+      return await intelligentVendorV2.exportUserData(userId);
+    } catch (err) {
+      console.error('Erro ao exportar dados do usuário:', err);
+      return null;
+    }
+  }, []);
+
+  useEffect(() => {
+    loadGlobalAnalytics();
+  }, [loadGlobalAnalytics]);
+
+  return {
+    analytics,
+    isLoading,
+    loadGlobalAnalytics,
+    exportUserData
+  };
+}
+
+// Hook para configurações
+export function useIntelligentVendorConfig() {
+  const [config, setConfig] = useState(null);
+
+  const updateConfig = useCallback((newConfig: any) => {
+    // Em produção, salvaria no backend
+    setConfig(newConfig);
+  }, []);
+
+  return {
+    config,
+    updateConfig
+  };
+}
+
+export default useIntelligentVendor;
