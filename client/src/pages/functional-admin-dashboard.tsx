@@ -51,14 +51,19 @@ export default function FunctionalAdminDashboard() {
 
   const { data: store, isLoading: storeLoading } = useQuery<StoreType>({
     queryKey: ["/api/stores/me"],
-    staleTime: 2 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutos para reduzir requisições
+    refetchInterval: false, // Desabilitar polling automático
+    refetchOnWindowFocus: false, // Não refazer query ao focar janela
+    enabled: isAuthenticated && !isLoading, // Só executar quando autenticado
     retry: false,
   });
 
   const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ["/api/stores", store?.id, "products"],
-    enabled: !!store?.id,
-    staleTime: 30 * 1000,
+    enabled: !!store?.id && isAuthenticated,
+    staleTime: 5 * 60 * 1000, // 5 minutos 
+    refetchInterval: false, // Desabilitar polling automático
+    refetchOnWindowFocus: false, // Não refazer query ao focar janela
     retry: false,
   });
 
@@ -68,8 +73,10 @@ export default function FunctionalAdminDashboard() {
     source: string;
   }>({
     queryKey: ['/api/currency/usd-brl'],
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: 10 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutos
+    refetchInterval: false, // Desabilitar polling automático
+    refetchOnWindowFocus: false, // Não refazer query ao focar janela
+    enabled: isAuthenticated, // Só executar quando autenticado
   });
 
   const formatCurrency = (value: number) => {
