@@ -76,7 +76,7 @@ const isSuperAdmin = async (req: any, res: any, next: any) => {
 };
 import { getCurrentExchangeRate, convertUsdToBrl, formatBRL, formatUSD, clearExchangeRateCache } from "./exchange-rate";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema, insertBudgetConfigSchema, insertTotemContentSchema, updateTotemContentSchema, insertTotemSettingsSchema, updateTotemSettingsSchema, insertCategorySchema, updateCategorySchema, insertProductBankSchema, updateProductBankSchema, insertProductBankItemSchema, updateProductBankItemSchema, insertAssistantSessionSchema, insertAssistantMessageSchema, insertUserAssistantPreferencesSchema } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema, insertBudgetConfigSchema, insertTotemContentSchema, updateTotemContentSchema, insertTotemSettingsSchema, updateTotemSettingsSchema, insertCategorySchema, updateCategorySchema, insertProductBankSchema, updateProductBankSchema, insertProductBankItemSchema, updateProductBankItemSchema, insertAssistantSessionSchema, insertAssistantMessageSchema, insertUserAssistantPreferencesSchema, createWifiPaymentRequestSchema, WIFI_PLANS } from "@shared/schema";
 import { z } from "zod";
 import sharp from "sharp";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
@@ -8494,18 +8494,23 @@ Regras:
       throw new Error("Configurações MikroTik não encontradas");
     }
 
-    const { mikrotikHost, mikrotikUsername, mikrotikPassword, hotspotProfile, sessionTimeout } = settings;
+    const { mikrotikHost, mikrotikUsername, mikrotikPassword, hotspotProfile } = settings;
     
     if (!mikrotikHost || !mikrotikUsername || !mikrotikPassword) {
       throw new Error("Configurações MikroTik incompletas");
     }
 
+    // Set session timeout based on plan using centralized config
+    const planConfig = WIFI_PLANS[paymentData.plan as keyof typeof WIFI_PLANS] || WIFI_PLANS.daily;
+    const sessionTimeout = planConfig.sessionTimeout;
+    const planLabel = planConfig.name;
+
     const userData = {
       name: voucherCode,
       password: voucherCode.slice(-8), // Últimos 8 caracteres como senha
       profile: hotspotProfile || "default",
-      "limit-uptime": sessionTimeout || "24:00:00",
-      comment: `Wi-Fi 24h - ${paymentData.customerEmail || 'Cliente'} - ${new Date().toLocaleDateString()}`
+      "limit-uptime": sessionTimeout,
+      comment: `Wi-Fi ${planLabel} - ${paymentData.customerEmail || 'Cliente'} - ${new Date().toLocaleDateString()}`
     };
 
     try {
@@ -8559,20 +8564,36 @@ Regras:
   // Wi-Fi 24h Payment APIs
   app.post("/api/wifi-payments/create", async (req, res) => {
     try {
-      const { customerName, customerEmail, customerPhone, storeId, amount = 5.00 } = req.body;
+      // Validate request body with Zod
+      const validationResult = createWifiPaymentRequestSchema.safeParse(req.body);
       
-      if (!customerEmail) {
-        return res.status(400).json({ error: "Email é obrigatório" });
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Dados inválidos", 
+          details: validationResult.error.format() 
+        });
       }
+
+      const { customerName, customerEmail, customerPhone, storeId, plan, country } = validationResult.data;
+      
+      // Calculate amount based on plan (server-side security)
+      const planConfig = WIFI_PLANS[plan];
+      if (!planConfig) {
+        return res.status(400).json({ error: "Plano não encontrado" });
+      }
+      
+      const amount = planConfig.price;
 
       // Generate unique voucher code
       const voucherCode = `WIFI${Date.now()}${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 
       // Create MercadoPago preference
+      const productTitle = `${planConfig.name} - Internet Paraguai`;
+      
       const preferenceData = {
         items: [
           {
-            title: "Wi-Fi 24h - Internet Paraguai",
+            title: productTitle,
             quantity: 1,
             unit_price: amount,
             currency_id: "BRL"
@@ -8609,6 +8630,8 @@ Regras:
         preferenceId: preferenceResponse.id,
         amount: amount.toString(),
         currency: "BRL",
+        plan,
+        country,
         customerEmail,
         customerPhone: customerPhone || null,
         customerName: customerName || null,

@@ -51,6 +51,40 @@ export type Intent =
   | "WHOAMI"
   | "UNKNOWN";
 
+// ============= WI-FI PLANS CONFIGURATION =============
+
+export const WIFI_PLANS = {
+  daily: {
+    id: 'daily',
+    name: 'Wi-Fi 24 horas',
+    description: 'Acesso Wi-Fi por 24 horas',
+    duration: '24 horas',
+    durationHours: 24,
+    price: 5.00,
+    sessionTimeout: '24:00:00'
+  },
+  monthly: {
+    id: 'monthly',
+    name: 'Wi-Fi 30 dias',
+    description: 'Acesso Wi-Fi por 30 dias',
+    duration: '30 dias',
+    durationHours: 720, // 30 days = 720 hours
+    price: 9.90,
+    sessionTimeout: '720:00:00'
+  }
+} as const;
+
+export type WifiPlanId = keyof typeof WIFI_PLANS;
+export const WIFI_PLAN_IDS = Object.keys(WIFI_PLANS) as WifiPlanId[];
+
+export const WIFI_COUNTRIES = {
+  brazil: 'Brazil',
+  paraguay: 'Paraguay'
+} as const;
+
+export type WifiCountryId = keyof typeof WIFI_COUNTRIES;
+export const WIFI_COUNTRY_IDS = Object.keys(WIFI_COUNTRIES) as WifiCountryId[];
+
 // ============= END IA VENDEDOR TYPES =============
 
 // Session storage table for Replit Auth
@@ -474,6 +508,8 @@ export const wifiPayments = pgTable("wifi_payments", {
   preferenceId: varchar("preference_id"), // ID da preferência no Mercado Pago
   amount: decimal("amount", { precision: 10, scale: 2 }).default("5.00"), // R$ 5,00
   currency: varchar("currency", { length: 3 }).default("BRL"),
+  plan: varchar("plan").default("daily"), // "daily" (24h) or "monthly" (30 days)
+  country: varchar("country").default("brazil"), // "brazil" or "paraguay"
   paymentMethod: varchar("payment_method"), // "pix", "credit_card", "debit_card"
   status: varchar("status").default("pending"), // "pending", "approved", "rejected", "cancelled"
   customerEmail: varchar("customer_email"),
@@ -2181,6 +2217,20 @@ export const insertWifiPaymentSchema = createInsertSchema(wifiPayments).omit({
 });
 
 export const updateWifiPaymentSchema = insertWifiPaymentSchema.partial();
+
+// Wi-Fi Payment Creation Schema with validation
+export const createWifiPaymentRequestSchema = z.object({
+  customerName: z.string().optional().nullable(),
+  customerEmail: z.string().email("Email inválido"),
+  customerPhone: z.string().optional().nullable(),
+  storeId: z.string().optional().nullable(),
+  plan: z.enum(WIFI_PLAN_IDS, { 
+    errorMap: () => ({ message: "Plano inválido" })
+  }).default('daily'),
+  country: z.enum(WIFI_COUNTRY_IDS, {
+    errorMap: () => ({ message: "País inválido" })
+  }).default('brazil')
+});
 
 export const insertWifiSettingsSchema = createInsertSchema(wifiSettings).omit({
   id: true,
