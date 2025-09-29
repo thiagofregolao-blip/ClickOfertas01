@@ -10,12 +10,12 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import AdminStoreConfig from "@/pages/admin-store-config";
 import AdminProducts from "@/pages/admin-products";
 import AdminPromotions from "@/pages/admin-promotions";
-import AdminPremiumStores from "@/pages/admin-premium-stores";
+// Removed AdminPremiumStores - now integrated into SuperAdmin tabs
 import AdminTotem from "@/pages/admin-totem";
 import AdminStories from "@/pages/admin-stories";
 import Analytics from "@/pages/analytics";
 import AdminAnalytics from "@/pages/admin-analytics";
-import AdminWiFi from "@/pages/admin-wifi";
+// Removed AdminWiFi - now integrated into SuperAdmin tabs
 import TotemDisplay from "@/pages/totem-display";
 import PublicFlyer from "@/pages/public-flyer";
 import StoresGallery from "@/pages/stores-gallery";
@@ -183,12 +183,20 @@ function Router() {
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/config" component={AdminStoreConfig} />
           <Route path="/admin/products" component={AdminProducts} />
-          <Route path="/admin/premium-stores" component={AdminPremiumStores} />
+          <Route path="/admin/premium-stores" component={() => {
+            // Redirect to admin-panel with premium-stores tab
+            window.location.replace('/admin-panel?tab=premium-stores');
+            return null;
+          }} />
           <Route path="/admin/promotions" component={AdminPromotions} />
           <Route path="/admin/totem" component={AdminTotem} />
           <Route path="/admin/stories" component={AdminStories} />
           <Route path="/admin/analytics" component={AdminAnalytics} />
-          <Route path="/admin/wifi" component={AdminWiFi} />
+          <Route path="/admin/wifi" component={() => {
+            // Redirect to admin-panel with wifi tab
+            window.location.replace('/admin-panel?tab=wifi');
+            return null;
+          }} />
           <Route path="/test-inline-assistant" component={TestInlineAssistant} />
           <Route path="/super-admin" component={SuperAdminLogin} />
           <Route path="/super-admin-login" component={SuperAdminLogin} />
