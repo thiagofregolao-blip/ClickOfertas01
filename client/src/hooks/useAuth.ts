@@ -8,8 +8,9 @@ type UserWithStoreInfo = User & {
 export function useAuth() {
   const { data: user, isLoading } = useQuery<UserWithStoreInfo>({
     queryKey: ["/api/auth/user"],
-    staleTime: 0, // Sem cache para forçar nova consulta
-    refetchOnWindowFocus: true, // Importante para auth
+    staleTime: 2 * 60 * 1000, // 2 minutos de cache para evitar requisições frequentes
+    refetchOnWindowFocus: false, // Não refazer a cada focus
+    refetchInterval: false, // Sem polling automático
     // Usa as configurações globais que retornam null em 401
   });
 

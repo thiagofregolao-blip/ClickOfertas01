@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Box, Eye, DollarSign, Camera, Settings, Users, Store, Image, 
-  BarChart3, Package, Gift, Monitor, Database, Brain
+  BarChart3, Package, Gift, Monitor, Database, Brain, Plus
 } from "lucide-react";
 import type { Store as StoreType, Product } from "@shared/schema";
 
@@ -162,7 +162,7 @@ export default function FunctionalAdminDashboard() {
               <div>
                 <p className="text-sm text-orange-600 font-medium">Status da Loja</p>
                 <p className="text-lg font-bold text-orange-700">
-                  {store?.status === 'active' ? '🟢 Ativa' : '🔴 Inativa'}
+                  {store?.isActive ? '🟢 Ativa' : '🔴 Inativa'}
                 </p>
               </div>
               <Store className="text-orange-500 text-3xl" />

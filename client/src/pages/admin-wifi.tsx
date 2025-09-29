@@ -67,7 +67,9 @@ export default function AdminWiFi() {
       const response = await fetch('/api/wifi-settings');
       if (!response.ok) throw new Error('Failed to fetch settings');
       return await response.json();
-    }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    refetchInterval: false, // Não fazer polling automatico
   });
 
   // Buscar pagamentos
@@ -77,7 +79,10 @@ export default function AdminWiFi() {
       const response = await fetch('/api/wifi-payments');
       if (!response.ok) throw new Error('Failed to fetch payments');
       return await response.json();
-    }
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutos
+    refetchInterval: false, // Não fazer polling automatico
+    enabled: activeTab === 'payments', // Só carregar quando na aba de pagamentos
   });
 
   // Buscar analytics
@@ -87,7 +92,10 @@ export default function AdminWiFi() {
       const response = await fetch('/api/wifi-analytics');
       if (!response.ok) throw new Error('Failed to fetch analytics');
       return await response.json();
-    }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    refetchInterval: false, // Não fazer polling automatico  
+    enabled: activeTab === 'analytics', // Só carregar quando na aba de analytics
   });
 
   // Mutation para salvar configurações
