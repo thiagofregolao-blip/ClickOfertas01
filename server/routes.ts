@@ -8851,16 +8851,21 @@ Regras:
     }
   });
 
-  // Update Wi-Fi plan
-  app.put("/api/wifi-plans/:id", isSuperAdmin, async (req, res) => {
+  // Update Wi-Fi plan (PUT and PATCH)
+  const updateWifiPlanHandler = async (req: any, res: any) => {
     try {
+      console.log("📝 Atualizando plano Wi-Fi:", req.params.id, "com dados:", req.body);
       const plan = await storage.updateWifiPlan(req.params.id, req.body);
+      console.log("✅ Plano atualizado:", plan);
       res.json(plan);
     } catch (error) {
       console.error("Erro ao atualizar plano Wi-Fi:", error);
       res.status(500).json({ error: "Erro interno do servidor" });
     }
-  });
+  };
+  
+  app.put("/api/wifi-plans/:id", isSuperAdmin, updateWifiPlanHandler);
+  app.patch("/api/wifi-plans/:id", isSuperAdmin, updateWifiPlanHandler);
 
   // Delete Wi-Fi plan
   app.delete("/api/wifi-plans/:id", isSuperAdmin, async (req, res) => {
