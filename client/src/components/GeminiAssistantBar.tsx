@@ -323,6 +323,7 @@ export default function GeminiAssistantBar() {
       const decoder = new TextDecoder();
       let buffer = '';
       let currentEventType = 'message'; // Track current SSE event type
+      let pendingEventType: string | null = null; // Store event type for next data line
       
       while (true) {
         // Verificar se esta requisição ainda é a mais recente
@@ -344,60 +345,89 @@ export default function GeminiAssistantBar() {
         buffer = lines.pop() || '';
         
         for (const line of lines) {
+          // 🔍 CORREÇÃO CRÍTICA: Capturar tipo de evento e guardar para próxima linha de data
           if (line.startsWith('event: ')) {
-            currentEventType = line.slice(7).trim();
-            console.log('📡 [V2] Tipo de evento:', currentEventType);
+            pendingEventType = line.slice(7).trim();
+            console.log('📡 [V2] 🎯 Evento SSE detectado:', pendingEventType);
             continue;
           }
           
           if (line.startsWith('data: ')) {
             const eventData = line.slice(6);
-            if (eventData === '[DONE]') continue;
+            if (eventData === '[DONE]') {
+              pendingEventType = null;
+              continue;
+            }
+            
+            // 🔍 CORREÇÃO: Usar pendingEventType se disponível, senão usar currentEventType
+            const activeEventType = pendingEventType || currentEventType;
+            console.log(`📨 [V2] SSE data recebido para evento "${activeEventType}":`, eventData.substring(0, 100));
             
             try {
               const data = JSON.parse(eventData);
-              console.log(`📨 [V2] SSE ${currentEventType} >`, data);
+              console.log(`📦 [V2] SSE ${activeEventType} parsed >`, data);
               
               // Verificar se ainda é a requisição ativa
               if (latestRequestIdRef.current !== requestId) {
                 console.log('🚫 [V2] Evento SSE ignorado - requisição obsoleta');
+                pendingEventType = null;
                 continue;
               }
               
-              // Processar evento PRODUCTS (enviado via event: products)
-              if (currentEventType === 'products' && data.products && data.products.length > 0) {
-                console.log('🛍️ [V2] Produtos recebidos via evento nomeado:', data.products.length);
-                haveProductsInThisRequestRef.current = true;
-                
-                const products = data.products;
-                if (products.length <= 6) {
-                  setTopBox([]);
-                  setFeed(products);
-                } else {
-                  setTopBox(products.slice(0, 3));
-                  setFeed(products.slice(3));
-                }
-                setCombina([]);
-                currentEventType = 'message'; // Reset
-                continue;
-              }
-              
-              // Processar evento EMOTION
-              if (currentEventType === 'emotion' && data.emotion) {
-                console.log('😊 [V2] Emoção via evento nomeado:', data.emotion);
-                setCurrentEmotion({
-                  sentiment: data.emotion,
-                  intensity: data.intensity || 0.5
+              // 🛍️ CORREÇÃO CRÍTICA: Processar evento PRODUCTS com logs detalhados
+              if (activeEventType === 'products') {
+                console.log('🛍️ [V2] ✅ Processando evento PRODUCTS:', {
+                  hasProducts: !!data.products,
+                  isArray: Array.isArray(data.products),
+                  length: data.products?.length,
+                  firstProduct: data.products?.[0]?.name || data.products?.[0]?.title
                 });
-                currentEventType = 'message';
+                
+                if (data.products && Array.isArray(data.products) && data.products.length > 0) {
+                  console.log('🛍️ [V2] ✅✅ PRODUTOS RECEBIDOS via evento nomeado:', data.products.length);
+                  console.log('🛍️ [V2] Lista de produtos:', data.products.map((p: any) => p.name || p.title));
+                  haveProductsInThisRequestRef.current = true;
+                  
+                  const products = data.products;
+                  if (products.length <= 6) {
+                    setTopBox([]);
+                    setFeed(products);
+                    console.log('🛍️ [V2] Produtos definidos no FEED:', products.length);
+                  } else {
+                    setTopBox(products.slice(0, 3));
+                    setFeed(products.slice(3));
+                    console.log('🛍️ [V2] Produtos divididos - TopBox:', 3, 'Feed:', products.length - 3);
+                  }
+                  setCombina([]);
+                } else {
+                  console.warn('⚠️ [V2] Evento products recebido mas sem produtos válidos:', data);
+                }
+                
+                // Limpar pending event type após processar
+                pendingEventType = null;
                 continue;
               }
               
-              // Processar evento INSIGHTS
-              if (currentEventType === 'insights' && data.insights) {
-                console.log('💡 [V2] Insights via evento nomeado:', data.insights);
-                setCurrentInsights(data.insights);
-                currentEventType = 'message';
+              // 😊 Processar evento EMOTION
+              if (activeEventType === 'emotion') {
+                console.log('😊 [V2] Emoção via evento nomeado:', data.emotion || data);
+                if (data.emotion) {
+                  setCurrentEmotion({
+                    sentiment: data.emotion,
+                    intensity: data.intensity || 0.5
+                  });
+                }
+                pendingEventType = null;
+                continue;
+              }
+              
+              // 💡 Processar evento INSIGHTS
+              if (activeEventType === 'insights') {
+                console.log('💡 [V2] Insights via evento nomeado:', data.insights || data);
+                if (data.insights) {
+                  setCurrentInsights(data.insights);
+                }
+                pendingEventType = null;
                 continue;
               }
               
@@ -437,9 +467,9 @@ export default function GeminiAssistantBar() {
                 setStreaming(prev => prev + data.text);
               }
               
-              // Fallback: produtos inline via data.products
-              if (data.products && data.products.length > 0 && currentEventType !== 'products') {
-                console.log('📦 [V2] Produtos recebidos (fallback inline):', data.products.length);
+              // 📦 Fallback: produtos inline via data.products (quando não vem via evento nomeado)
+              if (data.products && Array.isArray(data.products) && data.products.length > 0 && activeEventType !== 'products') {
+                console.log('📦 [V2] Produtos recebidos (fallback inline - sem evento nomeado):', data.products.length);
                 haveProductsInThisRequestRef.current = true;
                 
                 const products = data.products;
@@ -453,13 +483,11 @@ export default function GeminiAssistantBar() {
                 setCombina([]);
               }
             } catch (e) {
-              console.warn('[V2] Erro ao parsear evento SSE:', e);
+              console.warn('[V2] Erro ao parsear evento SSE:', e, 'Data:', eventData);
             }
             
-            // Reset event type after processing data
-            if (currentEventType !== 'message') {
-              currentEventType = 'message';
-            }
+            // Limpar pending event type após processar data
+            pendingEventType = null;
           }
         }
       }
