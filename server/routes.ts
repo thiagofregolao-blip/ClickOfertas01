@@ -7822,17 +7822,23 @@ Regras:
           const productsStr = chunk.replace('\n\n__PRODUCTS__', '');
           try {
             const productsData = JSON.parse(productsStr);
+            console.log(`🔍 [V2] DEBUG - Produtos parseados:`, productsData);
             if (productsData?.products && Array.isArray(productsData.products) && productsData.products.length > 0) {
-              console.log(`🛍️ [V2] Sending ${productsData.products.length} products via SSE`);
-              send('products', { 
+              console.log(`🛍️ [V2] ✅ Enviando ${productsData.products.length} produtos via SSE`);
+              console.log(`🛍️ [V2] Produtos:`, productsData.products.map((p: any) => p.name));
+              const payload = { 
                 products: productsData.products,
                 query: message,
                 provider: 'intelligent-vendor-v2',
                 timestamp: new Date().toISOString()
-              });
+              };
+              console.log(`📡 [V2] Payload SSE:`, JSON.stringify(payload).substring(0, 200));
+              send('products', payload);
+            } else {
+              console.log(`⚠️ [V2] Produtos inválidos ou vazios:`, productsData);
             }
           } catch (e) {
-            console.error('Error parsing products:', e);
+            console.error('❌ [V2] Error parsing products:', e);
           }
         } else if (chunk.startsWith('\n\n__METADATA__')) {
           const metadataStr = chunk.replace('\n\n__METADATA__', '');

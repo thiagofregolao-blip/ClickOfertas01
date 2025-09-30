@@ -58,6 +58,7 @@ export class VendorAPI {
     let fullResponse = '';
     let products: any[] = [];
     let metadata: any = {};
+    let receivedProducts = false;
 
     try {
       while (true) {
@@ -70,6 +71,7 @@ export class VendorAPI {
         for (const line of lines) {
           if (line.startsWith('event: ')) {
             const eventType = line.slice(7).trim();
+            console.log(`📡 [V2] SSE Event Type: ${eventType}`);
             continue;
           }
           
@@ -77,15 +79,19 @@ export class VendorAPI {
             try {
               const data = JSON.parse(line.slice(6));
               
-              // Processar diferentes tipos de eventos SSE
-              if (line.includes('"products"')) {
-                console.log(`🛍️ [V2] Produtos recebidos via SSE:`, data.products);
-                products = data.products || [];
-              } else if (line.includes('"text"')) {
-                fullResponse += data.text || '';
-              } else if (line.includes('"emotion"')) {
+              console.log(`📦 [V2] SSE Data recebido:`, data);
+              
+              // CORREÇÃO CRÍTICA: Processar evento 'products' corretamente
+              if (data.products && Array.isArray(data.products)) {
+                console.log(`🛍️ [V2] ✅ ${data.products.length} produtos recebidos via SSE`);
+                console.log(`🛍️ [V2] Produtos:`, data.products.map((p: any) => p.name || p.title));
+                receivedProducts = true;
+                products = data.products;
+              } else if (data.text) {
+                fullResponse += data.text;
+              } else if (data.emotion) {
                 metadata.emotion = data;
-              } else if (line.includes('"insights"')) {
+              } else if (data.insights) {
                 metadata.insights = data.insights;
               }
             } catch (e) {
@@ -102,7 +108,13 @@ export class VendorAPI {
       reader.releaseLock();
     }
 
-    console.log(`✅ [V2] SSE processado - Resposta: ${fullResponse.length} chars, Produtos: ${products.length}`);
+    console.log(`✅ [V2] SSE processado:`);
+    console.log(`   📝 Resposta: ${fullResponse.length} chars`);
+    console.log(`   🛍️ Produtos: ${products.length}`);
+    console.log(`   ✅ Produtos recebidos: ${receivedProducts}`);
+    if (products.length > 0) {
+      console.log(`   📦 Produtos:`, products.map(p => p.name || p.title));
+    }
 
     return {
       content: fullResponse,

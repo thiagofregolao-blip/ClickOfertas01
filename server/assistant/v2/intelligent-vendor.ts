@@ -48,6 +48,7 @@ export class IntelligentVendor {
   private async searchProducts(message: string, limit: number = 10): Promise<any[]> {
     try {
       const searchTerm = message.trim().toLowerCase();
+      console.log(`🔍 [V2] Iniciando busca de produtos para: "${searchTerm}"`);
       
       // Buscar produtos que correspondem ao termo de busca
       const searchResults = await db
@@ -85,7 +86,10 @@ export class IntelligentVendor {
         )
         .limit(limit);
 
-      console.log(`🔍 [V2] Found ${searchResults.length} products for "${searchTerm}"`);
+      console.log(`🔍 [V2] ✅ Encontrados ${searchResults.length} produtos para "${searchTerm}"`);
+      if (searchResults.length > 0) {
+        console.log(`🔍 [V2] Produtos encontrados:`, searchResults.map(p => `${p.name} ($${p.price})`));
+      }
       return searchResults;
     } catch (error) {
       console.error('❌ [V2] Error searching products:', error);
@@ -118,7 +122,12 @@ export class IntelligentVendor {
     const searchIntents = ['search', 'purchase_intent', 'price_inquiry', 'comparison'];
     const hasSearchIntent = searchIntents.includes(intent);
 
-    return hasSearchKeyword || hasSearchIntent;
+    const shouldSearch = hasSearchKeyword || hasSearchIntent;
+    console.log(`🔍 [V2] shouldSearchProducts("${message}", "${intent}") = ${shouldSearch}`);
+    console.log(`   - hasSearchKeyword: ${hasSearchKeyword}`);
+    console.log(`   - hasSearchIntent: ${hasSearchIntent}`);
+
+    return shouldSearch;
   }
 
   async processMessage(userId: string, message: string, storeId?: number): Promise<IntelligentVendorResponse> {
