@@ -8539,9 +8539,21 @@ Regras:
     app.use("/api/ia-vendedor", assistantRouter);  // alias for compatibility
     app.use("/api/admin", adminRouter);
     
-    console.log("✅ IA Vendedor integrado com sucesso (Fases 1-6)");
+    console.log("✅ IA Vendedor V1 integrado com sucesso (Fases 1-6)");
   } catch (error) {
-    console.error("❌ Erro integrando IA Vendedor:", error);
+    console.error("❌ Erro integrando IA Vendedor V1:", error);
+  }
+
+  // IA Vendedor V2: Integração das rotas V2 com inteligência emocional e memória
+  try {
+    const assistantRoutesV2 = await import("../src/assistant/assistantRoutes-v2.js");
+    
+    // Mount V2 routes
+    app.use("/api/assistant", assistantRoutesV2.default);
+    
+    console.log("✅ IA Vendedor V2 integrado com sucesso (Vendedor Inteligente Aprimorado)");
+  } catch (error) {
+    console.error("❌ Erro integrando IA Vendedor V2:", error);
   }
 
   // Endpoint de teste para IA Vendedor (mantido para compatibilidade)
