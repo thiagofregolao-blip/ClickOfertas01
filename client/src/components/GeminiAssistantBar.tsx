@@ -322,6 +322,7 @@ export default function GeminiAssistantBar() {
       readerRef.current = reader;
       const decoder = new TextDecoder();
       let buffer = '';
+      let currentEventType = 'message'; // Track current SSE event type
       
       while (true) {
         // Verificar se esta requisição ainda é a mais recente
@@ -343,13 +344,19 @@ export default function GeminiAssistantBar() {
         buffer = lines.pop() || '';
         
         for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            currentEventType = line.slice(7).trim();
+            console.log('📡 [V2] Tipo de evento:', currentEventType);
+            continue;
+          }
+          
           if (line.startsWith('data: ')) {
             const eventData = line.slice(6);
             if (eventData === '[DONE]') continue;
             
             try {
               const data = JSON.parse(eventData);
-              console.log('📨 [V2] SSE evento >', data);
+              console.log(`📨 [V2] SSE ${currentEventType} >`, data);
               
               // Verificar se ainda é a requisição ativa
               if (latestRequestIdRef.current !== requestId) {
@@ -357,15 +364,52 @@ export default function GeminiAssistantBar() {
                 continue;
               }
               
-              // Processar diferentes tipos de eventos V2
+              // Processar evento PRODUCTS (enviado via event: products)
+              if (currentEventType === 'products' && data.products && data.products.length > 0) {
+                console.log('🛍️ [V2] Produtos recebidos via evento nomeado:', data.products.length);
+                haveProductsInThisRequestRef.current = true;
+                
+                const products = data.products;
+                if (products.length <= 6) {
+                  setTopBox([]);
+                  setFeed(products);
+                } else {
+                  setTopBox(products.slice(0, 3));
+                  setFeed(products.slice(3));
+                }
+                setCombina([]);
+                currentEventType = 'message'; // Reset
+                continue;
+              }
+              
+              // Processar evento EMOTION
+              if (currentEventType === 'emotion' && data.emotion) {
+                console.log('😊 [V2] Emoção via evento nomeado:', data.emotion);
+                setCurrentEmotion({
+                  sentiment: data.emotion,
+                  intensity: data.intensity || 0.5
+                });
+                currentEventType = 'message';
+                continue;
+              }
+              
+              // Processar evento INSIGHTS
+              if (currentEventType === 'insights' && data.insights) {
+                console.log('💡 [V2] Insights via evento nomeado:', data.insights);
+                setCurrentInsights(data.insights);
+                currentEventType = 'message';
+                continue;
+              }
+              
+              // Processar diferentes tipos de eventos V2 inline (type field)
               if (data.type === 'delta' && data.text) {
                 accumulatedMessage += data.text;
                 setStreaming(prev => prev + data.text);
               } else if (data.type === 'emotion' && data.emotion) {
-                console.log('😊 [V2] Emoção detectada:', data.emotion);
+                console.log('😊 [V2] Emoção detectada (inline):', data.emotion);
                 setCurrentEmotion(data.emotion);
               } else if (data.type === 'insights' && data.insights) {
-                console.log('💡 [V2] Insights recebidos:', data.insights);
+                console.log('💡 [V2] Insights recebidos (inline):', data.insights);
                 setCurrentInsights(data.insights);
               } else if (data.type === 'followup' && data.suggestions) {
                 console.log('🔄 [V2] Follow-ups sugeridos:', data.suggestions);
@@ -393,8 +437,9 @@ export default function GeminiAssistantBar() {
                 setStreaming(prev => prev + data.text);
               }
               
-              if (data.products && data.products.length > 0) {
-                console.log('📦 [V2] Produtos recebidos:', data.products.length);
+              // Fallback: produtos inline via data.products
+              if (data.products && data.products.length > 0 && currentEventType !== 'products') {
+                console.log('📦 [V2] Produtos recebidos (fallback inline):', data.products.length);
                 haveProductsInThisRequestRef.current = true;
                 
                 const products = data.products;
@@ -410,9 +455,11 @@ export default function GeminiAssistantBar() {
             } catch (e) {
               console.warn('[V2] Erro ao parsear evento SSE:', e);
             }
-          } else if (line.startsWith('event: ')) {
-            const eventType = line.slice(7);
-            console.log('📡 [V2] Tipo de evento:', eventType);
+            
+            // Reset event type after processing data
+            if (currentEventType !== 'message') {
+              currentEventType = 'message';
+            }
           }
         }
       }
