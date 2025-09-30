@@ -295,10 +295,10 @@ export class IntelligentVendor {
       // Incluir informações dos produtos encontrados no contexto
       let contextWithProducts = `${searchContext}\n\nMensagem: ${message}`;
       if (foundProducts.length > 0) {
-        const productSummary = foundProducts.slice(0, 3).map(p => 
-          `${p.name} - ${p.price} (${p.storeName})`
-        ).join(', ');
-        contextWithProducts += `\n\nProdutos encontrados: ${productSummary}`;
+        const productDetails = foundProducts.slice(0, 5).map(p => 
+          `• ${p.name} - ${p.price} guaranis (Loja: ${p.storeName})`
+        ).join('\n');
+        contextWithProducts += `\n\n🛍️ PRODUTOS DISPONÍVEIS NO SISTEMA (${foundProducts.length} encontrados):\n${productDetails}\n\nEstes produtos EXISTEM e estão disponíveis para compra. Apresente-os ao cliente com confiança.`;
       }
       
       conversationHistory.push({
