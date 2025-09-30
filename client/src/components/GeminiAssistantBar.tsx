@@ -678,6 +678,46 @@ export default function GeminiAssistantBar() {
                       }`}>
                         <p className="text-sm">{msg.text}</p>
                       </div>
+                      
+                      {msg.type === 'assistant' && i === chatMessages.length - 1 && (
+                        <>
+                          {currentEmotion && (
+                            <div className="mt-2 inline-block">
+                              <span className="text-xs px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300" data-testid="badge-emotion">
+                                {currentEmotion.sentiment === 'positive' ? '😊' : currentEmotion.sentiment === 'negative' ? '😔' : '😐'} {currentEmotion.sentiment}
+                              </span>
+                            </div>
+                          )}
+                          
+                          {currentInsights.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {currentInsights.map((insight, idx) => (
+                                <div key={idx} className="text-xs px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 inline-block mr-1" data-testid={`insight-${idx}`}>
+                                  💡 {insight.message}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          
+                          {suggestedFollowUps.length > 0 && (
+                            <div className="mt-3 space-y-1">
+                              {suggestedFollowUps.map((followup, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => {
+                                    setChatMessages(prev => [...prev, { type: 'user', text: followup }]);
+                                    startGeminiStream(followup);
+                                  }}
+                                  className="block text-xs px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary dark:text-primary/80 transition-colors"
+                                  data-testid={`followup-${idx}`}
+                                >
+                                  ↪️ {followup}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   ))}
                   
