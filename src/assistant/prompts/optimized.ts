@@ -462,6 +462,10 @@ function personalizePrompt(template: string, context: Record<string, any>): stri
     personalized = personalized.replace(placeholder, value);
   }
   
+  // CORREÇÃO: Remover qualquer suposição de orçamento específico
+  personalized = personalized.replace(/10\.?000\s*guaran[ií]s?/gi, "seu orçamento");
+  personalized = personalized.replace(/dez mil guaran[ií]s?/gi, "seu orçamento");
+  
   return personalized;
 }
 
@@ -477,7 +481,7 @@ export function generateContextualPrompt(
     price_concern: [
       "Entendo sua preocupação com o preço! Vou buscar as opções mais econômicas para você. 💰",
       "Preço é importante mesmo! Deixa eu encontrar as melhores ofertas disponíveis.",
-      "Sem problemas! Vou focar nas opções com melhor custo-benefício para seu orçamento."
+      "Sem problemas! Vou focar nas opções com melhor custo-benefício que encontrar."
     ],
     urgency: [
       "Entendi que você precisa com urgência! Vou priorizar produtos disponíveis para entrega imediata. ⚡",
