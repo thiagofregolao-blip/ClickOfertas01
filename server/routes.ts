@@ -7738,6 +7738,105 @@ Regras:
     }
   });
 
+  // POST /api/assistant/v2/chat - Vendedor Inteligente V2 with emotional intelligence and memory
+  // TODO: Add rate limiting per user/IP to prevent abuse and cost spikes
+  app.post('/api/assistant/v2/chat', async (req: any, res) => {
+    const { message, sessionId, storeId } = req.body;
+    
+    // Validate input BEFORE SSE headers
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return res.status(400).json({ error: 'Mensagem inválida ou vazia' });
+    }
+    
+    // Use authenticated user ID or anonymous sessionId (with caution)
+    const user = req.user || req.session?.user;
+    const userId = user?.id || sessionId;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'Session ID obrigatório' });
+    }
+
+    // NOW set SSE headers after validation
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders?.();
+
+    const send = (event: string, payload: any) => {
+      res.write(`event: ${event}\n`);
+      res.write(`data: ${JSON.stringify(payload)}\n\n`);
+    };
+
+    let clientDisconnected = false;
+    
+    req.on('close', () => {
+      clientDisconnected = true;
+      console.log(`🧠 [V2] Client disconnected for user: ${userId}`);
+    });
+
+    try {
+      console.log(`🧠 [V2] Starting intelligent chat for user: ${userId}`);
+      
+      const { intelligentVendor } = await import('./assistant/v2/intelligent-vendor');
+      
+      let fullResponse = '';
+      let metadata: any = null;
+      
+      for await (const chunk of intelligentVendor.streamMessage(userId, message, storeId)) {
+        if (clientDisconnected) {
+          console.log(`🧠 [V2] Stopping stream - client disconnected`);
+          break;
+        }
+        
+        if (chunk.startsWith('\n\n__METADATA__')) {
+          const metadataStr = chunk.replace('\n\n__METADATA__', '');
+          try {
+            metadata = JSON.parse(metadataStr);
+            
+            if (metadata?.emotionalState) {
+              send('emotion', { 
+                emotion: metadata.emotionalState.primary,
+                intensity: metadata.emotionalState.intensity,
+                confidence: metadata.emotionalState.confidence
+              });
+            }
+            
+            if (metadata?.insights && Array.isArray(metadata.insights) && metadata.insights.length > 0) {
+              send('insights', { insights: metadata.insights });
+            }
+          } catch (e) {
+            console.error('Error parsing metadata:', e);
+          }
+        } else {
+          fullResponse += chunk;
+          send('delta', { text: chunk });
+        }
+      }
+      
+      if (clientDisconnected) {
+        return;
+      }
+      
+      console.log(`🧠 [V2] Response complete for user: ${userId}`);
+      
+      const memory = intelligentVendor.getUserMemory(userId);
+      const followUpSuggestions = memory?.shortTerm?.sessionGoals?.slice(0, 2) || [];
+      
+      if (followUpSuggestions.length > 0) {
+        send('followup', { suggestions: followUpSuggestions });
+      }
+      
+      send('complete', { provider: 'intelligent-vendor-v2' });
+      res.end();
+      
+    } catch (error) {
+      console.error('❌ [V2] Error in intelligent chat:', error);
+      send('delta', { text: 'Desculpe, tive um problema. Pode tentar novamente?' });
+      send('complete', { provider: 'intelligent-vendor-v2', error: true });
+      res.end();
+    }
+  });
+
   // Get assistant session with messages (with ownership check)
   app.get('/api/assistant/sessions/:sessionId', async (req: any, res) => {
     try {
