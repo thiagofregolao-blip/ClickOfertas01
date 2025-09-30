@@ -22,7 +22,7 @@ export class ConversationMemoryManager {
         preferences: {
           categories: [],
           brands: [],
-          priceRange: { min: 0, max: 10000, flexibility: 0.3 },
+          priceRange: { min: 0, max: 0, flexibility: 0.3 }, // Sem limite padrão - será definido pelo usuário
           features: {},
           dealBreakers: [],
           mustHaves: []
