@@ -8584,17 +8584,17 @@ Regras:
     console.error("❌ Erro integrando IA Vendedor V1:", error);
   }
 
-  // IA Vendedor V2: Integração das rotas V2 com inteligência emocional e memória
-  try {
-    const assistantRoutesV2 = await import("../src/assistant/assistantRoutes-v2.js");
-    
-    // Mount V2 routes
-    app.use("/api/assistant", assistantRoutesV2.default);
-    
-    console.log("✅ IA Vendedor V2 integrado com sucesso (Vendedor Inteligente Aprimorado)");
-  } catch (error) {
-    console.error("❌ Erro integrando IA Vendedor V2:", error);
-  }
+  // IA Vendedor V2 ANTIGO: Comentado - usando novo V2 em server/assistant/v2/
+  // try {
+  //   const assistantRoutesV2 = await import("../src/assistant/assistantRoutes-v2.js");
+  //   
+  //   // Mount V2 routes
+  //   app.use("/api/assistant", assistantRoutesV2.default);
+  //   
+  //   console.log("✅ IA Vendedor V2 integrado com sucesso (Vendedor Inteligente Aprimorado)");
+  // } catch (error) {
+  //   console.error("❌ Erro integrando IA Vendedor V2:", error);
+  // }
 
   // Endpoint de teste para IA Vendedor (mantido para compatibilidade)
   app.post("/api/ia-vendedor/query", async (req, res) => {
