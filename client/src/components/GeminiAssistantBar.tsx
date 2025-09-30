@@ -35,6 +35,9 @@ export default function GeminiAssistantBar() {
   const [loadingSug, setLoadingSug] = useState(false);
   const [chatMessages, setChatMessages] = useState<Array<{type: 'user' | 'assistant', text: string}>>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [currentEmotion, setCurrentEmotion] = useState<{sentiment: string, intensity: number} | null>(null);
+  const [currentInsights, setCurrentInsights] = useState<Array<{type: string, message: string}>>([]);
+  const [suggestedFollowUps, setSuggestedFollowUps] = useState<string[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [overlayInput, setOverlayInput] = useState('');
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
@@ -53,6 +56,7 @@ export default function GeminiAssistantBar() {
   const firingRef = useRef(false);
   const safetyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestRequestIdRef = useRef<string | null>(null);
+  const flushedOnCompleteRef = useRef(false);
 
   // Context tracking para herança de produto/categoria
   const lastProductRef = useRef<string | null>(null);
@@ -281,6 +285,7 @@ export default function GeminiAssistantBar() {
     activeRequestIdRef.current = requestId;
     latestRequestIdRef.current = requestId;
     haveProductsInThisRequestRef.current = false;
+    flushedOnCompleteRef.current = false;
     
     // Variável para capturar mensagem final antes do finally
     let accumulatedMessage = '';
@@ -289,19 +294,19 @@ export default function GeminiAssistantBar() {
       // Detectar produto/categoria no texto do usuário
       sniffProdCat(message);
       
-      console.log('🚀 start stream', { message, sessionId: sid, requestId });
+      console.log('🚀 [V2] start stream', { message, sessionId: sid, requestId });
       
-      const response = await fetch('/api/assistant/gemini/stream', {
+      // Resetar estados V2
+      setCurrentEmotion(null);
+      setCurrentInsights([]);
+      setSuggestedFollowUps([]);
+      
+      const response = await fetch('/api/assistant/v2/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message, 
-          sessionId: sid,
-          horaLocal: new Date().getHours(),
-          context: {
-            lastProduct: lastProductRef.current,
-            lastCategory: lastCategoryRef.current
-          }
+          sessionId: sid
         })
       });
       
@@ -329,7 +334,7 @@ export default function GeminiAssistantBar() {
         const { done, value } = await reader.read();
         
         if (done) {
-          console.log('✅ [GeminiAssistantBar] Gemini stream concluído');
+          console.log('✅ [V2] Stream concluído');
           break;
         }
         
@@ -344,26 +349,52 @@ export default function GeminiAssistantBar() {
             
             try {
               const data = JSON.parse(eventData);
-              console.log('📨 SSE evento >', data);
+              console.log('📨 [V2] SSE evento >', data);
               
-              // PATCH C: Log específico para debug de follow-up de preço
-              if (data.debug) {
-                console.log('[assistant debug]', data.debug);
-              }
-              
-              // Verificar novamente se ainda é a requisição ativa
+              // Verificar se ainda é a requisição ativa
               if (latestRequestIdRef.current !== requestId) {
-                console.log('🚫 [GeminiAssistantBar] Evento SSE ignorado - requisição obsoleta');
+                console.log('🚫 [V2] Evento SSE ignorado - requisição obsoleta');
                 continue;
               }
               
-              if (data.text) {
+              // Processar diferentes tipos de eventos V2
+              if (data.type === 'delta' && data.text) {
+                accumulatedMessage += data.text;
+                setStreaming(prev => prev + data.text);
+              } else if (data.type === 'emotion' && data.emotion) {
+                console.log('😊 [V2] Emoção detectada:', data.emotion);
+                setCurrentEmotion(data.emotion);
+              } else if (data.type === 'insights' && data.insights) {
+                console.log('💡 [V2] Insights recebidos:', data.insights);
+                setCurrentInsights(data.insights);
+              } else if (data.type === 'followup' && data.suggestions) {
+                console.log('🔄 [V2] Follow-ups sugeridos:', data.suggestions);
+                setSuggestedFollowUps(data.suggestions);
+              } else if (data.type === 'complete') {
+                console.log('🏁 [V2] Stream marcado como completo');
+                // Finalizar early para prevenir estado "typing" persistente
+                if (latestRequestIdRef.current === requestId && !flushedOnCompleteRef.current) {
+                  setIsTyping(false);
+                  const finalText = accumulatedMessage.trim();
+                  if (finalText) {
+                    setChatMessages(prev => [...prev, { type: 'assistant', text: finalText }]);
+                  }
+                  setStreaming('');
+                  flushedOnCompleteRef.current = true;
+                  // Cancelar reader e sair do loop
+                  await reader.cancel();
+                  break;
+                }
+              }
+              
+              // Compatibilidade com formato antigo (se houver)
+              if (data.text && !data.type) {
                 accumulatedMessage += data.text;
                 setStreaming(prev => prev + data.text);
               }
               
-              if (data.products && data.products.length > 0 && data.provider === 'gemini') {
-                console.log('📦 [GeminiAssistantBar] Produtos Gemini recebidos:', data.products.length);
+              if (data.products && data.products.length > 0) {
+                console.log('📦 [V2] Produtos recebidos:', data.products.length);
                 haveProductsInThisRequestRef.current = true;
                 
                 const products = data.products;
@@ -377,34 +408,31 @@ export default function GeminiAssistantBar() {
                 setCombina([]);
               }
             } catch (e) {
-              console.warn('Erro ao parsear evento SSE Gemini:', e);
+              console.warn('[V2] Erro ao parsear evento SSE:', e);
             }
           } else if (line.startsWith('event: ')) {
             const eventType = line.slice(7);
-            if (eventType === 'complete') {
-              console.log('🏁 [GeminiAssistantBar] Gemini stream marcado como completo');
-            }
+            console.log('📡 [V2] Tipo de evento:', eventType);
           }
         }
       }
       
     } catch (error) {
-      console.error('❌ [GeminiAssistantBar] Erro no Gemini stream:', error);
+      console.error('❌ [V2] Erro no stream:', error);
       setStreaming('Ops! Problema na conexão. Tenta de novo? 🤖');
     } finally {
       if (latestRequestIdRef.current === requestId) {
         setIsTyping(false);
         
-        // ✅ SEMPRE usar texto do backend sem fallback local
-        const serverText = accumulatedMessage.trim();
-        // Sempre usar texto do servidor - sem fallback local
-        if (serverText.trim()) {
-          setChatMessages(prev => [...prev, { type: 'assistant', text: serverText }]);
+        // Apenas fazer flush se não foi feito no evento 'complete'
+        if (!flushedOnCompleteRef.current) {
+          const serverText = accumulatedMessage.trim();
+          if (serverText) {
+            setChatMessages(prev => [...prev, { type: 'assistant', text: serverText }]);
+          }
         }
         
-        // Limpar streaming apenas após adicionar ao chat
         setStreaming('');
-        
         readerRef.current = null;
         activeRequestIdRef.current = null;
       }
