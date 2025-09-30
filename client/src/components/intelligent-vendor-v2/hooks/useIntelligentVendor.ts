@@ -204,29 +204,53 @@ export const useIntelligentVendor = ({
         );
       }
 
-      // Gerar resposta do assistente
-      const response = await conversationManager.current.generateResponse(
-        analysis,
-        products,
-        session.context,
-        defaultConfig
+      // 🚀 USAR API V2 REAL DO BACKEND
+      console.log(`🤖 [V2] Enviando mensagem para backend V2...`);
+      const v2Response = await vendorAPI.current.sendMessageToV2(
+        session.userId,
+        userMessage,
+        session.context.storeId
       );
 
-      // Simular streaming da resposta
-      await simulateStreaming(response.text);
+      console.log(`✅ [V2] Resposta do backend:`, v2Response);
 
-      // Adicionar mensagem do assistente
+      // Extrair produtos da resposta V2 se houver
+      const v2Products = v2Response.products || [];
+      if (v2Products.length > 0) {
+        console.log(`🛍️ [V2] Produtos encontrados: ${v2Products.length}`);
+        products = v2Products.map((p: any) => ({
+          id: p.id,
+          title: p.name,
+          price: parseFloat(p.price),
+          image: p.imageUrl,
+          category: p.category,
+          brand: p.brand,
+          store: p.storeName,
+          url: `/product/${p.id}`,
+          description: p.description,
+          rating: 4.5,
+          discount: 0,
+          originalPrice: parseFloat(p.price),
+          features: []
+        }));
+      }
+
+      // Simular streaming da resposta V2
+      await simulateStreaming(v2Response.content || 'Desculpe, não consegui processar sua mensagem.');
+
+      // Adicionar mensagem do assistente com dados reais do V2
       const assistantMsg: ChatMessage = {
         id: `msg_${Date.now() + 1}`,
         type: 'assistant',
-        text: response.text,
+        text: v2Response.content || 'Desculpe, não consegui processar sua mensagem.',
         timestamp: new Date(),
         products: products.length > 0 ? products.slice(0, defaultConfig.maxRecommendations) : undefined,
         metadata: {
           intent: analysis.intent,
-          confidence: analysis.confidence,
+          confidence: v2Response.metadata?.confidence || 0.8,
           searchQuery: analysis.searchQuery,
-          category: analysis.extractedCategory
+          category: analysis.extractedCategory,
+          v2Response: true
         }
       };
       addMessage(assistantMsg);

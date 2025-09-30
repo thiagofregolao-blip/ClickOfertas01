@@ -8,6 +8,109 @@ export class VendorAPI {
     this.baseUrl = baseUrl;
   }
 
+  /**
+   * Enviar mensagem para o Assistente Inteligente V2
+   */
+  async sendMessageToV2(userId: string, message: string, storeId?: number): Promise<any> {
+    try {
+      console.log(`🤖 [V2] Enviando mensagem para API V2: "${message}"`);
+      
+      const response = await fetch('/api/assistant/v2/chat', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream'
+        },
+        body: JSON.stringify({ 
+          userId,
+          message,
+          storeId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      // Se a resposta for SSE (Server-Sent Events)
+      if (response.headers.get('content-type')?.includes('text/event-stream')) {
+        return this.handleSSEResponse(response);
+      }
+
+      // Se for JSON normal
+      const data = await response.json();
+      console.log(`✅ [V2] Resposta recebida:`, data);
+      return data;
+      
+    } catch (error) {
+      console.error('❌ [V2] Erro ao enviar mensagem:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Processar resposta SSE (Server-Sent Events)
+   */
+  private async handleSSEResponse(response: Response): Promise<any> {
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error('No response body reader');
+
+    let fullResponse = '';
+    let products: any[] = [];
+    let metadata: any = {};
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = new TextDecoder().decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            const eventType = line.slice(7).trim();
+            continue;
+          }
+          
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              // Processar diferentes tipos de eventos SSE
+              if (line.includes('"products"')) {
+                console.log(`🛍️ [V2] Produtos recebidos via SSE:`, data.products);
+                products = data.products || [];
+              } else if (line.includes('"text"')) {
+                fullResponse += data.text || '';
+              } else if (line.includes('"emotion"')) {
+                metadata.emotion = data;
+              } else if (line.includes('"insights"')) {
+                metadata.insights = data.insights;
+              }
+            } catch (e) {
+              // Pode ser texto simples, adicionar à resposta
+              const textData = line.slice(6);
+              if (textData && !textData.startsWith('{')) {
+                fullResponse += textData;
+              }
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    console.log(`✅ [V2] SSE processado - Resposta: ${fullResponse.length} chars, Produtos: ${products.length}`);
+
+    return {
+      content: fullResponse,
+      products,
+      metadata
+    };
+  }
+
   async searchProducts(query: string, filters?: SearchFilters): Promise<Product[]> {
     try {
       const params = new URLSearchParams({

@@ -488,9 +488,12 @@ export default function GeminiAssistantBarV2() {
     // Detectar se deve usar V2
     if (t.toLowerCase().includes('v2') || t.toLowerCase().includes('inteligente') || t.toLowerCase().includes('avançado')) {
       setUseV2Mode(true);
-      if (intelligentVendor.isReady) {
-        intelligentVendor.sendMessage(t);
-      }
+    }
+    
+    // Se V2 estiver ativado, usar sempre o sistema V2
+    if (useV2Mode && intelligentVendor.isReady) {
+      console.log(`🤖 [V2] Usando sistema V2 para: "${t}"`);
+      intelligentVendor.sendMessage(t);
       setQuery('');
       setOpen(false);
       setShowResults(true);
