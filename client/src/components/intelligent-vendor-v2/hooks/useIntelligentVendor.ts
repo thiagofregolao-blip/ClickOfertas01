@@ -187,70 +187,92 @@ export const useIntelligentVendor = ({
         lastSearchQuery: analysis.searchQuery || session.context.lastSearchQuery
       });
 
-      // Buscar produtos se necessário
+      // 🚀 CORREÇÃO 1: BUSCAR PRODUTOS ANTES DE GERAR RESPOSTA
+      console.log(`🤖 [V2] Buscando produtos ANTES de gerar resposta...`);
+      
       let products: Product[] = [];
-      if (analysis.shouldSearch && analysis.searchQuery) {
-        products = await vendorAPI.current.searchProducts(analysis.searchQuery, {
-          category: analysis.extractedCategory,
-          priceMin: analysis.priceRange?.min,
-          priceMax: analysis.priceRange?.max
-        });
+      let v2Response: any = null;
 
-        // Aplicar recomendações inteligentes
-        products = await recommendationEngine.current.rankProducts(
-          products,
-          session.context,
-          analysis
+      // Sempre chamar a API V2 para obter produtos e contexto
+      try {
+        v2Response = await vendorAPI.current.sendMessageToV2(
+          session.userId || 'anonymous',
+          userMessage,
+          session.context.storeId
         );
+
+        console.log(`✅ [V2] Resposta do backend recebida:`, v2Response);
+
+        // Extrair produtos da resposta V2
+        const v2Products = v2Response.products || [];
+        if (v2Products.length > 0) {
+          console.log(`🛍️ [V2] ${v2Products.length} produtos encontrados pelo backend`);
+          products = v2Products.map((p: any) => ({
+            id: p.id,
+            title: p.name,
+            name: p.name,
+            price: {
+              USD: parseFloat(p.price),
+              BRL: parseFloat(p.price) * 5.5
+            },
+            imageUrl: p.imageUrl,
+            storeName: p.storeName,
+            category: p.category,
+            brand: p.brand,
+            url: `/product/${p.id}`,
+            description: p.description,
+            rating: 4.5,
+            reviews: 100,
+            availability: 'in_stock',
+            discount: 0,
+            originalPrice: parseFloat(p.price),
+            features: []
+          }));
+        }
+
+        // Aplicar ranking inteligente nos produtos encontrados
+        if (products.length > 0) {
+          products = await recommendationEngine.current.rankProducts(
+            products,
+            session.context,
+            analysis
+          );
+        }
+      } catch (apiError) {
+        console.error('❌ [V2] Erro ao buscar produtos do backend:', apiError);
+        // Continuar sem produtos se a API falhar
       }
 
-      // 🚀 USAR API V2 REAL DO BACKEND
-      console.log(`🤖 [V2] Enviando mensagem para backend V2...`);
-      const v2Response = await vendorAPI.current.sendMessageToV2(
-        session.userId,
-        userMessage,
-        session.context.storeId
+      // 🚀 CORREÇÃO 2: GERAR RESPOSTA COM PRODUTOS JÁ DISPONÍVEIS
+      console.log(`🤖 [V2] Gerando resposta com ${products.length} produtos no contexto...`);
+      
+      const response = await conversationManager.current.generateResponse(
+        analysis,
+        products, // Produtos já buscados e ranqueados
+        session.context,
+        defaultConfig
       );
 
-      console.log(`✅ [V2] Resposta do backend:`, v2Response);
+      // Usar resposta do backend V2 se disponível, senão usar a gerada localmente
+      const finalResponseText = v2Response?.content || response.text;
 
-      // Extrair produtos da resposta V2 se houver
-      const v2Products = v2Response.products || [];
-      if (v2Products.length > 0) {
-        console.log(`🛍️ [V2] Produtos encontrados: ${v2Products.length}`);
-        products = v2Products.map((p: any) => ({
-          id: p.id,
-          title: p.name,
-          price: parseFloat(p.price),
-          image: p.imageUrl,
-          category: p.category,
-          brand: p.brand,
-          store: p.storeName,
-          url: `/product/${p.id}`,
-          description: p.description,
-          rating: 4.5,
-          discount: 0,
-          originalPrice: parseFloat(p.price),
-          features: []
-        }));
-      }
+      // Simular streaming da resposta
+      await simulateStreaming(finalResponseText);
 
-      // Simular streaming da resposta V2
-      await simulateStreaming(v2Response.content || 'Desculpe, não consegui processar sua mensagem.');
-
-      // Adicionar mensagem do assistente com dados reais do V2
+      // Adicionar mensagem do assistente com produtos
       const assistantMsg: ChatMessage = {
         id: `msg_${Date.now() + 1}`,
         type: 'assistant',
-        text: v2Response.content || 'Desculpe, não consegui processar sua mensagem.',
+        text: finalResponseText,
         timestamp: new Date(),
         products: products.length > 0 ? products.slice(0, defaultConfig.maxRecommendations) : undefined,
         metadata: {
           intent: analysis.intent,
-          confidence: v2Response.metadata?.confidence || 0.8,
+          confidence: v2Response?.metadata?.confidence || analysis.confidence,
           searchQuery: analysis.searchQuery,
           category: analysis.extractedCategory,
-          v2Response: true
+          v2Response: !!v2Response,
+          productsCount: products.length
         }
       };
       addMessage(assistantMsg);
@@ -272,7 +294,7 @@ export const useIntelligentVendor = ({
       onAnalyticsEvent?.({
         type: 'message_sent',
         message: userMessage,
-        response: response.text,
+        response: finalResponseText,
         productsFound: products.length
       });
 

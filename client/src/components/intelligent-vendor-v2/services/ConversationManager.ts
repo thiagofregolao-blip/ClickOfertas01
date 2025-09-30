@@ -297,67 +297,22 @@ export class ConversationManager {
   }
 
   async generateWelcomeMessage(config: VendorConfig): Promise<string> {
-    const welcomeMessages = {
-      friendly: [
-        "Oi! 😊 Sou seu assistente pessoal de compras! Em que posso te ajudar hoje?",
-        "Olá! 👋 Estou aqui para te ajudar a encontrar os melhores produtos. O que você está procurando?",
-        "E aí! 🛍️ Pronto para encontrar ofertas incríveis? Me conta o que você precisa!"
-      ],
-      professional: [
-        "Bem-vindo ao nosso assistente de compras inteligente. Como posso auxiliá-lo hoje?",
-        "Olá. Estou aqui para ajudá-lo a encontrar os produtos ideais para suas necessidades.",
-        "Bom dia. Sou seu consultor de produtos. Em que posso ser útil?"
-      ],
-      casual: [
-        "Fala aí! 🤙 Bora achar uns produtos maneiros?",
-        "E aí, beleza? 😎 Que tal encontrarmos algo legal pra você?",
-        "Opa! 🚀 Vamos às compras? Me fala o que tá precisando!"
-      ],
-      expert: [
-        "Olá! Sou especialista em recomendações de produtos. Vamos encontrar exatamente o que você precisa.",
-        "Bem-vindo! Com minha expertise, vou te ajudar a fazer a melhor escolha. Qual produto te interessa?",
-        "Olá! Baseado em análises detalhadas, posso te recomendar os melhores produtos. O que você busca?"
-      ]
-    };
-
-    const messages = welcomeMessages[config.personality] || welcomeMessages.friendly;
-    return messages[Math.floor(Math.random() * messages.length)];
+    const welcomeMessages = [
+      "E aí! 👋 Bora achar uns produtos maneiros?",
+      "Opa! 🛍️ Me fala o que tá procurando que eu te ajudo!",
+      "Fala! 😎 Vamos às compras?"
+    ];
+    return welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
   }
 
   private generateGreetingResponse(config: VendorConfig): ResponseGeneration {
-    const responses = {
-      friendly: [
-        "Oi! 😊 Que bom te ver por aqui! Em que posso te ajudar hoje?",
-        "Olá! 👋 Estou super animado para te ajudar a encontrar produtos incríveis!",
-        "E aí! 🌟 Pronto para descobrir ofertas fantásticas?"
-      ],
-      professional: [
-        "Olá. Como posso auxiliá-lo em sua busca por produtos hoje?",
-        "Bem-vindo. Estou à disposição para ajudá-lo com suas necessidades de compra.",
-        "Bom dia. Em que posso ser útil em sua experiência de compras?"
-      ],
-      casual: [
-        "Fala! 🤙 Bora ver uns produtos maneiros?",
-        "E aí! 😄 Que tal acharmos algo legal pra você?",
-        "Opa! 🎉 Vamos às compras?"
-      ],
-      expert: [
-        "Olá! Estou aqui para oferecer recomendações especializadas. Qual categoria te interessa?",
-        "Bem-vindo! Com análise detalhada, posso te guiar à melhor escolha. O que você procura?",
-        "Olá! Baseado em dados e tendências, vou te ajudar a encontrar o produto ideal."
-      ]
-    };
-
-    const messages = responses[config.personality] || responses.friendly;
-    const text = messages[Math.floor(Math.random() * messages.length)];
-
+    const responses = [
+      "Oi! 😊 Me conta o que você tá procurando!",
+      "E aí! 👋 Bora ver uns produtos?",
+      "Fala! 🤙 Que tipo de produto você quer?"
+    ];
     return {
-      text,
-      followUpQuestions: [
-        "Que tipo de produto você está procurando?",
-        "Tem alguma categoria específica em mente?",
-        "Qual é seu orçamento aproximado?"
-      ]
+      text: responses[Math.floor(Math.random() * responses.length)]
     };
   }
 
@@ -369,76 +324,38 @@ export class ConversationManager {
   ): ResponseGeneration {
     if (products.length === 0) {
       return {
-        text: `Hmm, não encontrei resultados para "${product || category}". Que tal tentar com termos diferentes? Posso te ajudar com outras opções! 🔍`,
-        followUpQuestions: [
-          "Quer tentar uma busca mais ampla?",
-          "Tem alguma marca preferida?",
-          "Qual sua faixa de preço?"
-        ]
+        text: `Opa, não achei nada de "${product || category}" 😅 Tenta com outros termos?`
       };
     }
 
-    const productCount = products.length;
-    const avgPrice = products.reduce((sum, p) => sum + (p.price?.USD || 0), 0) / productCount;
+    const count = products.length;
     const minPrice = Math.min(...products.map(p => p.price?.USD || 0));
     const maxPrice = Math.max(...products.map(p => p.price?.USD || 0));
 
-    let text = `Encontrei ${productCount} ${productCount === 1 ? 'produto' : 'produtos'} `;
-    
-    if (product) {
-      text += `relacionado${productCount === 1 ? '' : 's'} a "${product}"! `;
-    } else if (category) {
-      text += `na categoria "${category}"! `;
-    } else {
-      text += `para você! `;
-    }
-
-    text += `Os preços variam de $${minPrice.toFixed(2)} a $${maxPrice.toFixed(2)}. `;
-    
-    if (productCount > 3) {
-      text += `Selecionei os melhores para você! 🌟`;
-    } else {
-      text += `Vamos ver as opções! 👀`;
-    }
+    const responses = [
+      `Achei ${count} ${count === 1 ? 'produto' : 'produtos'} massa! 🎯 De $${minPrice.toFixed(2)} até $${maxPrice.toFixed(2)}.`,
+      `Olha só, ${count} opções legais aqui! 💰 Preços entre $${minPrice.toFixed(2)} e $${maxPrice.toFixed(2)}.`,
+      `Bora! ${count} produtos pra você 🚀 Faixa de $${minPrice.toFixed(2)} a $${maxPrice.toFixed(2)}.`
+    ];
 
     return {
-      text,
-      followUpQuestions: [
-        "Quer ver mais detalhes de algum produto?",
-        "Tem preferência por alguma marca?",
-        "Quer comparar alguns produtos?"
-      ]
+      text: responses[Math.floor(Math.random() * responses.length)]
     };
   }
 
   private generateComparisonResponse(products: Product[], config: VendorConfig): ResponseGeneration {
     if (products.length < 2) {
       return {
-        text: "Para fazer uma comparação, preciso de pelo menos 2 produtos. Que tal buscar mais opções primeiro? 🔍",
-        followUpQuestions: [
-          "Quer buscar produtos similares?",
-          "Tem alguma categoria específica?",
-          "Qual característica é mais importante?"
-        ]
+        text: "Preciso de pelo menos 2 produtos pra comparar! 🤔 Busca mais opções?"
       };
     }
 
-    const sortedByPrice = [...products].sort((a, b) => (a.price?.USD || 0) - (b.price?.USD || 0));
-    const cheapest = sortedByPrice[0];
-    const mostExpensive = sortedByPrice[sortedByPrice.length - 1];
-
-    let text = `Vou te ajudar a comparar! 📊 `;
-    text += `Entre as opções, o mais barato é "${cheapest.title}" por $${cheapest.price?.USD?.toFixed(2)}, `;
-    text += `e o mais caro é "${mostExpensive.title}" por $${mostExpensive.price?.USD?.toFixed(2)}. `;
-    text += `Cada um tem suas vantagens! Quer que eu detalhe as diferenças? 🤔`;
+    const sorted = [...products].sort((a, b) => (a.price?.USD || 0) - (b.price?.USD || 0));
+    const cheapest = sorted[0];
+    const expensive = sorted[sorted.length - 1];
 
     return {
-      text,
-      followUpQuestions: [
-        "Quer saber as principais diferenças?",
-        "Qual característica é mais importante?",
-        "Prefere focar no custo-benefício?"
-      ]
+      text: `O mais barato é "${cheapest.title}" ($${cheapest.price?.USD?.toFixed(2)}) e o mais caro "${expensive.title}" ($${expensive.price?.USD?.toFixed(2)}). Cada um tem suas vantagens! 💡`
     };
   }
 
@@ -448,119 +365,61 @@ export class ConversationManager {
     config?: VendorConfig
   ): ResponseGeneration {
     if (products.length === 0) {
-      let text = "Não encontrei produtos ";
-      if (priceRange?.min && priceRange?.max) {
-        text += `entre $${priceRange.min} e $${priceRange.max}. `;
-      } else if (priceRange?.max) {
-        text += `até $${priceRange.max}. `;
-      } else if (priceRange?.min) {
-        text += `acima de $${priceRange.min}. `;
-      } else {
-        text += "nessa faixa de preço. ";
-      }
-      text += "Que tal ajustar o orçamento ou ver outras opções? 💰";
-
       return {
-        text,
-        followUpQuestions: [
-          "Quer aumentar o orçamento?",
-          "Tem flexibilidade no preço?",
-          "Quer ver produtos similares?"
-        ]
+        text: "Não achei nada nessa faixa de preço 💸 Ajusta o orçamento?"
       };
     }
 
-    const sortedByPrice = [...products].sort((a, b) => (a.price?.USD || 0) - (b.price?.USD || 0));
-    const cheapest = sortedByPrice[0];
-    const avgPrice = products.reduce((sum, p) => sum + (p.price?.USD || 0), 0) / products.length;
+    const sorted = [...products].sort((a, b) => (a.price?.USD || 0) - (b.price?.USD || 0));
+    const cheapest = sorted[0];
+    const discounted = products.filter(p => p.discount && p.discount > 0);
 
-    let text = `Sobre preços: o mais barato que encontrei é "${cheapest.title}" por $${cheapest.price?.USD?.toFixed(2)}! 💸 `;
-    text += `O preço médio dos produtos é $${avgPrice.toFixed(2)}. `;
-    
-    const discountedProducts = products.filter(p => p.discount && p.discount > 0);
-    if (discountedProducts.length > 0) {
-      text += `E olha só: ${discountedProducts.length} produto${discountedProducts.length === 1 ? '' : 's'} com desconto! 🏷️`;
+    let text = `O mais barato é "${cheapest.title}" por $${cheapest.price?.USD?.toFixed(2)}! 💰`;
+    if (discounted.length > 0) {
+      text += ` E tem ${discounted.length} com desconto! 🏷️`;
     }
 
-    return {
-      text,
-      followUpQuestions: [
-        "Quer ver só os mais baratos?",
-        "Tem interesse nos com desconto?",
-        "Quer comparar custo-benefício?"
-      ]
-    };
+    return { text };
   }
 
   private generateFeatureResponse(products: Product[], config: VendorConfig): ResponseGeneration {
     if (products.length === 0) {
       return {
-        text: "Para falar sobre características, preciso saber qual produto te interessa! Me conta mais detalhes? 🤔",
-        followUpQuestions: [
-          "Qual produto específico?",
-          "Que característica é importante?",
-          "Tem alguma função em mente?"
-        ]
+        text: "Me fala qual produto te interessa que eu explico! 🤔"
       };
     }
 
     const product = products[0];
-    let text = `Sobre "${product.title}": `;
-    
-    if (product.features && product.features.length > 0) {
-      text += `As principais características são: ${product.features.slice(0, 3).join(', ')}. `;
-    }
+    let text = `"${product.title}"`;
     
     if (product.rating) {
-      text += `Tem avaliação de ${product.rating.toFixed(1)} estrelas ⭐ `;
+      text += ` tem ${product.rating.toFixed(1)}⭐`;
     }
     
     if (product.brand) {
-      text += `da marca ${product.brand}. `;
+      text += ` da ${product.brand}`;
     }
     
-    text += `Quer saber mais alguma coisa específica? 🔍`;
+    text += `. Quer saber mais? 🔍`;
 
-    return {
-      text,
-      followUpQuestions: [
-        "Quer ver produtos similares?",
-        "Tem dúvida sobre alguma função?",
-        "Quer comparar com outros?"
-      ]
-    };
+    return { text };
   }
 
   private generateHelpResponse(config: VendorConfig): ResponseGeneration {
     return {
-      text: `Claro, estou aqui para ajudar! 🤝 Posso te ajudar a encontrar produtos, comparar preços, explicar características e muito mais. É só me falar o que você precisa!`,
-      followUpQuestions: [
-        "Que tipo de produto você procura?",
-        "Quer dicas de como buscar?",
-        "Tem alguma dúvida específica?"
-      ]
+      text: "Posso te ajudar a achar produtos, comparar preços e mais! 🤝 Me fala o que você precisa!"
     };
   }
 
   private generateDefaultResponse(products: Product[], config: VendorConfig): ResponseGeneration {
     if (products.length > 0) {
       return {
-        text: `Encontrei algumas opções interessantes para você! 🎯 Dá uma olhada nos produtos abaixo. Posso te ajudar com mais detalhes sobre qualquer um deles!`,
-        followUpQuestions: [
-          "Quer saber mais sobre algum produto?",
-          "Tem preferência por marca?",
-          "Quer comparar alguns?"
-        ]
+        text: "Olha essas opções! 🎯 Quer saber mais de alguma?"
       };
     }
 
     return {
-      text: `Entendi! 🤔 Me conta um pouco mais sobre o que você está procurando? Assim posso te ajudar melhor!`,
-      followUpQuestions: [
-        "Que tipo de produto você precisa?",
-        "Tem alguma categoria em mente?",
-        "Qual seu orçamento aproximado?"
-      ]
+      text: "Me conta mais sobre o que você tá procurando! 🤔"
     };
   }
 }
