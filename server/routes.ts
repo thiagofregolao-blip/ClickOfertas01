@@ -7817,7 +7817,24 @@ Regras:
           break;
         }
         
-        if (chunk.startsWith('\n\n__METADATA__')) {
+        if (chunk.startsWith('\n\n__PRODUCTS__')) {
+          // Processar produtos enviados imediatamente
+          const productsStr = chunk.replace('\n\n__PRODUCTS__', '');
+          try {
+            const productsData = JSON.parse(productsStr);
+            if (productsData?.products && Array.isArray(productsData.products) && productsData.products.length > 0) {
+              console.log(`🛍️ [V2] Sending ${productsData.products.length} products via SSE`);
+              send('products', { 
+                products: productsData.products,
+                query: message,
+                provider: 'intelligent-vendor-v2',
+                timestamp: new Date().toISOString()
+              });
+            }
+          } catch (e) {
+            console.error('Error parsing products:', e);
+          }
+        } else if (chunk.startsWith('\n\n__METADATA__')) {
           const metadataStr = chunk.replace('\n\n__METADATA__', '');
           try {
             metadata = JSON.parse(metadataStr);
@@ -7834,9 +7851,9 @@ Regras:
               send('insights', { insights: metadata.insights });
             }
             
-            // 🛍️ ENVIAR PRODUTOS VIA SSE (Ask-then-Show pattern)
+            // 🛍️ ENVIAR PRODUTOS VIA SSE (Ask-then-Show pattern) - Fallback se não foram enviados antes
             if (metadata?.foundProducts && Array.isArray(metadata.foundProducts) && metadata.foundProducts.length > 0) {
-              console.log(`🛍️ [V2] Sending ${metadata.foundProducts.length} products via SSE`);
+              console.log(`🛍️ [V2] Sending ${metadata.foundProducts.length} products via SSE (fallback)`);
               send('products', { 
                 products: metadata.foundProducts,
                 query: message,

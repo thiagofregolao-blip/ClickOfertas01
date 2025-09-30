@@ -254,10 +254,17 @@ export class IntelligentVendor {
         foundProducts = await this.searchProducts(message, 10);
         
         if (foundProducts.length > 0) {
+          console.log(`🛍️ [V2] Found ${foundProducts.length} products:`, foundProducts.map(p => p.name));
+          
           // Adicionar produtos encontrados à memória
           foundProducts.forEach(product => {
             memoryManager.addRecentProduct(userId, product.id);
           });
+          
+          // Enviar produtos imediatamente via streaming
+          yield `\n\n__PRODUCTS__${JSON.stringify({ products: foundProducts })}`;
+        } else {
+          console.log(`❌ [V2] No products found for: "${message}"`);
         }
       }
       
