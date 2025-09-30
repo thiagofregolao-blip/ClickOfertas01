@@ -148,21 +148,83 @@ export const VendorCore: React.FC<VendorCoreProps> = ({
         lastSearchQuery: analysis.searchQuery || session.context.lastSearchQuery
       });
 
-      // Buscar produtos se necessário
+      // 🚀 CORREÇÃO: Buscar produtos usando API V2 com SSE
       let products: Product[] = [];
+      let v2Response: any = null;
+      
       if (analysis.shouldSearch && analysis.searchQuery) {
-        products = await vendorAPI.current.searchProducts(analysis.searchQuery, {
-          category: analysis.extractedCategory,
-          priceMin: analysis.priceRange?.min,
-          priceMax: analysis.priceRange?.max
-        });
+        try {
+          console.log(`🤖 [VendorCore] Buscando produtos via API V2 para: "${analysis.searchQuery}"`);
+          
+          // Usar API V2 que processa SSE corretamente
+          v2Response = await vendorAPI.current.sendMessageToV2(
+            session.userId || 'anonymous',
+            userMessage,
+            session.context.storeId
+          );
 
-        // Aplicar recomendações inteligentes
-        products = await recommendationEngine.current.rankProducts(
-          products,
-          session.context,
-          analysis
-        );
+          console.log(`✅ [VendorCore] Resposta V2 recebida:`, v2Response);
+
+          // Extrair e mapear produtos da resposta V2
+          const v2Products = v2Response.products || [];
+          if (v2Products.length > 0) {
+            console.log(`🛍️ [VendorCore] ${v2Products.length} produtos encontrados`);
+            console.log(`🛍️ [VendorCore] Primeiro produto (raw):`, v2Products[0]);
+            
+            products = v2Products.map((p: any) => {
+              const priceValue = typeof p.price === 'string' ? parseFloat(p.price) : (p.price || 0);
+              
+              return {
+                id: p.id || `product_${Date.now()}_${Math.random()}`,
+                title: p.name || p.title || 'Produto sem título',
+                name: p.name || p.title || 'Produto sem título',
+                price: {
+                  USD: priceValue,
+                  BRL: priceValue * 5.5
+                },
+                imageUrl: p.imageUrl || p.image || '/placeholder-product.jpg',
+                storeName: p.storeName || p.store || 'Loja não informada',
+                category: p.category || 'geral',
+                brand: p.brand || 'Marca não informada',
+                url: `/product/${p.id}`,
+                description: p.description || '',
+                rating: p.rating || 4.5,
+                reviews: p.reviews || 100,
+                availability: p.availability || 'in_stock',
+                discount: p.discount || 0,
+                originalPrice: p.originalPrice || priceValue,
+                features: p.features || [],
+                model: p.model || ''
+              };
+            });
+            
+            console.log(`🛍️ [VendorCore] Produtos mapeados (primeiro):`, products[0]);
+          }
+
+          // Aplicar recomendações inteligentes
+          if (products.length > 0) {
+            products = await recommendationEngine.current.rankProducts(
+              products,
+              session.context,
+              analysis
+            );
+          }
+        } catch (error) {
+          console.error('❌ [VendorCore] Erro ao buscar produtos via API V2:', error);
+          // Fallback para busca antiga se V2 falhar
+          products = await vendorAPI.current.searchProducts(analysis.searchQuery, {
+            category: analysis.extractedCategory,
+            priceMin: analysis.priceRange?.min,
+            priceMax: analysis.priceRange?.max
+          });
+
+          // Aplicar recomendações inteligentes
+          products = await recommendationEngine.current.rankProducts(
+            products,
+            session.context,
+            analysis
+          );
+        }
       }
 
       // Gerar resposta do assistente
@@ -173,24 +235,31 @@ export const VendorCore: React.FC<VendorCoreProps> = ({
         defaultConfig
       );
 
-      // Simular streaming da resposta
-      await simulateStreaming(response.text);
+      // Usar resposta do backend V2 se disponível, senão usar a gerada localmente
+      const finalResponseText = v2Response?.content || response.text;
 
-      // Adicionar mensagem do assistente
+      // Simular streaming da resposta
+      await simulateStreaming(finalResponseText);
+
+      // Adicionar mensagem do assistente com produtos
       const assistantMsg: ChatMessage = {
         id: `msg_${Date.now() + 1}`,
         type: 'assistant',
-        text: response.text,
+        text: finalResponseText,
         timestamp: new Date(),
         products: products.length > 0 ? products.slice(0, defaultConfig.maxRecommendations) : undefined,
         metadata: {
           intent: analysis.intent,
-          confidence: analysis.confidence,
+          confidence: v2Response?.metadata?.confidence || analysis.confidence,
           searchQuery: analysis.searchQuery,
-          category: analysis.extractedCategory
+          category: analysis.extractedCategory,
+          v2Response: !!v2Response,
+          productsCount: products.length
         }
       };
       addMessage(assistantMsg);
+      
+      console.log(`✅ [VendorCore] Mensagem do assistente adicionada com ${products.length} produtos`);
 
       // Registrar evento de analytics
       analytics.current.trackEvent({

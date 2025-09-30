@@ -59,14 +59,18 @@ export class VendorAPI {
     let products: any[] = [];
     let metadata: any = {};
     let receivedProducts = false;
+    let buffer = '';
 
     try {
+      const decoder = new TextDecoder();
+      
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = new TextDecoder().decode(value);
-        const lines = chunk.split('\n');
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
           if (line.startsWith('event: ')) {
@@ -76,14 +80,36 @@ export class VendorAPI {
           }
           
           if (line.startsWith('data: ')) {
+            const dataContent = line.slice(6);
+            
+            // 🔍 CORREÇÃO CRÍTICA: Detectar marcador __PRODUCTS__ do backend
+            if (dataContent.includes('__PRODUCTS__')) {
+              try {
+                const productsMatch = dataContent.match(/__PRODUCTS__(.+)/);
+                if (productsMatch && productsMatch[1]) {
+                  const productsData = JSON.parse(productsMatch[1]);
+                  if (productsData.products && Array.isArray(productsData.products)) {
+                    console.log(`🛍️ [V2] ✅ ${productsData.products.length} produtos recebidos via __PRODUCTS__ marker`);
+                    console.log(`🛍️ [V2] Produtos:`, productsData.products.map((p: any) => p.name || p.title));
+                    receivedProducts = true;
+                    products = productsData.products;
+                  }
+                }
+              } catch (e) {
+                console.error('❌ [V2] Erro ao parsear __PRODUCTS__:', e);
+              }
+              continue;
+            }
+            
+            // Tentar parsear como JSON
             try {
-              const data = JSON.parse(line.slice(6));
+              const data = JSON.parse(dataContent);
               
               console.log(`📦 [V2] SSE Data recebido:`, data);
               
-              // CORREÇÃO CRÍTICA: Processar evento 'products' corretamente
+              // Processar evento 'products' em formato JSON
               if (data.products && Array.isArray(data.products)) {
-                console.log(`🛍️ [V2] ✅ ${data.products.length} produtos recebidos via SSE`);
+                console.log(`🛍️ [V2] ✅ ${data.products.length} produtos recebidos via SSE JSON`);
                 console.log(`🛍️ [V2] Produtos:`, data.products.map((p: any) => p.name || p.title));
                 receivedProducts = true;
                 products = data.products;
@@ -95,10 +121,9 @@ export class VendorAPI {
                 metadata.insights = data.insights;
               }
             } catch (e) {
-              // Pode ser texto simples, adicionar à resposta
-              const textData = line.slice(6);
-              if (textData && !textData.startsWith('{')) {
-                fullResponse += textData;
+              // Pode ser texto simples, adicionar à resposta (exceto se for marcador de produtos)
+              if (!dataContent.includes('__PRODUCTS__')) {
+                fullResponse += dataContent;
               }
             }
           }

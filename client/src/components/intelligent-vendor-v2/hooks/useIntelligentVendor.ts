@@ -207,27 +207,37 @@ export const useIntelligentVendor = ({
         const v2Products = v2Response.products || [];
         if (v2Products.length > 0) {
           console.log(`🛍️ [V2] ${v2Products.length} produtos encontrados pelo backend`);
-          products = v2Products.map((p: any) => ({
-            id: p.id,
-            title: p.name,
-            name: p.name,
-            price: {
-              USD: parseFloat(p.price),
-              BRL: parseFloat(p.price) * 5.5
-            },
-            imageUrl: p.imageUrl,
-            storeName: p.storeName,
-            category: p.category,
-            brand: p.brand,
-            url: `/product/${p.id}`,
-            description: p.description,
-            rating: 4.5,
-            reviews: 100,
-            availability: 'in_stock',
-            discount: 0,
-            originalPrice: parseFloat(p.price),
-            features: []
-          }));
+          console.log(`🛍️ [V2] Primeiro produto (raw):`, v2Products[0]);
+          
+          products = v2Products.map((p: any) => {
+            // O backend envia: id, name, price, imageUrl, category, brand, description, storeId, storeName, etc.
+            const priceValue = typeof p.price === 'string' ? parseFloat(p.price) : (p.price || 0);
+            
+            return {
+              id: p.id || `product_${Date.now()}_${Math.random()}`,
+              title: p.name || p.title || 'Produto sem título',
+              name: p.name || p.title || 'Produto sem título',
+              price: {
+                USD: priceValue,
+                BRL: priceValue * 5.5
+              },
+              imageUrl: p.imageUrl || p.image || '/placeholder-product.jpg',
+              storeName: p.storeName || p.store || 'Loja não informada',
+              category: p.category || 'geral',
+              brand: p.brand || 'Marca não informada',
+              url: `/product/${p.id}`,
+              description: p.description || '',
+              rating: p.rating || 4.5,
+              reviews: p.reviews || 100,
+              availability: p.availability || 'in_stock',
+              discount: p.discount || 0,
+              originalPrice: p.originalPrice || priceValue,
+              features: p.features || [],
+              model: p.model || ''
+            };
+          });
+          
+          console.log(`🛍️ [V2] Produtos mapeados (primeiro):`, products[0]);
         }
 
         // Aplicar ranking inteligente nos produtos encontrados
