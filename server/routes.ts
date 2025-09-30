@@ -7738,6 +7738,35 @@ Regras:
     }
   });
 
+  // POST /api/assistant/v2/clear-memory - Limpar memória/contexto da IA
+  app.post('/api/assistant/v2/clear-memory', async (req: any, res) => {
+    try {
+      const { sessionId } = req.body;
+      
+      if (!sessionId) {
+        return res.status(400).json({ error: 'sessionId é obrigatório' });
+      }
+      
+      console.log(`🧹 [V2] Clearing memory for session: ${sessionId}`);
+      
+      const { intelligentVendor } = await import('./assistant/v2/intelligent-vendor');
+      intelligentVendor.clearUserHistory(sessionId);
+      
+      res.json({ 
+        success: true, 
+        message: 'Memória limpa com sucesso',
+        sessionId 
+      });
+      
+    } catch (error) {
+      console.error('❌ [V2] Error clearing memory:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Erro ao limpar memória' 
+      });
+    }
+  });
+
   // POST /api/assistant/v2/chat - Vendedor Inteligente V2 with emotional intelligence and memory
   // TODO: Add rate limiting per user/IP to prevent abuse and cost spikes
   app.post('/api/assistant/v2/chat', async (req: any, res) => {
@@ -7803,6 +7832,17 @@ Regras:
             
             if (metadata?.insights && Array.isArray(metadata.insights) && metadata.insights.length > 0) {
               send('insights', { insights: metadata.insights });
+            }
+            
+            // 🛍️ ENVIAR PRODUTOS VIA SSE (Ask-then-Show pattern)
+            if (metadata?.foundProducts && Array.isArray(metadata.foundProducts) && metadata.foundProducts.length > 0) {
+              console.log(`🛍️ [V2] Sending ${metadata.foundProducts.length} products via SSE`);
+              send('products', { 
+                products: metadata.foundProducts,
+                query: message,
+                provider: 'intelligent-vendor-v2',
+                timestamp: new Date().toISOString()
+              });
             }
           } catch (e) {
             console.error('Error parsing metadata:', e);

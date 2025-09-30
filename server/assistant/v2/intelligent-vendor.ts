@@ -11,6 +11,12 @@ import {
   ProactiveInsight 
 } from './types-v2';
 
+// Import product search functionality
+import { storage } from '../../storage';
+import { db } from '../../db';
+import { products, stores } from '@shared/schema';
+import { eq, and, or, sql, asc, desc, ilike } from 'drizzle-orm';
+
 export class IntelligentVendor {
   private genAI: GoogleGenerativeAI;
   private model: any;
@@ -34,6 +40,85 @@ export class IntelligentVendor {
     });
 
     memoryManager.initialize(1000);
+  }
+
+  /**
+   * Busca produtos baseado na mensagem do usuário
+   */
+  private async searchProducts(message: string, limit: number = 10): Promise<any[]> {
+    try {
+      const searchTerm = message.trim().toLowerCase();
+      
+      // Buscar produtos que correspondem ao termo de busca
+      const searchResults = await db
+        .select({
+          id: products.id,
+          name: products.name,
+          price: products.price,
+          imageUrl: products.imageUrl,
+          category: products.category,
+          brand: products.brand,
+          description: products.description,
+          storeId: products.storeId,
+          storeName: stores.name,
+          storeLogoUrl: stores.logoUrl,
+          storeSlug: stores.slug,
+          storeThemeColor: stores.themeColor,
+          storePremium: stores.isPremium
+        })
+        .from(products)
+        .innerJoin(stores, eq(products.storeId, stores.id))
+        .where(and(
+          eq(products.isActive, true),
+          eq(stores.isActive, true),
+          or(
+            sql`LOWER(${products.name}) LIKE ${'%' + searchTerm + '%'}`,
+            sql`LOWER(${products.brand}) LIKE ${'%' + searchTerm + '%'}`,
+            sql`LOWER(${products.category}) LIKE ${'%' + searchTerm + '%'}`,
+            sql`LOWER(${products.description}) LIKE ${'%' + searchTerm + '%'}`
+          )
+        ))
+        .orderBy(
+          desc(stores.isPremium), // Premium stores first
+          desc(products.isFeatured), // Featured products first
+          asc(products.name) // Then alphabetical
+        )
+        .limit(limit);
+
+      console.log(`🔍 [V2] Found ${searchResults.length} products for "${searchTerm}"`);
+      return searchResults;
+    } catch (error) {
+      console.error('❌ [V2] Error searching products:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Determina se a mensagem indica intenção de busca de produtos
+   */
+  private shouldSearchProducts(message: string, intent: string): boolean {
+    const searchKeywords = [
+      'iphone', 'samsung', 'celular', 'smartphone', 'telefone',
+      'notebook', 'laptop', 'computador', 'pc',
+      'tv', 'televisão', 'smart tv',
+      'perfume', 'perfumes', 'fragrância',
+      'roupa', 'roupas', 'camisa', 'calça', 'vestido',
+      'sapato', 'sapatos', 'tênis', 'sandália',
+      'relógio', 'relógios',
+      'fone', 'fones', 'headphone', 'earphone',
+      'tablet', 'ipad',
+      'quero', 'preciso', 'busco', 'procuro', 'onde encontro'
+    ];
+
+    const messageWords = message.toLowerCase().split(/\s+/);
+    const hasSearchKeyword = searchKeywords.some(keyword => 
+      messageWords.some(word => word.includes(keyword) || keyword.includes(word))
+    );
+
+    const searchIntents = ['search', 'purchase_intent', 'price_inquiry', 'comparison'];
+    const hasSearchIntent = searchIntents.includes(intent);
+
+    return hasSearchKeyword || hasSearchIntent;
   }
 
   async processMessage(userId: string, message: string, storeId?: number): Promise<IntelligentVendorResponse> {
@@ -162,6 +247,20 @@ export class IntelligentVendor {
       memoryManager.addInteraction(userId, interaction);
       memoryManager.updateCurrentContext(userId, message, this.inferContextType(intent));
       
+      // 🔍 BUSCAR PRODUTOS SE NECESSÁRIO (Ask-then-Show pattern)
+      let foundProducts: any[] = [];
+      if (this.shouldSearchProducts(message, intent)) {
+        console.log(`🔍 [V2] Searching products for: "${message}"`);
+        foundProducts = await this.searchProducts(message, 10);
+        
+        if (foundProducts.length > 0) {
+          // Adicionar produtos encontrados à memória
+          foundProducts.forEach(product => {
+            memoryManager.addRecentProduct(userId, product.id);
+          });
+        }
+      }
+      
       const systemPrompt = buildSystemPrompt(memory, emotionalState, insights);
       const searchContext = buildSearchContext(memory);
       
@@ -177,9 +276,18 @@ export class IntelligentVendor {
         });
       }
       
+      // Incluir informações dos produtos encontrados no contexto
+      let contextWithProducts = `${searchContext}\n\nMensagem: ${message}`;
+      if (foundProducts.length > 0) {
+        const productSummary = foundProducts.slice(0, 3).map(p => 
+          `${p.name} - ${p.price} (${p.storeName})`
+        ).join(', ');
+        contextWithProducts += `\n\nProdutos encontrados: ${productSummary}`;
+      }
+      
       conversationHistory.push({
         role: 'user',
-        parts: [{ text: `${searchContext}\n\nMensagem: ${message}` }]
+        parts: [{ text: contextWithProducts }]
       });
       
       const chat = this.model.startChat({
@@ -209,7 +317,8 @@ export class IntelligentVendor {
       const metadata = {
         emotionalState,
         intent,
-        insights: insights.filter(i => i.priority >= 8).slice(0, 2)
+        insights: insights.filter(i => i.priority >= 8).slice(0, 2),
+        foundProducts: foundProducts.length > 0 ? foundProducts : undefined
       };
       
       yield `\n\n__METADATA__${JSON.stringify(metadata)}`;
