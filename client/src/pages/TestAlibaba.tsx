@@ -63,7 +63,7 @@ export default function TestAlibaba() {
         }}
       >
         <div className="max-w-7xl mx-auto px-6 pt-20 pb-32">
-          <div className="max-w-5xl">
+          <div className="max-w-[900px]">
             {/* Label */}
             <div className="flex items-center space-x-2 text-white mb-4">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
