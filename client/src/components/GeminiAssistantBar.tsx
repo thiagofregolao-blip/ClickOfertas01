@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { LazyImage } from './lazy-image';
@@ -32,6 +33,10 @@ export default function GeminiAssistantBar() {
   const [topBox, setTopBox] = useState<any[]>([]);
   const [feed, setFeed] = useState<any[]>([]);
   const [combina, setCombina] = useState<any[]>([]);
+  
+  // 🎯 MELHORIA 3: Estado para sugestões de produtos relacionados
+  const [suggestedProducts, setSuggestedProducts] = useState<any[]>([]);
+  
   const [loadingSug, setLoadingSug] = useState(false);
   const [chatMessages, setChatMessages] = useState<Array<{type: 'user' | 'assistant', text: string}>>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -107,7 +112,7 @@ export default function GeminiAssistantBar() {
     "🎯 Chat natural com IA Gemini - sem pressa",
     "⚡ Gemini: Conversa inteligente + busca precisa",
     "🔍 Ask-then-show: Entende suas intenções",
-    "🤖 Gemini IA: Follow-up inteligente sempre",
+    "🤖 Gemini: Follow-up inteligente sempre",
     "💫 Conversa primeira, produtos depois - Gemini style",
     "🎪 IA Gemini: Entende 'gostei' e 'quero esse'!"
   ];
@@ -300,6 +305,7 @@ export default function GeminiAssistantBar() {
       setCurrentEmotion(null);
       setCurrentInsights([]);
       setSuggestedFollowUps([]);
+      setSuggestedProducts([]); // 🎯 MELHORIA 3: Resetar sugestões
       
       const response = await fetch('/api/assistant/v2/chat', {
         method: 'POST',
@@ -345,7 +351,7 @@ export default function GeminiAssistantBar() {
         buffer = lines.pop() || '';
         
         for (const line of lines) {
-          // 🔍 CORREÇÃO CRÍTICA: Capturar tipo de evento e guardar para próxima linha de data
+          // 🔍 Capturar tipo de evento e guardar para próxima linha de data
           if (line.startsWith('event: ')) {
             pendingEventType = line.slice(7).trim();
             console.log('📡 [V2] 🎯 Evento SSE detectado:', pendingEventType);
@@ -359,7 +365,7 @@ export default function GeminiAssistantBar() {
               continue;
             }
             
-            // 🔍 CORREÇÃO: Usar pendingEventType se disponível, senão usar currentEventType
+            // Usar pendingEventType se disponível, senão usar currentEventType
             const activeEventType = pendingEventType || currentEventType;
             console.log(`📨 [V2] SSE data recebido para evento "${activeEventType}":`, eventData.substring(0, 100));
             
@@ -374,7 +380,7 @@ export default function GeminiAssistantBar() {
                 continue;
               }
               
-              // 🛍️ CORREÇÃO CRÍTICA: Processar evento PRODUCTS com logs detalhados
+              // 🛍️ Processar evento PRODUCTS
               if (activeEventType === 'products') {
                 console.log('🛍️ [V2] ✅ Processando evento PRODUCTS:', {
                   hasProducts: !!data.products,
@@ -403,7 +409,25 @@ export default function GeminiAssistantBar() {
                   console.warn('⚠️ [V2] Evento products recebido mas sem produtos válidos:', data);
                 }
                 
-                // Limpar pending event type após processar
+                pendingEventType = null;
+                continue;
+              }
+              
+              // 🎯 MELHORIA 3: Processar evento SUGGESTIONS
+              if (activeEventType === 'suggestions') {
+                console.log('💡 [V2] ✅ Processando evento SUGGESTIONS:', {
+                  hasSuggestions: !!data.suggestions,
+                  isArray: Array.isArray(data.suggestions),
+                  length: data.suggestions?.length
+                });
+                
+                if (data.suggestions && Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+                  console.log('💡 [V2] ✅✅ SUGESTÕES RECEBIDAS:', data.suggestions.length);
+                  setSuggestedProducts(data.suggestions);
+                } else {
+                  console.warn('⚠️ [V2] Evento suggestions recebido mas sem sugestões válidas:', data);
+                }
+                
                 pendingEventType = null;
                 continue;
               }
@@ -481,6 +505,12 @@ export default function GeminiAssistantBar() {
                   setFeed(products.slice(3));
                 }
                 setCombina([]);
+              }
+              
+              // 🎯 MELHORIA 3: Fallback para sugestões inline
+              if (data.suggestions && Array.isArray(data.suggestions) && data.suggestions.length > 0 && activeEventType !== 'suggestions') {
+                console.log('💡 [V2] Sugestões recebidas (fallback inline):', data.suggestions.length);
+                setSuggestedProducts(data.suggestions);
               }
             } catch (e) {
               console.warn('[V2] Erro ao parsear evento SSE:', e, 'Data:', eventData);
@@ -560,6 +590,7 @@ export default function GeminiAssistantBar() {
     setTopBox([]);
     setFeed([]);
     setCombina([]);
+    setSuggestedProducts([]); // 🎯 MELHORIA 3: Resetar sugestões
     
     setChatMessages(prev => [...prev, { type: 'user', text: t }]);
     
@@ -594,6 +625,7 @@ export default function GeminiAssistantBar() {
     setTopBox([]);
     setFeed([]);
     setCombina([]);
+    setSuggestedProducts([]); // 🎯 MELHORIA 3: Resetar sugestões
     
     // Adicionar mensagem do usuário ao chat
     setChatMessages(prev => [...prev, { type: 'user', text: t }]);
@@ -881,6 +913,41 @@ export default function GeminiAssistantBar() {
                             </h4>
                             {product.price?.USD && (
                               <p className="text-primary dark:text-primary/80 font-bold">
+                                ${product.price.USD}
+                              </p>
+                            )}
+                            {product.storeName && (
+                              <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
+                                {product.storeName}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 🎯 MELHORIA 3: Seção de Sugestões de Produtos Relacionados */}
+                {suggestedProducts.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-primary dark:text-primary/80 mb-4 flex items-center">
+                      💡 Você também pode gostar
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                      {suggestedProducts.map((product, index) => (
+                        <div key={product.id || index} className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-orange-200 dark:border-orange-800">
+                          <LazyImage
+                            src={product.imageUrl || '/placeholder-product.jpg'}
+                            alt={product.title || product.name}
+                            className="w-full h-32 object-cover rounded-t-xl"
+                          />
+                          <div className="p-3">
+                            <h4 className="font-medium text-gray-900 dark:text-gray-100 text-xs mb-2 line-clamp-2">
+                              {product.title || product.name}
+                            </h4>
+                            {product.price?.USD && (
+                              <p className="text-primary dark:text-primary/80 font-bold text-sm">
                                 ${product.price.USD}
                               </p>
                             )}
