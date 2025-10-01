@@ -62,7 +62,7 @@ export default function TestAlibaba() {
           minHeight: '75vh'
         }}
       >
-        <div className="max-w-4xl ml-0 px-20 pt-20 pb-32">
+        <div className="max-w-7xl mx-auto px-6 pt-20 pb-32">
           {/* Label */}
           <div className="flex items-center space-x-2 text-white mb-4">
             <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
