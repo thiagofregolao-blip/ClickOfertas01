@@ -351,7 +351,7 @@ export class IntelligentVendor {
       for (const pattern of productPatterns) {
         const matches = content.match(pattern);
         if (matches) {
-          context.recentProducts.push(...matches.map(m => m.toLowerCase()));
+          context.recentProducts.push(...matches.map((m: string) => m.toLowerCase()));
         }
       }
       
@@ -382,71 +382,121 @@ export class IntelligentVendor {
   }
 
   /**
-   * 🎯 NOVA: Calcular score de relevância inteligente
-   * Prioriza correspondências exatas de números (ex: "iPhone 13" → produtos com "13" valem 100 pontos)
+   * 🔧 Normalizar texto: remover acentos e converter para minúsculas
+   */
+  private normalizeText(text: string): string {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, ''); // Remove acentos
+  }
+
+  /**
+   * 🎯 CORRIGIDA: Calcular score de relevância inteligente
+   * Garante que correspondências básicas de palavras-chave sempre recebem pontos
    */
   private calculateRelevanceScore(product: any, searchTerm: string, entities: SearchEntities, conversationContext: any): number {
     let score = 0;
-    const productName = product.name?.toLowerCase() || '';
-    const productBrand = product.brand?.toLowerCase() || '';
-    const productCategory = product.category?.toLowerCase() || '';
-    const searchLower = searchTerm.toLowerCase();
+    
+    // Normalizar todos os textos
+    const productName = this.normalizeText(product.name || '');
+    const productBrand = this.normalizeText(product.brand || '');
+    const productCategory = this.normalizeText(product.category || '');
+    const productDescription = this.normalizeText(product.description || '');
+    const searchNormalized = this.normalizeText(searchTerm);
 
-    // 🎯 PRIORIDADE MÁXIMA: Números exatos no nome do produto (100 pontos)
+    // Tokenizar busca (palavras de 3+ caracteres)
+    const searchTokens = searchNormalized
+      .split(/\s+/)
+      .filter(token => token.length >= 3);
+
+    console.log(`📊 [V2] Calculando score para "${product.name}" | Busca: "${searchTerm}" | Tokens: [${searchTokens.join(', ')}]`);
+
+    // 🎯 PRIORIDADE 1: Correspondência EXATA da busca completa (100 pontos)
+    if (productName.includes(searchNormalized)) {
+      score += 100;
+      console.log(`✅ Match exato no nome: +100 pontos`);
+    }
+
+    // 🎯 PRIORIDADE 2: Correspondência de CADA token no nome (50 pontos por token)
+    searchTokens.forEach(token => {
+      if (productName.includes(token)) {
+        score += 50;
+        console.log(`✅ Token "${token}" no nome: +50 pontos`);
+      } else if (productBrand.includes(token)) {
+        score += 40;
+        console.log(`✅ Token "${token}" na marca: +40 pontos`);
+      } else if (productCategory.includes(token)) {
+        score += 30;
+        console.log(`✅ Token "${token}" na categoria: +30 pontos`);
+      } else if (productDescription.includes(token)) {
+        score += 10;
+        console.log(`✅ Token "${token}" na descrição: +10 pontos`);
+      }
+    });
+
+    // 🎯 PRIORIDADE 3: Números exatos no nome do produto (100 pontos)
     const numberPattern = /\d+/g;
     const searchNumbers = searchTerm.match(numberPattern);
-    const productNumbers = productName.match(numberPattern);
+    const productNumbers = product.name.match(numberPattern);
     
     if (searchNumbers && productNumbers) {
       const exactNumberMatch = searchNumbers.some(num => productNumbers.includes(num));
       if (exactNumberMatch) {
         score += 100;
-        console.log(`🎯 [V2] Número exato encontrado em "${product.name}": +100 pontos`);
+        console.log(`✅ Número exato encontrado: +100 pontos`);
       }
     }
 
     // Correspondência de modelo específico (50 pontos)
     if (entities.models.length > 0) {
       const modelMatch = entities.models.some(model => 
-        productName.includes(model.toLowerCase())
+        productName.includes(this.normalizeText(model))
       );
       if (modelMatch) {
         score += 50;
+        console.log(`✅ Modelo específico: +50 pontos`);
       }
     }
 
-    // Correspondência de marca (30 pontos)
+    // Correspondência de marca extraída (30 pontos)
     if (entities.brands.length > 0) {
-      const brandMatch = entities.brands.some(brand => 
-        productBrand.includes(brand) || productName.includes(brand)
-      );
+      const brandMatch = entities.brands.some(brand => {
+        const brandNormalized = this.normalizeText(brand);
+        return productBrand.includes(brandNormalized) || productName.includes(brandNormalized);
+      });
       if (brandMatch) {
         score += 30;
+        console.log(`✅ Marca extraída: +30 pontos`);
       }
     }
 
     // Correspondência de categoria (20 pontos)
     if (entities.categories.length > 0) {
       const categoryMatch = entities.categories.some(cat => 
-        productCategory.includes(cat)
+        productCategory.includes(this.normalizeText(cat))
       );
       if (categoryMatch) {
         score += 20;
+        console.log(`✅ Categoria: +20 pontos`);
       }
     }
 
     // Contexto conversacional - marca mencionada recentemente (15 pontos)
-    if (conversationContext.recentBrands.some((brand: string) => 
-      productBrand.includes(brand) || productName.includes(brand)
-    )) {
+    if (conversationContext.recentBrands.some((brand: string) => {
+      const brandNormalized = this.normalizeText(brand);
+      return productBrand.includes(brandNormalized) || productName.includes(brandNormalized);
+    })) {
       score += 15;
+      console.log(`✅ Contexto marca: +15 pontos`);
     }
 
     // Contexto conversacional - categoria mencionada recentemente (10 pontos)
     if (conversationContext.recentCategories.some((cat: string) => 
-      productCategory.includes(cat)
+      productCategory.includes(this.normalizeText(cat))
     )) {
       score += 10;
+      console.log(`✅ Contexto categoria: +10 pontos`);
     }
 
     // Loja premium (5 pontos)
@@ -459,11 +509,7 @@ export class IntelligentVendor {
       score += 3;
     }
 
-    // Correspondência textual no nome (10 pontos)
-    if (productName.includes(searchLower)) {
-      score += 10;
-    }
-
+    console.log(`📊 [V2] Score final para "${product.name}": ${score} pontos`);
     return score;
   }
 
@@ -551,7 +597,7 @@ export class IntelligentVendor {
           const baseName = baseProduct.name?.toLowerCase() || '';
           
           // Extrair palavra-chave principal do produto base (primeira palavra significativa)
-          const baseKeywords = baseName.split(' ').filter(w => w.length > 3);
+          const baseKeywords = baseName.split(' ').filter((w: string) => w.length > 3);
           const mainKeyword = baseKeywords[0] || baseCategory;
           
           console.log(`🔍 [DEBUG] Validando: "${s.name}" | Categoria: "${s.category}" | Keyword: "${mainKeyword}"`);
