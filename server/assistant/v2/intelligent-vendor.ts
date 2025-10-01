@@ -434,12 +434,22 @@ export class IntelligentVendor {
           eq(products.isActive, true),
           eq(stores.isActive, true),
           sql`${products.id} != ${baseProduct.id}`, // Excluir o produto base
+          // ✅ FIX: Trocar OR amplo por AND com validação específica
+          // Produtos devem ter relação REAL: mesma marca OU categoria relacionada (não ambos aleatórios)
           or(
-            // Mesma marca (acessórios da mesma marca)
-            sql`LOWER(${products.brand}) = LOWER(${baseProduct.brand})`,
-            // Categorias relacionadas
-            ...relatedCategories.map(cat => 
-              sql`LOWER(${products.category}) LIKE ${`%${cat}%`}`
+            // Opção 1: Mesma marca E categoria relacionada (acessórios da mesma marca)
+            and(
+              sql`LOWER(${products.brand}) = LOWER(${baseProduct.brand})`,
+              or(...relatedCategories.map(cat => 
+                sql`LOWER(${products.category}) LIKE ${`%${cat}%`}`
+              ))
+            ),
+            // Opção 2: Categoria relacionada com palavra-chave do produto base no nome
+            and(
+              or(...relatedCategories.map(cat => 
+                sql`LOWER(${products.category}) LIKE ${`%${cat}%`}`
+              )),
+              sql`LOWER(${products.name}) LIKE ${`%${baseCategory}%`}`
             )
           )
         ))
@@ -448,22 +458,40 @@ export class IntelligentVendor {
           desc(products.isFeatured),
           asc(products.price)
         )
-        .limit(limit * 2); // Buscar mais para filtrar depois
+        .limit(limit * 3); // Buscar mais para filtrar depois
 
-      // Filtrar sugestões para evitar produtos muito diferentes
+      console.log(`🔍 [DEBUG] SQL retornou ${suggestions.length} sugestões brutas`);
+
+      // ✅ FIX: Filtro JavaScript expandido para TODOS os produtos (não só iPhone)
       const filteredSuggestions = suggestions
         .filter(s => {
-          // Se for iPhone, sugerir apenas acessórios de iPhone (não vestidos!)
-          if (baseProduct.name?.toLowerCase().includes('iphone')) {
-            const suggestionName = s.name?.toLowerCase() || '';
-            const suggestionCategory = s.category?.toLowerCase() || '';
-            return suggestionName.includes('iphone') || 
-                   suggestionCategory.includes('capinha') ||
-                   suggestionCategory.includes('película') ||
-                   suggestionCategory.includes('carregador') ||
-                   suggestionCategory.includes('fone');
+          const suggestionName = s.name?.toLowerCase() || '';
+          const suggestionCategory = s.category?.toLowerCase() || '';
+          const baseName = baseProduct.name?.toLowerCase() || '';
+          
+          // Extrair palavra-chave principal do produto base (primeira palavra significativa)
+          const baseKeywords = baseName.split(' ').filter(w => w.length > 3);
+          const mainKeyword = baseKeywords[0] || baseCategory;
+          
+          console.log(`🔍 [DEBUG] Validando: "${s.name}" | Categoria: "${s.category}" | Keyword: "${mainKeyword}"`);
+          
+          // Validação: produto sugerido deve ter relação com o produto base
+          // 1. Nome contém palavra-chave do produto base OU
+          // 2. Categoria está na lista de categorias relacionadas
+          const hasKeywordMatch = suggestionName.includes(mainKeyword);
+          const hasCategoryMatch = relatedCategories.some(cat => 
+            suggestionCategory.includes(cat)
+          );
+          
+          const isValid = hasKeywordMatch || hasCategoryMatch;
+          
+          if (!isValid) {
+            console.log(`❌ [DEBUG] Rejeitado: "${s.name}" - sem relação com "${baseName}"`);
+          } else {
+            console.log(`✅ [DEBUG] Aprovado: "${s.name}"`);
           }
-          return true;
+          
+          return isValid;
         })
         .slice(0, limit);
 
