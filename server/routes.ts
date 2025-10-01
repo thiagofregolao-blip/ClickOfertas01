@@ -838,6 +838,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Search endpoint with server-side filtering and cache
+  // 🎯 INTELLIGENT FALLBACK SEARCH - Fixed to use smart filtering
   app.get('/api/search', async (req, res) => {
     try {
       const { q, limit = '20' } = req.query;
@@ -852,14 +853,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const cached = cache.get(cacheKey);
       if (cached) {
-        console.log(`🔍 Cache hit for search: "${searchTerm}"`);
+        console.log(`🔍 [/api/search] Cache hit: "${searchTerm}"`);
         return res.json(cached);
       }
       
-      console.log(`🔍 Cache miss for search: "${searchTerm}" - searching DB`);
+      console.log(`🔍 [/api/search] Intelligent fallback search: "${searchTerm}"`);
       
-      // Buscar produtos que correspondem ao termo de busca
-      const searchResults = await db
+      // Import intelligent search utilities
+      const { 
+        extractSearchEntities, 
+        calculateRelevanceScore, 
+        shouldUseStrictMode,
+        getScoreThreshold 
+      } = await import('./assistant/v2/utils/search-intelligence');
+      
+      // Extract entities and determine strict mode
+      const entities = extractSearchEntities(q);
+      const strictMode = shouldUseStrictMode(entities);
+      const minScore = getScoreThreshold(strictMode);
+      
+      console.log(`🎯 [/api/search] Entities:`, {
+        brands: entities.brands,
+        categories: entities.categories,
+        strictMode
+      });
+      
+      // Build WHERE conditions
+      const mandatoryConditions = [
+        eq(products.isActive, true),
+        eq(stores.isActive, true)
+      ];
+      
+      // Add category filter in strict mode
+      if (strictMode && entities.categories.length > 0) {
+        mandatoryConditions.push(
+          or(...entities.categories.map(category => 
+            sql`LOWER(${products.category}) LIKE ${`%${category}%`}`
+          ))
+        );
+        console.log(`🔒 [/api/search] STRICT MODE: Category filter applied`);
+      }
+      
+      // Search conditions (removed description, removed store name)
+      const searchConditions = [
+        sql`LOWER(${products.name}) LIKE ${'%' + searchTerm + '%'}`,
+        sql`LOWER(${products.brand}) LIKE ${'%' + searchTerm + '%'}`
+      ];
+      
+      // Add category to search only if NOT in strict mode
+      if (!strictMode) {
+        searchConditions.push(
+          sql`LOWER(${products.category}) LIKE ${'%' + searchTerm + '%'}`
+        );
+      }
+      
+      // Get more results for scoring
+      const rawResults = await db
         .select({
           id: products.id,
           name: products.name,
@@ -877,21 +926,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(products)
         .innerJoin(stores, eq(products.storeId, stores.id))
         .where(and(
-          eq(products.isActive, true),
-          eq(stores.isActive, true),
-          or(
-            sql`LOWER(${products.name}) LIKE ${'%' + searchTerm + '%'}`,
-            sql`LOWER(${products.brand}) LIKE ${'%' + searchTerm + '%'}`,
-            sql`LOWER(${products.category}) LIKE ${'%' + searchTerm + '%'}`,
-            sql`LOWER(${stores.name}) LIKE ${'%' + searchTerm + '%'}`
-          )
+          ...mandatoryConditions,
+          or(...searchConditions)
         ))
-        .orderBy(
-          desc(stores.isPremium), // Premium stores first
-          desc(products.isFeatured), // Featured products first
-          asc(products.name) // Then alphabetical
-        )
-        .limit(resultLimit);
+        .limit(resultLimit * 2); // Get more for filtering
+      
+      // Score and filter results
+      const scoredResults = rawResults.map(product => {
+        const score = calculateRelevanceScore(
+          {
+            id: product.id,
+            name: product.name,
+            brand: product.brand,
+            category: product.category
+          },
+          searchTerm,
+          entities,
+          strictMode
+        );
+        return { ...product, score };
+      });
+      
+      // Filter by score
+      let validResults = scoredResults.filter(p => p.score >= minScore);
+      
+      // Double-check category in strict mode
+      if (strictMode && entities.categories.length > 0) {
+        validResults = validResults.filter(p => {
+          const productCategory = (p.category || '').toLowerCase();
+          return entities.categories.some(cat => productCategory.includes(cat.toLowerCase()));
+        });
+      }
+      
+      // Sort by score
+      validResults.sort((a, b) => b.score - a.score);
+      
+      // Take top results
+      const searchResults = validResults.slice(0, resultLimit);
+      
+      console.log(`✅ [/api/search] Filtered: ${searchResults.length} products (${rawResults.length - searchResults.length} removed)`);
 
       const response = {
         results: searchResults,
@@ -899,12 +972,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         searchTerm: searchTerm
       };
       
-      // Cache for 2 minutes (search results change more frequently)
+      // Cache for 2 minutes
       cache.set(cacheKey, response, 2 * 60 * 1000);
       
       res.json(response);
     } catch (error) {
-      console.error("Error in search:", error);
+      console.error("[/api/search] Error:", error);
       res.status(500).json({ message: "Erro ao realizar busca" });
     }
   });
@@ -6679,98 +6752,166 @@ Responda curto, claro, PT-BR.
   });
 
   // Sugestões para a barra (produtos em alta/semânticos + top lojas premium-first) + raspadinha (opcional)
+  // 🎯 INTELLIGENT PRODUCT SEARCH - Fixed to use smart filtering
   app.get('/api/click/suggest', async (req, res) => {
     try {
       const q = (req.query.q || '').toString();
-      const userId = (req.headers['x-user-id'] || '').toString();  // opcional para cooldown da raspadinha
+      const userId = (req.headers['x-user-id'] || '').toString();
       const ip = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || '';
 
-      console.log(`🔍 [/api/click/suggest] Buscando para: "${q}"`);
+      console.log(`🔍 [/api/click/suggest] Intelligent search for: "${q}"`);
       
-      // BUSCA UNIFICADA (PRODUCT BANK + PRODUCTS) COM SQL PURO
+      // Import intelligent search utilities
+      const { 
+        extractSearchEntities, 
+        calculateRelevanceScore, 
+        shouldUseStrictMode,
+        getScoreThreshold 
+      } = await import('./assistant/v2/utils/search-intelligence');
+      
       const searchTerm = q.toLowerCase().trim();
-      console.log(`🎯 [/api/click/suggest] Termo processado: "${searchTerm}"`);
       
-      // 1. BUSCA NO PRODUCT BANK - ABORDAGEM INTELIGENTE
-      const terms = searchTerm.split(' ').filter(t => t.length > 1);
-      console.log(`🔤 [/api/click/suggest] Termos separados: [${terms.join(', ')}]`);
+      // Extract entities (brands, models, categories)
+      const entities = extractSearchEntities(q);
+      const strictMode = shouldUseStrictMode(entities);
+      const minScore = getScoreThreshold(strictMode);
       
-      let primaryTerm = searchTerm;
+      console.log(`🎯 [/api/click/suggest] Entities:`, {
+        brands: entities.brands,
+        models: entities.models,
+        categories: entities.categories,
+        strictMode,
+        minScore
+      });
       
-      // Se há múltiplos termos, priorizar códigos/modelos (A2411, iPhone, etc)
-      if (terms.length > 1) {
-        const codePattern = /[A-Z]\d{4}|iPhone|iPad|Galaxy|Xperia/i;
-        const codeMatch = terms.find(term => codePattern.test(term));
-        if (codeMatch) {
-          primaryTerm = codeMatch.toLowerCase();
-          console.log(`🎯 [/api/click/suggest] Priorizando código/modelo: "${primaryTerm}"`);
-        } else {
-          // Senão, usar apenas os primeiros 2 termos mais importantes
-          primaryTerm = terms.slice(0, 2).join(' ').toLowerCase();
-          console.log(`🎯 [/api/click/suggest] Usando primeiros termos: "${primaryTerm}"`);
-        }
+      // Build SQL conditions based on strict mode
+      let bankWhereConditions = `LOWER(name) LIKE '%${searchTerm}%' OR LOWER(model) LIKE '%${searchTerm}%' OR LOWER(brand) LIKE '%${searchTerm}%'`;
+      let storeWhereConditions = `LOWER(p.name) LIKE '%${searchTerm}%' OR LOWER(p.brand) LIKE '%${searchTerm}%'`;
+      
+      // 🎯 FIX: Add mandatory category filter in strict mode
+      if (strictMode && entities.categories.length > 0) {
+        const categoryConditions = entities.categories
+          .map(cat => `LOWER(category) LIKE '%${cat}%'`)
+          .join(' OR ');
+        bankWhereConditions = `(${bankWhereConditions}) AND (${categoryConditions})`;
+        
+        const storeCategoryConditions = entities.categories
+          .map(cat => `LOWER(p.category) LIKE '%${cat}%'`)
+          .join(' OR ');
+        storeWhereConditions = `(${storeWhereConditions}) AND (${storeCategoryConditions})`;
+        
+        console.log(`🔒 [/api/click/suggest] STRICT MODE: Category filter applied`);
       }
       
-      // Busca com termo principal otimizado
-      const bankResult = await db.execute(sql`
-        SELECT id, name, category, primaryimageurl 
+      // 1. SEARCH PRODUCT BANK (get more results for filtering)
+      const bankResult = await db.execute(sql.raw(`
+        SELECT id, name, category, brand, model, primaryimageurl 
         FROM product_bank_items 
-        WHERE LOWER(name) LIKE ${'%' + primaryTerm + '%'}
-           OR LOWER(model) LIKE ${'%' + primaryTerm + '%'}
-           OR LOWER(brand) LIKE ${'%' + primaryTerm + '%'}
-        LIMIT 3
-      `);
+        WHERE ${bankWhereConditions}
+        LIMIT 20
+      `));
       
-      // 2. BUSCA NOS PRODUTOS DE LOJAS - MESMO TERMO OTIMIZADO
-      const storeResult = await db.execute(sql`
-        SELECT p.id, p.name, p.category, p.image_url, s.name as store_name, s.slug as store_slug
+      // 2. SEARCH STORE PRODUCTS (get more results for filtering)
+      const storeResult = await db.execute(sql.raw(`
+        SELECT p.id, p.name, p.category, p.brand, p.image_url, p.price,
+               s.name as store_name, s.slug as store_slug, s.is_premium as store_premium
         FROM products p
         LEFT JOIN stores s ON p.store_id = s.id
-        WHERE LOWER(p.name) LIKE ${'%' + primaryTerm + '%'}
-           OR LOWER(p.description) LIKE ${'%' + primaryTerm + '%'}
-        LIMIT 3
-      `);
+        WHERE p.is_active = true 
+          AND s.is_active = true
+          AND (${storeWhereConditions})
+        LIMIT 20
+      `));
       
-      console.log(`📦 [/api/click/suggest] Product Bank: ${bankResult.rows.length}, Lojas: ${storeResult.rows.length}`);
+      console.log(`📦 [/api/click/suggest] Raw results - Bank: ${bankResult.rows.length}, Stores: ${storeResult.rows.length}`);
       
-      // 3. TRANSFORMAR E COMBINAR RESULTADOS
-      const bankProducts = bankResult.rows.map((p: any) => ({
-        id: `bank_${p.id}`,
-        title: p.name,
-        category: p.category || 'eletronicos',
-        price: { USD: 450 },
-        premium: false,
-        storeName: 'Atacado Store',
-        storeSlug: 'atacado-store',
-        imageUrl: p.primaryimageurl
-      }));
+      // 3. SCORE AND FILTER RESULTS
+      const bankProductsWithScores = bankResult.rows.map((p: any) => {
+        const product = {
+          id: p.id,
+          name: p.name,
+          brand: p.brand,
+          category: p.category
+        };
+        const score = calculateRelevanceScore(product, searchTerm, entities, strictMode);
+        return {
+          ...product,
+          score,
+          imageUrl: p.primaryimageurl,
+          formatted: {
+            id: `bank_${p.id}`,
+            title: p.name,
+            category: p.category || 'eletronicos',
+            price: { USD: 450 },
+            premium: false,
+            storeName: 'Atacado Store',
+            storeSlug: 'atacado-store',
+            imageUrl: p.primaryimageurl
+          }
+        };
+      });
       
-      const storeProducts = storeResult.rows.map((p: any) => ({
-        id: `store_${p.id}`,
-        title: p.name,
-        category: p.category || 'eletronicos',
-        price: { USD: 350 },
-        premium: true,
-        storeName: p.store_name || 'Click Store',
-        storeSlug: p.store_slug || 'click-store',
-        imageUrl: p.image_url
-      }));
+      const storeProductsWithScores = storeResult.rows.map((p: any) => {
+        const product = {
+          id: p.id,
+          name: p.name,
+          brand: p.brand,
+          category: p.category
+        };
+        const score = calculateRelevanceScore(product, searchTerm, entities, strictMode);
+        return {
+          ...product,
+          score,
+          imageUrl: p.image_url,
+          price: p.price,
+          formatted: {
+            id: `store_${p.id}`,
+            title: p.name,
+            category: p.category || 'eletronicos',
+            price: { USD: p.price || 350 },
+            premium: p.store_premium || false,
+            storeName: p.store_name || 'Click Store',
+            storeSlug: p.store_slug || 'click-store',
+            imageUrl: p.image_url
+          }
+        };
+      });
       
-      const allProducts = [...bankProducts, ...storeProducts];
+      // Combine and filter by score
+      const allProductsWithScores = [...bankProductsWithScores, ...storeProductsWithScores];
+      const validProducts = allProductsWithScores.filter(p => p.score >= minScore);
+      
+      // 🎯 FIX: Double-check category match in strict mode
+      const finalProducts = strictMode 
+        ? validProducts.filter(p => {
+            const productCategory = (p.category || '').toLowerCase();
+            return entities.categories.some(cat => productCategory.includes(cat.toLowerCase()));
+          })
+        : validProducts;
+      
+      // Sort by score (highest first)
+      finalProducts.sort((a, b) => b.score - a.score);
+      
+      // Take top 6 results
+      const topProducts = finalProducts.slice(0, 6).map(p => p.formatted);
+      
+      console.log(`✅ [/api/click/suggest] Filtered results: ${topProducts.length} products (${allProductsWithScores.length - topProducts.length} removed by scoring)`);
+      if (topProducts.length > 0) {
+        console.log(`📊 [/api/click/suggest] Top 3 scores:`, 
+          finalProducts.slice(0, 3).map(p => `${p.name} (score: ${p.score})`)
+        );
+      }
 
       const payload = { 
         ok: true, 
-        products: allProducts,
-        category: allProducts.length > 0 ? allProducts[0].category : 'eletronicos',
-        topStores: [...new Set(allProducts.map(p => p.storeName))]
+        products: topProducts,
+        category: topProducts.length > 0 ? topProducts[0].category : 'eletronicos',
+        topStores: [...new Set(topProducts.map(p => p.storeName))]
       };
-
-      // TEMPORARIAMENTE DESABILITADO para testar Stack Overflow
-      // await maybeAttachPromo({ payload, userId, ip, context: { route: 'suggest', query: q, category: 'eletronicos' } });
 
       res.json(payload);
     } catch (e) {
-      console.error('[/api/click/suggest] ERRO:', e);
+      console.error('[/api/click/suggest] ERROR:', e);
       res.status(500).json({ ok: false, error: 'Erro nas sugestões' });
     }
   });
