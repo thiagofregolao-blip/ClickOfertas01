@@ -139,15 +139,19 @@ export class IntelligentVendor {
       
       console.log(`🔍 [V2] Busca contextual para: "${searchTerm}"`, { entities });
       
-      // Construir condições de busca baseadas nas entidades
-      const conditions: any[] = [
+      // ✅ FIX CRÍTICO: Separar condições obrigatórias (AND) das opcionais (OR)
+      // Condições OBRIGATÓRIAS (sempre aplicadas com AND)
+      const mandatoryConditions: any[] = [
         eq(products.isActive, true),
         eq(stores.isActive, true)
       ];
 
+      // Condições OPCIONAIS de busca (aplicadas com OR entre si, mas AND com obrigatórias)
+      const searchConditions: any[] = [];
+
       // Filtro por marca
       if (entities.brands.length > 0) {
-        conditions.push(
+        searchConditions.push(
           or(...entities.brands.map(brand => 
             sql`LOWER(${products.brand}) LIKE ${`%${brand}%`}`
           ))
@@ -156,7 +160,7 @@ export class IntelligentVendor {
 
       // Filtro por modelo
       if (entities.models.length > 0) {
-        conditions.push(
+        searchConditions.push(
           or(...entities.models.map(model => 
             sql`LOWER(${products.name}) LIKE ${`%${model}%`}`
           ))
@@ -165,31 +169,36 @@ export class IntelligentVendor {
 
       // Filtro por categoria
       if (entities.categories.length > 0) {
-        conditions.push(
+        searchConditions.push(
           or(...entities.categories.map(category => 
             sql`LOWER(${products.category}) LIKE ${`%${category}%`}`
           ))
         );
       }
 
-      // Filtro por faixa de preço
+      // Busca textual no nome/descrição (sempre incluída)
+      searchConditions.push(
+        or(
+          sql`LOWER(${products.name}) LIKE ${`%${searchTerm}%`}`,
+          sql`LOWER(${products.description}) LIKE ${`%${searchTerm}%`}`
+        )
+      );
+
+      // Filtro por faixa de preço (obrigatório se especificado)
       if (entities.priceRange?.max) {
-        conditions.push(sql`${products.price} <= ${entities.priceRange.max}`);
+        mandatoryConditions.push(sql`${products.price} <= ${entities.priceRange.max}`);
       }
 
-      // Se não houver filtros específicos, usar busca textual ampla
-      if (entities.brands.length === 0 && entities.models.length === 0 && entities.categories.length === 0) {
-        conditions.push(
-          or(
-            sql`LOWER(${products.name}) LIKE ${`%${searchTerm}%`}`,
-            sql`LOWER(${products.brand}) LIKE ${`%${searchTerm}%`}`,
-            sql`LOWER(${products.category}) LIKE ${`%${searchTerm}%`}`,
-            sql`LOWER(${products.description}) LIKE ${`%${searchTerm}%`}`
-          )
-        );
-      }
+      // ✅ FIX: Combinar condições corretamente
+      // Lógica: (isActive AND storeActive AND priceRange?) AND (brand OR model OR category OR textSearch)
+      const finalCondition = searchConditions.length > 0
+        ? and(...mandatoryConditions, or(...searchConditions))
+        : and(...mandatoryConditions);
 
-      console.log(`🔍 [V2] DEBUG: Usando OR entre condições. Total: ${conditions.length}`);
+      console.log(`🔍 [V2] DEBUG: Usando AND para obrigatórias (${mandatoryConditions.length}), OR para busca (${searchConditions.length})`);
+      console.log(`🔍 [V2] DEBUG: Entidades - Brands: [${entities.brands.join(', ')}], Models: [${entities.models.join(', ')}], Categories: [${entities.categories.join(', ')}]`);
+      console.log(`🔍 [V2] DEBUG: Termo de busca: "${searchTerm}"`);
+      
       const searchResults = await db
         .select({
           id: products.id,
@@ -209,7 +218,7 @@ export class IntelligentVendor {
         })
         .from(products)
         .innerJoin(stores, eq(products.storeId, stores.id))
-        .where(or(...conditions))
+        .where(finalCondition)
         .orderBy(
           desc(stores.isPremium),
           desc(products.isFeatured),
@@ -225,19 +234,28 @@ export class IntelligentVendor {
         return { ...product, relevanceScore };
       });
 
-      // Ordenar por relevância (score mais alto primeiro)
-      rankedResults.sort((a, b) => b.relevanceScore - a.relevanceScore);
+      // ✅ FIX CRÍTICO: Filtrar produtos com score ZERO (sem relevância real)
+      const validResults = rankedResults.filter(product => {
+        if (product.relevanceScore === 0) {
+          console.log(`❌ [V2] PRODUTO SEM RELEVÂNCIA REMOVIDO: "${product.name}" (${product.category}) - Score: 0`);
+          return false;
+        }
+        return true;
+      });
 
-      console.log(`🔍 [V2] ✅ ${rankedResults.length} produtos encontrados com ranking de relevância`);
-      if (rankedResults.length > 0) {
-        console.log(`🔍 [V2] Top 3:`, rankedResults.slice(0, 3).map(p => 
+      // Ordenar por relevância (score mais alto primeiro)
+      validResults.sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+      console.log(`🔍 [V2] ✅ ${validResults.length} produtos VÁLIDOS encontrados (${searchResults.length - validResults.length} removidos por score=0)`);
+      if (validResults.length > 0) {
+        console.log(`🔍 [V2] Top 3:`, validResults.slice(0, 3).map(p => 
           `${p.name} (${p.brand}) - Score: ${p.relevanceScore}`
         ));
       }
 
 
       // 🎯 FALLBACK: Se busca específica retornar 0, tentar busca ampla
-      if (rankedResults.length === 0 && (entities.brands.length > 0 || entities.models.length > 0 || entities.categories.length > 0)) {
+      if (validResults.length === 0 && (entities.brands.length > 0 || entities.models.length > 0 || entities.categories.length > 0)) {
         console.log('🔄 [V2] Busca específica = 0 resultados. Tentando busca ampla...');
         
         const broadConditions: any[] = [
@@ -283,12 +301,14 @@ export class IntelligentVendor {
           return { ...product, relevanceScore };
         });
 
-        broadRanked.sort((a, b) => b.relevanceScore - a.relevanceScore);
-        console.log(`🔄 [V2] Busca ampla encontrou ${broadRanked.length} produtos`);
-        return broadRanked;
+        // ✅ FIX: Filtrar produtos sem relevância também no fallback
+        const validBroadResults = broadRanked.filter(p => p.relevanceScore > 0);
+        validBroadResults.sort((a, b) => b.relevanceScore - a.relevanceScore);
+        console.log(`🔄 [V2] Busca ampla encontrou ${validBroadResults.length} produtos válidos (${broadRanked.length - validBroadResults.length} removidos)`);
+        return validBroadResults;
       }
 
-      return rankedResults;
+      return validResults;
     } catch (error) {
       console.error('❌ [V2] Erro na busca de produtos:', error);
       return [];
