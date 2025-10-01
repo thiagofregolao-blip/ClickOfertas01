@@ -1,0 +1,100 @@
+✅ CHECKLIST DE CORREÇÕES E MELHORIAS
+🔧 1. Salvar contexto após uma busca bem-sucedida
+
+📍 Onde: Após a resposta da IA com produtos encontrados (backend).
+
+✅ Ação:
+No código que trata uma busca com sucesso, adicione:
+
+await salvarContextoSessao(sessionId, {
+  focoAtual: "iphone", // ou termo da busca atual
+  categoriaAtual: "celular", // se conhecida
+  ultimaQuery: searchTerm,
+  ultimosModelos: ["15", "16"] // se modelos foram identificados
+});
+
+
+Isso garante que a próxima mensagem do usuário possa aproveitar esse histórico.
+
+🧠 2. Usar o contexto salvo quando entidades forem vazias
+
+📍 Onde: No parser da nova mensagem (antes da busca).
+
+✅ Ação:
+Quando a extração de entidades falhar, fazer algo como:
+
+const contexto = await obterContextoSessao(sessionId);
+
+if (!entities.models.length && /\b(13|14|15|16)\b/.test(searchTerm) && contexto?.focoAtual === "iphone") {
+  entities.models.push(searchTerm.match(/\b(13|14|15|16)\b/)[0]);
+  entities.brands.push("apple");
+  entities.categories.push("celular");
+}
+
+
+💡 Isso resolve 100% do problema do "quero o modelo 13" depois de "iphone".
+
+🔍 3. Corrigir a extração de entidade para aceitar números isolados
+
+📍 Onde: No módulo de parsing de entidades (provavelmente intents.ts ou outro módulo de NLP).
+
+✅ Ação:
+Adicione um fallback para detectar modelos como números soltos:
+
+const modelo = searchTerm.match(/\b\d{2}\b/); // Ex: "13", "14"
+if (modelo) {
+  entities.models.push(modelo[0]);
+}
+
+
+Mesmo sem marca, isso permite ao sistema tentar buscar pelo modelo.
+
+📉 4. Corrigir fallback do frontend (use-intelligent-search.ts)
+
+📍 Onde: Dentro do useEffect que avalia clickProQuery.
+
+✅ Ação:
+Trocar de:
+
+if (clickProQuery.isError || (clickProQuery.data && !clickProQuery.data.ok)) {
+  setUseFallback(true);
+}
+
+
+Para:
+
+if (
+  clickProQuery.isError ||
+  (clickProQuery.data && (!clickProQuery.data.ok || clickProQuery.data.products?.length === 0))
+) {
+  setUseFallback(true);
+}
+
+
+Assim o fallback é ativado mesmo quando a IA responde “ok”, mas sem produtos.
+
+🗃️ 5. Verificar por que a sessão não está sendo criada
+
+📍 Onde: Função que inicia a sessão (/api/assistant/sessions)
+
+✅ Ação:
+No log apareceu repetidamente:
+
+⚠️ getConversationContext: No interactions found
+
+
+Garanta que a sessão esteja realmente sendo criada e persistida no storage. Senão, obterContextoSessao(sessionId) sempre falhará. Você pode fazer isso incluindo um log explícito:
+
+console.log("Sessão criada para:", sessionId)
+
+✅ Resultado Esperado Após Aplicar o Checklist
+
+Fluxo anterior (defeituoso):
+
+Usuário: "iphone" → IA retorna produtos
+Usuário: "quero o modelo 13" → IA responde: "não encontrei nada"
+
+Fluxo corrigido:
+
+Usuário: "iphone" → IA salva foco ("iphone", marca "apple", categoria "celular")
+Usuário: "quero o modelo 13" → IA reconhece como "iPhone 13" e retorna corretamente os produtos

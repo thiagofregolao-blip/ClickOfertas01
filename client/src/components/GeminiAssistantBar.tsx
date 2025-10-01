@@ -350,6 +350,11 @@ export default function GeminiAssistantBar() {
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
         
+        // 🔍 DEBUG: Ver linhas brutas recebidas
+        if (lines.some(l => l.includes('event:') || l.includes('products'))) {
+          console.log('🔍 [V2] Linhas SSE brutas recebidas:', lines);
+        }
+        
         for (let line of lines) {
           // 🛡️ FILTRO: Ignorar linhas vazias e linhas SSE brutas
           if (!line.trim() || line.startsWith(':')) {
