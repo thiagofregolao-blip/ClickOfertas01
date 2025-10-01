@@ -132,7 +132,7 @@ export class IntelligentVendor {
   /**
    * 🎯 MELHORIA 1: Busca contextual com filtros SQL inteligentes e ranking de relevância
    */
-  private async searchProducts(message: string, limit: number = 10): Promise<any[]> {
+  private async searchProducts(userId: string, message: string, limit: number = 10): Promise<any[]> {
     try {
       const searchTerm = message.trim().toLowerCase();
       const entities = this.extractSearchEntities(message);
@@ -216,39 +216,15 @@ export class IntelligentVendor {
         )
         .limit(limit);
 
-      // 🎯 MELHORIA 1: Ranking de relevância
+      // 🎯 MELHORIA 1: Ranking de relevância com contexto conversacional
+      const conversationContext = this.getConversationContext(userId);
+      
       const rankedResults = searchResults.map(product => {
-        let relevanceScore = 0;
-
-        // Pontuação por correspondência de marca
-        if (entities.brands.some(brand => product.brand?.toLowerCase().includes(brand))) {
-          relevanceScore += 10;
-        }
-
-        // Pontuação por correspondência de modelo
-        if (entities.models.some(model => product.name?.toLowerCase().includes(model.toLowerCase()))) {
-          relevanceScore += 15;
-        }
-
-        // Pontuação por correspondência de categoria
-        if (entities.categories.some(cat => product.category?.toLowerCase().includes(cat))) {
-          relevanceScore += 8;
-        }
-
-        // Pontuação por loja premium
-        if (product.storePremium) {
-          relevanceScore += 5;
-        }
-
-        // Pontuação por produto em destaque
-        if (product.isFeatured) {
-          relevanceScore += 3;
-        }
-
+        const relevanceScore = this.calculateRelevanceScore(product, searchTerm, entities, conversationContext);
         return { ...product, relevanceScore };
       });
 
-      // Ordenar por relevância
+      // Ordenar por relevância (score mais alto primeiro)
       rankedResults.sort((a, b) => b.relevanceScore - a.relevanceScore);
 
       console.log(`🔍 [V2] ✅ ${rankedResults.length} produtos encontrados com ranking de relevância`);
@@ -266,12 +242,175 @@ export class IntelligentVendor {
   }
 
   /**
-   * 🎯 MELHORIA 3: Buscar produtos relacionados/sugestões
+   * 🎯 NOVA: Obter contexto conversacional do usuário
+   * Lembra produtos mencionados recentemente para entender referências como "modelo 13", "esse", etc.
+   */
+  private getConversationContext(userId: string): { recentProducts: string[], recentBrands: string[], recentCategories: string[] } {
+    const memory = memoryManager.getMemory(userId);
+    const context = {
+      recentProducts: [] as string[],
+      recentBrands: [] as string[],
+      recentCategories: [] as string[]
+    };
+
+    // Extrair produtos, marcas e categorias das últimas 5 interações
+    const recentInteractions = memory.interactions.slice(-5);
+    
+    for (const interaction of recentInteractions) {
+      const content = interaction.content.toLowerCase();
+      
+      // Detectar produtos mencionados (iPhone, Galaxy, etc)
+      const productPatterns = [
+        /iphone\s*(\d+)?/gi,
+        /galaxy\s*[sa]?(\d+)?/gi,
+        /redmi\s*(\d+)?/gi,
+        /moto\s*g?(\d+)?/gi
+      ];
+      
+      for (const pattern of productPatterns) {
+        const matches = content.match(pattern);
+        if (matches) {
+          context.recentProducts.push(...matches.map(m => m.toLowerCase()));
+        }
+      }
+      
+      // Detectar marcas
+      const brands = ['apple', 'samsung', 'xiaomi', 'motorola', 'lg', 'sony'];
+      for (const brand of brands) {
+        if (content.includes(brand)) {
+          context.recentBrands.push(brand);
+        }
+      }
+      
+      // Detectar categorias
+      const categories = ['celular', 'notebook', 'tv', 'perfume', 'roupa', 'sapato', 'fone'];
+      for (const category of categories) {
+        if (content.includes(category)) {
+          context.recentCategories.push(category);
+        }
+      }
+    }
+
+    // Remover duplicatas
+    context.recentProducts = [...new Set(context.recentProducts)];
+    context.recentBrands = [...new Set(context.recentBrands)];
+    context.recentCategories = [...new Set(context.recentCategories)];
+
+    console.log(`🧠 [V2] Contexto conversacional para ${userId}:`, context);
+    return context;
+  }
+
+  /**
+   * 🎯 NOVA: Calcular score de relevância inteligente
+   * Prioriza correspondências exatas de números (ex: "iPhone 13" → produtos com "13" valem 100 pontos)
+   */
+  private calculateRelevanceScore(product: any, searchTerm: string, entities: SearchEntities, conversationContext: any): number {
+    let score = 0;
+    const productName = product.name?.toLowerCase() || '';
+    const productBrand = product.brand?.toLowerCase() || '';
+    const productCategory = product.category?.toLowerCase() || '';
+    const searchLower = searchTerm.toLowerCase();
+
+    // 🎯 PRIORIDADE MÁXIMA: Números exatos no nome do produto (100 pontos)
+    const numberPattern = /\d+/g;
+    const searchNumbers = searchTerm.match(numberPattern);
+    const productNumbers = productName.match(numberPattern);
+    
+    if (searchNumbers && productNumbers) {
+      const exactNumberMatch = searchNumbers.some(num => productNumbers.includes(num));
+      if (exactNumberMatch) {
+        score += 100;
+        console.log(`🎯 [V2] Número exato encontrado em "${product.name}": +100 pontos`);
+      }
+    }
+
+    // Correspondência de modelo específico (50 pontos)
+    if (entities.models.length > 0) {
+      const modelMatch = entities.models.some(model => 
+        productName.includes(model.toLowerCase())
+      );
+      if (modelMatch) {
+        score += 50;
+      }
+    }
+
+    // Correspondência de marca (30 pontos)
+    if (entities.brands.length > 0) {
+      const brandMatch = entities.brands.some(brand => 
+        productBrand.includes(brand) || productName.includes(brand)
+      );
+      if (brandMatch) {
+        score += 30;
+      }
+    }
+
+    // Correspondência de categoria (20 pontos)
+    if (entities.categories.length > 0) {
+      const categoryMatch = entities.categories.some(cat => 
+        productCategory.includes(cat)
+      );
+      if (categoryMatch) {
+        score += 20;
+      }
+    }
+
+    // Contexto conversacional - marca mencionada recentemente (15 pontos)
+    if (conversationContext.recentBrands.some((brand: string) => 
+      productBrand.includes(brand) || productName.includes(brand)
+    )) {
+      score += 15;
+    }
+
+    // Contexto conversacional - categoria mencionada recentemente (10 pontos)
+    if (conversationContext.recentCategories.some((cat: string) => 
+      productCategory.includes(cat)
+    )) {
+      score += 10;
+    }
+
+    // Loja premium (5 pontos)
+    if (product.storePremium) {
+      score += 5;
+    }
+
+    // Produto em destaque (3 pontos)
+    if (product.isFeatured) {
+      score += 3;
+    }
+
+    // Correspondência textual no nome (10 pontos)
+    if (productName.includes(searchLower)) {
+      score += 10;
+    }
+
+    return score;
+  }
+
+  /**
+   * 🎯 CORRIGIDA: Buscar produtos relacionados/sugestões
+   * Agora busca por CATEGORIA e MARCA relacionadas, não por preço aleatório
    */
   private async getSuggestedProducts(baseProduct: any, limit: number = 5): Promise<any[]> {
     try {
-      console.log(`💡 [V2] Buscando sugestões relacionadas a: ${baseProduct.name}`);
+      console.log(`💡 [V2] Buscando sugestões relacionadas a: ${baseProduct.name} (${baseProduct.category}, ${baseProduct.brand})`);
 
+      // Determinar categoria relacionada para sugestões inteligentes
+      const categoryRelations: Record<string, string[]> = {
+        'celular': ['capinha', 'película', 'carregador', 'fone', 'suporte'],
+        'smartphone': ['capinha', 'película', 'carregador', 'fone', 'suporte'],
+        'notebook': ['mouse', 'teclado', 'mochila', 'suporte', 'hub usb'],
+        'tv': ['suporte', 'controle', 'cabo hdmi', 'soundbar'],
+        'perfume': ['perfume', 'colônia', 'desodorante', 'body splash'],
+        'roupa': ['roupa', 'acessório', 'calçado'],
+        'sapato': ['sapato', 'tênis', 'sandália', 'meia']
+      };
+
+      const baseCategory = baseProduct.category?.toLowerCase() || '';
+      const relatedCategories = categoryRelations[baseCategory] || [baseCategory];
+
+      console.log(`💡 [V2] Categorias relacionadas para "${baseCategory}":`, relatedCategories);
+
+      // Buscar produtos relacionados por categoria/marca, NÃO por preço
       const suggestions = await db
         .select({
           id: products.id,
@@ -286,7 +425,8 @@ export class IntelligentVendor {
           storeLogoUrl: stores.logoUrl,
           storeSlug: stores.slug,
           storeThemeColor: stores.themeColor,
-          storePremium: stores.isPremium
+          storePremium: stores.isPremium,
+          isFeatured: products.isFeatured
         })
         .from(products)
         .innerJoin(stores, eq(products.storeId, stores.id))
@@ -295,14 +435,11 @@ export class IntelligentVendor {
           eq(stores.isActive, true),
           sql`${products.id} != ${baseProduct.id}`, // Excluir o produto base
           or(
-            // Mesma categoria
-            sql`LOWER(${products.category}) = LOWER(${baseProduct.category})`,
-            // Mesma marca
+            // Mesma marca (acessórios da mesma marca)
             sql`LOWER(${products.brand}) = LOWER(${baseProduct.brand})`,
-            // Faixa de preço similar (±30%)
-            and(
-              sql`${products.price} >= ${baseProduct.price * 0.7}`,
-              sql`${products.price} <= ${baseProduct.price * 1.3}`
+            // Categorias relacionadas
+            ...relatedCategories.map(cat => 
+              sql`LOWER(${products.category}) LIKE ${`%${cat}%`}`
             )
           )
         ))
@@ -311,10 +448,29 @@ export class IntelligentVendor {
           desc(products.isFeatured),
           asc(products.price)
         )
-        .limit(limit);
+        .limit(limit * 2); // Buscar mais para filtrar depois
 
-      console.log(`💡 [V2] ✅ ${suggestions.length} sugestões encontradas`);
-      return suggestions;
+      // Filtrar sugestões para evitar produtos muito diferentes
+      const filteredSuggestions = suggestions
+        .filter(s => {
+          // Se for iPhone, sugerir apenas acessórios de iPhone (não vestidos!)
+          if (baseProduct.name?.toLowerCase().includes('iphone')) {
+            const suggestionName = s.name?.toLowerCase() || '';
+            const suggestionCategory = s.category?.toLowerCase() || '';
+            return suggestionName.includes('iphone') || 
+                   suggestionCategory.includes('capinha') ||
+                   suggestionCategory.includes('película') ||
+                   suggestionCategory.includes('carregador') ||
+                   suggestionCategory.includes('fone');
+          }
+          return true;
+        })
+        .slice(0, limit);
+
+      console.log(`💡 [V2] ✅ ${filteredSuggestions.length} sugestões encontradas:`, 
+        filteredSuggestions.map(s => `${s.name} (${s.category})`));
+      
+      return filteredSuggestions;
     } catch (error) {
       console.error('❌ [V2] Erro ao buscar sugestões:', error);
       return [];
@@ -484,7 +640,7 @@ export class IntelligentVendor {
       
       if (this.shouldSearchProducts(message, intent)) {
         console.log(`🔍 [V2] Searching products for: "${message}"`);
-        foundProducts = await this.searchProducts(message, 10);
+        foundProducts = await this.searchProducts(userId, message, 10);
         
         if (foundProducts.length > 0) {
           console.log(`🛍️ [V2] Found ${foundProducts.length} products:`, foundProducts.map(p => p.name));
