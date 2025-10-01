@@ -189,6 +189,7 @@ export class IntelligentVendor {
         );
       }
 
+      console.log(`🔍 [V2] DEBUG: Usando OR entre condições. Total: ${conditions.length}`);
       const searchResults = await db
         .select({
           id: products.id,
@@ -208,7 +209,7 @@ export class IntelligentVendor {
         })
         .from(products)
         .innerJoin(stores, eq(products.storeId, stores.id))
-        .where(and(...conditions))
+        .where(or(...conditions))
         .orderBy(
           desc(stores.isPremium),
           desc(products.isFeatured),
@@ -232,6 +233,59 @@ export class IntelligentVendor {
         console.log(`🔍 [V2] Top 3:`, rankedResults.slice(0, 3).map(p => 
           `${p.name} (${p.brand}) - Score: ${p.relevanceScore}`
         ));
+      }
+
+
+      // 🎯 FALLBACK: Se busca específica retornar 0, tentar busca ampla
+      if (rankedResults.length === 0 && (entities.brands.length > 0 || entities.models.length > 0 || entities.categories.length > 0)) {
+        console.log('🔄 [V2] Busca específica = 0 resultados. Tentando busca ampla...');
+        
+        const broadConditions: any[] = [
+          eq(products.isActive, true),
+          eq(stores.isActive, true),
+          or(
+            sql`LOWER(${products.name}) LIKE ${`%${searchTerm}%`}`,
+            sql`LOWER(${products.brand}) LIKE ${`%${searchTerm}%`}`,
+            sql`LOWER(${products.category}) LIKE ${`%${searchTerm}%`}`,
+            sql`LOWER(${products.description}) LIKE ${`%${searchTerm}%`}`
+          )
+        ];
+
+        const broadResults = await db
+          .select({
+            id: products.id,
+            name: products.name,
+            price: products.price,
+            imageUrl: products.imageUrl,
+            category: products.category,
+            brand: products.brand,
+            description: products.description,
+            storeId: products.storeId,
+            storeName: stores.name,
+            storeLogoUrl: stores.logoUrl,
+            storeSlug: stores.slug,
+            storeThemeColor: stores.themeColor,
+            storePremium: stores.isPremium,
+            isFeatured: products.isFeatured
+          })
+          .from(products)
+          .innerJoin(stores, eq(products.storeId, stores.id))
+          .where(and(...broadConditions))
+          .orderBy(
+            desc(stores.isPremium),
+            desc(products.isFeatured),
+            asc(products.price)
+          )
+          .limit(limit);
+
+        const broadRanked = broadResults.map(product => {
+          const relevanceScore = this.calculateRelevanceScore(product, searchTerm, entities, conversationContext);
+          return { ...product, relevanceScore };
+        });
+
+        broadRanked.sort((a, b) => b.relevanceScore - a.relevanceScore);
+        console.log(`🔄 [V2] Busca ampla encontrou ${broadRanked.length} produtos`);
+        return broadRanked;
       }
 
       return rankedResults;
@@ -713,13 +767,19 @@ export class IntelligentVendor {
       }
       
       // 🎯 MELHORIA 2: Incluir apenas top 3 produtos no contexto
+      // 🎯 CORREÇÃO: IA sempre recebe contexto
       let contextWithProducts = `${searchContext}\n\nMensagem: ${message}`;
+      
       if (foundProducts.length > 0) {
         const topProducts = foundProducts.slice(0, 3);
         const productDetails = topProducts.map(p => 
           `• ${p.name} - ${p.price} guaranis (${p.brand || 'Sem marca'})`
         ).join('\n');
         contextWithProducts += `\n\n🛍️ TOP 3 PRODUTOS (${foundProducts.length} total):\n${productDetails}\n\nApresente estes produtos ao cliente.`;
+        console.log(`🤖 [V2] Contexto: ${foundProducts.length} produtos encontrados`);
+      } else {
+        contextWithProducts += `\n\n⚠️ Nenhum produto encontrado. Sugira alternativas ou peça mais detalhes.`;
+        console.log(`🤖 [V2] Contexto: 0 produtos (sugestão de alternativas)`);
       }
       
       conversationHistory.push({
