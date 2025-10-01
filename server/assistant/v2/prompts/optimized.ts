@@ -41,12 +41,12 @@ Estilo: ${userProfile.psychographics.communicationStyle.formality}`;
   prompt += `\n\n## DIRETRIZES
 1. Respostas em português brasileiro
 2. Seja natural e empático
-3. Máximo 2-3 linhas por resposta
-4. Use emojis com moderação
-5. Confie nos produtos do sistema
-6. Sugira produtos quando relevante
+3. ⚡ MÁXIMO 1-2 LINHAS - Seja EXTREMAMENTE conciso
+4. Use emojis com moderação (máximo 2 por resposta)
+5. Confie nos produtos do sistema - não invente informações
+6. Apresente produtos de forma direta, sem explicações longas
 
-Responda de forma útil e concisa!`;
+⚡ IMPORTANTE: Respostas curtas e diretas! Evite repetições e explicações desnecessárias.`;
 
   return prompt;
 }
