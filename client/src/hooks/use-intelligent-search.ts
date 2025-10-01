@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 
@@ -82,9 +83,13 @@ export function useIntelligentSearch(searchQuery: string, enabled: boolean = tru
     staleTime: 2 * 60 * 1000, // 2 minutes cache
   });
 
-  // Se Click Pro IA falhar, ativar fallback
+  // 🎯 POINT 4: Corrigir condição de fallback para incluir products.length === 0
   useEffect(() => {
-    if (clickProQuery.isError || (clickProQuery.data && !clickProQuery.data.ok)) {
+    if (
+      clickProQuery.isError ||
+      (clickProQuery.data && (!clickProQuery.data.ok || clickProQuery.data.products?.length === 0))
+    ) {
+      console.log('🔄 [Frontend] POINT 4: Ativando fallback - produtos vazios ou erro detectado');
       setUseFallback(true);
     }
   }, [clickProQuery.isError, clickProQuery.data, clickProQuery.isLoading, searchQuery, enabled, useFallback]);
