@@ -501,7 +501,9 @@ export default function GeminiAssistantBar() {
               }
               
               // Compatibilidade com formato antigo (se houver)
-              if (data.text && !data.type) {
+              // 🛡️ CRÍTICO: APENAS acumular se for explicitamente texto de mensagem (sem tipo definido E sem ser evento estruturado)
+              // Eventos estruturados (products, suggestions, etc) NUNCA devem adicionar ao accumulatedMessage
+              if (data.text && !data.type && !data.products && !data.suggestions && !data.emotion && !data.insights) {
                 accumulatedMessage += data.text;
                 setStreaming(prev => prev + data.text);
               }
