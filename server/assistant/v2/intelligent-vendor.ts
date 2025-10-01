@@ -835,15 +835,15 @@ export class IntelligentVendor {
           // 🎯 MELHORIA 2: Reduzir produtos no contexto (5 → 3)
           const topProducts = foundProducts.slice(0, 3);
           
-          // Enviar produtos imediatamente via streaming
-          yield `\n\n__PRODUCTS__${JSON.stringify({ products: foundProducts })}`;
+          // Enviar produtos imediatamente via SSE event stream
+          yield `event: products\ndata: ${JSON.stringify({ products: foundProducts })}\n\n`;
           
           // 🎯 MELHORIA 3: Buscar sugestões de produtos relacionados
           if (foundProducts.length > 0) {
             suggestedProducts = await this.getSuggestedProducts(foundProducts[0], 5);
             if (suggestedProducts.length > 0) {
               console.log(`💡 [V2] Found ${suggestedProducts.length} suggested products`);
-              yield `\n\n__SUGGESTIONS__${JSON.stringify({ suggestions: suggestedProducts })}`;
+              yield `event: suggestions\ndata: ${JSON.stringify({ suggestions: suggestedProducts })}\n\n`;
             }
           }
         } else {
