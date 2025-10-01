@@ -477,8 +477,14 @@ export default function GeminiAssistantBar() {
               
               // Processar diferentes tipos de eventos V2 inline (type field)
               if (data.type === 'delta' && data.text) {
-                accumulatedMessage += data.text;
-                setStreaming(prev => prev + data.text);
+                // 🛡️ CRÍTICO: Filtrar texto que pareça ser SSE vazando da IA
+                const textLooksLikeSSE = data.text.includes('event:') && data.text.includes('data:');
+                if (textLooksLikeSSE) {
+                  console.warn('🚫 [V2] Delta bloqueado - parece SSE vazando:', data.text.substring(0, 100));
+                } else {
+                  accumulatedMessage += data.text;
+                  setStreaming(prev => prev + data.text);
+                }
               } else if (data.type === 'emotion' && data.emotion) {
                 console.log('😊 [V2] Emoção detectada (inline):', data.emotion);
                 setCurrentEmotion(data.emotion);
