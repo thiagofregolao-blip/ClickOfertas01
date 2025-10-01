@@ -62,38 +62,40 @@ export default function TestAlibaba() {
           minHeight: '75vh'
         }}
       >
-        <div className="max-w-5xl mx-auto px-6 pt-20 pb-32">
-          {/* Label */}
-          <div className="flex items-center space-x-2 text-white mb-4">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            <span className="text-sm font-medium">Conheça o Click Ofertas</span>
-          </div>
+        <div className="max-w-7xl mx-auto px-6 pt-20 pb-32">
+          <div className="max-w-5xl">
+            {/* Label */}
+            <div className="flex items-center space-x-2 text-white mb-4">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium">Conheça o Click Ofertas</span>
+            </div>
 
-          {/* Título */}
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight drop-shadow-2xl">
-            A plataforma de compras líder no turismo de compras do Paraguai
-          </h1>
+            {/* Título */}
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight drop-shadow-2xl">
+              A plataforma de compras líder no turismo de compras do Paraguai
+            </h1>
 
-          {/* Barra Gemini - Integrada inline */}
-          <div className="mb-6">
-            <GeminiAssistantBar />
-          </div>
+            {/* Barra Gemini - Integrada inline */}
+            <div className="mb-6">
+              <GeminiAssistantBar />
+            </div>
 
-          {/* Tags de buscas frequentes */}
-          <div className="flex items-center flex-wrap gap-3">
-            <span className="text-white text-sm font-medium">Buscas frequentes:</span>
-            <button className="bg-white/20 backdrop-blur-md border border-white/30 text-white px-4 py-2 rounded-full text-sm hover:bg-white/30 transition">
-              Eletrônicos
-            </button>
-            <button className="bg-white/20 backdrop-blur-md border border-white/30 text-white px-4 py-2 rounded-full text-sm hover:bg-white/30 transition">
-              Perfumes
-            </button>
-            <button className="bg-white/20 backdrop-blur-md border border-white/30 text-white px-4 py-2 rounded-full text-sm hover:bg-white/30 transition">
-              Celulares
-            </button>
-            <button className="bg-white/20 backdrop-blur-md border border-white/30 text-white px-4 py-2 rounded-full text-sm hover:bg-white/30 transition">
-              Roupas
-            </button>
+            {/* Tags de buscas frequentes */}
+            <div className="flex items-center flex-wrap gap-3">
+              <span className="text-white text-sm font-medium">Buscas frequentes:</span>
+              <button className="bg-white/20 backdrop-blur-md border border-white/30 text-white px-4 py-2 rounded-full text-sm hover:bg-white/30 transition">
+                Eletrônicos
+              </button>
+              <button className="bg-white/20 backdrop-blur-md border border-white/30 text-white px-4 py-2 rounded-full text-sm hover:bg-white/30 transition">
+                Perfumes
+              </button>
+              <button className="bg-white/20 backdrop-blur-md border border-white/30 text-white px-4 py-2 rounded-full text-sm hover:bg-white/30 transition">
+                Celulares
+              </button>
+              <button className="bg-white/20 backdrop-blur-md border border-white/30 text-white px-4 py-2 rounded-full text-sm hover:bg-white/30 transition">
+                Roupas
+              </button>
+            </div>
           </div>
         </div>
       </section>

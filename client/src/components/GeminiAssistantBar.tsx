@@ -670,7 +670,7 @@ export default function GeminiAssistantBar() {
   return (
     <>
       {/* Barra Principal Gemini - Visual diferenciado */}
-      <div className="relative w-full max-w-5xl mx-auto px-6 mt-4">
+      <div className="relative w-full mt-4">
         <div className="relative">
           <div className="relative flex items-center bg-white/40 backdrop-blur-md border-2 border-white/50 dark:border-white/20 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
             
