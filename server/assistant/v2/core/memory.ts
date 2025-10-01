@@ -1,8 +1,22 @@
+
 import { ConversationMemory, UserProfile, BehaviorPattern, InteractionRecord, ContextStack, ContextFrame } from '../types-v2';
+
+// 🎯 POINT 1: Interface para contexto conversacional persistente
+interface ConversationalContext {
+  focoAtual?: string;           // e.g., "iphone"
+  marcaAtual?: string;          // e.g., "apple"
+  categoriaAtual?: string;      // e.g., "celular"
+  ultimaQuery?: string;         // e.g., "iphone 15"
+  ultimosModelos?: string[];    // e.g., ["15", "16"]
+  timestamp: Date;
+  produtosEncontrados?: number; // Número de produtos encontrados
+}
 
 export class ConversationMemoryManager {
   private memory: Map<string, ConversationMemory> = new Map();
   private contextStacks: Map<string, ContextStack> = new Map();
+  // 🎯 POINT 1: Armazenar contexto conversacional por usuário
+  private conversationalContexts: Map<string, ConversationalContext> = new Map();
   private maxMemorySize: number = 1000;
   
   initialize(maxSize: number) {
@@ -75,6 +89,67 @@ export class ConversationMemoryManager {
     if (memory.shortTerm.recentProducts.length > 20) {
       memory.shortTerm.recentProducts = memory.shortTerm.recentProducts.slice(0, 20);
     }
+  }
+
+  // 🎯 POINT 1: Salvar contexto conversacional após busca bem-sucedida
+  saveConversationalContext(userId: string, context: {
+    focoAtual?: string;
+    marcaAtual?: string;
+    categoriaAtual?: string;
+    ultimaQuery?: string;
+    ultimosModelos?: string[];
+    produtosEncontrados?: number;
+  }): void {
+    const existingContext = this.conversationalContexts.get(userId);
+    
+    const newContext: ConversationalContext = {
+      focoAtual: context.focoAtual || existingContext?.focoAtual,
+      marcaAtual: context.marcaAtual || existingContext?.marcaAtual,
+      categoriaAtual: context.categoriaAtual || existingContext?.categoriaAtual,
+      ultimaQuery: context.ultimaQuery || existingContext?.ultimaQuery,
+      ultimosModelos: context.ultimosModelos || existingContext?.ultimosModelos || [],
+      timestamp: new Date(),
+      produtosEncontrados: context.produtosEncontrados ?? existingContext?.produtosEncontrados
+    };
+    
+    this.conversationalContexts.set(userId, newContext);
+    
+    console.log(`💾 [V2] Contexto conversacional salvo para ${userId}:`, {
+      foco: newContext.focoAtual,
+      marca: newContext.marcaAtual,
+      categoria: newContext.categoriaAtual,
+      modelos: newContext.ultimosModelos,
+      produtos: newContext.produtosEncontrados
+    });
+  }
+
+  // 🎯 POINT 2: Recuperar contexto conversacional salvo
+  getConversationalContext(userId: string): ConversationalContext | null {
+    const context = this.conversationalContexts.get(userId);
+    
+    if (!context) {
+      console.log(`⚠️ [V2] Nenhum contexto conversacional encontrado para ${userId}`);
+      return null;
+    }
+    
+    // Verificar se o contexto não está expirado (30 minutos)
+    const now = new Date();
+    const ageMinutes = (now.getTime() - context.timestamp.getTime()) / (1000 * 60);
+    
+    if (ageMinutes > 30) {
+      console.log(`⏰ [V2] Contexto conversacional expirado para ${userId} (${ageMinutes.toFixed(1)} min)`);
+      this.conversationalContexts.delete(userId);
+      return null;
+    }
+    
+    console.log(`✅ [V2] Contexto conversacional recuperado para ${userId}:`, {
+      foco: context.focoAtual,
+      marca: context.marcaAtual,
+      categoria: context.categoriaAtual,
+      idade: `${ageMinutes.toFixed(1)} min`
+    });
+    
+    return context;
   }
 
   private initializeContextStack(userId: string): void {
@@ -249,6 +324,14 @@ export class ConversationMemoryManager {
                   (now.getTime() - pattern.lastObserved.getTime()) < maxAge
       );
     }
+    
+    // Limpar contextos conversacionais expirados
+    for (const [userId, context] of this.conversationalContexts.entries()) {
+      const ageMinutes = (now.getTime() - context.timestamp.getTime()) / (1000 * 60);
+      if (ageMinutes > 30) {
+        this.conversationalContexts.delete(userId);
+      }
+    }
   }
 
   updateBehaviorPatterns(userId: string, data: any): void {
@@ -270,6 +353,7 @@ export class ConversationMemoryManager {
   clearMemory(userId: string): void {
     this.memory.delete(userId);
     this.contextStacks.delete(userId);
+    this.conversationalContexts.delete(userId);
   }
 }
 

@@ -1,4 +1,5 @@
 
+
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { memoryManager } from './core/memory';
 import { emotionalAnalyzer } from './intelligence/emotional';
@@ -52,7 +53,21 @@ export class IntelligentVendor {
   }
 
   /**
-   * 🎯 MELHORIA 1: Extrair entidades de busca (marca, modelo, categoria)
+   * 🎯 POINT 5: Verificar e garantir criação de sessão
+   */
+  private ensureSession(userId: string): void {
+    const memory = memoryManager.getMemory(userId);
+    
+    if (!memory.shortTerm.lastInteractions || memory.shortTerm.lastInteractions.length === 0) {
+      console.log(`🆕 [V2] POINT 5: Criando nova sessão para usuário ${userId}`);
+      memoryManager.initializeMemory(userId);
+    } else {
+      console.log(`✅ [V2] POINT 5: Sessão existente encontrada para ${userId} (${memory.shortTerm.lastInteractions.length} interações)`);
+    }
+  }
+
+  /**
+   * 🎯 POINT 3: Extração de entidades melhorada com detecção de números isolados
    */
   private extractSearchEntities(message: string): SearchEntities {
     const messageLower = message.toLowerCase();
@@ -100,6 +115,29 @@ export class IntelligentVendor {
       }
     }
 
+    // 🎯 POINT 3: Detectar números isolados (2-3 dígitos) como modelos
+    const isolatedNumberPattern = /\b(\d{2,3})\b/g;
+    const isolatedNumbers = message.match(isolatedNumberPattern);
+    if (isolatedNumbers) {
+      isolatedNumbers.forEach(num => {
+        if (!entities.models.includes(num)) {
+          entities.models.push(num);
+          console.log(`🔢 [V2] POINT 3: Número isolado detectado como modelo: "${num}"`);
+        }
+      });
+    }
+
+    // 🎯 POINT 3: Detectar padrões "modelo X", "versão X", "geração X"
+    const modelKeywordPattern = /(?:modelo|versão|version|geração)\s+(\d{2,3})/gi;
+    const modelKeywordMatches = message.matchAll(modelKeywordPattern);
+    for (const match of modelKeywordMatches) {
+      const modelNumber = match[1];
+      if (!entities.models.includes(modelNumber)) {
+        entities.models.push(modelNumber);
+        console.log(`🔢 [V2] POINT 3: Modelo detectado via palavra-chave: "${match[0]}" → "${modelNumber}"`);
+      }
+    }
+
     // Categorias
     const categoryPatterns = {
       'celular': ['celular', 'smartphone', 'telefone', 'iphone', 'galaxy'],
@@ -130,12 +168,68 @@ export class IntelligentVendor {
   }
 
   /**
+   * 🎯 POINT 2: Usar contexto salvo quando extração de entidades falhar
+   */
+  private enrichEntitiesWithContext(userId: string, message: string, entities: SearchEntities): { entities: SearchEntities; searchTerm: string } {
+    const savedContext = memoryManager.getConversationalContext(userId);
+    
+    // Se não há contexto salvo ou entidades foram extraídas com sucesso, retornar como está
+    if (!savedContext || (entities.brands.length > 0 || entities.categories.length > 0)) {
+      return { entities, searchTerm: message.trim() };
+    }
+
+    console.log(`🧠 [V2] POINT 2: Enriquecendo entidades com contexto salvo`);
+    
+    let enriched = false;
+    let reconstructedSearchTerm = message.trim();
+
+    // Se detectamos um número isolado e temos um foco atual (ex: "iphone")
+    if (entities.models.length > 0 && savedContext.focoAtual) {
+      console.log(`🔗 [V2] POINT 2: Modelo "${entities.models[0]}" + Foco "${savedContext.focoAtual}"`);
+      
+      // Adicionar marca do contexto
+      if (savedContext.marcaAtual && !entities.brands.includes(savedContext.marcaAtual)) {
+        entities.brands.push(savedContext.marcaAtual);
+        enriched = true;
+        console.log(`✅ [V2] POINT 2: Marca adicionada do contexto: "${savedContext.marcaAtual}"`);
+      }
+      
+      // Adicionar categoria do contexto
+      if (savedContext.categoriaAtual && !entities.categories.includes(savedContext.categoriaAtual)) {
+        entities.categories.push(savedContext.categoriaAtual);
+        enriched = true;
+        console.log(`✅ [V2] POINT 2: Categoria adicionada do contexto: "${savedContext.categoriaAtual}"`);
+      }
+      
+      // Reconstruir termo de busca: "{foco} {modelo}"
+      reconstructedSearchTerm = `${savedContext.focoAtual} ${entities.models[0]}`;
+      console.log(`🔄 [V2] POINT 2: Termo de busca reconstruído: "${message}" → "${reconstructedSearchTerm}"`);
+    }
+
+    if (enriched) {
+      console.log(`✅ [V2] POINT 2: Entidades enriquecidas com sucesso:`, entities);
+    } else {
+      console.log(`⚠️ [V2] POINT 2: Nenhum enriquecimento aplicado`);
+    }
+
+    return { entities, searchTerm: reconstructedSearchTerm };
+  }
+
+  /**
    * 🎯 MELHORIA 1: Busca contextual com filtros SQL inteligentes e ranking de relevância
    */
   private async searchProducts(userId: string, message: string, limit: number = 10): Promise<any[]> {
     try {
-      const searchTerm = message.trim().toLowerCase();
-      const entities = this.extractSearchEntities(message);
+      // 🎯 POINT 5: Garantir que sessão existe antes da busca
+      this.ensureSession(userId);
+
+      let searchTerm = message.trim().toLowerCase();
+      let entities = this.extractSearchEntities(message);
+      
+      // 🎯 POINT 2: Enriquecer entidades com contexto salvo se necessário
+      const enriched = this.enrichEntitiesWithContext(userId, message, entities);
+      entities = enriched.entities;
+      searchTerm = enriched.searchTerm.toLowerCase();
       
       console.log(`🔍 [V2] Busca contextual para: "${searchTerm}"`, { entities });
       
@@ -253,6 +347,24 @@ export class IntelligentVendor {
         ));
       }
 
+      // 🎯 POINT 1: Salvar contexto após busca bem-sucedida
+      if (validResults.length > 0) {
+        const topProduct = validResults[0];
+        const detectedModels = entities.models.length > 0 ? entities.models : 
+          (topProduct.name.match(/\d{2,3}/g) || []);
+        
+        memoryManager.saveConversationalContext(userId, {
+          focoAtual: entities.brands.length > 0 ? entities.brands[0] : 
+                     (topProduct.brand?.toLowerCase() || topProduct.name.split(' ')[0].toLowerCase()),
+          marcaAtual: entities.brands.length > 0 ? entities.brands[0] : topProduct.brand?.toLowerCase(),
+          categoriaAtual: entities.categories.length > 0 ? entities.categories[0] : topProduct.category?.toLowerCase(),
+          ultimaQuery: searchTerm,
+          ultimosModelos: detectedModels,
+          produtosEncontrados: validResults.length
+        });
+        
+        console.log(`💾 [V2] POINT 1: Contexto salvo após busca bem-sucedida (${validResults.length} produtos)`);
+      }
 
       // 🎯 FALLBACK: Se busca específica retornar 0, tentar busca ampla
       if (validResults.length === 0 && (entities.brands.length > 0 || entities.models.length > 0 || entities.categories.length > 0)) {
@@ -328,13 +440,13 @@ export class IntelligentVendor {
     };
 
     // 🐛 FIX BUG #1: Verificar se interactions existe antes de usar .slice()
-    if (!memory.interactions || memory.interactions.length === 0) {
+    if (!memory.shortTerm.lastInteractions || memory.shortTerm.lastInteractions.length === 0) {
       console.log(`⚠️ [V2] getConversationContext: No interactions found for user ${userId}`);
       return context;
     }
 
     // Extrair produtos, marcas e categorias das últimas 5 interações
-    const recentInteractions = memory.interactions.slice(-5);
+    const recentInteractions = memory.shortTerm.lastInteractions.slice(-5);
     console.log(`📝 [V2] getConversationContext: Processing ${recentInteractions.length} recent interactions for user ${userId}`);
     
     for (const interaction of recentInteractions) {
@@ -694,6 +806,9 @@ export class IntelligentVendor {
     const startTime = Date.now();
     
     try {
+      // 🎯 POINT 5: Garantir que sessão existe
+      this.ensureSession(userId);
+
       const memory = memoryManager.getMemory(userId);
       const emotionalState = emotionalAnalyzer.analyzeEmotion(message);
       const intent = extractIntent(message);
@@ -799,6 +914,9 @@ export class IntelligentVendor {
 
   async *streamMessage(userId: string, message: string, storeId?: number): AsyncGenerator<string, void, unknown> {
     try {
+      // 🎯 POINT 5: Garantir que sessão existe
+      this.ensureSession(userId);
+
       const memory = memoryManager.getMemory(userId);
       const emotionalState = emotionalAnalyzer.analyzeEmotion(message);
       const intent = extractIntent(message);
