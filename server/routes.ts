@@ -1006,6 +1006,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public products with store info (for catalog page)
+  app.get('/api/public/products-with-stores', async (req, res) => {
+    try {
+      const cacheKey = 'public-products-with-stores';
+      const cached = cache.get(cacheKey);
+      
+      if (cached) {
+        console.log('📦 Cache hit for /api/public/products-with-stores');
+        return res.json(cached);
+      }
+      
+      console.log('📦 Cache miss for /api/public/products-with-stores - fetching from DB');
+      
+      const productsWithStores = await db
+        .select({
+          id: products.id,
+          storeId: products.storeId,
+          name: products.name,
+          description: products.description,
+          price: products.price,
+          imageUrl: products.imageUrl,
+          category: products.category,
+          brand: products.brand,
+          isActive: products.isActive,
+          createdAt: products.createdAt,
+          updatedAt: products.updatedAt,
+          store: {
+            id: stores.id,
+            name: stores.name,
+            logoUrl: stores.logoUrl,
+            themeColor: stores.themeColor,
+            currency: stores.currency,
+            slug: stores.slug,
+            isPremium: stores.isPremium,
+          }
+        })
+        .from(products)
+        .leftJoin(stores, eq(products.storeId, stores.id))
+        .where(
+          and(
+            eq(products.isActive, true),
+            eq(stores.isActive, true)
+          )
+        )
+        .orderBy(desc(products.updatedAt))
+        .limit(100);
+      
+      // Cache for 3 minutes
+      cache.set(cacheKey, productsWithStores, 3 * 60 * 1000);
+      
+      res.json(productsWithStores);
+    } catch (error) {
+      console.error("Error fetching products with stores:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
   // Temporary cache clear endpoint
   app.post('/api/cache/clear', (req, res) => {
     cache.clear();

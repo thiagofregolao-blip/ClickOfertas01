@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Perfil da Loja – Modelo C (Apresentação)</title>
+  <style>
+    :root{--bg:#0e1116;--panel:#141a23;--muted:#b8c0cc;--text:#eef2f7;--brand:#ff7a00;--border:rgba(255,255,255,.08);--ok:#22c55e;--warn:#f59e0b;}
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+
+    .promo{background:#ff4d4f;text-align:center;padding:.5rem 1rem;font-weight:700}
+
+    header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 24px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(14,17,22,.95),rgba(14,17,22,.75));backdrop-filter:blur(8px)}
+    .brand{display:flex;align-items:center;gap:.6rem;font-weight:800}
+    .dot{width:10px;height:10px;border-radius:50%;background:var(--brand)}
+
+    .tools{max-width:1200px;margin:0 auto;padding:14px 20px;display:grid;grid-template-columns:1fr auto;gap:10px;border-bottom:1px solid var(--border);background:rgba(20,26,35,.6)}
+    .search{display:flex;border:1px solid var(--border);background:#0c1118;border-radius:.7rem;overflow:hidden}
+    .search input{flex:1;background:transparent;border:none;outline:none;color:#fff;padding:.7rem 1rem}
+    .search button{background:var(--brand);border:none;padding:.7rem 1rem;font-weight:800;cursor:pointer}
+    .rate{border:1px solid var(--border);border-radius:.7rem;background:#0c1118;color:#fff;padding:.62rem .8rem}
+
+    .wrap{max-width:1200px;margin:0 auto;padding:20px;}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:1rem;overflow:hidden;display:flex;flex-direction:column;transition:transform .2s ease, box-shadow .2s ease}
+    .card:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(0,0,0,.35)}
+    .thumb{background:#0a0f15}
+    .thumb img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+    .cnt{padding:12px 14px;display:grid;gap:8px}
+    .title{font-weight:800}
+    .priceblock{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+    .usd{font-weight:900}
+    .brl{color:var(--muted)}
+    .meta{color:var(--muted);font-size:.92rem}
+
+    .actions{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border)}
+    .btn-sm{flex:1;border:1px solid var(--border);background:rgba(255,255,255,.02);color:#fff;border-radius:.6rem;padding:.55rem .75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+    .btn-sm.on{background:rgba(255,122,0,.18);border-color:rgba(255,122,0,.35)}
+
+    .pagination{display:flex;gap:8px;justify-content:center;margin-top:22px}
+    .pagination button{background:transparent;border:1px solid var(--border);color:#e6eaf0;padding:.6rem .9rem;border-radius:.6rem;cursor:pointer}
+    .pagination button.active{background:var(--brand);color:#0c0a09;border-color:transparent;font-weight:800}
+
+    /* Modal comparar */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px}
+    .modal.open{display:flex}
+    .modal-card{max-width:540px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:1rem;overflow:hidden}
+    .modal-head{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:800}
+    .modal-body{padding:16px;display:grid;gap:10px}
+    .field{display:grid;gap:6px}
+    .input{border:1px solid var(--border);background:#0c1118;color:#fff;border-radius:.6rem;padding:.6rem .8rem}
+    .row{display:flex;gap:10px;align-items:center}
+    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:.6rem;padding:.35rem .55rem}
+    .pill.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.1)}
+    .pill.warn{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.1)}
+
+    @media (max-width:1100px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="promo">Este site **não vende**; exibimos preços em US$ e R$ para pesquisa e comparação.</div>
+
+  <header>
+    <div class="brand"><span class="dot"></span> <span>Marketplace Explorer</span></div>
+    <div style="opacity:.85">Somente apresentação de preços</div>
+  </header>
+
+  <div class="tools">
+    <div class="search">
+      <input id="q" placeholder="Buscar itens..."/>
+      <button onclick="applyFilters()">Buscar</button>
+    </div>
+    <div class="rate">1 US$ = <span id="rateLabel">R$ 5,40</span></div>
+  </div>
+
+  <div class="wrap">
+    <div id="grid" class="grid"></div>
+    <div id="pagination" class="pagination"></div>
+  </div>
+
+  <!-- Modal Comparar -->
+  <div class="modal" id="modal" onclick="closeModal(event)">
+    <div class="modal-card">
+      <div class="modal-head">Comparar com preço no Brasil</div>
+      <div class="modal-body">
+        <div class="row" style="justify-content:space-between">
+          <div class="pill" id="mTitle"></div>
+          <div class="pill">USD: <strong id="mUsd"></strong> · BRL: <strong id="mBrl"></strong></div>
+        </div>
+        <div class="field">
+          <label for="brPrice">Informe o preço no Brasil (R$)</label>
+          <input id="brPrice" class="input" type="number" min="0" step="0.01" placeholder="Ex.: 1299.90"/>
+        </div>
+        <div class="row" id="compareResult" style="display:none">
+          <div class="pill" id="diffPill"></div>
+          <div class="pill" id="pctPill"></div>
+        </div>
+        <div class="row" style="justify-content:flex-end">
+          <button class="btn-sm" onclick="doCompare()">Calcular</button>
+          <button class="btn-sm" onclick="document.getElementById('modal').classList.remove('open')">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === Configurações ===
+    // Taxa fictícia para demonstração. Atualize dinamicamente via API quando quiser.
+    let USD_BRL = 5.40;
+    document.getElementById('rateLabel').textContent = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(USD_BRL).replace('R$\u00a0','R$ ');
+
+    // Dados mock: seu sistema só apresenta (não vende)
+    const produtos = Array.from({length:24}).map((_,i)=>({
+      id:i+1,
+      titulo:`Item Pesquisa ${i+1}`,
+      precoUSD: (15 + (i%12)*9) + 0.90,
+      img:`https://picsum.photos/seed/show${i+3}/640/480`,
+      fonte:'Fornecedor verificado',
+    }));
+
+    // Estado + persistência
+    const state = {page:1, perPage:9, query:''};
+    const liked = new Set(JSON.parse(localStorage.getItem('liked')||'[]'));
+    const saved = new Set(JSON.parse(localStorage.getItem('saved')||'[]'));
+
+    function fmtUSD(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(v)}
+    function fmtBRL(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v)}
+
+    function toBRL(usd){return usd*USD_BRL}
+
+    function applyFilters(){ state.query=document.getElementById('q').value.trim().toLowerCase(); state.page=1; render(); }
+
+    function filtered(){
+      return produtos.filter(p=> state.query ? p.titulo.toLowerCase().includes(state.query) : true);
+    }
+
+    function toggleLike(id){ liked.has(id)? liked.delete(id): liked.add(id); localStorage.setItem('liked', JSON.stringify([...liked])); render(); }
+    function toggleSave(id){ saved.has(id)? saved.delete(id): saved.add(id); localStorage.setItem('saved', JSON.stringify([...saved])); render(); }
+
+    function openCompare(p){
+      const brl = toBRL(p.precoUSD);
+      document.getElementById('mTitle').textContent = p.titulo;
+      document.getElementById('mUsd').textContent = fmtUSD(p.precoUSD);
+      document.getElementById('mBrl').textContent = fmtBRL(brl);
+      document.getElementById('brPrice').value = '';
+      document.getElementById('compareResult').style.display = 'none';
+      document.getElementById('modal').classList.add('open');
+      // Store current item for compare
+      window.__cmp = {usd:p.precoUSD, brl};
+    }
+
+    function doCompare(){
+      const val = parseFloat(document.getElementById('brPrice').value || '0');
+      if(!window.__cmp || !val){ return; }
+      const diff = val - window.__cmp.brl; // BR preço BR - BR convertido
+      const pct = (diff / window.__cmp.brl) * 100;
+      const pill = document.getElementById('diffPill');
+      const pctPill = document.getElementById('pctPill');
+      const cheaper = diff < 0;
+      pill.className = 'pill ' + (cheaper? 'ok':'warn');
+      pill.textContent = (cheaper? 'Mais barato aqui: ':'Mais caro aqui: ') + fmtBRL(Math.abs(diff));
+      pctPill.className = 'pill ' + (cheaper? 'ok':'warn');
+      pctPill.textContent = (cheaper? '↓ ':'↑ ') + Math.abs(pct).toFixed(1) + '%';
+      document.getElementById('compareResult').style.display = 'flex';
+    }
+
+    function closeModal(e){ if(e.target.id==='modal'){ e.currentTarget.classList.remove('open'); } }
+
+    function render(){
+      const items = filtered();
+      const start = (state.page-1)*state.perPage;
+      const pageItems = items.slice(start, start+state.perPage);
+
+      document.getElementById('grid').innerHTML = pageItems.map(p=>{
+        const isLiked = liked.has(p.id);
+        const isSaved = saved.has(p.id);
+        return `
+        <article class="card">
+          <div class="thumb"><img src="${p.img}" alt="${p.titulo}"/></div>
+          <div class="cnt">
+            <div class="title">${p.titulo}</div>
+            <div class="meta">${p.fonte}</div>
+            <div class="priceblock">
+              <div class="usd">${fmtUSD(p.precoUSD)}</div>
+              <div class="brl">${fmtBRL(toBRL(p.precoUSD))}</div>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn-sm ${isSaved?'on':''}" title="Salvar" onclick="toggleSave(${p.id})">💾 ${isSaved?'Salvo':'Salvar'}</button>
+            <button class="btn-sm ${isLiked?'on':''}" title="Curtir" onclick="toggleLike(${p.id})">❤ ${isLiked?'Curtido':'Curtir'}</button>
+            <button class="btn-sm" title="Comparar com preço no Brasil" onclick='openCompare(${JSON.stringify(p)})'>🇧🇷 Comparar</button>
+          </div>
+        </article>`;
+      }).join('');
+
+      // Paginação
+      const pages = Math.max(1, Math.ceil(items.length/state.perPage));
+      const pag = document.getElementById('pagination');
+      pag.innerHTML = '';
+      for(let i=1;i<=pages;i++){
+        const b=document.createElement('button'); b.textContent=i; b.className=i===state.page?'active':''; b.onclick=()=>{state.page=i; render();}; pag.appendChild(b);
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>

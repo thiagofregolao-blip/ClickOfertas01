@@ -42,6 +42,7 @@ import WiFi24h from "@/pages/WiFi24h";
 import WiFiPayment from "@/pages/WiFiPayment";
 import WiFiSuccess from "@/pages/WiFiSuccess";
 import WiFiFailure from "@/pages/WiFiFailure";
+import StoreCatalog from "@/pages/StoreCatalog";
 
 function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
   const [bypassMaintenance, setBypassMaintenance] = useState(() => {
@@ -146,6 +147,7 @@ function Router() {
           <Route path="/wifi-24h/payment" component={WiFiPayment} />
           <Route path="/wifi-24h/success" component={WiFiSuccess} />
           <Route path="/wifi-24h/failure" component={WiFiFailure} />
+          <Route path="/catalogo" component={StoreCatalog} />
 
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
@@ -213,6 +215,7 @@ function Router() {
           <Route path="/wifi-24h/payment" component={WiFiPayment} />
           <Route path="/wifi-24h/success" component={WiFiSuccess} />
           <Route path="/wifi-24h/failure" component={WiFiFailure} />
+          <Route path="/catalogo" component={StoreCatalog} />
 
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
@@ -241,6 +244,7 @@ function Router() {
           <Route path="/wifi-24h/payment" component={WiFiPayment} />
           <Route path="/wifi-24h/success" component={WiFiSuccess} />
           <Route path="/wifi-24h/failure" component={WiFiFailure} />
+          <Route path="/catalogo" component={StoreCatalog} />
 
           <Route path="/stories-feed" component={StoriesFeed} />
           <Route path="/create-story" component={CreateStory} />
