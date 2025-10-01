@@ -876,9 +876,9 @@ export default function GeminiAssistantBar() {
                             <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm mb-2 line-clamp-2">
                               {product.title || product.name}
                             </h4>
-                            {product.price?.USD && (
+                            {(product.price?.USD || product.price) && (
                               <p className="text-primary dark:text-primary/80 font-bold text-lg">
-                                ${product.price.USD}
+                                ${product.price?.USD || product.price}
                               </p>
                             )}
                             {product.storeName && (
@@ -911,9 +911,9 @@ export default function GeminiAssistantBar() {
                             <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm mb-2 line-clamp-2">
                               {product.title || product.name}
                             </h4>
-                            {product.price?.USD && (
+                            {(product.price?.USD || product.price) && (
                               <p className="text-primary dark:text-primary/80 font-bold">
-                                ${product.price.USD}
+                                ${product.price?.USD || product.price}
                               </p>
                             )}
                             {product.storeName && (
@@ -946,9 +946,9 @@ export default function GeminiAssistantBar() {
                             <h4 className="font-medium text-gray-900 dark:text-gray-100 text-xs mb-2 line-clamp-2">
                               {product.title || product.name}
                             </h4>
-                            {product.price?.USD && (
+                            {(product.price?.USD || product.price) && (
                               <p className="text-primary dark:text-primary/80 font-bold text-sm">
-                                ${product.price.USD}
+                                ${product.price?.USD || product.price}
                               </p>
                             )}
                             {product.storeName && (
