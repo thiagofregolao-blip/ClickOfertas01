@@ -62,15 +62,15 @@ export default function TestAlibaba() {
           minHeight: '75vh'
         }}
       >
-        <div className="max-w-7xl mx-auto px-6 pt-20 pb-32">
+        <div className="max-w-5xl mx-auto px-6 pt-20 pb-32">
           {/* Label */}
           <div className="flex items-center space-x-2 text-white mb-4">
             <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            <span className="text-base font-medium">Conheça o Click Ofertas</span>
+            <span className="text-sm font-medium">Conheça o Click Ofertas</span>
           </div>
 
           {/* Título */}
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-8 leading-tight drop-shadow-2xl">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight drop-shadow-2xl">
             A plataforma de compras líder no turismo de compras do Paraguai
           </h1>
 
