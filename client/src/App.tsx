@@ -43,6 +43,7 @@ import WiFiPayment from "@/pages/WiFiPayment";
 import WiFiSuccess from "@/pages/WiFiSuccess";
 import WiFiFailure from "@/pages/WiFiFailure";
 import StoreCatalog from "@/pages/StoreCatalog";
+import StoreProfile from "@/pages/StoreProfile";
 
 function MaintenanceWrapper({ children }: { children: React.ReactNode }) {
   const [bypassMaintenance, setBypassMaintenance] = useState(() => {
@@ -117,6 +118,7 @@ function Router() {
         <Route path="/map-test" component={LoadingComponent} />
         <Route path="/flyer/:slug" component={PublicFlyer} />
         <Route path="/stores/:slug" component={PublicFlyer} />
+        <Route path="/store/:slug" component={StoreProfile} />
         <Route path="/super-admin" component={SuperAdminLogin} />
         <Route path="/super-admin-login" component={SuperAdminLogin} />
         <Route path="/admin-panel" component={SuperAdmin} />
@@ -179,6 +181,7 @@ function Router() {
           )} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
+          <Route path="/store/:slug" component={StoreProfile} />
         </>
       ) : user?.hasStore || user?.isSuperAdmin ? (
         // Lojista logado ou Super Admin - painel admin completo
@@ -229,6 +232,7 @@ function Router() {
           <Route path="/coupon" component={CouponDetails} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
+          <Route path="/store/:slug" component={StoreProfile} />
           <Route path="/:slug" component={PublicFlyer} />
         </>
       ) : (
@@ -265,6 +269,7 @@ function Router() {
           <Route path="/admin/:rest*" component={() => { window.location.href = '/cards'; return null; }} />
           <Route path="/flyer/:slug" component={PublicFlyer} />
           <Route path="/stores/:slug" component={PublicFlyer} />
+          <Route path="/store/:slug" component={StoreProfile} />
           <Route path="/:slug" component={PublicFlyer} />
         </>
       )}
