@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perfil da Loja - Modelo</title>
+  <style>
+    :root{
+      --bg-dark:#0f1114;
+      --bg-darker:#0b0d10;
+      --text:#f5f5f5;
+      --muted:#b7bdc6;
+      --brand:#ff7a00; /* laranja tipo Alibaba */
+      --brand-2:#ff4d4f; /* vermelho promo */
+      --card:#151922;
+      --surface:#12161d;
+      --border:rgba(255,255,255,.08);
+      --success:#2ecc71;
+      --warning:#f1c40f;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg-dark);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,Helvetica,sans-serif}
+
+    /* Barra promo, ecoando o modelo da home */
+    .promo-bar{width:100%;background:var(--brand-2);color:#fff;text-align:center;padding:.55rem 1rem;font-weight:600;letter-spacing:.2px}
+    .promo-bar small{opacity:.9}
+
+    /* Header topo */
+    header{
+      position:sticky;top:0;z-index:50;
+      display:flex;gap:20px;align-items:center;justify-content:space-between;
+      padding:14px 28px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--bg-darker),rgba(11,13,16,.85));backdrop-filter:saturate(1.3) blur(6px);
+    }
+    .logo{display:flex;align-items:center;gap:.6rem;font-weight:800}
+    .logo .dot{width:10px;height:10px;border-radius:50%;background:var(--brand)}
+    nav{display:flex;gap:1rem;flex-wrap:wrap}
+    nav a{color:var(--muted);text-decoration:none;padding:.4rem .6rem;border-radius:.5rem;border:1px solid transparent}
+    nav a:hover{color:#fff;border-color:var(--border);background:rgba(255,255,255,.03)}
+    .btn{background:var(--brand);color:#111;border:none;padding:.6rem .9rem;border-radius:.6rem;font-weight:700;cursor:pointer}
+    .btn.outline{background:transparent;color:#fff;border:1px solid var(--border)}
+
+    /* Hero da loja */
+    .store-hero{
+      position:relative;isolation:isolate;overflow:hidden;
+      background:radial-gradient(1200px 400px at 70% -10%,rgba(255,122,0,.18),transparent),
+                 linear-gradient(180deg,var(--surface),transparent 60%),
+                 url('https://images.unsplash.com/photo-1515777315835-281b94c9589f?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+      border-bottom:1px solid var(--border);
+    }
+    .store-hero .inner{max-width:1200px;margin:0 auto;padding:56px 20px 24px;display:grid;grid-template-columns:140px 1fr;gap:20px;align-items:end}
+    .avatar{width:120px;height:120px;border-radius:20px;overflow:hidden;border:2px solid rgba(255,255,255,.15);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .avatar img{width:100%;height:100%;object-fit:cover}
+    .store-meta{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+    .store-info h1{margin:0;font-size:1.9rem}
+    .store-info p{margin:.35rem 0 0;color:var(--muted)}
+    .metrics{display:flex;gap:16px;flex-wrap:wrap}
+    .badge{display:inline-flex;align-items:center;gap:.45rem;padding:.35rem .6rem;border:1px solid var(--border);border-radius:.5rem;color:#e6eaf0;background:rgba(255,255,255,.03)}
+    .rating{color:#ffd666}
+
+    /* Barra de busca/filters da loja */
+    .toolbar{max-width:1200px;margin:0 auto;padding:14px 20px 22px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    .search{flex:1;display:flex;background:var(--card);border:1px solid var(--border);border-radius:.8rem;overflow:hidden}
+    .search input{flex:1;background:transparent;border:none;outline:none;color:#fff;padding:.8rem 1rem}
+    .search button{background:var(--brand);border:none;color:#111;padding:.8rem 1rem;font-weight:800;cursor:pointer}
+    .chip{border:1px solid var(--border);padding:.55rem .7rem;border-radius:.7rem;cursor:pointer;color:var(--muted);background:rgba(255,255,255,.02)}
+    .chip.active,.chip:hover{color:#fff;border-color:rgba(255,255,255,.2)}
+
+    /* Layout principal */
+    .container{max-width:1200px;margin:0 auto;padding:10px 20px 60px;display:grid;grid-template-columns:280px 1fr;gap:24px}
+
+    /* Sidebar da loja */
+    .sidebar{position:sticky;top:78px;align-self:start;display:grid;gap:14px}
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:1rem;padding:16px}
+    .panel h3{margin:0 0 .6rem 0;font-size:1.05rem}
+    .panel .row{display:flex;justify-content:space-between;color:var(--muted);margin:.35rem 0}
+
+    /* Grid de produtos */
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+
+    .card{background:var(--card);border:1px solid var(--border);border-radius:1rem;overflow:hidden;display:flex;flex-direction:column;transition:transform .2s ease, box-shadow .2s ease}
+    .card:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(0,0,0,.35)}
+    .thumb{position:relative;background:#0b0d10}
+    .thumb img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+    .tag{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.55);color:#fff;padding:.25rem .55rem;border-radius:.5rem;border:1px solid var(--border);font-size:.8rem}
+    .content{display:grid;gap:8px;padding:12px 14px}
+    .title{font-weight:700;line-height:1.3}
+    .desc{color:var(--muted);font-size:.95rem}
+    .price-row{display:flex;justify-content:space-between;align-items:center}
+    .price{font-size:1.1rem;font-weight:800}
+    .old{color:var(--muted);text-decoration:line-through;margin-left:.5rem;font-weight:500}
+    .rating-row{display:flex;align-items:center;gap:6px;color:#ffd666}
+    .actions{display:flex;gap:8px;padding:12px 14px 16px}
+    .btn-sm{flex:1;padding:.6rem .8rem;border-radius:.6rem;border:1px solid var(--border);background:rgba(255,255,255,.02);color:#e6eaf0;cursor:pointer}
+    .btn-sm.primary{background:var(--brand);color:#111;border-color:transparent;font-weight:800}
+
+    /* Paginação */
+    .pagination{display:flex;gap:8px;justify-content:center;margin-top:22px}
+    .pagination button{background:transparent;border:1px solid var(--border);color:#e6eaf0;padding:.6rem .9rem;border-radius:.6rem;cursor:pointer}
+    .pagination button.active{background:var(--brand);color:#111;border-color:transparent;font-weight:800}
+
+    /* Responsividade */
+    @media (max-width:1100px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));}.container{grid-template-columns:1fr}}
+    @media (max-width:640px){.grid{grid-template-columns:1fr}.store-hero .inner{grid-template-columns:1fr;align-items:start}.avatar{order:1}.store-meta{flex-direction:column;align-items:flex-start}}
+  </style>
+</head>
+<body>
+  <div class="promo-bar">Super Oferta de Primavera: <small>cupom <strong>LOJA10</strong> em compras acima de US$100</small></div>
+
+  <header>
+    <div class="logo"><span class="dot"></span> <span>Marketplace</span></div>
+    <nav>
+      <a href="#">Início</a>
+      <a href="#">Categorias</a>
+      <a href="#">Pedidos</a>
+      <a href="#">Atendimento</a>
+      <a href="#">Central do Comprador</a>
+    </nav>
+    <div style="display:flex;gap:.6rem">
+      <button class="btn outline">Entrar</button>
+      <button class="btn">Criar conta</button>
+    </div>
+  </header>
+
+  <!-- HERO DA LOJA -->
+  <section class="store-hero">
+    <div class="inner">
+      <div class="avatar"><img alt="Logo da loja" src="https://images.unsplash.com/photo-1542834369-f10ebf06d3cb?q=80&w=400&auto=format&fit=crop"/></div>
+      <div class="store-meta">
+        <div class="store-info">
+          <h1>Loja Exemplo Oficial</h1>
+          <p>Fornecedor verificado • Entrega para PY/BR/AR • Resposta em &lt; 2h</p>
+          <div class="metrics" style="margin-top:10px">
+            <span class="badge rating">★★★★★ 4.8</span>
+            <span class="badge">+10k seguidores</span>
+            <span class="badge">3 anos no marketplace</span>
+            <span class="badge">Garantia de até 1 ano</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:.6rem;align-items:end">
+          <button class="btn outline">Contato</button>
+          <button class="btn">Seguir</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FERRAMENTAS / FILTROS -->
+  <div class="toolbar">
+    <div class="search">
+      <input id="q" placeholder="Buscar produtos da loja..." />
+      <button onclick="applyFilters()">Buscar</button>
+    </div>
+    <div class="chip active" data-chip="all" onclick="setChip(this,'all')">Todos</div>
+    <div class="chip" data-chip="novidades" onclick="setChip(this,'novidades')">Novidades</div>
+    <div class="chip" data-chip="promocoes" onclick="setChip(this,'promocoes')">Promoções</div>
+    <div class="chip" data-chip="maisvendidos" onclick="setChip(this,'maisvendidos')">Mais vendidos</div>
+  </div>
+
+  <main class="container">
+    <!-- SIDEBAR COM INFO -->
+    <aside class="sidebar">
+      <div class="panel">
+        <h3>Informações da Loja</h3>
+        <div class="row"><span>País</span><strong>Paraguai</strong></div>
+        <div class="row"><span>Tempo de resposta</span><strong>&lt; 2 horas</strong></div>
+        <div class="row"><span>Envio</span><strong>Global</strong></div>
+        <div class="row"><span>Política de devolução</span><strong>7 dias</strong></div>
+      </div>
+      <div class="panel">
+        <h3>Categorias</h3>
+        <div class="row"><span>Eletrônicos</span><span>128</span></div>
+        <div class="row"><span>Ferramentas</span><span>76</span></div>
+        <div class="row"><span>Moda</span><span>54</span></div>
+        <div class="row"><span>Agronegócio</span><span>36</span></div>
+      </div>
+      <div class="panel">
+        <h3>Atendimento</h3>
+        <p style="color:var(--muted);margin:0 0 10px">Fale com a loja para pedidos em volume e personalizações.</p>
+        <button class="btn" style="width:100%">Enviar mensagem</button>
+      </div>
+    </aside>
+
+    <!-- GRID DE PRODUTOS -->
+    <section style="min-width:0">
+      <div id="grid" class="grid"></div>
+      <div class="pagination" id="pagination"></div>
+    </section>
+  </main>
+
+  <script>
+    // --- Dados de exemplo (substitua por dados reais vindos da sua API) ---
+    const produtos = Array.from({length:36}).map((_,i)=>({
+      id:i+1,
+      titulo:`Produto Premium ${i+1}`,
+      descricao:"Descrição curta e objetiva do produto, com destaque para o benefício principal.",
+      preco:(19 + (i%9)*7) + .90,
+      precoOld: (i%3===0) ? (29 + (i%9)*7) + .90 : null,
+      rating:(4 + (i%10)/10).toFixed(1),
+      categoria: (i%4===0? 'promocoes' : i%5===0? 'maisvendidos' : i%6===0 ? 'novidades' : 'all'),
+      img:`https://picsum.photos/seed/p${i+10}/600/450`
+    }));
+
+    const state = { page:1, perPage:9, query:"", chip:"all" };
+
+    function setChip(el, chip){
+      state.chip = chip; state.page = 1; document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); el.classList.add('active');
+      render();
+    }
+    function applyFilters(){ state.query = document.getElementById('q').value.trim().toLowerCase(); state.page=1; render(); }
+
+    function filtered(){
+      return produtos.filter(p=>{
+        const byChip = state.chip==='all' ? true : p.categoria===state.chip;
+        const byQ = state.query? (p.titulo.toLowerCase().includes(state.query) || p.descricao.toLowerCase().includes(state.query)) : true;
+        return byChip && byQ;
+      })
+    }
+
+    function render(){
+      const grid = document.getElementById('grid');
+      const items = filtered();
+      const start = (state.page-1)*state.perPage;
+      const pageItems = items.slice(start, start + state.perPage);
+
+      grid.innerHTML = pageItems.map(p=>`
+        <article class="card">
+          <div class="thumb">
+            <img src="${p.img}" alt="${p.titulo}" />
+            ${p.categoria==='promocoes' ? '<span class="tag">-20%</span>' : ''}
+          </div>
+          <div class="content">
+            <div class="title">${p.titulo}</div>
+            <div class="desc">${p.descricao}</div>
+            <div class="price-row">
+              <div>
+                <span class="price">US$ ${p.preco.toFixed(2)}</span>
+                ${p.precoOld? `<span class="old">US$ ${p.precoOld.toFixed(2)}</span>`: ''}
+              </div>
+              <div class="rating-row">★ ${p.rating}</div>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn-sm">Adicionar ao carrinho</button>
+            <button class="btn-sm primary">Comprar</button>
+          </div>
+        </article>
+      `).join('');
+
+      // Paginação
+      const pages = Math.max(1, Math.ceil(items.length / state.perPage));
+      const pag = document.getElementById('pagination');
+      pag.innerHTML = '';
+      for(let i=1;i<=pages;i++){
+        const b = document.createElement('button');
+        b.textContent = i; b.className = (i===state.page? 'active':'');
+        b.addEventListener('click',()=>{ state.page = i; render(); });
+        pag.appendChild(b);
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
