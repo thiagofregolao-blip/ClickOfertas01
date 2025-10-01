@@ -37,6 +37,7 @@ import NotFound from "@/pages/not-found";
 import { MapModalTestPage } from "@/pages/map-modal-test";
 import TestInlineAssistant from "@/pages/test-inline-assistant";
 import ClickEnvironment from "@/pages/ClickEnvironment";
+import TestAlibaba from "@/pages/TestAlibaba";
 import WiFi24h from "@/pages/WiFi24h";
 import WiFiPayment from "@/pages/WiFiPayment";
 import WiFiSuccess from "@/pages/WiFiSuccess";
@@ -140,6 +141,7 @@ function Router() {
           <Route path="/click-environment" component={ClickEnvironment} />
           <Route path="/click-environment/:productId" component={ClickEnvironment} />
           <Route path="/click-environment/category/:category" component={ClickEnvironment} />
+          <Route path="/test-alibaba" component={TestAlibaba} />
           <Route path="/wifi-24h" component={WiFi24h} />
           <Route path="/wifi-24h/payment" component={WiFiPayment} />
           <Route path="/wifi-24h/success" component={WiFiSuccess} />
@@ -206,6 +208,7 @@ function Router() {
           <Route path="/click-environment" component={ClickEnvironment} />
           <Route path="/click-environment/:productId" component={ClickEnvironment} />
           <Route path="/click-environment/category/:category" component={ClickEnvironment} />
+          <Route path="/test-alibaba" component={TestAlibaba} />
           <Route path="/wifi-24h" component={WiFi24h} />
           <Route path="/wifi-24h/payment" component={WiFiPayment} />
           <Route path="/wifi-24h/success" component={WiFiSuccess} />
@@ -233,6 +236,7 @@ function Router() {
           <Route path="/click-environment" component={ClickEnvironment} />
           <Route path="/click-environment/:productId" component={ClickEnvironment} />
           <Route path="/click-environment/category/:category" component={ClickEnvironment} />
+          <Route path="/test-alibaba" component={TestAlibaba} />
           <Route path="/wifi-24h" component={WiFi24h} />
           <Route path="/wifi-24h/payment" component={WiFiPayment} />
           <Route path="/wifi-24h/success" component={WiFiSuccess} />
