@@ -307,8 +307,15 @@ export class IntelligentVendor {
       recentCategories: [] as string[]
     };
 
+    // 🐛 FIX BUG #1: Verificar se interactions existe antes de usar .slice()
+    if (!memory.interactions || memory.interactions.length === 0) {
+      console.log(`⚠️ [V2] getConversationContext: No interactions found for user ${userId}`);
+      return context;
+    }
+
     // Extrair produtos, marcas e categorias das últimas 5 interações
     const recentInteractions = memory.interactions.slice(-5);
+    console.log(`📝 [V2] getConversationContext: Processing ${recentInteractions.length} recent interactions for user ${userId}`);
     
     for (const interaction of recentInteractions) {
       const content = interaction.content.toLowerCase();
@@ -561,8 +568,11 @@ export class IntelligentVendor {
 
   /**
    * Determina se a mensagem indica intenção de busca de produtos
+   * 🐛 FIX BUG #2: Melhorada detecção de "modelo 16", "versão X", "geração Y"
    */
   private shouldSearchProducts(message: string, intent: string): boolean {
+    const messageLower = message.toLowerCase();
+    
     const searchKeywords = [
       'iphone', 'samsung', 'celular', 'smartphone', 'telefone',
       'notebook', 'laptop', 'computador', 'pc',
@@ -576,16 +586,40 @@ export class IntelligentVendor {
       'quero', 'preciso', 'busco', 'procuro', 'onde encontro'
     ];
 
-    const messageWords = message.toLowerCase().split(/\s+/);
+    const messageWords = messageLower.split(/\s+/);
     const hasSearchKeyword = searchKeywords.some(keyword => 
       messageWords.some(word => word.includes(keyword) || keyword.includes(word))
     );
 
+    // 🐛 FIX BUG #2: Detectar padrões de modelo/versão/geração
+    // Exemplos: "modelo 16", "versão 15", "geração 3", "pro max", "plus"
+    const modelPatterns = [
+      /modelo\s+\d+/i,           // "modelo 16", "modelo 15"
+      /versão\s+\d+/i,           // "versão 15", "versão 16"
+      /geração\s+\d+/i,          // "geração 3", "geração 4"
+      /\d+\s*(pro|max|plus|ultra|mini)/i,  // "16 pro", "15 max", "13 mini"
+      /(pro|max|plus|ultra|mini)\s*\d+/i,  // "pro 16", "max 15"
+      /\biphone\s*\d+/i,         // "iphone 16", "iphone15"
+      /\bgalaxy\s*[sa]\d+/i,     // "galaxy s24", "galaxy a54"
+      /\bredmi\s*\d+/i,          // "redmi 13", "redmi note 12"
+      /\bmoto\s*g?\d+/i          // "moto g84", "moto 14"
+    ];
+    
+    const hasModelPattern = modelPatterns.some(pattern => pattern.test(messageLower));
+
     const searchIntents = ['search', 'purchase_intent', 'price_inquiry', 'comparison'];
     const hasSearchIntent = searchIntents.includes(intent);
 
-    const shouldSearch = hasSearchKeyword || hasSearchIntent;
-    console.log(`🔍 [V2] shouldSearchProducts("${message}", "${intent}") = ${shouldSearch}`);
+    const shouldSearch = hasSearchKeyword || hasSearchIntent || hasModelPattern;
+    
+    // 🐛 FIX BUG #2: Log detalhado para debugging
+    console.log(`🔍 [V2] shouldSearchProducts Analysis:`);
+    console.log(`   Message: "${message}"`);
+    console.log(`   Intent: "${intent}"`);
+    console.log(`   hasSearchKeyword: ${hasSearchKeyword}`);
+    console.log(`   hasModelPattern: ${hasModelPattern}`);
+    console.log(`   hasSearchIntent: ${hasSearchIntent}`);
+    console.log(`   RESULT: ${shouldSearch}`);
 
     return shouldSearch;
   }
