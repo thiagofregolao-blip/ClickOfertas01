@@ -350,7 +350,22 @@ export default function GeminiAssistantBar() {
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
         
-        for (const line of lines) {
+        for (let line of lines) {
+          // 🛡️ FILTRO: Ignorar linhas vazias e linhas SSE brutas
+          if (!line.trim() || line.startsWith(':')) {
+            continue;
+          }
+          
+          // 🔧 FIX: Detectar e separar linhas combinadas "event: X data: Y"
+          if (line.includes('event: ') && line.includes(' data: ')) {
+            const eventMatch = line.match(/event:\s*(\w+)\s+data:\s*(.+)/);
+            if (eventMatch) {
+              pendingEventType = eventMatch[1].trim();
+              line = `data: ${eventMatch[2]}`;
+              console.log('🔧 [V2] Linha SSE combinada detectada e separada:', { event: pendingEventType });
+            }
+          }
+          
           // 🔍 Capturar tipo de evento e guardar para próxima linha de data
           if (line.startsWith('event: ')) {
             pendingEventType = line.slice(7).trim();
