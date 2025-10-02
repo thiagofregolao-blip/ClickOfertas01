@@ -12,6 +12,13 @@ App color palette: Red to orange gradient (not blue).
 
 ## Recent Changes
 
+### October 2, 2025
+- **Hierarchical Categories**: Implemented parent/subcategory system (e.g., Eletrônicos > Drone)
+- **Database Schema**: Added `parentCategoryId` to categories table and `categoryId`/`parentCategoryId` to products table
+- **Canon System**: Updated canon.store.ts to support hierarchical category detection with automatic parent inference
+- **AI Assistant**: intelligent-vendor.ts now detects both parent categories and subcategories from user queries
+- **Category Seeding**: Created default hierarchy: Eletrônicos (Celular, Notebook, TV, Drone, Tablet, Fone, Console), Perfumaria (Perfume), Roupas (Blusa, Camisa, Calças), Calçados (Tênis, Sapato), Acessórios (Relógio, Bolsa)
+
 ### September 20, 2025
 - **CRITICAL FIX**: Analytics Dashboard issue resolved - removed duplicate endpoint implementations that were preventing data display
 - **Analytics Backend**: Corrected analytics logic by removing incorrect session filtering and fixing database queries  
