@@ -19,15 +19,17 @@ import { products, stores } from '@shared/schema';
 import { eq, and, or, sql, asc, desc, ilike } from 'drizzle-orm';
 
 // Import canonical lists
-import { loadCanon, canonProduct, canonCategory, productDefaultCategory } from '../../../src/nlp/canon.store';
+import { loadCanon, canonProduct, canonCategory, canonSubcategory, productDefaultCategory, productDefaultSubcategory, getParentCategory } from '../../../src/nlp/canon.store';
 
-// 🎯 COMPREHENSIVE FIX: Enhanced Search Entities with Category Inference
+// 🎯 COMPREHENSIVE FIX: Enhanced Search Entities with Category Hierarchy
 interface SearchEntities {
   brands: string[];
   models: string[];
-  categories: string[];
+  categories: string[]; // Parent categories (e.g., "eletronicos")
+  subcategories: string[]; // Subcategories (e.g., "drone")
   priceRange?: { min?: number; max?: number };
-  inferredCategories?: string[]; // Auto-inferred from brands
+  inferredCategories?: string[]; // Auto-inferred parent categories
+  inferredSubcategories?: string[]; // Auto-inferred subcategories
 }
 
 export class IntelligentVendor {
@@ -108,12 +110,14 @@ export class IntelligentVendor {
       brands: [],
       models: [],
       categories: [],
-      inferredCategories: []
+      subcategories: [],
+      inferredCategories: [],
+      inferredSubcategories: []
     };
 
     // 🎯 USE CANONICAL LIST: Load canon data
     const canon = loadCanon();
-    console.log(`📚 [V2] Canon carregado: ${Object.keys(canon.productCanon).length} produtos, ${Object.keys(canon.categoryCanon).length} categorias`);
+    console.log(`📚 [V2] Canon carregado: ${Object.keys(canon.productCanon).length} produtos, ${Object.keys(canon.categoryCanon).length} categorias, ${Object.keys(canon.subcategoryCanon).length} subcategorias`);
 
     // 🎯 USE CANONICAL LIST: Detect products using productCanon
     const words = messageLower.split(/\s+/);
@@ -129,11 +133,18 @@ export class IntelligentVendor {
           }
         }
         
-        // Try to infer category from product
-        const defaultCategory = productDefaultCategory(productCanonical);
-        if (defaultCategory && !entities.inferredCategories!.includes(defaultCategory)) {
-          entities.inferredCategories!.push(defaultCategory);
-          console.log(`📦 [V2] Categoria inferida de produto "${productCanonical}": "${defaultCategory}"`);
+        // Try to infer subcategory from product
+        const defaultSubcategory = productDefaultSubcategory(productCanonical);
+        if (defaultSubcategory && !entities.inferredSubcategories!.includes(defaultSubcategory)) {
+          entities.inferredSubcategories!.push(defaultSubcategory);
+          console.log(`📦 [V2] Subcategoria inferida de produto "${productCanonical}": "${defaultSubcategory}"`);
+          
+          // Also infer parent category
+          const parentCategory = getParentCategory(defaultSubcategory);
+          if (parentCategory && !entities.inferredCategories!.includes(parentCategory)) {
+            entities.inferredCategories!.push(parentCategory);
+            console.log(`📁 [V2] Categoria pai inferida: "${parentCategory}"`);
+          }
         }
       }
     }
@@ -177,16 +188,38 @@ export class IntelligentVendor {
       }
     }
 
-    // 🎯 USE CANONICAL LIST: Detect categories using categoryCanon
+    // 🎯 USE CANONICAL LIST: Detect parent categories using categoryCanon
     for (const word of words) {
       const categoryCanonical = canonCategory(word);
       if (categoryCanonical && !entities.categories.includes(categoryCanonical)) {
         entities.categories.push(categoryCanonical);
-        console.log(`📦 [V2] Categoria canônica detectada: "${word}" → "${categoryCanonical}"`);
+        console.log(`📁 [V2] Categoria pai detectada: "${word}" → "${categoryCanonical}"`);
+      }
+      
+      // Also detect subcategories using subcategoryCanon
+      const subcategoryCanonical = canonSubcategory(word);
+      if (subcategoryCanonical && !entities.subcategories.includes(subcategoryCanonical)) {
+        entities.subcategories.push(subcategoryCanonical);
+        console.log(`📦 [V2] Subcategoria detectada: "${word}" → "${subcategoryCanonical}"`);
+        
+        // Infer parent category from subcategory
+        const parentCategory = getParentCategory(subcategoryCanonical);
+        if (parentCategory && !entities.categories.includes(parentCategory)) {
+          entities.categories.push(parentCategory);
+          console.log(`📁 [V2] Categoria pai inferida de subcategoria: "${parentCategory}"`);
+        }
       }
     }
 
-    // 🎯 FIX: Merge inferred categories with explicit ones
+    // 🎯 FIX: Merge inferred subcategories and categories
+    if (entities.inferredSubcategories && entities.inferredSubcategories.length > 0) {
+      entities.inferredSubcategories.forEach(subcat => {
+        if (!entities.subcategories.includes(subcat)) {
+          entities.subcategories.push(subcat);
+        }
+      });
+    }
+    
     if (entities.inferredCategories && entities.inferredCategories.length > 0) {
       entities.inferredCategories.forEach(cat => {
         if (!entities.categories.includes(cat)) {
