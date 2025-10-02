@@ -93,7 +93,7 @@ export default function TestAlibaba() {
       <section 
         className="relative bg-cover bg-center bg-no-repeat overflow-hidden"
         style={{
-          minHeight: '75vh'
+          minHeight: '60vh'
         }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
@@ -120,7 +120,7 @@ export default function TestAlibaba() {
           </motion.div>
         </AnimatePresence>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-12">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-6">
           <div className="max-w-[900px]">
             {/* Label */}
             <motion.div 
