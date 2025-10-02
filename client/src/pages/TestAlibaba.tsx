@@ -166,8 +166,8 @@ export default function TestAlibaba() {
           </motion.div>
         </AnimatePresence>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-24">
-          <div className="max-w-[900px]">
+        <div className="relative max-w-7xl mx-auto px-6 pt-20 pb-24">
+          <div className="max-w-[900px] relative z-10">
             {/* Label */}
             <motion.div 
               key={`label-${currentBannerIndex}`}
