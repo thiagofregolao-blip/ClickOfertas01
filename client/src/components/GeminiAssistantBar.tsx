@@ -768,7 +768,7 @@ export default function GeminiAssistantBar() {
 
         {/* Sugestões de Autocomplete */}
         {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-primary/30 dark:border-primary/40 rounded-xl shadow-xl z-50 max-h-80 overflow-y-auto">
+          <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-primary/30 dark:border-primary/40 rounded-xl shadow-xl z-[9999] max-h-80 overflow-y-auto">
             {suggestions.map((suggestion, index) => (
               <button
                 key={index}
@@ -788,7 +788,7 @@ export default function GeminiAssistantBar() {
 
       {/* Overlay de Resultados Gemini */}
       {showResults && (
-        <div className="fixed inset-0 bg-black/50 z-[100] flex items-start justify-center pt-4 px-4 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 z-[9999] flex items-start justify-center pt-4 px-4 overflow-y-auto">
           <div className="bg-white dark:bg-gray-900 w-full max-w-6xl h-[90vh] rounded-2xl shadow-2xl flex flex-col">
             
             {/* Header simples sem busca */}
