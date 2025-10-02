@@ -18,6 +18,9 @@ import { db } from '../../db';
 import { products, stores } from '@shared/schema';
 import { eq, and, or, sql, asc, desc, ilike } from 'drizzle-orm';
 
+// Import canonical lists
+import { loadCanon, canonProduct, canonCategory, productDefaultCategory } from '../../../src/nlp/canon.store';
+
 // 🎯 COMPREHENSIVE FIX: Enhanced Search Entities with Category Inference
 interface SearchEntities {
   brands: string[];
@@ -108,65 +111,30 @@ export class IntelligentVendor {
       inferredCategories: []
     };
 
-    // 🎯 FIX: Brand patterns with associated categories for auto-inference
-    const brandPatterns: Record<string, { patterns: string[], categories: string[] }> = {
-      'apple': { 
-        patterns: ['apple', 'iphone', 'ipad', 'macbook'], 
-        categories: ['celular', 'smartphone', 'tablet', 'notebook'] 
-      },
-      'samsung': { 
-        patterns: ['samsung', 'galaxy'], 
-        categories: ['celular', 'smartphone', 'tv', 'eletronicos'] 
-      },
-      'xiaomi': { 
-        patterns: ['xiaomi', 'redmi', 'poco'], 
-        categories: ['celular', 'smartphone', 'eletronicos'] 
-      },
-      'motorola': { 
-        patterns: ['motorola', 'moto'], 
-        categories: ['celular', 'smartphone'] 
-      },
-      'lg': { 
-        patterns: ['lg'], 
-        categories: ['celular', 'smartphone', 'tv', 'eletronicos'] 
-      },
-      'sony': { 
-        patterns: ['sony', 'playstation', 'ps5', 'ps4'], 
-        categories: ['eletronicos', 'games', 'console'] 
-      },
-      'dell': { 
-        patterns: ['dell'], 
-        categories: ['notebook', 'computador', 'laptop'] 
-      },
-      'hp': { 
-        patterns: ['hp'], 
-        categories: ['notebook', 'computador', 'laptop'] 
-      },
-      'lenovo': { 
-        patterns: ['lenovo'], 
-        categories: ['notebook', 'computador', 'laptop'] 
-      },
-      'asus': { 
-        patterns: ['asus'], 
-        categories: ['notebook', 'computador', 'laptop'] 
-      },
-      'acer': { 
-        patterns: ['acer'], 
-        categories: ['notebook', 'computador', 'laptop'] 
-      }
-    };
+    // 🎯 USE CANONICAL LIST: Load canon data
+    const canon = loadCanon();
+    console.log(`📚 [V2] Canon carregado: ${Object.keys(canon.productCanon).length} produtos, ${Object.keys(canon.categoryCanon).length} categorias`);
 
-    // 🎯 FIX: Detect brands and AUTO-INFER categories
-    for (const [brand, config] of Object.entries(brandPatterns)) {
-      if (config.patterns.some(p => messageLower.includes(p))) {
-        entities.brands.push(brand);
-        // Auto-infer categories from brand
-        config.categories.forEach(cat => {
-          if (!entities.inferredCategories!.includes(cat)) {
-            entities.inferredCategories!.push(cat);
+    // 🎯 USE CANONICAL LIST: Detect products using productCanon
+    const words = messageLower.split(/\s+/);
+    for (const word of words) {
+      const productCanonical = canonProduct(word);
+      if (productCanonical) {
+        console.log(`🏷️ [V2] Produto canônico detectado: "${word}" → "${productCanonical}"`);
+        
+        // Check if it's a brand
+        if (canon.brands.includes(productCanonical)) {
+          if (!entities.brands.includes(productCanonical)) {
+            entities.brands.push(productCanonical);
           }
-        });
-        console.log(`🏷️ [V2] Marca detectada: "${brand}" → Categorias inferidas: [${config.categories.join(', ')}]`);
+        }
+        
+        // Try to infer category from product
+        const defaultCategory = productDefaultCategory(productCanonical);
+        if (defaultCategory && !entities.inferredCategories!.includes(defaultCategory)) {
+          entities.inferredCategories!.push(defaultCategory);
+          console.log(`📦 [V2] Categoria inferida de produto "${productCanonical}": "${defaultCategory}"`);
+        }
       }
     }
 
@@ -209,34 +177,12 @@ export class IntelligentVendor {
       }
     }
 
-    // 🎯 NEW FIX: Enhanced category patterns with plural support and missing categories
-    const categoryPatterns = {
-      'celular': ['celular', 'celulares', 'smartphone', 'smartphones', 'telefone', 'telefones', 'iphone', 'galaxy'],
-      'notebook': ['notebook', 'notebooks', 'laptop', 'laptops', 'computador', 'computadores'],
-      'tv': ['tv', 'tvs', 'televisão', 'televisao', 'televisões', 'televisoes', 'smart tv'],
-      'perfume': ['perfume', 'perfumes', 'fragrância', 'fragrancia', 'fragrâncias', 'fragrancias'],
-      'roupa': ['roupa', 'roupas', 'camisa', 'camisas', 'calça', 'calças', 'vestido', 'vestidos', 'blusa', 'blusas'],
-      'sapato': ['sapato', 'sapatos', 'tênis', 'tenis', 'sandália', 'sandalia', 'sandálias', 'sandalias'],
-      'relógio': ['relógio', 'relogio', 'relógios', 'relogios'],
-      'fone': ['fone', 'fones', 'headphone', 'headphones', 'earphone', 'earphones', 'airpods'],
-      'tablet': ['tablet', 'tablets', 'ipad'],
-      'drone': ['drone', 'drones'],
-      'bolsa': ['bolsa', 'bolsas', 'mochila', 'mochilas'],
-      'eletronicos': ['eletronico', 'eletronicos', 'eletrônico', 'eletrônicos', 'gadget', 'gadgets']
-    };
-
-    // 🎯 NEW: Use normalized matching for better category detection
-    const messageNormalized = this.normalizeForMatching(messageLower);
-    
-    for (const [category, patterns] of Object.entries(categoryPatterns)) {
-      const hasMatch = patterns.some(p => {
-        const patternNormalized = this.normalizeForMatching(p);
-        return messageNormalized.includes(patternNormalized);
-      });
-      
-      if (hasMatch) {
-        entities.categories.push(category);
-        console.log(`📦 [V2] Categoria detectada: "${category}"`);
+    // 🎯 USE CANONICAL LIST: Detect categories using categoryCanon
+    for (const word of words) {
+      const categoryCanonical = canonCategory(word);
+      if (categoryCanonical && !entities.categories.includes(categoryCanonical)) {
+        entities.categories.push(categoryCanonical);
+        console.log(`📦 [V2] Categoria canônica detectada: "${word}" → "${categoryCanonical}"`);
       }
     }
 
