@@ -167,6 +167,7 @@ export const categories = pgTable("categories", {
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
   slug: varchar("slug", { length: 100 }).unique().notNull(),
+  parentCategoryId: varchar("parent_category_id").references((): any => categories.id), // Self-referential FK for hierarchy
   isActive: boolean("is_active").default(true),
   sortOrder: integer("sort_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
@@ -174,6 +175,7 @@ export const categories = pgTable("categories", {
 }, (table) => [
   index("idx_categories_active").on(table.isActive),
   index("idx_categories_sort").on(table.sortOrder),
+  index("idx_categories_parent").on(table.parentCategoryId),
 ]);
 
 // Product Banks - Sistema de banco de imagens para produtos
@@ -227,7 +229,9 @@ export const products = pgTable("products", {
   imageUrl: text("image_url"),
   imageUrl2: text("image_url2"),
   imageUrl3: text("image_url3"),
-  category: varchar("category").default("Perfumaria"),
+  category: varchar("category").default("Perfumaria"), // Legacy text field (kept for migration)
+  categoryId: varchar("category_id").references(() => categories.id), // FK to subcategory
+  parentCategoryId: varchar("parent_category_id").references(() => categories.id), // FK to parent category
   gtin: varchar("gtin", { length: 14 }), // GTIN/EAN/UPC para busca no Icecat
   brand: varchar("brand"), // Marca do produto (do Icecat)
   productCode: varchar("product_code"), // Código do produto (do Icecat)
@@ -247,7 +251,10 @@ export const products = pgTable("products", {
   scratchMessage: text("scratch_message").default("Raspe aqui e ganhe um super desconto!"), // Mensagem na raspadinha
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_products_category_id").on(table.categoryId),
+  index("idx_products_parent_category_id").on(table.parentCategoryId),
+]);
 
 // Produtos favoritos/salvos pelo usuário
 export const savedProducts = pgTable("saved_products", {
