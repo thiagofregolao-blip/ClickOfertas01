@@ -1122,14 +1122,20 @@ export class IntelligentVendor {
         history: conversationHistory.slice(0, -1)
       });
       
+      console.log(`🤖 [Gemini] Enviando mensagem para o modelo...`);
       const result = await chat.sendMessageStream(conversationHistory[conversationHistory.length - 1].parts[0].text);
+      console.log(`🤖 [Gemini] Stream iniciado, aguardando chunks...`);
       
       let fullResponse = '';
+      let chunkCount = 0;
       for await (const chunk of result.stream) {
+        chunkCount++;
         const chunkText = chunk.text();
+        console.log(`🤖 [Gemini] Chunk ${chunkCount}: "${chunkText.substring(0, 50)}${chunkText.length > 50 ? '...' : ''}" (${chunkText.length} chars)`);
         fullResponse += chunkText;
         yield chunkText;
       }
+      console.log(`🤖 [Gemini] Stream concluído. Total de chunks: ${chunkCount}, Resposta completa: ${fullResponse.length} chars`)
       
       conversationHistory.push({
         role: 'model',

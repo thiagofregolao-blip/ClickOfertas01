@@ -1,0 +1,47 @@
+chunk-RPCDYKBN.js?v=10c54a12:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+GeminiAssistantBar.tsx:123 🎧 [GeminiAssistantBar] Registrando event listeners Gemini
+GeminiAssistantBar.tsx:194 🤖 [GeminiAssistantBar] Componente inicializado
+GeminiAssistantBar.tsx:205 ✅ [GeminiAssistantBar] Sessão criada/sincronizada: Object
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/7087a684-d3c6-46b8-8fba-19dea73c54a4:1 Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/7087a684-d3c6-46b8-8fba-19dea73c54a4:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+GeminiAssistantBar.tsx:315 🚀 [V2] start stream {message: 'Estou procurando por Apple IPHONE 12 PRO MAX A2411…judar a encontrar as melhores opções disponíveis?', sessionId: 'web_mi3wb45naw', requestId: '1759427084498'}
+GeminiAssistantBar.tsx:368 🔍 [V2] Linhas SSE brutas recebidas: (3) ['event: delta', 'data: {"text":""}', '']
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: delta
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "delta": {"text":""}
+GeminiAssistantBar.tsx:407 📦 [V2] SSE delta parsed > {text: ''}
+GeminiAssistantBar.tsx:368 🔍 [V2] Linhas SSE brutas recebidas: ['event: products']
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: products
+GeminiAssistantBar.tsx:368 🔍 [V2] Linhas SSE brutas recebidas: (3) ['data: {"products":[{"id":"776775aa-ce8c-41d5-b14d-…endor-v2","timestamp":"2025-10-02T17:44:45.006Z"}', '', 'event: suggestions']
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "products": {"products":[{"id":"776775aa-ce8c-41d5-b14d-d6203661ca1c","name":"Apple IPHONE 12 PRO MAX A2411 256G
+GeminiAssistantBar.tsx:407 📦 [V2] SSE products parsed > {products: Array(10), query: 'Estou procurando por Apple IPHONE 12 PRO MAX A2411…judar a encontrar as melhores opções disponíveis?', provider: 'intelligent-vendor-v2', timestamp: '2025-10-02T17:44:45.006Z'}
+GeminiAssistantBar.tsx:418 🛍️ [V2] ✅ Processando evento PRODUCTS: {hasProducts: true, isArray: true, length: 10, firstProduct: 'Apple IPHONE 12 PRO MAX A2411 256GB GOLD CPO'}
+GeminiAssistantBar.tsx:426 🛍️ [V2] ✅✅ PRODUTOS RECEBIDOS via evento nomeado: 10
+GeminiAssistantBar.tsx:427 🛍️ [V2] Lista de produtos: (10) ['Apple IPHONE 12 PRO MAX A2411 256GB GOLD CPO', 'Apple IPHONE 13 128GB MIDNIGHT', 'Realme GT 5 Pro 256GB', 'OnePlus 12 256GB', 'Apple IPHONE 16 A3081 128GB BLACK ESIM CHIP VIRTUAL', 'Apple IPHONE 16 A3081 128GB TEAL ESIM CHIP VIRTUAL', 'Xiaomi Redmi Note 13 Pro 256GB', 'Google Pixel 8 Pro 256GB', 'Samsung Galaxy S25 256GB', 'iPhone 15 128GB']
+GeminiAssistantBar.tsx:438 🛍️ [V2] Produtos divididos - TopBox: 3 Feed: 7
+GeminiAssistantBar.tsx:447 🎯 [GeminiAssistantBar] Evento ai-search-results disparado (stream) {count: 10}
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: suggestions
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "suggestions": {"suggestions":[{"id":"c22c3992-7b1b-49d1-b264-01eae7eca7e5","name":"Apple IPHONE 13 128GB MIDNIGHT"
+GeminiAssistantBar.tsx:407 📦 [V2] SSE suggestions parsed > {suggestions: Array(3), provider: 'intelligent-vendor-v2', timestamp: '2025-10-02T17:44:45.081Z'}
+GeminiAssistantBar.tsx:462 💡 [V2] ✅ Processando evento SUGGESTIONS: {hasSuggestions: true, isArray: true, length: 3}
+GeminiAssistantBar.tsx:469 💡 [V2] ✅✅ SUGESTÕES RECEBIDAS: 3
+GeminiAssistantBar.tsx:368 🔍 [V2] Linhas SSE brutas recebidas: (4) ['event: emotion', 'data: {"emotion":"neutral","intensity":0.3,"confidence":0.5}', '', 'event: products']
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: emotion
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "emotion": {"emotion":"neutral","intensity":0.3,"confidence":0.5}
+GeminiAssistantBar.tsx:407 📦 [V2] SSE emotion parsed > {emotion: 'neutral', intensity: 0.3, confidence: 0.5}
+GeminiAssistantBar.tsx:481 😊 [V2] Emoção via evento nomeado: neutral
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: products
+GeminiAssistantBar.tsx:368 🔍 [V2] Linhas SSE brutas recebidas: (5) ['data: {"products":[{"id":"776775aa-ce8c-41d5-b14d-…endor-v2","timestamp":"2025-10-02T17:44:46.397Z"}', '', 'event: complete', 'data: {"provider":"intelligent-vendor-v2"}', '']
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "products": {"products":[{"id":"776775aa-ce8c-41d5-b14d-d6203661ca1c","name":"Apple IPHONE 12 PRO MAX A2411 256G
+GeminiAssistantBar.tsx:407 📦 [V2] SSE products parsed > {products: Array(10), query: 'Estou procurando por Apple IPHONE 12 PRO MAX A2411…judar a encontrar as melhores opções disponíveis?', provider: 'intelligent-vendor-v2', timestamp: '2025-10-02T17:44:46.397Z'}
+GeminiAssistantBar.tsx:418 🛍️ [V2] ✅ Processando evento PRODUCTS: {hasProducts: true, isArray: true, length: 10, firstProduct: 'Apple IPHONE 12 PRO MAX A2411 256GB GOLD CPO'}
+GeminiAssistantBar.tsx:426 🛍️ [V2] ✅✅ PRODUTOS RECEBIDOS via evento nomeado: 10
+GeminiAssistantBar.tsx:427 🛍️ [V2] Lista de produtos: (10) ['Apple IPHONE 12 PRO MAX A2411 256GB GOLD CPO', 'Apple IPHONE 13 128GB MIDNIGHT', 'Realme GT 5 Pro 256GB', 'OnePlus 12 256GB', 'Apple IPHONE 16 A3081 128GB BLACK ESIM CHIP VIRTUAL', 'Apple IPHONE 16 A3081 128GB TEAL ESIM CHIP VIRTUAL', 'Xiaomi Redmi Note 13 Pro 256GB', 'Google Pixel 8 Pro 256GB', 'Samsung Galaxy S25 256GB', 'iPhone 15 128GB']
+GeminiAssistantBar.tsx:438 🛍️ [V2] Produtos divididos - TopBox: 3 Feed: 7
+GeminiAssistantBar.tsx:447 🎯 [GeminiAssistantBar] Evento ai-search-results disparado (stream) {count: 10}
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: complete
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "complete": {"provider":"intelligent-vendor-v2"}
+GeminiAssistantBar.tsx:407 📦 [V2] SSE complete parsed > {provider: 'intelligent-vendor-v2'}
+GeminiAssistantBar.tsx:358 ✅ [V2] Stream concluído
