@@ -240,7 +240,7 @@ export default function TestAlibaba() {
       {/* Grid Híbrido Glassmorphism */}
       <section className="relative -mt-48 z-20 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="backdrop-blur-lg bg-white/90 dark:bg-gray-900/90 border border-white/30 dark:border-gray-700/30 rounded-3xl shadow-2xl p-8">
+          <div className="backdrop-blur-lg bg-white/70 dark:bg-gray-900/70 border border-white/30 dark:border-gray-700/30 rounded-3xl shadow-2xl p-8">
             {/* Header do Grid */}
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
