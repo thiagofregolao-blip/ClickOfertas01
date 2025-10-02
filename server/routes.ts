@@ -8058,14 +8058,18 @@ Regras:
     }
 
     // NOW set SSE headers after validation
+    console.log(`🔧 [V2] Setting SSE headers for user: ${userId}`);
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders?.();
+    console.log(`✅ [V2] SSE headers set and flushed for user: ${userId}`);
 
     const send = (event: string, payload: any) => {
-      res.write(`event: ${event}\n`);
-      res.write(`data: ${JSON.stringify(payload)}\n\n`);
+      if (!clientDisconnected) {
+        res.write(`event: ${event}\n`);
+        res.write(`data: ${JSON.stringify(payload)}\n\n`);
+      }
     };
 
     let clientDisconnected = false;
