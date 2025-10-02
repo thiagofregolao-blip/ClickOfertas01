@@ -788,7 +788,7 @@ export default function GeminiAssistantBar() {
 
       {/* Overlay de Resultados Gemini */}
       {showResults && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-4 px-4 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-start justify-center pt-4 px-4 overflow-y-auto">
           <div className="bg-white dark:bg-gray-900 w-full max-w-6xl h-[90vh] rounded-2xl shadow-2xl flex flex-col">
             
             {/* Header simples sem busca */}
