@@ -93,7 +93,7 @@ export default function TestAlibaba() {
       <section 
         className="relative bg-cover bg-center bg-no-repeat overflow-hidden"
         style={{
-          minHeight: '60vh'
+          minHeight: '75vh'
         }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
