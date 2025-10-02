@@ -102,15 +102,22 @@ export default function TestAlibaba() {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentBannerIndex}
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "-100%" }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('${displayBanner.imageUrl}')`,
-            }}
-          />
+            className="absolute inset-0"
+          >
+            <div
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+              style={{
+                backgroundImage: `url('${displayBanner.imageUrl}')`,
+              }}
+            />
+            <motion.div
+              initial={{ opacity: 0.9 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 1 }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+              className="absolute inset-0 bg-black"
+            />
+          </motion.div>
         </AnimatePresence>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32">
