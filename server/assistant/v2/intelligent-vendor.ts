@@ -1000,13 +1000,15 @@ export class IntelligentVendor {
           
           const topProducts = foundProducts.slice(0, 3);
           
-          yield `event: products\ndata: ${JSON.stringify({ products: foundProducts })}\n\n`;
+          // 🎯 FIX: Use marker format so route handler can emit proper SSE event
+          yield `\n\n__PRODUCTS__${JSON.stringify({ products: foundProducts })}`;
           
           if (foundProducts.length > 0) {
             suggestedProducts = await this.getSuggestedProducts(foundProducts[0], 5);
             if (suggestedProducts.length > 0) {
               console.log(`💡 [V2] Found ${suggestedProducts.length} suggestions`);
-              yield `event: suggestions\ndata: ${JSON.stringify({ suggestions: suggestedProducts })}\n\n`;
+              // 🎯 FIX: Use marker format for suggestions too
+              yield `\n\n__SUGGESTIONS__${JSON.stringify({ suggestions: suggestedProducts })}`;
             }
           }
         } else {
