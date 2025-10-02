@@ -29,7 +29,7 @@ export default function TestAlibaba() {
 
     const interval = setInterval(() => {
       setCurrentBannerIndex((prev) => (prev + 1) % activeBanners.length);
-    }, 5000);
+    }, 10000); // 10 segundos de exibição
 
     return () => clearInterval(interval);
   }, [activeBanners.length, isPaused]);
@@ -102,10 +102,10 @@ export default function TestAlibaba() {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentBannerIndex}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 1, ease: "easeInOut" }}
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
               backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('${displayBanner.imageUrl}')`,
