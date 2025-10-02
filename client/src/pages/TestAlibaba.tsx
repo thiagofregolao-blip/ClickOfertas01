@@ -120,7 +120,7 @@ export default function TestAlibaba() {
           </motion.div>
         </AnimatePresence>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-12">
           <div className="max-w-[900px]">
             {/* Label */}
             <motion.div 
