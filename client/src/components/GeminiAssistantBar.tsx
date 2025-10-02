@@ -739,7 +739,7 @@ export default function GeminiAssistantBar() {
           
           {/* Badge Gemini */}
           <div className="absolute -top-2 left-6 px-3 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full shadow-md">
-            GEMINI AI
+            CLICK AI
           </div>
         </div>
 
