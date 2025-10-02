@@ -1,10 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+import { motion, AnimatePresence } from 'framer-motion';
 import GeminiAssistantBar from '@/components/GeminiAssistantBar';
 import { ShoppingBag, Shield, Package, Sparkles } from 'lucide-react';
+import type { HeroBanner } from '@shared/schema';
 
 export default function TestAlibaba() {
   const [, setLocation] = useLocation();
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const { data: banners, isLoading } = useQuery<HeroBanner[]>({
+    queryKey: ['/api/public/hero-banners'],
+  });
+
+  const activeBanners = banners?.filter(b => b.isActive) || [];
+  const currentBanner = activeBanners[currentBannerIndex];
+
+  const defaultBanner = {
+    imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&q=80',
+    title: 'A plataforma de compras líder no turismo de compras do Paraguai',
+    description: 'Conheça o Click Ofertas'
+  };
+
+  useEffect(() => {
+    if (activeBanners.length <= 1 || isPaused) return;
+
+    const interval = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % activeBanners.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [activeBanners.length, isPaused]);
+
+  const handleDotClick = (index: number) => {
+    setCurrentBannerIndex(index);
+  };
+
+  const displayBanner = currentBanner || defaultBanner;
+  const showCarousel = activeBanners.length > 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -54,26 +89,56 @@ export default function TestAlibaba() {
         </div>
       </header>
 
-      {/* Hero Section - Fullscreen com fundo */}
+      {/* Hero Section - Automatic Carousel */}
       <section 
-        className="relative bg-cover bg-center bg-no-repeat"
+        className="relative bg-cover bg-center bg-no-repeat overflow-hidden"
         style={{
-          backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&q=80')",
           minHeight: '75vh'
         }}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        data-testid="hero-carousel-section"
       >
-        <div className="max-w-7xl mx-auto px-6 pt-20 pb-32">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentBannerIndex}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('${displayBanner.imageUrl}')`,
+            }}
+          />
+        </AnimatePresence>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32">
           <div className="max-w-[900px]">
             {/* Label */}
-            <div className="flex items-center space-x-2 text-white mb-4">
+            <motion.div 
+              key={`label-${currentBannerIndex}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="flex items-center space-x-2 text-white mb-4"
+            >
               <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium">Conheça o Click Ofertas</span>
-            </div>
+              <span className="text-sm font-medium">
+                {showCarousel && currentBanner?.description ? currentBanner.description : 'Conheça o Click Ofertas'}
+              </span>
+            </motion.div>
 
-            {/* Título */}
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight drop-shadow-2xl">
-              A plataforma de compras líder no turismo de compras do Paraguai
-            </h1>
+            {/* Título Dinâmico */}
+            <motion.h1 
+              key={`title-${currentBannerIndex}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight drop-shadow-2xl"
+            >
+              {displayBanner.title}
+            </motion.h1>
 
             {/* Barra Gemini - Integrada inline */}
             <div className="mb-6">
@@ -98,6 +163,25 @@ export default function TestAlibaba() {
             </div>
           </div>
         </div>
+
+        {/* Indicadores de navegação (dots) */}
+        {activeBanners.length > 1 && (
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex space-x-3">
+            {activeBanners.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => handleDotClick(index)}
+                className={`h-2.5 w-2.5 rounded-full transition-all duration-300 ${
+                  currentBannerIndex === index
+                    ? 'scale-125 bg-white'
+                    : 'bg-white/50 hover:bg-white/70'
+                }`}
+                aria-label={`Ir para banner ${index + 1}`}
+                data-testid={`banner-dot-${index}`}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Seção de Benefícios */}
