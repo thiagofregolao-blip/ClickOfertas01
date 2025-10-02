@@ -1010,7 +1010,19 @@ export class IntelligentVendor {
       return response;
       
     } catch (error) {
-      console.error('❌ Erro no IntelligentVendor:', error);
+      // 🔍 ENHANCED ERROR LOGGING - Added to diagnose production issues
+      console.error('❌ ERRO CRÍTICO no IntelligentVendor:', {
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : undefined,
+        errorName: error instanceof Error ? error.constructor.name : typeof error,
+        userId,
+        message,
+        storeId,
+        timestamp: new Date().toISOString(),
+        modelUsed: 'gemini-1.5-flash',
+        apiKeyPresent: !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY),
+        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error), 2)
+      });
       
       return {
         id: `error_${Date.now()}`,
@@ -1150,7 +1162,19 @@ export class IntelligentVendor {
       yield `\n\n__METADATA__${JSON.stringify(metadata)}`;
       
     } catch (error) {
-      console.error('❌ Erro no streaming:', error);
+      // 🔍 ENHANCED ERROR LOGGING - Added to diagnose streaming issues
+      console.error('❌ ERRO CRÍTICO no streaming:', {
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : undefined,
+        errorName: error instanceof Error ? error.constructor.name : typeof error,
+        userId,
+        message,
+        storeId,
+        timestamp: new Date().toISOString(),
+        modelUsed: 'gemini-1.5-flash',
+        apiKeyPresent: !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY),
+        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error), 2)
+      });
       yield 'Desculpe, ocorreu um erro. Pode tentar novamente?';
     }
   }
