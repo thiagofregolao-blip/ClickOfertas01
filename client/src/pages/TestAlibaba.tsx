@@ -23,10 +23,11 @@ export default function TestAlibaba() {
   // Buscar produtos das lojas por padrão
   useEffect(() => {
     if (!isAIResults) {
-      fetch('/api/products?limit=12')
+      fetch('/api/public/products-with-stores')
         .then(res => res.json())
         .then(data => {
-          setProducts(data.products || []);
+          const productsData = Array.isArray(data) ? data.slice(0, 12) : [];
+          setProducts(productsData);
           setLoadingProducts(false);
         })
         .catch(err => {

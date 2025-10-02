@@ -256,6 +256,18 @@ export default function GeminiAssistantBar() {
           setTopBox(products.slice(0, 3));
           setFeed(products.slice(3));
         }
+        
+        // 🎯 Emitir evento customizado para grid híbrido
+        const event = new CustomEvent('ai-search-results', {
+          detail: { products }
+        });
+        window.dispatchEvent(event);
+        console.log('🎯 [GeminiAssistantBar] Evento ai-search-results disparado', { count: products.length });
+      } else {
+        // Se não houver produtos, resetar para produtos default
+        const resetEvent = new CustomEvent('ai-search-reset');
+        window.dispatchEvent(resetEvent);
+        console.log('🔄 [GeminiAssistantBar] Evento ai-search-reset disparado (sem produtos)');
       }
       
     } catch (error) {
@@ -425,8 +437,19 @@ export default function GeminiAssistantBar() {
                     console.log('🛍️ [V2] Produtos divididos - TopBox:', 3, 'Feed:', products.length - 3);
                   }
                   setCombina([]);
+                  
+                  // 🎯 Emitir evento customizado para grid híbrido
+                  const event = new CustomEvent('ai-search-results', {
+                    detail: { products }
+                  });
+                  window.dispatchEvent(event);
+                  console.log('🎯 [GeminiAssistantBar] Evento ai-search-results disparado (stream)', { count: products.length });
                 } else {
                   console.warn('⚠️ [V2] Evento products recebido mas sem produtos válidos:', data);
+                  // Resetar se não houver produtos
+                  const resetEvent = new CustomEvent('ai-search-reset');
+                  window.dispatchEvent(resetEvent);
+                  console.log('🔄 [GeminiAssistantBar] Evento ai-search-reset disparado (stream, sem produtos)');
                 }
                 
                 pendingEventType = null;
