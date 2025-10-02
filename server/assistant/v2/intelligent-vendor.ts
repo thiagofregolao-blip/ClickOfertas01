@@ -67,6 +67,36 @@ export class IntelligentVendor {
   }
 
   /**
+   * 🎯 NEW: Remove stopwords and clean search term
+   */
+  private cleanSearchTerm(message: string): string {
+    const stopwords = ['e', 'o', 'a', 'os', 'as', 'de', 'da', 'do', 'das', 'dos', 'em', 'no', 'na', 'nos', 'nas', 'um', 'uma', 'uns', 'umas', 'para', 'com', 'por', 'que', 'se', 'tem', 'temos', 'voce', 'você', 'vocês'];
+    
+    // Remove punctuation and extra spaces
+    let cleaned = message.toLowerCase()
+      .replace(/[?!.,;:]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    // Remove stopwords
+    const words = cleaned.split(' ');
+    const filtered = words.filter(word => !stopwords.includes(word) && word.length > 0);
+    
+    return filtered.join(' ');
+  }
+
+  /**
+   * 🎯 NEW: Normalize text for better matching (handles plurals, accents)
+   */
+  private normalizeForMatching(text: string): string {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove accents
+      .replace(/s$/, ''); // Remove trailing 's' for basic plural handling
+  }
+
+  /**
    * 🎯 COMPREHENSIVE FIX: Enhanced entity extraction with automatic category inference
    */
   private extractSearchEntities(message: string): SearchEntities {
@@ -179,22 +209,34 @@ export class IntelligentVendor {
       }
     }
 
-    // Categorias explícitas
+    // 🎯 NEW FIX: Enhanced category patterns with plural support and missing categories
     const categoryPatterns = {
-      'celular': ['celular', 'smartphone', 'telefone', 'iphone', 'galaxy'],
-      'notebook': ['notebook', 'laptop', 'computador'],
-      'tv': ['tv', 'televisão', 'televisao', 'smart tv'],
-      'perfume': ['perfume', 'fragrância', 'fragrancia'],
-      'roupa': ['roupa', 'camisa', 'calça', 'vestido', 'blusa'],
-      'sapato': ['sapato', 'tênis', 'tenis', 'sandália', 'sandalia'],
-      'relógio': ['relógio', 'relogio'],
-      'fone': ['fone', 'headphone', 'earphone', 'airpods'],
-      'tablet': ['tablet', 'ipad']
+      'celular': ['celular', 'celulares', 'smartphone', 'smartphones', 'telefone', 'telefones', 'iphone', 'galaxy'],
+      'notebook': ['notebook', 'notebooks', 'laptop', 'laptops', 'computador', 'computadores'],
+      'tv': ['tv', 'tvs', 'televisão', 'televisao', 'televisões', 'televisoes', 'smart tv'],
+      'perfume': ['perfume', 'perfumes', 'fragrância', 'fragrancia', 'fragrâncias', 'fragrancias'],
+      'roupa': ['roupa', 'roupas', 'camisa', 'camisas', 'calça', 'calças', 'vestido', 'vestidos', 'blusa', 'blusas'],
+      'sapato': ['sapato', 'sapatos', 'tênis', 'tenis', 'sandália', 'sandalia', 'sandálias', 'sandalias'],
+      'relógio': ['relógio', 'relogio', 'relógios', 'relogios'],
+      'fone': ['fone', 'fones', 'headphone', 'headphones', 'earphone', 'earphones', 'airpods'],
+      'tablet': ['tablet', 'tablets', 'ipad'],
+      'drone': ['drone', 'drones'],
+      'bolsa': ['bolsa', 'bolsas', 'mochila', 'mochilas'],
+      'eletronicos': ['eletronico', 'eletronicos', 'eletrônico', 'eletrônicos', 'gadget', 'gadgets']
     };
 
+    // 🎯 NEW: Use normalized matching for better category detection
+    const messageNormalized = this.normalizeForMatching(messageLower);
+    
     for (const [category, patterns] of Object.entries(categoryPatterns)) {
-      if (patterns.some(p => messageLower.includes(p))) {
+      const hasMatch = patterns.some(p => {
+        const patternNormalized = this.normalizeForMatching(p);
+        return messageNormalized.includes(patternNormalized);
+      });
+      
+      if (hasMatch) {
         entities.categories.push(category);
+        console.log(`📦 [V2] Categoria detectada: "${category}"`);
       }
     }
 
@@ -273,11 +315,15 @@ export class IntelligentVendor {
       // 🎯 POINT 5: Garantir que sessão existe antes da busca
       this.ensureSession(userId);
 
-      let searchTerm = message.trim().toLowerCase();
-      let entities = this.extractSearchEntities(message);
+      // 🎯 NEW: Clean search term first (remove stopwords, punctuation)
+      const cleanedMessage = this.cleanSearchTerm(message);
+      console.log(`🧹 [V2] Termo limpo: "${message}" → "${cleanedMessage}"`);
+
+      let searchTerm = cleanedMessage.toLowerCase();
+      let entities = this.extractSearchEntities(cleanedMessage);
       
       // 🎯 POINT 2: Enriquecer entidades com contexto salvo se necessário
-      const enriched = this.enrichEntitiesWithContext(userId, message, entities);
+      const enriched = this.enrichEntitiesWithContext(userId, cleanedMessage, entities);
       entities = enriched.entities;
       searchTerm = enriched.searchTerm.toLowerCase();
       
@@ -337,13 +383,32 @@ export class IntelligentVendor {
         );
       }
 
-      // 🎯 FIX: Busca textual APENAS em nome/marca (NÃO em descrição para evitar falsos positivos)
-      searchConditions.push(
-        or(
-          sql`LOWER(${products.name}) LIKE ${`%${searchTerm}%`}`,
-          sql`LOWER(${products.brand}) LIKE ${`%${searchTerm}%`}`
-        )
-      );
+      // 🎯 NEW FIX: Enhanced text search with normalized matching
+      // Split search term into tokens for better matching
+      const searchTokens = searchTerm.split(/\s+/).filter(t => t.length >= 2);
+      
+      if (searchTokens.length > 0) {
+        // Create OR conditions for each token in name/brand/category
+        const tokenConditions = searchTokens.map(token => 
+          or(
+            sql`LOWER(${products.name}) LIKE ${`%${token}%`}`,
+            sql`LOWER(${products.brand}) LIKE ${`%${token}%`}`,
+            sql`LOWER(${products.category}) LIKE ${`%${token}%`}`
+          )
+        );
+        
+        // At least one token must match
+        searchConditions.push(or(...tokenConditions));
+        console.log(`🔍 [V2] Tokens de busca: [${searchTokens.join(', ')}]`);
+      } else {
+        // Fallback to full term search
+        searchConditions.push(
+          or(
+            sql`LOWER(${products.name}) LIKE ${`%${searchTerm}%`}`,
+            sql`LOWER(${products.brand}) LIKE ${`%${searchTerm}%`}`
+          )
+        );
+      }
 
       // Filtro por faixa de preço (obrigatório se especificado)
       if (entities.priceRange?.max) {
@@ -411,9 +476,9 @@ export class IntelligentVendor {
         
         // 🎯 FIX: In strict mode, double-check category match
         if (shouldEnforceCategory) {
-          const productCategory = this.normalizeText(product.category || '');
+          const productCategory = this.normalizeForMatching(product.category || '');
           const categoryMatch = entities.categories.some(cat => 
-            productCategory.includes(this.normalizeText(cat))
+            productCategory.includes(this.normalizeForMatching(cat))
           );
           
           if (!categoryMatch) {
@@ -576,7 +641,7 @@ export class IntelligentVendor {
   }
 
   /**
-   * 🔧 Normalizar texto
+   * 🔧 Normalizar texto (legacy method - kept for compatibility)
    */
   private normalizeText(text: string): string {
     return text
@@ -597,15 +662,16 @@ export class IntelligentVendor {
   ): number {
     let score = 0;
     
-    const productName = this.normalizeText(product.name || '');
-    const productBrand = this.normalizeText(product.brand || '');
-    const productCategory = this.normalizeText(product.category || '');
-    const productDescription = this.normalizeText(product.description || '');
-    const searchNormalized = this.normalizeText(searchTerm);
+    // 🎯 NEW: Use normalizeForMatching for better plural/accent handling
+    const productName = this.normalizeForMatching(product.name || '');
+    const productBrand = this.normalizeForMatching(product.brand || '');
+    const productCategory = this.normalizeForMatching(product.category || '');
+    const searchNormalized = this.normalizeForMatching(searchTerm);
 
+    // 🎯 NEW: Lower minimum token length from 3 to 2 for better matching
     const searchTokens = searchNormalized
       .split(/\s+/)
-      .filter(token => token.length >= 3);
+      .filter(token => token.length >= 2);
 
     console.log(`📊 [V2] Score para "${product.name}" | Busca: "${searchTerm}" | Strict: ${strictMode}`);
 
@@ -646,7 +712,7 @@ export class IntelligentVendor {
     // Model matching (60 points)
     if (entities.models.length > 0) {
       const modelMatch = entities.models.some(model => 
-        productName.includes(this.normalizeText(model))
+        productName.includes(this.normalizeForMatching(model))
       );
       if (modelMatch) {
         score += 60;
@@ -657,7 +723,7 @@ export class IntelligentVendor {
     // Brand matching (40 points)
     if (entities.brands.length > 0) {
       const brandMatch = entities.brands.some(brand => {
-        const brandNormalized = this.normalizeText(brand);
+        const brandNormalized = this.normalizeForMatching(brand);
         return productBrand.includes(brandNormalized) || productName.includes(brandNormalized);
       });
       if (brandMatch) {
@@ -669,7 +735,7 @@ export class IntelligentVendor {
     // 🎯 COMPREHENSIVE FIX: Category validation with bonus/penalty
     if (entities.categories.length > 0) {
       const categoryMatch = entities.categories.some(cat => 
-        productCategory.includes(this.normalizeText(cat))
+        productCategory.includes(this.normalizeForMatching(cat))
       );
       
       if (categoryMatch) {
@@ -684,7 +750,7 @@ export class IntelligentVendor {
 
     // Conversation context - recent brand (20 points)
     if (conversationContext.recentBrands.some((brand: string) => {
-      const brandNormalized = this.normalizeText(brand);
+      const brandNormalized = this.normalizeForMatching(brand);
       return productBrand.includes(brandNormalized) || productName.includes(brandNormalized);
     })) {
       score += 20;
@@ -693,7 +759,7 @@ export class IntelligentVendor {
 
     // Conversation context - recent category (15 points)
     if (conversationContext.recentCategories.some((cat: string) => 
-      productCategory.includes(this.normalizeText(cat))
+      productCategory.includes(this.normalizeForMatching(cat))
     )) {
       score += 15;
       console.log(`✅ Contexto categoria: +15`);
