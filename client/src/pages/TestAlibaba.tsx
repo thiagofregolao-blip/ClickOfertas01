@@ -3,17 +3,62 @@ import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import GeminiAssistantBar from '@/components/GeminiAssistantBar';
-import { ShoppingBag, Shield, Package, Sparkles } from 'lucide-react';
+import { ShoppingBag, Shield, Package, Sparkles, Loader2 } from 'lucide-react';
 import type { HeroBanner } from '@shared/schema';
 
 export default function TestAlibaba() {
   const [, setLocation] = useLocation();
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  
+  // Estados para grid híbrido
+  const [products, setProducts] = useState<any[]>([]);
+  const [isAIResults, setIsAIResults] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
   const { data: banners, isLoading } = useQuery<HeroBanner[]>({
     queryKey: ['/api/public/hero-banners'],
   });
+  
+  // Buscar produtos das lojas por padrão
+  useEffect(() => {
+    if (!isAIResults) {
+      fetch('/api/products?limit=12')
+        .then(res => res.json())
+        .then(data => {
+          setProducts(data.products || []);
+          setLoadingProducts(false);
+        })
+        .catch(err => {
+          console.error('Erro ao carregar produtos:', err);
+          setLoadingProducts(false);
+        });
+    }
+  }, [isAIResults]);
+  
+  // Event listener para resultados da IA
+  useEffect(() => {
+    const handleAIResults = (e: CustomEvent) => {
+      if (e.detail?.products) {
+        setProducts(e.detail.products);
+        setIsAIResults(true);
+        setLoadingProducts(false);
+      }
+    };
+    
+    const handleAIReset = () => {
+      setIsAIResults(false);
+      setLoadingProducts(true);
+    };
+    
+    window.addEventListener('ai-search-results' as any, handleAIResults);
+    window.addEventListener('ai-search-reset' as any, handleAIReset);
+    
+    return () => {
+      window.removeEventListener('ai-search-results' as any, handleAIResults);
+      window.removeEventListener('ai-search-reset' as any, handleAIReset);
+    };
+  }, []);
 
   const activeBanners = banners?.filter(b => b.isActive) || [];
   const currentBanner = activeBanners[currentBannerIndex];
@@ -189,6 +234,87 @@ export default function TestAlibaba() {
             ))}
           </div>
         )}
+      </section>
+
+      {/* Grid Híbrido Glassmorphism */}
+      <section className="relative -mt-32 z-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="backdrop-blur-lg bg-white/90 dark:bg-gray-900/90 border border-white/30 dark:border-gray-700/30 rounded-3xl shadow-2xl p-8">
+            {/* Header do Grid */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {isAIResults ? '🤖 Resultados Click AI' : '🛍️ Produtos em Destaque'}
+              </h2>
+              {isAIResults && (
+                <button
+                  onClick={() => {
+                    setIsAIResults(false);
+                    setLoadingProducts(true);
+                  }}
+                  className="text-sm text-primary hover:text-primary/80 font-medium"
+                >
+                  ← Voltar para produtos
+                </button>
+              )}
+            </div>
+            
+            {/* Loading State */}
+            {loadingProducts && (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <span className="ml-3 text-gray-600 dark:text-gray-400">Carregando produtos...</span>
+              </div>
+            )}
+            
+            {/* Grid de Produtos */}
+            {!loadingProducts && products.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {products.map((product, index) => (
+                  <div
+                    key={product.id || index}
+                    className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
+                  >
+                    <div className="aspect-square overflow-hidden bg-gray-100 dark:bg-gray-700">
+                      <img
+                        src={product.imageUrl || '/placeholder-product.jpg'}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-medium text-gray-900 dark:text-white text-sm mb-2 line-clamp-2">
+                        {product.name}
+                      </h3>
+                      {product.price && (
+                        <p className="text-primary font-bold text-lg">
+                          ${typeof product.price === 'object' ? product.price.USD : product.price}
+                        </p>
+                      )}
+                      {product.storeName && (
+                        <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
+                          {product.storeName}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Empty State */}
+            {!loadingProducts && products.length === 0 && (
+              <div className="text-center py-16">
+                <ShoppingBag className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  Nenhum produto encontrado
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Tente fazer uma nova pesquisa
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </section>
 
       {/* Seção de Benefícios */}

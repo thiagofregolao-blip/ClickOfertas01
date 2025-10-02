@@ -1,0 +1,52 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+GeminiAssistantBar.tsx:122 🎧 [GeminiAssistantBar] Registrando event listeners Gemini
+GeminiAssistantBar.tsx:193 🤖 [GeminiAssistantBar] Componente inicializado
+GeminiAssistantBar.tsx:204 ✅ [GeminiAssistantBar] Sessão criada/sincronizada: Object
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/5c73aacf-c486-4bc4-869b-3d6a073f9395:1 Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/5c73aacf-c486-4bc4-869b-3d6a073f9395:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+GeminiAssistantBar.tsx:613 🔄 [GeminiAssistantBar] Resetando estado para nova consulta Gemini: iphone
+GeminiAssistantBar.tsx:302 🚀 [V2] start stream Object
+GeminiAssistantBar.tsx:355 🔍 [V2] Linhas SSE brutas recebidas: Array(1)
+GeminiAssistantBar.tsx:377 📡 [V2] 🎯 Evento SSE detectado: products
+GeminiAssistantBar.tsx:355 🔍 [V2] Linhas SSE brutas recebidas: Array(3)
+GeminiAssistantBar.tsx:390 📨 [V2] SSE data recebido para evento "products": {"products":[{"id":"776775aa-ce8c-41d5-b14d-d6203661ca1c","name":"Apple IPHONE 12 PRO MAX A2411 256G
+GeminiAssistantBar.tsx:394 📦 [V2] SSE products parsed > Object
+GeminiAssistantBar.tsx:405 🛍️ [V2] ✅ Processando evento PRODUCTS: Object
+GeminiAssistantBar.tsx:413 🛍️ [V2] ✅✅ PRODUTOS RECEBIDOS via evento nomeado: 6
+GeminiAssistantBar.tsx:414 🛍️ [V2] Lista de produtos: Array(6)
+GeminiAssistantBar.tsx:421 🛍️ [V2] Produtos definidos no FEED: 6
+GeminiAssistantBar.tsx:377 📡 [V2] 🎯 Evento SSE detectado: suggestions
+GeminiAssistantBar.tsx:355 🔍 [V2] Linhas SSE brutas recebidas: Array(8)
+GeminiAssistantBar.tsx:390 📨 [V2] SSE data recebido para evento "suggestions": {"suggestions":[{"id":"c22c3992-7b1b-49d1-b264-01eae7eca7e5","name":"Apple IPHONE 13 128GB MIDNIGHT"
+GeminiAssistantBar.tsx:394 📦 [V2] SSE suggestions parsed > Object
+GeminiAssistantBar.tsx:438 💡 [V2] ✅ Processando evento SUGGESTIONS: Object
+GeminiAssistantBar.tsx:445 💡 [V2] ✅✅ SUGESTÕES RECEBIDAS: 3
+GeminiAssistantBar.tsx:377 📡 [V2] 🎯 Evento SSE detectado: delta
+GeminiAssistantBar.tsx:390 📨 [V2] SSE data recebido para evento "delta": {"text":"Desculpe, ocorreu um erro. Pode tentar novamente?"}
+GeminiAssistantBar.tsx:394 📦 [V2] SSE delta parsed > Object
+GeminiAssistantBar.tsx:377 📡 [V2] 🎯 Evento SSE detectado: complete
+GeminiAssistantBar.tsx:390 📨 [V2] SSE data recebido para evento "complete": {"provider":"intelligent-vendor-v2"}
+GeminiAssistantBar.tsx:394 📦 [V2] SSE complete parsed > Object
+GeminiAssistantBar.tsx:345 ✅ [V2] Stream concluído
+GeminiAssistantBar.tsx:650 🔄 [GeminiAssistantBar] Overlay submit - nova consulta Gemini: drone
+GeminiAssistantBar.tsx:302 🚀 [V2] start stream Object
+GeminiAssistantBar.tsx:355 🔍 [V2] Linhas SSE brutas recebidas: Array(6)
+GeminiAssistantBar.tsx:377 📡 [V2] 🎯 Evento SSE detectado: delta
+GeminiAssistantBar.tsx:390 📨 [V2] SSE data recebido para evento "delta": {"text":"Desculpe, ocorreu um erro. Pode tentar novamente?"}
+GeminiAssistantBar.tsx:394 📦 [V2] SSE delta parsed > Object
+GeminiAssistantBar.tsx:377 📡 [V2] 🎯 Evento SSE detectado: complete
+GeminiAssistantBar.tsx:390 📨 [V2] SSE data recebido para evento "complete": {"provider":"intelligent-vendor-v2"}
+GeminiAssistantBar.tsx:394 📦 [V2] SSE complete parsed > Object
+GeminiAssistantBar.tsx:345 ✅ [V2] Stream concluído
+GeminiAssistantBar.tsx:650 🔄 [GeminiAssistantBar] Overlay submit - nova consulta Gemini: cade voce
+GeminiAssistantBar.tsx:302 🚀 [V2] start stream Object
+GeminiAssistantBar.tsx:355 🔍 [V2] Linhas SSE brutas recebidas: Array(6)
+GeminiAssistantBar.tsx:377 📡 [V2] 🎯 Evento SSE detectado: delta
+GeminiAssistantBar.tsx:390 📨 [V2] SSE data recebido para evento "delta": {"text":"Desculpe, ocorreu um erro. Pode tentar novamente?"}
+GeminiAssistantBar.tsx:394 📦 [V2] SSE delta parsed > Object
+GeminiAssistantBar.tsx:377 📡 [V2] 🎯 Evento SSE detectado: complete
+GeminiAssistantBar.tsx:390 📨 [V2] SSE data recebido para evento "complete": {"provider":"intelligent-vendor-v2"}
+GeminiAssistantBar.tsx:394 📦 [V2] SSE complete parsed > Object
+GeminiAssistantBar.tsx:345 ✅ [V2] Stream concluído
