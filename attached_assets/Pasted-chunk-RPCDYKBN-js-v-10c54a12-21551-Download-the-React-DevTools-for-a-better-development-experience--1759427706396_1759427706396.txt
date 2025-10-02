@@ -1,0 +1,129 @@
+chunk-RPCDYKBN.js?v=10c54a12:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+queryClient.ts:44  GET https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/api/auth/user 401 (Unauthorized)
+(anonymous) @ queryClient.ts:44
+fetchFn @ @tanstack_react-query.js?v=10c54a12:840
+run @ @tanstack_react-query.js?v=10c54a12:494
+start @ @tanstack_react-query.js?v=10c54a12:536
+fetch @ @tanstack_react-query.js?v=10c54a12:926
+executeFetch_fn @ @tanstack_react-query.js?v=10c54a12:2211
+onSubscribe @ @tanstack_react-query.js?v=10c54a12:1898
+subscribe @ @tanstack_react-query.js?v=10c54a12:24
+(anonymous) @ @tanstack_react-query.js?v=10c54a12:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=10c54a12:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=10c54a12:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=10c54a12:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=10c54a12:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=10c54a12:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=10c54a12:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=10c54a12:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=10c54a12:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=10c54a12:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=10c54a12:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=10c54a12:19432
+commitRoot @ chunk-RPCDYKBN.js?v=10c54a12:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=10c54a12:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=10c54a12:18718
+workLoop @ chunk-RPCDYKBN.js?v=10c54a12:197
+flushWork @ chunk-RPCDYKBN.js?v=10c54a12:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=10c54a12:384Understand this error
+GeminiAssistantBar.tsx:123 🎧 [GeminiAssistantBar] Registrando event listeners Gemini
+GeminiAssistantBar.tsx:194 🤖 [GeminiAssistantBar] Componente inicializado
+GeminiAssistantBar.tsx:205 ✅ [GeminiAssistantBar] Sessão criada/sincronizada: {sid: 'web_mi3wb45naw'}
+queryClient.ts:44  GET https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/api/auth/user 401 (Unauthorized)
+(anonymous) @ queryClient.ts:44
+fetchFn @ @tanstack_react-query.js?v=10c54a12:840
+run @ @tanstack_react-query.js?v=10c54a12:494
+start @ @tanstack_react-query.js?v=10c54a12:536
+fetch @ @tanstack_react-query.js?v=10c54a12:926
+executeFetch_fn @ @tanstack_react-query.js?v=10c54a12:2211
+onSubscribe @ @tanstack_react-query.js?v=10c54a12:1898
+subscribe @ @tanstack_react-query.js?v=10c54a12:24
+(anonymous) @ @tanstack_react-query.js?v=10c54a12:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=10c54a12:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=10c54a12:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=10c54a12:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=10c54a12:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=10c54a12:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=10c54a12:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=10c54a12:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=10c54a12:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=10c54a12:19416
+commitRoot @ chunk-RPCDYKBN.js?v=10c54a12:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=10c54a12:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=10c54a12:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=10c54a12:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=10c54a12:555
+flush @ @tanstack_react-query.js?v=10c54a12:569
+batch @ @tanstack_react-query.js?v=10c54a12:587
+dispatch_fn @ @tanstack_react-query.js?v=10c54a12:996
+setData @ @tanstack_react-query.js?v=10c54a12:696
+onSuccess @ @tanstack_react-query.js?v=10c54a12:897
+resolve @ @tanstack_react-query.js?v=10c54a12:456
+Promise.then
+run @ @tanstack_react-query.js?v=10c54a12:498
+start @ @tanstack_react-query.js?v=10c54a12:536
+fetch @ @tanstack_react-query.js?v=10c54a12:926
+executeFetch_fn @ @tanstack_react-query.js?v=10c54a12:2211
+onSubscribe @ @tanstack_react-query.js?v=10c54a12:1898
+subscribe @ @tanstack_react-query.js?v=10c54a12:24
+(anonymous) @ @tanstack_react-query.js?v=10c54a12:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=10c54a12:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=10c54a12:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=10c54a12:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=10c54a12:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=10c54a12:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=10c54a12:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=10c54a12:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=10c54a12:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=10c54a12:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=10c54a12:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=10c54a12:19432
+commitRoot @ chunk-RPCDYKBN.js?v=10c54a12:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=10c54a12:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=10c54a12:18718
+workLoop @ chunk-RPCDYKBN.js?v=10c54a12:197
+flushWork @ chunk-RPCDYKBN.js?v=10c54a12:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=10c54a12:384Understand this error
+df2cc977-2c64-4561-ac9d-7dc1a365eb70:1 Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+df2cc977-2c64-4561-ac9d-7dc1a365eb70:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+GeminiAssistantBar.tsx:637 🔄 [GeminiAssistantBar] Resetando estado para nova consulta Gemini: iphone
+GeminiAssistantBar.tsx:315 🚀 [V2] start stream {message: 'iphone', sessionId: 'web_mi3wb45naw', requestId: '1759427692255'}
+GeminiAssistantBar.tsx:368 🔍 [V2] Linhas SSE brutas recebidas: (3) ['event: delta', 'data: {"text":""}', '']
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: delta
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "delta": {"text":""}
+GeminiAssistantBar.tsx:407 📦 [V2] SSE delta parsed > {text: ''}
+GeminiAssistantBar.tsx:368 🔍 [V2] Linhas SSE brutas recebidas: ['event: products']
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: products
+GeminiAssistantBar.tsx:368 🔍 [V2] Linhas SSE brutas recebidas: (2) ['data: {"products":[{"id":"776775aa-ce8c-41d5-b14d-…endor-v2","timestamp":"2025-10-02T17:54:52.746Z"}', '']
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "products": {"products":[{"id":"776775aa-ce8c-41d5-b14d-d6203661ca1c","name":"Apple IPHONE 12 PRO MAX A2411 256G
+GeminiAssistantBar.tsx:407 📦 [V2] SSE products parsed > {products: Array(6), query: 'iphone', provider: 'intelligent-vendor-v2', timestamp: '2025-10-02T17:54:52.746Z'}
+GeminiAssistantBar.tsx:418 🛍️ [V2] ✅ Processando evento PRODUCTS: {hasProducts: true, isArray: true, length: 6, firstProduct: 'Apple IPHONE 12 PRO MAX A2411 256GB GOLD CPO'}
+GeminiAssistantBar.tsx:426 🛍️ [V2] ✅✅ PRODUTOS RECEBIDOS via evento nomeado: 6
+GeminiAssistantBar.tsx:427 🛍️ [V2] Lista de produtos: (6) ['Apple IPHONE 12 PRO MAX A2411 256GB GOLD CPO', 'Apple IPHONE 13 128GB MIDNIGHT', 'Apple IPHONE 16 A3081 128GB BLACK ESIM CHIP VIRTUAL', 'Apple IPHONE 16 A3081 128GB TEAL ESIM CHIP VIRTUAL', 'iPhone 15 128GB', 'iPhone 16 128GB']
+GeminiAssistantBar.tsx:434 🛍️ [V2] Produtos definidos no FEED: 6
+GeminiAssistantBar.tsx:447 🎯 [GeminiAssistantBar] Evento ai-search-results disparado (stream) {count: 6}
+GeminiAssistantBar.tsx:368 🔍 [V2] Linhas SSE brutas recebidas: ['event: suggestions']
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: suggestions
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "suggestions": {"suggestions":[{"id":"c22c3992-7b1b-49d1-b264-01eae7eca7e5","name":"Apple IPHONE 13 128GB MIDNIGHT"
+GeminiAssistantBar.tsx:407 📦 [V2] SSE suggestions parsed > {suggestions: Array(3), provider: 'intelligent-vendor-v2', timestamp: '2025-10-02T17:54:52.833Z'}
+GeminiAssistantBar.tsx:462 💡 [V2] ✅ Processando evento SUGGESTIONS: {hasSuggestions: true, isArray: true, length: 3}
+GeminiAssistantBar.tsx:469 💡 [V2] ✅✅ SUGESTÕES RECEBIDAS: 3
+GeminiAssistantBar.tsx:368 🔍 [V2] Linhas SSE brutas recebidas: (4) ['event: emotion', 'data: {"emotion":"neutral","intensity":0.3,"confidence":0.5}', '', 'event: products']
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: emotion
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "emotion": {"emotion":"neutral","intensity":0.3,"confidence":0.5}
+GeminiAssistantBar.tsx:407 📦 [V2] SSE emotion parsed > {emotion: 'neutral', intensity: 0.3, confidence: 0.5}
+GeminiAssistantBar.tsx:481 😊 [V2] Emoção via evento nomeado: neutral
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: products
+GeminiAssistantBar.tsx:368 🔍 [V2] Linhas SSE brutas recebidas: (5) ['data: {"products":[{"id":"776775aa-ce8c-41d5-b14d-…endor-v2","timestamp":"2025-10-02T17:54:54.338Z"}', '', 'event: complete', 'data: {"provider":"intelligent-vendor-v2"}', '']
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "products": {"products":[{"id":"776775aa-ce8c-41d5-b14d-d6203661ca1c","name":"Apple IPHONE 12 PRO MAX A2411 256G
+GeminiAssistantBar.tsx:407 📦 [V2] SSE products parsed > {products: Array(6), query: 'iphone', provider: 'intelligent-vendor-v2', timestamp: '2025-10-02T17:54:54.338Z'}
+GeminiAssistantBar.tsx:418 🛍️ [V2] ✅ Processando evento PRODUCTS: {hasProducts: true, isArray: true, length: 6, firstProduct: 'Apple IPHONE 12 PRO MAX A2411 256GB GOLD CPO'}
+GeminiAssistantBar.tsx:426 🛍️ [V2] ✅✅ PRODUTOS RECEBIDOS via evento nomeado: 6
+GeminiAssistantBar.tsx:427 🛍️ [V2] Lista de produtos: (6) ['Apple IPHONE 12 PRO MAX A2411 256GB GOLD CPO', 'Apple IPHONE 13 128GB MIDNIGHT', 'Apple IPHONE 16 A3081 128GB BLACK ESIM CHIP VIRTUAL', 'Apple IPHONE 16 A3081 128GB TEAL ESIM CHIP VIRTUAL', 'iPhone 15 128GB', 'iPhone 16 128GB']
+GeminiAssistantBar.tsx:434 🛍️ [V2] Produtos definidos no FEED: 6
+GeminiAssistantBar.tsx:447 🎯 [GeminiAssistantBar] Evento ai-search-results disparado (stream) {count: 6}
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: complete
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "complete": {"provider":"intelligent-vendor-v2"}
+GeminiAssistantBar.tsx:407 📦 [V2] SSE complete parsed > {provider: 'intelligent-vendor-v2'}
+GeminiAssistantBar.tsx:358 ✅ [V2] Stream concluído

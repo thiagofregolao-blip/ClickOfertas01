@@ -1108,17 +1108,21 @@ export class IntelligentVendor {
         console.log(`📝 [Gemini] Usando histórico existente (${conversationHistory.length} mensagens)`);
       }
       
-      // 🎯 FIX: More concise context for AI
-      let contextWithProducts = `${searchContext}\n\nMensagem: ${message}`;
+      // 🎯 FIX: Build complete, actionable message for Gemini
+      let contextWithProducts = `Cliente perguntou: "${message}"`;
+      
+      if (searchContext && searchContext.length > 0) {
+        contextWithProducts = `${searchContext}\n\n${contextWithProducts}`;
+      }
       
       if (foundProducts.length > 0) {
         const topProducts = foundProducts.slice(0, 3);
         const productDetails = topProducts.map(p => 
-          `• ${p.name} - ${p.price} guaranis`
+          `• ${p.name} - ${p.price} Gs`
         ).join('\n');
-        contextWithProducts += `\n\n🛍️ TOP 3:\n${productDetails}\n\n⚡ Seja breve e direto. Apresente os produtos de forma concisa.`;
+        contextWithProducts += `\n\n✅ Encontrei ${foundProducts.length} produtos:\n${productDetails}\n\n📝 SUA TAREFA: Apresente BREVEMENTE estes produtos em 1-2 linhas máximo. Seja direto e útil.`;
       } else {
-        contextWithProducts += `\n\n⚠️ Nenhum produto encontrado. Sugira alternativas brevemente.`;
+        contextWithProducts += `\n\n❌ Não encontrei produtos para "${message}".\n\n📝 SUA TAREFA: Sugira categorias ou termos alternativos em 1 linha.`;
       }
       
       conversationHistory.push({

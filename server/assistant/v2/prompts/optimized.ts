@@ -55,14 +55,14 @@ export function buildSearchContext(memory: ConversationMemory): string {
   const preferences = memory.longTerm.preferences;
   const recentInteractions = memory.shortTerm.lastInteractions.slice(0, 3);
   
-  let context = 'Contexto:\n';
+  let context = '';
   
   if (preferences.categories.length > 0) {
-    context += `Categorias: ${preferences.categories.join(', ')}\n`;
+    context += `Categorias favoritas: ${preferences.categories.join(', ')}\n`;
   }
   
   if (preferences.brands.length > 0) {
-    context += `Marcas: ${preferences.brands.join(', ')}\n`;
+    context += `Marcas preferidas: ${preferences.brands.join(', ')}\n`;
   }
   
   if (recentInteractions.length > 0) {
@@ -72,11 +72,11 @@ export function buildSearchContext(memory: ConversationMemory): string {
       .slice(0, 2);
     
     if (recentQueries.length > 0) {
-      context += `Buscas: ${recentQueries.join(', ')}\n`;
+      context += `Buscas recentes: ${recentQueries.join(', ')}\n`;
     }
   }
   
-  return context;
+  return context.trim();
 }
 
 export function buildProactivePrompt(insights: ProactiveInsight[]): string {
