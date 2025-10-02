@@ -719,6 +719,13 @@ export default function GeminiAssistantBar() {
     }
   };
 
+  const handleFollowUpClick = (followup: string) => {
+    if (sessionIdRef.current) {
+      setChatMessages(prev => [...prev, { type: 'user', text: followup }]);
+      startGeminiStream(followup);
+    }
+  };
+
   return (
     <>
       {/* Barra Principal Gemini - Visual diferenciado */}
@@ -785,277 +792,65 @@ export default function GeminiAssistantBar() {
             ))}
           </div>
         )}
-      </div>
 
-      {/* Overlay de Resultados Gemini */}
-      {showResults && createPortal(
-        <div className="fixed inset-0 bg-black/50 z-[9999] flex items-start justify-center pt-4 px-4 overflow-y-auto">
-          <div className="bg-white dark:bg-gray-900 w-full max-w-6xl h-[90vh] rounded-2xl shadow-2xl flex flex-col">
-            
-            {/* Header simples sem busca */}
-            <div className="p-6 border-b border-primary/20 dark:border-primary/30 flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Sparkles className="h-6 w-6 text-primary dark:text-primary/80 mr-2" />
-                  <h2 className="text-xl font-bold text-primary dark:text-primary/80">Gemini Assistant</h2>
-                  <span className="ml-2 px-2 py-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary/80 text-xs rounded-full">
-                    Ask-Then-Show
-                  </span>
-                </div>
-                <button
-                  onClick={onClose}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                  data-testid="button-close-gemini"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-            
-            {/* Conteúdo Principal com Scroll */}
-            <div className="flex-1 flex overflow-hidden">
-              
-              {/* Chat Gemini */}
-              <div className="w-1/3 border-r border-primary/20 dark:border-primary/30 flex flex-col">
-                <div className="p-4 bg-primary/5 dark:bg-primary/10">
-                  <h3 className="font-semibold text-primary dark:text-primary/80 flex items-center">
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Gemini Chat
-                  </h3>
-                  <p className="text-sm text-primary/70 dark:text-primary/60 mt-1">
-                    Conversa primeiro, mostra depois
-                  </p>
-                </div>
-                
-                <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={chatScrollRef}>
-                  {chatMessages.map((msg, i) => (
-                    <div key={i} className={`${msg.type === 'user' ? 'text-right' : 'text-left'}`}>
-                      <div className={`inline-block max-w-[80%] p-3 rounded-2xl ${
-                        msg.type === 'user' 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                      }`}>
-                        <p className="text-sm">{msg.text}</p>
-                      </div>
-                      
-                      {msg.type === 'assistant' && i === chatMessages.length - 1 && (
-                        <>
-                          {currentEmotion && (
-                            <div className="mt-2 inline-block">
-                              <span className="text-xs px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300" data-testid="badge-emotion">
-                                {currentEmotion.sentiment === 'positive' ? '😊' : currentEmotion.sentiment === 'negative' ? '😔' : '😐'} {currentEmotion.sentiment}
-                              </span>
-                            </div>
-                          )}
-                          
-                          {currentInsights.length > 0 && (
-                            <div className="mt-2 space-y-1">
-                              {currentInsights.map((insight, idx) => (
-                                <div key={idx} className="text-xs px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 inline-block mr-1" data-testid={`insight-${idx}`}>
-                                  💡 {insight.message}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          
-                          {suggestedFollowUps.length > 0 && (
-                            <div className="mt-3 space-y-1">
-                              {suggestedFollowUps.map((followup, idx) => (
-                                <button
-                                  key={idx}
-                                  onClick={() => {
-                                    setChatMessages(prev => [...prev, { type: 'user', text: followup }]);
-                                    startGeminiStream(followup);
-                                  }}
-                                  className="block text-xs px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary dark:text-primary/80 transition-colors"
-                                  data-testid={`followup-${idx}`}
-                                >
-                                  ↪️ {followup}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  ))}
+        {/* Chat Inline Expandido */}
+        {chatMessages.length > 0 && (
+          <div className="mt-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-2 border-primary/30 dark:border-primary/40 rounded-2xl shadow-2xl p-6 max-h-96 overflow-y-auto">
+            <div className="space-y-4">
+              {chatMessages.map((msg, i) => (
+                <div key={i} className={`${msg.type === 'user' ? 'text-right' : 'text-left'}`}>
+                  <div className={`inline-block max-w-[80%] p-3 rounded-2xl ${
+                    msg.type === 'user' 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                  }`}>
+                    <p className="text-sm">{msg.text}</p>
+                  </div>
                   
-                  {(isTyping || streaming) && (
-                    <div className="text-left">
-                      <div className="inline-block max-w-[80%] p-3 rounded-2xl bg-gray-100 dark:bg-gray-800">
-                        {isTyping && !streaming && (
-                          <div className="flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                            <span className="text-xs text-primary ml-2">Gemini pensando...</span>
-                          </div>
-                        )}
-                        {streaming && (
-                          <p className="text-sm text-gray-900 dark:text-gray-100">{streaming}</p>
-                        )}
-                      </div>
-                    </div>
+                  {msg.type === 'assistant' && i === chatMessages.length - 1 && (
+                    <>
+                      {currentEmotion && (
+                        <div className="mt-2 inline-block">
+                          <span className="text-xs px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                            {currentEmotion.sentiment === 'positive' ? '😊' : currentEmotion.sentiment === 'negative' ? '😔' : '😐'} {currentEmotion.sentiment}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {suggestedFollowUps.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Sugestões:</p>
+                          {suggestedFollowUps.map((followup, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => handleFollowUpClick(followup)}
+                              className="block text-left text-sm px-3 py-2 bg-primary/10 hover:bg-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30 text-primary dark:text-primary/80 rounded-lg transition-colors w-full"
+                            >
+                              💬 {followup}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
-              </div>
-
-              {/* Produtos */}
-              <div className="flex-1 overflow-y-auto p-6">
-                {loadingSug && (
-                  <div className="text-center py-8">
-                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                    <p className="text-primary dark:text-primary/80 mt-2">Gemini procurando...</p>
-                  </div>
-                )}
-
-                {/* Top Box */}
-                {topBox.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-primary dark:text-primary/80 mb-4 flex items-center">
-                      <Sparkles className="h-5 w-5 mr-2" />
-                      Destaques Gemini
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {topBox.map((product, index) => (
-                        <div key={product.id || index} className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-primary/20 dark:border-primary/30">
-                          <LazyImage
-                            src={product.imageUrl || '/placeholder-product.jpg'}
-                            alt={product.title || product.name}
-                            className="w-full h-48 object-cover rounded-t-xl"
-                          />
-                          <div className="p-4">
-                            <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm mb-2 line-clamp-2">
-                              {product.title || product.name}
-                            </h4>
-                            {(product.price?.USD || product.price) && (
-                              <p className="text-primary dark:text-primary/80 font-bold text-lg">
-                                ${product.price?.USD || product.price}
-                              </p>
-                            )}
-                            {product.storeName && (
-                              <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
-                                {product.storeName}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+              ))}
+              
+              {isTyping && (
+                <div className="text-left">
+                  <div className="inline-block p-3 rounded-2xl bg-gray-100 dark:bg-gray-800">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                     </div>
                   </div>
-                )}
-
-                {/* Feed */}
-                {feed.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-primary dark:text-primary/80 mb-4">
-                      Resultados Gemini
-                    </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {feed.map((product, index) => (
-                        <div key={product.id || index} className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-primary/20 dark:border-primary/30">
-                          <LazyImage
-                            src={product.imageUrl || '/placeholder-product.jpg'}
-                            alt={product.title || product.name}
-                            className="w-full h-32 object-cover rounded-t-xl"
-                          />
-                          <div className="p-3">
-                            <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm mb-2 line-clamp-2">
-                              {product.title || product.name}
-                            </h4>
-                            {(product.price?.USD || product.price) && (
-                              <p className="text-primary dark:text-primary/80 font-bold">
-                                ${product.price?.USD || product.price}
-                              </p>
-                            )}
-                            {product.storeName && (
-                              <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
-                                {product.storeName}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* 🎯 MELHORIA 3: Seção de Sugestões de Produtos Relacionados */}
-                {suggestedProducts.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-primary dark:text-primary/80 mb-4 flex items-center">
-                      💡 Você também pode gostar
-                    </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                      {suggestedProducts.map((product, index) => (
-                        <div key={product.id || index} className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-orange-200 dark:border-orange-800">
-                          <LazyImage
-                            src={product.imageUrl || '/placeholder-product.jpg'}
-                            alt={product.title || product.name}
-                            className="w-full h-32 object-cover rounded-t-xl"
-                          />
-                          <div className="p-3">
-                            <h4 className="font-medium text-gray-900 dark:text-gray-100 text-xs mb-2 line-clamp-2">
-                              {product.title || product.name}
-                            </h4>
-                            {(product.price?.USD || product.price) && (
-                              <p className="text-primary dark:text-primary/80 font-bold text-sm">
-                                ${product.price?.USD || product.price}
-                              </p>
-                            )}
-                            {product.storeName && (
-                              <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
-                                {product.storeName}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Estado vazio */}
-                {!loadingSug && topBox.length === 0 && feed.length === 0 && (
-                  <div className="text-center py-12">
-                    <Sparkles className="h-16 w-16 text-primary/50 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-primary dark:text-primary/80 mb-2">
-                      Gemini Assistant Pronto!
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      Digite o nome de um produto para começar a busca inteligente
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Input no Rodapé */}
-            <div className="p-6 border-t border-primary/20 dark:border-primary/30 flex-shrink-0">
-              <form onSubmit={onOverlaySubmit} className="flex gap-3">
-                <input
-                  type="text"
-                  value={overlayInput}
-                  onChange={(e) => setOverlayInput(e.target.value)}
-                  placeholder="🤖 Digite seu produto (ex.: iPhone, drone, perfume)..."
-                  className="flex-1 px-4 py-3 border border-primary/30 dark:border-primary/40 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-800 dark:text-white"
-                  data-testid="input-gemini-overlay"
-                  autoFocus
-                />
-                <button
-                  type="submit"
-                  disabled={!overlayInput.trim()}
-                  className="px-6 py-3 bg-primary hover:bg-primary/90 disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50"
-                  data-testid="button-submit-gemini"
-                >
-                  <Search className="h-5 w-5" />
-                </button>
-              </form>
+                </div>
+              )}
             </div>
           </div>
-        </div>,
-        document.body
-      )}
+        )}
+      </div>
     </>
   );
 }
