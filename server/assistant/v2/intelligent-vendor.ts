@@ -1150,9 +1150,14 @@ export class IntelligentVendor {
       }
       console.log(`🤖 [Gemini] Stream concluído. Total de chunks: ${chunkCount}, Resposta completa: ${fullResponse.length} chars`);
       
-      // 🚨 SAFETY: Se Gemini não respondeu nada, gere resposta fallback
-      if (fullResponse.length === 0 && foundProducts.length > 0) {
-        const fallbackText = `Encontrei ${foundProducts.length} opções de iPhone! Confira os produtos acima 📱`;
+      // 🚨 SAFETY: Se Gemini não respondeu nada, SEMPRE gere resposta fallback
+      if (fullResponse.length === 0) {
+        let fallbackText = '';
+        if (foundProducts.length > 0) {
+          fallbackText = `Encontrei ${foundProducts.length} ${foundProducts.length === 1 ? 'opção' : 'opções'}! Confira ${foundProducts.length === 1 ? 'o produto acima' : 'os produtos acima'} 📱`;
+        } else {
+          fallbackText = `Desculpe, não encontrei "${message}" no momento. Que tal tentar "celular", "notebook" ou "fone"? 🔍`;
+        }
         console.log(`⚠️ [Gemini] FALLBACK ativado: "${fallbackText}"`);
         fullResponse = fallbackText;
         yield fallbackText;
