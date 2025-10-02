@@ -920,7 +920,17 @@ export const bannerClicks = pgTable("banner_clicks", {
   clickedAt: timestamp("clicked_at").defaultNow(),
 });
 
-
+// Hero Banners rotativos
+export const heroBanners = pgTable("hero_banners", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  imageUrl: text("image_url").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 // Insert schemas
 export const insertStoreSchema = createInsertSchema(stores).omit({
@@ -1720,6 +1730,19 @@ export const insertBannerSchema = createInsertSchema(banners).omit({
 
 export type InsertBanner = z.infer<typeof insertBannerSchema>;
 export type Banner = typeof banners.$inferSelect;
+
+// Hero Banner schemas
+export const insertHeroBannerSchema = createInsertSchema(heroBanners).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateHeroBannerSchema = insertHeroBannerSchema.partial();
+
+export type InsertHeroBanner = z.infer<typeof insertHeroBannerSchema>;
+export type UpdateHeroBanner = z.infer<typeof updateHeroBannerSchema>;
+export type HeroBanner = typeof heroBanners.$inferSelect;
 
 // Funny messages schemas and types
 export const insertFunnyMessageSchema = createInsertSchema(funnyMessages).omit({

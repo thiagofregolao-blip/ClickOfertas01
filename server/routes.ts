@@ -76,7 +76,7 @@ const isSuperAdmin = async (req: any, res: any, next: any) => {
 };
 import { getCurrentExchangeRate, convertUsdToBrl, formatBRL, formatUSD, clearExchangeRateCache } from "./exchange-rate";
 import { setupOAuthProviders } from "./authProviders";
-import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema, insertBudgetConfigSchema, insertTotemContentSchema, updateTotemContentSchema, insertTotemSettingsSchema, updateTotemSettingsSchema, insertCategorySchema, updateCategorySchema, insertProductBankSchema, updateProductBankSchema, insertProductBankItemSchema, updateProductBankItemSchema, insertAssistantSessionSchema, insertAssistantMessageSchema, insertUserAssistantPreferencesSchema, createWifiPaymentRequestSchema, WIFI_PLANS } from "@shared/schema";
+import { insertStoreSchema, updateStoreSchema, insertProductSchema, updateProductSchema, insertSavedProductSchema, insertStoryViewSchema, insertFlyerViewSchema, insertProductLikeSchema, insertScratchedProductSchema, insertCouponSchema, registerUserSchema, loginUserSchema, registerUserNormalSchema, registerStoreOwnerSchema, registerSuperAdminSchema, insertScratchCampaignSchema, insertPromotionSchema, updatePromotionSchema, insertPromotionScratchSchema, insertInstagramStorySchema, insertInstagramStoryViewSchema, insertInstagramStoryLikeSchema, updateInstagramStorySchema, insertBudgetConfigSchema, insertTotemContentSchema, updateTotemContentSchema, insertTotemSettingsSchema, updateTotemSettingsSchema, insertCategorySchema, updateCategorySchema, insertProductBankSchema, updateProductBankSchema, insertProductBankItemSchema, updateProductBankItemSchema, insertAssistantSessionSchema, insertAssistantMessageSchema, insertUserAssistantPreferencesSchema, createWifiPaymentRequestSchema, WIFI_PLANS, insertHeroBannerSchema, updateHeroBannerSchema } from "@shared/schema";
 import { z } from "zod";
 import sharp from "sharp";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
@@ -3910,6 +3910,80 @@ Keep the overall composition and maintain the same visual quality. This is for a
     } catch (error) {
       console.error("Error deleting banner:", error);
       res.status(500).json({ message: "Erro ao deletar banner" });
+    }
+  });
+
+  // ========================
+  // ROTAS DOS HERO BANNERS
+  // ========================
+
+  // GET /api/public/hero-banners - Buscar hero banners ativos (público)
+  app.get('/api/public/hero-banners', async (req, res) => {
+    try {
+      const heroBanners = await storage.getActiveHeroBanners();
+      res.json(heroBanners);
+    } catch (error) {
+      console.error("Error fetching active hero banners:", error);
+      res.status(500).json({ message: "Erro ao buscar hero banners" });
+    }
+  });
+
+  // GET /api/hero-banners - Listar todos os hero banners (Admin)
+  app.get('/api/hero-banners', isAuthenticatedCustom, isSuperAdmin, async (req, res) => {
+    try {
+      const heroBanners = await storage.getAllHeroBanners();
+      res.json(heroBanners);
+    } catch (error) {
+      console.error("Error fetching all hero banners:", error);
+      res.status(500).json({ message: "Erro ao buscar hero banners" });
+    }
+  });
+
+  // POST /api/hero-banners - Criar hero banner (Admin)
+  app.post('/api/hero-banners', isAuthenticatedCustom, isSuperAdmin, async (req, res) => {
+    try {
+      const validatedData = insertHeroBannerSchema.parse(req.body);
+      const heroBanner = await storage.createHeroBanner(validatedData);
+      res.status(201).json(heroBanner);
+    } catch (error) {
+      console.error("Error creating hero banner:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Erro ao criar hero banner" });
+    }
+  });
+
+  // PATCH /api/hero-banners/:id - Atualizar hero banner (Admin)
+  app.patch('/api/hero-banners/:id', isAuthenticatedCustom, isSuperAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validatedData = updateHeroBannerSchema.parse(req.body);
+      const heroBanner = await storage.updateHeroBanner(id, validatedData);
+      
+      if (!heroBanner) {
+        return res.status(404).json({ message: "Hero banner não encontrado" });
+      }
+      
+      res.json(heroBanner);
+    } catch (error) {
+      console.error("Error updating hero banner:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Erro ao atualizar hero banner" });
+    }
+  });
+
+  // DELETE /api/hero-banners/:id - Deletar hero banner (Admin)
+  app.delete('/api/hero-banners/:id', isAuthenticatedCustom, isSuperAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteHeroBanner(id);
+      res.json({ message: "Hero banner deletado com sucesso" });
+    } catch (error) {
+      console.error("Error deleting hero banner:", error);
+      res.status(500).json({ message: "Erro ao deletar hero banner" });
     }
   });
 

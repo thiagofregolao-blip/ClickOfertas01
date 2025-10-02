@@ -24,6 +24,7 @@ import {
   banners,
   bannerViews,
   bannerClicks,
+  heroBanners,
   // Sistema de raspadinha diária
   dailyPrizes,
   userDailyAttempts,
@@ -115,6 +116,9 @@ import {
   type InsertPriceAlert,
   type Banner,
   type InsertBanner,
+  type HeroBanner,
+  type InsertHeroBanner,
+  type UpdateHeroBanner,
   // Tipos do sistema de raspadinha diária
   type DailyPrize,
   type InsertDailyPrize,
@@ -413,6 +417,13 @@ export interface IStorage {
   getBannerViewCount(startDate: Date): Promise<number>;
   createBannerView(view: { bannerId: string; sessionId: string; userAgent?: string; ipAddress: string }): Promise<void>;
   createBannerClick(click: { bannerId: string; sessionId: string; userAgent?: string; ipAddress: string }): Promise<void>;
+
+  // Hero Banner operations
+  getAllHeroBanners(): Promise<HeroBanner[]>;
+  getActiveHeroBanners(): Promise<HeroBanner[]>;
+  createHeroBanner(data: InsertHeroBanner): Promise<HeroBanner>;
+  updateHeroBanner(id: string, data: UpdateHeroBanner): Promise<HeroBanner | undefined>;
+  deleteHeroBanner(id: string): Promise<void>;
 
   // Assistant operations - Conversational Shopping Assistant
   createAssistantSession(session: InsertAssistantSession): Promise<AssistantSession>;
@@ -2944,6 +2955,47 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(eq(banners.id, bannerId));
+  }
+
+  // Hero Banner operations
+  async getAllHeroBanners(): Promise<HeroBanner[]> {
+    return await db
+      .select()
+      .from(heroBanners)
+      .orderBy(asc(heroBanners.sortOrder), desc(heroBanners.createdAt));
+  }
+
+  async getActiveHeroBanners(): Promise<HeroBanner[]> {
+    return await db
+      .select()
+      .from(heroBanners)
+      .where(eq(heroBanners.isActive, true))
+      .orderBy(asc(heroBanners.sortOrder), desc(heroBanners.createdAt));
+  }
+
+  async createHeroBanner(data: InsertHeroBanner): Promise<HeroBanner> {
+    const [heroBanner] = await db
+      .insert(heroBanners)
+      .values(data)
+      .returning();
+    
+    return heroBanner;
+  }
+
+  async updateHeroBanner(id: string, data: UpdateHeroBanner): Promise<HeroBanner | undefined> {
+    const [heroBanner] = await db
+      .update(heroBanners)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(heroBanners.id, id))
+      .returning();
+    
+    return heroBanner;
+  }
+
+  async deleteHeroBanner(id: string): Promise<void> {
+    await db
+      .delete(heroBanners)
+      .where(eq(heroBanners.id, id));
   }
 
   // ==========================================
