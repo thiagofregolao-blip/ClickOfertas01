@@ -1093,20 +1093,18 @@ export class IntelligentVendor {
       console.log(`🔍 [Gemini] Search Context length: ${searchContext.length} chars`);
       console.log(`🔍 [Gemini] Search Context: "${searchContext}"`);
       
-      let conversationHistory = this.conversationHistories.get(userId) || [];
-      if (conversationHistory.length === 0) {
-        console.log(`📝 [Gemini] Inicializando histórico com system prompt`);
-        conversationHistory.push({
+      // 🚨 FIX: SEMPRE reinicialize o histórico para evitar corrupção
+      console.log(`📝 [Gemini] 🔄 REINICIANDO histórico limpo`);
+      let conversationHistory = [
+        {
           role: 'user',
           parts: [{ text: systemPrompt }]
-        });
-        conversationHistory.push({
+        },
+        {
           role: 'model',
-          parts: [{ text: 'Entendido! Como posso ajudar?' }]
-        });
-      } else {
-        console.log(`📝 [Gemini] Usando histórico existente (${conversationHistory.length} mensagens)`);
-      }
+          parts: [{ text: 'Entendido! Vou ajudar de forma breve e direta.' }]
+        }
+      ];
       
       // 🎯 FIX: Build complete, actionable message for Gemini
       let contextWithProducts = `Cliente perguntou: "${message}"`;
@@ -1150,7 +1148,15 @@ export class IntelligentVendor {
         fullResponse += chunkText;
         yield chunkText;
       }
-      console.log(`🤖 [Gemini] Stream concluído. Total de chunks: ${chunkCount}, Resposta completa: ${fullResponse.length} chars`)
+      console.log(`🤖 [Gemini] Stream concluído. Total de chunks: ${chunkCount}, Resposta completa: ${fullResponse.length} chars`);
+      
+      // 🚨 SAFETY: Se Gemini não respondeu nada, gere resposta fallback
+      if (fullResponse.length === 0 && foundProducts.length > 0) {
+        const fallbackText = `Encontrei ${foundProducts.length} opções de iPhone! Confira os produtos acima 📱`;
+        console.log(`⚠️ [Gemini] FALLBACK ativado: "${fallbackText}"`);
+        fullResponse = fallbackText;
+        yield fallbackText;
+      }
       
       conversationHistory.push({
         role: 'model',
