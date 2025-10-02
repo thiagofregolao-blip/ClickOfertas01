@@ -8016,7 +8016,7 @@ Regras:
         }
         
         if (chunk.startsWith('\n\n__PRODUCTS__')) {
-          // Processar produtos enviados imediatamente
+          // 🎯 FIX: Process products marker and emit proper SSE event
           const productsStr = chunk.replace('\n\n__PRODUCTS__', '');
           try {
             const productsData = JSON.parse(productsStr);
@@ -8037,6 +8037,26 @@ Regras:
             }
           } catch (e) {
             console.error('❌ [V2] Error parsing products:', e);
+          }
+        } else if (chunk.startsWith('\n\n__SUGGESTIONS__')) {
+          // 🎯 FIX: Process suggestions marker and emit proper SSE event
+          const suggestionsStr = chunk.replace('\n\n__SUGGESTIONS__', '');
+          try {
+            const suggestionsData = JSON.parse(suggestionsStr);
+            console.log(`🔍 [V2] DEBUG - Sugestões parseadas:`, suggestionsData);
+            if (suggestionsData?.suggestions && Array.isArray(suggestionsData.suggestions) && suggestionsData.suggestions.length > 0) {
+              console.log(`💡 [V2] ✅ Enviando ${suggestionsData.suggestions.length} sugestões via SSE`);
+              const payload = { 
+                suggestions: suggestionsData.suggestions,
+                provider: 'intelligent-vendor-v2',
+                timestamp: new Date().toISOString()
+              };
+              send('suggestions', payload);
+            } else {
+              console.log(`⚠️ [V2] Sugestões inválidas ou vazias:`, suggestionsData);
+            }
+          } catch (e) {
+            console.error('❌ [V2] Error parsing suggestions:', e);
           }
         } else if (chunk.startsWith('\n\n__METADATA__')) {
           const metadataStr = chunk.replace('\n\n__METADATA__', '');
