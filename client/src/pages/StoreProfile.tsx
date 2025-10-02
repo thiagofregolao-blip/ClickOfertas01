@@ -20,7 +20,7 @@ export default function StoreProfile() {
   const itemsPerPage = 9;
 
   const { data: store, isLoading } = useQuery<StoreWithProducts>({
-    queryKey: ["/api/public/stores", slug],
+    queryKey: [`/api/public/stores/${slug}`],
     enabled: !!slug,
   });
 
