@@ -1122,8 +1122,11 @@ export class IntelligentVendor {
         history: conversationHistory.slice(0, -1)
       });
       
+      const lastMessage = conversationHistory[conversationHistory.length - 1].parts[0].text;
       console.log(`🤖 [Gemini] Enviando mensagem para o modelo...`);
-      const result = await chat.sendMessageStream(conversationHistory[conversationHistory.length - 1].parts[0].text);
+      console.log(`🤖 [Gemini] Mensagem completa (${lastMessage.length} chars): "${lastMessage.substring(0, 200)}..."`);
+      console.log(`🤖 [Gemini] História do chat (${conversationHistory.length - 1} mensagens anteriores)`);
+      const result = await chat.sendMessageStream(lastMessage);
       console.log(`🤖 [Gemini] Stream iniciado, aguardando chunks...`);
       
       let fullResponse = '';
