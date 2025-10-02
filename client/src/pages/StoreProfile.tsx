@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, MapPin, Phone, Clock, Store as StoreIcon, Package, TrendingUp, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Store, Product } from "@shared/schema";
 
@@ -23,6 +23,11 @@ export default function StoreProfile() {
     queryKey: [`/api/public/stores/${slug}`],
     enabled: !!slug,
   });
+
+  // Reset página quando filtros mudam
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedFilter]);
 
   const filteredProducts = useMemo(() => {
     if (!store?.products) return [];
