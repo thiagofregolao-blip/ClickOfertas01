@@ -1088,8 +1088,14 @@ export class IntelligentVendor {
       const systemPrompt = buildSystemPrompt(memory, emotionalState, insights);
       const searchContext = buildSearchContext(memory);
       
+      console.log(`🧠 [Gemini] System Prompt length: ${systemPrompt.length} chars`);
+      console.log(`🧠 [Gemini] System Prompt: "${systemPrompt.substring(0, 300)}..."`);
+      console.log(`🔍 [Gemini] Search Context length: ${searchContext.length} chars`);
+      console.log(`🔍 [Gemini] Search Context: "${searchContext}"`);
+      
       let conversationHistory = this.conversationHistories.get(userId) || [];
       if (conversationHistory.length === 0) {
+        console.log(`📝 [Gemini] Inicializando histórico com system prompt`);
         conversationHistory.push({
           role: 'user',
           parts: [{ text: systemPrompt }]
@@ -1098,6 +1104,8 @@ export class IntelligentVendor {
           role: 'model',
           parts: [{ text: 'Entendido! Como posso ajudar?' }]
         });
+      } else {
+        console.log(`📝 [Gemini] Usando histórico existente (${conversationHistory.length} mensagens)`);
       }
       
       // 🎯 FIX: More concise context for AI
