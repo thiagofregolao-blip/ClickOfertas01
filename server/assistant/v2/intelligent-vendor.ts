@@ -1033,6 +1033,9 @@ export class IntelligentVendor {
     try {
       this.ensureSession(userId);
 
+      // 🎯 FIX: Yield immediately to keep connection alive
+      yield ''; // Keep-alive signal
+      
       const memory = memoryManager.getMemory(userId);
       const emotionalState = emotionalAnalyzer.analyzeEmotion(message);
       const intent = extractIntent(message);
