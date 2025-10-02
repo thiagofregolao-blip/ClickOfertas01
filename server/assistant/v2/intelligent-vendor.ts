@@ -40,7 +40,7 @@ export class IntelligentVendor {
     
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({ 
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash', // 🐛 FIX: Corrected from 'gemini-2.5-flash' (which doesn't exist)
       generationConfig: {
         temperature: 0.7, // 🎯 FIX: Reduced from 0.9 for more focused responses
         topP: 0.9,        // 🎯 FIX: Reduced from 0.95
