@@ -1,0 +1,44 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+GeminiAssistantBar.tsx:123 🎧 [GeminiAssistantBar] Registrando event listeners Gemini
+GeminiAssistantBar.tsx:194 🤖 [GeminiAssistantBar] Componente inicializado
+GeminiAssistantBar.tsx:205 ✅ [GeminiAssistantBar] Sessão criada/sincronizada: Object
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/48d476c0-e9ad-4912-9f70-d4c6da3fddf8:1 Manifest: property 'start_url' ignored, URL is invalid.Understand this warning
+blob:https://769d3079-5ac1-42d2-88f5-ad90c4132ebc-00-1c7fv31fqwb4y.spock.replit.dev/48d476c0-e9ad-4912-9f70-d4c6da3fddf8:1 Manifest: property 'scope' ignored, URL is invalid.Understand this warning
+GeminiAssistantBar.tsx:637 🔄 [GeminiAssistantBar] Resetando estado para nova consulta Gemini: drones
+GeminiAssistantBar.tsx:315 🚀 [V2] start stream Object
+GeminiAssistantBar.tsx:368 🔍 [V2] Linhas SSE brutas recebidas: Array(3)
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: delta
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "delta": {"text":""}
+GeminiAssistantBar.tsx:407 📦 [V2] SSE delta parsed > Object
+GeminiAssistantBar.tsx:368 🔍 [V2] Linhas SSE brutas recebidas: Array(9)
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: delta
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "delta": {"text":"Desculpe, não encontrei \"drones\" no momento. Que tal tentar \"celular\", \"notebook\" ou 
+GeminiAssistantBar.tsx:407 📦 [V2] SSE delta parsed > Object
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: emotion
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "emotion": {"emotion":"neutral","intensity":0.3,"confidence":0.5}
+GeminiAssistantBar.tsx:407 📦 [V2] SSE emotion parsed > Object
+GeminiAssistantBar.tsx:481 😊 [V2] Emoção via evento nomeado: neutral
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: complete
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "complete": {"provider":"intelligent-vendor-v2"}
+GeminiAssistantBar.tsx:407 📦 [V2] SSE complete parsed > Object
+GeminiAssistantBar.tsx:358 ✅ [V2] Stream concluído
+GeminiAssistantBar.tsx:637 🔄 [GeminiAssistantBar] Resetando estado para nova consulta Gemini: drone
+GeminiAssistantBar.tsx:315 🚀 [V2] start stream Object
+GeminiAssistantBar.tsx:368 🔍 [V2] Linhas SSE brutas recebidas: Array(3)
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: delta
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "delta": {"text":""}
+GeminiAssistantBar.tsx:407 📦 [V2] SSE delta parsed > Object
+GeminiAssistantBar.tsx:368 🔍 [V2] Linhas SSE brutas recebidas: Array(9)
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: delta
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "delta": {"text":"Desculpe, não encontrei \"drone\" no momento. Que tal tentar \"celular\", \"notebook\" ou \
+GeminiAssistantBar.tsx:407 📦 [V2] SSE delta parsed > Object
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: emotion
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "emotion": {"emotion":"neutral","intensity":0.3,"confidence":0.5}
+GeminiAssistantBar.tsx:407 📦 [V2] SSE emotion parsed > Object
+GeminiAssistantBar.tsx:481 😊 [V2] Emoção via evento nomeado: neutral
+GeminiAssistantBar.tsx:390 📡 [V2] 🎯 Evento SSE detectado: complete
+GeminiAssistantBar.tsx:403 📨 [V2] SSE data recebido para evento "complete": {"provider":"intelligent-vendor-v2"}
+GeminiAssistantBar.tsx:407 📦 [V2] SSE complete parsed > Object
+GeminiAssistantBar.tsx:358 ✅ [V2] Stream concluído

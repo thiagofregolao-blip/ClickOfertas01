@@ -117,7 +117,8 @@ export class IntelligentVendor {
 
     // 🎯 USE CANONICAL LIST: Load canon data
     const canon = loadCanon();
-    console.log(`📚 [V2] Canon carregado: ${Object.keys(canon.productCanon).length} produtos, ${Object.keys(canon.categoryCanon).length} categorias, ${Object.keys(canon.subcategoryCanon).length} subcategorias`);
+    const subcategoryCount = canon.subcategoryCanon ? Object.keys(canon.subcategoryCanon).length : 0;
+    console.log(`📚 [V2] Canon carregado: ${Object.keys(canon.productCanon).length} produtos, ${Object.keys(canon.categoryCanon).length} categorias, ${subcategoryCount} subcategorias`);
 
     // 🎯 USE CANONICAL LIST: Detect products using productCanon
     const words = messageLower.split(/\s+/);
@@ -287,6 +288,41 @@ export class IntelligentVendor {
   }
 
   /**
+   * 🎯 HIERARCHICAL CATEGORIES: Fetch category IDs from slugs
+   */
+  private async getCategoryIdsFromSlugs(subcategories: string[], parentCategories: string[]): Promise<{ subcategoryIds: string[], parentCategoryIds: string[] }> {
+    try {
+      const { categories } = await import('@shared/schema');
+      
+      const subcategoryIds: string[] = [];
+      const parentCategoryIds: string[] = [];
+      
+      if (subcategories.length > 0) {
+        const subcatResults = await db
+          .select({ id: categories.id })
+          .from(categories)
+          .where(or(...subcategories.map(slug => eq(categories.slug, slug))));
+        subcategoryIds.push(...subcatResults.map(c => c.id));
+        console.log(`📦 [V2] Subcategorias mapeadas: ${subcategories.join(', ')} → ${subcategoryIds.length} IDs`);
+      }
+      
+      if (parentCategories.length > 0) {
+        const parentResults = await db
+          .select({ id: categories.id })
+          .from(categories)
+          .where(or(...parentCategories.map(slug => eq(categories.slug, slug))));
+        parentCategoryIds.push(...parentResults.map(c => c.id));
+        console.log(`📁 [V2] Categorias pai mapeadas: ${parentCategories.join(', ')} → ${parentCategoryIds.length} IDs`);
+      }
+      
+      return { subcategoryIds, parentCategoryIds };
+    } catch (error) {
+      console.error('❌ [V2] Erro ao buscar IDs de categorias:', error);
+      return { subcategoryIds: [], parentCategoryIds: [] };
+    }
+  }
+
+  /**
    * 🎯 COMPREHENSIVE FIX: Strict category-aware product search with enhanced filtering
    */
   private async searchProducts(userId: string, message: string, limit: number = 10): Promise<any[]> {
@@ -308,9 +344,16 @@ export class IntelligentVendor {
       
       console.log(`🔍 [V2] Busca contextual para: "${searchTerm}"`, { entities });
       
+      // 🎯 HIERARCHICAL: Map slugs to category IDs
+      const { subcategoryIds, parentCategoryIds } = await this.getCategoryIdsFromSlugs(
+        entities.subcategories || [],
+        entities.categories || []
+      );
+      
       // 🎯 COMPREHENSIVE FIX: Determine if strict category filtering is needed
       const hasSpecificBrandOrModel = entities.brands.length > 0 || entities.models.length > 0;
-      const shouldEnforceCategory = hasSpecificBrandOrModel && entities.categories.length > 0;
+      const hasCategoryFilter = subcategoryIds.length > 0 || parentCategoryIds.length > 0 || entities.categories.length > 0;
+      const shouldEnforceCategory = hasSpecificBrandOrModel && hasCategoryFilter;
       
       if (shouldEnforceCategory) {
         console.log(`🔒 [V2] STRICT MODE: Enforcing category filter for brands/models`);
@@ -322,14 +365,35 @@ export class IntelligentVendor {
         eq(stores.isActive, true)
       ];
 
-      // 🎯 COMPREHENSIVE FIX: Add mandatory category filter when brand/model detected
+      // 🎯 HIERARCHICAL: Add category filter using IDs or fallback to text
       if (shouldEnforceCategory) {
-        mandatoryConditions.push(
-          or(...entities.categories.map(category => 
-            sql`LOWER(${products.category}) LIKE ${`%${category}%`}`
-          ))
-        );
-        console.log(`🔒 [V2] Categoria obrigatória adicionada: [${entities.categories.join(', ')}]`);
+        const categoryConditions: any[] = [];
+        
+        // Search by subcategory IDs (most specific)
+        if (subcategoryIds.length > 0) {
+          categoryConditions.push(or(...subcategoryIds.map(id => eq(products.categoryId, id))));
+          console.log(`📦 [V2] Filtrando por subcategoria IDs: ${subcategoryIds.length}`);
+        }
+        
+        // Search by parent category IDs
+        if (parentCategoryIds.length > 0) {
+          categoryConditions.push(or(...parentCategoryIds.map(id => eq(products.parentCategoryId, id))));
+          console.log(`📁 [V2] Filtrando por categoria pai IDs: ${parentCategoryIds.length}`);
+        }
+        
+        // Fallback to text search for products without categoryId
+        if (entities.categories.length > 0) {
+          categoryConditions.push(
+            or(...entities.categories.map(category => 
+              sql`LOWER(${products.category}) LIKE ${`%${category}%`}`
+            ))
+          );
+        }
+        
+        if (categoryConditions.length > 0) {
+          mandatoryConditions.push(or(...categoryConditions));
+          console.log(`🔒 [V2] Filtro de categoria adicionado com ${categoryConditions.length} condições`);
+        }
       }
 
       // Condições OPCIONAIS de busca (aplicadas com OR entre si, mas AND com obrigatórias)
@@ -353,13 +417,29 @@ export class IntelligentVendor {
         );
       }
 
-      // 🎯 FIX: Only add category to search conditions if NOT in strict mode
-      if (!shouldEnforceCategory && entities.categories.length > 0) {
-        searchConditions.push(
-          or(...entities.categories.map(category => 
-            sql`LOWER(${products.category}) LIKE ${`%${category}%`}`
-          ))
-        );
+      // 🎯 HIERARCHICAL: Add category to search conditions if NOT in strict mode
+      if (!shouldEnforceCategory && (subcategoryIds.length > 0 || parentCategoryIds.length > 0 || entities.categories.length > 0)) {
+        const categorySearchConditions: any[] = [];
+        
+        if (subcategoryIds.length > 0) {
+          categorySearchConditions.push(or(...subcategoryIds.map(id => eq(products.categoryId, id))));
+        }
+        
+        if (parentCategoryIds.length > 0) {
+          categorySearchConditions.push(or(...parentCategoryIds.map(id => eq(products.parentCategoryId, id))));
+        }
+        
+        // Fallback to text for products without IDs
+        if (entities.categories.length > 0) {
+          categorySearchConditions.push(
+            or(...entities.categories.map(category => 
+              sql`LOWER(${products.category}) LIKE ${`%${category}%`}`
+            ))
+          );
+        }
+        
+        searchConditions.push(or(...categorySearchConditions));
+        console.log(`📦 [V2] Categoria adicionada às condições de busca (${categorySearchConditions.length} condições)`);
       }
 
       // 🎯 NEW FIX: Enhanced text search with normalized matching
