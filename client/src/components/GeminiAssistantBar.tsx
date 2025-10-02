@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation } from 'wouter';
 import { LazyImage } from './lazy-image';
 import { useSuggestions } from '@/hooks/use-suggestions';
@@ -787,7 +788,7 @@ export default function GeminiAssistantBar() {
       </div>
 
       {/* Overlay de Resultados Gemini */}
-      {showResults && (
+      {showResults && createPortal(
         <div className="fixed inset-0 bg-black/50 z-[9999] flex items-start justify-center pt-4 px-4 overflow-y-auto">
           <div className="bg-white dark:bg-gray-900 w-full max-w-6xl h-[90vh] rounded-2xl shadow-2xl flex flex-col">
             
@@ -1052,7 +1053,8 @@ export default function GeminiAssistantBar() {
               </form>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
