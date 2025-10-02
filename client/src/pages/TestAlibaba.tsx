@@ -98,7 +98,7 @@ export default function TestAlibaba() {
       </div>
 
       {/* Header */}
-      <header className="bg-gray-900 text-white sticky top-0 z-40 shadow-lg">
+      <header className="bg-gray-900 text-white sticky top-0 z-30 shadow-lg">
         <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex items-center justify-between">
             {/* Logo */}
