@@ -73,6 +73,17 @@ const categorySchema = z.object({
 
 type CategoryFormData = z.infer<typeof categorySchema>;
 
+// Hero Banner schema
+const heroBannerSchema = z.object({
+  imageUrl: z.string().url("URL da imagem inválida"),
+  title: z.string().min(1, "Título é obrigatório"),
+  description: z.string().optional(),
+  sortOrder: z.coerce.number().min(0).default(0),
+  isActive: z.boolean().default(true),
+});
+
+type HeroBannerFormData = z.infer<typeof heroBannerSchema>;
+
 interface Category {
   id: string;
   name: string;
@@ -80,6 +91,17 @@ interface Category {
   slug: string;
   isActive: boolean;
   sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface HeroBanner {
+  id: string;
+  imageUrl: string;
+  title: string;
+  description?: string;
+  sortOrder: number;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -782,6 +804,444 @@ function AITestInterface() {
           </CardContent>
         </Card>
       </div>
+    </div>
+  );
+}
+
+// ========== HERO BANNER MANAGER COMPONENT ==========
+function HeroBannerManager() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingBanner, setEditingBanner] = useState<HeroBanner | null>(null);
+  const [imagePreview, setImagePreview] = useState("");
+
+  const heroBannerForm = useForm<HeroBannerFormData>({
+    resolver: zodResolver(heroBannerSchema),
+    defaultValues: {
+      imageUrl: "",
+      title: "",
+      description: "",
+      sortOrder: 0,
+      isActive: true,
+    },
+  });
+
+  const { data: heroBanners = [], isLoading } = useQuery<HeroBanner[]>({
+    queryKey: ['/api/hero-banners'],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: HeroBannerFormData) => {
+      return await apiRequest('POST', '/api/hero-banners', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/hero-banners'] });
+      setIsCreateOpen(false);
+      setEditingBanner(null);
+      heroBannerForm.reset();
+      setImagePreview("");
+      toast({
+        title: "Banner criado",
+        description: "Hero Banner criado com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao criar banner",
+        description: error.message || "Não foi possível criar o banner.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<HeroBannerFormData> }) => {
+      return await apiRequest('PATCH', `/api/hero-banners/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/hero-banners'] });
+      setIsCreateOpen(false);
+      setEditingBanner(null);
+      heroBannerForm.reset();
+      setImagePreview("");
+      toast({
+        title: "Banner atualizado",
+        description: "Hero Banner atualizado com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao atualizar banner",
+        description: error.message || "Não foi possível atualizar o banner.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest('DELETE', `/api/hero-banners/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/hero-banners'] });
+      toast({
+        title: "Banner deletado",
+        description: "Hero Banner removido com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao deletar banner",
+        description: error.message || "Não foi possível deletar o banner.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      return await apiRequest('PATCH', `/api/hero-banners/${id}`, { isActive });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/hero-banners'] });
+      toast({
+        title: "Status atualizado",
+        description: "Status do banner atualizado com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao atualizar status",
+        description: error.message || "Não foi possível atualizar o status.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: HeroBannerFormData) => {
+    if (editingBanner) {
+      updateMutation.mutate({ id: editingBanner.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  const handleEdit = (banner: HeroBanner) => {
+    setEditingBanner(banner);
+    heroBannerForm.reset({
+      imageUrl: banner.imageUrl,
+      title: banner.title,
+      description: banner.description || "",
+      sortOrder: banner.sortOrder,
+      isActive: banner.isActive,
+    });
+    setImagePreview(banner.imageUrl);
+    setIsCreateOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm("Tem certeza que deseja deletar este Hero Banner?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleToggleActive = (banner: HeroBanner) => {
+    toggleActiveMutation.mutate({ id: banner.id, isActive: !banner.isActive });
+  };
+
+  const sortedBanners = [...heroBanners].sort((a, b) => a.sortOrder - b.sortOrder);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
+            <Image className="w-6 h-6 text-purple-600" />
+            Gerenciamento de Hero Banners
+          </h2>
+          <p className="text-gray-500 mt-1">
+            Gerencie os banners principais exibidos no topo da página inicial
+          </p>
+        </div>
+
+        <Dialog open={isCreateOpen || !!editingBanner} onOpenChange={(open) => {
+          if (!open) {
+            setIsCreateOpen(false);
+            setEditingBanner(null);
+            heroBannerForm.reset();
+            setImagePreview("");
+          }
+        }}>
+          <DialogTrigger asChild>
+            <Button
+              onClick={() => setIsCreateOpen(true)}
+              className="bg-purple-600 hover:bg-purple-700"
+              data-testid="button-create-hero-banner"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Criar Hero Banner
+            </Button>
+          </DialogTrigger>
+
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>
+                {editingBanner ? 'Editar Hero Banner' : 'Criar Novo Hero Banner'}
+              </DialogTitle>
+              <DialogDescription>
+                {editingBanner 
+                  ? 'Atualize as informações do banner principal.' 
+                  : 'Crie um novo banner para o carrossel principal da página inicial.'
+                }
+              </DialogDescription>
+            </DialogHeader>
+
+            <Form {...heroBannerForm}>
+              <form onSubmit={heroBannerForm.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={heroBannerForm.control}
+                  name="imageUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>URL da Imagem</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="https://exemplo.com/imagem.jpg" 
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            setImagePreview(e.target.value);
+                          }}
+                          data-testid="input-hero-banner-image-url"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {imagePreview && (
+                  <div className="border rounded-lg p-4 bg-gray-50">
+                    <p className="text-sm text-gray-600 mb-2">Preview da Imagem:</p>
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      className="w-full max-h-48 object-cover rounded"
+                      onError={() => setImagePreview("")}
+                    />
+                  </div>
+                )}
+
+                <FormField
+                  control={heroBannerForm.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Título</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Digite o título do banner" 
+                          {...field}
+                          data-testid="input-hero-banner-title"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={heroBannerForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição (Opcional)</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Digite uma descrição para o banner" 
+                          {...field}
+                          rows={3}
+                          data-testid="textarea-hero-banner-description"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={heroBannerForm.control}
+                    name="sortOrder"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ordem</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            data-testid="input-hero-banner-sort-order"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Ordem de exibição (menor primeiro)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={heroBannerForm.control}
+                    name="isActive"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col justify-between">
+                        <FormLabel>Status</FormLabel>
+                        <div className="flex items-center space-x-2">
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              data-testid="switch-hero-banner-active"
+                            />
+                          </FormControl>
+                          <span className="text-sm text-gray-600">
+                            {field.value ? 'Ativo' : 'Inativo'}
+                          </span>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <DialogFooter>
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={() => {
+                      setIsCreateOpen(false);
+                      setEditingBanner(null);
+                      heroBannerForm.reset();
+                      setImagePreview("");
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit"
+                    className="bg-purple-600 hover:bg-purple-700"
+                    disabled={createMutation.isPending || updateMutation.isPending}
+                    data-testid="button-submit-hero-banner"
+                  >
+                    {createMutation.isPending || updateMutation.isPending ? 'Salvando...' : 'Salvar'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="animate-pulse">
+              <div className="h-48 bg-gray-200 rounded-lg"></div>
+            </div>
+          ))}
+        </div>
+      ) : sortedBanners.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Image className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum Hero Banner cadastrado</h3>
+            <p className="text-gray-500 mb-4">Comece criando seu primeiro banner principal</p>
+            <Button
+              onClick={() => setIsCreateOpen(true)}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Criar Primeiro Banner
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {sortedBanners.map((banner) => (
+            <Card key={banner.id} className="overflow-hidden" data-testid={`hero-banner-card-${banner.id}`}>
+              <div className="relative">
+                <img 
+                  src={banner.imageUrl} 
+                  alt={banner.title}
+                  className="w-full h-40 object-cover"
+                />
+                <div className="absolute top-2 right-2 flex gap-2">
+                  <Badge variant={banner.isActive ? "default" : "secondary"}>
+                    {banner.isActive ? 'Ativo' : 'Inativo'}
+                  </Badge>
+                  <Badge variant="outline" className="bg-white">
+                    Ordem: {banner.sortOrder}
+                  </Badge>
+                </div>
+              </div>
+              
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-lg mb-1 truncate">{banner.title}</h3>
+                {banner.description && (
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{banner.description}</p>
+                )}
+                
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEdit(banner)}
+                    className="flex-1"
+                    data-testid={`button-edit-hero-banner-${banner.id}`}
+                  >
+                    <Edit2 className="w-3 h-3 mr-1" />
+                    Editar
+                  </Button>
+                  
+                  <Button
+                    size="sm"
+                    variant={banner.isActive ? "secondary" : "default"}
+                    onClick={() => handleToggleActive(banner)}
+                    disabled={toggleActiveMutation.isPending}
+                    data-testid={`button-toggle-hero-banner-${banner.id}`}
+                  >
+                    {banner.isActive ? (
+                      <>
+                        <EyeOff className="w-3 h-3 mr-1" />
+                        Desativar
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-3 h-3 mr-1" />
+                        Ativar
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleDelete(banner.id)}
+                    disabled={deleteMutation.isPending}
+                    data-testid={`button-delete-hero-banner-${banner.id}`}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -2864,6 +3324,10 @@ export default function SuperAdmin() {
                   <Image className="w-4 h-4 mr-2" />
                   Banners
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("hero-banners")} className="cursor-pointer">
+                  <Image className="w-4 h-4 mr-2" />
+                  Banners Hero
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setActiveTab("categories")} className="cursor-pointer">
                   <Tag className="w-4 h-4 mr-2" />
                   Categorias
@@ -2961,6 +3425,7 @@ export default function SuperAdmin() {
               const tabNames = {
                 "dashboard": "Dashboard",
                 "banners": "Banners",
+                "hero-banners": "Banners Hero",
                 "stores": "Lojas", 
                 "users": "Usuários",
                 "promotions": "Prêmios",
@@ -3326,6 +3791,11 @@ export default function SuperAdmin() {
                 </Card>
               )}
             </div>
+          </TabsContent>
+
+          {/* ABA DE HERO BANNERS */}
+          <TabsContent value="hero-banners" className="space-y-6">
+            <HeroBannerManager />
           </TabsContent>
 
           {/* ABA DE LOJAS */}
